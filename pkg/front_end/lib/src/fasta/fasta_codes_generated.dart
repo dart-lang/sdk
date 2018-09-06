@@ -109,7 +109,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
     codeAmbiguousSupertypes =
     const Code<Message Function(String name, DartType _type, DartType _type2)>(
         "AmbiguousSupertypes", templateAmbiguousSupertypes,
-        analyzerCode: "AMBIGUOUS_SUPERTYPES", severity: Severity.error);
+        analyzerCode: "AMBIGUOUS_SUPERTYPES");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousSupertypes(
@@ -272,8 +272,7 @@ const Code<Message Function(String name, String name2)>
     const Code<Message Function(String name, String name2)>(
         "BoundIssueViaCycleNonSimplicity",
         templateBoundIssueViaCycleNonSimplicity,
-        analyzerCode: "NOT_INSTANTIATED_BOUND",
-        severity: Severity.error);
+        analyzerCode: "NOT_INSTANTIATED_BOUND");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaCycleNonSimplicity(
@@ -300,7 +299,7 @@ const Template<
 const Code<Message Function(String name)> codeBoundIssueViaLoopNonSimplicity =
     const Code<Message Function(String name)>("BoundIssueViaLoopNonSimplicity",
         templateBoundIssueViaLoopNonSimplicity,
-        analyzerCode: "NOT_INSTANTIATED_BOUND", severity: Severity.error);
+        analyzerCode: "NOT_INSTANTIATED_BOUND");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaLoopNonSimplicity(String name) {
@@ -326,8 +325,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "BoundIssueViaRawTypeWithNonSimpleBounds",
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
-        analyzerCode: "NOT_INSTANTIATED_BOUND",
-        severity: Severity.error);
+        analyzerCode: "NOT_INSTANTIATED_BOUND");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
@@ -544,8 +542,7 @@ const Template<
 const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
     const Code<Message Function(String string)>(
         "CantInferTypeDueToCircularity", templateCantInferTypeDueToCircularity,
-        analyzerCode: "RECURSIVE_COMPILE_TIME_CONSTANT",
-        severity: Severity.error);
+        analyzerCode: "RECURSIVE_COMPILE_TIME_CONSTANT");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToCircularity(String string) {
@@ -571,8 +568,7 @@ const Code<Message Function(String string)>
     const Code<Message Function(String string)>(
         "CantInferTypeDueToInconsistentOverrides",
         templateCantInferTypeDueToInconsistentOverrides,
-        analyzerCode: "INVALID_METHOD_OVERRIDE",
-        severity: Severity.error);
+        analyzerCode: "INVALID_METHOD_OVERRIDE");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
@@ -600,7 +596,7 @@ const Template<
 const Code<Message Function(Token token)> codeCantUseDeferredPrefixAsConstant =
     const Code<Message Function(Token token)>("CantUseDeferredPrefixAsConstant",
         templateCantUseDeferredPrefixAsConstant,
-        analyzerCode: "CONST_DEFERRED_CLASS", severity: Severity.error);
+        analyzerCode: "CONST_DEFERRED_CLASS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseDeferredPrefixAsConstant(Token token) {
@@ -621,7 +617,6 @@ const Code<Null> codeCantUsePrefixAsExpression =
 const MessageCode messageCantUsePrefixAsExpression = const MessageCode(
     "CantUsePrefixAsExpression",
     analyzerCode: "PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT",
-    severity: Severity.error,
     message: r"""A prefix can't be used as an expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -632,7 +627,6 @@ const Code<Null> codeCantUsePrefixWithNullAware =
 const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
     "CantUsePrefixWithNullAware",
     analyzerCode: "PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT",
-    severity: Severity.error,
     message: r"""A prefix can't be used with null-aware operators.""",
     tip: r"""It should be safe to remove the '?' as a prefix is never null.""");
 
@@ -651,9 +645,9 @@ const Template<Message Function(DartType _type)>
 const Code<Message Function(DartType _type)>
     codeCantUseSuperBoundedTypeForInstanceCreation =
     const Code<Message Function(DartType _type)>(
-        "CantUseSuperBoundedTypeForInstanceCreation",
-        templateCantUseSuperBoundedTypeForInstanceCreation,
-        severity: Severity.error);
+  "CantUseSuperBoundedTypeForInstanceCreation",
+  templateCantUseSuperBoundedTypeForInstanceCreation,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseSuperBoundedTypeForInstanceCreation(
@@ -711,7 +705,7 @@ const Template<Message Function(String name)> templateConflictsWithConstructor =
 const Code<Message Function(String name)> codeConflictsWithConstructor =
     const Code<Message Function(String name)>(
         "ConflictsWithConstructor", templateConflictsWithConstructor,
-        analyzerCode: "CONFLICTS_WITH_CONSTRUCTOR", severity: Severity.error);
+        analyzerCode: "CONFLICTS_WITH_CONSTRUCTOR");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithConstructor(String name) {
@@ -729,8 +723,9 @@ const Template<Message Function(String name)> templateConflictsWithFactory =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithFactory =
     const Code<Message Function(String name)>(
-        "ConflictsWithFactory", templateConflictsWithFactory,
-        severity: Severity.error);
+  "ConflictsWithFactory",
+  templateConflictsWithFactory,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithFactory(String name) {
@@ -749,7 +744,7 @@ const Template<Message Function(String name)> templateConflictsWithMember =
 const Code<Message Function(String name)> codeConflictsWithMember =
     const Code<Message Function(String name)>(
         "ConflictsWithMember", templateConflictsWithMember,
-        analyzerCode: "CONFLICTS_WITH_MEMBER", severity: Severity.error);
+        analyzerCode: "CONFLICTS_WITH_MEMBER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithMember(String name) {
@@ -789,7 +784,7 @@ const Template<Message Function(String name)> templateConflictsWithSetter =
 const Code<Message Function(String name)> codeConflictsWithSetter =
     const Code<Message Function(String name)>(
         "ConflictsWithSetter", templateConflictsWithSetter,
-        analyzerCode: "CONFLICTS_WITH_MEMBER", severity: Severity.error);
+        analyzerCode: "CONFLICTS_WITH_MEMBER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithSetter(String name) {
@@ -830,8 +825,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeConflictsWithTypeVariable =
     const Code<Message Function(String name)>(
         "ConflictsWithTypeVariable", templateConflictsWithTypeVariable,
-        analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_MEMBER",
-        severity: Severity.error);
+        analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_MEMBER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithTypeVariable(String name) {
@@ -908,7 +902,6 @@ const Code<Null> codeConstConstructorInSubclassOfMixinApplication =
 const MessageCode messageConstConstructorInSubclassOfMixinApplication =
     const MessageCode("ConstConstructorInSubclassOfMixinApplication",
         analyzerCode: "CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION",
-        severity: Severity.error,
         message: r"""Can't extend a mixin application and be 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -938,7 +931,6 @@ const Code<Null> codeConstConstructorRedirectionToNonConst =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorRedirectionToNonConst =
     const MessageCode("ConstConstructorRedirectionToNonConst",
-        severity: Severity.error,
         message:
             r"""A constant constructor can't call a non-constant constructor.""");
 
@@ -1342,7 +1334,6 @@ const Code<Null> codeConstFactoryRedirectionToNonConst =
 const MessageCode messageConstFactoryRedirectionToNonConst = const MessageCode(
     "ConstFactoryRedirectionToNonConst",
     analyzerCode: "REDIRECT_TO_NON_CONST_CONSTRUCTOR",
-    severity: Severity.error,
     message:
         r"""Constant factory constructor can't delegate to a non-constant constructor.""",
     tip:
@@ -1402,7 +1393,6 @@ const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
 const MessageCode messageConstructorCyclic = const MessageCode(
     "ConstructorCyclic",
     analyzerCode: "RECURSIVE_CONSTRUCTOR_REDIRECT",
-    severity: Severity.error,
     message: r"""Redirecting constructers can't be cyclic.""",
     tip:
         r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""");
@@ -1456,7 +1446,6 @@ const Code<Null> codeConstructorWithTypeArguments =
 const MessageCode messageConstructorWithTypeArguments = const MessageCode(
     "ConstructorWithTypeArguments",
     analyzerCode: "UNDEFINED_CLASS",
-    severity: Severity.error,
     message:
         r"""A constructor invocation can't have type arguments on the constructor name.""",
     tip: r"""Try to place the type arguments on the class name.""");
@@ -1469,7 +1458,6 @@ const Code<Null> codeConstructorWithTypeParameters =
 const MessageCode messageConstructorWithTypeParameters = const MessageCode(
     "ConstructorWithTypeParameters",
     analyzerCode: "TYPE_PARAMETER_ON_CONSTRUCTOR",
-    severity: Severity.error,
     message: r"""Constructors can't have type parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1479,7 +1467,6 @@ const Code<Null> codeConstructorWithWrongName = messageConstructorWithWrongName;
 const MessageCode messageConstructorWithWrongName = const MessageCode(
     "ConstructorWithWrongName",
     analyzerCode: "INVALID_CONSTRUCTOR_NAME",
-    severity: Severity.error,
     message:
         r"""The name of a constructor must match the name of the enclosing class.""");
 
@@ -1639,8 +1626,7 @@ const Code<Message Function(String name, String string)>
     codeCycleInTypeVariables =
     const Code<Message Function(String name, String string)>(
         "CycleInTypeVariables", templateCycleInTypeVariables,
-        analyzerCode: "TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND",
-        severity: Severity.error);
+        analyzerCode: "TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCycleInTypeVariables(String name, String string) {
@@ -1663,8 +1649,7 @@ const Code<Message Function(String name, String string)>
     codeCyclicClassHierarchy =
     const Code<Message Function(String name, String string)>(
         "CyclicClassHierarchy", templateCyclicClassHierarchy,
-        analyzerCode: "RECURSIVE_INTERFACE_INHERITANCE",
-        severity: Severity.error);
+        analyzerCode: "RECURSIVE_INTERFACE_INHERITANCE");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicClassHierarchy(String name, String string) {
@@ -1686,8 +1671,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "CyclicRedirectingFactoryConstructors",
         templateCyclicRedirectingFactoryConstructors,
-        analyzerCode: "RECURSIVE_FACTORY_REDIRECT",
-        severity: Severity.error);
+        analyzerCode: "RECURSIVE_FACTORY_REDIRECT");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
@@ -2099,7 +2083,7 @@ const Template<Message Function(String name)> templateDuplicatedName =
 const Code<Message Function(String name)> codeDuplicatedName =
     const Code<Message Function(String name)>(
         "DuplicatedName", templateDuplicatedName,
-        analyzerCode: "DUPLICATE_DEFINITION", severity: Severity.error);
+        analyzerCode: "DUPLICATE_DEFINITION");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedName(String name) {
@@ -2141,8 +2125,7 @@ const Template<
 const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsed", templateDuplicatedNamePreviouslyUsed,
-        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
-        severity: Severity.error);
+        analyzerCode: "REFERENCED_BEFORE_DECLARATION");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
@@ -2183,7 +2166,7 @@ const Template<Message Function(String name)> templateDuplicatedNamedArgument =
 const Code<Message Function(String name)> codeDuplicatedNamedArgument =
     const Code<Message Function(String name)>(
         "DuplicatedNamedArgument", templateDuplicatedNamedArgument,
-        analyzerCode: "DUPLICATE_NAMED_ARGUMENT", severity: Severity.error);
+        analyzerCode: "DUPLICATE_NAMED_ARGUMENT");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedNamedArgument(String name) {
@@ -2202,7 +2185,7 @@ const Template<Message Function(String name)> templateDuplicatedParameterName =
 const Code<Message Function(String name)> codeDuplicatedParameterName =
     const Code<Message Function(String name)>(
         "DuplicatedParameterName", templateDuplicatedParameterName,
-        analyzerCode: "DUPLICATE_DEFINITION", severity: Severity.error);
+        analyzerCode: "DUPLICATE_DEFINITION");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterName(String name) {
@@ -2308,7 +2291,6 @@ const Code<Null> codeEnumInstantiation = messageEnumInstantiation;
 const MessageCode messageEnumInstantiation = const MessageCode(
     "EnumInstantiation",
     analyzerCode: "INSTANTIATE_ENUM",
-    severity: Severity.error,
     message: r"""Enums can't be instantiated.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2544,7 +2526,7 @@ const Template<Message Function(Token token)> templateExpectedIdentifier =
 const Code<Message Function(Token token)> codeExpectedIdentifier =
     const Code<Message Function(Token token)>(
         "ExpectedIdentifier", templateExpectedIdentifier,
-        analyzerCode: "MISSING_IDENTIFIER", severity: Severity.error);
+        analyzerCode: "MISSING_IDENTIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedIdentifier(Token token) {
@@ -2569,7 +2551,6 @@ const Code<Null> codeExpectedOneExpression = messageExpectedOneExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedOneExpression = const MessageCode(
     "ExpectedOneExpression",
-    severity: Severity.error,
     message: r"""Expected one expression, but found additional input.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2637,7 +2618,7 @@ const Template<Message Function(Token token)> templateExpectedType =
 const Code<Message Function(Token token)> codeExpectedType =
     const Code<Message Function(Token token)>(
         "ExpectedType", templateExpectedType,
-        analyzerCode: "EXPECTED_TYPE_NAME", severity: Severity.error);
+        analyzerCode: "EXPECTED_TYPE_NAME");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedType(Token token) {
@@ -2708,7 +2689,7 @@ const Template<Message Function(String name)> templateExtendingEnum =
 const Code<Message Function(String name)> codeExtendingEnum =
     const Code<Message Function(String name)>(
         "ExtendingEnum", templateExtendingEnum,
-        analyzerCode: "EXTENDS_ENUM", severity: Severity.error);
+        analyzerCode: "EXTENDS_ENUM");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingEnum(String name) {
@@ -3038,7 +3019,7 @@ const Template<
 const Code<Message Function(String name)> codeFinalFieldNotInitialized =
     const Code<Message Function(String name)>(
         "FinalFieldNotInitialized", templateFinalFieldNotInitialized,
-        analyzerCode: "FINAL_NOT_INITIALIZED", severity: Severity.error);
+        analyzerCode: "FINAL_NOT_INITIALIZED");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldNotInitialized(String name) {
@@ -3067,8 +3048,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "FinalFieldNotInitializedByConstructor",
         templateFinalFieldNotInitializedByConstructor,
-        analyzerCode: "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1",
-        severity: Severity.error);
+        analyzerCode: "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldNotInitializedByConstructor(String name) {
@@ -3202,7 +3182,6 @@ const Code<Null> codeForInLoopExactlyOneVariable =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
     "ForInLoopExactlyOneVariable",
-    severity: Severity.error,
     message: r"""A for-in loop can't have more than one loop variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3211,7 +3190,6 @@ const Code<Null> codeForInLoopNotAssignable = messageForInLoopNotAssignable;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageForInLoopNotAssignable = const MessageCode(
     "ForInLoopNotAssignable",
-    severity: Severity.error,
     message:
         r"""Can't assign to this, so it can't be used in a for-in loop.""");
 
@@ -3301,7 +3279,6 @@ const Code<Null> codeGenericFunctionTypeInBound =
 const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
     "GenericFunctionTypeInBound",
     analyzerCode: "GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND",
-    severity: Severity.error,
     message:
         r"""Type variables can't have generic function types in their bounds.""");
 
@@ -3352,7 +3329,6 @@ const Code<Null> codeIllegalAsyncGeneratorReturnType =
 const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
     "IllegalAsyncGeneratorReturnType",
     analyzerCode: "ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE",
-    severity: Severity.error,
     message:
         r"""Functions marked 'async*' must have a return type assignable to 'Stream'.""");
 
@@ -3363,7 +3339,6 @@ const Code<Null> codeIllegalAsyncGeneratorVoidReturnType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageIllegalAsyncGeneratorVoidReturnType =
     const MessageCode("IllegalAsyncGeneratorVoidReturnType",
-        severity: Severity.error,
         message:
             r"""Functions marked 'async*' can't have return type 'void'.""");
 
@@ -3374,7 +3349,6 @@ const Code<Null> codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
 const MessageCode messageIllegalAsyncReturnType = const MessageCode(
     "IllegalAsyncReturnType",
     analyzerCode: "ILLEGAL_ASYNC_RETURN_TYPE",
-    severity: Severity.error,
     message:
         r"""Functions marked 'async' must have a return type assignable to 'Future'.""");
 
@@ -3450,7 +3424,6 @@ const Code<Null> codeIllegalSyncGeneratorReturnType =
 const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
     "IllegalSyncGeneratorReturnType",
     analyzerCode: "ILLEGAL_SYNC_GENERATOR_RETURN_TYPE",
-    severity: Severity.error,
     message:
         r"""Functions marked 'sync*' must have a return type assignable to 'Iterable'.""");
 
@@ -3461,7 +3434,6 @@ const Code<Null> codeIllegalSyncGeneratorVoidReturnType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
     "IllegalSyncGeneratorVoidReturnType",
-    severity: Severity.error,
     message: r"""Functions marked 'sync*' can't have return type 'void'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3500,7 +3472,6 @@ const Code<Null> codeImplementsFutureOr = messageImplementsFutureOr;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsFutureOr = const MessageCode(
     "ImplementsFutureOr",
-    severity: Severity.error,
     message: r"""'FutureOr' can't be used in an 'implements' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3567,7 +3538,7 @@ const Template<
 const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
     const Code<Message Function(DartType _type)>(
         "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
-        analyzerCode: "IMPLICIT_CALL_OF_NON_METHOD", severity: Severity.error);
+        analyzerCode: "IMPLICIT_CALL_OF_NON_METHOD");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
@@ -3968,27 +3939,6 @@ const MessageCode messageInternalProblemMissingContext = const MessageCode(
     message: r"""Compiler cannot run without a compiler context.""",
     tip:
         r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateInternalProblemMissingSeverity =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Message code missing severity: #string""",
-        withArguments: _withArgumentsInternalProblemMissingSeverity);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeInternalProblemMissingSeverity =
-    const Code<Message Function(String string)>(
-        "InternalProblemMissingSeverity",
-        templateInternalProblemMissingSeverity,
-        severity: Severity.internalProblem);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemMissingSeverity(String string) {
-  return new Message(codeInternalProblemMissingSeverity,
-      message: """Message code missing severity: ${string}""",
-      arguments: {'string': string});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
@@ -4645,7 +4595,6 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
     analyzerCode: "INVALID_INITIALIZER",
-    severity: Severity.error,
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -4740,7 +4689,6 @@ const Code<Null> codeInvalidVoid = messageInvalidVoid;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
     analyzerCode: "INVALID_USE_OF_VOID",
-    severity: Severity.error,
     message:
         r"""Type 'void' can't be used here because it isn't a return type.""",
     tip:
@@ -4757,7 +4705,7 @@ const Template<Message Function(String name)> templateInvokeNonFunction =
 const Code<Message Function(String name)> codeInvokeNonFunction =
     const Code<Message Function(String name)>(
         "InvokeNonFunction", templateInvokeNonFunction,
-        analyzerCode: "INVOCATION_OF_NON_FUNCTION", severity: Severity.error);
+        analyzerCode: "INVOCATION_OF_NON_FUNCTION");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvokeNonFunction(String name) {
@@ -4949,7 +4897,6 @@ const Code<Null> codeMissingArgumentList = messageMissingArgumentList;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingArgumentList = const MessageCode(
     "MissingArgumentList",
-    severity: Severity.error,
     message: r"""Constructor invocations must have an argument list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5200,8 +5147,7 @@ const Code<Message Function(String name, String name2, DartType _type)>
     codeMixinInferenceNoMatchingClass =
     const Code<Message Function(String name, String name2, DartType _type)>(
         "MixinInferenceNoMatchingClass", templateMixinInferenceNoMatchingClass,
-        analyzerCode: "MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION",
-        severity: Severity.error);
+        analyzerCode: "MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinInferenceNoMatchingClass(
@@ -5226,7 +5172,6 @@ const Code<Null> codeMoreThanOneSuperOrThisInitializer =
 const MessageCode messageMoreThanOneSuperOrThisInitializer = const MessageCode(
     "MoreThanOneSuperOrThisInitializer",
     analyzerCode: "SUPER_IN_REDIRECTING_CONSTRUCTOR",
-    severity: Severity.error,
     message: r"""Can't have more than one 'super' or 'this' initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5419,7 +5364,6 @@ const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
 const MessageCode messageNonConstConstructor = const MessageCode(
     "NonConstConstructor",
     analyzerCode: "NOT_CONSTANT_EXPRESSION",
-    severity: Severity.error,
     message:
         r"""Cannot invoke a non-'const' constructor where a const expression is expected.""",
     tip: r"""Try using a constructor or factory that is 'const'.""");
@@ -5430,7 +5374,6 @@ const Code<Null> codeNonConstFactory = messageNonConstFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
     analyzerCode: "NOT_CONSTANT_EXPRESSION",
-    severity: Severity.error,
     message:
         r"""Cannot invoke a non-'const' factory where a const expression is expected.""",
     tip: r"""Try using a constructor or factory that is 'const'.""");
@@ -5509,7 +5452,6 @@ const Code<Null> codeNotAConstantExpression = messageNotAConstantExpression;
 const MessageCode messageNotAConstantExpression = const MessageCode(
     "NotAConstantExpression",
     analyzerCode: "NOT_CONSTANT_EXPRESSION",
-    severity: Severity.error,
     message: r"""Not a constant expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5979,7 +5921,7 @@ const Template<
 const Code<Message Function(Uri uri_)> codePartOfInLibrary =
     const Code<Message Function(Uri uri_)>(
         "PartOfInLibrary", templatePartOfInLibrary,
-        analyzerCode: "IMPORT_OF_NON_LIBRARY", severity: Severity.error);
+        analyzerCode: "IMPORT_OF_NON_LIBRARY");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfInLibrary(Uri uri_) {
@@ -6046,7 +5988,6 @@ const Code<Null> codePartOfTwoLibraries = messagePartOfTwoLibraries;
 const MessageCode messagePartOfTwoLibraries = const MessageCode(
     "PartOfTwoLibraries",
     analyzerCode: "PART_OF_DIFFERENT_LIBRARY",
-    severity: Severity.error,
     message: r"""A file can't be part of more than one library.""",
     tip:
         r"""Try moving the shared declarations into the libraries, or into a new library.""");
@@ -6340,7 +6281,6 @@ const Code<Null> codeReturnFromVoidFunction = messageReturnFromVoidFunction;
 const MessageCode messageReturnFromVoidFunction = const MessageCode(
     "ReturnFromVoidFunction",
     analyzerCode: "RETURN_OF_INVALID_TYPE",
-    severity: Severity.error,
     message: r"""Can't return a value from a void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6645,7 +6585,6 @@ const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 const MessageCode messageSuperInitializerNotLast = const MessageCode(
     "SuperInitializerNotLast",
     analyzerCode: "INVALID_SUPER_INVOCATION",
-    severity: Severity.error,
     message: r"""Can't have initializers after 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6786,7 +6725,7 @@ const Template<Message Function(String name)> templateSupertypeIsIllegal =
 const Code<Message Function(String name)> codeSupertypeIsIllegal =
     const Code<Message Function(String name)>(
         "SupertypeIsIllegal", templateSupertypeIsIllegal,
-        analyzerCode: "EXTENDS_NON_CLASS", severity: Severity.error);
+        analyzerCode: "EXTENDS_NON_CLASS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsIllegal(String name) {
@@ -6806,7 +6745,7 @@ const Template<Message Function(String name)> templateSupertypeIsTypeVariable =
 const Code<Message Function(String name)> codeSupertypeIsTypeVariable =
     const Code<Message Function(String name)>(
         "SupertypeIsTypeVariable", templateSupertypeIsTypeVariable,
-        analyzerCode: "EXTENDS_NON_CLASS", severity: Severity.error);
+        analyzerCode: "EXTENDS_NON_CLASS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsTypeVariable(String name) {
@@ -6841,8 +6780,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
     codeSwitchExpressionNotAssignable =
     const Code<Message Function(DartType _type, DartType _type2)>(
         "SwitchExpressionNotAssignable", templateSwitchExpressionNotAssignable,
-        analyzerCode: "SWITCH_EXPRESSION_NOT_ASSIGNABLE",
-        severity: Severity.error);
+        analyzerCode: "SWITCH_EXPRESSION_NOT_ASSIGNABLE");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSwitchExpressionNotAssignable(
@@ -6925,7 +6863,6 @@ const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;
 const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
     analyzerCode: "INVALID_REFERENCE_TO_THIS",
-    severity: Severity.error,
     message: r"""Expected identifier, but got 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6935,7 +6872,6 @@ const Code<Null> codeThisInitializerNotAlone = messageThisInitializerNotAlone;
 const MessageCode messageThisInitializerNotAlone = const MessageCode(
     "ThisInitializerNotAlone",
     analyzerCode: "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR",
-    severity: Severity.error,
     message: r"""Can't have other initializers together with 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7134,7 +7070,6 @@ const Code<Null> codeTypeVariableInConstantContext =
 const MessageCode messageTypeVariableInConstantContext = const MessageCode(
     "TypeVariableInConstantContext",
     analyzerCode: "TYPE_PARAMETER_IN_CONST_EXPRESSION",
-    severity: Severity.error,
     message: r"""Type variables can't be used as constants.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7487,7 +7422,6 @@ const Code<Null> codeVoidExpression = messageVoidExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
     analyzerCode: "USE_OF_VOID_RESULT",
-    severity: Severity.error,
     message: r"""This expression has type 'void' and can't be used.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7507,9 +7441,9 @@ const Template<
 const Code<Message Function(String string, String string2)>
     codeWebLiteralCannotBeRepresentedExactly =
     const Code<Message Function(String string, String string2)>(
-        "WebLiteralCannotBeRepresentedExactly",
-        templateWebLiteralCannotBeRepresentedExactly,
-        severity: Severity.error);
+  "WebLiteralCannotBeRepresentedExactly",
+  templateWebLiteralCannotBeRepresentedExactly,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsWebLiteralCannotBeRepresentedExactly(

@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         messageNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
@@ -343,17 +344,18 @@ abstract class StackListener extends Listener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, offsetForToken(startToken),
+    addProblem(message, offsetForToken(startToken),
         lengthOfSpan(startToken, endToken));
   }
 
   @override
   void handleUnescapeError(
       Message message, Token token, int stringOffset, int length) {
-    addCompileTimeError(message, token.charOffset + stringOffset, length);
+    addProblem(message, token.charOffset + stringOffset, length);
   }
 
-  void addCompileTimeError(Message message, int charOffset, int length);
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context});
 }
 
 class Stack {

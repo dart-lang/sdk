@@ -36,22 +36,20 @@ class ThisAccessGenerator extends KernelGenerator {
   Expression buildSimpleRead() {
     if (!isSuper) {
       if (inFieldInitializer) {
-        return new SyntheticExpressionJudgment(
-            buildFieldInitializerError(null));
+        return buildFieldInitializerError(null);
       } else {
         return forest.thisExpression(token);
       }
     } else {
-      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-          messageSuperAsExpression,
-          offsetForToken(token),
-          lengthForToken(token)));
+      return helper.buildProblem(messageSuperAsExpression,
+          offsetForToken(token), lengthForToken(token));
     }
   }
 
-  Expression buildFieldInitializerError(Map<String, int> initializedFields) {
+  SyntheticExpressionJudgment buildFieldInitializerError(
+      Map<String, int> initializedFields) {
     String keyword = isSuper ? "super" : "this";
-    return helper.buildCompileTimeError(
+    return helper.buildProblem(
         templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
         offsetForToken(token),
         keyword.length);
@@ -59,7 +57,7 @@ class ThisAccessGenerator extends KernelGenerator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    Expression error = buildFieldInitializerError(initializedFields);
+    Expression error = buildFieldInitializerError(initializedFields).desugared;
     return helper.buildInvalidInitializer(error, error.fileOffset);
   }
 
@@ -70,13 +68,13 @@ class ThisAccessGenerator extends KernelGenerator {
     int offset = offsetForToken(send.token);
     if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
-        helper.addCompileTimeError(
+        helper.addProblem(
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments);
     }
     if (inFieldInitializer && !isInitializer) {
-      return new SyntheticExpressionJudgment(buildFieldInitializerError(null));
+      return buildFieldInitializerError(null);
     }
     Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
     if (send is SendAccessGenerator) {
@@ -106,8 +104,7 @@ class ThisAccessGenerator extends KernelGenerator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-          messageSuperAsExpression, offset, noLength));
+      return helper.buildProblem(messageSuperAsExpression, offset, noLength);
     } else {
       return helper.buildMethodInvocation(
           forest.thisExpression(null), callName, arguments, offset,
@@ -174,10 +171,10 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   Expression buildAssignmentError() {
-    return helper.buildCompileTimeError(
-        isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
-        offsetForToken(token),
-        token.length);
+    return helper
+        .buildProblem(isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
+            offsetForToken(token), token.length)
+        .desugared;
   }
 
   @override
@@ -226,7 +223,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       offset = offsetForToken(token);
       length = lengthForToken(token);
     }
-    return helper.buildCompileTimeError(message, offset, length);
+    return helper.buildProblem(message, offset, length).desugared;
   }
 
   @override
@@ -395,10 +392,11 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   }
 
   Expression makeInvalidWrite(Expression value) {
-    var error = helper.buildCompileTimeError(
-        messageCannotAssignToParenthesizedExpression,
-        offsetForToken(token),
-        lengthForToken(token));
-    return new InvalidWriteJudgment(error, expression);
+    return new InvalidWriteJudgment(
+        helper
+            .buildProblem(messageCannotAssignToParenthesizedExpression,
+                offsetForToken(token), lengthForToken(token))
+            .desugared,
+        expression);
   }
 }

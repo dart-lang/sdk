@@ -30,6 +30,7 @@ import 'package:front_end/src/scanner/token.dart'
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show
+        LocatedMessage,
         Message,
         messageConstConstructorWithBody,
         messageConstMethod,
@@ -2041,7 +2042,7 @@ class AstBuilder extends StackListener {
     } else {
       int offset = startToken.offset;
       int length = endToken.end - offset;
-      addCompileTimeError(message, offset, length);
+      addProblem(message, offset, length);
     }
   }
 
@@ -2766,12 +2767,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int offset, int length) {
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
         message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
       message = messageDirectiveAfterDeclaration;
     }
-    errorReporter.reportMessage(message, offset, length);
+    errorReporter.reportMessage(message, charOffset, length);
   }
 
   /// Return `true` if [token] is either `null` or is the symbol or keyword

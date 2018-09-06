@@ -201,9 +201,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   int functionNestingLevel = 0;
 
-  Statement compileTimeErrorInTry;
+  Statement problemInTry;
 
-  Statement compileTimeErrorInLoopOrSwitch;
+  Statement problemInLoopOrSwitch;
 
   Scope switchScope;
 
@@ -302,10 +302,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (node is Expression) {
       return node;
     } else if (node is SuperInitializer) {
-      return new SyntheticExpressionJudgment(buildCompileTimeError(
-          fasta.messageSuperAsExpression, node.fileOffset, noLength));
+      return buildProblem(
+          fasta.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblemExpression(node, -1, noLength);
+      return buildProblem(node.message, node.charOffset, noLength);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -362,7 +362,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           for (Statement statement in target.users) {
             statement.parent.replaceChild(
                 statement,
-                wrapInCompileTimeErrorStatement(statement,
+                wrapInProblemStatement(statement,
                     fasta.templateLabelNotFound.withArguments(name)));
           }
         } else {
@@ -381,11 +381,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = variable.fileOffset;
     Message message = template.withArguments(name);
     if (variable.initializer == null) {
-      variable.initializer = new SyntheticExpressionJudgment(
-          buildCompileTimeError(message, offset, name.length, context: context))
-        ..parent = variable;
+      variable.initializer =
+          buildProblem(message, offset, name.length, context: context)
+            ..parent = variable;
     } else {
-      variable.initializer = wrapInLocatedCompileTimeError(
+      variable.initializer = wrapInLocatedProblem(
           variable.initializer, message.withLocation(uri, offset, name.length),
           context: context)
         ..parent = variable;
@@ -467,8 +467,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
       ConstantContext savedConstantContext = pop();
       if (expression is! StaticAccessGenerator) {
-        push(wrapInCompileTimeError(
-            toValue(expression), fasta.messageExpressionNotMetadata));
+        push(wrapInProblem(
+            toValue(expression), fasta.messageExpressionNotMetadata, noLength));
       } else {
         push(toValue(expression));
       }
@@ -572,10 +572,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is KernelConstructorBuilder) {
       if (member.isConst &&
           (classBuilder.cls.superclass?.isMixinApplication ?? false)) {
-        addCompileTimeError(
-            fasta.messageConstConstructorInSubclassOfMixinApplication,
-            member.charOffset,
-            member.name.length);
+        addProblem(fasta.messageConstConstructorInSubclassOfMixinApplication,
+            member.charOffset, member.name.length);
       }
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
@@ -583,10 +581,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             Initializer initializer;
             if (member.isExternal) {
               initializer = buildInvalidInitializer(
-                  buildCompileTimeError(
-                      fasta.messageExternalConstructorWithFieldInitializers,
-                      formal.charOffset,
-                      formal.name.length),
+                  buildProblem(
+                          fasta.messageExternalConstructorWithFieldInitializers,
+                          formal.charOffset,
+                          formal.name.length)
+                      .desugared,
                   formal.charOffset);
             } else {
               initializer = buildFieldInitializer(true, formal.name,
@@ -651,7 +650,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression value = toValue(node);
       if (node is! Throw) {
         value =
-            wrapInCompileTimeError(value, fasta.messageExpectedAnInitializer);
+            wrapInProblem(value, fasta.messageExpectedAnInitializer, noLength);
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
@@ -659,7 +658,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
-      addCompileTimeError(
+      addProblem(
           fasta.templateInitializerOutsideConstructor
               .withArguments(member.name),
           token.charOffset,
@@ -797,7 +796,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           statements.add(body);
           body = forest.block(null, statements, null)..fileOffset = charOffset;
         }
-        body = wrapInCompileTimeErrorStatement(
+        body = wrapInProblemStatement(
             body, fasta.messageSetterWithWrongNumberOfFormals);
       }
     }
@@ -809,8 +808,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       builder.body = body;
     } else {
       if (body != null) {
-        builder.body = wrapInCompileTimeErrorStatement(
-            body, fasta.messageExternalMethodWithBody);
+        builder.body =
+            wrapInProblemStatement(body, fasta.messageExternalMethodWithBody);
       }
     }
     Member target = builder.target;
@@ -851,11 +850,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           name += ".${initialTarget.name.name}";
         }
         // TODO(dmitryas): Report this error earlier.
-        replacementNode = buildCompileTimeError(
-            fasta.templateCyclicRedirectingFactoryConstructors
-                .withArguments(initialTarget.name.name),
-            initialTarget.fileOffset,
-            name.length);
+        replacementNode = buildProblem(
+                fasta.templateCyclicRedirectingFactoryConstructors
+                    .withArguments(initialTarget.name.name),
+                initialTarget.fileOffset,
+                name.length)
+            .desugared;
       } else if (resolvedTarget is Constructor &&
           resolvedTarget.enclosingClass.isAbstract) {
         replacementNode = evaluateArgumentsBefore(
@@ -994,7 +994,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Token eof = token.next;
 
     if (!eof.isEof) {
-      expression = wrapInLocatedCompileTimeError(
+      expression = wrapInLocatedProblem(
           expression,
           fasta.messageExpectedOneExpression
               .withLocation(uri, eof.charOffset, eof.length));
@@ -1027,8 +1027,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Change this to a null check.
       int offset = builder.body?.fileOffset ?? builder.charOffset;
       constructor.initializers.add(buildInvalidInitializer(
-          buildCompileTimeErrorExpression(
-              fasta.messageConstructorNotSync, offset),
+          buildProblem(fasta.messageConstructorNotSync, offset, noLength),
           offset));
     }
     if (needsImplicitSuperInitializer) {
@@ -1048,11 +1047,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           length = (constructor.parent as Class).name.length;
         }
         initializer = buildInvalidInitializer(
-            buildCompileTimeError(
-                fasta.templateSuperclassHasNoDefaultConstructor
-                    .withArguments(superclass),
-                builder.charOffset,
-                length),
+            buildProblem(
+                    fasta.templateSuperclassHasNoDefaultConstructor
+                        .withArguments(superclass),
+                    builder.charOffset,
+                    length)
+                .desugared,
             builder.charOffset);
       } else {
         initializer = buildSuperInitializer(
@@ -1094,9 +1094,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (i > firstNamedArgumentIndex) {
           arguments[i] = new NamedExpression(
               "#$i",
-              buildCompileTimeErrorExpression(
-                  fasta.messageExpectedNamedArgument,
-                  forest.readOffset(argument)))
+              buildProblem(fasta.messageExpectedNamedArgument,
+                  forest.readOffset(argument), noLength))
             ..fileOffset = beginToken.charOffset;
         }
       }
@@ -1246,9 +1245,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       negate = true;
     }
     if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
-      return buildCompileTimeErrorExpression(
-          fasta.templateInvalidOperator.withArguments(token), token.charOffset,
-          length: token.length);
+      return buildProblem(fasta.templateInvalidOperator.withArguments(token),
+          token.charOffset, token.length);
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
           forest.arguments(<Expression>[b], noLocation), token.charOffset,
@@ -1294,9 +1292,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       pop();
       token = token.next;
-      Message message = fasta.templateExpectedIdentifier.withArguments(token);
-      push(new SyntheticExpressionJudgment(buildCompileTimeError(
-          message, offsetForToken(token), lengthForToken(token))));
+      push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
     }
   }
 
@@ -1308,9 +1305,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       pop();
       token = token.next;
-      Message message = fasta.templateExpectedIdentifier.withArguments(token);
-      push(new SyntheticExpressionJudgment(buildCompileTimeError(
-          message, offsetForToken(token), lengthForToken(token))));
+      push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
     }
   }
 
@@ -1374,8 +1370,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
-      return buildCompileTimeError(message, charOffset, noLength,
-          context: context);
+      return buildProblem(message, charOffset, noLength, context: context)
+          .desugared;
     } else {
       Expression error = library.loader.instantiateNoSuchMethodError(
           receiver, name, forest.castArguments(arguments), charOffset,
@@ -1565,7 +1561,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (constantContext != ConstantContext.none &&
         !context.allowedInConstantExpression) {
-      addCompileTimeError(
+      addProblem(
           fasta.messageNotAConstantExpression, token.charOffset, token.length);
     }
     push(new Identifier(token));
@@ -1619,7 +1615,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (constantContext != ConstantContext.none &&
           declaration.isTypeVariable &&
           !member.isConstructor) {
-        addCompileTimeError(
+        addProblem(
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
       return new TypeUseGenerator(this, token, declaration, name);
@@ -1627,7 +1623,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (constantContext != ConstantContext.none &&
           !declaration.isConst &&
           !member.isConstructor) {
-        addCompileTimeError(
+        addProblem(
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
       // An initializing formal parameter might be final without its
@@ -1655,7 +1651,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
           !member.isConstructor) {
-        addCompileTimeError(
+        addProblem(
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
       Name n = new Name(name, library.library);
@@ -1696,7 +1692,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
-          addCompileTimeError(
+          addProblem(
               fasta.messageNotAConstantExpression, charOffset, token.length);
         }
       }
@@ -1838,7 +1834,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ReturnStatement");
     Expression expression = hasExpression ? popForValue() : null;
     if (expression != null && inConstructor) {
-      push(buildCompileTimeErrorStatement(
+      push(buildProblemStatement(
           fasta.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
       push(forest.returnStatement(beginToken, expression, endToken));
@@ -1886,17 +1882,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // silent if the next token is `in`. Since a for-in loop can only have
       // one variable it must be followed by `in`.
       if (isConst) {
-        initializer = buildCompileTimeErrorExpression(
+        initializer = buildProblem(
             fasta.templateConstFieldWithoutInitializer
                 .withArguments(token.lexeme),
             token.charOffset,
-            length: token.length);
+            token.length);
       } else if (isFinal) {
-        initializer = buildCompileTimeErrorExpression(
+        initializer = buildProblem(
             fasta.templateFinalFieldWithoutInitializer
                 .withArguments(token.lexeme),
             token.charOffset,
-            length: token.length);
+            token.length);
       }
     }
     pushNewLocalVariable(initializer);
@@ -2028,10 +2024,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression value = popForValue();
     Object generator = pop();
     if (generator is! Generator) {
-      push(new SyntheticExpressionJudgment(buildCompileTimeError(
-          fasta.messageNotAnLvalue,
-          offsetForToken(token),
-          lengthForToken(token))));
+      push(buildProblem(fasta.messageNotAnLvalue, offsetForToken(token),
+          lengthForToken(token)));
     } else {
       push(new DelayedAssignment(
           this, token, generator, value, token.stringValue));
@@ -2051,9 +2045,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void exitLoopOrSwitch(Statement statement) {
-    if (compileTimeErrorInLoopOrSwitch != null) {
-      push(compileTimeErrorInLoopOrSwitch);
-      compileTimeErrorInLoopOrSwitch = null;
+    if (problemInLoopOrSwitch != null) {
+      push(problemInLoopOrSwitch);
+      problemInLoopOrSwitch = null;
     } else {
       push(statement);
     }
@@ -2326,12 +2320,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
         } else {
-          addCompileTimeError(fasta.templateDuplicatedName.withArguments(name),
+          addProblem(fasta.templateDuplicatedName.withArguments(name),
               builder.charOffset, name.length);
-          addCompileTimeError(
-              fasta.templateDuplicatedNameCause.withArguments(name),
-              existing.charOffset,
-              name.length);
+          addProblem(fasta.templateDuplicatedNameCause.withArguments(name),
+              existing.charOffset, name.length);
         }
       }
     }
@@ -2363,10 +2355,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType type = pop();
     Expression expression = popForValue();
     if (constantContext != ConstantContext.none) {
-      push(buildCompileTimeError(
-          fasta.templateNotConstantExpression.withArguments('As expression'),
-          operator.charOffset,
-          operator.length));
+      push(buildProblem(
+              fasta.templateNotConstantExpression
+                  .withArguments('As expression'),
+              operator.charOffset,
+              operator.length)
+          .desugared);
     } else {
       push(forest.asExpression(expression, type, operator));
     }
@@ -2385,10 +2379,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
-      push(buildCompileTimeError(
-          fasta.templateNotConstantExpression.withArguments('Is expression'),
-          isOperator.charOffset,
-          isOperator.length));
+      push(buildProblem(
+              fasta.templateNotConstantExpression
+                  .withArguments('Is expression'),
+              isOperator.charOffset,
+              isOperator.length)
+          .desugared);
     } else {
       push(isExpression);
     }
@@ -2428,10 +2424,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     Expression error;
     if (constantContext != ConstantContext.none) {
-      error = buildCompileTimeError(
-          fasta.templateNotConstantExpression.withArguments('Throw'),
-          throwToken.offset,
-          throwToken.length);
+      error = buildProblem(
+              fasta.templateNotConstantExpression.withArguments('Throw'),
+              throwToken.offset,
+              throwToken.length)
+          .desugared;
     }
 
     push(new ThrowJudgment(tokensSaver?.throwTokens(throwToken), expression,
@@ -2483,7 +2480,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (member is KernelRedirectingFactoryBuilder &&
             name.initializer != null) {
           KernelRedirectingFactoryBuilder factory = member;
-          addCompileTimeError(
+          addProblem(
               fasta.templateDefaultValueInRedirectingFactoryConstructor
                   .withArguments(factory.redirectionTarget.fullNameForErrors),
               name.initializer.fileOffset,
@@ -2652,7 +2649,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               stackTrace, coreTypes.stackTraceClass.rawType);
         }
       } else {
-        buildCompileTimeError(fasta.messageInvalidCatchArguments,
+        // TODO(ahe): We're not storing this error in the AST.
+        buildProblem(fasta.messageInvalidCatchArguments,
             catchParameters.charOffset, catchParameters.charLength);
 
         var allFormals = <VariableDeclaration>[];
@@ -2683,12 +2681,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Object catches = popList(
         catchCount, new List<Catch>.filled(catchCount, null, growable: true));
     Statement tryBlock = popStatement();
-    if (compileTimeErrorInTry == null) {
+    if (problemInTry == null) {
       push(forest.tryStatement(
           tryKeyword, tryBlock, catches, finallyKeyword, finallyBlock));
     } else {
-      push(compileTimeErrorInTry);
-      compileTimeErrorInTry = null;
+      push(problemInTry);
+      problemInTry = null;
     }
   }
 
@@ -2771,8 +2769,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(generator.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+      push(wrapInProblem(
+          toValue(generator), fasta.messageNotAnLvalue, noLength));
     }
   }
 
@@ -2784,8 +2782,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(new DelayedPostfixIncrement(
           this, token, generator, incrementOperator(token), null));
     } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+      push(wrapInProblem(
+          toValue(generator), fasta.messageNotAnLvalue, noLength));
     }
   }
 
@@ -2911,10 +2909,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isConst || constantContext != ConstantContext.none && target.isConst;
       if ((isConst || constantContext == ConstantContext.inferred) &&
           !target.isConst) {
-        var error = buildCompileTimeError(
-            fasta.messageNonConstConstructor, charOffset, charLength);
         return new InvalidConstructorInvocationJudgment(
-            error, target, arguments);
+            buildProblem(
+                    fasta.messageNonConstConstructor, charOffset, charLength)
+                .desugared,
+            target,
+            arguments);
       }
       return new ConstructorInvocationJudgment(
           target, forest.castArguments(arguments),
@@ -2927,10 +2927,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             constantContext != ConstantContext.none && procedure.isConst;
         if ((isConst || constantContext == ConstantContext.inferred) &&
             !procedure.isConst) {
-          var error = buildCompileTimeError(
-              fasta.messageNonConstFactory, charOffset, charLength);
           return new InvalidConstructorInvocationJudgment(
-              error, target, arguments);
+              buildProblem(fasta.messageNonConstFactory, charOffset, charLength)
+                  .desugared,
+              target,
+              arguments);
         }
         return new FactoryConstructorInvocationJudgment(
             target, forest.castArguments(arguments),
@@ -3042,7 +3043,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginNewExpression");
     super.push(constantContext);
     if (constantContext != ConstantContext.none) {
-      addCompileTimeError(
+      addProblem(
           fasta.templateNotConstantExpression.withArguments('New expression'),
           token.charOffset,
           token.length);
@@ -3127,9 +3128,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int charOffset,
       Constness constness) {
     if (arguments == null) {
-      return buildCompileTimeErrorExpression(
-          fasta.messageMissingArgumentList, nameToken.charOffset,
-          length: nameToken.length);
+      return buildProblem(fasta.messageMissingArgumentList,
+          nameToken.charOffset, nameToken.length);
     }
 
     if (typeArguments != null) {
@@ -3140,9 +3140,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     String errorName;
     if (type is ClassBuilder<TypeBuilder, Object>) {
       if (type is EnumBuilder<TypeBuilder, Object>) {
-        return buildCompileTimeErrorExpression(
-            fasta.messageEnumInstantiation, nameToken.charOffset,
-            length: nameToken.length);
+        return buildProblem(fasta.messageEnumInstantiation,
+            nameToken.charOffset, nameToken.length);
       }
       Declaration b =
           type.findConstructorOrFactory(name, charOffset, uri, library);
@@ -3282,10 +3281,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         isLocalFunction: true)
       ..fileOffset = offsetForToken(nameToken);
     if (scope.local[variable.name] != null) {
-      addCompileTimeError(
-          fasta.templateDuplicatedName.withArguments(variable.name),
-          offsetForToken(nameToken),
-          nameToken.length);
+      addProblem(fasta.templateDuplicatedName.withArguments(variable.name),
+          offsetForToken(nameToken), nameToken.length);
     }
     push(new FunctionDeclarationJudgment(
         variable,
@@ -3441,9 +3438,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
     if (constantContext != ConstantContext.none) {
-      push(buildCompileTimeErrorExpression(
-          fasta.messageNotAConstantExpression, formals.charOffset,
-          length: formals.charLength));
+      push(buildProblem(fasta.messageNotAConstantExpression, formals.charOffset,
+          formals.charLength));
     } else {
       push(new FunctionExpressionJudgment(function)
         ..fileOffset = offsetForToken(beginToken));
@@ -3506,8 +3502,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       declaresVariable = true;
       variable = lvalue;
       if (variable.isConst) {
-        addCompileTimeError(fasta.messageForInLoopWithConstVariable,
-            variable.fileOffset, variable.name.length);
+        addProblem(fasta.messageForInLoopWithConstVariable, variable.fileOffset,
+            variable.name.length);
       }
     } else if (lvalue is Generator) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
@@ -3535,8 +3531,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           : fasta.messageForInLoopNotAssignable;
       Token token = forToken.next.next;
       variable = new VariableDeclaration.forValue(
-          new SyntheticExpressionJudgment(buildCompileTimeError(
-              message, offsetForToken(token), lengthForToken(token))));
+          buildProblem(message, offsetForToken(token), lengthForToken(token)));
     }
     Statement result = new ForInJudgment(
         tokensSaver?.forInStatementTokens(awaitToken, forToken, leftParenthesis,
@@ -3605,8 +3600,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("RethrowStatement");
     var error = inCatchBlock
         ? null
-        : buildCompileTimeError(fasta.messageRethrowNotCatch,
-            offsetForToken(rethrowToken), lengthForToken(rethrowToken));
+        : buildProblem(fasta.messageRethrowNotCatch,
+                offsetForToken(rethrowToken), lengthForToken(rethrowToken))
+            .desugared;
     push(new ExpressionStatementJudgment(
         new RethrowJudgment(tokensSaver?.rethrowTokens(rethrowToken), error)
           ..fileOffset = offsetForToken(rethrowToken),
@@ -3669,9 +3665,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
         // cannot be used in an expression.
-        push(buildCompileTimeErrorExpression(
-            fasta.messageAssertAsExpression, assertKeyword.offset,
-            length: assertKeyword.length));
+        push(buildProblem(fasta.messageAssertAsExpression, assertKeyword.offset,
+            assertKeyword.length));
         break;
 
       case Assert.Initializer:
@@ -3718,7 +3713,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (scope.hasLocalLabel(labelName)) {
         // TODO(ahe): Should validate this is a goto target.
         if (!scope.claimLabel(labelName)) {
-          addCompileTimeError(
+          addProblem(
               fasta.templateDuplicateLabelInSwitchStatement
                   .withArguments(labelName),
               forest.getLabelOffset(label),
@@ -3851,19 +3846,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       target = scope.lookupLabel(name);
     }
     if (target == null && name == null) {
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.messageBreakOutsideOfLoop, breakKeyword.charOffset));
     } else if (target == null ||
         target is! JumpTarget ||
         !target.isBreakTarget) {
       Token labelToken = breakKeyword.next;
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidBreakTarget.withArguments(name),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
       Token labelToken = breakKeyword.next;
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateBreakTargetOutsideFunction.withArguments(name),
           labelToken.charOffset,
           length: labelToken.length));
@@ -3888,7 +3883,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Declaration namedTarget = scope.lookupLabel(identifier.name);
       if (namedTarget != null && namedTarget is! JumpTarget) {
         Token labelToken = continueKeyword.next;
-        push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+        push(problemInLoopOrSwitch = buildProblemStatement(
             fasta.messageContinueLabelNotTarget, labelToken.charOffset,
             length: labelToken.length));
         return;
@@ -3896,7 +3891,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       target = namedTarget;
       if (target == null) {
         if (switchScope == null) {
-          push(buildCompileTimeErrorStatement(
+          push(buildProblemStatement(
               fasta.templateLabelNotFound.withArguments(name),
               continueKeyword.next.charOffset));
           return;
@@ -3917,18 +3912,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (target == null) {
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.messageContinueWithoutLabelInCase, continueKeyword.charOffset,
           length: continueKeyword.length));
     } else if (!target.isContinueTarget) {
       Token labelToken = continueKeyword.next;
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidContinueTarget.withArguments(name),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
       Token labelToken = continueKeyword.next;
-      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+      push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateContinueTargetOutsideFunction.withArguments(name),
           labelToken.charOffset,
           length: labelToken.length));
@@ -4079,66 +4074,47 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleInvalidStatement(Token token, Message message) {
     Statement statement = pop();
-    var error = buildCompileTimeError(message, statement.fileOffset, noLength);
-    push(new InvalidStatementJudgment(error, statement));
+    push(new InvalidStatementJudgment(
+        buildProblem(message, statement.fileOffset, noLength).desugared,
+        statement));
   }
 
   @override
-  Expression buildCompileTimeError(Message message, int charOffset, int length,
+  SyntheticExpressionJudgment buildProblem(
+      Message message, int charOffset, int length,
       {List<LocatedMessage> context}) {
-    library.addCompileTimeError(message, charOffset, length, uri,
-        wasHandled: true, context: context);
-    return library.loader.throwCompileConstantError(
-        library.loader.buildCompileTimeError(message, charOffset, length, uri));
-  }
-
-  @override
-  Expression buildCompileTimeErrorExpression(Message message, int offset,
-      {int length}) {
-    return new SyntheticExpressionJudgment(
-        buildCompileTimeError(message, offset, length ?? noLength));
-  }
-
-  Expression wrapInCompileTimeError(Expression expression, Message message,
-      {List<LocatedMessage> context}) {
-    return wrapInLocatedCompileTimeError(expression,
-        message.withLocation(uri, forest.readOffset(expression), noLength),
-        context: context);
+    addProblem(message, charOffset, length, wasHandled: true, context: context);
+    return new SyntheticExpressionJudgment(library.loader
+        .throwCompileConstantError(
+            library.loader.buildProblem(message, charOffset, length, uri)));
   }
 
   @override
   Expression wrapInProblem(Expression expression, Message message, int length,
       {List<LocatedMessage> context}) {
-    int charOffset = expression.fileOffset;
+    int charOffset = forest.readOffset(expression);
     Severity severity = message.code.severity;
-    if (severity == null) {
-      addCompileTimeError(message, charOffset, length, context: context);
-      internalProblem(
-          fasta.templateInternalProblemMissingSeverity
-              .withArguments(message.code.name),
-          charOffset,
-          uri);
-    } else if (severity == Severity.error ||
+    if (severity == Severity.error ||
         severity == Severity.errorLegacyWarning &&
             library.loader.target.strongMode) {
-      return wrapInCompileTimeError(expression, message, context: context);
+      return wrapInLocatedProblem(
+          expression, message.withLocation(uri, charOffset, length),
+          context: context);
     } else {
       addProblem(message, charOffset, length, context: context);
+      return expression;
     }
-    return expression;
   }
 
   @override
-  Expression wrapInLocatedCompileTimeError(
-      Expression expression, LocatedMessage message,
+  Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
       {List<LocatedMessage> context}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return new SyntheticExpressionJudgment(new Let(
-        new VariableDeclaration.forValue(new SyntheticExpressionJudgment(
-            buildCompileTimeError(
-                message.messageObject, message.charOffset, message.length,
-                context: context)))
+        new VariableDeclaration.forValue(buildProblem(
+            message.messageObject, message.charOffset, message.length,
+            context: context))
           ..fileOffset = forest.readOffset(expression),
         new Let(
             new VariableDeclaration.forValue(expression)
@@ -4182,20 +4158,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         ], noLocation)));
   }
 
-  Statement buildCompileTimeErrorStatement(Message message, int charOffset,
+  Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage> context, int length}) {
     return new ExpressionStatementJudgment(
-        new SyntheticExpressionJudgment(buildCompileTimeError(
-            message, charOffset, length ?? noLength,
-            context: context)),
+        buildProblem(message, charOffset, length ?? noLength, context: context),
         null);
   }
 
-  Statement wrapInCompileTimeErrorStatement(
-      Statement statement, Message message) {
+  Statement wrapInProblemStatement(Statement statement, Message message) {
     // TODO(askesc): Produce explicit error statement wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return buildCompileTimeErrorStatement(message, statement.fileOffset);
+    return buildProblemStatement(message, statement.fileOffset);
   }
 
   @override
@@ -4218,13 +4191,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   Initializer buildDuplicatedInitializer(Field field, Expression value,
       String name, int offset, int previousInitializerOffset) {
-    var error = buildCompileTimeError(
-        fasta.templateFinalInstanceVariableAlreadyInitialized
-            .withArguments(name),
-        offset,
-        noLength);
     return new ShadowInvalidFieldInitializer(
-        field, value, new VariableDeclaration.forValue(error))
+        field,
+        value,
+        new VariableDeclaration.forValue(buildProblem(
+                fasta.templateFinalInstanceVariableAlreadyInitialized
+                    .withArguments(name),
+                offset,
+                noLength)
+            .desugared))
       ..fileOffset = offset;
   }
 
@@ -4297,10 +4272,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       return buildInvalidInitializer(
-          buildCompileTimeError(
-              fasta.templateInitializerForStaticField.withArguments(name),
-              offset,
-              name.length),
+          buildProblem(
+                  fasta.templateInitializerForStaticField.withArguments(name),
+                  offset,
+                  name.length)
+              .desugared,
           offset);
     }
   }
@@ -4313,8 +4289,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return buildInvalidSuperInitializer(
           constructor,
           forest.castArguments(arguments),
-          buildCompileTimeError(fasta.messageConstConstructorWithNonConstSuper,
-              charOffset, constructor.name.name.length),
+          buildProblem(fasta.messageConstConstructorWithNonConstSuper,
+                  charOffset, constructor.name.name.length)
+              .desugared,
           charOffset);
     }
     needsImplicitSuperInitializer = false;
@@ -4344,13 +4321,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression buildProblemExpression(
-      ProblemBuilder builder, int charOffset, int length) {
-    return new SyntheticExpressionJudgment(
-        buildCompileTimeError(builder.message, charOffset, length));
-  }
-
-  @override
   void handleOperator(Token token) {
     debugEvent("Operator");
     push(new Operator(token, token.charOffset));
@@ -4370,7 +4340,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.block(
           token,
           <Statement>[
-            buildCompileTimeErrorStatement(
+            buildProblemStatement(
                 fasta.templateExpectedFunctionBody.withArguments(token),
                 token.charOffset,
                 length: token.length)
@@ -4386,7 +4356,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Message message = fasta.messageTypeVariableInStaticContext;
       int length = type.parameter.name.length;
       if (nonInstanceAccessIsError) {
-        addCompileTimeError(message, offset, length);
+        addProblem(message, offset, length, severity: Severity.error);
       } else {
         addProblemErrorIfConst(message, offset, length);
       }
@@ -4428,11 +4398,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSuper: false,
       Member interfaceTarget}) {
     if (constantContext != ConstantContext.none && !isConstantExpression) {
-      error = buildCompileTimeError(
-          fasta.templateNotConstantExpression
-              .withArguments('Method invocation'),
-          offset,
-          name.name.length);
+      error = buildProblem(
+              fasta.templateNotConstantExpression
+                  .withArguments('Method invocation'),
+              offset,
+              name.name.length)
+          .desugared;
     }
     if (isSuper) {
       // We can ignore [isNullAware] on super sends.
@@ -4491,29 +4462,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addCompileTimeError(message, charOffset, length, uri,
-        context: context);
-  }
-
-  @override
   void addProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, uri, context: context);
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity}) {
+    library.addProblem(message, charOffset, length, uri,
+        wasHandled: wasHandled, context: context, severity: severity);
   }
 
   @override
   void addProblemErrorIfConst(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
+    Severity severity = message.code.severity;
     if (constantContext != ConstantContext.none) {
-      addCompileTimeError(message, charOffset, length, context: context);
-    } else {
-      library.addProblem(message, charOffset, length, uri, context: context);
+      severity = Severity.error;
     }
+    addProblem(message, charOffset, length,
+        wasHandled: wasHandled, context: context, severity: severity);
   }
 
   @override
@@ -4555,7 +4523,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         nearest = '$asDouble';
       }
-      library.addCompileTimeError(
+      library.addProblem(
           fasta.templateWebLiteralCannotBeRepresentedExactly
               .withArguments(token.lexeme, nearest),
           token.charOffset,
