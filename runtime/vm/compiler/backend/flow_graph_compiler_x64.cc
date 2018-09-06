@@ -897,6 +897,13 @@ void FlowGraphCompiler::CompileGraph() {
     }
     EmitFrameEntry();
     ASSERT(__ constant_pool_allowed());
+  } else {
+    // For JIT we have multiple entrypoints functionality which moved the frame
+    // setup into the [TargetEntryInstr] (which will set the constant pool
+    // allowed bit to true).  Despite this we still have to set the
+    // constant pool allowed bit to true here as well, because we can generate
+    // code for [CatchEntryInstr]s, which need the pool.
+    __ set_constant_pool_allowed(true);
   }
 
   ASSERT(!block_order().is_empty());
