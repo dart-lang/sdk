@@ -23,7 +23,7 @@
       "samples/",
       "sdk/",
       "tests/angular/",
-      "tests/co19/",
+      "tests/co19_2/",
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
@@ -61,7 +61,7 @@
       "samples/",
       "sdk/",
       "tests/angular/",
-      "tests/co19/",
+      "tests/co19_2/",
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
@@ -1211,6 +1211,16 @@
           "fileset": "dart2js_hostasserts"
         },
         {
+          "name": "dart2js co19_2 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
+            "--dart2js-batch",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts"
+        },
+        {
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
@@ -1264,6 +1274,17 @@
             "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js co19_2 tests",
+          "arguments": [
+            "-ndart2js-${system}-${runtime}",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "co19_2"
+          ],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1324,6 +1345,17 @@
             "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup co19_2 tests",
+          "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "co19_2"
+          ],
           "shards": 6,
           "fileset": "dart2js"
         },

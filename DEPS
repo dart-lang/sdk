@@ -37,7 +37,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "afadfe417b85037281a770b477f42c3786a8666a",
+  "co19_2_rev": "7514e576a02ced94a360ec51e0d26b32f9ebc82f",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
