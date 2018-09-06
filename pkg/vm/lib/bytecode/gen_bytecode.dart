@@ -68,6 +68,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Member enclosingMember;
   FunctionNode enclosingFunction;
   FunctionNode parentFunction;
+  bool isClosure;
   Set<TypeParameter> classTypeParameters;
   Set<TypeParameter> functionTypeParameters;
   List<DartType> instantiatorTypeArguments;
@@ -618,6 +619,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingMember = node;
     enclosingFunction = node.function;
     parentFunction = null;
+    isClosure = false;
     hasErrors = false;
     final isFactory = node is Procedure && node.isFactory;
     if (node.isInstanceMember || node is Constructor || isFactory) {
@@ -704,6 +706,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingMember = null;
     enclosingFunction = null;
     parentFunction = null;
+    isClosure = null;
     classTypeParameters = null;
     functionTypeParameters = null;
     instantiatorTypeArguments = null;
@@ -724,9 +727,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genPrologue(Node node, FunctionNode function) {
-    final bool isClosure =
-        node is FunctionDeclaration || node is FunctionExpression;
-
     if (locals.hasOptionalParameters) {
       final int numOptionalPositional = function.positionalParameters.length -
           function.requiredParameterCount;
@@ -780,7 +780,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
             locals.functionTypeArgsVarIndexInFrame);
 
-        _handleDefaultTypeArguments(function, isClosure, done);
+        _handleDefaultTypeArguments(function, done);
 
         asm.bind(done);
       }
@@ -827,7 +827,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _handleDefaultTypeArguments(
-      FunctionNode function, bool isClosure, Label doneCheckingTypeArguments) {
+      FunctionNode function, Label doneCheckingTypeArguments) {
     bool hasNonDynamicDefaultTypes = function.typeParameters.any(
         (p) => p.defaultType != null && p.defaultType != const DynamicType());
     if (!hasNonDynamicDefaultTypes) {
@@ -860,7 +860,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
-      final isClosure = parentFunction != null;
       if (!isClosure) {
         if (locals.hasFactoryTypeArgsVar) {
           _copyParamIfCaptured(locals.factoryTypeArgsVar);
@@ -886,23 +885,166 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  void _checkArguments(FunctionNode function) {
-    for (var typeParam in function.typeParameters) {
-      if (!typeEnvironment.isTop(typeParam.bound)) {
-        final DartType type = new TypeParameterType(typeParam);
-        _genPushInstantiatorAndFunctionTypeArguments([type, typeParam.bound]);
-        asm.emitPushConstant(cp.add(new ConstantType(type)));
-        asm.emitPushConstant(cp.add(new ConstantType(typeParam.bound)));
-        asm.emitPushConstant(cp.add(new ConstantString(typeParam.name)));
-        asm.emitAssertSubtype();
+  // TODO(alexmarkov): Revise if we need to AOT-compile from bytecode.
+  bool get canSkipTypeChecksForNonCovariantArguments =>
+      !isClosure && enclosingMember.name.name != 'call';
+
+  Member _getForwardingStubSuperTarget() {
+    if (!isClosure) {
+      final member = enclosingMember;
+      if (member.isInstanceMember &&
+          member is Procedure &&
+          member.isForwardingStub) {
+        return member.forwardingStubSuperTarget;
       }
     }
-    function.positionalParameters.forEach(_genArgumentTypeCheck);
-    locals.sortedNamedParameters.forEach(_genArgumentTypeCheck);
+    return null;
   }
 
-  void _genArgumentTypeCheck(VariableDeclaration variable) {
-    if (typeEnvironment.isTop(variable.type)) {
+  // Types in a target of a forwarding stub are encoded in terms of target type
+  // parameters. Substitute them with host type parameters to be able
+  // to use them (e.g. instantiate) in the context of host.
+  Substitution _getForwardingSubstitution(
+      FunctionNode host, Member forwardingTarget) {
+    if (forwardingTarget == null) {
+      return null;
+    }
+    final Class targetClass = forwardingTarget.enclosingClass;
+    final Supertype instantiatedTargetClass =
+        hierarchy.getClassAsInstanceOf(enclosingClass, targetClass);
+    if (instantiatedTargetClass == null) {
+      throw 'Class $targetClass is not found among implemented interfaces of'
+          ' $enclosingClass (for forwarding stub $enclosingMember)';
+    }
+    assert(instantiatedTargetClass.classNode == targetClass);
+    assert(instantiatedTargetClass.typeArguments.length ==
+        targetClass.typeParameters.length);
+    final Map<TypeParameter, DartType> map =
+        new Map<TypeParameter, DartType>.fromIterables(
+            targetClass.typeParameters, instantiatedTargetClass.typeArguments);
+    if (forwardingTarget.function != null) {
+      final targetTypeParameters = forwardingTarget.function.typeParameters;
+      assert(host.typeParameters.length == targetTypeParameters.length);
+      for (int i = 0; i < targetTypeParameters.length; ++i) {
+        map[targetTypeParameters[i]] =
+            new TypeParameterType(host.typeParameters[i]);
+      }
+    }
+    return Substitution.fromMap(map);
+  }
+
+  /// If member being compiled is a forwarding stub, then returns type
+  /// parameter bounds to check for the forwarding stub target.
+  Map<TypeParameter, DartType> _getForwardingBounds(FunctionNode function,
+      Member forwardingTarget, Substitution forwardingSubstitution) {
+    if (function.typeParameters.isEmpty || forwardingTarget == null) {
+      return null;
+    }
+    final forwardingBounds = <TypeParameter, DartType>{};
+    for (int i = 0; i < function.typeParameters.length; ++i) {
+      DartType bound = forwardingSubstitution
+          .substituteType(forwardingTarget.function.typeParameters[i].bound);
+      forwardingBounds[function.typeParameters[i]] = bound;
+    }
+    return forwardingBounds;
+  }
+
+  /// If member being compiled is a forwarding stub, then returns parameter
+  /// types to check for the forwarding stub target.
+  Map<VariableDeclaration, DartType> _getForwardingParameterTypes(
+      FunctionNode function,
+      Member forwardingTarget,
+      Substitution forwardingSubstitution) {
+    if (forwardingTarget == null) {
+      return null;
+    }
+
+    if (forwardingTarget is Field) {
+      if ((enclosingMember as Procedure).isGetter) {
+        return const <VariableDeclaration, DartType>{};
+      } else {
+        // Forwarding stub for a covariant field setter.
+        assert((enclosingMember as Procedure).isSetter);
+        assert(function.typeParameters.isEmpty &&
+            function.positionalParameters.length == 1 &&
+            function.namedParameters.length == 0);
+        return <VariableDeclaration, DartType>{
+          function.positionalParameters.single:
+              forwardingSubstitution.substituteType(forwardingTarget.type)
+        };
+      }
+    }
+
+    final forwardingParams = <VariableDeclaration, DartType>{};
+    for (int i = 0; i < function.positionalParameters.length; ++i) {
+      DartType type = forwardingSubstitution.substituteType(
+          forwardingTarget.function.positionalParameters[i].type);
+      forwardingParams[function.positionalParameters[i]] = type;
+    }
+    for (var hostParam in function.namedParameters) {
+      VariableDeclaration targetParam = forwardingTarget
+          .function.namedParameters
+          .firstWhere((p) => p.name == hostParam.name);
+      forwardingParams[hostParam] =
+          forwardingSubstitution.substituteType(targetParam.type);
+    }
+    return forwardingParams;
+  }
+
+  void _checkArguments(FunctionNode function) {
+    // When checking arguments of a forwarding stub, we need to use parameter
+    // types (and bounds of type parameters) from stub's target.
+    // These more accurate type checks is the sole purpose of a forwarding stub.
+    final forwardingTarget = _getForwardingStubSuperTarget();
+    final forwardingSubstitution =
+        _getForwardingSubstitution(function, forwardingTarget);
+    final forwardingBounds = _getForwardingBounds(
+        function, forwardingTarget, forwardingSubstitution);
+    final forwardingParamTypes = _getForwardingParameterTypes(
+        function, forwardingTarget, forwardingSubstitution);
+
+    for (var typeParam in function.typeParameters) {
+      _genTypeParameterBoundCheck(typeParam, forwardingBounds);
+    }
+    for (var param in function.positionalParameters) {
+      _genArgumentTypeCheck(param, forwardingParamTypes);
+    }
+    for (var param in locals.sortedNamedParameters) {
+      _genArgumentTypeCheck(param, forwardingParamTypes);
+    }
+  }
+
+  void _genTypeParameterBoundCheck(TypeParameter typeParam,
+      Map<TypeParameter, DartType> forwardingTypeParameterBounds) {
+    if (canSkipTypeChecksForNonCovariantArguments &&
+        !typeParam.isGenericCovariantImpl) {
+      return;
+    }
+    final DartType bound = (forwardingTypeParameterBounds != null)
+        ? forwardingTypeParameterBounds[typeParam]
+        : typeParam.bound;
+    if (typeEnvironment.isTop(bound)) {
+      return;
+    }
+    final DartType type = new TypeParameterType(typeParam);
+    _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
+    asm.emitPushConstant(cp.add(new ConstantType(type)));
+    asm.emitPushConstant(cp.add(new ConstantType(bound)));
+    asm.emitPushConstant(cp.add(new ConstantString(typeParam.name)));
+    asm.emitAssertSubtype();
+  }
+
+  void _genArgumentTypeCheck(VariableDeclaration variable,
+      Map<VariableDeclaration, DartType> forwardingParameterTypes) {
+    if (canSkipTypeChecksForNonCovariantArguments &&
+        !variable.isCovariant &&
+        !variable.isGenericCovariantImpl) {
+      return;
+    }
+    final DartType type = (forwardingParameterTypes != null)
+        ? forwardingParameterTypes[variable]
+        : variable.type;
+    if (typeEnvironment.isTop(type)) {
       return;
     }
     if (locals.isCaptured(variable)) {
@@ -910,7 +1052,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitPush(locals.getVarIndexInFrame(variable));
     }
-    _genAssertAssignable(variable.type, name: variable.name);
+    _genAssertAssignable(type, name: variable.name);
     asm.emitDrop1();
   }
 
@@ -947,6 +1089,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final savedParentFunction = parentFunction;
     parentFunction = enclosingFunction;
+    final savedIsClosure = isClosure;
+    isClosure = true;
     enclosingFunction = function;
 
     if (function.typeParameters.isNotEmpty) {
@@ -1001,6 +1145,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     enclosingFunction = parentFunction;
     parentFunction = savedParentFunction;
+    isClosure = savedIsClosure;
 
     locals.leaveScope();
 
@@ -1021,7 +1166,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // if (switch_var != 0) goto continuationLabel
     _genPushInt(0);
-    asm.emitIfNeStrictNumTOS();
+    asm.emitIfNeStrictTOS();
     asm.emitJump(continuationLabel);
 
     // Proceed to normal entry.
@@ -1049,7 +1194,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (i != yieldPoints.length - 1) {
         asm.emitPush(switchVarIndexInFrame);
         _genPushInt(index);
-        asm.emitIfEqStrictNumTOS();
+        asm.emitIfEqStrictTOS();
       }
 
       asm.emitJump(yieldPoints[i]);
@@ -1583,8 +1728,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // TODO(alexmarkov): fast path smi ops
     final argDescIndex =
         cp.add(new ConstantArgDesc.fromArguments(args, hasReceiver: true));
-    final icdataIndex = cp.add(
-        new ConstantICData(InvocationKind.method, node.name, argDescIndex));
+    final icdataIndex = cp.add(new ConstantICData(
+        InvocationKind.method, node.name, argDescIndex,
+        isDynamic: node.interfaceTarget == null));
     final totalArgCount = args.positional.length +
         args.named.length +
         1 /* receiver */ +
@@ -1596,8 +1742,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitPropertyGet(PropertyGet node) {
     node.receiver.accept(this);
     final argDescIndex = cp.add(new ConstantArgDesc(1));
-    final icdataIndex = cp.add(
-        new ConstantICData(InvocationKind.getter, node.name, argDescIndex));
+    final icdataIndex = cp.add(new ConstantICData(
+        InvocationKind.getter, node.name, argDescIndex,
+        isDynamic: node.interfaceTarget == null));
     asm.emitInstanceCall(1, icdataIndex);
   }
 
@@ -1614,8 +1761,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final argDescIndex = cp.add(new ConstantArgDesc(2));
-    final icdataIndex = cp.add(
-        new ConstantICData(InvocationKind.setter, node.name, argDescIndex));
+    final icdataIndex = cp.add(new ConstantICData(
+        InvocationKind.setter, node.name, argDescIndex,
+        isDynamic: node.interfaceTarget == null));
     asm.emitInstanceCall(2, icdataIndex);
     asm.emitDrop1();
 

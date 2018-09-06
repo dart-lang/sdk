@@ -80,7 +80,7 @@ Closure CP#11 {
   LoadContextVar       5
   StoreLocal           r5
   PushConstant         CP#10
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4
@@ -396,7 +396,7 @@ Closure CP#5 {
   LoadContextVar       2
   StoreLocal           r5
   PushConstant         CP#4
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   PopLocal             r6
@@ -609,7 +609,7 @@ Closure CP#5 {
   LoadContextVar       6
   StoreLocal           r5
   PushConstant         CP#4
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4
@@ -719,7 +719,7 @@ L1:
   PopLocal             r4
   Push                 r5
   PushConstant         CP#8
-  IfEqStrictNumTOS
+  IfEqStrictTOS
   Jump                 L6
   Jump                 L7
 
@@ -909,7 +909,7 @@ Closure CP#5 {
   LoadContextVar       5
   StoreLocal           r5
   PushConstant         CP#4
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4
@@ -1366,7 +1366,7 @@ Closure CP#5 {
   LoadContextVar       7
   StoreLocal           r5
   PushConstant         CP#4
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4
@@ -1789,19 +1789,19 @@ L1:
   PopLocal             r4
   Push                 r5
   PushConstant         CP#8
-  IfEqStrictNumTOS
+  IfEqStrictTOS
   Jump                 L13
   Push                 r5
   PushConstant         CP#18
-  IfEqStrictNumTOS
+  IfEqStrictTOS
   Jump                 L14
   Push                 r5
   PushConstant         CP#23
-  IfEqStrictNumTOS
+  IfEqStrictTOS
   Jump                 L15
   Push                 r5
   PushConstant         CP#27
-  IfEqStrictNumTOS
+  IfEqStrictTOS
   Jump                 L16
   Jump                 L17
 
@@ -1956,7 +1956,7 @@ Closure CP#9 {
   LoadContextVar       4
   StoreLocal           r5
   PushConstant         CP#8
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4
@@ -2392,7 +2392,7 @@ Closure CP#5 {
   LoadContextVar       5
   StoreLocal           r5
   PushConstant         CP#4
-  IfNeStrictNumTOS
+  IfNeStrictTOS
   Jump                 L1
   Push                 r4
   Push                 r4

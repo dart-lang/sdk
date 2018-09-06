@@ -361,7 +361,7 @@ ConstantPool {
   [6] = ICData target-name '==', arg-desc CP#2
   [7] = Bool false
   [8] = ArgDesc num-args 1, num-type-args 0, names []
-  [9] = ICData target-name 'call', arg-desc CP#8
+  [9] = ICData dynamic target-name 'call', arg-desc CP#8
 }
 ]  static get platformScript() → dynamic {
     if(self::VMLibraryHooks::_cachedScript.{core::Object::==}(null) && !self::VMLibraryHooks::_computeScriptUri.{core::Object::==}(null)) {

@@ -132,6 +132,9 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     setter   // x.foo = ...
   };
 
+  const int kInvocationKindMask = 0x3;
+  const int kFlagDynamic = 1 << 2;
+
   Object& obj = Object::Handle(helper_->zone_);
   Object& elem = Object::Handle(helper_->zone_);
   Array& array = Array::Handle(helper_->zone_);
@@ -188,7 +191,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
       } break;
       case ConstantPoolTag::kICData: {
-        InvocationKind kind = static_cast<InvocationKind>(helper_->ReadByte());
+        intptr_t flags = helper_->ReadByte();
+        InvocationKind kind =
+            static_cast<InvocationKind>(flags & kInvocationKindMask);
+        bool isDynamic = (flags & kFlagDynamic) != 0;
         if (kind == InvocationKind::getter) {
           name = helper_->ReadNameAsGetterName().raw();
         } else if (kind == InvocationKind::setter) {
@@ -207,6 +213,17 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           intptr_t argument_count = ArgumentsDescriptor(array).Count();
           ASSERT(argument_count <= 2);
           checked_argument_count = argument_count;
+        }
+        // Do not mangle == or call:
+        //   * operator == takes an Object so its either not checked or checked
+        //     at the entry because the parameter is marked covariant, neither
+        //     of those cases require a dynamic invocation forwarder;
+        //   * we assume that all closures are entered in a checked way.
+        if (isDynamic && (kind != InvocationKind::getter) &&
+            !FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
+            (name.raw() != Symbols::EqualOperator().raw()) &&
+            (name.raw() != Symbols::Call().raw())) {
+          name = Function::CreateDynamicInvocationForwarderName(name);
         }
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.

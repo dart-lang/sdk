@@ -65,7 +65,8 @@ enum InvocationKind {
 
 type ConstantICData extends ConstantPoolEntry {
   Byte tag = 7;
-  Byte invocationKind; // Index in InvocationKind enum.
+  Byte flags(invocationKindBit0, invocationKindBit1, isDynamic);
+             // Where invocationKind is index into InvocationKind.
   Name targetName;
   ConstantIndex argDesc;
 }
@@ -485,30 +486,43 @@ String _invocationKindToString(InvocationKind kind) {
 }
 
 class ConstantICData extends ConstantPoolEntry {
-  final InvocationKind invocationKind;
+  static const int invocationKindMask = 3;
+  static const int flagDynamic = 1 << 2;
+
+  final int _flags;
   final Name targetName;
   final int argDescConstantIndex;
 
   ConstantICData(
-      this.invocationKind, this.targetName, this.argDescConstantIndex);
+      InvocationKind invocationKind, this.targetName, this.argDescConstantIndex,
+      {bool isDynamic: false})
+      : assert(invocationKind.index <= invocationKindMask),
+        _flags = invocationKind.index | (isDynamic ? flagDynamic : 0);
+
+  InvocationKind get invocationKind =>
+      InvocationKind.values[_flags & invocationKindMask];
+
+  bool get isDynamic => (_flags & flagDynamic) != 0;
 
   @override
   ConstantTag get tag => ConstantTag.kICData;
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    sink.writeByte(invocationKind.index);
+    sink.writeByte(_flags);
     sink.writeName(targetName);
     sink.writeUInt30(argDescConstantIndex);
   }
 
   ConstantICData.readFromBinary(BinarySource source)
-      : invocationKind = InvocationKind.values[source.readByte()],
+      : _flags = source.readByte(),
         targetName = source.readName(),
         argDescConstantIndex = source.readUInt();
 
   @override
-  String toString() => 'ICData ${_invocationKindToString(invocationKind)}'
+  String toString() => 'ICData '
+      '${isDynamic ? 'dynamic ' : ''}'
+      '${_invocationKindToString(invocationKind)}'
       'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
 
   // ConstantICData entries are created per call site and should not be merged,

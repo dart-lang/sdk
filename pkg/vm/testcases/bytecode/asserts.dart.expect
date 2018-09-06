@@ -56,10 +56,10 @@ L1:
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = ICData target-name 'call', arg-desc CP#0
+  [1] = ICData dynamic target-name 'call', arg-desc CP#0
   [2] = Bool true
   [3] = Int 0
-  [4] = ICData target-name 'call', arg-desc CP#0
+  [4] = ICData dynamic target-name 'call', arg-desc CP#0
   [5] = ArgDesc num-args 3, num-type-args 0, names []
   [6] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#5
   [7] = Null

@@ -2089,6 +2089,7 @@ redirecting_factory_reflection_test: RuntimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+covariant_subtyping_with_mixin_test: RuntimeError # Issue 34321
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359

@@ -5995,6 +5995,7 @@ bool Function::HasCode(RawFunction* function) {
 bool Function::HasBytecode(RawFunction* function) {
   return function->ptr()->bytecode_ != Code::null();
 }
+
 #endif
 
 void Function::ClearCode() const {
@@ -6002,9 +6003,14 @@ void Function::ClearCode() const {
   UNREACHABLE();
 #else
   ASSERT(Thread::Current()->IsMutatorThread());
+
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+#if defined(DART_USE_INTERPRETER)
+  StorePointer(&raw_ptr()->bytecode_, Code::null());
+#endif  // defined(DART_USE_INTERPRETER)
+
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {

@@ -38,6 +38,7 @@ const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 constructor_reference_test/27: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
+covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc

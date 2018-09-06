@@ -383,7 +383,7 @@ ConstantPool {
   [20] = Reserved
   [21] = InstanceField dart.core::_Closure::_function
   [22] = Reserved
-  [23] = ICData target-name 'call', arg-desc CP#6
+  [23] = ICData dynamic target-name 'call', arg-desc CP#6
   [24] = StaticICData target 'dart.core::print', arg-desc CP#6
   [25] = Int 4
   [26] = Int 0
@@ -918,7 +918,7 @@ ConstantPool {
   [26] = Reserved
   [27] = InstanceField dart.core::_Closure::_function
   [28] = Reserved
-  [29] = ICData target-name 'call', arg-desc CP#7
+  [29] = ICData dynamic target-name 'call', arg-desc CP#7
   [30] = Type dynamic
   [31] = String 'finally 1'
   [32] = StaticICData target 'dart.core::print', arg-desc CP#7
@@ -1098,9 +1098,9 @@ ConstantPool {
   [34] = InstanceField dart.core::_Closure::_function
   [35] = Reserved
   [36] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [37] = ICData target-name 'call', arg-desc CP#5
+  [37] = ICData dynamic target-name 'call', arg-desc CP#5
   [38] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [39] = ICData target-name 'call', arg-desc CP#5
+  [39] = ICData dynamic target-name 'call', arg-desc CP#5
 }
 Closure CP#2 {
   EntryFixed           1, 6

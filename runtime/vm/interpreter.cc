@@ -1160,6 +1160,9 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
     case RawFunction::kNoSuchMethodDispatcher:
       // TODO(regis): Implement. For now, use jitted version.
       break;
+    case RawFunction::kDynamicInvocationForwarder:
+      // TODO(regis): Implement. For now, use jitted version.
+      break;
     default:
       break;
   }

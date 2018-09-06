@@ -23,6 +23,7 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or t
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 constructor_reference_test/27: MissingCompileTimeError # Issue 34270
+covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError

@@ -339,19 +339,6 @@ L1:
   PushConstant         CP#5
   AssertSubtype
   PushConstant         CP#1
-  Push                 r0
-  PushConstant         CP#6
-  PushConstant         CP#7
-  PushConstant         CP#8
-  AssertSubtype
-  Push                 FP[-5]
-  PushConstant         CP#1
-  Push                 r0
-  PushConstant         CP#9
-  PushConstant         CP#10
-  AssertAssignable     0, CP#11
-  Drop1
-  PushConstant         CP#1
   ReturnTOS
 }
 ConstantPool {
@@ -361,12 +348,6 @@ ConstantPool {
   [3] = Type #lib::E::foo6::T
   [4] = Type #lib::E::P
   [5] = String 'T'
-  [6] = Type #lib::E::foo6::U
-  [7] = Type dart.core::List<#lib::E::foo6::T>
-  [8] = String 'U'
-  [9] = Type dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U>
-  [10] = String 'map'
-  [11] = SubtypeTestCache
 }
 ]  method foo6<generic-covariant-impl T extends self::E::P = self::E::P, U extends core::List<self::E::foo6::T> = core::List<self::E::P>>(core::Map<self::E::foo6::T, self::E::foo6::U> map) → void {}
 }

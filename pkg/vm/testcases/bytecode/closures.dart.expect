@@ -278,18 +278,18 @@ ConstantPool {
   [43] = Reserved
   [44] = InstanceField dart.core::_Closure::_function
   [45] = Reserved
-  [46] = ICData target-name 'call', arg-desc CP#35
+  [46] = ICData dynamic target-name 'call', arg-desc CP#35
   [47] = EndClosureFunctionScope
   [48] = TypeArgs [#lib::C7, #lib::C8]
   [49] = ArgDesc num-args 1, num-type-args 2, names []
-  [50] = ICData target-name 'call', arg-desc CP#49
+  [50] = ICData dynamic target-name 'call', arg-desc CP#49
   [51] = TypeArgs [dart.core::List<#lib::C7>, dart.core::List<#lib::C8>]
-  [52] = ICData target-name 'call', arg-desc CP#49
+  [52] = ICData dynamic target-name 'call', arg-desc CP#49
   [53] = EndClosureFunctionScope
   [54] = TypeArgs [#lib::C5, #lib::C6]
-  [55] = ICData target-name 'call', arg-desc CP#49
+  [55] = ICData dynamic target-name 'call', arg-desc CP#49
   [56] = TypeArgs [dart.core::List<#lib::C5>, dart.core::List<#lib::C6>]
-  [57] = ICData target-name 'call', arg-desc CP#49
+  [57] = ICData dynamic target-name 'call', arg-desc CP#49
 }
 Closure CP#15 {
   EntryFixed           1, 4
@@ -640,13 +640,13 @@ ConstantPool {
   [29] = Reserved
   [30] = InstanceField dart.core::_Closure::_function
   [31] = Reserved
-  [32] = ICData target-name 'call', arg-desc CP#18
+  [32] = ICData dynamic target-name 'call', arg-desc CP#18
   [33] = StaticICData target 'dart.core::print', arg-desc CP#18
   [34] = EndClosureFunctionScope
   [35] = Int 10
-  [36] = ICData target-name 'call', arg-desc CP#10
+  [36] = ICData dynamic target-name 'call', arg-desc CP#10
   [37] = Int 11
-  [38] = ICData target-name 'call', arg-desc CP#10
+  [38] = ICData dynamic target-name 'call', arg-desc CP#10
   [39] = StaticICData target 'dart.core::print', arg-desc CP#18
   [40] = StaticICData target 'dart.core::print', arg-desc CP#18
   [41] = StaticICData target 'dart.core::print', arg-desc CP#18
@@ -654,7 +654,7 @@ ConstantPool {
   [43] = ClosureFunction <anonymous closure> () → dart.core::Null;
   [44] = ICData set target-name 'foo', arg-desc CP#10
   [45] = EndClosureFunctionScope
-  [46] = ICData target-name 'call', arg-desc CP#18
+  [46] = ICData dynamic target-name 'call', arg-desc CP#18
 }
 Closure CP#16 {
   EntryFixed           1, 3
@@ -1030,105 +1030,95 @@ Bytecode {
   Entry                5
   CheckStack
   Push                 FP[-5]
-  PushConstant         CP#0
-  PushConstant         CP#0
-  PushConstant         CP#1
-  PushConstant         CP#2
-  AssertAssignable     0, CP#3
-  Drop1
-  Push                 FP[-5]
-  InstanceCall         1, CP#5
+  InstanceCall         1, CP#1
   PopLocal             r2
 L2:
   CheckStack
   Push                 r2
-  InstanceCall         1, CP#6
-  PushConstant         CP#7
+  InstanceCall         1, CP#2
+  PushConstant         CP#3
   IfNeStrictTOS
   Jump                 L1
   AllocateContext      1
   PopLocal             r0
   Push                 r0
   Push                 r2
-  InstanceCall         1, CP#8
+  InstanceCall         1, CP#4
   StoreContextVar      0
-  Allocate             CP#16
+  Allocate             CP#13
   StoreLocal           r4
   Push                 r4
-  PushConstant         CP#0
-  StoreFieldTOS        CP#17
+  PushConstant         CP#11
+  StoreFieldTOS        CP#14
   Push                 r4
-  PushConstant         CP#0
+  PushConstant         CP#11
+  StoreFieldTOS        CP#16
+  Push                 r4
+  PushConstant         CP#18
   StoreFieldTOS        CP#19
   Push                 r4
-  PushConstant         CP#21
-  StoreFieldTOS        CP#22
-  Push                 r4
-  PushConstant         CP#9
-  StoreFieldTOS        CP#24
+  PushConstant         CP#5
+  StoreFieldTOS        CP#21
   Push                 r4
   Push                 r0
-  StoreFieldTOS        CP#10
+  StoreFieldTOS        CP#6
   PopLocal             r3
   Push                 r3
-  InstanceCall         1, CP#26
+  InstanceCall         1, CP#23
   Drop1
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#27
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#24
+  IndirectStaticCall   1, CP#0
   Drop1
   Push                 r0
   LoadContextParent
   PopLocal             r0
   Jump                 L2
 L1:
-  PushConstant         CP#0
+  PushConstant         CP#11
   ReturnTOS
 }
 ConstantPool {
-  [0] = Null
-  [1] = Type dart.core::List<dart.core::int>
-  [2] = String 'list'
-  [3] = SubtypeTestCache
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = ICData get target-name 'iterator', arg-desc CP#4
-  [6] = ICData target-name 'moveNext', arg-desc CP#4
-  [7] = Bool true
-  [8] = ICData get target-name 'current', arg-desc CP#4
-  [9] = ClosureFunction <anonymous closure> () → dart.core::Null;
-  [10] = InstanceField dart.core::_Closure::_context
-  [11] = Reserved
-  [12] = Int 1
-  [13] = ArgDesc num-args 2, num-type-args 0, names []
-  [14] = ICData target-name '+', arg-desc CP#13
-  [15] = EndClosureFunctionScope
-  [16] = Class dart.core::_Closure
-  [17] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [18] = Reserved
-  [19] = InstanceField dart.core::_Closure::_function_type_arguments
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ICData get target-name 'iterator', arg-desc CP#0
+  [2] = ICData target-name 'moveNext', arg-desc CP#0
+  [3] = Bool true
+  [4] = ICData get target-name 'current', arg-desc CP#0
+  [5] = ClosureFunction <anonymous closure> () → dart.core::Null;
+  [6] = InstanceField dart.core::_Closure::_context
+  [7] = Reserved
+  [8] = Int 1
+  [9] = ArgDesc num-args 2, num-type-args 0, names []
+  [10] = ICData target-name '+', arg-desc CP#9
+  [11] = Null
+  [12] = EndClosureFunctionScope
+  [13] = Class dart.core::_Closure
+  [14] = InstanceField dart.core::_Closure::_instantiator_type_arguments
+  [15] = Reserved
+  [16] = InstanceField dart.core::_Closure::_function_type_arguments
+  [17] = Reserved
+  [18] = EmptyTypeArguments
+  [19] = InstanceField dart.core::_Closure::_delayed_type_arguments
   [20] = Reserved
-  [21] = EmptyTypeArguments
-  [22] = InstanceField dart.core::_Closure::_delayed_type_arguments
-  [23] = Reserved
-  [24] = InstanceField dart.core::_Closure::_function
-  [25] = Reserved
-  [26] = ICData target-name 'call', arg-desc CP#4
-  [27] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [21] = InstanceField dart.core::_Closure::_function
+  [22] = Reserved
+  [23] = ICData dynamic target-name 'call', arg-desc CP#0
+  [24] = StaticICData target 'dart.core::print', arg-desc CP#0
 }
-Closure CP#9 {
+Closure CP#5 {
   EntryFixed           1, 3
   CheckStack
   Push                 FP[-5]
-  LoadFieldTOS         CP#10
+  LoadFieldTOS         CP#6
   PopLocal             r0
   Push                 r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#12
-  InstanceCall         2, CP#14
+  PushConstant         CP#8
+  InstanceCall         2, CP#10
   StoreContextVar      0
-  PushConstant         CP#0
+  PushConstant         CP#11
   ReturnTOS
 
 }
@@ -1302,7 +1292,7 @@ ConstantPool {
   [19] = InstanceField dart.core::_Closure::_function
   [20] = Reserved
   [21] = Int 3
-  [22] = ICData target-name 'call', arg-desc CP#8
+  [22] = ICData dynamic target-name 'call', arg-desc CP#8
 }
 Closure CP#1 {
   EntryFixed           2, 3
