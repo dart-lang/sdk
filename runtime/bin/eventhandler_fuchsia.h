@@ -158,7 +158,7 @@ class EventHandlerImplementation {
   intptr_t GetPollEvents(intptr_t events);
   void HandleInterrupt(InterruptMessage* msg);
 
-  HashMap socket_map_;
+  SimpleHashMap socket_map_;
   TimeoutQueue timeout_queue_;
   bool shutdown_;
   zx_handle_t port_handle_;

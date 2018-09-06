@@ -17,11 +17,12 @@ typedef uint32_t (*IntKeyHash)(uint32_t key);
 class IntSet {
  public:
   explicit IntSet(IntKeyHash hash)
-      : hash_(hash), map_(HashMap::SamePointerValue, kInitialSize) {}
+      : hash_(hash), map_(SimpleHashMap::SamePointerValue, kInitialSize) {}
 
   void Insert(int x) {
     EXPECT_NE(0, x);  // 0 corresponds to (void*)NULL - illegal key value
-    HashMap::Entry* p = map_.Lookup(reinterpret_cast<void*>(x), hash_(x), true);
+    SimpleHashMap::Entry* p =
+        map_.Lookup(reinterpret_cast<void*>(x), hash_(x), true);
     EXPECT(p != NULL);  // insert is set!
     EXPECT_EQ(reinterpret_cast<void*>(x), p->key);
     // We don't care about p->value.
@@ -33,7 +34,7 @@ class IntSet {
   }
 
   bool Present(int x) {
-    HashMap::Entry* p =
+    SimpleHashMap::Entry* p =
         map_.Lookup(reinterpret_cast<void*>(x), hash_(x), false);
     if (p != NULL) {
       EXPECT_EQ(reinterpret_cast<void*>(x), p->key);
@@ -45,7 +46,7 @@ class IntSet {
 
   uint32_t occupancy() const {
     uint32_t count = 0;
-    for (HashMap::Entry* p = map_.Start(); p != NULL; p = map_.Next(p)) {
+    for (SimpleHashMap::Entry* p = map_.Start(); p != NULL; p = map_.Next(p)) {
       count++;
     }
     EXPECT_EQ(map_.occupancy_, count);
@@ -54,7 +55,7 @@ class IntSet {
 
  private:
   IntKeyHash hash_;
-  HashMap map_;
+  SimpleHashMap map_;
 };
 
 static uint32_t WordHash(uint32_t key) {
@@ -166,7 +167,7 @@ void TestSet(IntKeyHash hash, int size) {
   EXPECT_EQ(0u, set.occupancy());
 }
 
-VM_UNIT_TEST_CASE(HashMap_Basic) {
+VM_UNIT_TEST_CASE(SimpleHashMap_Basic) {
   TestSet(WordHash, 100);
   TestSet(Hash, 100);
   TestSet(CollisionHash1, 50);

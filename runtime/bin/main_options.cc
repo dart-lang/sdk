@@ -227,7 +227,7 @@ void Options::PrintUsage() {
 }
 // clang-format on
 
-dart::HashMap* Options::environment_ = NULL;
+dart::SimpleHashMap* Options::environment_ = NULL;
 bool Options::ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options) {
   return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
@@ -236,7 +236,7 @@ bool Options::ProcessEnvironmentOption(const char* arg,
 
 void Options::DestroyEnvironment() {
   if (environment_ != NULL) {
-    for (HashMap::Entry* p = environment_->Start(); p != NULL;
+    for (SimpleHashMap::Entry* p = environment_->Start(); p != NULL;
          p = environment_->Next(p)) {
       free(p->key);
       free(p->value);

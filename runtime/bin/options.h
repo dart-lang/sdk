@@ -34,7 +34,7 @@ class OptionProcessor {
 
   static bool ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options,
-                                       dart::HashMap** environment);
+                                       dart::SimpleHashMap** environment);
 
  private:
   static OptionProcessor* first_;

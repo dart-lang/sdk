@@ -266,7 +266,7 @@ void EventHandlerImplementation::RemoveFromPort(zx_handle_t port_handle,
 }
 
 EventHandlerImplementation::EventHandlerImplementation()
-    : socket_map_(&HashMap::SamePointerValue, 16) {
+    : socket_map_(&SimpleHashMap::SamePointerValue, 16) {
   shutdown_ = false;
   // Create the port.
   port_handle_ = ZX_HANDLE_INVALID;
@@ -311,7 +311,7 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     bool is_listening) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   ASSERT(handle->fd() >= 0);
-  HashMap::Entry* entry =
+  SimpleHashMap::Entry* entry =
       socket_map_.Lookup(GetHashmapKeyFromFd(handle->fd()),
                          GetHashmapHashFromFd(handle->fd()), true);
   ASSERT(entry != NULL);

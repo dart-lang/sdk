@@ -376,9 +376,12 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     }
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
-    Dart_ListSetAt(event, 2,
-                   Dart_NewStringFromUTF8(
-                       reinterpret_cast<uint8_t*>(e.data.path), path_len));
+    Dart_Handle name = Dart_NewStringFromUTF8(
+        reinterpret_cast<uint8_t*>(e.data.path), path_len);
+    if (Dart_IsError(name)) {
+      return name;
+    }
+    Dart_ListSetAt(event, 2, name);
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);

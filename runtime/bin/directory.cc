@@ -25,7 +25,8 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* current = Directory::Current(namespc);
   if (current != NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewString(current));
+    Dart_Handle str = ThrowIfError(DartUtils::NewString(current));
+    Dart_SetReturnValue(args, str);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -106,7 +107,8 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* result = Directory::SystemTemp(namespc);
-  Dart_SetReturnValue(args, DartUtils::NewString(result));
+  Dart_Handle str = ThrowIfError(DartUtils::NewString(result));
+  Dart_SetReturnValue(args, str);
 }
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
@@ -125,7 +127,8 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
     }
   }
   if (result != NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewString(result));
+    Dart_Handle str = ThrowIfError(DartUtils::NewString(result));
+    Dart_SetReturnValue(args, str);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
@@ -248,10 +251,7 @@ void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
                                sizeof(*listing), ReleaseListing);
   Dart_Handle result = Dart_SetNativeInstanceField(
       dart_this, kAsyncDirectoryListerFieldIndex, listing_pointer);
-  if (Dart_IsError(result)) {
-    Log::PrintErr("SetAsyncDirectoryListerPointer failed\n");
-    Dart_PropagateError(result);
-  }
+  ThrowIfError(result);
 }
 
 void Directory::SetSystemTemp(const char* path) {

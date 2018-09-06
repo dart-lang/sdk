@@ -49,10 +49,7 @@ static void SetFile(Dart_Handle dart_this, intptr_t file_pointer) {
   DEBUG_ASSERT(IsFile(dart_this));
   Dart_Handle result = Dart_SetNativeInstanceField(
       dart_this, kFileNativeFieldIndex, file_pointer);
-  if (Dart_IsError(result)) {
-    Log::PrintErr("SetNativeInstanceField in SetFile() failed\n");
-    Dart_PropagateError(result);
-  }
+  ThrowIfError(result);
 }
 
 void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
@@ -213,9 +210,7 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
     dart_args[2] = Dart_NewInteger(bytes_read);
     // TODO(sgjesse): Cache the _makeUint8ListView function somewhere.
     Dart_Handle io_lib = Dart_LookupLibrary(DartUtils::NewString("dart:io"));
-    if (Dart_IsError(io_lib)) {
-      Dart_PropagateError(io_lib);
-    }
+    ThrowIfError(io_lib);
     Dart_Handle array_view =
         Dart_Invoke(io_lib, DartUtils::NewString("_makeUint8ListView"),
                     kNumArgs, dart_args);
@@ -239,9 +234,7 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   intptr_t length = end - start;
   intptr_t array_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  ThrowIfError(result);
   ASSERT(end <= array_len);
   uint8_t* buffer = Dart_ScopeAllocate(length);
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
@@ -278,9 +271,7 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   void* buffer = NULL;
   Dart_Handle result =
       Dart_TypedDataAcquireData(buffer_obj, &type, &buffer, &buffer_len);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  ThrowIfError(result);
 
   ASSERT(type == Dart_TypedData_kUint8 || type == Dart_TypedData_kInt8);
   ASSERT(end <= buffer_len);
@@ -291,11 +282,7 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   bool success = file->WriteFully(byte_buffer + start, length);
 
   // Release the direct pointer acquired above.
-  result = Dart_TypedDataReleaseData(buffer_obj);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-
+  ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
   if (!success) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
@@ -567,7 +554,8 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
   if (target == NULL) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewString(target));
+    Dart_Handle str = ThrowIfError(DartUtils::NewString(target));
+    Dart_SetReturnValue(args, str);
   }
 }
 
@@ -700,7 +688,8 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
     }
   }
   if (path != NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewString(path));
+    Dart_Handle str = ThrowIfError(DartUtils::NewString(path));
+    Dart_SetReturnValue(args, str);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
@@ -743,22 +732,16 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
   }
   Dart_Handle returned_data =
       Dart_NewTypedData(Dart_TypedData_kInt64, File::kStatSize);
-  if (Dart_IsError(returned_data)) {
-    Dart_PropagateError(returned_data);
-  }
+  ThrowIfError(returned_data);
   Dart_TypedData_Type data_type_unused;
   void* data_location;
   intptr_t data_length_unused;
   Dart_Handle status = Dart_TypedDataAcquireData(
       returned_data, &data_type_unused, &data_location, &data_length_unused);
-  if (Dart_IsError(status)) {
-    Dart_PropagateError(status);
-  }
+  ThrowIfError(status);
   memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
   status = Dart_TypedDataReleaseData(returned_data);
-  if (Dart_IsError(status)) {
-    Dart_PropagateError(status);
-  }
+  ThrowIfError(status);
   Dart_SetReturnValue(args, returned_data);
 }
 

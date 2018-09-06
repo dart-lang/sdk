@@ -115,7 +115,7 @@ class Options {
   static void SetDart2Options(CommandLineOptions* vm_options);
   static void SetDart1Options(CommandLineOptions* vm_options);
 
-  static dart::HashMap* environment() { return environment_; }
+  static dart::SimpleHashMap* environment() { return environment_; }
 
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
@@ -148,7 +148,7 @@ class Options {
   ENUM_OPTIONS_LIST(ENUM_OPTION_DECL)
 #undef ENUM_OPTION_DECL
 
-  static dart::HashMap* environment_;
+  static dart::SimpleHashMap* environment_;
 
 // Frontend argument processing.
 #if !defined(DART_PRECOMPILED_RUNTIME)

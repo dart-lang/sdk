@@ -44,7 +44,7 @@ void ListeningSocketRegistry::Cleanup() {
 
 ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByPort(
     intptr_t port) {
-  HashMap::Entry* entry = sockets_by_port_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_port_.Lookup(
       GetHashmapKeyFromIntptr(port), GetHashmapHashFromIntptr(port), false);
   if (entry == NULL) {
     return NULL;
@@ -53,7 +53,7 @@ ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByPort(
 }
 
 void ListeningSocketRegistry::InsertByPort(intptr_t port, OSSocket* socket) {
-  HashMap::Entry* entry = sockets_by_port_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_port_.Lookup(
       GetHashmapKeyFromIntptr(port), GetHashmapHashFromIntptr(port), true);
   ASSERT(entry != NULL);
   entry->value = reinterpret_cast<void*>(socket);
@@ -66,7 +66,7 @@ void ListeningSocketRegistry::RemoveByPort(intptr_t port) {
 
 ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByFd(
     Socket* fd) {
-  HashMap::Entry* entry = sockets_by_fd_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_fd_.Lookup(
       GetHashmapKeyFromIntptr(reinterpret_cast<intptr_t>(fd)),
       GetHashmapHashFromIntptr(reinterpret_cast<intptr_t>(fd)), false);
   if (entry == NULL) {
@@ -76,7 +76,7 @@ ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByFd(
 }
 
 void ListeningSocketRegistry::InsertByFd(Socket* fd, OSSocket* socket) {
-  HashMap::Entry* entry = sockets_by_fd_.Lookup(
+  SimpleHashMap::Entry* entry = sockets_by_fd_.Lookup(
       GetHashmapKeyFromIntptr(reinterpret_cast<intptr_t>(fd)),
       GetHashmapHashFromIntptr(reinterpret_cast<intptr_t>(fd)), true);
   ASSERT(entry != NULL);
@@ -234,7 +234,7 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
 void ListeningSocketRegistry::CloseAllSafe() {
   MutexLocker ml(mutex_);
 
-  for (HashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
+  for (SimpleHashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
        cursor = sockets_by_fd_.Next(cursor)) {
     CloseOneSafe(reinterpret_cast<OSSocket*>(cursor->value), false);
   }
