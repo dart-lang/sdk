@@ -163,6 +163,16 @@ abstract class ResolutionTest implements ResourceProviderMixin {
         expectedPrefix: expectedPrefix);
   }
 
+  void assertInvokeType(InvocationExpression node, String expected) {
+    DartType actual = node.staticInvokeType;
+    expect(actual?.toString(), expected);
+  }
+
+  void assertInvokeTypeDynamic(InvocationExpression node) {
+    DartType actual = node.staticInvokeType;
+    expect(actual, isDynamicType);
+  }
+
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
@@ -171,7 +181,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertNoTestErrors() {
-    expect(result.errors, isEmpty);
+    assertTestErrors(const <ErrorCode>[]);
   }
 
   void assertTestErrors(List<ErrorCode> expected) {
@@ -242,6 +252,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
       return node.staticElement;
+    } else if (node is MethodInvocation) {
+      return node.methodName.staticElement;
     } else if (node is PostfixExpression) {
       return node.staticElement;
     } else if (node is PrefixExpression) {

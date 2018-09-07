@@ -441,8 +441,8 @@ generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$Str
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 generic_tearoff_test: CompileTimeError
 guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
 infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented

@@ -401,6 +401,13 @@ abstract class InterfaceType implements ParameterizedType {
   InterfaceType get superclass;
 
   /**
+   * Return a list containing all of the super-class constraints that this
+   * mixin declaration declares. The list will be empty if this class does not
+   * represent a mixin declaration.
+   */
+  List<InterfaceType> get superclassConstraints;
+
+  /**
    * Return the element representing the getter with the given [name] that is
    * declared in this class, or `null` if this class does not declare a getter
    * with the given name.

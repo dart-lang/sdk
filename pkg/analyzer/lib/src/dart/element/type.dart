@@ -1362,19 +1362,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get mixins {
-    ClassElement classElement = element;
-    List<InterfaceType> mixins = classElement.mixins;
-    List<TypeParameterElement> typeParameters = classElement.typeParameters;
-    List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.length == 0) {
-      return mixins;
-    }
-    int count = mixins.length;
-    List<InterfaceType> typedMixins = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedMixins[i] = mixins[i].substitute2(typeArguments, parameterTypes);
-    }
-    return typedMixins;
+    List<InterfaceType> mixins = element.mixins;
+    return _instantiateSuperTypes(mixins);
   }
 
   @override
@@ -1390,6 +1379,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return supertype;
     }
     return supertype.substitute2(typeArguments, typeParameters);
+  }
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    List<InterfaceType> constraints = element.superclassConstraints;
+    return _instantiateSuperTypes(constraints);
   }
 
   @override
@@ -1806,6 +1801,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      MethodElement element = constraint.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1928,6 +1929,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       _versionOfCachedMembers = currentVersion;
     }
+  }
+
+  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
+    List<TypeParameterElement> typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) {
+      return defined;
+    }
+    List<DartType> instantiated = element.type.typeArguments;
+    int count = defined.length;
+    List<InterfaceType> typedConstraints = new List<InterfaceType>(count);
+    for (int i = 0; i < count; i++) {
+      typedConstraints[i] = defined[i].substitute2(typeArguments, instantiated);
+    }
+    return typedConstraints;
   }
 
   /**

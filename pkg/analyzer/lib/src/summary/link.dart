@@ -530,6 +530,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<MethodElementForLink> _methods;
   List<InterfaceType> _mixins;
   List<InterfaceType> _interfaces;
+  List<InterfaceType> _superclassConstraints;
   List<PropertyAccessorElementForLink> _accessors;
 
   ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
@@ -722,6 +723,10 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
+  List<InterfaceType> get superclassConstraints => _superclassConstraints ??=
+      _unlinkedClass.superclassConstraints.map(_computeInterfaceType).toList();
+
+  @override
   InterfaceType get supertype {
     if (isObject) {
       return null;
@@ -905,6 +910,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   String get name => _unlinkedEnum.name;
+
+  @override
+  List<InterfaceType> get superclassConstraints => const [];
 
   @override
   InterfaceType get supertype => library._linker.typeProvider.objectType;

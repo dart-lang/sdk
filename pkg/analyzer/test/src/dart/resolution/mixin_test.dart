@@ -663,6 +663,25 @@ mixin M on void {}
     assertTypeName(typeRef, null, 'void');
   }
 
+  test_error_undefinedSuperMethod() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {
+  void bar() {
+    super.foo(42);
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+
+    var invocation = findNode.methodInvocation('foo(42)');
+    assertElementNull(invocation.methodName);
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+  }
+
   test_field() async {
     addTestFile(r'''
 mixin M<T> {
@@ -768,6 +787,27 @@ mixin M on A, B {} // M
 
     var bRef = findNode.typeName('B {} // M');
     assertTypeName(bRef, findElement.class_('B'), 'B');
+  }
+
+  test_superInvocation() async {
+    addTestFile(r'''
+class A {
+  void foo(int x) {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo(42);
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var invocation = findNode.methodInvocation('foo(42)');
+    assertElement(invocation, findElement.method('foo'));
+    assertInvokeType(invocation, '(int) → void');
+    assertType(invocation, 'void');
   }
 }
 
