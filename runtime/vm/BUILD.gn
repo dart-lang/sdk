@@ -328,13 +328,14 @@ compile_platform("vm_platform") {
     "$root_out_dir/vm_outline_strong.dill",
   ]
 
-  args = [ "--strong-mode" ]
+  args = [
+    "--strong-mode",
+    "dart:core",
+  ]
 
-  if (dart_use_interpreter) {
+  if (dart_platform_bytecode) {
     args += [ "--bytecode" ]
   }
-
-  args += [ "dart:core" ]
 }
 
 group("kernel_platform_files") {

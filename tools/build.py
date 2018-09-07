@@ -32,7 +32,7 @@ def BuildOptions():
               'simarm64,arm64,simdbc,armsimdbc]',
       default=utils.GuessArchitecture())
   result.add_option("-b", "--bytecode",
-      help='Build with the kernel bytecode interpreter',
+      help='Build with the kernel bytecode interpreter. DEPRECATED.',
       default=False,
       action='store_true')
   result.add_option("-j",
@@ -228,9 +228,9 @@ def EnsureGomaStarted(out_dir):
 
 
 # Returns a tuple (build_config, command to run, whether goma is used)
-def BuildOneConfig(options, targets, target_os, mode, arch, kbc):
-  build_config = utils.GetBuildConf(mode, arch, target_os, kbc=kbc)
-  out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, kbc=kbc)
+def BuildOneConfig(options, targets, target_os, mode, arch):
+  build_config = utils.GetBuildConf(mode, arch, target_os)
+  out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
   using_goma = False
   # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
   # gn.py manually.
@@ -295,8 +295,7 @@ def Main():
   for target_os in options.os:
     for mode in options.mode:
       for arch in options.arch:
-        configs.append(BuildOneConfig(options, targets, target_os, mode, arch,
-                                      options.bytecode))
+        configs.append(BuildOneConfig(options, targets, target_os, mode, arch))
 
   # Build regular configs.
   goma_builds = []

@@ -126,6 +126,7 @@ vm_sources = [
   "instructions_x64.h",
   "interpreter.cc",
   "interpreter.h",
+  "interpreter_unsupported.cc",
   "isolate.cc",
   "isolate.h",
   "isolate_reload.cc",

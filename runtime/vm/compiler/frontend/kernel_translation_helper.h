@@ -1042,6 +1042,7 @@ class KernelReaderHelper {
   // kernel program.
   intptr_t data_program_offset_;
 
+  friend class BytecodeMetadataHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantEvaluator;
@@ -1063,10 +1064,6 @@ class KernelReaderHelper {
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
-
-#if defined(DART_USE_INTERPRETER)
-  friend class BytecodeMetadataHelper;
-#endif  // defined(DART_USE_INTERPRETER)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);

@@ -219,11 +219,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
     List<String> args = arguments;
     if (suite.configuration.compiler == Compiler.dartkb) {
-      args.removeWhere(
-          (String arg) => arg.startsWith('--optimization-counter-threshold'));
-      args.removeWhere(
-          (String arg) => arg.startsWith('--optimization_counter_threshold'));
-      args = <String>['--optimization-counter-threshold=-1']..addAll(args);
+      args.add('--enable_interpreter');
     }
 
     String executable = suite.dartVmBinaryFileName;

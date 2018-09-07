@@ -983,10 +983,8 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
-#if defined(DART_USE_INTERPRETER)
-  RawCode* bytecode_;
-#endif
   RawCode* code_;  // Currently active code. Accessed from generated code.
+  NOT_IN_PRECOMPILED(RawCode* bytecode_);
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1133,11 +1131,11 @@ class RawField : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-#if defined(DART_USE_INTERPRETER)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  VISIT_TO(RawObject*, dependent_code_);
+#else
   RawSubtypeTestCache* type_test_cache_;  // For type test in implicit setter.
   VISIT_TO(RawObject*, type_test_cache_);
-#else
-  VISIT_TO(RawObject*, dependent_code_);
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
