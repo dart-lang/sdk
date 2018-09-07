@@ -19,6 +19,7 @@
 *   Added missing methods to `UnmodifiableMapMixin`. Some maps intended to
     be unmodifiable incorrectly allowed new methods added in Dart 2 to
     succeed.
+*   Exported `Future` and `Stream` from `dart:core`.
 
 ## 2.1.0-dev.3.0
 

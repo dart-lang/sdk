@@ -20,7 +20,7 @@ class GetFixesTest extends AbstractAnalysisServerIntegrationTest {
   test_has_fixes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
-Future f;
+FutureOr f;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
@@ -29,7 +29,7 @@ Future f;
     expect(currentAnalysisErrors[pathname], isNotEmpty);
 
     EditGetFixesResult result =
-        await sendEditGetFixes(pathname, text.indexOf('Future f'));
+        await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));
 
     expect(result.fixes, hasLength(1));
     AnalysisErrorFixes fix = result.fixes.first;
@@ -49,13 +49,13 @@ Future f;
     String text = r'''
 import 'dart:async';
 
-Future f;
+FutureOr f;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
 
     EditGetFixesResult result =
-        await sendEditGetFixes(pathname, text.indexOf('Future f'));
+        await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));
     expect(result.fixes, isEmpty);
   }
 }
