@@ -6641,6 +6641,37 @@ class MixinElementImpl extends ClassElementImpl {
       _superclassConstraints = superclassConstraints;
     }
   }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('mixin ');
+    String name = displayName;
+    if (name == null) {
+      // TODO(brianwilkerson) Can this happen (for either classes or mixins)?
+      buffer.write("{unnamed mixin}");
+    } else {
+      buffer.write(name);
+    }
+    int variableCount = typeParameters.length;
+    if (variableCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    if (superclassConstraints.isNotEmpty) {
+      buffer.write(' on ');
+      buffer.write(superclassConstraints.map((t) => t.displayName).join(', '));
+    }
+    if (interfaces.isNotEmpty) {
+      buffer.write(' implements ');
+      buffer.write(interfaces.map((t) => t.displayName).join(', '));
+    }
+  }
 }
 
 /**
