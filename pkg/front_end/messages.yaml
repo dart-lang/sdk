@@ -243,12 +243,6 @@ MultipleWith:
   analyzerCode: MULTIPLE_WITH_CLAUSES
   script: "class A extends B with C, D with E {}"
 
-WithWithoutExtends:
-  template: "The with clause can't be used without an extends clause."
-  tip: "Try adding an extends clause such as 'extends Object'."
-  analyzerCode: WITH_WITHOUT_EXTENDS
-  script: "class A with B, C {}"
-
 WithBeforeExtends:
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."

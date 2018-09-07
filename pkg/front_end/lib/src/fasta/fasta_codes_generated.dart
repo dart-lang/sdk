@@ -7462,16 +7462,6 @@ const MessageCode messageWithBeforeExtends = const MessageCode(
     tip: r"""Try moving the extends clause before the with clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeWithWithoutExtends = messageWithWithoutExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWithWithoutExtends = const MessageCode(
-    "WithWithoutExtends",
-    analyzerCode: "WITH_WITHOUT_EXTENDS",
-    message: r"""The with clause can't be used without an extends clause.""",
-    tip: r"""Try adding an extends clause such as 'extends Object'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

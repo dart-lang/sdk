@@ -674,10 +674,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WITH_BEFORE_EXTENDS, offset, length);
         return;
-      case "WITH_WITHOUT_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WITH_WITHOUT_EXTENDS, offset, length);
-        return;
       case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,

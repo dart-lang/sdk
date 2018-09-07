@@ -922,11 +922,6 @@ class ParserErrorCode extends ErrorCode {
       "The extends clause must be before the with clause.",
       correction: "Try moving the extends clause before the with clause.");
 
-  static const ParserErrorCode WITH_WITHOUT_EXTENDS = const ParserErrorCode(
-      'WITH_WITHOUT_EXTENDS',
-      "The with clause can't be used without an extends clause.",
-      correction: "Try adding an extends clause such as 'extends Object'.");
-
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
       const ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
           "The default value of a positional parameter should be preceeded by '='.",
