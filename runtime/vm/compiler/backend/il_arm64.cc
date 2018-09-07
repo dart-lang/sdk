@@ -1861,7 +1861,7 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
                            stub_entry, RawPcDescriptors::kOther, locs);
-    __ mov(result_, R0);
+    __ MoveRegister(result_, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
   }
@@ -1900,7 +1900,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ CompareObject(box_reg, Object::null_object());
   __ b(&done, NE);
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
-  __ mov(temp, box_reg);
+  __ MoveRegister(temp, box_reg);
   __ StoreIntoObjectOffset(instance_reg, offset, temp);
   __ Bind(&done);
 }
@@ -1964,7 +1964,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
-      __ mov(temp2, temp);
+      __ MoveRegister(temp2, temp);
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
     } else {
       __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);

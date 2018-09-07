@@ -498,7 +498,6 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 void Assembler::LoadImmediate(Register reg, int64_t imm) {
-  Comment("LoadImmediate");
   // Is it 0?
   if (imm == 0) {
     movz(reg, Immediate(0), 0);

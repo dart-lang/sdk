@@ -435,8 +435,17 @@ class Assembler : public ValueObject {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void MoveRegister(Register rd, Register rn) {
+    if (rd != rn) {
+      mov(rd, rn);
+    }
+  }
+
   void Drop(intptr_t stack_elements) {
-    add(SP, SP, Operand(stack_elements * kWordSize));
+    ASSERT(stack_elements >= 0);
+    if (stack_elements > 0) {
+      add(SP, SP, Operand(stack_elements * kWordSize));
+    }
   }
 
   void Bind(Label* label);
