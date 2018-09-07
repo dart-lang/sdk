@@ -84,6 +84,9 @@ abstract class DataComputer {
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
+  /// Called before testing to setup flags needed for data collection.
+  void onCompilation(Compiler compiler) {}
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
@@ -149,6 +152,7 @@ Future<CompiledData> computeData(Uri entryPoint,
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
   Compiler compiler = result.compiler;
+  dataComputer.onCompilation(compiler);
   dynamic closedWorld = testFrontend
       ? compiler.resolutionWorldBuilder.closedWorldForTesting
       : compiler.backendClosedWorldForTesting;

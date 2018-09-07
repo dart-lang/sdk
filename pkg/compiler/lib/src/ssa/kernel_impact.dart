@@ -51,7 +51,7 @@ class KernelImpactBuilder extends ir.Visitor {
   KernelImpactBuilder(
       this.elementMap, this.currentMember, this.reporter, this._options)
       : this.impactBuilder =
-            new ResolutionWorldImpactBuilder('${currentMember.name}') {
+            new ResolutionWorldImpactBuilder('${currentMember}') {
     this.classEnsurer = new _ClassEnsurer(this, this.elementMap.types);
   }
 
