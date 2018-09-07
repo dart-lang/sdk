@@ -262,6 +262,11 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
+        'write_results',
+        'Write results to a "${TestUtils.resultsFileName}" json file '
+        'located at the debug_output_directory.',
+        hide: true),
+    new _Option.bool(
         'reset_browser_configuration',
         '''Browser specific reset of configuration.
 
@@ -669,6 +674,7 @@ compiler.''',
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
+                writeResults: data["write_results"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
