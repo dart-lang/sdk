@@ -17,7 +17,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainGetErrorsTest);
-    defineReflectiveTests(AnalysisDomainGetErrorsTest_UseCFE);
   });
 }
 
@@ -70,13 +69,12 @@ class AnalysisDomainGetErrorsTest
   }
 
   @override
-  Future startServer({int diagnosticPort, int servicesPort, bool cfe: false}) {
+  Future startServer({int diagnosticPort, int servicesPort}) {
     String sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
         sdkPath: sdkPath,
-        servicesPort: servicesPort,
-        useCFE: cfe);
+        servicesPort: servicesPort);
   }
 
   Future test_getErrors() async {
@@ -92,10 +90,4 @@ import 'dart:fake';
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }
-}
-
-@reflectiveTest
-class AnalysisDomainGetErrorsTest_UseCFE extends AnalysisDomainGetErrorsTest {
-  @override
-  bool get useCFE => true;
 }

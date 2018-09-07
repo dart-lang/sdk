@@ -23,7 +23,7 @@
       "samples/",
       "sdk/",
       "tests/angular/",
-      "tests/co19/",
+      "tests/co19_2/",
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
@@ -61,7 +61,7 @@
       "samples/",
       "sdk/",
       "tests/angular/",
-      "tests/co19/",
+      "tests/co19_2/",
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
@@ -364,11 +364,20 @@
         "use-blobs": true
     }},
     "dartkp-linux-(product|release)-x64": { },
+    "dartkp-obsufcate-linux-release-x64": {
+      "options": {
+        "builder-tag": "obfuscated",
+        "vm-options": ["--obfuscate"]
+    }},
     "dartkp-linux-debug-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
     "dartk-(linux|mac)-(debug|release)-x64": { },
+    "dartk-checked-linux-release-x64": {
+      "options": {
+        "checked": true
+    }},
     "dartk-win-release-x64": { },
     "dartk-linux-(debug|release)-simdbc64": { },
     "dartk-linux-release-(simarm|simarm64)": { },
@@ -669,6 +678,32 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-obfuscate-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the obfuscated vm kernel precomp builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-obfuscate-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-asan-linux-release-x64"
       ],
       "meta": {
@@ -730,6 +765,28 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-checked-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the kernel builder group in checked mode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartk-checked-linux-release-x64"],
           "fileset": "vm-kernel",
           "shards": 10
         }
@@ -1154,6 +1211,16 @@
           "fileset": "dart2js_hostasserts"
         },
         {
+          "name": "dart2js co19_2 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
+            "--dart2js-batch",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts"
+        },
+        {
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
@@ -1207,6 +1274,17 @@
             "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js co19_2 tests",
+          "arguments": [
+            "-ndart2js-${system}-${runtime}",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "co19_2"
+          ],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1267,6 +1345,17 @@
             "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup co19_2 tests",
+          "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "co19_2"
+          ],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1596,81 +1685,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["create_sdk"]
-        },
-        {
-          "name": "analyze pkg/analysis_server --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analyzer_cli/bin/analyzer.dart",
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analyzer_cli/bin/analyzer.dart",
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analyzer_cli/bin/analyzer.dart",
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/front_end --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analyzer_cli/bin/analyzer.dart",
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/front_end"
-          ]
-        },
-        {
-          "name": "analyze pkg/kernel --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analyzer_cli/bin/analyzer.dart",
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/kernel"
-          ]
-        },
-        {
-          "name": "dartanalyzer --batch --use-cfe pkg tests",
-          "arguments": [
-            "-nanalyzer-cfe-${system}",
-            "pkg"
-          ]
-        },
-        {
-          "name": "run language2 tests",
-          "arguments": [
-            "-nanalyzer-cfe-${system}",
-            "language_2"
-          ]
-        },
-        {
-          "name": "benchmarks analysis-server-cold --use-cfe",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/analysis_server/benchmark/benchmarks.dart",
-            "run",
-            "--use-cfe",
-            "--repeat=1",
-            "analysis-server-cold"
-          ]
         }
       ]
     },
@@ -1857,15 +1871,7 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze pkg/analysis_server",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer",
+          "name": "analyze pkg/analyzer --use-fasta-parser",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--use-fasta-parser",
@@ -1873,7 +1879,15 @@
           ]
         },
         {
-          "name": "analyze pkg/analyzer_cli",
+          "name": "analyze pkg/analyzer --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--no-use-fasta-parser",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer_cli --use-fasta-parser",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--use-fasta-parser",
@@ -1888,23 +1902,26 @@
           ]
         },
         {
-          "name": "run analyzer unit tests",
+          "name": "analyze pkg/analyzer_cli --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
-            "pkg/analyzer"
+            "--no-use-fasta-parser",
+            "pkg/analyzer_cli"
           ]
         },
         {
-          "name": "run analysis server plugin tests",
+          "name": "analyze pkg/analysis_server --use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
-            "pkg/analyzer_plugin"
+            "--use-fasta-parser",
+            "pkg/analysis_server"
           ]
         },
         {
-          "name": "run analysis server unit tests",
+          "name": "analyze pkg/analysis_server --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
+            "--no-use-fasta-parser",
             "pkg/analysis_server"
           ]
         }

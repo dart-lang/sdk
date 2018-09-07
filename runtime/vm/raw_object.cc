@@ -30,9 +30,26 @@ void RawObject::Validate(Isolate* isolate) const {
   }
   // Validate that the tags_ field is sensible.
   uint32_t tags = ptr()->tags_;
-  intptr_t reserved = ReservedBits::decode(tags);
-  if (reserved != 0) {
-    FATAL1("Invalid tags field encountered %x\n", tags);
+  if (IsNewObject()) {
+    if (!NewBit::decode(tags)) {
+      FATAL1("New object missing kNewBit: %x\n", tags);
+    }
+    if (OldBit::decode(tags)) {
+      FATAL1("New object has kOldBit: %x\n", tags);
+    }
+    if (OldAndNotMarkedBit::decode(tags)) {
+      FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
+    }
+    if (OldAndNotRememberedBit::decode(tags)) {
+      FATAL1("Mew object has kOldAndNotRememberedBit: %x\n", tags);
+    }
+  } else {
+    if (NewBit::decode(tags)) {
+      FATAL1("Old object has kNewBit: %x\n", tags);
+    }
+    if (!OldBit::decode(tags)) {
+      FATAL1("Old object missing kOldBit: %x\n", tags);
+    }
   }
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
@@ -363,6 +380,7 @@ COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
+NULL_VISITOR(NativeEntryData)
 REGULAR_VISITOR(Field)
 REGULAR_VISITOR(LiteralToken)
 REGULAR_VISITOR(TokenStream)

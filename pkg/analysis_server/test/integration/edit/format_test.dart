@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
-    defineReflectiveTests(FormatTest_UseCFE);
   });
 }
 
@@ -78,10 +77,4 @@ class Class1 {
       expect(message.error['code'], 'FORMAT_WITH_ERRORS');
     }
   }
-}
-
-@reflectiveTest
-class FormatTest_UseCFE extends FormatTest {
-  @override
-  bool get useCFE => true;
 }

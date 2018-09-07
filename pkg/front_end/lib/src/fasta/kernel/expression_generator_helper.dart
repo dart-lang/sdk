@@ -12,7 +12,7 @@ import '../fasta_codes.dart' show LocatedMessage;
 
 import '../messages.dart' show Message;
 
-import '../scope.dart' show ProblemBuilder, Scope;
+import '../scope.dart' show Scope;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
@@ -27,12 +27,10 @@ import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
 import 'kernel_ast_api.dart'
     show
         Arguments,
-        ArgumentsJudgment,
         Constructor,
         DartType,
         Expression,
         FunctionNode,
-        FunctionType,
         Initializer,
         Member,
         Name,
@@ -71,21 +69,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
-  finishSend(Object receiver, ArgumentsJudgment arguments, int offset);
-
-  Expression buildCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context});
-
-  Expression buildCompileTimeErrorExpression(Message message, int offset,
-      {int length, Expression original});
-
-  Expression wrapInCompileTimeError(Expression expression, Message message);
-
-  Expression wrapInProblem(Expression expression, Message message, int length,
-      {List<LocatedMessage> context});
-
-  Initializer buildInvalidFieldInitializer(int offset, bool isSynthetic,
-      Node target, Expression value, Expression error);
+  finishSend(Object receiver, Arguments arguments, int offset);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -101,12 +85,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]);
 
-  Expression buildStaticInvocation(
-      Procedure target, ArgumentsJudgment arguments,
+  Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {Constness constness, int charOffset, Expression error});
-
-  Expression buildProblemExpression(
-      ProblemBuilder builder, int offset, int length);
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -117,14 +97,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool isStatic,
       LocatedMessage argMessage});
 
-  LocatedMessage checkArgumentsForFunction(
-      FunctionNode function,
-      ArgumentsJudgment arguments,
-      int offset,
-      List<TypeParameter> typeParameters);
-
-  LocatedMessage checkArgumentsForType(
-      FunctionType function, ArgumentsJudgment arguments, int offset);
+  LocatedMessage checkArgumentsForFunction(FunctionNode function,
+      Arguments arguments, int offset, List<TypeParameter> typeParameters);
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 
@@ -155,11 +129,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context});
-
-  void addProblem(Message message, int charOffset, int length);
-
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
@@ -170,8 +139,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
 
-  Expression wrapInLocatedCompileTimeError(
-      Expression expression, LocatedMessage message,
+  Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
       {List<LocatedMessage> context});
 
   Expression evaluateArgumentsBefore(

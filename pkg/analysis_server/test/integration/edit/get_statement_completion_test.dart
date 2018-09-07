@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
-    defineReflectiveTests(GetStatementCompletionTest_UseCFE);
   });
 }
 
@@ -51,10 +50,4 @@ void foo() { }''');
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-}
-
-@reflectiveTest
-class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
-  @override
-  bool get useCFE => true;
 }

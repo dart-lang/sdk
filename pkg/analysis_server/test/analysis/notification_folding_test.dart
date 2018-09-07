@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationFoldingTest);
-    defineReflectiveTests(AnalysisNotificationFoldingTest_UseCFE);
   });
 }
 
@@ -96,11 +95,4 @@ main async() {}
     action();
     return _regionsReceived.future;
   }
-}
-
-@reflectiveTest
-class AnalysisNotificationFoldingTest_UseCFE
-    extends AnalysisNotificationFoldingTest {
-  @override
-  bool get useCFE => true;
 }

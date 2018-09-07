@@ -24,6 +24,7 @@ convert/utf85_test: Slow, Pass
 developer/timeline_test: Skip # Not supported
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
+mirrors/*: SkipByDesign # mirrors not supported
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
@@ -114,6 +115,7 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError # Issue 10905
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 profiler/metrics_num_test: Skip # Because of a int / double type test.
 typed_data/int32x4_bigint_test: Pass
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
@@ -322,10 +324,10 @@ mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - Runtim
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 
-[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
+[ $compiler == dart2js && $checked && $fast_startup && $minified ]
 async/stream_listen_zone_test: RuntimeError
 
-[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+[ $compiler == dart2js && $checked && $host_checked ]
 async/stream_listen_zone_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
@@ -346,14 +348,8 @@ mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wron
 mirrors/syntax_error_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
 
-[ $compiler == dart2js && $fasta ]
-mirrors/*: SkipByDesign # mirrors not supported
-typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-
-[ $compiler == dart2js && $fasta && $host_checked ]
-async/stream_controller_async_test: Crash
-
 [ $compiler == dart2js && $host_checked ]
+async/stream_controller_async_test: Crash
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/30: Crash # Issue 25911

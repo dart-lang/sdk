@@ -12,7 +12,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementByNameOffsetTest);
-    defineReflectiveTests(FindElementByNameOffsetTest_UseCFE);
   });
 }
 
@@ -66,10 +65,4 @@ int ccc;
     expect(element.kind, kind);
     expect(element.name, name);
   }
-}
-
-@reflectiveTest
-class FindElementByNameOffsetTest_UseCFE extends FindElementByNameOffsetTest {
-  @override
-  bool get useCFE => true;
 }

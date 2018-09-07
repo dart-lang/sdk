@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*kernel.class: A:needsArgs*/
 /*omit.class: A:needsArgs*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
@@ -14,7 +13,7 @@ class A<T> {
   f() {
     // TODO(johnniwinther): Optimize local function type signature need.
     return
-        /*kernel.*/
+
         /*strong.needsSignature*/
         /*omit.needsSignature*/
         (int t) {};

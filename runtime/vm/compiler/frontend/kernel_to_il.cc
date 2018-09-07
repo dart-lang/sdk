@@ -353,7 +353,9 @@ Fragment FlowGraphBuilder::InstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     const Function& interface_target,
-    const InferredTypeMetadata* result_type) {
+    const InferredTypeMetadata* result_type,
+    bool use_unchecked_entry,
+    const CallSiteAttributesMetadata* call_site_attrs) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z)
@@ -362,6 +364,13 @@ Fragment FlowGraphBuilder::InstanceCall(
                         GetNextDeoptId(), interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
+  }
+  if (use_unchecked_entry) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+  if (call_site_attrs != nullptr && call_site_attrs->receiver_type != nullptr &&
+      call_site_attrs->receiver_type->IsInstantiated()) {
+    call->set_static_receiver_type(call_site_attrs->receiver_type);
   }
   Push(call);
   return Fragment(call);
@@ -1053,7 +1062,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
   if (dst_type.IsMalformed()) {
     return ThrowTypeError();
   }
-  if (FLAG_omit_strong_type_checks) {
+  if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
   if (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
@@ -1071,7 +1080,7 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
                                             const AbstractType& dst_type,
                                             const String& dst_name,
                                             AssertAssignableInstr::Kind kind) {
-  if (FLAG_omit_strong_type_checks) {
+  if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
 

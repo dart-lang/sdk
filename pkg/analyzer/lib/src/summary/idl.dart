@@ -944,6 +944,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * package may have changed.
    */
   @Id(7)
+  @deprecated
   String get apiSignature;
 
   /**
@@ -951,6 +952,7 @@ abstract class PackageBundle extends base.SummaryClass {
    */
   @Id(8)
   @informative
+  @deprecated
   List<PackageDependencyInfo> get dependencies;
 
   /**
@@ -985,6 +987,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * is encoded as a hexadecimal string using lower case letters.
    */
   @Id(4)
+  @deprecated
   @informative
   List<String> get unlinkedUnitHashes;
 
@@ -1004,6 +1007,7 @@ abstract class PackageBundle extends base.SummaryClass {
 /**
  * Information about a single dependency of a summary package.
  */
+@deprecated
 abstract class PackageDependencyInfo extends base.SummaryClass {
   /**
    * API signature of this dependency.
@@ -1438,6 +1442,14 @@ abstract class UnlinkedClass extends base.SummaryClass {
   @informative
   @Id(1)
   int get nameOffset;
+
+  /**
+   * Superclass constraints for this mixin declaration. The list will be empty
+   * if this class is not a mixin declaration, or if the declaration does not
+   * have an `on` clause (in which case the type `Object` is implied).
+   */
+  @Id(14)
+  List<EntityRef> get superclassConstraints;
 
   /**
    * Supertype of the class, or `null` if either (a) the class doesn't
@@ -3224,6 +3236,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @informative
   @Id(17)
   List<int> get lineStarts;
+
+  /**
+   * Mixins declared in the compilation unit.
+   */
+  @Id(20)
+  List<UnlinkedClass> get mixins;
 
   /**
    * Part declarations in the compilation unit.

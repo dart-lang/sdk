@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.20.5</version>
+  <version>1.21.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -3193,6 +3193,13 @@
         <p>
           The name of the class enclosing this declaration. If the declaration
           is not a class member, this field will be absent.
+        </p>
+      </field>
+      <field name="mixinName" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the mixin enclosing this declaration. If the declaration
+          is not a mixin member, this field will be absent.
         </p>
       </field>
       <field name="parameters" optional="true">

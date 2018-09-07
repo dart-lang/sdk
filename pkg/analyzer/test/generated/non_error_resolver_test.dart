@@ -189,6 +189,23 @@ class N {}''');
     verify([source]);
   }
 
+  test_ambiguousImport_dart_implicitHide() async {
+    Source source = addSource(r'''
+import 'dart:async';
+import 'lib.dart';
+main() {
+  print(Future.zero);
+}
+''');
+    addNamedSource('/lib.dart', r'''
+class Future {
+  static const zero = 0;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_ambiguousImport_hideCombinator() async {
     Source source = addSource(r'''
 import 'lib1.dart';
@@ -1231,19 +1248,6 @@ set x(_) {}
     verify([source]);
   }
 
-  test_conflictingInstanceGetterAndSuperclassMember_instance() async {
-    Source source = addSource(r'''
-class A {
-  get v => 0;
-}
-class B extends A {
-  get v => 1;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
     Source source = addSource(r'''
 class A {
@@ -1263,15 +1267,7 @@ class A {
   static set x(int p) {}
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER,
-        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -1381,12 +1377,8 @@ class B extends A {
   const B(): super();
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    }
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3591,11 +3583,7 @@ main() {
   v();
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     verify([source]);
   }
 
@@ -3707,16 +3695,6 @@ f() {
 
   test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = <String, int > {'a' : 1};");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_memberWithClassName_setter() async {
-    Source source = addSource(r'''
-class A {
-  set A(v) {}
-}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -4032,7 +4010,7 @@ class Foo {
   const factory Foo.foo() native 'Foo_Foo_foo';
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
     // Cannot verify the AST because the import's URI cannot be resolved.
   }
 
@@ -5965,14 +5943,7 @@ main() {
   print(is String);
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        StaticTypeWarningCode.UNDEFINED_GETTER
-      ]);
-    } else {
-      assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
-    }
+    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_synthetic_whenMethodName() async {
@@ -5982,7 +5953,11 @@ main(int p) {
   p.();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      StaticTypeWarningCode.UNDEFINED_GETTER
+    ]);
   }
 
   test_undefinedMethod_functionExpression_callMethod() async {

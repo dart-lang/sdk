@@ -266,7 +266,7 @@ TEST_CASE(StackMapGC) {
   EXPECT(!result.IsError());
 }
 
-TEST_CASE(DescriptorList_TokenPositions) {
+ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
   DescriptorList* descriptors = new DescriptorList(64);
   ASSERT(descriptors != NULL);
   const intptr_t token_positions[] = {

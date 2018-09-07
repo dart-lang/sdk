@@ -9,8 +9,6 @@ import 'context_builder_test.dart' as context_builder;
 import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
 import 'defined_names_test.dart' as defined_names;
-import 'driver_kernel_test.dart' as driver_kernel;
-import 'driver_resolution_kernel_test.dart' as driver_resolution_kernel;
 import 'driver_resolution_test.dart' as driver_resolution;
 import 'driver_test.dart' as driver;
 import 'file_state_test.dart' as file_state;
@@ -30,9 +28,7 @@ main() {
     context_root.main();
     defined_names.main();
     driver.main();
-    driver_kernel.main();
     driver_resolution.main();
-    driver_resolution_kernel.main();
     file_state.main();
     index.main();
     mutex.main();

@@ -336,6 +336,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
         return;
+      case "IMPLEMENTS_BEFORE_ON":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_ON, offset, length);
+        return;
       case "IMPLEMENTS_BEFORE_WITH":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
@@ -345,6 +349,10 @@ class FastaErrorReporter {
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             offset,
             length);
+        return;
+      case "IMPORT_OF_NON_LIBRARY":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, offset, length);
         return;
       case "INVALID_CAST_FUNCTION":
         errorReporter?.reportErrorForOffset(
@@ -502,6 +510,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
         return;
+      case "MULTIPLE_ON_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_ON_CLAUSES, offset, length);
+        return;
       case "MULTIPLE_WITH_CLAUSES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
@@ -617,6 +629,10 @@ class FastaErrorReporter {
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
+        return;
+      case "UNDEFINED_CLASS":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);
         return;
       case "UNDEFINED_GETTER":
         errorReporter?.reportErrorForOffset(

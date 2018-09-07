@@ -22,7 +22,6 @@ import '../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementTest);
-    defineReflectiveTests(ElementTest_UseCFE);
     defineReflectiveTests(ElementKindTest);
   });
 }
@@ -185,7 +184,7 @@ class A {
     expect(element.parameters, '(int a, {@required int c, int b})');
   }
 
-  // Verify parameter re-ordering for required params
+  /// Verify parameter re-ordering for required params
   test_fromElement_CONSTRUCTOR_required_parameters_2() async {
     addMetaPackageSource();
     engine.Source source = addSource('/test.dart', '''
@@ -203,7 +202,7 @@ class A {
         '(int a, {@required int d, @required int c, int b})');
   }
 
-  // Verify parameter re-ordering for required params
+  /// Verify parameter re-ordering for required params
   test_fromElement_CONSTRUCTOR_required_parameters_3() async {
     addMetaPackageSource();
     engine.Source source = addSource('/test.dart', '''
@@ -487,6 +486,31 @@ class A {
     expect(element.flags, Element.FLAG_STATIC);
   }
 
+  test_fromElement_MIXIN() async {
+    engine.Source source = addSource('/test.dart', '''
+mixin A {}
+''');
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    {
+      engine.ClassElement engineElement = findElementInUnit(unit, 'A');
+      // create notification Element
+      Element element = convertElement(engineElement);
+      expect(element.kind, ElementKind.MIXIN);
+      expect(element.name, 'A');
+      expect(element.typeParameters, isNull);
+      {
+        Location location = element.location;
+        expect(location.file, convertPath('/test.dart'));
+        expect(location.offset, 6);
+        expect(location.length, 'A'.length);
+        expect(location.startLine, 1);
+        expect(location.startColumn, 7);
+      }
+      expect(element.parameters, isNull);
+      expect(element.flags, 0);
+    }
+  }
+
   test_fromElement_SETTER() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
@@ -511,14 +535,4 @@ class A {
     expect(element.returnType, isNull);
     expect(element.flags, 0);
   }
-}
-
-@reflectiveTest
-class ElementTest_UseCFE extends ElementTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_fromElement_LABEL() => super.test_fromElement_LABEL();
 }

@@ -330,6 +330,7 @@ class InterpreterHelpers {
       uword tags = 0;
       tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      tags = RawObject::NewBit::update(true, tags);
       // Also writes zero in the hash_ field.
       *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
       *reinterpret_cast<double*>(start + Double::value_offset()) = value;
@@ -1694,15 +1695,16 @@ bool Interpreter::AssertAssignable(Thread* thread,
 AssertAssignableCallRuntime:
   // TODO(regis): Modify AssertAssignable bytecode to expect arguments in same
   // order as the TypeCheck runtime call, so this copying can be avoided.
-  call_top[1] = args[0];  // instance
-  call_top[2] = args[3];  // type
-  call_top[3] = args[1];  // instantiator type args
-  call_top[4] = args[2];  // function type args
-  call_top[5] = args[4];  // name
-  call_top[6] = cache;
-  call_top[7] = Smi::New(kTypeCheckFromInline);
-  Exit(thread, FP, call_top + 8, pc);
-  NativeArguments native_args(thread, 7, call_top + 1, call_top + 1);
+  call_top[1] = 0;        // Unused result.
+  call_top[2] = args[0];  // Instance.
+  call_top[3] = args[3];  // Type.
+  call_top[4] = args[1];  // Instantiator type args.
+  call_top[5] = args[2];  // Function type args.
+  call_top[6] = args[4];  // Name.
+  call_top[7] = cache;
+  call_top[8] = Smi::New(kTypeCheckFromInline);
+  Exit(thread, FP, call_top + 9, pc);
+  NativeArguments native_args(thread, 7, call_top + 2, call_top + 1);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
@@ -2085,8 +2087,10 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(CheckStack, A);
     {
-      // Using the interpreter stack limit and not the thread stack limit.
-      if (reinterpret_cast<uword>(SP) >= stack_limit()) {
+      // Check the interpreter's own stack limit for actual interpreter's stack
+      // overflows, and also the thread's stack limit for scheduled interrupts.
+      if (reinterpret_cast<uword>(SP) >= stack_limit() ||
+          thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);
@@ -2480,12 +2484,9 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(NativeCall, __D);
-    RawTypedData* native_entry = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
-    // TODO(regis): Introduce a new VM class subclassing Object and containing
-    // the four untagged values currently stored as TypeData array elements.
-    MethodRecognizer::Kind kind =
-        static_cast<MethodRecognizer::Kind>(*(reinterpret_cast<uintptr_t*>(
-            native_entry->ptr()->data() + (0 << kWordSizeLog2))));
+    RawNativeEntryData* native_entry =
+        static_cast<RawNativeEntryData*>(LOAD_CONSTANT(rD));
+    MethodRecognizer::Kind kind = native_entry->ptr()->kind_;
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
         SP[-1] = SP[-1] == SP[0] ? Bool::True().raw() : Bool::False().raw();
@@ -2570,8 +2571,9 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        reinterpret_cast<RawObject**>(
-            instance->ptr())[LinkedHashMap::index_offset() / kWordSize] = SP[0];
+        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
+                                   LinkedHashMap::index_offset() / kWordSize,
+                               SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getData: {
@@ -2581,8 +2583,9 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setData: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        reinterpret_cast<RawObject**>(
-            instance->ptr())[LinkedHashMap::data_offset() / kWordSize] = SP[0];
+        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
+                                   LinkedHashMap::data_offset() / kWordSize,
+                               SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getHashMask: {
@@ -2622,16 +2625,9 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline =
-            reinterpret_cast<NativeFunctionWrapper>(
-                *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
-                                               (1 << kWordSizeLog2))));
-        Dart_NativeFunction function = reinterpret_cast<Dart_NativeFunction>(
-            *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
-                                           (2 << kWordSizeLog2))));
-        intptr_t argc_tag =
-            static_cast<intptr_t>(*(reinterpret_cast<uintptr_t*>(
-                native_entry->ptr()->data() + (3 << kWordSizeLog2))));
+        NativeFunctionWrapper trampoline = native_entry->ptr()->trampoline_;
+        NativeFunction function = native_entry->ptr()->native_function_;
+        intptr_t argc_tag = native_entry->ptr()->argc_tag_;
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
 
@@ -2641,7 +2637,8 @@ RawObject* Interpreter::Call(RawFunction* function,
         RawObject** return_slot = SP;
         Exit(thread, FP, SP, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-        INVOKE_NATIVE(trampoline, function,
+        INVOKE_NATIVE(trampoline,
+                      reinterpret_cast<Dart_NativeFunction>(function),
                       reinterpret_cast<Dart_NativeArguments>(&args));
 
         *(SP - num_arguments) = *return_slot;
@@ -3657,6 +3654,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       uint32_t tags = 0;
       tags = RawObject::ClassIdTag::update(kContextCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      tags = RawObject::NewBit::update(true, tags);
       // Also writes 0 in the hash_ field of the header.
       *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
       *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
@@ -3693,13 +3691,13 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(AllocateOpt, A_D);
-    const uword tags =
-        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
     const uword start =
         thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       // Writes both the tags and the initial identity hash on 64 bit platforms.
+      tags = RawObject::NewBit::update(true, tags);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -3725,7 +3723,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(AllocateTOpt, A_D);
-    const uword tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
+    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
     const uword start =
         thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
@@ -3733,6 +3731,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = KernelBytecode::DecodeD(*pc);
       // Writes both the tags and the initial identity hash on 64 bit platforms.
+      tags = RawObject::NewBit::update(true, tags);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -3776,6 +3775,7 @@ RawObject* Interpreter::Call(RawFunction* function,
             tags = RawObject::SizeTag::update(instance_size, tags);
           }
           tags = RawObject::ClassIdTag::update(cid, tags);
+          tags = RawObject::NewBit::update(true, tags);
           // Writes both the tags and the initial identity hash on 64 bit
           // platforms.
           *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;

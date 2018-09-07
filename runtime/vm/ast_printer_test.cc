@@ -12,7 +12,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-TEST_CASE(AstPrinter) {
+ISOLATE_UNIT_TEST_CASE(AstPrinter) {
   const TokenPosition kPos = TokenPosition::kNoSource;
   LocalVariable* v = new LocalVariable(
       kPos, kPos, String::ZoneHandle(Symbols::New(thread, "wurscht")),

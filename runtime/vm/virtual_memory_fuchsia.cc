@@ -57,17 +57,17 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  const uint32_t flags = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-                         (is_executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
+  const uint32_t flags = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
+                         (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword address;
-  status = zx_vmar_map_old(zx_vmar_root_self(), 0, vmo, 0, size, flags, &address);
+  status = zx_vmar_map(zx_vmar_root_self(), flags, 0, vmo, 0, size, &address);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map_old(%ld, %u) failed: %s\n", size, flags,
+    LOG_ERR("zx_vmar_map(%u, %ld) failed: %s\n", flags, size,
             zx_status_get_string(status));
     return NULL;
   }
-  LOG_INFO("zx_vmar_map_old(%ld, %u) success\n", size, flags);
+  LOG_INFO("zx_vmar_map(%u,%ld) success\n", flags, size);
 
   MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);
@@ -94,13 +94,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
-  const uint32_t flags = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-                         (is_executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
+  const zx_vm_option_t options = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
+                                 (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword base;
-  status = zx_vmar_map_old(vmar, 0u, vmo, 0u, allocated_size, flags, &base);
+  status = zx_vmar_map(vmar, options, 0u, vmo, 0u, allocated_size, &base);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map_old(%ld, %u) failed: %s\n", size, flags,
+    LOG_ERR("zx_vmar_map(%u, %ld) failed: %s\n", flags, size,
             zx_status_get_string(status));
     return NULL;
   }
@@ -167,26 +167,25 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       prot = 0;
       break;
     case kReadOnly:
-      prot = ZX_VM_FLAG_PERM_READ;
+      prot = ZX_VM_PERM_READ;
       break;
     case kReadWrite:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE;
       break;
     case kReadExecute:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_EXECUTE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_EXECUTE;
       break;
     case kReadWriteExecute:
-      prot = ZX_VM_FLAG_PERM_READ | ZX_VM_FLAG_PERM_WRITE |
-             ZX_VM_FLAG_PERM_EXECUTE;
+      prot = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE | ZX_VM_PERM_EXECUTE;
       break;
   }
-  zx_status_t status = zx_vmar_protect_old(zx_vmar_root_self(), page_address,
-                                       end_address - page_address, prot);
+  zx_status_t status = zx_vmar_protect(zx_vmar_root_self(), prot, page_address,
+                                       end_address - page_address);
   if (status != ZX_OK) {
-    FATAL3("zx_vmar_protect_old(%lx, %lx) failed: %s\n", page_address,
+    FATAL3("zx_vmar_protect(%lx, %lx) failed: %s\n", page_address,
            end_address - page_address, zx_status_get_string(status));
   }
-  LOG_INFO("zx_vmar_protect_old(%lx, %lx, %x) success\n", page_address,
+  LOG_INFO("zx_vmar_protect(%lx, %lx, %x) success\n", page_address,
            end_address - page_address, prot);
 }
 

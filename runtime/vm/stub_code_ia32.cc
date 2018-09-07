@@ -666,7 +666,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
   // EAX: new object start as a tagged pointer.
@@ -910,7 +913,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EAX: new object.
       // EDX: number of context variables.
       // EBX: size and bit tags.
-      __ orl(EBX, Immediate(RawObject::ClassIdTag::encode(cid)));
+      uint32_t tags = 0;
+      tags = RawObject::ClassIdTag::update(cid, tags);
+      tags = RawObject::NewBit::update(true, tags);
+      __ orl(EBX, Immediate(tags));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -985,8 +991,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: EAX, ECX
   // EDX: Address being stored
   __ movl(EAX, FieldAddress(EDX, Object::tags_offset()));
-  __ testl(EAX, Immediate(1 << RawObject::kRememberedBit));
-  __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
+  __ testl(EAX, Immediate(1 << RawObject::kOldAndNotRememberedBit));
+  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
   __ popl(EAX);
   __ ret();
@@ -995,10 +1001,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // EDX: Address being stored
   // EAX: Current tag value
   __ Bind(&add_to_buffer);
-  // lock+orl is an atomic read-modify-write.
+  // lock+andl is an atomic read-modify-write.
   __ lock();
-  __ orl(FieldAddress(EDX, Object::tags_offset()),
-         Immediate(1 << RawObject::kRememberedBit));
+  __ andl(FieldAddress(EDX, Object::tags_offset()),
+          Immediate(~(1 << RawObject::kOldAndNotRememberedBit)));
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1091,6 +1097,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
     __ addl(EAX, Immediate(kHeapObjectTag));
 
@@ -1319,7 +1326,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    bool optimized) {
+    bool optimized,
+    bool exactness_check /* = false */) {
+  ASSERT(!exactness_check);  // Not supported.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1383,7 +1392,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   bool optimize = kind == Token::kILLEGAL;
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
+  const intptr_t entry_size =
+      ICData::TestEntryLengthFor(num_args, exactness_check) * kWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {

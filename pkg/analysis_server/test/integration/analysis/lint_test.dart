@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
-    defineReflectiveTests(LintIntegrationTest_UseCFE);
   });
 }
 
@@ -81,10 +80,4 @@ class a { // lint: not CamelCase
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
   }
-}
-
-@reflectiveTest
-class LintIntegrationTest_UseCFE extends LintIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

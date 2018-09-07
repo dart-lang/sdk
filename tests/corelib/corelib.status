@@ -8,8 +8,61 @@ maps_test: Skip # Maps class no longer exists
 *: Skip
 
 [ $compiler == dart2js ]
+apply3_test: RuntimeError # mirrors not supported
+big_integer_arith_vm_test/add: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/div: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/gcd: CompileTimeError # Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/mod: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/modInv: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/modPow: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/mul: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/negate: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/none: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/overflow: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/shift: CompileTimeError # Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/sub: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/trunDiv: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_parsed_arith_vm_test: RuntimeError
+big_integer_parsed_div_rem_vm_test: RuntimeError
+big_integer_parsed_mul_div_vm_test: RuntimeError
+bit_twiddling_bigint_test: CompileTimeError #Large integer literal. Not representable in JS.
+bit_twiddling_test: CompileTimeError # Large integer literal. Not representable in JS.
+compare_to2_test: RuntimeError
+date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
+double_floor_test: CompileTimeError # Large integer literal. Not representable in JS.
+double_parse_test/01: RuntimeError
+double_round_test: CompileTimeError # Large integer literal. Not representable in JS.
+double_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
 error_stack_trace1_test: RuntimeError # Issue 12399
+growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+hash_set_test/01: RuntimeError
+int_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_ceil_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_floor_test: CompileTimeError #Large integer literal. Not representable in JS.
+int_floor_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_from_environment_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/bignum: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/modPow: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/none: CompileTimeError # Large integer literal. Not representable in JS.
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_round_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_to_int_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_truncate_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+integer_to_radix_string_test: CompileTimeError # Large integer literal. Not representable in JS.
+integer_to_string_test/01: CompileTimeError # Large integer literal. Not representable in JS.
+iterable_return_type_test/02: RuntimeError
+nan_infinity_test/01: RuntimeError
+num_parse_test/01: CompileTimeError # Large integer literal. Not representable in JS.
+num_parse_test/none: CompileTimeError # Large integer literal. Not representable in JS.
+num_sign_test: CompileTimeError # Large integer literal. Not representable in JS.
 regexp/pcre_test: Pass, Slow # Issue 21593
+regress_r21715_test: CompileTimeError # Large integer literal. Not representable in JS.
+string_base_vm_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign # Imports dart:mirrors
@@ -139,7 +192,7 @@ main_test: RuntimeError
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
 
-[ $compiler == dart2js && $checked && $fasta ]
+[ $compiler == dart2js && $checked ]
 big_integer_arith_vm_test/add: CompileTimeError
 big_integer_arith_vm_test/div: CompileTimeError
 big_integer_arith_vm_test/gcd: CompileTimeError
@@ -201,62 +254,7 @@ regress_r21715_test: CompileTimeError
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fasta ]
-apply3_test: RuntimeError # mirrors not supported
-big_integer_arith_vm_test/add: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/div: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/gcd: CompileTimeError # Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/mod: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/modInv: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/modPow: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/mul: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/negate: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/none: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/overflow: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/shift: CompileTimeError # Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/sub: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_arith_vm_test/trunDiv: CompileTimeError #Large integer literal. Not representable in JS.
-big_integer_parsed_arith_vm_test: RuntimeError
-big_integer_parsed_div_rem_vm_test: RuntimeError
-big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: CompileTimeError #Large integer literal. Not representable in JS.
-bit_twiddling_test: CompileTimeError # Large integer literal. Not representable in JS.
-compare_to2_test: RuntimeError
-date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
-double_floor_test: CompileTimeError # Large integer literal. Not representable in JS.
-double_parse_test/01: RuntimeError
-double_round_test: CompileTimeError # Large integer literal. Not representable in JS.
-double_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
-growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-hash_set_test/01: RuntimeError
-int_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_ceil_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_floor_test: CompileTimeError #Large integer literal. Not representable in JS.
-int_floor_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_from_environment_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_modulo_arith_test/bignum: CompileTimeError # Large integer literal. Not representable in JS.
-int_modulo_arith_test/modPow: CompileTimeError # Large integer literal. Not representable in JS.
-int_modulo_arith_test/none: CompileTimeError # Large integer literal. Not representable in JS.
-int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: CompileTimeError
-int_round_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_round_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_to_int_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
-int_truncate_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
-integer_to_radix_string_test: CompileTimeError # Large integer literal. Not representable in JS.
-integer_to_string_test/01: CompileTimeError # Large integer literal. Not representable in JS.
-iterable_return_type_test/02: RuntimeError
-nan_infinity_test/01: RuntimeError
-num_parse_test/01: CompileTimeError # Large integer literal. Not representable in JS.
-num_parse_test/none: CompileTimeError # Large integer literal. Not representable in JS.
-num_sign_test: CompileTimeError # Large integer literal. Not representable in JS.
-regress_r21715_test: CompileTimeError # Large integer literal. Not representable in JS.
-string_base_vm_test: RuntimeError
-symbol_reserved_word_test/03: RuntimeError
-
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $host_checked ]
 apply3_test: RuntimeError
 big_integer_arith_vm_test/add: CompileTimeError
 big_integer_arith_vm_test/div: CompileTimeError
@@ -298,7 +296,7 @@ num_parse_test/none: CompileTimeError
 num_sign_test: CompileTimeError
 regress_r21715_test: CompileTimeError
 
-[ $compiler == dart2js && $fasta && $minified ]
+[ $compiler == dart2js && $minified ]
 apply3_test: RuntimeError
 big_integer_arith_vm_test/add: CompileTimeError
 big_integer_arith_vm_test/div: CompileTimeError
@@ -341,30 +339,6 @@ num_sign_test: CompileTimeError
 regress_r21715_test: CompileTimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
-
-[ $compiler == dart2js && !$fasta ]
-big_integer_*: Skip # VM specific test.
-bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
-compare_to2_test: RuntimeError, OK # Requires bigint support.
-double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
-hash_set_test/01: RuntimeError # Issue 11551
-int_modulo_arith_test/bignum: RuntimeError # No bigints.
-int_modulo_arith_test/modPow: RuntimeError # No bigints.
-int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
-int_parse_radix_test/02: Fail # No bigints.
-integer_to_radix_string_test: RuntimeError # issue 22045
-integer_to_string_test/01: RuntimeError # Issue 1533
-iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-list_unmodifiable_test: Pass, RuntimeError # Issue 28712
-nan_infinity_test/01: Fail # Issue 11551
-regress_r21715_test: RuntimeError # Requires bigint support.
-string_base_vm_test: RuntimeError, OK # VM specific test.
-symbol_reserved_word_test/02: CompileTimeError # bug 20191
-symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: Crash # bug 20191
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
 
 [ $compiler != dart2js && $fasta ]
 big_integer_arith_vm_test/add: CompileTimeError

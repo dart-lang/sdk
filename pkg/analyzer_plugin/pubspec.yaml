@@ -8,7 +8,7 @@ environment:
   sdk: '>=1.8.0 <3.0.0'
 
 dependencies:
-  analyzer: '>=0.31.2-alpha.1 <0.33.0'
+  analyzer: '^0.32.5'
   charcode: '^1.1.0'
   html: '^0.13.1'
   meta: ^1.0.2

@@ -164,7 +164,7 @@ void NestedStatement::AdjustContextLevel(intptr_t context_level) {
 }
 
 intptr_t FlowGraphBuilder::GetNextDeoptId() const {
-  intptr_t deopt_id = thread()->GetNextDeoptId();
+  intptr_t deopt_id = thread()->compiler_state().GetNextDeoptId();
   if (context_level_array_ != NULL) {
     intptr_t level = context_level();
     context_level_array_->Add(deopt_id);
@@ -427,8 +427,8 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     // Create a join of the returns.
     intptr_t join_id = caller_graph_->max_block_id() + 1;
     caller_graph_->set_max_block_id(join_id);
-    JoinEntryInstr* join = new (Z)
-        JoinEntryInstr(join_id, try_index, Thread::Current()->GetNextDeoptId());
+    JoinEntryInstr* join = new (Z) JoinEntryInstr(
+        join_id, try_index, CompilerState::Current().GetNextDeoptId());
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -447,7 +447,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     for (intptr_t i = 0; i < num_exits; ++i) {
       // Add the control-flow edge.
       GotoInstr* goto_instr =
-          new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
+          new (Z) GotoInstr(join, CompilerState::Current().GetNextDeoptId());
       goto_instr->InheritDeoptTarget(zone(), ReturnAt(i));
       LastInstructionAt(i)->LinkTo(goto_instr);
       ExitBlockAt(i)->set_last_instruction(LastInstructionAt(i)->next());
@@ -533,18 +533,18 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     // by the constant propagation.
     TargetEntryInstr* false_block = new (Z) TargetEntryInstr(
         caller_graph_->allocate_block_id(), call_block->try_index(),
-        Thread::Current()->GetNextDeoptId());
+        CompilerState::Current().GetNextDeoptId());
     false_block->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 
     ConstantInstr* true_const = caller_graph_->GetConstant(Bool::True());
-    BranchInstr* branch = new (Z)
-        BranchInstr(new (Z) StrictCompareInstr(
-                        TokenPosition::kNoSource, Token::kEQ_STRICT,
-                        new (Z) Value(true_const), new (Z) Value(true_const),
-                        false, Thread::Current()->GetNextDeoptId()),
-                    Thread::Current()->GetNextDeoptId());  // No number check.
+    BranchInstr* branch = new (Z) BranchInstr(
+        new (Z) StrictCompareInstr(TokenPosition::kNoSource, Token::kEQ_STRICT,
+                                   new (Z) Value(true_const),
+                                   new (Z) Value(true_const), false,
+                                   CompilerState::Current().GetNextDeoptId()),
+        CompilerState::Current().GetNextDeoptId());  // No number check.
     branch->InheritDeoptTarget(zone(), call_);
     *branch->true_successor_address() = callee_entry;
     *branch->false_successor_address() = false_block;
@@ -2192,7 +2192,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   {
     LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
-    const intptr_t deopt_id = Thread::kNoDeoptId;
+    const intptr_t deopt_id = DeoptId::kNone;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new (Z) LoadLocalInstr(*tmp_var, node->token_pos()));
       Value* index = Bind(new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(i)),
@@ -3490,12 +3490,14 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
 
   if (isolate()->use_field_guards()) {
     store_value = Bind(BuildStoreExprTemp(store_value, token_pos));
-    GuardFieldClassInstr* guard_field_class = new (Z) GuardFieldClassInstr(
-        store_value, node->field(), thread()->GetNextDeoptId());
+    GuardFieldClassInstr* guard_field_class = new (Z)
+        GuardFieldClassInstr(store_value, node->field(),
+                             thread()->compiler_state().GetNextDeoptId());
     AddInstruction(guard_field_class);
     store_value = Bind(BuildLoadExprTemp(token_pos));
-    GuardFieldLengthInstr* guard_field_length = new (Z) GuardFieldLengthInstr(
-        store_value, node->field(), thread()->GetNextDeoptId());
+    GuardFieldLengthInstr* guard_field_length = new (Z)
+        GuardFieldLengthInstr(store_value, node->field(),
+                              thread()->compiler_state().GetNextDeoptId());
     AddInstruction(guard_field_length);
     store_value = Bind(BuildLoadExprTemp(token_pos));
   }

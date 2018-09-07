@@ -82,6 +82,10 @@ abstract class Map<K, V> {
   /**
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
+   * An identity map uses [identical] for equality and [identityHashCode]
+   * for hash codes of keys instead of the intrinsic [Object.operator==] and
+   * [Object.hashCode] of the keys.
+   *
    * The returned map allows `null` as a key.
    * It iterates in key insertion order.
    */

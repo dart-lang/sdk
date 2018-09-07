@@ -10,7 +10,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendTimingTest);
-    defineReflectiveTests(SendTimingTest_UseCFE);
   });
 }
 
@@ -29,10 +28,4 @@ class SendTimingTest extends AbstractAnalysisServerIntegrationTest {
     // Restore the original value.
     await sendAnalyticsEnable(result1.enabled);
   }
-}
-
-@reflectiveTest
-class SendTimingTest_UseCFE extends SendTimingTest {
-  @override
-  bool get useCFE => true;
 }

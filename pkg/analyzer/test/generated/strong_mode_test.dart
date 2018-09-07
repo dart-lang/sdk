@@ -3460,12 +3460,7 @@ class D extends C {
   T f<T extends B>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(
-          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS]);
-    } else {
-      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
-    }
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -3480,12 +3475,7 @@ class D extends C {
   T f<T extends A>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(
-          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS]);
-    } else {
-      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
-    }
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -3511,15 +3501,7 @@ class D extends C {
   S f<T, S>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
-        StrongModeCode.INVALID_METHOD_OVERRIDE,
-        StrongModeCode.INVALID_METHOD_OVERRIDE
-      ]);
-    } else {
-      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
-    }
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 

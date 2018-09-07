@@ -228,7 +228,7 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
       if (Compiler::IsBackgroundCompilation()) {
         if (!other->IsConsistentWith(*field)) {
           Compiler::AbortBackgroundCompilation(
-              Thread::kNoDeoptId,
+              DeoptId::kNone,
               "Field's guarded state changed during compilation");
         }
       }

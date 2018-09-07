@@ -858,7 +858,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ csel(R1, ZR, R1, HI);
 
   // Get the class index and insert it into the tags.
-  __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
+  uint32_t tags = 0;
+  tags = RawObject::ClassIdTag::update(cid, tags);
+  tags = RawObject::NewBit::update(true, tags);
+  __ LoadImmediate(TMP, tags);
   __ orr(R1, R1, Operand(TMP));
   __ StoreFieldToOffset(R1, R0, Array::tags_offset());
 
@@ -1235,7 +1238,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));
     __ StoreFieldToOffset(R2, R0, Context::tags_offset());
 
@@ -1313,7 +1319,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kWord);
-  __ tbz(&add_to_buffer, TMP, RawObject::kRememberedBit);
+  __ tbnz(&add_to_buffer, TMP, RawObject::kOldAndNotRememberedBit);
   __ ret();
 
   __ Bind(&add_to_buffer);
@@ -1331,7 +1337,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R3, kWord);
-  __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
+  __ AndImmediate(R2, R2, ~(1 << RawObject::kOldAndNotRememberedBit));
   __ stxr(R1, R2, R3, kWord);
   __ cbnz(&retry, R1);
 
@@ -1422,6 +1428,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     __ LoadImmediate(R0, tags);
     // 64 bit store also zeros the hash_field.
     __ StoreToOffset(R0, R2, Instance::tags_offset());
@@ -1653,7 +1660,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    bool optimized) {
+    bool optimized,
+    bool exactness_check /* = false */) {
+  ASSERT(!exactness_check);
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1737,7 +1746,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&update);
 
     const intptr_t entry_size =
-        ICData::TestEntryLengthFor(num_args) * kWordSize;
+        ICData::TestEntryLengthFor(num_args, exactness_check) * kWordSize;
     __ AddImmediate(R6, entry_size);  // Next entry.
 
     __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
@@ -2782,7 +2791,8 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
   __ b(&miss, EQ);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
@@ -2816,7 +2826,8 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
   __ b(&miss, EQ);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 

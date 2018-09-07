@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOutlineTest);
-    defineReflectiveTests(AnalysisNotificationOutlineTest_UseCFE);
   });
 }
 
@@ -132,26 +131,5 @@ class B {}
     // the result which is used is pre-cached, and not a newly computed.
     await prepareOutline();
     expect(outline.children, hasLength(2));
-  }
-}
-
-@reflectiveTest
-class AnalysisNotificationOutlineTest_UseCFE
-    extends AnalysisNotificationOutlineTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_libraryName_hasLibraryPartOfDirectives() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_libraryName_hasLibraryPartOfDirectives);
-  }
-
-  @failingTest
-  @override
-  test_libraryName_hasPartOfDirective() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_libraryName_hasPartOfDirective);
   }
 }

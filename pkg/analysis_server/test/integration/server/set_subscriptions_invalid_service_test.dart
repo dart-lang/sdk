@@ -10,7 +10,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsInvalidTest);
-    defineReflectiveTests(SetSubscriptionsInvalidTest_UseCFE);
   });
 }
 
@@ -28,10 +27,4 @@ class SetSubscriptionsInvalidTest
       // The expected error occurred.
     });
   }
-}
-
-@reflectiveTest
-class SetSubscriptionsInvalidTest_UseCFE extends SetSubscriptionsInvalidTest {
-  @override
-  bool get useCFE => true;
 }

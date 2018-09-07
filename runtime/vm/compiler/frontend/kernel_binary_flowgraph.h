@@ -148,7 +148,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Function& dart_function,
       const Fragment& implicit_type_checks,
       const Fragment& first_time_prologue,
-      const Fragment& every_time_prologue);
+      const Fragment& every_time_prologue,
+      const Fragment& type_args_handling);
 
   void RecordUncheckedEntryPoint(TargetEntryInstr* extra_entry);
 
@@ -227,15 +228,18 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         Token::Kind kind,
                         intptr_t argument_count,
                         intptr_t checked_argument_count = 1);
-  Fragment InstanceCall(TokenPosition position,
-                        const String& name,
-                        Token::Kind kind,
-                        intptr_t type_args_len,
-                        intptr_t argument_count,
-                        const Array& argument_names,
-                        intptr_t checked_argument_count,
-                        const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL);
+  Fragment InstanceCall(
+      TokenPosition position,
+      const String& name,
+      Token::Kind kind,
+      intptr_t type_args_len,
+      intptr_t argument_count,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      const Function& interface_target,
+      const InferredTypeMetadata* result_type = nullptr,
+      bool use_unchecked_entry = false,
+      const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
   enum TypeChecksToBuild {
     kCheckAllTypeParameterBounds,

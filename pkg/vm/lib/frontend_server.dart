@@ -159,6 +159,10 @@ abstract class CompilerInterface {
   /// won't recompile sources that were previously reported as changed.
   void acceptLastDelta();
 
+  /// Rejects results of previous compilation and sets compiler back to last
+  /// accepted state.
+  Future<void> rejectLastDelta();
+
   /// This let's compiler know that source file identifed by `uri` was changed.
   void invalidate(Uri uri);
 
@@ -371,6 +375,17 @@ class FrontendCompiler implements CompilerInterface {
             sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
         : printerFactory.newBinaryPrinter(sink);
 
+    component.libraries.sort((Library l1, Library l2) {
+      return "${l1.fileUri}".compareTo("${l2.fileUri}");
+    });
+
+    component.computeCanonicalNames();
+    for (Library library in component.libraries) {
+      library.additionalExports.sort((Reference r1, Reference r2) {
+        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+      });
+    }
+
     printer.writeComponentFile(component);
     await sink.close();
   }
@@ -439,11 +454,7 @@ class FrontendCompiler implements CompilerInterface {
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
-
-    final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-    final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-    printer.writeComponentFile(deltaProgram);
-    await sink.close();
+    await writeDillFile(deltaProgram, _kernelBinaryFilename);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -484,6 +495,14 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void acceptLastDelta() {
     _generator.accept();
+  }
+
+  @override
+  Future<void> rejectLastDelta() async {
+    await _generator.reject();
+    final String boundaryKey = new Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+    _outputStream.writeln(boundaryKey);
   }
 
   @override
@@ -619,6 +638,8 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           state = _State.COMPILE_EXPRESSION_EXPRESSION;
         } else if (string == 'accept') {
           compiler.acceptLastDelta();
+        } else if (string == 'reject') {
+          await compiler.rejectLastDelta();
         } else if (string == 'reset') {
           compiler.resetIncrementalCompiler();
         } else if (string == 'quit') {

@@ -21,12 +21,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../mock_sdk.dart';
-import '../../test_utilities/utillities.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchEngineImplTest);
-    defineReflectiveTests(SearchEngineImplTest_UseCFE);
   });
 }
 
@@ -40,11 +38,6 @@ class SearchEngineImplTest extends Object with ResourceProviderMixin {
   PerformanceLog logger;
 
   AnalysisDriverScheduler scheduler;
-
-  /**
-   * Return `true` to enable the Dart 2.0 Common Front End.
-   */
-  bool get useCFE => false;
 
   void setUp() {
     sdk = new MockSdk(resourceProvider: resourceProvider);
@@ -200,9 +193,9 @@ class C implements B {}
     var searchEngine = new SearchEngineImpl([driver]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'B')));
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
+    _assertContainsClass(subtypes, 'A');
+    _assertContainsClass(subtypes, 'B');
+    _assertContainsClass(subtypes, 'C');
   }
 
   test_searchAllSubtypes_acrossDrivers() async {
@@ -231,6 +224,35 @@ class C extends B {}
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'B')));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
+  }
+
+  test_searchAllSubtypes_mixin() async {
+    var p = newFile('/test.dart', content: '''
+class T {}
+
+mixin A on T {}
+mixin B implements T {}
+
+class C extends T {}
+
+mixin D on C {}
+mixin E implements C {}
+''').path;
+
+    var driver = _newDriver();
+    driver.addFile(p);
+
+    var resultA = await driver.getResult(p);
+    ClassElement element = resultA.unit.declaredElement.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver]);
+    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    expect(subtypes, hasLength(5));
+    _assertContainsClass(subtypes, 'A');
+    _assertContainsClass(subtypes, 'B');
+    _assertContainsClass(subtypes, 'C');
+    _assertContainsClass(subtypes, 'D');
+    _assertContainsClass(subtypes, 'E');
   }
 
   test_searchMemberDeclarations() async {
@@ -396,10 +418,9 @@ get b => 42;
     }
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches =
-        await searchEngine.searchTopLevelDeclarations('.*');
-    expect(
-        matches.where((match) => !match.libraryElement.isInSdk), hasLength(4));
+    var matches = await searchEngine.searchTopLevelDeclarations('.*');
+    matches.removeWhere((match) => match.libraryElement.isInSdk);
+    expect(matches, hasLength(4));
 
     void assertHasOneElement(String name) {
       Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
@@ -475,25 +496,10 @@ class B extends A {}
         contentOverlay,
         null,
         new SourceFactory(resolvers, null, resourceProvider),
-        new AnalysisOptionsImpl(),
-        useCFE: useCFE);
+        new AnalysisOptionsImpl());
   }
-}
 
-@reflectiveTest
-class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_searchMemberReferences() =>
-      callFailingTest(super.test_searchMemberReferences());
-
-  @failingTest
-  @override
-  test_searchReferences_discover_owned() {
-    fail('Timeout');
-//    return callFailingTest(super.test_searchReferences_discover_owned);
+  static void _assertContainsClass(Set<ClassElement> subtypes, String name) {
+    expect(subtypes, contains(predicate((ClassElement e) => e.name == name)));
   }
 }

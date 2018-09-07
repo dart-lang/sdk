@@ -129,7 +129,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              Thread::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     builder->AddPcMarker(previous->function(), slot_ix++);
@@ -179,7 +179,7 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     // Return/ReturnTOS instruction drops incoming arguments so
     // we have to drop outgoing arguments from the innermost environment.

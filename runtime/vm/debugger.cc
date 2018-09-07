@@ -250,7 +250,7 @@ ActivationFrame::ActivationFrame(uword pc,
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
-      deopt_id_(Thread::kNoDeoptId),
+      deopt_id_(DeoptId::kNone),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -700,7 +700,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
     GetVarDescriptors();
     intptr_t deopt_id = DeoptId();
-    if (deopt_id == Thread::kNoDeoptId) {
+    if (deopt_id == DeoptId::kNone) {
       PrintDescriptorsError("Missing deopt id");
     }
     intptr_t var_desc_len = var_descriptors_.Length();

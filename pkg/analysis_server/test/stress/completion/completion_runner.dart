@@ -46,11 +46,6 @@ class CompletionRunner {
   final bool timing;
 
   /**
-   * A flag indicating whether to use the CFE when running the tests.
-   */
-  final bool useCFE;
-
-  /**
    * A flag indicating whether to produce verbose output.
    */
   final bool verbose;
@@ -69,13 +64,11 @@ class CompletionRunner {
       bool printMissing,
       bool printQuality,
       bool timing,
-      bool useCFE,
       bool verbose})
       : this.output = output ?? new NullStringSink(),
         this.printMissing = printMissing ?? false,
         this.printQuality = printQuality ?? false,
         this.timing = timing ?? false,
-        this.useCFE = useCFE ?? false,
         this.verbose = verbose ?? false;
 
   /**
@@ -87,8 +80,7 @@ class CompletionRunner {
         new OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
     AnalysisContextCollection collection = new AnalysisContextCollection(
         includedPaths: <String>[analysisRoot],
-        resourceProvider: resourceProvider,
-        useCFE: useCFE); // ignore: deprecated_member_use
+        resourceProvider: resourceProvider);
     DartCompletionManager contributor = new DartCompletionManager();
     CompletionPerformance performance = new CompletionPerformance();
     int stamp = 1;

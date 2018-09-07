@@ -17,7 +17,6 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
-    defineReflectiveTests(FormatTest_UseCFE);
   });
 }
 
@@ -123,10 +122,4 @@ main() { int x =
     Response response = handleSuccessfulRequest(request);
     return new EditFormatResult.fromResponse(response);
   }
-}
-
-@reflectiveTest
-class FormatTest_UseCFE extends FormatTest {
-  @override
-  bool get useCFE => true;
 }

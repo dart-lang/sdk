@@ -58,15 +58,12 @@ class ScannerResult {
 /// Scan/tokenize the given UTF8 [bytes].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
-    {bool includeComments: false,
-    bool scanGenericMethodComments: false,
-    Recover recover}) {
+    {bool includeComments: false, Recover recover}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
-  Scanner scanner = new Utf8BytesScanner(bytes,
-      includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments);
+  Scanner scanner =
+      new Utf8BytesScanner(bytes, includeComments: includeComments);
   return _tokenizeAndRecover(scanner, recover, bytes: bytes);
 }
 
@@ -74,13 +71,11 @@ ScannerResult scan(List<int> bytes,
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
     {bool includeComments: false,
-    bool scanGenericMethodComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
-  StringScanner scanner = new StringScanner(source,
-      includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments);
+  StringScanner scanner =
+      new StringScanner(source, includeComments: includeComments);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

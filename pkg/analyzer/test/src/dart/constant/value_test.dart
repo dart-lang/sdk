@@ -1289,6 +1289,10 @@ class DartObjectImplTest extends EngineTestCase {
     _assertRemainder(_intValue(1), _intValue(7), _intValue(2));
   }
 
+  void test_remainder_knownInt_knownInt_zero() {
+    _assertRemainder(null, _intValue(7), _intValue(0));
+  }
+
   void test_remainder_knownInt_knownString() {
     _assertRemainder(null, _intValue(7), _stringValue("2"));
   }
@@ -1325,6 +1329,10 @@ class DartObjectImplTest extends EngineTestCase {
     _assertShiftLeft(_intValue(48), _intValue(6), _intValue(3));
   }
 
+  void test_shiftLeft_knownInt_knownInt_negative() {
+    _assertShiftLeft(null, _intValue(1), _intValue(-1));
+  }
+
   void test_shiftLeft_knownInt_knownString() {
     _assertShiftLeft(null, _intValue(6), _stringValue(null));
   }
@@ -1355,6 +1363,10 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_shiftRight_knownInt_knownInt() {
     _assertShiftRight(_intValue(6), _intValue(48), _intValue(3));
+  }
+
+  void test_shiftRight_knownInt_knownInt_negative() {
+    _assertShiftRight(null, _intValue(1), _intValue(-1));
   }
 
   void test_shiftRight_knownInt_knownString() {

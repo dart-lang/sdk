@@ -4,17 +4,25 @@
 
 library fasta.forest;
 
+import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart'
     show
-        Arguments, // TODO(ahe): Remove this import.
+        Arguments,
+        Catch,
         DartType,
         Expression,
+        LibraryDependency,
+        MapEntry,
         Member,
         Name,
+        NamedExpression,
         Procedure,
-        Statement;
+        Statement,
+        TreeNode,
+        VariableDeclaration;
 
-import 'body_builder.dart' show Identifier, LabelTarget;
+import 'body_builder.dart' show LabelTarget;
 
 import 'expression_generator.dart' show Generator, PrefixUseGenerator;
 
@@ -22,6 +30,7 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'kernel_builder.dart'
     show
+        Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,
@@ -29,7 +38,7 @@ import 'kernel_builder.dart'
 
 import '../scanner.dart' show Token;
 
-export 'body_builder.dart' show Identifier, Operator;
+export 'body_builder.dart' show Operator;
 
 export 'constness.dart' show Constness;
 
@@ -39,6 +48,7 @@ export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 export 'kernel_builder.dart'
     show
+        Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,
@@ -48,21 +58,18 @@ export 'kernel_builder.dart'
 abstract class Forest {
   const Forest();
 
-  /// [beginToken] is the opening `(`.
-  /// [endToken] is the closing `)`.
-  Arguments arguments(
-      List<Expression> positional, Token beginToken, Token endToken,
-      {covariant List types, covariant List named});
+  Arguments arguments(List<Expression> positional, Token location,
+      {List<DartType> types, List<NamedExpression> named});
 
-  Arguments argumentsEmpty(Token beginToken, Token endToken);
+  Arguments argumentsEmpty(Token location);
 
-  List argumentsNamed(Arguments arguments);
+  List<Object> argumentsNamed(Arguments arguments);
 
   List<Expression> argumentsPositional(Arguments arguments);
 
   List argumentsTypeArguments(Arguments arguments);
 
-  void argumentsSetTypeArguments(Arguments arguments, covariant List types);
+  void argumentsSetTypeArguments(Arguments arguments, List<DartType> types);
 
   Expression asLiteralString(Expression value);
 
@@ -76,8 +83,7 @@ abstract class Forest {
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Token location,
-      {Expression desugaredError, bool isSynthetic: false});
+  Expression literalInt(int value, Token location);
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -115,11 +121,11 @@ abstract class Forest {
   Expression literalMap(
       Token constKeyword,
       bool isConst,
-      covariant keyType,
-      covariant valueType,
+      DartType keyType,
+      DartType valueType,
       Object typeArguments,
       Token leftBracket,
-      covariant List entries,
+      List<MapEntry> entries,
       Token rightBracket);
 
   /// Return a representation of a null literal at the given [location].
@@ -140,7 +146,7 @@ abstract class Forest {
   /// [Operator]. The [value] is the string value of the symbol.
   Expression literalSymbolSingluar(String value, Token hash, Object component);
 
-  Expression literalType(covariant type, Token location);
+  Expression literalType(DartType type, Token location);
 
   /// Return a representation of a key/value pair in a literal map. The [key] is
   /// the representation of the expression used to compute the key. The [colon]
@@ -148,26 +154,13 @@ abstract class Forest {
   /// is the representation of the expression used to compute the value.
   Object mapEntry(Expression key, Token colon, Expression value);
 
-  /// Return a list that can hold [length] representations of map entries, as
-  /// returned from [mapEntry].
-  List mapEntryList(int length);
+  int readOffset(TreeNode node);
 
-  int readOffset(covariant node);
+  Expression loadLibrary(LibraryDependency dependency, Arguments arguments);
 
-  /// Given a representation of a list of [typeArguments], return the number of
-  /// type arguments in the list.
-  int getTypeCount(covariant typeArguments);
+  Expression checkLibraryIsLoaded(LibraryDependency dependency);
 
-  /// Given a representation of a list of [typeArguments], return the type
-  /// associated with the argument at the given [index].
-  DartType getTypeAt(covariant typeArguments, int index);
-
-  Expression loadLibrary(covariant dependency, Arguments arguments);
-
-  Expression checkLibraryIsLoaded(covariant dependency);
-
-  Expression asExpression(Expression expression, covariant type, Token location,
-      {Expression desugaredError});
+  Expression asExpression(Expression expression, DartType type, Token location);
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
@@ -192,11 +185,11 @@ abstract class Forest {
   /// Return a representation of a catch clause.
   Object catchClause(
       Token onKeyword,
-      covariant exceptionType,
+      DartType exceptionType,
       Token catchKeyword,
-      covariant exceptionParameter,
-      covariant stackTraceParameter,
-      covariant stackTraceType,
+      VariableDeclaration exceptionParameter,
+      VariableDeclaration stackTraceParameter,
+      DartType stackTraceType,
       Statement body);
 
   /// Return a representation of a conditional expression. The [condition] is
@@ -213,7 +206,7 @@ abstract class Forest {
 
   /// Return a representation of a do statement.
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
-      covariant Expression condition, Token semicolon);
+      Expression condition, Token semicolon);
 
   /// Return a representation of an expression statement composed from the
   /// [expression] and [semicolon].
@@ -227,8 +220,8 @@ abstract class Forest {
   Statement forStatement(
       Token forKeyword,
       Token leftParenthesis,
-      covariant variableList,
-      covariant initializers,
+      List<VariableDeclaration> variableList,
+      List<Expression> initializers,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,
@@ -237,7 +230,7 @@ abstract class Forest {
       Statement body);
 
   /// Return a representation of an `if` statement.
-  Statement ifStatement(Token ifKeyword, covariant Expression condition,
+  Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement);
 
   /// Return a representation of an `is` expression. The [operand] is the
@@ -245,11 +238,7 @@ abstract class Forest {
   /// The [notOperator] is either the `!` or `null` if the test is not negated.
   /// The [type] is a representation of the type that is the right operand.
   Expression isExpression(
-      Expression operand, Token isOperator, Token notOperator, covariant type);
-
-  /// Return a representation of the label consisting of the given [identifer]
-  /// followed by the given [colon].
-  Object label(Token identifier, Token colon);
+      Expression operand, Token isOperator, Token notOperator, DartType type);
 
   /// Return a representation of a [statement] that has one or more labels (from
   /// the [target]) associated with it.
@@ -299,11 +288,12 @@ abstract class Forest {
   /// might be provided, in which case it could be returned instead of the
   /// representation of the try statement.
   Statement tryStatement(Token tryKeyword, Statement body,
-      covariant catchClauses, Token finallyKeyword, Statement finallyBlock);
+      List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock);
 
-  Statement variablesDeclaration(covariant List declarations, Uri uri);
+  Statement variablesDeclaration(
+      List<VariableDeclaration> declarations, Uri uri);
 
-  Object variablesDeclarationExtractDeclarations(
+  List<VariableDeclaration> variablesDeclarationExtractDeclarations(
       covariant Statement variablesDeclaration);
 
   Statement wrapVariables(Statement statement);
@@ -311,7 +301,7 @@ abstract class Forest {
   /// Return a representation of a while statement introduced by the
   /// [whileKeyword] and consisting of the given [condition] and [body].
   Statement whileStatement(
-      Token whileKeyword, covariant Expression condition, Statement body);
+      Token whileKeyword, Expression condition, Statement body);
 
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
@@ -321,15 +311,6 @@ abstract class Forest {
 
   /// Return the expression from the given expression [statement].
   Expression getExpressionFromExpressionStatement(Statement statement);
-
-  /// Return the name of the given [label].
-  String getLabelName(covariant label);
-
-  /// Return the offset of the given [label].
-  int getLabelOffset(covariant label);
-
-  /// Return the name of the given variable [declaration].
-  String getVariableDeclarationName(covariant declaration);
 
   bool isBlock(Object node);
 
@@ -343,31 +324,12 @@ abstract class Forest {
   /// expression statement.
   bool isExpressionStatement(Statement statement);
 
-  /// Return `true` if the given [node] is a label.
-  bool isLabel(covariant node);
-
   bool isThisExpression(Object node);
 
   bool isVariablesDeclaration(Object node);
 
-  /// Record that the [user] (a break statement) is associated with the [target]
-  /// statement.
-  void resolveBreak(covariant Statement target, covariant Statement user);
-
-  /// Record that the [user] (a continue statement) is associated with the
-  /// [target] statement.
-  void resolveContinue(covariant Statement target, covariant Statement user);
-
-  /// Record that the [user] (a continue statement inside a switch case) is
-  /// associated with the [target] statement.
-  void resolveContinueInSwitch(
-      covariant Object target, covariant Statement user);
-
-  /// Set the type of the [parameter] to the given [type].
-  void setParameterType(covariant parameter, covariant type);
-
   Generator variableUseGenerator(ExpressionGeneratorHelper helper,
-      Token location, covariant variable, DartType promotedType);
+      Token location, VariableDeclaration variable, DartType promotedType);
 
   Generator propertyAccessGenerator(
       ExpressionGeneratorHelper helper,
@@ -394,28 +356,17 @@ abstract class Forest {
 
   Generator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
+      Token location,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter);
 
-  Generator thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
-      Expression index,
-      Procedure getter,
-      Procedure setter);
+  Generator thisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Procedure getter, Procedure setter);
 
-  Generator superIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
-      Expression index,
-      Member getter,
-      Member setter);
+  Generator superIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Member getter, Member setter);
 
   Generator staticAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Member getter, Member setter);

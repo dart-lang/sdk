@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateOptionsTest);
-    defineReflectiveTests(UpdateOptionsTest_UseCFE);
   });
 }
 
@@ -45,10 +44,4 @@ class Foo {
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));
   }
-}
-
-@reflectiveTest
-class UpdateOptionsTest_UseCFE extends UpdateOptionsTest {
-  @override
-  bool get useCFE => true;
 }

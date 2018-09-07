@@ -19,7 +19,12 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         Typedef;
 
-import '../fasta_codes.dart' show templateUnspecified;
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateDuplicatedDefinition,
+        templateTypeNotFound,
+        templateUnspecified;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -63,9 +68,6 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   @override
   String get name => library.name;
-
-  @override
-  bool get hasTarget => true;
 
   @override
   Library get target => library;
@@ -151,7 +153,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     // mapping `k` to `d` is added to the exported namespace of `L` unless a
     // top-level declaration with the name `k` exists in `L`.
     if (builder.parent == this) return builder;
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
+    return new KernelInvalidTypeBuilder(
+        name,
+        templateDuplicatedDefinition
+            .withArguments(name)
+            .withLocation(fileUri, charOffset, name.length));
   }
 
   @override
@@ -160,7 +166,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
-    unserializableExports?.forEach((String name, String message) {
+    unserializableExports?.forEach((String name, String messageText) {
       Declaration declaration;
       switch (name) {
         case "dynamic":
@@ -171,13 +177,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
           break;
 
         default:
-          declaration = new KernelInvalidTypeBuilder(
-              name,
-              -1,
-              null,
-              message == null
-                  ? null
-                  : templateUnspecified.withArguments(message));
+          Message message = messageText == null
+              ? templateTypeNotFound.withArguments(name)
+              : templateUnspecified.withArguments(messageText);
+          declaration =
+              new KernelInvalidTypeBuilder(name, message.withoutLocation());
       }
       exportScopeBuilder.addMember(name, declaration);
     });

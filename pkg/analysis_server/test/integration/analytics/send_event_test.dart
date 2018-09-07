@@ -10,7 +10,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendEventTest);
-    defineReflectiveTests(SendEventTest_UseCFE);
   });
 }
 
@@ -29,10 +28,4 @@ class SendEventTest extends AbstractAnalysisServerIntegrationTest {
     // Restore the original value.
     await sendAnalyticsEnable(result1.enabled);
   }
-}
-
-@reflectiveTest
-class SendEventTest_UseCFE extends SendEventTest {
-  @override
-  bool get useCFE => true;
 }

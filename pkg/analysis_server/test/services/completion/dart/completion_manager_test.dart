@@ -19,7 +19,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
-    defineReflectiveTests(CompletionManagerTest_UseCFE);
   });
 }
 
@@ -86,10 +85,4 @@ part '${convertPathForImport(testFile)}';
     assertImportedLib('dart:core');
     assertImportedLib('libA.dart');
   }
-}
-
-@reflectiveTest
-class CompletionManagerTest_UseCFE extends CompletionManagerTest {
-  @override
-  bool get useCFE => true;
 }

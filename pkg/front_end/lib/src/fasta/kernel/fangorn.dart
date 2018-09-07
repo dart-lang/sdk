@@ -11,16 +11,12 @@ import 'package:kernel/ast.dart'
         Arguments,
         AssertInitializer,
         Block,
-        BreakStatement,
         Catch,
-        ContinueSwitchStatement,
         DartType,
-        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
         InvalidExpression,
-        LabeledStatement,
         Let,
         LibraryDependency,
         MapEntry,
@@ -29,13 +25,12 @@ import 'package:kernel/ast.dart'
         NamedExpression,
         Procedure,
         Statement,
-        SwitchCase,
         ThisExpression,
         TreeNode,
         VariableDeclaration,
         setParents;
 
-import '../parser.dart' show endOffsetForToken, offsetForToken, optional;
+import '../parser.dart' show offsetForToken, optional;
 
 import '../problems.dart' show unsupported;
 
@@ -132,17 +127,15 @@ class Fangorn extends Forest {
   Fangorn(this.typeInferenceTokensSaver);
 
   @override
-  ArgumentsJudgment arguments(
-      List<Expression> positional, Token beginToken, Token endToken,
+  ArgumentsJudgment arguments(List<Expression> positional, Token token,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsJudgment(
-        offsetForToken(beginToken), endOffsetForToken(endToken), positional,
-        types: types, named: named);
+    return new ArgumentsJudgment(positional, types: types, named: named)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
-  ArgumentsJudgment argumentsEmpty(Token beginToken, Token endToken) {
-    return arguments(<Expression>[], beginToken, endToken);
+  ArgumentsJudgment argumentsEmpty(Token token) {
+    return arguments(<Expression>[], token);
   }
 
   @override
@@ -183,11 +176,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  IntJudgment literalInt(int value, Token token,
-      {Expression desugaredError, bool isSynthetic: false}) {
+  IntJudgment literalInt(int value, Token token) {
     return new IntJudgment(
-        typeInferenceTokensSaver?.intLiteralTokens(token), value,
-        desugaredError: desugaredError, isSynthetic: isSynthetic)
+        typeInferenceTokensSaver?.intLiteralTokens(token), value)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -267,18 +258,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  List<MapEntry> mapEntryList(int length) {
-    return new List<MapEntryJudgment>.filled(length, null, growable: true);
-  }
-
-  @override
   int readOffset(TreeNode node) => node.fileOffset;
-
-  @override
-  int getTypeCount(List typeArguments) => typeArguments.length;
-
-  @override
-  DartType getTypeAt(List typeArguments, int index) => typeArguments[index];
 
   @override
   Expression loadLibrary(LibraryDependency dependency, Arguments arguments) {
@@ -291,11 +271,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  Expression asExpression(Expression expression, covariant type, Token token,
-      {Expression desugaredError}) {
+  Expression asExpression(Expression expression, DartType type, Token token) {
     return new AsJudgment(
-        expression, typeInferenceTokensSaver?.asExpressionTokens(token), type,
-        desugaredError: desugaredError)
+        expression, typeInferenceTokensSaver?.asExpressionTokens(token), type)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -401,8 +379,6 @@ class Fangorn extends Forest {
       VariableDeclaration stackTraceParameter,
       DartType stackTraceType,
       Statement body) {
-    exceptionType ??= const DynamicType();
-    // TODO(brianwilkerson) Get the left and right parentheses and the comma.
     return new CatchJudgment(
         typeInferenceTokensSaver?.catchStatementTokens(
             onKeyword, catchKeyword, null, null, null),
@@ -496,7 +472,7 @@ class Fangorn extends Forest {
 
   @override
   Expression isExpression(
-      Expression operand, isOperator, Token notOperator, covariant type) {
+      Expression operand, isOperator, Token notOperator, DartType type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
       return new IsNotJudgment(
@@ -510,11 +486,6 @@ class Fangorn extends Forest {
     return new IsJudgment(
         operand, typeInferenceTokensSaver?.isExpressionTokens(isOperator), type)
       ..fileOffset = offset;
-  }
-
-  @override
-  Label label(Token identifier, Token colon) {
-    return new Label(identifier.lexeme, identifier.charOffset);
   }
 
   @override
@@ -659,17 +630,6 @@ class Fangorn extends Forest {
   }
 
   @override
-  String getLabelName(Label label) => label.name;
-
-  @override
-  int getLabelOffset(Label label) => label.charOffset;
-
-  @override
-  String getVariableDeclarationName(VariableDeclaration declaration) {
-    return declaration.name;
-  }
-
-  @override
   bool isBlock(Object node) => node is Block;
 
   @override
@@ -701,34 +661,10 @@ class Fangorn extends Forest {
       statement is ExpressionStatement;
 
   @override
-  bool isLabel(covariant node) => node is Label;
-
-  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
-
-  @override
-  void resolveBreak(LabeledStatement target, BreakStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void resolveContinue(LabeledStatement target, BreakStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void resolveContinueInSwitch(
-      SwitchCase target, ContinueSwitchStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void setParameterType(VariableDeclaration parameter, DartType type) {
-    parameter.type = type ?? const DynamicType();
-  }
 
   @override
   KernelVariableUseGenerator variableUseGenerator(
@@ -790,38 +726,35 @@ class Fangorn extends Forest {
   @override
   KernelIndexedAccessGenerator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
+      Token token,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
-    return new KernelIndexedAccessGenerator.internal(helper, openSquareBracket,
-        closeSquareBracket, receiver, index, getter, setter);
+    return new KernelIndexedAccessGenerator.internal(
+        helper, token, receiver, index, getter, setter);
   }
 
   @override
   KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
+      Token token,
       Expression index,
       Procedure getter,
       Procedure setter) {
     return new KernelThisIndexedAccessGenerator(
-        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
+        helper, token, index, getter, setter);
   }
 
   @override
   KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
+      Token token,
       Expression index,
       Member getter,
       Member setter) {
     return new KernelSuperIndexedAccessGenerator(
-        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
+        helper, token, index, getter, setter);
   }
 
   @override
@@ -955,15 +888,4 @@ class _VariablesDeclaration extends Statement {
   transformChildren(v) {
     unsupported("transformChildren", fileOffset, uri);
   }
-}
-
-/// A data holder used to hold the information about a label that is pushed on
-/// the stack.
-class Label {
-  String name;
-  int charOffset;
-
-  Label(this.name, this.charOffset);
-
-  String toString() => "label($name)";
 }

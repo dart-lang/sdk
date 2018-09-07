@@ -21,7 +21,7 @@ static RawClass* CreateTestClass(const char* name) {
   return cls.raw();
 }
 
-TEST_CASE(ClassFinalizer) {
+ISOLATE_UNIT_TEST_CASE(ClassFinalizer) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
@@ -51,7 +51,7 @@ TEST_CASE(ClassFinalizer) {
   EXPECT(ClassFinalizer::ProcessPendingClasses());
 }
 
-TEST_CASE(ClassFinalize_Cycles) {
+ISOLATE_UNIT_TEST_CASE(ClassFinalize_Cycles) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
@@ -75,7 +75,7 @@ static RawLibrary* NewLib(const char* url_chars) {
   return Library::New(url);
 }
 
-TEST_CASE(ClassFinalize_Resolve) {
+ISOLATE_UNIT_TEST_CASE(ClassFinalize_Resolve) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();

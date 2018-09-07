@@ -70,9 +70,6 @@ class RunCommand extends Command {
         help: 'Run a quick version of the benchmark. This is not useful for '
             'gathering accurate times,\nbut can be used to validate that the '
             'benchmark works.');
-    argParser.addFlag('use-cfe',
-        negatable: false,
-        help: 'Benchmark against the Dart 2.0 front end implementation.');
     argParser.addOption('repeat',
         defaultsTo: '10', help: 'The number of times to repeat the benchmark.');
     argParser.addFlag('verbose',
@@ -98,7 +95,6 @@ class RunCommand extends Command {
     final String benchmarkId = argResults.rest.first;
     final int repeatCount = int.parse(argResults['repeat'] as String);
     final bool quick = argResults['quick'];
-    final bool useCFE = argResults['use-cfe'];
     final bool verbose = argResults['verbose'];
 
     final Benchmark benchmark =
@@ -127,7 +123,6 @@ class RunCommand extends Command {
       for (int iteration = 0; iteration < actualIterations; iteration++) {
         BenchMarkResult newResult = await benchmark.run(
           quick: quick,
-          useCFE: useCFE,
           verbose: verbose,
         );
         print('  $newResult');
@@ -166,7 +161,6 @@ abstract class Benchmark {
 
   Future<BenchMarkResult> run({
     bool quick: false,
-    bool useCFE: false,
     bool verbose: false,
   });
 

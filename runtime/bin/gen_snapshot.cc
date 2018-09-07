@@ -86,46 +86,12 @@ static char* app_script_name = NULL;
 static CommandLineOptions* entry_points_files = NULL;
 
 // The environment provided through the command line using -D options.
-static dart::HashMap* environment = NULL;
-
-static void* GetHashmapKeyFromString(char* key) {
-  return reinterpret_cast<void*>(key);
-}
+static dart::SimpleHashMap* environment = NULL;
 
 static bool ProcessEnvironmentOption(const char* arg,
                                      CommandLineOptions* vm_options) {
   return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
                                                    &environment);
-}
-
-static Dart_Handle EnvironmentCallback(Dart_Handle name) {
-  uint8_t* utf8_array;
-  intptr_t utf8_len;
-  Dart_Handle result = Dart_Null();
-  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
-  if (Dart_IsError(handle)) {
-    handle = Dart_ThrowException(
-        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
-  } else {
-    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
-    memmove(name_chars, utf8_array, utf8_len);
-    name_chars[utf8_len] = '\0';
-    const char* value = NULL;
-    if (environment != NULL) {
-      HashMap::Entry* entry =
-          environment->Lookup(GetHashmapKeyFromString(name_chars),
-                              HashMap::StringHash(name_chars), false);
-      if (entry != NULL) {
-        value = reinterpret_cast<char*>(entry->value);
-      }
-    }
-    if (value != NULL) {
-      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
-                                      strlen(value));
-    }
-    free(name_chars);
-  }
-  return result;
 }
 
 static const char* kSnapshotKindNames[] = {
@@ -1423,7 +1389,8 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   }
 
   Dart_EnterScope();
-  Dart_Handle result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  Dart_Handle result =
+      Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
   CHECK_RESULT(result);
 
   // The root library has to be set to generate AOT snapshots, and sometimes we
@@ -1510,6 +1477,7 @@ int main(int argc, char** argv) {
     PrintUsage();
     return kErrorExitCode;
   }
+  DartUtils::SetEnvironment(environment);
 
   // Sniff the script to check if it is actually a dill file.
   uint8_t* kernel_buffer = NULL;
@@ -1656,7 +1624,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
   CHECK_RESULT(result);
 
   // Load up the script before a snapshot is created.
@@ -1709,7 +1677,7 @@ int main(int argc, char** argv) {
       exit(kErrorExitCode);
     }
     Dart_EnterScope();
-    result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+    result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
     CHECK_RESULT(result);
 
     // Set up the library tag handler in such a manner that it will use the

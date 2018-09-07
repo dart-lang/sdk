@@ -3099,7 +3099,7 @@ class LinkedLibraryBuilder extends Object
   }
 
   @override
-  bool get fallbackMode =>
+  Null get fallbackMode =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3316,7 +3316,7 @@ class _LinkedLibraryImpl extends Object
   }
 
   @override
-  bool get fallbackMode =>
+  Null get fallbackMode =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3432,7 +3432,7 @@ class LinkedReferenceBuilder extends Object
   }
 
   @override
-  int get localIndex =>
+  Null get localIndex =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3580,7 +3580,7 @@ class _LinkedReferenceImpl extends Object
   }
 
   @override
-  int get localIndex =>
+  Null get localIndex =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3915,38 +3915,20 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 class PackageBundleBuilder extends Object
     with _PackageBundleMixin
     implements idl.PackageBundle {
-  String _apiSignature;
-  List<PackageDependencyInfoBuilder> _dependencies;
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
   int _minorVersion;
-  List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
   @override
-  String get apiSignature => _apiSignature ??= '';
-
-  /**
-   * MD5 hash of the non-informative fields of the [PackageBundle] (not
-   * including this one).  This can be used to identify when the API of a
-   * package may have changed.
-   */
-  void set apiSignature(String value) {
-    this._apiSignature = value;
-  }
+  Null get apiSignature =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<PackageDependencyInfoBuilder> get dependencies =>
-      _dependencies ??= <PackageDependencyInfoBuilder>[];
-
-  /**
-   * Information about the packages this package depends on, if known.
-   */
-  void set dependencies(List<PackageDependencyInfoBuilder> value) {
-    this._dependencies = value;
-  }
+  Null get dependencies =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<LinkedLibraryBuilder> get linkedLibraries =>
@@ -3995,15 +3977,8 @@ class PackageBundleBuilder extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes => _unlinkedUnitHashes ??= <String>[];
-
-  /**
-   * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
-   * is encoded as a hexadecimal string using lower case letters.
-   */
-  void set unlinkedUnitHashes(List<String> value) {
-    this._unlinkedUnitHashes = value;
-  }
+  Null get unlinkedUnitHashes =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<UnlinkedUnitBuilder> get unlinkedUnits =>
@@ -4027,22 +4002,16 @@ class PackageBundleBuilder extends Object
   }
 
   PackageBundleBuilder(
-      {String apiSignature,
-      List<PackageDependencyInfoBuilder> dependencies,
-      List<LinkedLibraryBuilder> linkedLibraries,
+      {List<LinkedLibraryBuilder> linkedLibraries,
       List<String> linkedLibraryUris,
       int majorVersion,
       int minorVersion,
-      List<String> unlinkedUnitHashes,
       List<UnlinkedUnitBuilder> unlinkedUnits,
       List<String> unlinkedUnitUris})
-      : _apiSignature = apiSignature,
-        _dependencies = dependencies,
-        _linkedLibraries = linkedLibraries,
+      : _linkedLibraries = linkedLibraries,
         _linkedLibraryUris = linkedLibraryUris,
         _majorVersion = majorVersion,
         _minorVersion = minorVersion,
-        _unlinkedUnitHashes = unlinkedUnitHashes,
         _unlinkedUnits = unlinkedUnits,
         _unlinkedUnitUris = unlinkedUnitUris;
 
@@ -4050,9 +4019,7 @@ class PackageBundleBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
-    _dependencies = null;
     _linkedLibraries?.forEach((b) => b.flushInformative());
-    _unlinkedUnitHashes = null;
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
 
@@ -4094,7 +4061,6 @@ class PackageBundleBuilder extends Object
     }
     signature.addInt(this._majorVersion ?? 0);
     signature.addInt(this._minorVersion ?? 0);
-    signature.addString(this._apiSignature ?? '');
   }
 
   List<int> toBuffer() {
@@ -4103,20 +4069,10 @@ class PackageBundleBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_apiSignature;
-    fb.Offset offset_dependencies;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
-    fb.Offset offset_unlinkedUnitHashes;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
-    if (_apiSignature != null) {
-      offset_apiSignature = fbBuilder.writeString(_apiSignature);
-    }
-    if (!(_dependencies == null || _dependencies.isEmpty)) {
-      offset_dependencies = fbBuilder
-          .writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
-    }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
       offset_linkedLibraries = fbBuilder
           .writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
@@ -4124,10 +4080,6 @@ class PackageBundleBuilder extends Object
     if (!(_linkedLibraryUris == null || _linkedLibraryUris.isEmpty)) {
       offset_linkedLibraryUris = fbBuilder.writeList(
           _linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_unlinkedUnitHashes == null || _unlinkedUnitHashes.isEmpty)) {
-      offset_unlinkedUnitHashes = fbBuilder.writeList(
-          _unlinkedUnitHashes.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unlinkedUnits == null || _unlinkedUnits.isEmpty)) {
       offset_unlinkedUnits = fbBuilder
@@ -4138,12 +4090,6 @@ class PackageBundleBuilder extends Object
           _unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
-    if (offset_apiSignature != null) {
-      fbBuilder.addOffset(7, offset_apiSignature);
-    }
-    if (offset_dependencies != null) {
-      fbBuilder.addOffset(8, offset_dependencies);
-    }
     if (offset_linkedLibraries != null) {
       fbBuilder.addOffset(0, offset_linkedLibraries);
     }
@@ -4155,9 +4101,6 @@ class PackageBundleBuilder extends Object
     }
     if (_minorVersion != null && _minorVersion != 0) {
       fbBuilder.addUint32(6, _minorVersion);
-    }
-    if (offset_unlinkedUnitHashes != null) {
-      fbBuilder.addOffset(4, offset_unlinkedUnitHashes);
     }
     if (offset_unlinkedUnits != null) {
       fbBuilder.addOffset(2, offset_unlinkedUnits);
@@ -4190,29 +4133,20 @@ class _PackageBundleImpl extends Object
 
   _PackageBundleImpl(this._bc, this._bcOffset);
 
-  String _apiSignature;
-  List<idl.PackageDependencyInfo> _dependencies;
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
   int _minorVersion;
-  List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
   @override
-  String get apiSignature {
-    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 7, '');
-    return _apiSignature;
-  }
+  Null get apiSignature =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<idl.PackageDependencyInfo> get dependencies {
-    _dependencies ??= const fb.ListReader<idl.PackageDependencyInfo>(
-            const _PackageDependencyInfoReader())
-        .vTableGet(_bc, _bcOffset, 8, const <idl.PackageDependencyInfo>[]);
-    return _dependencies;
-  }
+  Null get dependencies =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.LinkedLibrary> get linkedLibraries {
@@ -4242,11 +4176,8 @@ class _PackageBundleImpl extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes {
-    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
-    return _unlinkedUnitHashes;
-  }
+  Null get unlinkedUnitHashes =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.UnlinkedUnit> get unlinkedUnits {
@@ -4268,10 +4199,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (dependencies.isNotEmpty)
-      _result["dependencies"] =
-          dependencies.map((_value) => _value.toJson()).toList();
     if (linkedLibraries.isNotEmpty)
       _result["linkedLibraries"] =
           linkedLibraries.map((_value) => _value.toJson()).toList();
@@ -4279,8 +4206,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
       _result["linkedLibraryUris"] = linkedLibraryUris;
     if (majorVersion != 0) _result["majorVersion"] = majorVersion;
     if (minorVersion != 0) _result["minorVersion"] = minorVersion;
-    if (unlinkedUnitHashes.isNotEmpty)
-      _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
     if (unlinkedUnits.isNotEmpty)
       _result["unlinkedUnits"] =
           unlinkedUnits.map((_value) => _value.toJson()).toList();
@@ -4291,240 +4216,12 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 
   @override
   Map<String, Object> toMap() => {
-        "apiSignature": apiSignature,
-        "dependencies": dependencies,
         "linkedLibraries": linkedLibraries,
         "linkedLibraryUris": linkedLibraryUris,
         "majorVersion": majorVersion,
         "minorVersion": minorVersion,
-        "unlinkedUnitHashes": unlinkedUnitHashes,
         "unlinkedUnits": unlinkedUnits,
         "unlinkedUnitUris": unlinkedUnitUris,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class PackageDependencyInfoBuilder extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  String _apiSignature;
-  List<String> _includedPackageNames;
-  bool _includesDartUris;
-  bool _includesFileUris;
-  String _summaryPath;
-
-  @override
-  String get apiSignature => _apiSignature ??= '';
-
-  /**
-   * API signature of this dependency.
-   */
-  void set apiSignature(String value) {
-    this._apiSignature = value;
-  }
-
-  @override
-  List<String> get includedPackageNames => _includedPackageNames ??= <String>[];
-
-  /**
-   * If this dependency summarizes any files whose URI takes the form
-   * "package:<package_name>/...", a list of all such package names, sorted
-   * lexicographically.  Otherwise empty.
-   */
-  void set includedPackageNames(List<String> value) {
-    this._includedPackageNames = value;
-  }
-
-  @override
-  bool get includesDartUris => _includesDartUris ??= false;
-
-  /**
-   * Indicates whether this dependency summarizes any files whose URI takes the
-   * form "dart:...".
-   */
-  void set includesDartUris(bool value) {
-    this._includesDartUris = value;
-  }
-
-  @override
-  bool get includesFileUris => _includesFileUris ??= false;
-
-  /**
-   * Indicates whether this dependency summarizes any files whose URI takes the
-   * form "file:...".
-   */
-  void set includesFileUris(bool value) {
-    this._includesFileUris = value;
-  }
-
-  @override
-  String get summaryPath => _summaryPath ??= '';
-
-  /**
-   * Relative path to the summary file for this dependency.  This is intended as
-   * a hint to help the analysis server locate summaries of dependencies.  We
-   * don't specify precisely what this path is relative to, but we expect it to
-   * be relative to a directory the analysis server can find (e.g. for projects
-   * built using Bazel, it would be relative to the "bazel-bin" directory).
-   *
-   * Absent if the path is not known.
-   */
-  void set summaryPath(String value) {
-    this._summaryPath = value;
-  }
-
-  PackageDependencyInfoBuilder(
-      {String apiSignature,
-      List<String> includedPackageNames,
-      bool includesDartUris,
-      bool includesFileUris,
-      String summaryPath})
-      : _apiSignature = apiSignature,
-        _includedPackageNames = includedPackageNames,
-        _includesDartUris = includesDartUris,
-        _includesFileUris = includesFileUris,
-        _summaryPath = summaryPath;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {}
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._apiSignature ?? '');
-    signature.addString(this._summaryPath ?? '');
-    if (this._includedPackageNames == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._includedPackageNames.length);
-      for (var x in this._includedPackageNames) {
-        signature.addString(x);
-      }
-    }
-    signature.addBool(this._includesFileUris == true);
-    signature.addBool(this._includesDartUris == true);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_apiSignature;
-    fb.Offset offset_includedPackageNames;
-    fb.Offset offset_summaryPath;
-    if (_apiSignature != null) {
-      offset_apiSignature = fbBuilder.writeString(_apiSignature);
-    }
-    if (!(_includedPackageNames == null || _includedPackageNames.isEmpty)) {
-      offset_includedPackageNames = fbBuilder.writeList(
-          _includedPackageNames.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (_summaryPath != null) {
-      offset_summaryPath = fbBuilder.writeString(_summaryPath);
-    }
-    fbBuilder.startTable();
-    if (offset_apiSignature != null) {
-      fbBuilder.addOffset(0, offset_apiSignature);
-    }
-    if (offset_includedPackageNames != null) {
-      fbBuilder.addOffset(2, offset_includedPackageNames);
-    }
-    if (_includesDartUris == true) {
-      fbBuilder.addBool(4, true);
-    }
-    if (_includesFileUris == true) {
-      fbBuilder.addBool(3, true);
-    }
-    if (offset_summaryPath != null) {
-      fbBuilder.addOffset(1, offset_summaryPath);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _PackageDependencyInfoReader
-    extends fb.TableReader<_PackageDependencyInfoImpl> {
-  const _PackageDependencyInfoReader();
-
-  @override
-  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) =>
-      new _PackageDependencyInfoImpl(bc, offset);
-}
-
-class _PackageDependencyInfoImpl extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _PackageDependencyInfoImpl(this._bc, this._bcOffset);
-
-  String _apiSignature;
-  List<String> _includedPackageNames;
-  bool _includesDartUris;
-  bool _includesFileUris;
-  String _summaryPath;
-
-  @override
-  String get apiSignature {
-    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _apiSignature;
-  }
-
-  @override
-  List<String> get includedPackageNames {
-    _includedPackageNames ??=
-        const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
-    return _includedPackageNames;
-  }
-
-  @override
-  bool get includesDartUris {
-    _includesDartUris ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
-    return _includesDartUris;
-  }
-
-  @override
-  bool get includesFileUris {
-    _includesFileUris ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
-    return _includesFileUris;
-  }
-
-  @override
-  String get summaryPath {
-    _summaryPath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
-    return _summaryPath;
-  }
-}
-
-abstract class _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (includedPackageNames.isNotEmpty)
-      _result["includedPackageNames"] = includedPackageNames;
-    if (includesDartUris != false)
-      _result["includesDartUris"] = includesDartUris;
-    if (includesFileUris != false)
-      _result["includesFileUris"] = includesFileUris;
-    if (summaryPath != '') _result["summaryPath"] = summaryPath;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "apiSignature": apiSignature,
-        "includedPackageNames": includedPackageNames,
-        "includesDartUris": includesDartUris,
-        "includesFileUris": includesFileUris,
-        "summaryPath": summaryPath,
       };
 
   @override
@@ -5748,6 +5445,7 @@ class UnlinkedClassBuilder extends Object
   List<EntityRefBuilder> _mixins;
   String _name;
   int _nameOffset;
+  List<EntityRefBuilder> _superclassConstraints;
   EntityRefBuilder _supertype;
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
@@ -5879,6 +5577,19 @@ class UnlinkedClassBuilder extends Object
   }
 
   @override
+  List<EntityRefBuilder> get superclassConstraints =>
+      _superclassConstraints ??= <EntityRefBuilder>[];
+
+  /**
+   * Superclass constraints for this mixin declaration. The list will be empty
+   * if this class is not a mixin declaration, or if the declaration does not
+   * have an `on` clause (in which case the type `Object` is implied).
+   */
+  void set superclassConstraints(List<EntityRefBuilder> value) {
+    this._superclassConstraints = value;
+  }
+
+  @override
   EntityRefBuilder get supertype => _supertype;
 
   /**
@@ -5914,6 +5625,7 @@ class UnlinkedClassBuilder extends Object
       List<EntityRefBuilder> mixins,
       String name,
       int nameOffset,
+      List<EntityRefBuilder> superclassConstraints,
       EntityRefBuilder supertype,
       List<UnlinkedTypeParamBuilder> typeParameters})
       : _annotations = annotations,
@@ -5928,6 +5640,7 @@ class UnlinkedClassBuilder extends Object
         _mixins = mixins,
         _name = name,
         _nameOffset = nameOffset,
+        _superclassConstraints = superclassConstraints,
         _supertype = supertype,
         _typeParameters = typeParameters;
 
@@ -5943,6 +5656,7 @@ class UnlinkedClassBuilder extends Object
     _interfaces?.forEach((b) => b.flushInformative());
     _mixins?.forEach((b) => b.flushInformative());
     _nameOffset = null;
+    _superclassConstraints?.forEach((b) => b.flushInformative());
     _supertype?.flushInformative();
     _typeParameters?.forEach((b) => b.flushInformative());
   }
@@ -6005,6 +5719,14 @@ class UnlinkedClassBuilder extends Object
     }
     signature.addBool(this._isMixinApplication == true);
     signature.addBool(this._hasNoSupertype == true);
+    if (this._superclassConstraints == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._superclassConstraints.length);
+      for (var x in this._superclassConstraints) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -6016,6 +5738,7 @@ class UnlinkedClassBuilder extends Object
     fb.Offset offset_interfaces;
     fb.Offset offset_mixins;
     fb.Offset offset_name;
+    fb.Offset offset_superclassConstraints;
     fb.Offset offset_supertype;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -6046,6 +5769,10 @@ class UnlinkedClassBuilder extends Object
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
+    }
+    if (!(_superclassConstraints == null || _superclassConstraints.isEmpty)) {
+      offset_superclassConstraints = fbBuilder.writeList(
+          _superclassConstraints.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_supertype != null) {
       offset_supertype = _supertype.finish(fbBuilder);
@@ -6091,6 +5818,9 @@ class UnlinkedClassBuilder extends Object
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(1, _nameOffset);
     }
+    if (offset_superclassConstraints != null) {
+      fbBuilder.addOffset(14, offset_superclassConstraints);
+    }
     if (offset_supertype != null) {
       fbBuilder.addOffset(3, offset_supertype);
     }
@@ -6129,6 +5859,7 @@ class _UnlinkedClassImpl extends Object
   List<idl.EntityRef> _mixins;
   String _name;
   int _nameOffset;
+  List<idl.EntityRef> _superclassConstraints;
   idl.EntityRef _supertype;
   List<idl.UnlinkedTypeParam> _typeParameters;
 
@@ -6216,6 +5947,14 @@ class _UnlinkedClassImpl extends Object
   }
 
   @override
+  List<idl.EntityRef> get superclassConstraints {
+    _superclassConstraints ??=
+        const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+            .vTableGet(_bc, _bcOffset, 14, const <idl.EntityRef>[]);
+    return _superclassConstraints;
+  }
+
+  @override
   idl.EntityRef get supertype {
     _supertype ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _supertype;
@@ -6256,6 +5995,9 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
       _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (superclassConstraints.isNotEmpty)
+      _result["superclassConstraints"] =
+          superclassConstraints.map((_value) => _value.toJson()).toList();
     if (supertype != null) _result["supertype"] = supertype.toJson();
     if (typeParameters.isNotEmpty)
       _result["typeParameters"] =
@@ -6277,6 +6019,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
         "mixins": mixins,
         "name": name,
         "nameOffset": nameOffset,
+        "superclassConstraints": superclassConstraints,
         "supertype": supertype,
         "typeParameters": typeParameters,
       };
@@ -6870,11 +6613,11 @@ class UnlinkedDocumentationCommentBuilder extends Object
   String _text;
 
   @override
-  int get length =>
+  Null get length =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset =>
+  Null get offset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -6938,11 +6681,11 @@ class _UnlinkedDocumentationCommentImpl extends Object
   String _text;
 
   @override
-  int get length =>
+  Null get length =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset =>
+  Null get offset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -7656,11 +7399,11 @@ class UnlinkedExecutableBuilder extends Object
   }
 
   @override
-  List<String> get localLabels =>
+  Null get localLabels =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<UnlinkedVariableBuilder> get localVariables =>
+  Null get localVariables =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -8249,11 +7992,11 @@ class _UnlinkedExecutableImpl extends Object
   }
 
   @override
-  List<String> get localLabels =>
+  Null get localLabels =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<idl.UnlinkedVariable> get localVariables =>
+  Null get localVariables =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -11411,6 +11154,7 @@ class UnlinkedUnitBuilder extends Object
   int _libraryNameLength;
   int _libraryNameOffset;
   List<int> _lineStarts;
+  List<UnlinkedClassBuilder> _mixins;
   List<UnlinkedPartBuilder> _parts;
   UnlinkedPublicNamespaceBuilder _publicNamespace;
   List<UnlinkedReferenceBuilder> _references;
@@ -11485,7 +11229,7 @@ class UnlinkedUnitBuilder extends Object
   }
 
   @override
-  String get fallbackModePath =>
+  Null get fallbackModePath =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -11580,6 +11324,16 @@ class UnlinkedUnitBuilder extends Object
   }
 
   @override
+  List<UnlinkedClassBuilder> get mixins => _mixins ??= <UnlinkedClassBuilder>[];
+
+  /**
+   * Mixins declared in the compilation unit.
+   */
+  void set mixins(List<UnlinkedClassBuilder> value) {
+    this._mixins = value;
+  }
+
+  @override
   List<UnlinkedPartBuilder> get parts => _parts ??= <UnlinkedPartBuilder>[];
 
   /**
@@ -11651,6 +11405,7 @@ class UnlinkedUnitBuilder extends Object
       int libraryNameLength,
       int libraryNameOffset,
       List<int> lineStarts,
+      List<UnlinkedClassBuilder> mixins,
       List<UnlinkedPartBuilder> parts,
       UnlinkedPublicNamespaceBuilder publicNamespace,
       List<UnlinkedReferenceBuilder> references,
@@ -11670,6 +11425,7 @@ class UnlinkedUnitBuilder extends Object
         _libraryNameLength = libraryNameLength,
         _libraryNameOffset = libraryNameOffset,
         _lineStarts = lineStarts,
+        _mixins = mixins,
         _parts = parts,
         _publicNamespace = publicNamespace,
         _references = references,
@@ -11691,6 +11447,7 @@ class UnlinkedUnitBuilder extends Object
     _libraryNameLength = null;
     _libraryNameOffset = null;
     _lineStarts = null;
+    _mixins?.forEach((b) => b.flushInformative());
     _parts?.forEach((b) => b.flushInformative());
     _publicNamespace?.flushInformative();
     _references?.forEach((b) => b.flushInformative());
@@ -11794,6 +11551,14 @@ class UnlinkedUnitBuilder extends Object
         signature.addInt(x);
       }
     }
+    if (this._mixins == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._mixins.length);
+      for (var x in this._mixins) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -11813,6 +11578,7 @@ class UnlinkedUnitBuilder extends Object
     fb.Offset offset_libraryDocumentationComment;
     fb.Offset offset_libraryName;
     fb.Offset offset_lineStarts;
+    fb.Offset offset_mixins;
     fb.Offset offset_parts;
     fb.Offset offset_publicNamespace;
     fb.Offset offset_references;
@@ -11857,6 +11623,10 @@ class UnlinkedUnitBuilder extends Object
     }
     if (!(_lineStarts == null || _lineStarts.isEmpty)) {
       offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
+    }
+    if (!(_mixins == null || _mixins.isEmpty)) {
+      offset_mixins =
+          fbBuilder.writeList(_mixins.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_parts == null || _parts.isEmpty)) {
       offset_parts =
@@ -11920,6 +11690,9 @@ class UnlinkedUnitBuilder extends Object
     if (offset_lineStarts != null) {
       fbBuilder.addOffset(17, offset_lineStarts);
     }
+    if (offset_mixins != null) {
+      fbBuilder.addOffset(20, offset_mixins);
+    }
     if (offset_parts != null) {
       fbBuilder.addOffset(11, offset_parts);
     }
@@ -11974,6 +11747,7 @@ class _UnlinkedUnitImpl extends Object
   int _libraryNameLength;
   int _libraryNameOffset;
   List<int> _lineStarts;
+  List<idl.UnlinkedClass> _mixins;
   List<idl.UnlinkedPart> _parts;
   idl.UnlinkedPublicNamespace _publicNamespace;
   List<idl.UnlinkedReference> _references;
@@ -12026,7 +11800,7 @@ class _UnlinkedUnitImpl extends Object
   }
 
   @override
-  String get fallbackModePath =>
+  Null get fallbackModePath =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -12083,6 +11857,14 @@ class _UnlinkedUnitImpl extends Object
     _lineStarts ??= const fb.Uint32ListReader()
         .vTableGet(_bc, _bcOffset, 17, const <int>[]);
     return _lineStarts;
+  }
+
+  @override
+  List<idl.UnlinkedClass> get mixins {
+    _mixins ??=
+        const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader())
+            .vTableGet(_bc, _bcOffset, 20, const <idl.UnlinkedClass>[]);
+    return _mixins;
   }
 
   @override
@@ -12155,6 +11937,8 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (libraryNameOffset != 0)
       _result["libraryNameOffset"] = libraryNameOffset;
     if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
+    if (mixins.isNotEmpty)
+      _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
     if (parts.isNotEmpty)
       _result["parts"] = parts.map((_value) => _value.toJson()).toList();
     if (publicNamespace != null)
@@ -12186,6 +11970,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
         "libraryNameLength": libraryNameLength,
         "libraryNameOffset": libraryNameOffset,
         "lineStarts": lineStarts,
+        "mixins": mixins,
         "parts": parts,
         "publicNamespace": publicNamespace,
         "references": references,
@@ -12382,11 +12167,11 @@ class UnlinkedVariableBuilder extends Object
   }
 
   @override
-  int get visibleLength =>
+  Null get visibleLength =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset =>
+  Null get visibleOffset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   UnlinkedVariableBuilder(
@@ -12653,11 +12438,11 @@ class _UnlinkedVariableImpl extends Object
   }
 
   @override
-  int get visibleLength =>
+  Null get visibleLength =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset =>
+  Null get visibleOffset =>
       throw new UnimplementedError('attempt to access deprecated field');
 }
 

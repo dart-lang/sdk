@@ -2,32 +2,64 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2analyzer && $strong ]
-Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/override_default_value_t03: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/override_default_value_t04: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/override_default_value_t05: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t01: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t02: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t04: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t05: MissingCompileTimeError # Issue 27476
-Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t06: MissingCompileTimeError # Issue 27476
-Language/Classes/Getters/type_object_t01: CompileTimeError # Issue 23721
-Language/Classes/Getters/type_object_t02: CompileTimeError # Issue 23721
-Language/Classes/Instance_Methods/override_different_default_values_t01: MissingCompileTimeError # Issue 27476
-Language/Classes/Instance_Methods/override_different_default_values_t02: MissingCompileTimeError # Issue 27476
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: MissingCompileTimeError # Issue 27476
+[ $compiler == dart2analyzer ]
+Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/override_default_value_t03: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/override_default_value_t04: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/override_default_value_t05: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t01: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t02: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t04: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t05: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t06: MissingCompileTimeError # Issue 33995
+Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # co19 issue 155
+Language/Classes/Getters/instance_getter_t01: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t02: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t03: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t04: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t05: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t06: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/type_object_t01: CompileTimeError # Issue 33995
+Language/Classes/Getters/type_object_t02: CompileTimeError # Issue 33995
+Language/Classes/Instance_Methods/Operators/return_type_t01: CompileTimeError # co19 issue 156
+Language/Classes/Instance_Methods/override_different_default_values_t01: MissingCompileTimeError # Issue 33995
+Language/Classes/Instance_Methods/override_different_default_values_t02: MissingCompileTimeError # Issue 33995
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: MissingCompileTimeError # Issue 33995
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t02: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t04: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: MissingCompileTimeError # Issue 27476
+Language/Classes/Setters/instance_setter_t01: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t02: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t03: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t04: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t05: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t06: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/return_type_not_void_t01: CompileTimeError # co19 issue 153
+Language/Classes/Setters/same_name_getter_different_type_t01: CompileTimeError # co19 issue 154
+Language/Classes/Setters/syntax_t04: CompileTimeError # co19 issue 153
+Language/Classes/Setters/type_object_t02: CompileTimeError # co19 issue 153
 Language/Classes/method_definition_t06: MissingCompileTimeError # Please triage this failure
+Language/Enums/syntax_t08: CompileTimeError # Issue 33995
+Language/Enums/syntax_t09: CompileTimeError # Issue 33995
+Language/Errors_and_Warnings/static_warning_t01: CompileTimeError # issue #34319
+Language/Expressions/Conditional/syntax_t03: MissingCompileTimeError # Issue 33995
+Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError # Issue 33995
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Equality/syntax_t02: MissingCompileTimeError # Issue 33995
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t05: CompileTimeError # Please triage this failure
+Language/Expressions/Function_Invocation/async_cleanup_t01: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t02: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t03: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t04: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t05: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t06: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t07: CompileTimeError # Issue 33995
+Language/Expressions/Function_Invocation/async_cleanup_t08: CompileTimeError # Issue 33995
 Language/Expressions/Identifier_Reference/evaluation_library_or_getter_t01: StaticWarning # Please triage this failure
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Instance_Creation/Const/parameterized_type_t01: CompileTimeError # Please triage this failure
@@ -41,6 +73,10 @@ Language/Functions/generator_return_type_t06: MissingCompileTimeError # Issue 32
 Language/Generics/scope_t03: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t02: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t03: Crash # Issue 29388
+Language/Libraries_and_Scripts/Exports/implicit_hide_t01: MissingStaticWarning # Issue #34302
+Language/Libraries_and_Scripts/Imports/implicit_hide_t01: MissingStaticWarning # Issue #34302
+Language/Libraries_and_Scripts/Imports/implicit_hide_t02: MissingStaticWarning # Issue #34302
+Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # co19 issue 152
 Language/Libraries_and_Scripts/Parts/compilation_t01: MissingCompileTimeError, Pass # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError, MissingCompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t15: CompileTimeError, Pass # Please triage this failure
@@ -60,18 +96,74 @@ Language/Mixins/Mixin_Application/warning_t02: CompileTimeError # Issue 23878
 Language/Mixins/Mixin_Application/warning_t03: CompileTimeError # Issue 23878
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
+Language/Statements/Continue/async_loops_t01: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t02: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t03: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t04: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t05: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t06: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t07: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t08: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t09: CompileTimeError # Issue 33995
+Language/Statements/Continue/async_loops_t10: CompileTimeError # Issue 33995
+Language/Statements/Continue/control_transfer_t08: CompileTimeError # Issue 33995
+Language/Statements/Continue/control_transfer_t09: CompileTimeError # Issue 33995
+Language/Statements/Return/many_return_statements_t01: CompileTimeError # co19 issue 157
+Language/Statements/Return/many_return_statements_t02: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t01: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t02: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t03: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t04: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t05: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t07: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t08: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t09: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t10: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t11: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t16: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_not_function_t01: CompileTimeError # issue #34319
 Language/Types/Interface_Types/subtype_t30: CompileTimeError # Please triage this failure
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # Issue 33995
 Language/Types/Type_Void/syntax_t09: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/using_t02: CompileTimeError # Please triage this failure
-Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError # Issue 27510
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError # Issue 27510
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError # Issue 27510
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t03: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t04: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t05: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t06: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t07: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t08: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t09: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t10: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t11: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t03: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t04: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t05: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t06: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t07: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t08: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t09: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t10: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t11: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_optparam_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t03: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t04: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t05: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t06: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t07: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t08: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t09: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t10: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t11: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t13: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t14: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t15: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t16: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t17: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t18: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t19: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t20: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t21: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t01: Crash # Issue 33152, 33477
@@ -83,21 +175,23 @@ LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t04: Cr
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t05: Crash # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t06: Crash # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t07: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/function/function_named_extends_neg_assign_l1_t10: CompileTimeError # Issue 33805
-LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t04: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t05: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t06: CompileTimeError # Issue 33864
-LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_neg_assign_l1_t10: CompileTimeError # Issue 33805
-LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t04: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t05: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t06: CompileTimeError # Issue 33864
-LanguageFeatures/Instantiate-to-bound/function/function_param_extends_neg_assign_l1_t10: CompileTimeError # Issue 33805
-LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t04: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t05: CompileTimeError # Issue 32903
-LanguageFeatures/Instantiate-to-bound/function/function_pos_l1_t01: CompileTimeError # Issue 33864
-LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t01: MissingCompileTimeError # Issue 33597
-LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t19: CompileTimeError # Issue 33597
-LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 33308
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_l1_t04: MissingCompileTimeError # Issue 33995--use-fasta-parser
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t04: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t05: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t06: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t04: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t05: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t06: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_param_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t04: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t05: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_pos_l1_t01: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t01: MissingCompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t19: CompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_l1_t01: MissingCompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 33308
 LanguageFeatures/Instantiate-to-bound/mixin/mixin_neg_l1_t02: MissingCompileTimeError # Issue 33596
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_neg_l1_t02: Crash # Issue 33599
@@ -107,9 +201,11 @@ LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t0
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t03: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t02: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t03: MissingCompileTimeError # Issue 33995--use-fasta-parser
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t02: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t03: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Super-bounded-types/motivation_example_A01_t01: CompileTimeError # Issue 32903
@@ -124,3 +220,23 @@ LanguageFeatures/Super-bounded-types/static_analysis_A01_t06: CompileTimeError #
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t07: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t09: CompileTimeError # Issue 32903
+LanguageFeatures/int-to-double/arguments_binding_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/arguments_binding_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_class_member_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_class_member_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_global_variable_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_global_variable_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_local_variable_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_local_variable_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_super_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_super_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_this_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_this_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/max_acceptable_value_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/min_acceptable_values_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/representation_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/representation_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/representation_t03: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/representation_t04: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/return_value_t01: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/return_value_t02: CompileTimeError # Please triage this failure

@@ -22,10 +22,6 @@ main() {
   testNativeMethodReturns();
 }
 
-/*kernel.element: testJSCall:
- static=[JS(3)],
- type=[inst:JSNull,inst:JSString,native:bool,native:int]
-*/
 /*strong.element: testJSCall:
  static=[JS<dynamic>(3)],
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
@@ -60,17 +56,6 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*kernel.element: NativeClass.field:
-   type=[
-    check:Object,
-    inst:JSNull,
-    native:JSExtendableArray<JSExtendableArray.E>,
-    native:Object,
-    native:String,
-    native:bool,
-    native:double,
-    native:int]
-  */
   /*strong.element: NativeClass.field:
    type=[
     inst:JSBool,
@@ -91,10 +76,6 @@ class NativeClass {
   }
 }
 
-/*kernel.element: testNativeField:
- dynamic=[field],
- type=[check:NativeClass]
-*/
 /*strong.element: testNativeField:
  dynamic=[field],
  static=[defineProperty],

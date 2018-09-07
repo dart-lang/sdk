@@ -39,6 +39,7 @@ export 'package:kernel/ast.dart'
         LibraryPart,
         ListLiteral,
         Location,
+        MapEntry,
         Member,
         MethodInvocation,
         Name,

@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  static method foo<X extends core::Object = dynamic>(self::Foo::foo::X i) → dynamic {
+    core::print(i);
+  }
+  method bar<X extends core::Object = dynamic>(self::Foo::bar::X i) → dynamic {
+    core::print(i);
+  }
+}
+class Bar<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method foo<X extends core::Object = dynamic>(self::foo::X i) → void {
+  core::print(i);
+}
+static method main() → dynamic {
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), core::List::unmodifiable<dynamic>(<dynamic>["hello world"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  self::foo<core::String>("hello world");
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::int, core::int]), core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  self::Foo::foo<core::int>(42);
+  self::Foo f = new self::Foo::•();
+  f.bar<core::double, core::double>(42.42);
+  f.bar<core::double>(42.42);
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  new self::Bar::•<core::String, core::String>();
+}

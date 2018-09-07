@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOccurrencesTest);
-    defineReflectiveTests(AnalysisNotificationOccurrencesTest_UseCFE);
   });
 }
 
@@ -255,11 +254,4 @@ void main() {
     int offset = findOffset('void main()');
     findRegion(offset, 'void'.length, false);
   }
-}
-
-@reflectiveTest
-class AnalysisNotificationOccurrencesTest_UseCFE
-    extends AnalysisNotificationOccurrencesTest {
-  @override
-  bool get useCFE => true;
 }

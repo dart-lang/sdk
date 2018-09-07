@@ -122,7 +122,7 @@ class LibraryContext {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, true);
+        }, (_) => null);
         logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 

@@ -6,13 +6,11 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../test_utilities/utillities.dart';
 import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberReferencesTest);
-    defineReflectiveTests(FindMemberReferencesTest_UseCFE);
   });
 }
 
@@ -51,16 +49,4 @@ class Foo {
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
     expect(result.path.first.name, 'baz');
   }
-}
-
-@reflectiveTest
-class FindMemberReferencesTest_UseCFE extends FindMemberReferencesTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  // TimeoutException
-  test_findMemberReferences() =>
-      callFailingTest(super.test_findMemberReferences());
 }

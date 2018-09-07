@@ -287,7 +287,7 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
   bool* wait_;
 };
 
-TEST_CASE(ManySimpleTasksWithZones) {
+ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   const int kTaskCount = 10;
   Monitor monitor;
   Monitor sync;

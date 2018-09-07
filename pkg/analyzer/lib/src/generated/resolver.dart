@@ -1604,6 +1604,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
+      TypeName typeName = node.constructorName.type;
+      _checkForConstWithTypeParameters(typeName);
+
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
       ConstructorElement constructor = node.staticElement;
@@ -1805,6 +1808,35 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         node.switchKeyword,
         [type.displayName]);
     return true;
+  }
+
+  /**
+   * Verify that the given [type] does not reference any type parameters.
+   *
+   * See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
+   */
+  void _checkForConstWithTypeParameters(TypeAnnotation type) {
+    // something wrong with AST
+    if (type is! TypeName) {
+      return;
+    }
+    TypeName typeName = type;
+    Identifier name = typeName.name;
+    if (name == null) {
+      return;
+    }
+    // should not be a type parameter
+    if (name.staticElement is TypeParameterElement) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
+    }
+    // check type arguments
+    TypeArgumentList typeArguments = typeName.typeArguments;
+    if (typeArguments != null) {
+      for (TypeAnnotation argument in typeArguments.arguments) {
+        _checkForConstWithTypeParameters(argument);
+      }
+    }
   }
 
   /**
@@ -2723,6 +2755,8 @@ class ElementHolder {
 
   List<MethodElement> _methods;
 
+  List<ClassElement> _mixins;
+
   List<ParameterElement> _parameters;
 
   List<TopLevelVariableElement> _topLevelVariables;
@@ -2810,6 +2844,15 @@ class ElementHolder {
     }
     List<MethodElement> result = _methods;
     _methods = null;
+    return result;
+  }
+
+  List<ClassElement> get mixins {
+    if (_mixins == null) {
+      return const <ClassElement>[];
+    }
+    List<ClassElement> result = _mixins;
+    _mixins = null;
     return result;
   }
 
@@ -2912,6 +2955,13 @@ class ElementHolder {
       _methods = new List<MethodElement>();
     }
     _methods.add(element);
+  }
+
+  void addMixin(ClassElement element) {
+    if (_mixins == null) {
+      _mixins = new List<ClassElement>();
+    }
+    _mixins.add(element);
   }
 
   void addParameter(ParameterElement element) {
@@ -5007,6 +5057,12 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ExecutableElement _enclosingFunction = null;
 
+  /**
+   * The mixin declaration representing the class containing the current node,
+   * or `null` if the current node is not contained in a mixin.
+   */
+  MixinDeclaration _enclosingMixinDeclaration = null;
+
   InferenceContext inferenceContext = null;
 
   /**
@@ -5291,7 +5347,8 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitAnnotation(Annotation node) {
     AstNode parent = node.parent;
     if (identical(parent, _enclosingClassDeclaration) ||
-        identical(parent, _enclosingFunctionTypeAlias)) {
+        identical(parent, _enclosingFunctionTypeAlias) ||
+        identical(parent, _enclosingMixinDeclaration)) {
       return null;
     }
     node.name?.accept(this);
@@ -6189,6 +6246,31 @@ class ResolverVisitor extends ScopedVisitor {
     _inferArgumentTypesForInvocation(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    //
+    // Resolve the metadata in the library scope.
+    //
+    node.metadata?.accept(this);
+    _enclosingMixinDeclaration = node;
+    //
+    // Continue the class resolution.
+    //
+    ClassElement outerType = enclosingClass;
+    try {
+      enclosingClass = node.declaredElement;
+      typeAnalyzer.thisType = enclosingClass?.type;
+      super.visitMixinDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = outerType?.type;
+      enclosingClass = outerType;
+      _enclosingMixinDeclaration = null;
+    }
     return null;
   }
 
@@ -7625,6 +7707,40 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   void visitMethodDeclarationInScope(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ClassElement element = node.declaredElement;
+
+    Scope outerScope = nameScope;
+    ClassElement outerClass = enclosingClass;
+    try {
+      enclosingClass = element;
+
+      nameScope = new TypeParameterScope(nameScope, element);
+      visitMixinDeclarationInScope(node);
+
+      nameScope = new ClassScope(nameScope, element);
+      visitMixinMembersInScope(node);
+    } finally {
+      nameScope = outerScope;
+      enclosingClass = outerClass;
+    }
+    return null;
+  }
+
+  void visitMixinDeclarationInScope(MixinDeclaration node) {
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.onClause?.accept(this);
+    node.implementsClause?.accept(this);
+  }
+
+  void visitMixinMembersInScope(MixinDeclaration node) {
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
+    node.members.accept(this);
   }
 
   /**
@@ -9664,8 +9780,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       ErrorCode errorCode = (withClause == null
           ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-      superclassType = _resolveType(extendsClause.superclass, errorCode,
-          CompileTimeErrorCode.EXTENDS_ENUM, errorCode);
+      superclassType = _resolveType(extendsClause.superclass, errorCode);
     }
     if (classElement != null) {
       if (superclassType == null) {
@@ -9676,7 +9791,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
       classElement.supertype = superclassType;
     }
-    _resolve(classElement, withClause, implementsClause);
+    _resolveWithClause(classElement, withClause);
+    _resolveImplementsClause(classElement, implementsClause);
     return null;
   }
 
@@ -9709,8 +9825,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-    InterfaceType superclassType = _resolveType(node.superclass, errorCode,
-        CompileTimeErrorCode.EXTENDS_ENUM, errorCode);
+    InterfaceType superclassType = _resolveType(node.superclass, errorCode);
     if (superclassType == null) {
       superclassType = typeProvider.objectType;
     }
@@ -9718,7 +9833,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (classElement != null) {
       classElement.supertype = superclassType;
     }
-    _resolve(classElement, node.withClause, node.implementsClause);
+    _resolveWithClause(classElement, node.withClause);
+    _resolveImplementsClause(classElement, node.implementsClause);
     return null;
   }
 
@@ -9893,6 +10009,15 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
 
+    return null;
+  }
+
+  @override
+  void visitMixinDeclarationInScope(MixinDeclaration node) {
+    super.visitMixinDeclarationInScope(node);
+    MixinElementImpl element = node.declaredElement;
+    _resolveOnClause(element, node.onClause);
+    _resolveImplementsClause(element, node.implementsClause);
     return null;
   }
 
@@ -10162,29 +10287,12 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  /**
-   * Resolve the types in the given [withClause] and [implementsClause] and
-   * associate those types with the given [classElement].
-   */
-  void _resolve(ClassElementImpl classElement, WithClause withClause,
-      ImplementsClause implementsClause) {
-    if (withClause != null) {
-      List<InterfaceType> mixinTypes = _resolveTypes(
-          withClause.mixinTypes,
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-          CompileTimeErrorCode.MIXIN_OF_ENUM,
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
-      if (classElement != null) {
-        classElement.mixins = mixinTypes;
-      }
-    }
-    if (implementsClause != null) {
-      NodeList<TypeName> interfaces = implementsClause.interfaces;
-      List<InterfaceType> interfaceTypes = _resolveTypes(
-          interfaces,
-          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-          CompileTimeErrorCode.IMPLEMENTS_ENUM,
-          CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
+  void _resolveImplementsClause(
+      ClassElementImpl classElement, ImplementsClause clause) {
+    if (clause != null) {
+      NodeList<TypeName> interfaces = clause.interfaces;
+      List<InterfaceType> interfaceTypes =
+          _resolveTypes(interfaces, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
       if (classElement != null) {
         classElement.interfaces = interfaceTypes;
       }
@@ -10214,6 +10322,18 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void _resolveOnClause(MixinElementImpl classElement, OnClause clause) {
+    List<InterfaceType> types;
+    if (clause != null) {
+      types = _resolveTypes(clause.superclassConstraints,
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS);
+    }
+    if (types == null || types.isEmpty) {
+      types = [typeProvider.objectType];
+    }
+    classElement.superclassConstraints = types;
+  }
+
   /**
    * Return the type specified by the given name.
    *
@@ -10224,13 +10344,12 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return the type specified by the type name
    */
-  InterfaceType _resolveType(TypeName typeName, ErrorCode nonTypeError,
-      ErrorCode enumTypeError, ErrorCode dynamicTypeError) {
+  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode) {
     DartType type = typeName.type;
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element != null && element.isEnum) {
-        errorReporter.reportErrorForNode(enumTypeError, typeName);
+        errorReporter.reportErrorForNode(errorCode, typeName);
         return null;
       }
       return type;
@@ -10238,14 +10357,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
-    // TODO(mfairhurst) differentiate between dynamic via clean path, and error
-    // types, and then check `type.isDynamic`. However, if we do that now, then
-    // [nonTypeError] will never be reported because non types are resolved to
-    // dynamic.
-    if (name.name == Keyword.DYNAMIC.lexeme) {
-      errorReporter.reportErrorForNode(dynamicTypeError, name, [name.name]);
-    } else if (!nameScope.shouldIgnoreUndefined(name)) {
-      errorReporter.reportErrorForNode(nonTypeError, name, [name.name]);
+    if (!nameScope.shouldIgnoreUndefined(name)) {
+      errorReporter.reportErrorForNode(errorCode, name, [name.name]);
     }
     return null;
   }
@@ -10261,19 +10374,23 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return an array containing all of the types that were resolved.
    */
   List<InterfaceType> _resolveTypes(
-      NodeList<TypeName> typeNames,
-      ErrorCode nonTypeError,
-      ErrorCode enumTypeError,
-      ErrorCode dynamicTypeError) {
+      NodeList<TypeName> typeNames, ErrorCode errorCode) {
     List<InterfaceType> types = new List<InterfaceType>();
     for (TypeName typeName in typeNames) {
-      InterfaceType type =
-          _resolveType(typeName, nonTypeError, enumTypeError, dynamicTypeError);
+      InterfaceType type = _resolveType(typeName, errorCode);
       if (type != null) {
         types.add(type);
       }
     }
     return types;
+  }
+
+  void _resolveWithClause(ClassElementImpl classElement, WithClause clause) {
+    if (clause != null) {
+      List<InterfaceType> mixinTypes = _resolveTypes(
+          clause.mixinTypes, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+      classElement.mixins = mixinTypes;
+    }
   }
 
   /**

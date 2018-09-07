@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetAvailableRefactoringsTest);
-    defineReflectiveTests(GetAvailableRefactoringsTest_UseCFE);
   });
 }
 
@@ -35,10 +34,4 @@ void foo() { }
             pathname, text.indexOf('foo('), 0);
     expect(result.kinds, isNotEmpty);
   }
-}
-
-@reflectiveTest
-class GetAvailableRefactoringsTest_UseCFE extends GetAvailableRefactoringsTest {
-  @override
-  bool get useCFE => true;
 }

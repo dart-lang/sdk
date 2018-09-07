@@ -1852,11 +1852,13 @@ class ProgramCompiler extends Object
   /// This is needed because in ES6, if you only override a getter
   /// (alternatively, a setter), then there is an implicit override of the
   /// setter (alternatively, the getter) that does nothing.
-  JS.Method _emitSuperAccessorWrapper(Procedure method,
+  JS.Method _emitSuperAccessorWrapper(Procedure member,
       Map<String, Procedure> getters, Map<String, Procedure> setters) {
-    var name = method.name.name;
-    var memberName = _declareMemberName(method);
-    if (method.isGetter) {
+    if (member.isAbstract) return null;
+
+    var name = member.name.name;
+    var memberName = _declareMemberName(member);
+    if (member.isGetter) {
       if (!setters.containsKey(name) &&
           _classProperties.inheritedSetters.contains(name)) {
         // Generate a setter that forwards to super.
@@ -1864,7 +1866,7 @@ class ProgramCompiler extends Object
         return JS.Method(memberName, fn, isSetter: true);
       }
     } else {
-      assert(method.isSetter);
+      assert(member.isSetter);
       if (!getters.containsKey(name) &&
           _classProperties.inheritedGetters.contains(name)) {
         // Generate a getter that forwards to super.
@@ -2496,9 +2498,37 @@ class ProgramCompiler extends Object
       typeParts = [addTypeFormalsAsParameters(typeParts)];
 
       helperCall = 'gFnType(#)';
+
+      /// Whether the type parameter [t] has an explicit bound, like
+      /// `<T extends C>`, `<T extends Object>` or `<T extends dynamic>`.
+      ///
+      /// In contrast, a type parameter like `<T>` has an implicit bound.
+      /// Implicit bounds are a bit unusual, in that `Object` is used as the
+      /// bound for checking, but `dynamic` is filled in as the default value.
+      ///
+      /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
+      /// explicit bounds by looking for anything *except* that.
+      typeParameterHasExplicitBound(TypeParameter t) =>
+          t.bound != types.objectType || t.defaultType != const DynamicType();
+
       // If any explicit bounds were passed, emit them.
-      if (typeFormals.any((t) => t.bound != null)) {
-        var bounds = typeFormals.map((t) => _emitType(t.bound)).toList();
+      if (typeFormals.any(typeParameterHasExplicitBound)) {
+        /// Emits the bound of the type parameter [t] for use in runtime
+        /// checking and the default value (e.g. for dynamic class).
+        ///
+        /// For most type parameters we can use [TypeParameter.bound]. However,
+        /// for *implicit* bounds such as `<T>` (represented in Kernel as
+        /// `<T extends Object = dynamic>`) we need to emit `dynamic` so we use
+        /// the correct default value at runtime.
+        ///
+        /// Because `dynamic` and `Object` are both top types, they'll behave
+        /// identically for the purposes of type checks.
+        emitTypeParameterBound(TypeParameter t) =>
+            typeParameterHasExplicitBound(t)
+                ? _emitType(t.bound)
+                : visitDynamicType(const DynamicType());
+
+        var bounds = typeFormals.map(emitTypeParameterBound).toList();
         typeParts.add(addTypeFormalsAsParameters(bounds));
       }
     } else {

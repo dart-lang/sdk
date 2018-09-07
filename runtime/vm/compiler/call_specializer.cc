@@ -8,6 +8,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/cpu.h"
 
 namespace dart {
@@ -352,7 +353,7 @@ void CallSpecializer::AddCheckNull(Value* to_check,
                                    intptr_t deopt_id,
                                    Environment* deopt_environment,
                                    Instruction* insert_before) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
   if (to_check->Type()->is_nullable()) {
     CheckNullInstr* check_null =
         new (Z) CheckNullInstr(to_check->CopyWithType(Z), function_name,
@@ -557,7 +558,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               /* number_check = */ false, Thread::kNoDeoptId);
+                               /* number_check = */ false, DeoptId::kNone);
         ReplaceCall(call, comp);
         return true;
       }
@@ -958,6 +959,18 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       break;
   }
 
+  // True if we can use unchecked entry into the setter.
+  bool is_unchecked_call = false;
+  if (!FLAG_precompiled_mode) {
+    if (unary_ic_data.NumberOfChecks() == 1 &&
+        unary_ic_data.GetExactnessAt(0).IsExact()) {
+      if (unary_ic_data.GetExactnessAt(0).IsTriviallyExact()) {
+        flow_graph()->AddExactnessGuard(instr, unary_ic_data.GetCidAt(0));
+      }
+      is_unchecked_call = true;
+    }
+  }
+
   if (I->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       InsertBefore(instr,
@@ -1003,10 +1016,13 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
         needs_check = true;
       } else if (is_generic_covariant) {
         // If field is generic covariant then we don't need to check it
-        // if we know that actual type arguments match static type arguments
-        // e.g. if this is an invocation on this (an instance we are storing
-        // into is also a receiver of a surrounding method).
-        needs_check = !flow_graph_->IsReceiver(instr->ArgumentAt(0));
+        // if the invocation was marked as unchecked (e.g. receiver of
+        // the invocation is also the receiver of the surrounding method).
+        // Note: we can't use flow_graph()->IsReceiver() for this optimization
+        // because strong mode only gives static guarantees at the AST level
+        // not at the SSA level.
+        needs_check = !(is_unchecked_call ||
+                        (instr->entry_kind() == Code::EntryKind::kUnchecked));
       } else {
         // The rest of the stores are checked statically (we are not at
         // a dynamic invocation).
@@ -1295,7 +1311,8 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
             type_class.ToCString());
       }
       if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToGuardedClasses(type_class, /*subclass_count=*/0);
+        thread()->compiler_state().cha().AddToGuardedClasses(
+            type_class, /*subclass_count=*/0);
       }
     } else {
       return false;
@@ -1326,7 +1343,7 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
   if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
@@ -1342,7 +1359,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
-        /* number_check = */ false, Thread::kNoDeoptId);
+        /* number_check = */ false, DeoptId::kNone);
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
                 call->ToCString(), replacement->ToCString(),
@@ -1374,7 +1391,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
-  if (I->strong() && FLAG_use_strong_mode_types &&
+  if (I->can_use_strong_mode_types() &&
       TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
     return;
   }
@@ -1388,7 +1405,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
     StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
         call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
-        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
+        new (Z) Value(cid), /* number_check = */ false, DeoptId::kNone);
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1415,7 +1432,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         }
         TestCidsInstr* test_cids = new (Z) TestCidsInstr(
             call->token_pos(), Token::kIS, new (Z) Value(left), *results,
-            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
+            can_deopt ? call->deopt_id() : DeoptId::kNone);
         // Remove type.
         ReplaceCall(call, test_cids);
         return;
@@ -1626,7 +1643,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
     }
   }
 
-  if (I->strong() && FLAG_use_strong_mode_types &&
+  if (I->can_use_strong_mode_types() &&
       TryOptimizeStaticCallUsingStaticTypes(call)) {
     return;
   }

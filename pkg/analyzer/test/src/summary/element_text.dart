@@ -173,6 +173,8 @@ class _ElementWriter {
 
     if (e.isEnum) {
       buffer.write('enum ');
+    } else if (e.isMixin) {
+      buffer.write('mixin ');
     } else {
       buffer.write('class ');
     }
@@ -187,6 +189,13 @@ class _ElementWriter {
         e.mixins.isNotEmpty) {
       buffer.write(' extends ');
       writeType(e.supertype);
+    }
+
+    if (e.isMixin) {
+      if (e.superclassConstraints.isEmpty) {
+        throw new StateError('At least Object is expected.');
+      }
+      writeList(' on ', '', e.superclassConstraints, ', ', writeType);
     }
 
     writeList(' with ', '', e.mixins, ', ', writeType);
@@ -661,13 +670,6 @@ class _ElementWriter {
       fail('Unknown parameter kind');
     }
 
-    // Kernel desugars omitted default parameter values to 'null'.
-    // Analyzer does not set initializer at all.
-    // It is not an interesting distinction, so we skip NullLiteral(s).
-    if (defaultValue is NullLiteral) {
-      defaultValue = null;
-    }
-
     writeMetadata(e, '', ' ');
 
     writeIf(e.isCovariant, 'covariant ');
@@ -885,6 +887,7 @@ class _ElementWriter {
     e.functionTypeAliases.forEach(writeFunctionTypeAliasElement);
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
+    e.mixins.forEach(writeClassElement);
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);

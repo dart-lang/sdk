@@ -11,7 +11,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
-    defineReflectiveTests(RenameLibraryTest_UseCFE);
   });
 }
 
@@ -89,19 +88,4 @@ part of the.new.name;
   void _createRenameRefactoring() {
     createRenameRefactoringForElement(testUnitElement.library);
   }
-}
-
-@reflectiveTest
-class RenameLibraryTest_UseCFE extends RenameLibraryTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_createChange() => super.test_createChange();
-
-  @failingTest
-  @override
-  test_createChange_hasWhitespaces() =>
-      super.test_createChange_hasWhitespaces();
 }

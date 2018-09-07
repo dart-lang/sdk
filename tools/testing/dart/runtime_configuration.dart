@@ -200,25 +200,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   }
 }
 
-/// Runtime configuration for Content Shell.  We previously used a similar
-/// program named Dump Render Tree, hence the name.
-class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  int timeoutMultiplier(
-      {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
-      Architecture arch}) {
-    return 4 // Allow additional time for browser testing to run.
-        // TODO(ahe): We might need to distinguish between DRT for running
-        // JavaScript and Dart code.  I'm not convinced the inherited timeout
-        // multiplier is relevant for JavaScript.
-        *
-        super.timeoutMultiplier(
-            mode: mode, isChecked: isChecked, isReload: isReload);
-  }
-}
-
-/// The standalone Dart VM binary, "dart" or "dart.exe".
+//// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,

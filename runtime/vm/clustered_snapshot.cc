@@ -48,6 +48,10 @@ void Deserializer::InitializeHeader(RawObject* raw,
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_isolate, tags);
   tags = RawObject::CanonicalObjectTag::update(is_canonical, tags);
+  tags = RawObject::OldBit::update(true, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+  tags = RawObject::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   raw->ptr()->hash_ = 0;
@@ -5580,6 +5584,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   }
 
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
+  heap_->old_space()->EvaluateSnapshotLoad();
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();

@@ -37,7 +37,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "afadfe417b85037281a770b477f42c3786a8666a",
+  "co19_2_rev": "7514e576a02ced94a360ec51e0d26b32f9ebc82f",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -80,7 +80,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "6f3efd209ff1828835936397b64be79265cc0c19",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.20.2",
+  "dartdoc_tag" : "v0.20.4",
   "fixnum_tag": "0.10.8",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.7",
@@ -113,7 +113,7 @@ vars = {
   "protobuf_tag": "0.9.0",
   "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
   "pub_semver_tag": "1.4.2",
-  "quiver_tag": "0.29.0+2",
+  "quiver_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
@@ -400,20 +400,6 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-  },
-  {
-    "name": "drt_resources",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--platform=win32",
-      "--directory",
-      Var('dart_root') + "/third_party/drt_resources",
     ],
   },
   {

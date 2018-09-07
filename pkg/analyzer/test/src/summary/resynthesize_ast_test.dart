@@ -28,7 +28,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../context/abstract_context.dart';
 import 'element_text.dart';
 import 'resynthesize_common.dart';
-import 'summary_common.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -94,7 +94,7 @@ abstract class AstSerializeTestMixin
         .toSet();
 
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
-        getDependency, getUnit, context.declaredVariables.get, true);
+        getDependency, getUnit, context.declaredVariables.get);
 
     return new TestSummaryResynthesizer(
         context,
@@ -259,7 +259,9 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   @override
   AnalysisOptionsImpl createOptions() {
     if (isStrongMode) {
-      return super.createOptions()..previewDart2 = true;
+      return super.createOptions()
+        ..previewDart2 = true
+        ..isMixinSupportEnabled = true;
     } else {
       return super.createOptions()..previewDart2 = false;
     }

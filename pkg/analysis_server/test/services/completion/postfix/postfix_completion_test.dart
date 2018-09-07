@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,29 +14,20 @@ import '../../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_AssertTest);
-    defineReflectiveTests(_AssertTest_UseCfe);
     defineReflectiveTests(_ForTest);
-    defineReflectiveTests(_ForTest_UseCfe);
     defineReflectiveTests(_NegateTest);
-    defineReflectiveTests(_NegateTest_UseCfe);
     defineReflectiveTests(_IfTest);
-    defineReflectiveTests(_IfTest_UseCfe);
     defineReflectiveTests(_NotNullTest);
-    defineReflectiveTests(_NotNullTest_UseCfe);
     defineReflectiveTests(_ParenTest);
-    defineReflectiveTests(_ParenTest_UseCfe);
     defineReflectiveTests(_ReturnTest);
-    defineReflectiveTests(_ReturnTest_UseCfe);
     defineReflectiveTests(_SwitchTest);
-    defineReflectiveTests(_SwitchTest_UseCfe);
     defineReflectiveTests(_TryTest);
-    defineReflectiveTests(_TryTest_UseCfe);
     defineReflectiveTests(_WhileTest);
-    defineReflectiveTests(_WhileTest_UseCfe);
   });
 }
 
 class PostfixCompletionTest extends AbstractSingleUnitTest {
+  PostfixCompletionProcessor processor;
   SourceChange change;
 
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
@@ -59,39 +51,44 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
     fail("Expected to find |$message| but got: " + change.message);
   }
 
-  _computeCompletion(int offset, String key) async {
-    driver.changeFile(testFile);
-    AnalysisResult result = await driver.getResult(testFile);
-    PostfixCompletionContext context = new PostfixCompletionContext(
-        testFile,
-        result.lineInfo,
-        offset,
-        key,
-        result.driver,
-        testUnit,
-        testUnitElement,
-        result.errors);
-    PostfixCompletionProcessor processor =
-        new PostfixCompletionProcessor(context);
+  Future<void> _assertNotApplicable(String key, String code) async {
+    await _prepareProcessor(key, code);
+
+    bool isApplicable = await processor.isApplicable();
+    expect(isApplicable, isFalse);
+  }
+
+  Future<void> _prepareCompletion(String key, String code) async {
+    await _prepareProcessor(key, code);
+
     bool isApplicable = await processor.isApplicable();
     if (!isApplicable) {
       fail("Postfix completion not applicable at given location");
     }
-    PostfixCompletion completion = await processor.compute();
-    change = completion.change;
+
+    if (isApplicable) {
+      PostfixCompletion completion = await processor.compute();
+      change = completion.change;
+    }
   }
 
-  _prepareCompletion(String key, String sourceCode) async {
-    testCode = sourceCode.replaceAll('////', '');
-    int offset = findOffset(key);
-    testCode = testCode.replaceFirst(key, '', offset);
-    await _prepareCompletionAt(offset, key, testCode);
-  }
+  Future<void> _prepareProcessor(String key, String code) async {
+    int offset = code.indexOf(key);
+    code = code.replaceFirst(key, '', offset);
 
-  _prepareCompletionAt(int offset, String key, String sourceCode) async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit(sourceCode);
-    await _computeCompletion(offset, key);
+    await resolveTestUnit(code);
+
+    PostfixCompletionContext context = new PostfixCompletionContext(
+        testFile,
+        testAnalysisResult.lineInfo,
+        offset,
+        key,
+        testAnalysisResult.driver,
+        testUnit,
+        testUnitElement,
+        testAnalysisResult.errors);
+    processor = new PostfixCompletionProcessor(context);
   }
 }
 
@@ -123,9 +120,8 @@ f() {
 ''');
   }
 
-  @failingTest
   test_assertFunc_invalid() async {
-    await _prepareCompletion('.assert', '''
+    await _assertNotApplicable('.assert', '''
 f() {
   () => null.assert
 }
@@ -147,16 +143,9 @@ f(int x, int y) {
 }
 
 @reflectiveTest
-class _AssertTest_UseCfe extends _AssertTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _ForTest extends PostfixCompletionTest {
-  @failingTest
   test_for_invalid() async {
-    await _prepareCompletion('.for', '''
+    await _assertNotApplicable('.for', '''
 f() {
   {}.for
 }
@@ -208,9 +197,8 @@ f() {
 ''');
   }
 
-  @failingTest
   test_fori_invalid() async {
-    await _prepareCompletion('.fori', '''
+    await _assertNotApplicable('.fori', '''
 f() {
   [].fori
 }
@@ -283,12 +271,6 @@ f() {
 }
 
 @reflectiveTest
-class _ForTest_UseCfe extends _ForTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _IfTest extends PostfixCompletionTest {
   test_Else() async {
     await _prepareCompletion('.else', '''
@@ -320,11 +302,19 @@ f() {
 ''');
   }
 
-  @failingTest
   test_if_invalid() async {
-    await _prepareCompletion('.if', '''
+    await _assertNotApplicable('.if', '''
 f(List expr) {
   expr.if
+}
+''');
+  }
+
+  test_if_invalid_importPrefix() async {
+    await _assertNotApplicable('.if', '''
+import 'dart:async' as p;
+f() {
+  p.if
 }
 ''');
   }
@@ -346,12 +336,6 @@ f(expr) {
 }
 
 @reflectiveTest
-class _IfTest_UseCfe extends _IfTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _NegateTest extends PostfixCompletionTest {
   test_negate() async {
     await _prepareCompletion('.not', '''
@@ -366,9 +350,8 @@ f(expr) {
 ''');
   }
 
-  @failingTest
   test_negate_invalid() async {
-    await _prepareCompletion('.not', '''
+    await _assertNotApplicable('.not', '''
 f(int expr) {
   if (expr.not)
 }
@@ -455,12 +438,6 @@ f() {
 }
 
 @reflectiveTest
-class _NegateTest_UseCfe extends _NegateTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _NotNullTest extends PostfixCompletionTest {
   test_nn() async {
     await _prepareCompletion('.nn', '''
@@ -479,9 +456,8 @@ f(expr) {
 ''');
   }
 
-  @failingTest
   test_nn_invalid() async {
-    await _prepareCompletion('.nn', '''
+    await _assertNotApplicable('.nn', '''
 f(expr) {
   var list = [1,2,3];
 }.nn
@@ -569,12 +545,6 @@ f() {
 }
 
 @reflectiveTest
-class _NotNullTest_UseCfe extends _NotNullTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _ParenTest extends PostfixCompletionTest {
   test_paren() async {
     await _prepareCompletion('.par', '''
@@ -591,12 +561,6 @@ f(expr) {
 }
 
 @reflectiveTest
-class _ParenTest_UseCfe extends _ParenTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _ReturnTest extends PostfixCompletionTest {
   test_return() async {
     await _prepareCompletion('.return', '''
@@ -610,12 +574,6 @@ f(expr) {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class _ReturnTest_UseCfe extends _ReturnTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -637,12 +595,6 @@ f(expr) {
 }
 
 @reflectiveTest
-class _SwitchTest_UseCfe extends _SwitchTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _TryTest extends PostfixCompletionTest {
   test_try() async {
     await _prepareCompletion('.try', '''
@@ -661,10 +613,9 @@ f() {
 ''');
   }
 
-  @failingTest
   test_try_invalid() async {
     // The semicolon is fine; this fails because of the do-statement.
-    await _prepareCompletion('.try', '''
+    await _assertNotApplicable('.try', '''
 f() {
   do {} while (true);.try
 }
@@ -749,12 +700,6 @@ f() {
 }
 
 @reflectiveTest
-class _TryTest_UseCfe extends _TryTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class _WhileTest extends PostfixCompletionTest {
   test_while() async {
     await _prepareCompletion('.while', '''
@@ -770,10 +715,4 @@ f(expr) {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class _WhileTest_UseCfe extends _WhileTest {
-  @override
-  bool get useCFE => true;
 }

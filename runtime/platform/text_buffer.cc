@@ -150,8 +150,6 @@ void TextBuffer::EnsureCapacity(intptr_t len) {
   }
 }
 
-#ifndef PRODUCT
-
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -168,7 +166,5 @@ void BufferFormatter::VPrint(const char* format, va_list args) {
     position_ += (available <= written) ? available : written;
   }
 }
-
-#endif  // !PRODUCT
 
 }  // namespace dart

@@ -197,6 +197,28 @@ class C = Object with A implements B; // 3
       ..isReferencedAt('B; // 3', false);
   }
 
+  test_isImplementedBy_MixinDeclaration_implementsClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M implements A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
+  test_isImplementedBy_MixinDeclaration_onClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M on A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
   test_isInvokedBy_FieldElement() async {
     await _indexTestUnit('''
 class A {
@@ -338,7 +360,7 @@ class A {
       ..isInvokedAt('ggg(); // nq', false);
   }
 
-  test_isMixedInBy_ClassDeclaration() async {
+  test_isMixedInBy_ClassDeclaration_class() async {
     await _indexTestUnit('''
 class A {} // 1
 class B extends Object with A {} // 2
@@ -361,9 +383,29 @@ class B extends Object with p.A {} // 2
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
-  test_isMixedInBy_ClassTypeAlias() async {
+  test_isMixedInBy_ClassDeclaration_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
+class B extends Object with A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_class() async {
     await _indexTestUnit('''
 class A {} // 1
+class B = Object with A; // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');

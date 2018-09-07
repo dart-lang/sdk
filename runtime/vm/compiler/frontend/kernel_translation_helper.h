@@ -956,6 +956,8 @@ class KernelReaderHelper {
 
   void ReadUntilFunctionNode();
 
+  Tag PeekTag(uint8_t* payload = NULL);
+
  protected:
   const Script& script() const { return script_; }
 
@@ -1020,7 +1022,6 @@ class KernelReaderHelper {
   void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
   Tag ReadTag(uint8_t* payload = NULL);
-  Tag PeekTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
 
   intptr_t SourceTableSize();

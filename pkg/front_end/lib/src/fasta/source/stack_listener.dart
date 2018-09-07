@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         messageNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
@@ -52,7 +53,6 @@ enum NullValue {
   IdentifierList,
   Initializers,
   Metadata,
-  MetadataToken,
   Modifiers,
   ParameterDefaultValue,
   Prefix,
@@ -76,7 +76,7 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void finishFunction(List annotations, covariant formals,
+  void finishFunction(covariant List<Object> annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
     return unsupported("finishFunction", -1, uri);
   }
@@ -344,17 +344,18 @@ abstract class StackListener extends Listener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, offsetForToken(startToken),
+    addProblem(message, offsetForToken(startToken),
         lengthOfSpan(startToken, endToken));
   }
 
   @override
   void handleUnescapeError(
       Message message, Token token, int stringOffset, int length) {
-    addCompileTimeError(message, token.charOffset + stringOffset, length);
+    addProblem(message, token.charOffset + stringOffset, length);
   }
 
-  void addCompileTimeError(Message message, int charOffset, int length);
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context});
 }
 
 class Stack {

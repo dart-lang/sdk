@@ -13,11 +13,10 @@ import 'package:kernel/ast.dart'
         Supertype,
         TypeParameter;
 
-import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../fasta_codes.dart'
+    show LocatedMessage, messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
-
-import '../source/outline_listener.dart';
 
 import 'kernel_builder.dart'
     show
@@ -32,12 +31,7 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     implements KernelTypeBuilder {
-  final OutlineListener outlineListener;
-  final int charOffset;
-
   KernelFunctionTypeBuilder(
-      this.outlineListener,
-      this.charOffset,
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals)
@@ -71,17 +65,15 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         typeParameters.add(t.parameter);
       }
     }
-    var type = new FunctionType(positionalParameters, builtReturnType,
+    return new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
         requiredParameterCount: requiredParameterCount);
-    outlineListener?.store(charOffset, false, type: type);
-    return type;
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    library.addCompileTimeError(
+    library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
@@ -92,8 +84,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   @override
-  buildInvalidType(int charOffset, Uri fileUri) {
-    return unsupported("buildInvalidType", charOffset, fileUri);
+  buildInvalidType(LocatedMessage message) {
+    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
@@ -108,11 +100,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       clonedFormals[i] = formals[i].clone(newTypes);
     }
     KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
-        outlineListener,
-        charOffset,
-        returnType.clone(newTypes),
-        clonedTypeVariables,
-        clonedFormals);
+        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
     newTypes.add(newType);
     return newType;
   }

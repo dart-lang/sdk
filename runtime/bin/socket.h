@@ -248,8 +248,8 @@ class ListeningSocketRegistry {
   bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
   void CloseAllSafe();
 
-  HashMap sockets_by_port_;
-  HashMap sockets_by_fd_;
+  SimpleHashMap sockets_by_port_;
+  SimpleHashMap sockets_by_fd_;
 
   Mutex* mutex_;
 

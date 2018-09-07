@@ -219,9 +219,6 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(SetOuterInliningId);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(ApplyClassIds);
-  if (mode == kJIT) {
-    INVOKE_PASS(MarkCallsOnReceiverUnchecked);
-  }
   INVOKE_PASS(Inlining);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(ApplyClassIds);
@@ -433,48 +430,6 @@ static void WriteBarrierElimination(FlowGraph* flow_graph) {
 
 COMPILER_PASS(WriteBarrierElimination,
               { WriteBarrierElimination(flow_graph); });
-
-void MarkCallsOnReceiverUnchecked(FlowGraph* flow_graph) {
-  if (flow_graph->function().is_static() ||
-      !flow_graph->function().IsDynamicFunction() ||
-      flow_graph->function().kind() ==
-          RawFunction::kDynamicInvocationForwarder) {
-    return;
-  }
-  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if (StaticCallInstr* instr = current->AsStaticCall()) {
-        if (instr->FirstArgIndex() < instr->ArgumentCount()) {
-          Value* receiver = instr->Receiver();
-          if (flow_graph->IsReceiver(receiver->definition())) {
-            auto& target = instr->function();
-            ASSERT(target.kind() != RawFunction::kDynamicInvocationForwarder);
-            if (!target.is_static() && target.IsDynamicFunction()) {
-              instr->set_entry_kind(Code::EntryKind::kUnchecked);
-            }
-          }
-        }
-      } else if (InstanceCallInstr* instr = current->AsInstanceCall()) {
-        Value* receiver = instr->Receiver();
-        if (flow_graph->IsReceiver(receiver->definition())) {
-          instr->set_entry_kind(Code::EntryKind::kUnchecked);
-        }
-      } else if (PolymorphicInstanceCallInstr* instr =
-                     current->AsPolymorphicInstanceCall()) {
-        Value* receiver = instr->Receiver();
-        if (flow_graph->IsReceiver(receiver->definition())) {
-          instr->instance_call()->set_entry_kind(Code::EntryKind::kUnchecked);
-        }
-      }
-    }
-  }
-}
-
-COMPILER_PASS(MarkCallsOnReceiverUnchecked,
-              { MarkCallsOnReceiverUnchecked(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // Compute and store graph informations (call & instruction counts)

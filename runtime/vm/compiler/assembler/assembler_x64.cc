@@ -1705,6 +1705,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     // Extends the 32 bit tags with zeros, which is the uninitialized
     // hash code.
     MoveImmediate(FieldAddress(instance_reg, Object::tags_offset()),
@@ -1751,6 +1752,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
     // Extends the 32 bit tags with zeros, which is the uninitialized
     // hash code.
     movq(FieldAddress(instance, Array::tags_offset()), Immediate(tags));

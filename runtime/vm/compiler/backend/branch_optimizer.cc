@@ -65,8 +65,8 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
   // Convert a target block into a join block.  Branches will be duplicated
   // so the former true and false targets become joins of the control flows
   // from all the duplicated branches.
-  JoinEntryInstr* join = new (zone) JoinEntryInstr(
-      target->block_id(), target->try_index(), Thread::kNoDeoptId);
+  JoinEntryInstr* join = new (zone)
+      JoinEntryInstr(target->block_id(), target->try_index(), DeoptId::kNone);
   join->InheritDeoptTarget(zone, target);
   join->LinkTo(target->next());
   join->set_last_instruction(target->last_instruction());
@@ -82,7 +82,7 @@ BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
   ComparisonInstr* new_comparison =
       comparison->CopyWithNewOperands(new_left, new_right);
   BranchInstr* new_branch =
-      new (zone) BranchInstr(new_comparison, Thread::kNoDeoptId);
+      new (zone) BranchInstr(new_comparison, DeoptId::kNone);
   return new_branch;
 }
 
@@ -182,24 +182,21 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
 
         // Connect the branch to the true and false joins, via empty target
         // blocks.
-        TargetEntryInstr* true_target =
-            new (zone) TargetEntryInstr(flow_graph->max_block_id() + 1,
-                                        block->try_index(), Thread::kNoDeoptId);
+        TargetEntryInstr* true_target = new (zone) TargetEntryInstr(
+            flow_graph->max_block_id() + 1, block->try_index(), DeoptId::kNone);
         true_target->InheritDeoptTarget(zone, join_true);
-        TargetEntryInstr* false_target =
-            new (zone) TargetEntryInstr(flow_graph->max_block_id() + 2,
-                                        block->try_index(), Thread::kNoDeoptId);
+        TargetEntryInstr* false_target = new (zone) TargetEntryInstr(
+            flow_graph->max_block_id() + 2, block->try_index(), DeoptId::kNone);
         false_target->InheritDeoptTarget(zone, join_false);
         flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
         *new_branch->true_successor_address() = true_target;
         *new_branch->false_successor_address() = false_target;
-        GotoInstr* goto_true =
-            new (zone) GotoInstr(join_true, Thread::kNoDeoptId);
+        GotoInstr* goto_true = new (zone) GotoInstr(join_true, DeoptId::kNone);
         goto_true->InheritDeoptTarget(zone, join_true);
         true_target->LinkTo(goto_true);
         true_target->set_last_instruction(goto_true);
         GotoInstr* goto_false =
-            new (zone) GotoInstr(join_false, Thread::kNoDeoptId);
+            new (zone) GotoInstr(join_false, DeoptId::kNone);
         goto_false->InheritDeoptTarget(zone, join_false);
         false_target->LinkTo(goto_false);
         false_target->set_last_instruction(goto_false);
@@ -302,9 +299,9 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
 
           ComparisonInstr* new_comparison = comparison->CopyWithNewOperands(
               comparison->left()->Copy(zone), comparison->right()->Copy(zone));
-          IfThenElseInstr* if_then_else = new (zone)
-              IfThenElseInstr(new_comparison, if_true->Copy(zone),
-                              if_false->Copy(zone), Thread::kNoDeoptId);
+          IfThenElseInstr* if_then_else =
+              new (zone) IfThenElseInstr(new_comparison, if_true->Copy(zone),
+                                         if_false->Copy(zone), DeoptId::kNone);
           flow_graph->InsertBefore(branch, if_then_else, NULL,
                                    FlowGraph::kValue);
 

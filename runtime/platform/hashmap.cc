@@ -8,16 +8,18 @@
 
 namespace dart {
 
-HashMap::HashMap(MatchFun match, uint32_t initial_capacity) {
+SimpleHashMap::SimpleHashMap(MatchFun match, uint32_t initial_capacity) {
   match_ = match;
   Initialize(initial_capacity);
 }
 
-HashMap::~HashMap() {
+SimpleHashMap::~SimpleHashMap() {
   delete[] map_;
 }
 
-HashMap::Entry* HashMap::Lookup(void* key, uint32_t hash, bool insert) {
+SimpleHashMap::Entry* SimpleHashMap::Lookup(void* key,
+                                            uint32_t hash,
+                                            bool insert) {
   // Find a matching entry.
   Entry* p = Probe(key, hash);
   if (p->key != NULL) {
@@ -44,7 +46,7 @@ HashMap::Entry* HashMap::Lookup(void* key, uint32_t hash, bool insert) {
   return NULL;
 }
 
-void HashMap::Remove(void* key, uint32_t hash) {
+void SimpleHashMap::Remove(void* key, uint32_t hash) {
   // Lookup the entry for the key to remove.
   Entry* candidate = Probe(key, hash);
   if (candidate->key == NULL) {
@@ -106,7 +108,7 @@ void HashMap::Remove(void* key, uint32_t hash) {
   occupancy_--;
 }
 
-void HashMap::Clear(ClearFun clear) {
+void SimpleHashMap::Clear(ClearFun clear) {
   // Mark all entries as empty.
   const Entry* end = map_end();
   for (Entry* p = map_; p < end; p++) {
@@ -118,11 +120,11 @@ void HashMap::Clear(ClearFun clear) {
   occupancy_ = 0;
 }
 
-HashMap::Entry* HashMap::Start() const {
+SimpleHashMap::Entry* SimpleHashMap::Start() const {
   return Next(map_ - 1);
 }
 
-HashMap::Entry* HashMap::Next(Entry* p) const {
+SimpleHashMap::Entry* SimpleHashMap::Next(Entry* p) const {
   const Entry* end = map_end();
   ASSERT(map_ - 1 <= p && p < end);
   for (p++; p < end; p++) {
@@ -133,7 +135,7 @@ HashMap::Entry* HashMap::Next(Entry* p) const {
   return NULL;
 }
 
-HashMap::Entry* HashMap::Probe(void* key, uint32_t hash) {
+SimpleHashMap::Entry* SimpleHashMap::Probe(void* key, uint32_t hash) {
   ASSERT(key != NULL);
 
   ASSERT(dart::Utils::IsPowerOfTwo(capacity_));
@@ -152,7 +154,7 @@ HashMap::Entry* HashMap::Probe(void* key, uint32_t hash) {
   return p;
 }
 
-void HashMap::Initialize(uint32_t capacity) {
+void SimpleHashMap::Initialize(uint32_t capacity) {
   ASSERT(dart::Utils::IsPowerOfTwo(capacity));
   map_ = new Entry[capacity];
   if (map_ == NULL) {
@@ -162,7 +164,7 @@ void HashMap::Initialize(uint32_t capacity) {
   occupancy_ = 0;
 }
 
-void HashMap::Resize() {
+void SimpleHashMap::Resize() {
   Entry* map = map_;
   uint32_t n = occupancy_;
 

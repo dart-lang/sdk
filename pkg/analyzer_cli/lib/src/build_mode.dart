@@ -321,12 +321,8 @@ class BuildMode extends Object with HasContextMixin {
       UnlinkedUnit getUnit(String absoluteUri) =>
           summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(
-          libraryUris,
-          getDependency,
-          getUnit,
-          analysisDriver.declaredVariables.get,
-          options.strongMode);
+      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
+          getDependency, getUnit, analysisDriver.declaredVariables.get);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }
@@ -404,7 +400,7 @@ class BuildMode extends Object with HasContextMixin {
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle(true);
+        sdkBundle = dartSdk.getSummarySdkBundle();
       }
 
       // Include SDK bundle to avoid parsing SDK sources.

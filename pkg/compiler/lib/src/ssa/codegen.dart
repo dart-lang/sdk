@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart';
@@ -1859,7 +1860,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // we need to register that fact that we may be calling a closure
     // with the same arguments.
     MemberEntity target = node.element;
-    if (target == null || target.isGetter) {
+    if ((target == null || target.isGetter) &&
+        // TODO(johnniwinther): Remove this when kernel adds an `isFunctionCall`
+        // flag to [ir.MethodInvocation]. Currently we can't tell the difference
+        // between a dynamic call and a function call, but we at least know that
+        // toString is not a getter (a potential function call should otherwise
+        // have been register for string concatenation).
+        selector != Selectors.toString_) {
       // TODO(kasperl): If we have a typed selector for the call, we
       // may know something about the types of closures that need
       // the specific closure call method.

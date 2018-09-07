@@ -82,25 +82,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       }
     }
 
-    ElementHolder holder = new ElementHolder();
-    //
-    // Process field declarations before constructors and methods so that field
-    // formal parameters can be correctly resolved to their fields.
-    //
-    ElementHolder previousHolder = _currentHolder;
-    _currentHolder = holder;
-    try {
-      List<ClassMember> nonFields = new List<ClassMember>();
-      node.visitChildren(
-          new _ElementBuilder_visitClassDeclaration(this, nonFields));
-      _buildFieldMap(holder.fieldsWithoutFlushing);
-      int count = nonFields.length;
-      for (int i = 0; i < count; i++) {
-        nonFields[i].accept(this);
-      }
-    } finally {
-      _currentHolder = previousHolder;
-    }
+    ElementHolder holder = _buildClassMembers(node);
+
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
@@ -603,6 +586,26 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ElementHolder holder = _buildClassMembers(node);
+
+    SimpleIdentifier nameNode = node.name;
+    MixinElementImpl element = new MixinElementImpl.forNode(nameNode);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.typeParameters = holder.typeParameters;
+    setElementDocumentationComment(element, node);
+    element.accessors = holder.accessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    _currentHolder.addMixin(element);
+    nameNode.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
@@ -694,6 +697,29 @@ class ApiElementBuilder extends _BaseElementBuilder {
     return null;
   }
 
+  ElementHolder _buildClassMembers(AstNode classNode) {
+    ElementHolder holder = new ElementHolder();
+    //
+    // Process field declarations before constructors and methods so that field
+    // formal parameters can be correctly resolved to their fields.
+    //
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      List<ClassMember> nonFields = new List<ClassMember>();
+      classNode.visitChildren(
+          new _ClassNotExecutableElementsBuilder(this, nonFields));
+      _buildFieldMap(holder.fieldsWithoutFlushing);
+      int count = nonFields.length;
+      for (int i = 0; i < count; i++) {
+        nonFields[i].accept(this);
+      }
+    } finally {
+      _currentHolder = previousHolder;
+    }
+    return holder;
+  }
+
   /**
    * Build the table mapping field names to field elements for the [fields]
    * defined in the current class.
@@ -783,6 +809,7 @@ class CompilationUnitBuilder {
       element.functions = holder.functions;
       element.source = source;
       element.librarySource = librarySource;
+      element.mixins = holder.mixins;
       element.typeAliases = holder.typeAliases;
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;
@@ -1667,12 +1694,14 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   }
 }
 
-class _ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
+/**
+ * Builds elements for all node that are not constructors or methods.
+ */
+class _ClassNotExecutableElementsBuilder extends UnifyingAstVisitor<Object> {
   final ApiElementBuilder builder;
+  final List<ClassMember> nonFields;
 
-  List<ClassMember> nonFields;
-
-  _ElementBuilder_visitClassDeclaration(this.builder, this.nonFields) : super();
+  _ClassNotExecutableElementsBuilder(this.builder, this.nonFields);
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {

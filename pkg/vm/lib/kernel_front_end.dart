@@ -76,7 +76,9 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
-          strongMode: options.strongMode, dropAST: dropAST);
+          strongMode: options.strongMode,
+          dropAST: dropAST,
+          environmentDefines: environmentDefines);
     });
   }
 

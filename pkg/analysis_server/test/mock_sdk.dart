@@ -301,8 +301,6 @@ const Map<String, LibraryInfo> libraries = const {
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
       provider.newFileWithBytes(
-          provider.convertPath('/lib/_internal/spec.sum'), bytes);
-      provider.newFileWithBytes(
           provider.convertPath('/lib/_internal/strong.sum'), bytes);
     }
   }
@@ -369,7 +367,7 @@ const Map<String, LibraryInfo> libraries = const {
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
       resource.File summaryFile =
-          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+          provider.getFile(provider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
         bytes = summaryFile.readAsBytesSync();
@@ -420,7 +418,7 @@ const Map<String, LibraryInfo> libraries = const {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(librarySources, context, true).build();
+    return new SummaryBuilder(librarySources, context).build();
   }
 }
 

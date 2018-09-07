@@ -189,8 +189,8 @@ abstract class ClassElement
    * Return a list containing all of the superclass constraints defined for this
    * class. The list will be empty if this class does not represent a mixin
    * declaration. If this class _does_ represent a mixin declaration but the
-   * declaration does not have an on clause, then the list will contain the type
-   * for the class `Object`.
+   * declaration does not have an `on` clause, then the list will contain the
+   * type for the class `Object`.
    *
    * <b>Note:</b> Because the element model represents the state of the code, it
    * is possible for it to be semantically invalid. In particular, it is not
@@ -489,6 +489,12 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    * Return the [LineInfo] for the [source], or `null` if not computed yet.
    */
   LineInfo get lineInfo;
+
+  /**
+   * Return a list containing all of the mixins contained in this compilation
+   * unit.
+   */
+  List<ClassElement> get mixins;
 
   /**
    * Return a list containing all of the top-level variables contained in this

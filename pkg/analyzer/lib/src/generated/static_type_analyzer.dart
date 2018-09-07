@@ -994,7 +994,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       VariableElement variable = element;
       staticType = _promoteManager.getStaticType(variable);
     } else if (element is PrefixElement) {
-      return null;
+      var parent = node.parent;
+      if (parent is PrefixedIdentifier && parent.prefix == node ||
+          parent is MethodInvocation && parent.target == node) {
+        return null;
+      }
+      staticType = _typeProvider.dynamicType;
     } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
     } else {

@@ -97,10 +97,6 @@ class ContextCacheEntry {
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
     contextOptions.previewDart2 = clOptions.previewDart2;
     contextOptions.useFastaParser = clOptions.useFastaParser;
-    if (clOptions.useCFE) {
-      contextOptions.useFastaParser = true;
-      contextOptions.useCFE = true;
-    }
     return contextOptions;
   }
 

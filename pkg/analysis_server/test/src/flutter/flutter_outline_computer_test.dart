@@ -15,7 +15,6 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
-    defineReflectiveTests(FlutterOutlineComputerTest_UseCFE);
   });
 }
 
@@ -698,10 +697,4 @@ class MyWidget extends StatelessWidget {
     }
     return buffer.toString();
   }
-}
-
-@reflectiveTest
-class FlutterOutlineComputerTest_UseCFE extends FlutterOutlineComputerTest {
-  @override
-  bool get useCFE => true;
 }

@@ -9001,6 +9001,7 @@ class EditSortMembersResult implements ResponseResult {
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "mixinName": optional String
  *   "parameters": optional String
  * }
  *
@@ -9024,6 +9025,8 @@ class ElementDeclaration implements HasToJson {
   int _codeLength;
 
   String _className;
+
+  String _mixinName;
 
   String _parameters;
 
@@ -9146,6 +9149,20 @@ class ElementDeclaration implements HasToJson {
   }
 
   /**
+   * The name of the mixin enclosing this declaration. If the declaration is
+   * not a mixin member, this field will be absent.
+   */
+  String get mixinName => _mixinName;
+
+  /**
+   * The name of the mixin enclosing this declaration. If the declaration is
+   * not a mixin member, this field will be absent.
+   */
+  void set mixinName(String value) {
+    this._mixinName = value;
+  }
+
+  /**
    * The parameter list for the element. If the element is not a method or
    * function this field will not be defined. If the element doesn't have
    * parameters (e.g. getter), this field will not be defined. If the element
@@ -9169,7 +9186,7 @@ class ElementDeclaration implements HasToJson {
 
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
       int line, int column, int codeOffset, int codeLength,
-      {String className, String parameters}) {
+      {String className, String mixinName, String parameters}) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
@@ -9179,6 +9196,7 @@ class ElementDeclaration implements HasToJson {
     this.codeOffset = codeOffset;
     this.codeLength = codeLength;
     this.className = className;
+    this.mixinName = mixinName;
     this.parameters = parameters;
   }
 
@@ -9245,6 +9263,11 @@ class ElementDeclaration implements HasToJson {
         className = jsonDecoder.decodeString(
             jsonPath + ".className", json["className"]);
       }
+      String mixinName;
+      if (json.containsKey("mixinName")) {
+        mixinName = jsonDecoder.decodeString(
+            jsonPath + ".mixinName", json["mixinName"]);
+      }
       String parameters;
       if (json.containsKey("parameters")) {
         parameters = jsonDecoder.decodeString(
@@ -9252,7 +9275,7 @@ class ElementDeclaration implements HasToJson {
       }
       return new ElementDeclaration(
           name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
-          className: className, parameters: parameters);
+          className: className, mixinName: mixinName, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
     }
@@ -9271,6 +9294,9 @@ class ElementDeclaration implements HasToJson {
     result["codeLength"] = codeLength;
     if (className != null) {
       result["className"] = className;
+    }
+    if (mixinName != null) {
+      result["mixinName"] = mixinName;
     }
     if (parameters != null) {
       result["parameters"] = parameters;
@@ -9293,6 +9319,7 @@ class ElementDeclaration implements HasToJson {
           codeOffset == other.codeOffset &&
           codeLength == other.codeLength &&
           className == other.className &&
+          mixinName == other.mixinName &&
           parameters == other.parameters;
     }
     return false;
@@ -9310,6 +9337,7 @@ class ElementDeclaration implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, mixinName.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

@@ -138,8 +138,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&stack_ok);
 #endif
   ASSERT(__ constant_pool_allowed());
-  __ LeaveDartFrame();  // Disallows constant pool use.
-  __ Ret();
+  __ LeaveDartFrameAndReturn();  // Disallows constant pool use.
   // This ReturnInstr may be emitted out of order by the optimizer. The next
   // block may be a target expecting a properly set constant pool pointer.
   __ set_constant_pool_allowed(true);
@@ -2009,15 +2008,8 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
-  UNREACHABLE();
-  return nullptr;
-}
-
-void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
+DEFINE_UNIMPLEMENTED_INSTRUCTION(GuardFieldTypeInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(CheckConditionInstr)
 
 class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
  public:
@@ -2965,7 +2957,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
-  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id);
   } else {

@@ -76,6 +76,7 @@ class RawPatchClass;
 class RawPcDescriptors;
 class RawReceivePort;
 class RawRedirectionData;
+class RawNativeEntryData;
 class RawScript;
 class RawSignatureData;
 class RawSendPort;

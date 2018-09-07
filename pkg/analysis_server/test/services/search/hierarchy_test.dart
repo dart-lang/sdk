@@ -15,7 +15,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HierarchyTest);
-    defineReflectiveTests(HierarchyTest_UseCFE);
   });
 }
 
@@ -449,10 +448,4 @@ class F implements A {}
   Future<void> _indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
-}
-
-@reflectiveTest
-class HierarchyTest_UseCFE extends HierarchyTest {
-  @override
-  bool get useCFE => true;
 }

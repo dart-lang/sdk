@@ -25,19 +25,19 @@ closurizedCallToString() {
   var local = /*[exact=JSUInt31]*/ () => 42;
   local
       .
-      /*kernel.invoke: [subtype=Function]*/
+
       /*strong.invoke: [subclass=Closure]*/
       toString();
   local();
   local
       .
-      /*kernel.invoke: [subtype=Function]*/
+
       /*strong.invoke: [subclass=Closure]*/
       toString();
   local.call();
   return local
       .
-      /*kernel.invoke: [subtype=Function]*/
+
       /*strong.invoke: [subclass=Closure]*/
       toString();
 }

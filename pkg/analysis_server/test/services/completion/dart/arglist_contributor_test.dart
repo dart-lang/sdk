@@ -13,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
-    defineReflectiveTests(ArgListContributorTest_UseCFE);
   });
 }
 
@@ -1055,10 +1054,4 @@ main() { f("16", radix: ^);}''');
     await computeSuggestions();
     assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
-}
-
-@reflectiveTest
-class ArgListContributorTest_UseCFE extends ArgListContributorTest {
-  @override
-  bool get useCFE => true;
 }

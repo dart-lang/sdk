@@ -172,10 +172,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     listener?.beginFormalParameter(
-        beginToken, kind, covariantToken, varFinalOrConst);
+        token, kind, covariantToken, varFinalOrConst);
   }
 
   @override
@@ -285,9 +285,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    listener?.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    listener?.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
   }
 
   @override
@@ -607,15 +607,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     listener?.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind, endToken);
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
   }
 
   @override
@@ -1260,6 +1255,11 @@ class ForwardingListener implements Listener {
   @override
   void handleRecoverClassHeader() {
     listener?.handleRecoverClassHeader();
+  }
+
+  @override
+  void handleRecoverMixinHeader() {
+    listener?.handleRecoverMixinHeader();
   }
 
   @override

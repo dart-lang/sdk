@@ -8,13 +8,11 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../test_utilities/utillities.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MoveFileTest);
-    defineReflectiveTests(MoveFileTest_UseCFE);
   });
 }
 
@@ -250,15 +248,4 @@ part '22/new_name.dart';
   void _fail(String message) {
     fail(message);
   }
-}
-
-@reflectiveTest
-class MoveFileTest_UseCFE extends MoveFileTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_file_containing_imports_exports_parts() =>
-      callFailingTest(super.test_file_containing_imports_exports_parts());
 }

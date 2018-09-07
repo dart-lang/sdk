@@ -171,7 +171,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     for (var param in function.positionalParameters) {
       asm.emitPush(locals.getVarIndexInFrame(param));
     }
-    for (var param in function.namedParameters) {
+    // Native methods access their parameters by indices, so
+    // native wrappers should pass arguments in the original declaration
+    // order instead of sorted order.
+    for (var param in locals.originalNamedParameters) {
       asm.emitPush(locals.getVarIndexInFrame(param));
     }
 
@@ -235,6 +238,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _prependTypeArguments;
   Procedure get prependTypeArguments => _prependTypeArguments ??=
       libraryIndex.getTopLevelMember('dart:_internal', '_prependTypeArguments');
+
+  Procedure _boundsCheckForPartialInstantiation;
+  Procedure get boundsCheckForPartialInstantiation =>
+      _boundsCheckForPartialInstantiation ??= libraryIndex.getTopLevelMember(
+          'dart:_internal', '_boundsCheckForPartialInstantiation');
 
   Procedure _futureValue;
   Procedure get futureValue =>
@@ -738,7 +746,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         assert(numOptionalNamed != 0);
         for (int i = 0; i < numOptionalNamed; i++) {
-          final param = function.namedParameters[i];
+          final param = locals.sortedNamedParameters[i];
           asm.emitLoadConstant(
               numFixed + i, cp.add(new ConstantString(param.name)));
           asm.emitLoadConstant(numFixed + i, _getDefaultParamConstIndex(param));
@@ -762,24 +770,19 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (locals.hasFunctionTypeArgsVar) {
       if (function.typeParameters.isNotEmpty) {
         assert(!(node is Procedure && node.isFactory));
+
+        Label done = new Label();
+
+        if (isClosure) {
+          _handleDelayedTypeArguments(done);
+        }
+
         asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
             locals.functionTypeArgsVarIndexInFrame);
 
-        bool hasNonDynamicDefaultTypes = function.typeParameters.any((p) =>
-            p.defaultType != null && p.defaultType != const DynamicType());
-        if (hasNonDynamicDefaultTypes) {
-          List<DartType> defaultTypes = function.typeParameters
-              .map((p) => p.defaultType ?? const DynamicType())
-              .toList();
-          assert(defaultTypes
-              .every((t) => !containsTypeVariable(t, functionTypeParameters)));
+        _handleDefaultTypeArguments(function, isClosure, done);
 
-          Label done = new Label();
-          asm.emitJumpIfNotZeroTypeArgs(done);
-          _genTypeArguments(defaultTypes);
-          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
-          asm.bind(done);
-        }
+        asm.bind(done);
       }
 
       if (isClosure) {
@@ -803,6 +806,55 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
+  void _handleDelayedTypeArguments(Label doneCheckingTypeArguments) {
+    Label noDelayedTypeArgs = new Label();
+
+    asm.emitPush(locals.closureVarIndexInFrame);
+    asm.emitLoadFieldTOS(
+        cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
+    asm.emitStoreLocal(locals.functionTypeArgsVarIndexInFrame);
+    asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
+    asm.emitIfEqStrictTOS();
+    asm.emitJump(noDelayedTypeArgs);
+
+    // There are non-empty delayed type arguments, and they are stored
+    // into function type args variable already.
+    // Just verify that there are no passed type arguments.
+    asm.emitCheckFunctionTypeArgs(0, locals.scratchVarIndexInFrame);
+    asm.emitJump(doneCheckingTypeArguments);
+
+    asm.bind(noDelayedTypeArgs);
+  }
+
+  void _handleDefaultTypeArguments(
+      FunctionNode function, bool isClosure, Label doneCheckingTypeArguments) {
+    bool hasNonDynamicDefaultTypes = function.typeParameters.any(
+        (p) => p.defaultType != null && p.defaultType != const DynamicType());
+    if (!hasNonDynamicDefaultTypes) {
+      return;
+    }
+
+    asm.emitJumpIfNotZeroTypeArgs(doneCheckingTypeArguments);
+
+    List<DartType> defaultTypes = function.typeParameters
+        .map((p) => p.defaultType ?? const DynamicType())
+        .toList();
+
+    // Load parent function type arguments if they are used to
+    // instantiate default types.
+    if (isClosure &&
+        defaultTypes
+            .any((t) => containsTypeVariable(t, functionTypeParameters))) {
+      asm.emitPush(locals.closureVarIndexInFrame);
+      asm.emitLoadFieldTOS(
+          cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
+      asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+    }
+
+    _genTypeArguments(defaultTypes);
+    asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+  }
+
   void _setupInitialContext(FunctionNode function) {
     _allocateContextIfNeeded();
 
@@ -813,12 +865,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         if (locals.hasFactoryTypeArgsVar) {
           _copyParamIfCaptured(locals.factoryTypeArgsVar);
         }
-        if (locals.hasReceiver) {
-          _copyParamIfCaptured(locals.receiverVar);
+        if (locals.hasCapturedReceiverVar) {
+          _genPushContextForVariable(locals.capturedReceiverVar);
+          asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
+          _genStoreVar(locals.capturedReceiverVar);
         }
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);
-      function.namedParameters.forEach(_copyParamIfCaptured);
+      locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
     }
   }
 
@@ -844,7 +898,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     function.positionalParameters.forEach(_genArgumentTypeCheck);
-    function.namedParameters.forEach(_genArgumentTypeCheck);
+    locals.sortedNamedParameters.forEach(_genArgumentTypeCheck);
   }
 
   void _genArgumentTypeCheck(VariableDeclaration variable) {
@@ -907,7 +961,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // as default value expressions could use local const variables which
     // are not available in bytecode.
     function.positionalParameters.forEach(_evaluateDefaultParameterValue);
-    function.namedParameters.forEach(_evaluateDefaultParameterValue);
+    locals.sortedNamedParameters.forEach(_evaluateDefaultParameterValue);
 
     final int closureFunctionIndex =
         cp.add(new ConstantClosureFunction(name, function));
@@ -1360,15 +1414,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitInstantiation(Instantiation node) {
     final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
     final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
+    final int typeArguments = locals.tempIndexInFrame(node, tempIndex: 2);
 
     node.expression.accept(this);
-    asm.emitPopLocal(oldClosure);
+    asm.emitStoreLocal(oldClosure);
+
+    _genTypeArguments(node.typeArguments);
+    asm.emitStoreLocal(typeArguments);
+
+    _genStaticCall(
+        boundsCheckForPartialInstantiation, new ConstantArgDesc(2), 2);
+    asm.emitDrop1();
 
     assert(closureClass.typeParameters.isEmpty);
     asm.emitAllocate(cp.add(new ConstantClass(closureClass)));
     asm.emitStoreLocal(newClosure);
 
-    _genTypeArguments(node.typeArguments);
+    asm.emitPush(typeArguments);
     asm.emitStoreFieldTOS(
         cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
 

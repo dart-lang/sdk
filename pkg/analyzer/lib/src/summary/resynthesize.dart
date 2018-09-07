@@ -272,6 +272,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
           unitElement.enums.forEach(putElement);
           unitElement.functions.forEach(putElement);
           unitElement.functionTypeAliases.forEach(putElement);
+          unitElement.mixins.forEach(putElement);
           unitElement.topLevelVariables.forEach(putElement);
           unitElement.types.forEach(putElement);
           unitsInLibrary[unitUri] = elementsInUnit;

@@ -201,11 +201,11 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
   int _index;
   E _current;
 
-  _FixedSizeArrayIterator(List array)
+  _FixedSizeArrayIterator(List<E> array)
       : _array = array,
         _length = array.length,
         _index = 0 {
-    assert(array is _List || array is _ImmutableList);
+    assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
   E get current => _current;

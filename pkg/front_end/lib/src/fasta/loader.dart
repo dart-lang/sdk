@@ -21,16 +21,13 @@ import 'messages.dart'
         Template,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity,
-        templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
 
 import 'problems.dart' show internalProblem;
 
-import 'rewrite_severity.dart' as rewrite_severity;
+import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'severity.dart' show Severity;
-
-import 'source/outline_listener.dart';
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -145,8 +142,8 @@ abstract class Loader<L> {
         !accessor.isPatch &&
         !target.backendTarget
             .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
-      accessor.addCompileTimeError(messagePlatformPrivateLibraryAccess,
-          charOffset, noLength, accessor.fileUri);
+      accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+          noLength, accessor.fileUri);
     }
     return builder;
   }
@@ -181,8 +178,6 @@ abstract class Loader<L> {
     logSummary(outlineSummaryTemplate);
   }
 
-  OutlineListener createOutlineListener(Uri fileUri) => null;
-
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
@@ -201,37 +196,19 @@ abstract class Loader<L> {
   /// Builds all the method bodies found in the given [library].
   Future<Null> buildBody(covariant LibraryBuilder library);
 
-  /// Register [message] as a compile-time error.
-  ///
-  /// If [wasHandled] is true, this error is added to [handledErrors],
-  /// otherwise it is added to [unhandledErrors].
-  void addCompileTimeError(
-      Message message, int charOffset, int length, Uri fileUri,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    addMessage(message, charOffset, length, fileUri, Severity.error,
-        wasHandled: wasHandled, context: context);
-  }
-
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   void addProblem(Message message, int charOffset, int length, Uri fileUri,
-      {List<LocatedMessage> context}) {
-    Severity severity = message.code.severity;
-    if (severity == null) {
-      addMessage(message, charOffset, length, fileUri, Severity.error,
-          context: context);
-      internalProblem(
-          templateInternalProblemMissingSeverity
-              .withArguments(message.code.name),
-          charOffset,
-          fileUri);
-    }
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity}) {
+    severity ??= message.code.severity;
     if (severity == Severity.errorLegacyWarning) {
       severity =
           target.backendTarget.strongMode ? Severity.error : Severity.warning;
     }
     addMessage(message, charOffset, length, fileUri, severity,
-        context: context);
+        wasHandled: wasHandled, context: context);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -240,10 +217,14 @@ abstract class Loader<L> {
   /// Returns true if the message is new, that is, not previously
   /// reported. This is important as some parser errors may be reported up to
   /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
+  ///
+  /// If [severity] is `Severity.error`, the message is added to
+  /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
+  /// [wasHandled] is false.
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
       {bool wasHandled: false, List<LocatedMessage> context}) {
-    severity = rewriteSeverity(severity, message, fileUri);
+    severity = rewriteSeverity(severity, message.code, fileUri);
     if (severity == Severity.ignored) return false;
     String trace = """
 message: ${message.message}
@@ -269,10 +250,6 @@ severity: $severity
           .add(message.withLocation(fileUri, charOffset, length));
     }
     return true;
-  }
-
-  Severity rewriteSeverity(Severity severity, Message message, Uri fileUri) {
-    return rewrite_severity.rewriteSeverity(severity, message.code, fileUri);
   }
 
   Declaration getAbstractClassInstantiationError() {

@@ -4,14 +4,14 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, InvalidType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show LocatedMessage;
 
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
-import '../source/outline_listener.dart';
+import '../severity.dart' show Severity;
 
 import 'kernel_builder.dart'
     show
@@ -20,25 +20,22 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
-        QualifiedName,
         TypeBuilder,
         TypeDeclarationBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        flattenName;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  final int charOffset;
+  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
+      : super(name, arguments);
 
-  KernelNamedTypeBuilder(OutlineListener outlineListener, this.charOffset,
-      Object name, List<KernelTypeBuilder> arguments)
-      : super(outlineListener, name, arguments);
-
-  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
-      [Message message]) {
+  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri, message);
+    return new KernelInvalidTypeBuilder(
+        flattenName(name, message.charOffset, message.uri), message);
   }
 
   Supertype handleInvalidSupertype(
@@ -46,34 +43,32 @@ class KernelNamedTypeBuilder
     var template = declaration.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
-    library.addCompileTimeError(
-        template.withArguments("$name"), charOffset, noLength, fileUri);
+    library.addProblem(
+        template.withArguments(flattenName(name, charOffset, fileUri)),
+        charOffset,
+        noLength,
+        fileUri);
     return null;
   }
 
   DartType build(LibraryBuilder library) {
-    DartType type = declaration.buildType(library, arguments);
-    _storeType(library, type);
-    return type;
+    return declaration.buildType(library, arguments);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
-      var supertype = declaration.buildSupertype(library, arguments);
-      _storeType(library, supertype.asInterfaceType);
-      return supertype;
+      return declaration.buildSupertype(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addCompileTimeError(
+      library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri);
-      _storeType(library, const InvalidType());
+          declaration.message.uri,
+          severity: Severity.error);
       return null;
     } else {
-      _storeType(library, const InvalidType());
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
@@ -82,19 +77,16 @@ class KernelNamedTypeBuilder
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
-      var supertype = declaration.buildMixedInType(library, arguments);
-      _storeType(library, supertype.asInterfaceType);
-      return supertype;
+      return declaration.buildMixedInType(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addCompileTimeError(
+      library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri);
-      _storeType(library, const InvalidType());
+          declaration.message.uri,
+          severity: Severity.error);
       return null;
     } else {
-      _storeType(library, const InvalidType());
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
@@ -116,9 +108,7 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(
-            outlineListener, charOffset, name, arguments)
-          ..bind(declaration);
+        return new KernelNamedTypeBuilder(name, arguments)..bind(declaration);
       }
     }
     return this;
@@ -132,34 +122,9 @@ class KernelNamedTypeBuilder
         clonedArguments[i] = arguments[i].clone(newTypes);
       }
     }
-    KernelNamedTypeBuilder newType = new KernelNamedTypeBuilder(
-        outlineListener, charOffset, name, clonedArguments);
+    KernelNamedTypeBuilder newType =
+        new KernelNamedTypeBuilder(name, clonedArguments);
     newTypes.add(newType);
     return newType;
-  }
-
-  int get _storeOffset {
-    // TODO(scheglov) Can we always make charOffset the "suffix" offset?
-    var name = this.name;
-    return name is QualifiedName ? name.charOffset : charOffset;
-  }
-
-  void _storeType(LibraryBuilder library, DartType type) {
-    if (outlineListener != null) {
-      if (arguments != null && !this.declaration.buildsArguments) {
-        for (var argument in arguments) {
-          argument.build(library);
-        }
-      }
-      TypeDeclarationBuilder<KernelTypeBuilder, DartType> storeDeclaration;
-      if (actualDeclaration != null) {
-        storeDeclaration = actualDeclaration;
-        type = storeDeclaration.buildType(library, null);
-      } else {
-        storeDeclaration = declaration;
-      }
-      var target = storeDeclaration.hasTarget ? storeDeclaration.target : null;
-      outlineListener.store(_storeOffset, false, reference: target, type: type);
-    }
   }
 }

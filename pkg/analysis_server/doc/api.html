@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.20.5
+  1.21.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -3248,6 +3248,12 @@ a:focus, a:hover {
           The name of the class enclosing this declaration. If the declaration
           is not a class member, this field will be absent.
         </p>
+      </dd><dt class="field"><b>mixinName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The name of the mixin enclosing this declaration. If the declaration
+          is not a mixin member, this field will be absent.
+        </p>
       </dd><dt class="field"><b>parameters: String<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
@@ -3264,7 +3270,7 @@ a:focus, a:hover {
       An enumeration of the kinds of elements.
     </p>
     
-  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
+  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
     <p>
       A description of an executable file.
     </p>

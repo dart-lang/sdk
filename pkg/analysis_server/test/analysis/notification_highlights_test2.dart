@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
-    defineReflectiveTests(AnalysisNotificationHighlightsTest_UseCFE);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
@@ -1112,55 +1111,6 @@ class A {
 library lib;
 part 'test.dart';
     ''');
-  }
-}
-
-@reflectiveTest
-class AnalysisNotificationHighlightsTest_UseCFE
-    extends AnalysisNotificationHighlightsTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_BUILT_IN_hide() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_BUILT_IN_hide);
-  }
-
-  @failingTest
-  @override
-  test_BUILT_IN_import() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_BUILT_IN_import);
-  }
-
-  @failingTest
-  @override
-  test_BUILT_IN_native() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_BUILT_IN_native);
-  }
-
-  @failingTest
-  @override
-  test_BUILT_IN_show() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_BUILT_IN_show);
-  }
-
-  @failingTest
-  @override
-  test_DIRECTIVE() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_DIRECTIVE);
-  }
-
-  @failingTest
-  @override
-  test_TYPE_NAME_DYNAMIC() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_TYPE_NAME_DYNAMIC);
   }
 }
 

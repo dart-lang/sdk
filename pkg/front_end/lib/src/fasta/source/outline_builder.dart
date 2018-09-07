@@ -4,8 +4,6 @@
 
 library fasta.outline_builder;
 
-import 'dart:math' show min;
-
 import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../scanner/token.dart' show Token;
@@ -14,13 +12,14 @@ import '../builder/builder.dart';
 
 import '../builder/metadata_builder.dart' show ExpressionMetadataBuilder;
 
-import '../combinator.dart' show Combinator, CombinatorIdentifier;
+import '../combinator.dart' show Combinator;
 
 import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
         messageConstConstructorWithBody,
+        messageConstInstanceField,
         messageConstMethod,
         messageConstructorWithReturnType,
         messageConstructorWithTypeParameters,
@@ -29,6 +28,7 @@ import '../fasta_codes.dart'
         messageOperatorWithOptionalFormals,
         messageStaticConstructor,
         messageTypedefNotFunction,
+        templateCycleInTypeVariables,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
         templateOperatorMinusParameterMismatch,
@@ -113,14 +113,12 @@ class OutlineBuilder extends StackListener {
 
   int popCharOffset() => pop();
 
-  List<CombinatorIdentifier> popIdentifierList(int count) {
+  List<String> popIdentifierList(int count) {
     if (count == 0) return null;
-    var list = new List<CombinatorIdentifier>.filled(count, null);
+    List<String> list = new List<String>.filled(count, null, growable: true);
     for (int i = count - 1; i >= 0; i--) {
-      bool isSynthetic = pop();
-      int offset = popCharOffset();
-      String name = pop();
-      list[i] = new CombinatorIdentifier(offset, name, isSynthetic);
+      popCharOffset();
+      list[i] = pop();
     }
     return list;
   }
@@ -150,50 +148,33 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginMetadataStar(Token token) {
-    push(token);
-  }
-
-  @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    if (count == 0) {
-      pop();
-      push(NullValue.MetadataToken);
-      push(NullValue.Metadata);
-    } else {
-      push(popList(
-          count,
-          new List<ExpressionMetadataBuilder<TypeBuilder>>.filled(count, null,
-              growable: true)));
-    }
+    push(popList(
+            count,
+            new List<ExpressionMetadataBuilder<TypeBuilder>>.filled(count, null,
+                growable: true)) ??
+        NullValue.Metadata);
   }
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
-    pop(); // metadataToken
   }
 
   @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
-    List<CombinatorIdentifier> identifiers = pop();
-    List<String> names =
-        identifiers.map((identifier) => identifier.name).toList();
-    push(new Combinator.hide(
-        identifiers, names, hideKeyword.charOffset, library.fileUri));
+    List<String> names = pop();
+    push(new Combinator.hide(names, hideKeyword.charOffset, library.fileUri));
   }
 
   @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
-    List<CombinatorIdentifier> identifiers = pop();
-    List<String> names =
-        identifiers.map((identifier) => identifier.name).toList();
-    push(new Combinator.show(
-        identifiers, names, showKeyword.charOffset, library.fileUri));
+    List<String> names = pop();
+    push(new Combinator.show(names, showKeyword.charOffset, library.fileUri));
   }
 
   @override
@@ -212,7 +193,6 @@ class OutlineBuilder extends StackListener {
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    pop(); // metadataToken
     library.addExport(metadata, uri, configurations, combinators,
         exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
@@ -241,7 +221,6 @@ class OutlineBuilder extends StackListener {
     int uriOffset = popCharOffset();
     String uri = pop(); // For a conditional import, this is the default URI.
     List<MetadataBuilder> metadata = pop();
-    pop(); // metadataToken
     library.addImport(
         metadata,
         uri,
@@ -278,9 +257,7 @@ class OutlineBuilder extends StackListener {
   @override
   void handleDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
-    push(popIdentifierList(count)
-        .map((identifier) => identifier.name)
-        .join('.'));
+    push(popIdentifierList(count).join('.'));
   }
 
   @override
@@ -299,7 +276,6 @@ class OutlineBuilder extends StackListener {
     int charOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    pop(); // metadataToken
     library.addPart(metadata, uri, charOffset);
     checkEmpty(partKeyword.charOffset);
   }
@@ -323,14 +299,11 @@ class OutlineBuilder extends StackListener {
     if (context == IdentifierContext.enumValueDeclaration) {
       super.handleIdentifier(token, context);
       push(token.charOffset);
-      var docComment = documentationCommentBefore(token);
-      push(docComment?.text ?? NullValue.DocumentationComment);
+      String documentationComment = getDocumentationComment(token);
+      push(documentationComment ?? NullValue.DocumentationComment);
     } else {
       super.handleIdentifier(token, context);
       push(token.charOffset);
-    }
-    if (context.requiresSyntheticFlag) {
-      push(token.isSynthetic);
     }
     if (inConstructor && context == IdentifierContext.methodDeclaration) {
       inConstructorName = true;
@@ -363,7 +336,7 @@ class OutlineBuilder extends StackListener {
       push(charOffset);
       // Point to dollar sign
       int interpolationOffset = charOffset + beginToken.lexeme.length;
-      addCompileTimeError(messageInterpolationInUri, interpolationOffset, 1);
+      addProblem(messageInterpolationInUri, interpolationOffset, 1);
     }
   }
 
@@ -404,9 +377,11 @@ class OutlineBuilder extends StackListener {
     debugEvent("handleQualified");
     int suffixOffset = pop();
     String suffix = pop();
+    assert(identical(suffix, period.next.lexeme));
+    assert(suffixOffset == period.next.charOffset);
     int offset = pop();
     var prefix = pop();
-    push(new QualifiedName(prefix, suffix, suffixOffset));
+    push(new QualifiedName(prefix, period.next));
     push(offset);
   }
 
@@ -414,12 +389,11 @@ class OutlineBuilder extends StackListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
+    String documentationComment = getDocumentationComment(libraryKeyword);
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(libraryKeyword, metadataToken);
-    library.documentationComment = docComment?.text;
-    library.name = "${name}";
+    library.documentationComment = documentationComment;
+    library.name = flattenName(name, offsetForToken(libraryKeyword), uri);
     library.metadata = metadata;
   }
 
@@ -482,6 +456,7 @@ class OutlineBuilder extends StackListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
+    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     int supertypeOffset = pop();
     TypeBuilder supertype = pop();
@@ -493,18 +468,12 @@ class OutlineBuilder extends StackListener {
       supertype.typeVariables = typeVariables;
     }
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
 
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
-    int codeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
     library.addClass(
-        docComment?.text,
+        documentationComment,
         metadata,
         modifiers,
         name,
@@ -514,9 +483,7 @@ class OutlineBuilder extends StackListener {
         startCharOffset,
         charOffset,
         endToken.charOffset,
-        supertypeOffset,
-        codeStartOffset,
-        codeEndOffset);
+        supertypeOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -557,21 +524,15 @@ class OutlineBuilder extends StackListener {
       modifiers |= abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
+    String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-
-    int codeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
     library.addProcedure(
-        docComment?.text,
+        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -584,8 +545,6 @@ class OutlineBuilder extends StackListener {
         formalsOffset,
         endToken.charOffset,
         nativeMethodName,
-        codeStartOffset,
-        codeEndOffset,
         isTopLevel: true);
     nativeMethodName = null;
   }
@@ -632,8 +591,9 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    inConstructor = name?.lexeme == library.currentDeclaration.name;
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    inConstructor =
+        name?.lexeme == library.currentDeclaration.name && getOrSet == null;
     List<Modifier> modifiers = <Modifier>[];
     if (externalToken != null) {
       modifiers.add(External);
@@ -711,14 +671,13 @@ class OutlineBuilder extends StackListener {
                 charOffset, uri);
         }
         String string = name;
-        addCompileTimeError(
-            template.withArguments(name), charOffset, string.length);
+        addProblem(template.withArguments(name), charOffset, string.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              addCompileTimeError(messageOperatorWithOptionalFormals,
-                  formal.charOffset, formal.name.length);
+              addProblem(messageOperatorWithOptionalFormals, formal.charOffset,
+                  formal.name.length);
             }
           }
         }
@@ -743,8 +702,7 @@ class OutlineBuilder extends StackListener {
     bool isConst = (modifiers & constMask) != 0;
     int varFinalOrConstOffset = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
+    String documentationComment = getDocumentationComment(beginToken);
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
@@ -754,8 +712,7 @@ class OutlineBuilder extends StackListener {
             : library.computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
       if (isConst && bodyKind != MethodBody.Abstract) {
-        addCompileTimeError(
-            messageConstConstructorWithBody, varFinalOrConstOffset, 5);
+        addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
       if (returnType != null) {
@@ -766,13 +723,8 @@ class OutlineBuilder extends StackListener {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-
-      int codeStartOffset =
-          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-      int codeEndOffset = endToken.end;
-
       library.addConstructor(
-          docComment?.text,
+          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -784,23 +736,16 @@ class OutlineBuilder extends StackListener {
           charOffset,
           formalsOffset,
           endToken.charOffset,
-          codeStartOffset,
-          codeEndOffset,
           nativeMethodName);
     } else {
       if (isConst) {
-        addCompileTimeError(messageConstMethod, varFinalOrConstOffset, 5);
+        addProblem(messageConstMethod, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-
-      int codeStartOffset =
-          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-      int codeEndOffset = endToken.end;
-
       library.addProcedure(
-          docComment?.text,
+          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -813,8 +758,6 @@ class OutlineBuilder extends StackListener {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
-          codeStartOffset,
-          codeEndOffset,
           isTopLevel: false);
     }
     nativeMethodName = null;
@@ -834,6 +777,7 @@ class OutlineBuilder extends StackListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
+    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
     int modifiers = pop();
@@ -841,24 +785,8 @@ class OutlineBuilder extends StackListener {
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
-
-    int codeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
-    library.addNamedMixinApplication(
-        docComment?.text,
-        metadata,
-        name,
-        typeVariables,
-        modifiers,
-        mixinApplication,
-        interfaces,
-        charOffset,
-        codeStartOffset,
-        codeEndOffset);
+    library.addNamedMixinApplication(documentationComment, metadata, name,
+        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -907,36 +835,23 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {
-    push(beginToken);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
     TypeBuilder type = pop();
     int modifiers = pop();
-    Token beginToken = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-
-    int codeStartOffset =
-        _chooseCodeStartOffset(null, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
-    push(library.addFormalParameter(metadata, modifiers, type, name,
-        thisKeyword != null, charOffset, codeStartOffset, codeEndOffset));
+    push(library.addFormalParameter(
+        metadata, modifiers, type, name, thisKeyword != null, charOffset));
   }
 
   @override
@@ -1013,7 +928,7 @@ class OutlineBuilder extends StackListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          addCompileTimeError(
+          addProblem(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
               formals[1].name.length,
@@ -1030,7 +945,7 @@ class OutlineBuilder extends StackListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            addCompileTimeError(
+            addProblem(
                 templateDuplicatedParameterName.withArguments(formal.name),
                 formal.charOffset,
                 formal.name.length,
@@ -1065,15 +980,14 @@ class OutlineBuilder extends StackListener {
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
+    String documentationComment = getDocumentationComment(enumKeyword);
     List<Object> constantNamesAndOffsets = popList(
-        count * 5, new List<Object>.filled(count * 5, null, growable: true));
+        count * 4, new List<Object>.filled(count * 4, null, growable: true));
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(enumKeyword, metadataToken);
-    library.addEnum(docComment?.text, metadata, name, constantNamesAndOffsets,
-        charOffset, leftBrace?.endGroup?.charOffset);
+    library.addEnum(documentationComment, metadata, name,
+        constantNamesAndOffsets, charOffset, leftBrace?.endGroup?.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -1120,6 +1034,7 @@ class OutlineBuilder extends StackListener {
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
+    String documentationComment = getDocumentationComment(typedefKeyword);
     List<TypeVariableBuilder> typeVariables;
     String name;
     int charOffset;
@@ -1150,14 +1065,11 @@ class OutlineBuilder extends StackListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        addCompileTimeError(
-            messageTypedefNotFunction, equals.charOffset, equals.length);
+        addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
       }
     }
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(typedefKeyword, metadataToken);
-    library.addFunctionTypeAlias(docComment?.text, metadata, name,
+    library.addFunctionTypeAlias(documentationComment, metadata, name,
         typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -1173,12 +1085,9 @@ class OutlineBuilder extends StackListener {
         (covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
-    int firstFieldCodeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
-        firstFieldCodeStartOffset);
+    String documentationComment = getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -1192,13 +1101,17 @@ class OutlineBuilder extends StackListener {
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    if (staticToken == null && modifiers & constMask != 0) {
+      // It is a compile-time error if an instance variable is declared to be
+      // constant.
+      addProblem(messageConstInstanceField, varFinalOrConst.charOffset,
+          varFinalOrConst.length);
+      modifiers &= ~constMask;
+    }
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
-    int firstFieldCodeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
-        firstFieldCodeStartOffset);
+    String documentationComment = getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -1209,7 +1122,6 @@ class OutlineBuilder extends StackListener {
     // TODO(paulberry): type variable metadata should not be ignored.  See
     // dartbug.com/28981.
     /* List<MetadataBuilder> metadata = */ pop();
-    pop(); // metadataToken
 
     push(library.addTypeVariable(name, null, charOffset));
   }
@@ -1235,6 +1147,53 @@ class OutlineBuilder extends StackListener {
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("endTypeVariables");
 
+    // Peek to leave type parameters on top of stack.
+    List typeParameters = peek();
+
+    Map<String, TypeVariableBuilder> typeVariablesByName;
+    for (TypeVariableBuilder builder in typeParameters) {
+      if (builder.bound != null) {
+        if (typeVariablesByName == null) {
+          typeVariablesByName = new Map<String, TypeVariableBuilder>();
+          for (TypeVariableBuilder builder in typeParameters) {
+            typeVariablesByName[builder.name] = builder;
+          }
+        }
+
+        // Find cycle: If there's no cycle we can at most step through all
+        // `typeParameters` (at which point the last builders bound will be
+        // null).
+        // If there is a cycle with `builder` 'inside' the steps to get back to
+        // it will also be bound by `typeParameters.length`.
+        // If there is a cycle without `builder` 'inside' we will just ignore it
+        // for now. It will be reported when processing one of the `builder`s
+        // that is in fact `inside` the cycle. This matches the cyclic class
+        // hierarchy error.
+        TypeVariableBuilder bound = builder;
+        for (int steps = 0;
+            bound.bound != null && steps < typeParameters.length;
+            ++steps) {
+          bound = typeVariablesByName[bound.bound.name];
+          if (bound == null || bound == builder) break;
+        }
+        if (bound == builder && bound.bound != null) {
+          // Write out cycle.
+          List<String> via = new List<String>();
+          bound = typeVariablesByName[builder.bound.name];
+          while (bound != builder) {
+            via.add(bound.name);
+            bound = typeVariablesByName[bound.bound.name];
+          }
+          String involvedString = via.join("', '");
+          addProblem(
+              templateCycleInTypeVariables.withArguments(
+                  builder.name, involvedString),
+              builder.charOffset,
+              builder.name.length);
+        }
+      }
+    }
+
     if (inConstructorName) {
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
@@ -1249,9 +1208,9 @@ class OutlineBuilder extends StackListener {
     int charOffset = popCharOffset();
     Object containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
-    pop(); // metadataToken
     if (hasName) {
-      library.addPartOf(metadata, "$containingLibrary", null, charOffset);
+      library.addPartOf(metadata,
+          flattenName(containingLibrary, charOffset, uri), null, charOffset);
     } else {
       library.addPartOf(metadata, null, containingLibrary, charOffset);
     }
@@ -1295,15 +1254,9 @@ class OutlineBuilder extends StackListener {
     Object name = pop();
     int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-    var docComment = documentationComment(beginToken, metadataToken);
-
-    int codeStartOffset =
-        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
+    String documentationComment = getDocumentationComment(beginToken);
     library.addFactoryMethod(
-        docComment?.text,
+        documentationComment,
         metadata,
         modifiers,
         name,
@@ -1313,8 +1266,6 @@ class OutlineBuilder extends StackListener {
         charOffset,
         formalsOffset,
         endToken.charOffset,
-        codeStartOffset,
-        codeEndOffset,
         nativeMethodName);
     nativeMethodName = null;
     inConstructor = false;
@@ -1368,7 +1319,6 @@ class OutlineBuilder extends StackListener {
   void handleInvalidMember(Token endToken) {
     debugEvent("InvalidMember");
     pop(); // metadata star
-    pop(); // metadataToken
   }
 
   @override
@@ -1393,83 +1343,42 @@ class OutlineBuilder extends StackListener {
     debugEvent("AsyncModifier");
   }
 
-  @override
-  void addCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addCompileTimeError(message, charOffset, length, uri,
-        context: context);
-  }
-
   void addProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, uri, context: context);
-  }
-
-  static int _chooseCodeStartOffset(
-      _DocumentationComment docComment, Token metadataToken, Token beginToken) {
-    if (docComment != null && metadataToken != null) {
-      return min(docComment.offset, metadataToken.charOffset);
-    }
-    if (docComment != null) {
-      return docComment.offset;
-    }
-    if (metadataToken != null) {
-      return metadataToken.charOffset;
-    }
-    return beginToken.offset;
-  }
-
-  /// Return the documentation comment for the [beginToken] or [metadataToken],
-  /// or `null` if there is no preceding documentation comment in either of
-  /// these nodes.
-  static _DocumentationComment documentationComment(
-      Token beginToken, Token metadataToken) {
-    return documentationCommentBefore(beginToken) ??
-        documentationCommentBefore(metadataToken);
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    library.addProblem(message, charOffset, length, uri,
+        wasHandled: wasHandled, context: context);
   }
 
   /// Return the documentation comment for the entity that starts at the
   /// given [token], or `null` if there is no preceding documentation comment.
-  static _DocumentationComment documentationCommentBefore(Token token) {
-    Token commentToken = token?.precedingComments;
-    if (commentToken == null) return null;
+  static String getDocumentationComment(Token token) {
+    Token docToken = token.precedingComments;
+    if (docToken == null) return null;
     bool inSlash = false;
-    Token firstDocToken;
-    StringBuffer buffer;
-    while (commentToken != null) {
-      String lexeme = commentToken.lexeme;
+    var buffer = new StringBuffer();
+    while (docToken != null) {
+      String lexeme = docToken.lexeme;
       if (lexeme.startsWith('/**')) {
         inSlash = false;
-        firstDocToken = commentToken;
-        buffer = new StringBuffer();
+        buffer.clear();
         buffer.write(lexeme);
       } else if (lexeme.startsWith('///')) {
-        if (!inSlash || buffer == null) {
+        if (!inSlash) {
           inSlash = true;
-          firstDocToken = commentToken;
-          buffer = new StringBuffer();
+          buffer.clear();
         }
         if (buffer.isNotEmpty) {
           buffer.writeln();
         }
         buffer.write(lexeme);
       }
-      commentToken = commentToken.next;
+      docToken = docToken.next;
     }
-    if (buffer == null) return null;
-    return new _DocumentationComment(
-        firstDocToken.charOffset, buffer.toString());
+    return buffer.toString();
   }
 
   @override
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
   }
-}
-
-class _DocumentationComment {
-  final int offset;
-  final String text;
-
-  _DocumentationComment(this.offset, this.text);
 }

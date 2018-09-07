@@ -335,6 +335,7 @@ final Matcher isElement =
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "mixinName": optional String
  *   "parameters": optional String
  * }
  */
@@ -350,6 +351,7 @@ final Matcher isElementDeclaration =
           "codeLength": isInt
         }, optionalFields: {
           "className": isString,
+          "mixinName": isString,
           "parameters": isString
         }));
 
@@ -374,6 +376,7 @@ final Matcher isElementDeclaration =
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   MIXIN
  *   PARAMETER
  *   PREFIX
  *   SETTER
@@ -402,6 +405,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
+  "MIXIN",
   "PARAMETER",
   "PREFIX",
   "SETTER",

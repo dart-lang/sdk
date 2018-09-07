@@ -10,7 +10,9 @@ dart:io,::,_setupHooks
 dart:io,::,_getWatchSignalInternal
 dart:io,CertificateException,CertificateException.
 dart:io,Directory,Directory.
+dart:io,Directory,Directory.fromRawPath
 dart:io,File,File.
+dart:io,File,File.fromRawPath
 dart:io,FileSystemException,FileSystemException.
 dart:io,HandshakeException,HandshakeException.
 dart:io,Link,Link.

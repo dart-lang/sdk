@@ -67,6 +67,7 @@ mixin_type_parameter_inference_test/13: CompileTimeError
 mixin_type_parameter_inference_test/16: CompileTimeError
 mixin_type_parameter_inference_test/none: CompileTimeError
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
@@ -218,7 +219,6 @@ const_evaluation_test/01: RuntimeError
 const_init2_test/02: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 const_types_test/01: MissingCompileTimeError
@@ -468,8 +468,6 @@ sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
-wrong_number_type_arguments_test/01: MissingCompileTimeError
-wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
@@ -529,8 +527,6 @@ symbol_conflict_test: RuntimeError # Issue 23857
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
-wrong_number_type_arguments_test/01: MissingCompileTimeError
-wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $strong ]
 async_await_test/02: RuntimeError
@@ -540,6 +536,7 @@ async_star_test/02: RuntimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
+closure_type_arguments_test: Crash # Issue 34272
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
@@ -555,7 +552,6 @@ const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map4_test: RuntimeError
-const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 constructor12_test: RuntimeError
@@ -655,6 +651,7 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_method_override_test/G5: Skip # Issue 34354
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_test: CompileTimeError

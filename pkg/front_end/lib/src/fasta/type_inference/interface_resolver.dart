@@ -129,7 +129,7 @@ class AccessorInferenceNode extends InferenceNode {
     var kind = declaredMethod.kind;
     var overriddenTypes = _computeAccessorOverriddenTypes();
     if (isCircular) {
-      _library.addCompileTimeError(
+      _library.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(_name),
           _offset,
           noLength,
@@ -704,7 +704,7 @@ class InterfaceResolver {
         first = type;
       } else if (first != type) {
         // Types don't match.  Report an error.
-        library.addCompileTimeError(
+        library.addProblem(
             templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
             charOffset,
             noLength,

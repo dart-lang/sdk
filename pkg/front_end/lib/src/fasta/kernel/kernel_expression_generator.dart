@@ -75,7 +75,6 @@ import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
 import 'kernel_ast_api.dart'
     show
-        ArgumentsJudgment,
         ComplexAssignmentJudgment,
         Constructor,
         DartType,
@@ -142,8 +141,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(Expression value,
-      {bool voidContext: false, int offset: -1}) {
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
     var complexAssignment = startComplexAssignment(value);
     return _finish(_makeSimpleWrite(value, voidContext, complexAssignment),
         complexAssignment);
@@ -200,8 +198,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildCompoundAssignment(binaryOperator,
-        forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
+    return buildCompoundAssignment(
+        binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
         offset: offset,
         voidContext: voidContext,
         interfaceTarget: interfaceTarget,
@@ -214,8 +212,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildCompoundAssignment(binaryOperator,
-          forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
+      return buildCompoundAssignment(
+          binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
           offset: offset,
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,
@@ -242,7 +240,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
     return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
-        forest.argumentsEmpty(noLocation, noLocation),
+        forest.argumentsEmpty(noLocation),
         offsetForToken(token),
         isGetter: true));
   }
@@ -252,7 +250,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
     return buildInvalidWriteJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
-        forest.arguments(<Expression>[value], noLocation, noLocation),
+        forest.arguments(<Expression>[value], noLocation),
         offsetForToken(token),
         isSetter: true));
   }
@@ -502,8 +500,7 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(null, rhs,
-          isSyntheticLhs: token.isSynthetic);
+      new PropertyAssignmentJudgment(null, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -659,7 +656,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   Expression doInvocation(int offset, Arguments arguments) {
     if (helper.constantContext != ConstantContext.none) {
       // TODO(brianwilkerson) Fix the length
-      helper.addCompileTimeError(messageNotAConstantExpression, offset, 1);
+      helper.addProblem(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
       return helper.buildMethodInvocation(
@@ -693,10 +690,6 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
 
 class KernelIndexedAccessGenerator extends KernelGenerator
     with IndexedAccessGenerator {
-  final Token openSquareBracket;
-
-  final Token closeSquareBracket;
-
   final Expression receiver;
 
   final Expression index;
@@ -709,15 +702,9 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   VariableDeclaration indexVariable;
 
-  KernelIndexedAccessGenerator.internal(
-      ExpressionGeneratorHelper helper,
-      this.openSquareBracket,
-      this.closeSquareBracket,
-      this.receiver,
-      this.index,
-      this.getter,
-      this.setter)
-      : super(helper, openSquareBracket);
+  KernelIndexedAccessGenerator.internal(ExpressionGeneratorHelper helper,
+      Token token, this.receiver, this.index, this.getter, this.setter)
+      : super(helper, token);
 
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -734,11 +721,8 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleRead() {
-    var read = new MethodInvocationJudgment(
-        receiver,
-        indexGetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index], openSquareBracket, closeSquareBracket)),
+    var read = new MethodInvocationJudgment(receiver, indexGetName,
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     return read;
@@ -751,8 +735,8 @@ class KernelIndexedAccessGenerator extends KernelGenerator
     var write = new MethodInvocationJudgment(
         receiver,
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index, value], openSquareBracket, closeSquareBracket)),
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -764,8 +748,8 @@ class KernelIndexedAccessGenerator extends KernelGenerator
     var read = new MethodInvocationJudgment(
         receiverAccess(),
         indexGetName,
-        forest.castArguments(forest.arguments(<Expression>[indexAccess()],
-            openSquareBracket, closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -779,10 +763,8 @@ class KernelIndexedAccessGenerator extends KernelGenerator
     var write = new MethodInvocationJudgment(
         receiverAccess(),
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[indexAccess(), value],
-            openSquareBracket,
-            closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -801,8 +783,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
         indexSetName,
         forest.castArguments(forest.arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)],
-            openSquareBracket,
-            closeSquareBracket)),
+            token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -854,10 +835,6 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
 class KernelThisIndexedAccessGenerator extends KernelGenerator
     with ThisIndexedAccessGenerator {
-  final Token openSquareBracket;
-
-  final Token closeSquareBracket;
-
   final Expression index;
 
   final Procedure getter;
@@ -866,14 +843,9 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   VariableDeclaration indexVariable;
 
-  KernelThisIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      this.openSquareBracket,
-      this.closeSquareBracket,
-      this.index,
-      this.getter,
-      this.setter)
-      : super(helper, openSquareBracket);
+  KernelThisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, this.index, this.getter, this.setter)
+      : super(helper, token);
 
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -888,8 +860,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
         indexSetName,
         forest.castArguments(forest.arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)],
-            openSquareBracket,
-            closeSquareBracket)),
+            token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -903,8 +874,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
     return new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexGetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index], openSquareBracket, closeSquareBracket)),
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
   }
@@ -916,8 +886,8 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
     var write = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index, value], openSquareBracket, closeSquareBracket)),
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -929,8 +899,8 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
     var read = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexGetName,
-        forest.castArguments(forest.arguments(<Expression>[indexAccess()],
-            openSquareBracket, closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -944,10 +914,8 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
     var write = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[indexAccess(), value],
-            openSquareBracket,
-            closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -987,10 +955,6 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
 class KernelSuperIndexedAccessGenerator extends KernelGenerator
     with SuperIndexedAccessGenerator {
-  final Token openSquareBracket;
-
-  final Token closeSquareBracket;
-
   final Expression index;
 
   final Member getter;
@@ -999,14 +963,9 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
 
   VariableDeclaration indexVariable;
 
-  KernelSuperIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      this.openSquareBracket,
-      this.closeSquareBracket,
-      this.index,
-      this.getter,
-      this.setter)
-      : super(helper, openSquareBracket);
+  KernelSuperIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, this.index, this.getter, this.setter)
+      : super(helper, token);
 
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -1024,8 +983,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
         indexSetName,
         forest.castArguments(forest.arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)],
-            openSquareBracket,
-            closeSquareBracket)),
+            token)),
         setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -1041,10 +999,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
           isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new SuperMethodInvocationJudgment(
-        indexGetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index], openSquareBracket, closeSquareBracket)),
+    return new SuperMethodInvocationJudgment(indexGetName,
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
   }
@@ -1059,8 +1015,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
     }
     var write = new SuperMethodInvocation(
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[index, value], openSquareBracket, closeSquareBracket)),
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
         setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -1075,8 +1031,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
     }
     var read = new SuperMethodInvocation(
         indexGetName,
-        forest.castArguments(forest.arguments(<Expression>[indexAccess()],
-            openSquareBracket, closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
         getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -1093,10 +1049,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
     }
     var write = new SuperMethodInvocation(
         indexSetName,
-        forest.castArguments(forest.arguments(
-            <Expression>[indexAccess(), value],
-            openSquareBracket,
-            closeSquareBracket)),
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
         setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -1149,9 +1103,6 @@ class KernelStaticAccessGenerator extends KernelGenerator
         super(helper, token);
 
   @override
-  Node get fieldInitializerTarget => readTarget;
-
-  @override
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   @override
@@ -1191,14 +1142,16 @@ class KernelStaticAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression doInvocation(int offset, ArgumentsJudgment arguments) {
+  Expression doInvocation(int offset, Arguments arguments) {
     Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      error = helper.buildCompileTimeError(
-          templateNotConstantExpression.withArguments('Method invocation'),
-          offset,
-          readTarget?.name?.name?.length ?? 0);
+      error = helper
+          .buildProblem(
+              templateNotConstantExpression.withArguments('Method invocation'),
+              offset,
+              readTarget?.name?.name?.length ?? 0)
+          .desugared /* TODO(ahe): Remove `.desugared`? */;
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
@@ -1321,51 +1274,32 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
   @override
   Expression get expression {
     if (super.expression == null) {
-      super.expression = computeExpression();
+      int offset = offsetForToken(token);
+      if (declaration is KernelInvalidTypeBuilder) {
+        KernelInvalidTypeBuilder declaration = this.declaration;
+        helper.addProblemErrorIfConst(
+            declaration.message.messageObject, offset, token.length);
+        super.expression = new SyntheticExpressionJudgment(
+            new Throw(forest.literalString(declaration.message.message, token))
+              ..fileOffset = offset);
+      } else {
+        super.expression = forest.literalType(
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            token);
+      }
     }
     return super.expression;
   }
 
-  Expression computeExpression({bool silent: false}) {
-    int offset = offsetForToken(token);
-    if (declaration is KernelInvalidTypeBuilder) {
-      KernelInvalidTypeBuilder declaration = this.declaration;
-      if (!silent) {
-        helper.addProblemErrorIfConst(
-            declaration.message.messageObject, offset, token.length);
-      }
-      return new UnresolvedVariableGetJudgment(
-          new Throw(forest.literalString(declaration.message.message, token))
-            ..fileOffset = offset,
-          token.isSynthetic)
-        ..fileOffset = offset;
-    } else {
-      return forest.literalType(
-          buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
-          token);
-    }
-  }
-
-  @override
-  Node get fieldInitializerTarget =>
-      declaration.hasTarget ? declaration.target : null;
-
   @override
   Expression makeInvalidWrite(Expression value) {
-    var read = computeExpression(silent: true);
-    // The read needs to have a parent so that type inference can be applied to
-    // it, but it doesn't mater what the parent is because the final read won't
-    // appear in the tree.  So just give it a quick and dirty parent.
-    new VariableDeclaration.forValue(read);
-
-    var throwExpr = helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
-        forest.arguments(<Expression>[value], noLocation, noLocation)
+        forest.arguments(<Expression>[value], null)
           ..fileOffset = value.fileOffset,
         offsetForToken(token),
-        isSetter: true);
-    return new SyntheticExpressionJudgment(throwExpr, original: read);
+        isSetter: true));
   }
 
   @override
@@ -1495,30 +1429,23 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeSimpleRead() {
-    return _buildErrorIntLiteral();
-  }
+  Expression _makeSimpleRead() => new SyntheticExpressionJudgment(buildError());
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return _buildErrorIntLiteral();
+    return new SyntheticExpressionJudgment(buildError());
   }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return _buildErrorIntLiteral();
+    return new SyntheticExpressionJudgment(buildError());
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return _buildErrorIntLiteral();
-  }
-
-  Expression _buildErrorIntLiteral() {
-    var error = buildError();
-    return forest.literalInt(0, token, desugaredError: error);
+    return new SyntheticExpressionJudgment(buildError());
   }
 }
 
@@ -1532,8 +1459,7 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value,
-      {bool voidContext: false, int offset: -1}) {
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
     return _buildUnresolvedVariableAssignment(false, value);
   }
 
@@ -1549,8 +1475,7 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
 
   @override
   Expression buildSimpleRead() {
-    Expression error =
-        buildError(forest.argumentsEmpty(token, token), isGetter: true);
+    Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
     return new UnresolvedVariableGetJudgment(error, token.isSynthetic)
       ..fileOffset = token.charOffset;
   }
@@ -1574,12 +1499,10 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
     return new UnresolvedVariableAssignmentJudgment(
-        buildError(forest.arguments(<Expression>[value], token, token),
-            isSetter: true),
-        isCompound,
-        value,
-        token.isSynthetic)
-      ..fileOffset = token.charOffset;
+      buildError(forest.arguments(<Expression>[value], token), isSetter: true),
+      isCompound,
+      value,
+    )..fileOffset = token.charOffset;
   }
 }
 
@@ -1599,8 +1522,7 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value,
-      {bool voidContext, int offset: -1}) {
+  Expression buildAssignment(Expression value, {bool voidContext}) {
     return new PropertySet(receiver, name, value)
       ..fileOffset = offsetForToken(token);
   }
@@ -1705,9 +1627,9 @@ Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
   return new MethodInvocationJudgment(
       left,
       operator,
-      helper.forest.castArguments(
-          helper.forest.arguments(<Expression>[right], noLocation, noLocation))
-        ..fileOffset = offset,
+      helper.forest
+          .castArguments(helper.forest.arguments(<Expression>[right], null))
+            ..fileOffset = offset,
       interfaceTarget: interfaceTarget)
     ..fileOffset = offset;
 }

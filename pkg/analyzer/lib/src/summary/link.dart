@@ -112,31 +112,11 @@ Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable,
-    bool strong) {
-  // TODO(brianwilkerson) Remove the parameter 'strong'.
+    GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  relink(linkedLibraries, getDependency, getUnit, strong);
+  _relink(linkedLibraries, getDependency, getUnit);
   return linkedLibraries;
-}
-
-/**
- * Given [libraries] (a map from URI to [LinkedLibraryBuilder]
- * containing correct prelinked information), rebuild linked
- * information, using [getDependency] to fetch the [LinkedLibrary]
- * objects from other build units, and [getUnit] to fetch the
- * [UnlinkedUnit] objects from both this build unit and other build
- * units.
- *
- * The [strong] flag controls whether type inference is performed in strong
- * mode or spec mode.  Note that in spec mode, the only types that are inferred
- * are the types of initializing formals, which are inferred from the types of
- * the corresponding fields.
- */
-void relink(Map<String, LinkedLibraryBuilder> libraries,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
-  new Linker(libraries, getDependency, getUnit, strong).link();
 }
 
 /**
@@ -275,6 +255,24 @@ DartType _dynamicIfNull(DartType type) {
     return DynamicTypeImpl.instance;
   }
   return type;
+}
+
+/**
+ * Given [libraries] (a map from URI to [LinkedLibraryBuilder]
+ * containing correct prelinked information), rebuild linked
+ * information, using [getDependency] to fetch the [LinkedLibrary]
+ * objects from other build units, and [getUnit] to fetch the
+ * [UnlinkedUnit] objects from both this build unit and other build
+ * units.
+ *
+ * The [strong] flag controls whether type inference is performed in strong
+ * mode or spec mode.  Note that in spec mode, the only types that are inferred
+ * are the types of initializing formals, which are inferred from the types of
+ * the corresponding fields.
+ */
+void _relink(Map<String, LinkedLibraryBuilder> libraries,
+    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
+  new Linker(libraries, getDependency, getUnit).link();
 }
 
 /**
@@ -554,6 +552,9 @@ class ClassElementForLink_Class extends ClassElementForLink
    */
   final UnlinkedClass _unlinkedClass;
 
+  @override
+  final bool isMixin;
+
   List<ConstructorElementForLink> _constructors;
   ConstructorElementForLink _unnamedConstructor;
   bool _unnamedConstructorComputed = false;
@@ -565,8 +566,8 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<InterfaceType> _interfaces;
   List<PropertyAccessorElementForLink> _accessors;
 
-  ClassElementForLink_Class(
-      CompilationUnitElementForLink enclosingElement, this._unlinkedClass)
+  ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
+      this._unlinkedClass, this.isMixin)
       : super(enclosingElement);
 
   @override
@@ -1003,6 +1004,7 @@ abstract class CompilationUnitElementForLink
    */
   final String _absoluteUri;
 
+  List<ClassElementForLink_Class> _mixins;
   List<ClassElementForLink_Class> _types;
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
@@ -1132,6 +1134,17 @@ abstract class CompilationUnitElementForLink
   LibraryElementForLink get library => enclosingElement;
 
   @override
+  List<ClassElementForLink_Class> get mixins {
+    if (_mixins == null) {
+      _mixins = <ClassElementForLink_Class>[];
+      for (UnlinkedClass unlinkedClass in _unlinkedUnit.mixins) {
+        _mixins.add(new ClassElementForLink_Class(this, unlinkedClass, true));
+      }
+    }
+    return _mixins;
+  }
+
+  @override
   ResynthesizerContext get resynthesizerContext => this;
 
   @override
@@ -1151,7 +1164,7 @@ abstract class CompilationUnitElementForLink
     if (_types == null) {
       _types = <ClassElementForLink_Class>[];
       for (UnlinkedClass unlinkedClass in _unlinkedUnit.classes) {
-        _types.add(new ClassElementForLink_Class(this, unlinkedClass));
+        _types.add(new ClassElementForLink_Class(this, unlinkedClass, false));
       }
     }
     return _types;
@@ -3659,7 +3672,7 @@ class Linker {
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, bool _) {
+      this.getUnit) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries

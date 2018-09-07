@@ -201,19 +201,18 @@ Bytecode {
   Push                 r1
   Push                 FP[-5]
   StoreContextVar      0
-  Allocate             CP#38
+  Allocate             CP#41
   StoreLocal           r4
   Push                 r4
-  Push                 r1
-  LoadContextVar       0
-  LoadTypeArgumentsField CP#17
-  StoreFieldTOS        CP#39
+  Push                 FP[-5]
+  LoadTypeArgumentsField CP#20
+  StoreFieldTOS        CP#42
   Push                 r4
   Push                 r0
-  StoreFieldTOS        CP#3
+  StoreFieldTOS        CP#6
   Push                 r4
-  PushConstant         CP#41
-  StoreFieldTOS        CP#42
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
   Push                 r4
   PushConstant         CP#0
   StoreFieldTOS        CP#44
@@ -229,57 +228,57 @@ Bytecode {
   Push                 r3
   InstanceCall         2, CP#57
   Drop1
-  PushConstant         CP#18
+  PushConstant         CP#21
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction nested1 <T5 extends dart.core::Object = dynamic, T6 extends dart.core::Object = dynamic>() → void;
   [1] = InstanceField dart.core::_Closure::_context
   [2] = Reserved
-  [3] = InstanceField dart.core::_Closure::_function_type_arguments
+  [3] = InstanceField dart.core::_Closure::_delayed_type_arguments
   [4] = Reserved
-  [5] = Int 2
-  [6] = Int 4
-  [7] = ArgDesc num-args 4, num-type-args 0, names []
-  [8] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#7
-  [9] = ClosureFunction nested2 <T7 extends dart.core::Object = dynamic, T8 extends dart.core::Object = dynamic>() → void;
-  [10] = Int 6
-  [11] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#7
-  [12] = ClosureFunction <anonymous closure> () → dart.core::Null;
-  [13] = TypeArgs [dart.core::Type]
-  [14] = Int 8
-  [15] = Int 0
-  [16] = Type #lib::A::T1
-  [17] = TypeArgumentsField #lib::A
-  [18] = Null
-  [19] = Int 1
-  [20] = Type #lib::A::T2
-  [21] = Type #lib::A::foo::T3
-  [22] = Int 3
-  [23] = Type #lib::A::foo::T4
-  [24] = Type T5
-  [25] = Int 5
-  [26] = Type T6
-  [27] = Type T7
-  [28] = Int 7
-  [29] = Type T8
-  [30] = ArgDesc num-args 2, num-type-args 0, names []
-  [31] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#30
-  [32] = ArgDesc num-args 1, num-type-args 0, names []
-  [33] = StaticICData target 'dart.core::print', arg-desc CP#32
-  [34] = TypeArgs [#lib::A::T1, #lib::A::T2, #lib::A::foo::T3, #lib::A::foo::T4, T5, T6, T7, T8]
-  [35] = ArgDesc num-args 0, num-type-args 8, names []
-  [36] = StaticICData target '#lib::callWithArgs', arg-desc CP#35
-  [37] = EndClosureFunctionScope
-  [38] = Class dart.core::_Closure
-  [39] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [40] = Reserved
-  [41] = EmptyTypeArguments
-  [42] = InstanceField dart.core::_Closure::_delayed_type_arguments
+  [5] = EmptyTypeArguments
+  [6] = InstanceField dart.core::_Closure::_function_type_arguments
+  [7] = Reserved
+  [8] = Int 2
+  [9] = Int 4
+  [10] = ArgDesc num-args 4, num-type-args 0, names []
+  [11] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#10
+  [12] = ClosureFunction nested2 <T7 extends dart.core::Object = dynamic, T8 extends dart.core::Object = dynamic>() → void;
+  [13] = Int 6
+  [14] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#10
+  [15] = ClosureFunction <anonymous closure> () → dart.core::Null;
+  [16] = TypeArgs [dart.core::Type]
+  [17] = Int 8
+  [18] = Int 0
+  [19] = Type #lib::A::T1
+  [20] = TypeArgumentsField #lib::A
+  [21] = Null
+  [22] = Int 1
+  [23] = Type #lib::A::T2
+  [24] = Type #lib::A::foo::T3
+  [25] = Int 3
+  [26] = Type #lib::A::foo::T4
+  [27] = Type T5
+  [28] = Int 5
+  [29] = Type T6
+  [30] = Type T7
+  [31] = Int 7
+  [32] = Type T8
+  [33] = ArgDesc num-args 2, num-type-args 0, names []
+  [34] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#33
+  [35] = ArgDesc num-args 1, num-type-args 0, names []
+  [36] = StaticICData target 'dart.core::print', arg-desc CP#35
+  [37] = TypeArgs [#lib::A::T1, #lib::A::T2, #lib::A::foo::T3, #lib::A::foo::T4, T5, T6, T7, T8]
+  [38] = ArgDesc num-args 0, num-type-args 8, names []
+  [39] = StaticICData target '#lib::callWithArgs', arg-desc CP#38
+  [40] = EndClosureFunctionScope
+  [41] = Class dart.core::_Closure
+  [42] = InstanceField dart.core::_Closure::_instantiator_type_arguments
   [43] = Reserved
   [44] = InstanceField dart.core::_Closure::_function
   [45] = Reserved
-  [46] = ICData target-name 'call', arg-desc CP#32
+  [46] = ICData target-name 'call', arg-desc CP#35
   [47] = EndClosureFunctionScope
   [48] = TypeArgs [#lib::C7, #lib::C8]
   [49] = ArgDesc num-args 1, num-type-args 2, names []
@@ -292,121 +291,131 @@ ConstantPool {
   [56] = TypeArgs [dart.core::List<#lib::C5>, dart.core::List<#lib::C6>]
   [57] = ICData target-name 'call', arg-desc CP#49
 }
-Closure CP#12 {
+Closure CP#15 {
   EntryFixed           1, 4
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
   Push                 FP[-5]
-  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#6
   PopLocal             r0
-  PushConstant         CP#13
+  PushConstant         CP#16
   StoreLocal           r3
   Push                 r3
-  PushConstant         CP#14
+  PushConstant         CP#17
   CreateArrayTOS
   StoreLocal           r3
   Push                 r3
-  PushConstant         CP#15
+  PushConstant         CP#18
   Push                 r1
   LoadContextVar       0
-  LoadTypeArgumentsField CP#17
-  PushConstant         CP#18
-  InstantiateType      CP#16
-  StoreIndexedTOS
-  Push                 r3
-  PushConstant         CP#19
-  Push                 r1
-  LoadContextVar       0
-  LoadTypeArgumentsField CP#17
-  PushConstant         CP#18
-  InstantiateType      CP#20
-  StoreIndexedTOS
-  Push                 r3
-  PushConstant         CP#5
-  PushConstant         CP#18
-  Push                 r0
-  InstantiateType      CP#21
+  LoadTypeArgumentsField CP#20
+  PushConstant         CP#21
+  InstantiateType      CP#19
   StoreIndexedTOS
   Push                 r3
   PushConstant         CP#22
-  PushConstant         CP#18
-  Push                 r0
+  Push                 r1
+  LoadContextVar       0
+  LoadTypeArgumentsField CP#20
+  PushConstant         CP#21
   InstantiateType      CP#23
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#6
-  PushConstant         CP#18
+  PushConstant         CP#8
+  PushConstant         CP#21
   Push                 r0
   InstantiateType      CP#24
   StoreIndexedTOS
   Push                 r3
   PushConstant         CP#25
-  PushConstant         CP#18
+  PushConstant         CP#21
   Push                 r0
   InstantiateType      CP#26
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#10
-  PushConstant         CP#18
+  PushConstant         CP#9
+  PushConstant         CP#21
   Push                 r0
   InstantiateType      CP#27
   StoreIndexedTOS
   Push                 r3
   PushConstant         CP#28
-  PushConstant         CP#18
+  PushConstant         CP#21
   Push                 r0
   InstantiateType      CP#29
   StoreIndexedTOS
-  PushConstant         CP#31
-  IndirectStaticCall   2, CP#30
-  PushConstant         CP#33
-  IndirectStaticCall   1, CP#32
-  Drop1
-  Push                 r1
-  LoadContextVar       0
-  LoadTypeArgumentsField CP#17
+  Push                 r3
+  PushConstant         CP#13
+  PushConstant         CP#21
   Push                 r0
-  InstantiateTypeArgumentsTOS 0, CP#34
+  InstantiateType      CP#30
+  StoreIndexedTOS
+  Push                 r3
+  PushConstant         CP#31
+  PushConstant         CP#21
+  Push                 r0
+  InstantiateType      CP#32
+  StoreIndexedTOS
+  PushConstant         CP#34
+  IndirectStaticCall   2, CP#33
   PushConstant         CP#36
   IndirectStaticCall   1, CP#35
   Drop1
-  PushConstant         CP#18
+  Push                 r1
+  LoadContextVar       0
+  LoadTypeArgumentsField CP#20
+  Push                 r0
+  InstantiateTypeArgumentsTOS 0, CP#37
+  PushConstant         CP#39
+  IndirectStaticCall   1, CP#38
+  Drop1
+  PushConstant         CP#21
   ReturnTOS
 
 }
 
-Closure CP#9 {
+Closure CP#12 {
   EntryFixed           1, 5
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckFunctionTypeArgs 2, 0
-  Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#3
-  PushConstant         CP#6
-  PushConstant         CP#10
-  PushConstant         CP#11
-  IndirectStaticCall   4, CP#7
+  StoreLocal           r0
+  PushConstant         CP#5
+  IfEqStrictTOS
+  Jump                 L1
+  CheckFunctionTypeArgs 0, 2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 2, 0
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#6
+  PushConstant         CP#9
+  PushConstant         CP#13
+  PushConstant         CP#14
+  IndirectStaticCall   4, CP#10
   PopLocal             r0
-  Allocate             CP#38
+  Allocate             CP#41
   StoreLocal           r4
   Push                 r4
   Push                 r1
   LoadContextVar       0
-  LoadTypeArgumentsField CP#17
-  StoreFieldTOS        CP#39
-  Push                 r4
-  Push                 r0
-  StoreFieldTOS        CP#3
-  Push                 r4
-  PushConstant         CP#41
+  LoadTypeArgumentsField CP#20
   StoreFieldTOS        CP#42
   Push                 r4
-  PushConstant         CP#12
+  Push                 r0
+  StoreFieldTOS        CP#6
+  Push                 r4
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
+  Push                 r4
+  PushConstant         CP#15
   StoreFieldTOS        CP#44
   Push                 r4
   Push                 r1
@@ -415,7 +424,7 @@ Closure CP#9 {
   Push                 r3
   InstanceCall         1, CP#46
   Drop1
-  PushConstant         CP#18
+  PushConstant         CP#21
   ReturnTOS
 
 }
@@ -426,30 +435,40 @@ Closure CP#0 {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckFunctionTypeArgs 2, 0
-  Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#3
+  StoreLocal           r0
   PushConstant         CP#5
-  PushConstant         CP#6
+  IfEqStrictTOS
+  Jump                 L1
+  CheckFunctionTypeArgs 0, 2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 2, 0
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#6
   PushConstant         CP#8
-  IndirectStaticCall   4, CP#7
+  PushConstant         CP#9
+  PushConstant         CP#11
+  IndirectStaticCall   4, CP#10
   PopLocal             r0
-  Allocate             CP#38
+  Allocate             CP#41
   StoreLocal           r4
   Push                 r4
   Push                 r1
   LoadContextVar       0
-  LoadTypeArgumentsField CP#17
-  StoreFieldTOS        CP#39
-  Push                 r4
-  Push                 r0
-  StoreFieldTOS        CP#3
-  Push                 r4
-  PushConstant         CP#41
+  LoadTypeArgumentsField CP#20
   StoreFieldTOS        CP#42
   Push                 r4
-  PushConstant         CP#9
+  Push                 r0
+  StoreFieldTOS        CP#6
+  Push                 r4
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
+  Push                 r4
+  PushConstant         CP#12
   StoreFieldTOS        CP#44
   Push                 r4
   Push                 r1
@@ -463,7 +482,7 @@ Closure CP#0 {
   Push                 r3
   InstanceCall         2, CP#52
   Drop1
-  PushConstant         CP#18
+  PushConstant         CP#21
   ReturnTOS
 
 }
@@ -1474,19 +1493,19 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                6
+  Entry                7
   CheckStack
-  Allocate             CP#14
+  Allocate             CP#17
   StoreLocal           r3
   Push                 r3
-  PushConstant         CP#9
-  StoreFieldTOS        CP#15
-  Push                 r3
-  PushConstant         CP#9
-  StoreFieldTOS        CP#3
-  Push                 r3
-  PushConstant         CP#17
+  PushConstant         CP#12
   StoreFieldTOS        CP#18
+  Push                 r3
+  PushConstant         CP#12
+  StoreFieldTOS        CP#6
+  Push                 r3
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
   Push                 r3
   PushConstant         CP#0
   StoreFieldTOS        CP#20
@@ -1495,19 +1514,24 @@ Bytecode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  PopLocal             r3
-  Allocate             CP#14
-  StoreLocal           r5
+  StoreLocal           r3
   PushConstant         CP#22
+  StoreLocal           r6
+  PushConstant         CP#24
+  IndirectStaticCall   2, CP#23
+  Drop1
+  Allocate             CP#17
+  StoreLocal           r5
+  Push                 r6
+  StoreFieldTOS        CP#3
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#18
   StoreFieldTOS        CP#18
   Push                 r5
   Push                 r3
-  LoadFieldTOS         CP#15
-  StoreFieldTOS        CP#15
-  Push                 r5
-  Push                 r3
-  LoadFieldTOS         CP#3
-  StoreFieldTOS        CP#3
+  LoadFieldTOS         CP#6
+  StoreFieldTOS        CP#6
   Push                 r5
   Push                 r3
   LoadFieldTOS         CP#20
@@ -1520,33 +1544,35 @@ Bytecode {
   PopLocal             r4
   Push                 r4
   ReturnTOS
-  PushConstant         CP#9
+  PushConstant         CP#12
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction foo <T extends dart.core::Object = dynamic>(T t) → void;
   [1] = InstanceField dart.core::_Closure::_context
   [2] = Reserved
-  [3] = InstanceField dart.core::_Closure::_function_type_arguments
+  [3] = InstanceField dart.core::_Closure::_delayed_type_arguments
   [4] = Reserved
-  [5] = Int 0
-  [6] = Int 1
-  [7] = ArgDesc num-args 4, num-type-args 0, names []
-  [8] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#7
-  [9] = Null
-  [10] = Type T
-  [11] = String 't'
-  [12] = SubtypeTestCache
-  [13] = EndClosureFunctionScope
-  [14] = Class dart.core::_Closure
-  [15] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [16] = Reserved
-  [17] = EmptyTypeArguments
-  [18] = InstanceField dart.core::_Closure::_delayed_type_arguments
+  [5] = EmptyTypeArguments
+  [6] = InstanceField dart.core::_Closure::_function_type_arguments
+  [7] = Reserved
+  [8] = Int 0
+  [9] = Int 1
+  [10] = ArgDesc num-args 4, num-type-args 0, names []
+  [11] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#10
+  [12] = Null
+  [13] = Type T
+  [14] = String 't'
+  [15] = SubtypeTestCache
+  [16] = EndClosureFunctionScope
+  [17] = Class dart.core::_Closure
+  [18] = InstanceField dart.core::_Closure::_instantiator_type_arguments
   [19] = Reserved
   [20] = InstanceField dart.core::_Closure::_function
   [21] = Reserved
   [22] = TypeArgs [dart.core::int]
+  [23] = ArgDesc num-args 2, num-type-args 0, names []
+  [24] = StaticICData target 'dart._internal::_boundsCheckForPartialInstantiation', arg-desc CP#23
 }
 Closure CP#0 {
   EntryFixed           2, 3
@@ -1554,23 +1580,33 @@ Closure CP#0 {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckFunctionTypeArgs 1, 0
-  Push                 r0
   Push                 FP[-6]
   LoadFieldTOS         CP#3
+  StoreLocal           r0
   PushConstant         CP#5
-  PushConstant         CP#6
+  IfEqStrictTOS
+  Jump                 L1
+  CheckFunctionTypeArgs 0, 2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 1, 0
+L2:
+  Push                 r0
+  Push                 FP[-6]
+  LoadFieldTOS         CP#6
   PushConstant         CP#8
-  IndirectStaticCall   4, CP#7
+  PushConstant         CP#9
+  PushConstant         CP#11
+  IndirectStaticCall   4, CP#10
   PopLocal             r0
   Push                 FP[-5]
-  PushConstant         CP#9
+  PushConstant         CP#12
   Push                 r0
-  PushConstant         CP#10
-  PushConstant         CP#11
-  AssertAssignable     0, CP#12
+  PushConstant         CP#13
+  PushConstant         CP#14
+  AssertAssignable     0, CP#15
   Drop1
-  PushConstant         CP#9
+  PushConstant         CP#12
   ReturnTOS
 
 }

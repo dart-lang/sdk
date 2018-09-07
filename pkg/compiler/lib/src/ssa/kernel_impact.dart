@@ -585,6 +585,11 @@ class KernelImpactBuilder extends ir.Visitor {
       // we need to track the type arguments.
       impactBuilder.registerStaticUse(new StaticUse.closureCall(
           localFunction, selector.callStructure, typeArguments));
+      // TODO(johnniwinther): Yet, alas, we need the dynamic use for now. Remove
+      // this when kernel adds an `isFunctionCall` flag to
+      // [ir.MethodInvocation].
+      impactBuilder.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, null, typeArguments));
     } else {
       visitNode(node.receiver);
       Object constraint;

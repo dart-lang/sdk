@@ -5,7 +5,7 @@
 main() {
   // If any method was `async`, this would have triggered the need for the
   // signature on this closure. See the 'async_local.dart' test.
-  /*kernel.*/
+
   /*strong.*/
   /*omit.*/
   local(object, stacktrace) => null;

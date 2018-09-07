@@ -15,7 +15,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
-    defineReflectiveTests(SetAnalysisRootsTest_UseCFE);
   });
 }
 
@@ -86,10 +85,4 @@ f() {}
 
     expect(found, isTrue);
   }
-}
-
-@reflectiveTest
-class SetAnalysisRootsTest_UseCFE extends SetAnalysisRootsTest {
-  @override
-  bool get useCFE => true;
 }

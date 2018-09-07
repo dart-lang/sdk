@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetDiagnosticsTest);
-    defineReflectiveTests(GetDiagnosticsTest_UseCFE);
   });
 }
 
@@ -28,10 +27,4 @@ class GetDiagnosticsTest extends AbstractAnalysisServerIntegrationTest {
     ContextData context = result.contexts.first;
     expect(context.name, isNotEmpty);
   }
-}
-
-@reflectiveTest
-class GetDiagnosticsTest_UseCFE extends GetDiagnosticsTest {
-  @override
-  bool get useCFE => true;
 }

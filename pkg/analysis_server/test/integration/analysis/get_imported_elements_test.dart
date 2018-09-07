@@ -15,7 +15,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest);
-    defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest_UseCFE);
   });
 }
 
@@ -138,11 +137,4 @@ $selection
       ]);
     }
   }
-}
-
-@reflectiveTest
-class AnalysisGetImportedElementsIntegrationTest_UseCFE
-    extends AnalysisGetImportedElementsIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

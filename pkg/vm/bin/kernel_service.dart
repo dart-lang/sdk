@@ -109,7 +109,7 @@ abstract class Compiler {
           case Severity.error:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code (issue #30194).
+            // are handled in the generated code.
             printMessage = false; // errors are printed by VM
             errors.add(message.formatted);
             break;

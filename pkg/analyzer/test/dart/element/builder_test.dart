@@ -1212,6 +1212,8 @@ main() {
 abstract class _ApiElementBuilderTestMixin {
   CompilationUnit get compilationUnit;
 
+  void set isMixinSupportEnabled(bool value);
+
   void assertHasCodeRange(Element element, int offset, int length);
 
   /**
@@ -2463,6 +2465,48 @@ class A {
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMixinDeclaration() {
+    isMixinSupportEnabled = true;
+    var holder = buildElementsForText(r'''
+/// doc
+mixin M<T, U> on A, B implements C {
+  double f;
+  int get g => 0;
+  set s(int v) {}
+  int m(int v) => 0;
+}
+''');
+    var mixins = holder.mixins;
+    expect(mixins, hasLength(1));
+    var type = mixins[0];
+    expect(type.name, 'M');
+    expect(type.isMixin, isTrue);
+    expect(type.documentationComment, '/// doc');
+    assertHasCodeRange(type, 0, 115);
+
+    List<TypeParameterElement> typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(2));
+    expect(typeParameters[0].name, 'T');
+    expect(typeParameters[1].name, 'U');
+
+    var fields = type.fields;
+    expect(fields, hasLength(3));
+    expect(fields[0].name, 'f');
+    expect(fields[1].name, 'g');
+    expect(fields[2].name, 's');
+
+    var accessors = type.accessors;
+    expect(accessors, hasLength(4));
+    expect(accessors[0].name, 'f');
+    expect(accessors[1].name, 'f=');
+    expect(accessors[2].name, 'g');
+    expect(accessors[3].name, 's=');
+
+    var methods = type.methods;
+    expect(methods, hasLength(1));
+    expect(methods[0].name, 'm');
   }
 
   void test_visitTypeAlias_minimal() {

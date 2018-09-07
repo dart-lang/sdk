@@ -4,7 +4,7 @@
 
 library fasta.kernel_formal_parameter_builder;
 
-import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import 'package:kernel/ast.dart' show VariableDeclaration;
 
 import '../modifier.dart' show finalMask;
 
@@ -15,14 +15,11 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         MetadataBuilder;
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
-  VariableDeclarationJudgment declaration;
-  final int charOffset;
-  final int codeStartOffset;
-  final int codeEndOffset;
+  VariableDeclaration declaration;
 
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
@@ -31,18 +28,13 @@ class KernelFormalParameterBuilder
       String name,
       bool hasThis,
       KernelLibraryBuilder compilationUnit,
-      this.charOffset,
-      this.codeStartOffset,
-      this.codeEndOffset)
+      int charOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  @override
-  bool get hasTarget => true;
+  VariableDeclaration get target => declaration;
 
-  VariableDeclarationJudgment get target => declaration;
-
-  VariableDeclarationJudgment build(SourceLibraryBuilder library) {
+  VariableDeclaration build(KernelLibraryBuilder library) {
     if (declaration == null) {
       declaration = new VariableDeclarationJudgment(name, 0,
           type: type?.build(library),
@@ -51,8 +43,6 @@ class KernelFormalParameterBuilder
           isFieldFormal: hasThis,
           isCovariant: isCovariant)
         ..fileOffset = charOffset;
-      library.loader.target.metadataCollector
-          ?.setCodeStartEnd(declaration, codeStartOffset, codeEndOffset);
     }
     return declaration;
   }
@@ -62,16 +52,8 @@ class KernelFormalParameterBuilder
     assert(declaration != null);
     return !hasThis
         ? this
-        : (new KernelFormalParameterBuilder(
-            metadata,
-            modifiers | finalMask,
-            type,
-            name,
-            hasThis,
-            parent,
-            charOffset,
-            codeStartOffset,
-            codeEndOffset)
+        : (new KernelFormalParameterBuilder(metadata, modifiers | finalMask,
+            type, name, hasThis, parent, charOffset)
           ..declaration = declaration);
   }
 }

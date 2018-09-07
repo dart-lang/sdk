@@ -63,9 +63,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   String get debugName => "ClassBuilder";
 
-  @override
-  bool get buildsArguments => true;
-
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
@@ -236,15 +233,10 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
             null);
   }
 
-  void addCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addCompileTimeError(message, charOffset, length, fileUri,
-        context: context);
-  }
-
   void addProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, fileUri, context: context);
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    library.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled, context: context);
   }
 
   void prepareTopLevelInference() {}

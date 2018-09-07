@@ -55,8 +55,8 @@ void main() {
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     var compiler = result.compiler;
-    var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    var closedWorld = typesInferrer.closedWorld;
+    var results = compiler.globalInference.resultsForTesting;
+    var closedWorld = results.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;
 
     ClassEntity classA =
@@ -64,14 +64,14 @@ void main() {
 
     checkReturn(String name, TypeMask type) {
       MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
-      var mask = typesInferrer.getReturnTypeOfMember(element);
+      var mask = results.resultOfMember(element).returnType;
       Expect.isTrue(type.containsMask(mask, closedWorld));
     }
 
     checkType(String name, type) {
       MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
-      Expect.isTrue(type.containsMask(
-          typesInferrer.getTypeOfMember(element), closedWorld));
+      Expect.isTrue(
+          type.containsMask(results.resultOfMember(element).type, closedWorld));
     }
 
     var intMask =

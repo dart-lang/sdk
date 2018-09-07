@@ -35,11 +35,6 @@ mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
-mirrors/reflected_type_classes_test/02: MissingCompileTimeError
-mirrors/reflected_type_classes_test/03: MissingCompileTimeError
-mirrors/reflected_type_test/02: MissingCompileTimeError
-mirrors/reflected_type_test/03: MissingCompileTimeError
-mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mint_maker_test: Timeout # Please triage.
@@ -111,9 +106,6 @@ mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, 
 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/message3_test/constList_identical: Skip # Timeout
-
-[ $mode == debug && $strong && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/variable_is_const_test/01: Crash # Issue 32326
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
@@ -225,9 +217,6 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
-[ $fasta && $strong ]
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
-
 [ $fasta && !$strong ]
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
@@ -301,7 +290,6 @@ mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/redirecting_factory_reflection_test: RuntimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ !$strong && ($compiler == dartk || $compiler == dartkb) ]

@@ -1548,12 +1548,12 @@ table PackageBundle {
    * including this one).  This can be used to identify when the API of a
    * package may have changed.
    */
-  apiSignature:string (id: 7);
+  apiSignature:string (id: 7, deprecated);
 
   /**
    * Information about the packages this package depends on, if known.
    */
-  dependencies:[PackageDependencyInfo] (id: 8);
+  dependencies:[PackageDependencyInfo] (id: 8, deprecated);
 
   /**
    * Linked libraries.
@@ -1582,7 +1582,7 @@ table PackageBundle {
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */
-  unlinkedUnitHashes:[string] (id: 4);
+  unlinkedUnitHashes:[string] (id: 4, deprecated);
 
   /**
    * Unlinked information for the compilation units constituting the package.
@@ -1875,6 +1875,13 @@ table UnlinkedClass {
    * Offset of the class name relative to the beginning of the file.
    */
   nameOffset:uint (id: 1);
+
+  /**
+   * Superclass constraints for this mixin declaration. The list will be empty
+   * if this class is not a mixin declaration, or if the declaration does not
+   * have an `on` clause (in which case the type `Object` is implied).
+   */
+  superclassConstraints:[EntityRef] (id: 14);
 
   /**
    * Supertype of the class, or `null` if either (a) the class doesn't
@@ -2820,6 +2827,11 @@ table UnlinkedUnit {
    * Offsets of the first character of each line in the source code.
    */
   lineStarts:[uint] (id: 17);
+
+  /**
+   * Mixins declared in the compilation unit.
+   */
+  mixins:[UnlinkedClass] (id: 20);
 
   /**
    * Part declarations in the compilation unit.

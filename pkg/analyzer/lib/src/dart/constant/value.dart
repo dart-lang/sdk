@@ -2243,10 +2243,10 @@ class IntState extends NumState {
       int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
-      } else if (rightValue == 0) {
-        return new DoubleState(value.toDouble() % rightValue.toDouble());
       }
-      return new IntState(value.remainder(rightValue));
+      if (rightValue != 0) {
+        return new IntState(value % rightValue);
+      }
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
@@ -2273,7 +2273,9 @@ class IntState extends NumState {
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value << rightValue);
+      if (rightValue >= 0) {
+        return new IntState(value << rightValue);
+      }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
@@ -2294,7 +2296,9 @@ class IntState extends NumState {
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value >> rightValue);
+      if (rightValue >= 0) {
+        return new IntState(value >> rightValue);
+      }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }

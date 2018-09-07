@@ -580,7 +580,7 @@ class TypeInfoTest {
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory '
-          'MemberKind.GeneralizedFunctionType int',
+          'MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
     ]);
@@ -606,7 +606,7 @@ class TypeInfoTest {
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory'
-          ' MemberKind.GeneralizedFunctionType int',
+          ' MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
     ]);
@@ -912,7 +912,7 @@ class TypeInfoTest {
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
-              'MemberKind.GeneralizedFunctionType x',
+              'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
@@ -925,7 +925,7 @@ class TypeInfoTest {
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
-              'MemberKind.GeneralizedFunctionType x',
+              'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
         ]);
@@ -1654,7 +1654,7 @@ class TypeParamOrArgInfoTest {
       'handleType T',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
-      'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType T',
+      'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
       'endTypeVariable > 0 extends',
@@ -1907,9 +1907,9 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {
-    calls.add('beginFormalParameter $beginToken $kind');
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    calls.add('beginFormalParameter $token $kind');
   }
 
   @override
@@ -1967,15 +1967,10 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     calls.add('endFormalParameter $thisKeyword $periodAfterThis '
-        '$nameToken $kind $memberKind $endToken');
+        '$nameToken $kind $memberKind');
   }
 
   @override

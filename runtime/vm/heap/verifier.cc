@@ -26,14 +26,14 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
     } else {
       switch (mark_expectation_) {
         case kForbidMarked:
-          if (raw_obj->IsMarked()) {
+          if (raw_obj->IsOldObject() && raw_obj->IsMarked()) {
             FATAL1("Marked object encountered %#" Px "\n", raw_addr);
           }
           break;
         case kAllowMarked:
           break;
         case kRequireMarked:
-          if (!raw_obj->IsMarked()) {
+          if (raw_obj->IsOldObject() && !raw_obj->IsMarked()) {
             FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
           }
           break;

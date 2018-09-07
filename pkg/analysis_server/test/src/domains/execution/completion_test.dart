@@ -14,7 +14,6 @@ import '../../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RuntimeCompletionComputerTest);
-    defineReflectiveTests(RuntimeCompletionComputerTest_UseCFE);
   });
 }
 
@@ -377,20 +376,4 @@ void main() {
     assertSuggested('a', returnType: 'int');
     assertSuggested('b', returnType: 'double');
   }
-}
-
-@reflectiveTest
-class RuntimeCompletionComputerTest_UseCFE
-    extends RuntimeCompletionComputerTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_parameters_function_nested() => super.test_parameters_function_nested();
-
-  @failingTest
-  @override
-  test_parameters_functionExpression() =>
-      super.test_parameters_functionExpression();
 }

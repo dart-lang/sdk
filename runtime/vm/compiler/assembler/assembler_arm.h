@@ -1010,7 +1010,7 @@ class Assembler : public ValueObject {
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
-  void LeaveFrame(RegList regs);
+  void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
@@ -1026,7 +1026,22 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+
+  void LeaveDartFrame();
+
+  // Leaves the frame and returns.
+  //
+  // The difference to "LeaveDartFrame(); Ret();" is that we return using
+  //
+  //   ldmia sp!, {fp, pc}
+  //
+  // instead of
+  //
+  //   ldmia sp!, {fp, lr}
+  //   blx lr
+  //
+  // This means that our return must go to ARM mode (and not thumb).
+  void LeaveDartFrameAndReturn();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set

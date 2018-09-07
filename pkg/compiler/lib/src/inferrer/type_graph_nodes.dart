@@ -445,6 +445,11 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     return count == 1;
   }
 
+  void computeIsCalledOnce() {
+    assert(_isCalledOnce == null, "isCalledOnce has already been computed.");
+    _isCalledOnce = _computeIsCalledOnce();
+  }
+
   bool get isClosurized => closurizedCount > 0;
 
   // Closurized methods never become stable to ensure that the information in
@@ -501,9 +506,6 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   void cleanup() {
-    // This node is on multiple lists so cleanup() can be called twice.
-    if (_isCalledOnce != null) return;
-    _isCalledOnce = _computeIsCalledOnce();
     _callers = null;
     super.cleanup();
   }

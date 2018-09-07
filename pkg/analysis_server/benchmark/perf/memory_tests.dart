@@ -65,7 +65,7 @@ class AnalysisServerMemoryUsageTest
    * The server is automatically started before every test.
    */
   @override
-  Future setUp({bool useCFE: false}) {
+  Future setUp() {
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
@@ -78,7 +78,7 @@ class AnalysisServerMemoryUsageTest
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: vmServicePort, cfe: useCFE).then((_) {
+    return startServer(servicesPort: vmServicePort).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

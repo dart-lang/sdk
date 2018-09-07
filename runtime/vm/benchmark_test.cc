@@ -666,6 +666,7 @@ BENCHMARK(LargeMap) {
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
+  TransitionNativeToVM transition(thread);
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;

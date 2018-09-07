@@ -27,10 +27,8 @@ import '../util/link.dart' show Link;
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
 
-  ArrayBasedScanner(bool includeComments, bool scanGenericMethodComments,
-      {int numberOfBytesHint})
-      : super(includeComments, scanGenericMethodComments,
-            numberOfBytesHint: numberOfBytesHint);
+  ArrayBasedScanner(bool includeComments, {int numberOfBytesHint})
+      : super(includeComments, numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]

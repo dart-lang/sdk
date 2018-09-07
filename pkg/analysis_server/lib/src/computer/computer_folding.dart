@@ -211,6 +211,15 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    _computer._addRegionForAnnotations(node.metadata);
+    // TODO(brianwilkerson) Define `FoldingKind.MIXIN_BODY`?
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+    return super.visitMixinDeclaration(node);
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     _computer._recordDirective(node);
     return super.visitPartDirective(node);

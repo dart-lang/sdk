@@ -35,7 +35,6 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
-  final bool hasTarget = true;
   final Typedef target;
 
   DartType thisType;
@@ -71,7 +70,6 @@ class KernelFunctionTypeAliasBuilder
       if (type.formals != null) {
         for (KernelFormalParameterBuilder formal in type.formals) {
           VariableDeclaration parameter = formal.build(libraryBuilder);
-          parameter.parent = target;
           parameter.type = freshTypeParameters.substitute(parameter.type);
           if (formal.isNamed) {
             target.namedParameters.add(parameter);
@@ -88,7 +86,7 @@ class KernelFunctionTypeAliasBuilder
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (const InvalidType() == thisType) {
-        library.addCompileTimeError(templateCyclicTypedef.withArguments(name),
+        library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
         return const DynamicType();
       }
@@ -144,7 +142,7 @@ class KernelFunctionTypeAliasBuilder
       // That should be caught and reported as a compile-time error earlier.
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(name, typeVariables.length)
+              .withArguments(typeVariables.length)
               .message,
           "buildTypeArguments",
           -1,

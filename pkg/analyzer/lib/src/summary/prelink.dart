@@ -268,6 +268,34 @@ class _Prelinker {
     importCache[definingUnitUri] = definingUnit.publicNamespace;
   }
 
+  void addClassToPrivateNamespace(int unitNum, UnlinkedClass cls) {
+    _Namespace namespace = new _Namespace();
+    cls.fields.forEach((field) {
+      if (field.isStatic && field.isConst) {
+        namespace.add(field.name,
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
+      }
+    });
+    cls.executables.forEach((executable) {
+      ReferenceKind kind = null;
+      if (executable.kind == UnlinkedExecutableKind.constructor) {
+        kind = ReferenceKind.constructor;
+      } else if (executable.kind == UnlinkedExecutableKind.functionOrMethod &&
+          executable.isStatic) {
+        kind = ReferenceKind.method;
+      } else if (executable.kind == UnlinkedExecutableKind.getter &&
+          executable.isStatic) {
+        kind = ReferenceKind.propertyAccessor;
+      }
+      if (kind != null && executable.name.isNotEmpty) {
+        namespace.add(executable.name,
+            new _Meaning(unitNum, kind, 0, executable.typeParameters.length));
+      }
+    });
+    privateNamespace.add(cls.name,
+        new _ClassMeaning(unitNum, 0, cls.typeParameters.length, namespace));
+  }
+
   /**
    * Compute the public namespace for the library whose URI is reachable from
    * [definingUnit] via [absoluteUri], by aggregating together public namespace
@@ -407,31 +435,7 @@ class _Prelinker {
    */
   void extractPrivateNames(UnlinkedUnit unit, int unitNum) {
     for (UnlinkedClass cls in unit.classes) {
-      _Namespace namespace = new _Namespace();
-      cls.fields.forEach((field) {
-        if (field.isStatic && field.isConst) {
-          namespace.add(field.name,
-              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
-        }
-      });
-      cls.executables.forEach((executable) {
-        ReferenceKind kind = null;
-        if (executable.kind == UnlinkedExecutableKind.constructor) {
-          kind = ReferenceKind.constructor;
-        } else if (executable.kind == UnlinkedExecutableKind.functionOrMethod &&
-            executable.isStatic) {
-          kind = ReferenceKind.method;
-        } else if (executable.kind == UnlinkedExecutableKind.getter &&
-            executable.isStatic) {
-          kind = ReferenceKind.propertyAccessor;
-        }
-        if (kind != null && executable.name.isNotEmpty) {
-          namespace.add(executable.name,
-              new _Meaning(unitNum, kind, 0, executable.typeParameters.length));
-        }
-      });
-      privateNamespace.add(cls.name,
-          new _ClassMeaning(unitNum, 0, cls.typeParameters.length, namespace));
+      addClassToPrivateNamespace(unitNum, cls);
     }
     for (UnlinkedEnum enm in unit.enums) {
       _Namespace namespace = new _Namespace();
@@ -454,6 +458,9 @@ class _Prelinker {
                   : ReferenceKind.topLevelPropertyAccessor,
               0,
               executable.typeParameters.length));
+    }
+    for (UnlinkedClass mixin in unit.mixins) {
+      addClassToPrivateNamespace(unitNum, mixin);
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
       ReferenceKind kind;

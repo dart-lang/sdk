@@ -12,7 +12,9 @@ class Foo extends core::Object {
 static method test() → dynamic {
   dynamic d = new self::Foo::•();
   core::int get_hashCode = d.{core::Object::hashCode};
-  dynamic call_hashCode = d.{core::Object::hashCode}();
+  dynamic call_hashCode = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
+      d. /*@target=Object::hashCode*/ hashCode();
+                                      ^" in let final dynamic #t2 = d.{core::Object::hashCode}() in null;
   core::String call_toString = d.{core::Object::toString}();
   dynamic call_toStringArg = d.toString(color: "pink");
   dynamic call_foo0 = d.foo();

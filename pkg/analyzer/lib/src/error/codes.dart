@@ -944,15 +944,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try exporting the library that the part is a part of.");
 
   /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode EXTENDS_ENUM = const CompileTimeErrorCode(
-      'EXTENDS_ENUM', "Classes can't extend an enum.",
-      correction:
-          "Try specifying a different superclass, or removing the extends clause.");
-
-  /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
    * class <i>C</i> includes a type expression that does not denote a class
    * available in the lexical scope of <i>C</i>.
@@ -1009,8 +1000,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [IMPLEMENTS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
-      const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS',
-          "This class can't extend the deferred class '{0}'.",
+      const CompileTimeErrorCode(
+          'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
@@ -1169,14 +1160,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
    *
-   * Parameters:
-   * 0: the name of the type that is deferred
-   *
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS',
-          "This class can't implement the deferred class '{0}'.",
+          "Classes and mixins can't implement deferred classes.",
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
               "changing the import to not be deferred.");
@@ -1207,30 +1195,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DISALLOWED_CLASS', "Classes can't implement '{0}'.",
+      const CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS',
+          "Classes and mixins can't implement '{0}'.",
           correction: "Try specifying a different interface, or "
               "remove the class from the list.");
-
-  /**
-   * 7.10 Superinterfaces: It is a compile-time error if the implements clause
-   * of a class includes type dynamic.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_DYNAMIC =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DYNAMIC', "Classes can't implement 'dynamic'.",
-          correction:
-              "Try specifying an interface, or remove 'dynamic' from the list.");
-
-  /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_ENUM =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_ENUM', "Classes can't implement an enum.",
-          correction:
-              "Try specifying an interface, or remove the enum from the list.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
@@ -1241,8 +1209,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 0: the name of the interface that was not found
    */
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_NON_CLASS', "Classes can only implement other classes.",
+      const CompileTimeErrorCode('IMPLEMENTS_NON_CLASS',
+          "Classes and mixins can only implement classes.",
           correction:
               "Try specifying a class, or remove the name from the list.");
 
@@ -1702,11 +1670,19 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the mixin that is invalid
    */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+  static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       const CompileTimeErrorCode(
-          'MIXIN_DECLARES_CONSTRUCTOR',
+          'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
           "constructor.");
+
+  /**
+   * The <i>mixinMember</i> production allows the same instance or static
+   * members that a class would allow, but no constructors (for now).
+   */
+  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'MIXIN_DECLARES_CONSTRUCTOR', "Mixins can't declare constructors.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if the with clause of a
@@ -1718,8 +1694,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS =
-      const CompileTimeErrorCode('MIXIN_DEFERRED_CLASS',
-          "This class can't mixin the deferred class '{0}'.",
+      const CompileTimeErrorCode(
+          'MIXIN_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
           correction: "Try changing the import to not be deferred.");
 
   /**
@@ -1799,13 +1775,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.");
 
   /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode MIXIN_OF_ENUM = const CompileTimeErrorCode(
-      'MIXIN_OF_ENUM', "Classes can't mixin an enum.");
-
-  /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not
    * denote a class or mixin available in the immediately enclosing scope.
    */
@@ -1822,6 +1791,22 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_REFERENCES_SUPER',
           "The class '{0}' can't be used as a mixin because it references "
           "'super'.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+          "Deferred classes can't be used as super-class constraints.",
+          correction: "Try changing the import to not be deferred.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS =
+      const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+          "'{0}' can't be used as a super-class constraint.");
+
+  static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS =
+      const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS',
+          "Only classes can be used as super-class constraints.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
@@ -3578,40 +3563,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
 
   /**
-   * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and
-   * <i>N</i> would be introduced into the top level scope of <i>L</i> by an
-   * import from a library whose URI begins with <i>dart:</i> and an import from
-   * a library whose URI does not begin with <i>dart:</i>:
-   * * The import from <i>dart:</i> is implicitly extended by a hide N clause.
-   * * A static warning is issued.
-   *
-   * Parameters:
-   * 0: the ambiguous name
-   * 1: the name of the dart: library in which the element is found
-   * 2: the name of the non-dart: library in which the element is found
-   */
-  static const StaticWarningCode CONFLICTING_DART_IMPORT =
-      const StaticWarningCode('CONFLICTING_DART_IMPORT',
-          "Element '{0}' from SDK library '{1}' is implicitly hidden by '{2}'.",
-          correction: "Try adding an explicit hide combinator.",
-          isStrongModeError: false);
-
-  /**
-   * 7.2 Getters: It is a static warning if a class <i>C</i> declares an
-   * instance getter named <i>v</i> and an accessible static member named
-   * <i>v</i> or <i>v=</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares static member with the same name.",
-          correction: "Try renaming either the getter or the static member.");
-
-  /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
    * an instance method named <i>n</i> and has a setter named <i>n=</i>.
    */
@@ -3632,22 +3583,6 @@ class StaticWarningCode extends ErrorCode {
           "Class '{0}' declares the setter '{1}', "
           "but also has an instance method in the same class.",
           correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a class <i>C</i> declares an
-   * instance setter named <i>v=</i> and an accessible static member named
-   * <i>v=</i> or <i>v</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares a static member with the same name.",
-          correction:
-              "Try renaming either the setter or the inherited member.");
 
   /**
    * 7.2 Getters: It is a static warning if a class declares a static getter
@@ -3811,8 +3746,7 @@ class StaticWarningCode extends ErrorCode {
           // TODO(brianwilkerson) Split this error code so that we can suggest
           // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
           // and FINAL_VARIABLE_NOT_INITIALIZED).
-          correction: "Try initializing the variable.",
-          isStrongModeError: false);
+          correction: "Try initializing the variable.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3829,8 +3763,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "The final variable '{0}' must be initialized.",
-          correction: "Try adding an initializer for the field.",
-          isStrongModeError: false);
+          correction: "Try adding an initializer for the field.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3848,8 +3781,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "The final variables '{0}' and '{1}' must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3868,8 +3800,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "The final variables '{0}', '{1}' and '{2}' more must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements
@@ -3893,8 +3824,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
           "The imported libraries '{0}' and '{1}' can't have the same name '{2}'.",
-          correction: "Try adding a hide clause to one of the imports.",
-          isStrongModeError: false);
+          correction: "Try adding a hide clause to one of the imports.");
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
@@ -4233,8 +4163,7 @@ class StaticWarningCode extends ErrorCode {
           'MISMATCHED_GETTER_AND_SETTER_TYPES',
           "The parameter type for setter '{0}' is '{1}' which isn't assignable "
           "to its getter (of type '{2}').",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
+          correction: "Try changing the types so that they are compatible.");
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i>
@@ -4247,8 +4176,7 @@ class StaticWarningCode extends ErrorCode {
           'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE',
           "The parameter type for setter '{0}' is '{1}' which isn't assignable "
           "to its getter (of type '{2}'), from superclass '{3}'.",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
+          correction: "Try changing the types so that they are compatible.");
 
   /**
    * 17.9 Switch: It is a static warning if all of the following conditions
@@ -4267,8 +4195,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
-              "adding a default clause.",
-          isStrongModeError: false);
+              "adding a default clause.");
 
   /**
    * 13.12 Return: It is a static warning if a function contains both one or
@@ -4281,8 +4208,7 @@ class StaticWarningCode extends ErrorCode {
       // TODO(brianwilkerson) Split this error code depending on whether the
       // function declares a return type.
       correction: "Try making all the return statements consistent "
-          "(either include a value or not).",
-      isStrongModeError: false);
+          "(either include a value or not).");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
@@ -4515,8 +4441,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR =
       const StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR',
           "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.",
-          isStrongModeError: false);
+          correction: "Try changing the return type to 'void'.");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type
@@ -4526,8 +4451,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('NON_VOID_RETURN_FOR_SETTER',
           "The return type of the setter must be 'void' or absent.",
           correction: "Try removing the return type, or "
-              "define a method rather than a setter.",
-          isStrongModeError: false);
+              "define a method rather than a setter.");
 
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff:
@@ -4639,7 +4563,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode RETURN_WITHOUT_VALUE = const StaticWarningCode(
       'RETURN_WITHOUT_VALUE', "Missing return value after 'return'.",
-      correction: null, isStrongModeError: false);
+      correction: null);
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -4875,21 +4799,13 @@ class StaticWarningCode extends ErrorCode {
           ' and variables which, in rare cases, may be void as well.');
 
   /**
-   * A flag indicating whether this warning is an error when running with strong
-   * mode enabled.
-   */
-  final bool isStrongModeError;
-
-  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction,
-      this.isStrongModeError = true,
-      bool isUnresolvedIdentifier: false})
+      {String correction, bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);

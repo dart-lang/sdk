@@ -14,7 +14,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamingConventionsTest);
-    defineReflectiveTests(NamingConventionsTest_UseCFE);
   });
 }
 
@@ -759,10 +758,4 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
         expectedMessage: 'Avoid using built-in identifiers as names.');
   }
-}
-
-@reflectiveTest
-class NamingConventionsTest_UseCFE extends NamingConventionsTest {
-  @override
-  bool get useCFE => true;
 }

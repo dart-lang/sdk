@@ -219,11 +219,7 @@ EOF
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart linked_summarize hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart prelinked_summarize hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart unlinked_summarize hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart unlinked_summarize_from_sources hello.dart
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     cd ..
     rm -rf tmp
@@ -399,11 +395,7 @@ EOF
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart linked_summarize hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart prelinked_summarize hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart unlinked_summarize hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart unlinked_summarize_from_sources hello.dart
     out/ReleaseX64/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold
     out/ReleaseX64/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json

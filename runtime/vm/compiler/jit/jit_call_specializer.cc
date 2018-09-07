@@ -50,6 +50,20 @@ bool JitCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   return false;
 }
 
+void JitCallSpecializer::ReplaceWithStaticCall(InstanceCallInstr* instr,
+                                               const ICData& unary_checks,
+                                               const Function& target) {
+  StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
+  if (unary_checks.NumberOfChecks() == 1 &&
+      unary_checks.GetExactnessAt(0).IsExact()) {
+    if (unary_checks.GetExactnessAt(0).IsTriviallyExact()) {
+      flow_graph()->AddExactnessGuard(instr, unary_checks.GetCidAt(0));
+    }
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+  instr->ReplaceWith(call, current_iterator());
+}
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
@@ -134,8 +148,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     if (flow_graph()->CheckForInstanceCall(instr, target.kind()) ==
         FlowGraph::ToCheck::kNoCheck) {
-      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
-      instr->ReplaceWith(call, current_iterator());
+      ReplaceWithStaticCall(instr, unary_checks, target);
       return;
     }
   }
@@ -160,8 +173,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Call can still deoptimize, do not detach environment from instr.
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
-    instr->ReplaceWith(call, current_iterator());
+    ReplaceWithStaticCall(instr, unary_checks, target);
   } else {
     PolymorphicInstanceCallInstr* call =
         new (Z) PolymorphicInstanceCallInstr(instr, targets,
@@ -199,7 +211,7 @@ void JitCallSpecializer::VisitStoreInstanceField(
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
         Compiler::AbortBackgroundCompilation(
-            Thread::kNoDeoptId, "Unboxing instance field while compiling");
+            DeoptId::kNone, "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {

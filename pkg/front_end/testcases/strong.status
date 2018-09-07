@@ -59,7 +59,7 @@ redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactor
 redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 statements: Fail
 stringliteral: Fail
-super_rasta_copy: TypeCheckError
+super_rasta_copy: Fail
 top_level_accessors: Fail
 type_variable_as_super: Fail
 type_variable_prefix: RuntimeError
@@ -176,7 +176,7 @@ rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/static: Fail
-rasta/super: TypeCheckError
+rasta/super: Fail
 rasta/super_initializer: Fail
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: Fail
@@ -199,7 +199,10 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31184: TypeCheckError
 regress/issue_31299: TypeCheckError
+regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
+regress/issue_32660: TypeCheckError # Test has an intentional error
+regress/issue_34225: RuntimeError
 
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError

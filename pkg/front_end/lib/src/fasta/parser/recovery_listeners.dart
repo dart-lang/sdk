@@ -71,3 +71,26 @@ class ImportRecoveryListener extends ForwardingListener {
     super.handleImportPrefix(deferredKeyword, asKeyword);
   }
 }
+
+class MixinHeaderRecoveryListener extends ForwardingListener {
+  Token onKeyword;
+  Token implementsKeyword;
+
+  void clear() {
+    onKeyword = null;
+    implementsKeyword = null;
+  }
+
+  @override
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
+    this.implementsKeyword = implementsKeyword;
+    super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    this.onKeyword = onKeyword;
+    super.handleMixinOn(onKeyword, typeCount);
+  }
+}

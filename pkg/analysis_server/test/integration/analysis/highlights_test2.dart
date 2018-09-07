@@ -14,7 +14,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
-    defineReflectiveTests(AnalysisHighlightsTest_UseCFE);
   });
 }
 
@@ -23,13 +22,11 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   Future startServer({
     int diagnosticPort,
     int servicesPort,
-    bool cfe: false,
   }) {
     return server.start(
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
-        useAnalysisHighlight2: true,
-        useCFE: cfe);
+        useAnalysisHighlight2: true);
   }
 
   test_highlights() {
@@ -162,10 +159,4 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisHighlightsTest_UseCFE extends AnalysisHighlightsTest {
-  @override
-  bool get useCFE => true;
 }

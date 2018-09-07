@@ -46,11 +46,10 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ CallRuntime(kAllocateArrayRuntimeEntry, argc);
   __ AddImmediate(SP, argc * kWordSize);
   __ Pop(R0);  // Pop return value from return slot.
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrameAndReturn();
 }
 
-TEST_CASE(CallRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const int length = 10;
@@ -83,11 +82,10 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ LoadObject(R2, rhs_index);
   __ LoadObject(R3, length);
   __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
-  __ LeaveDartFrame();
-  __ Ret();  // Return value is in R0.
+  __ LeaveDartFrameAndReturn();  // Return value is in R0.
 }
 
-TEST_CASE(CallLeafRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const char* str_value = "abAB";

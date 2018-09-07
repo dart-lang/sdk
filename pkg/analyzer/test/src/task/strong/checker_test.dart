@@ -2646,17 +2646,17 @@ class Base {
 }
 
 class T1 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/B get f => null;
+  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class T2 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/set f(
+  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/set f(
       B b) => null;
 }
 
 class T3 extends Base {
   /*error:INVALID_METHOD_OVERRIDE*/final B
-      /*warning:FINAL_NOT_INITIALIZED*/f;
+      /*error:FINAL_NOT_INITIALIZED*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
@@ -2664,11 +2664,11 @@ class T4 extends Base {
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
+  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(B b) => null;
+  /*error:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
@@ -3676,12 +3676,12 @@ class A {
   set b(y) => voidFn();
   void set c(y) => 4;
   void set d(y) => voidFn();
-  /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
-  /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) => 
+  /*error:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
+  /*error:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>
     /*error:RETURN_OF_INVALID_TYPE*/voidFn();
   set g(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
   void set h(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
-  /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
+  /*error:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
 }
 ''');
   }

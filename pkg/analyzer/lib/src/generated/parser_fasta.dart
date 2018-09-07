@@ -24,13 +24,13 @@ abstract class ParserAdapter implements Parser {
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
-      {bool allowNativeClause: false, bool enableGenericMethodComments: false})
+      {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
+    fastaParser.isMixinSupportEnabled = true;
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
-    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
   }
 
   @override
@@ -47,14 +47,6 @@ abstract class ParserAdapter implements Parser {
   @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
     astBuilder.parseFunctionBodies = parseFunctionBodies;
-  }
-
-  @override
-  bool get parseGenericMethodComments => astBuilder.parseGenericMethodComments;
-
-  @override
-  set parseGenericMethodComments(bool value) {
-    astBuilder.parseGenericMethodComments = value;
   }
 
   @override

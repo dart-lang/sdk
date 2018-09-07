@@ -212,7 +212,17 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
 /// Convert a [source] string to a Uri, where the source may be a
 /// dart/file/package URI or a local win/mac/linux path.
 Uri sourcePathToUri(String source, {bool windows}) {
-  windows ??= Platform.isWindows;
+  if (windows == null) {
+    // Running on the web the Platform check will fail, and we can't use
+    // fromEnvironment because internally it's set to true for dart.library.io.
+    // So just catch the exception and if it fails then we're definitely not on
+    // Windows.
+    try {
+      windows = Platform.isWindows;
+    } catch (e) {
+      windows = false;
+    }
+  }
   if (windows) {
     source = source.replaceAll("\\", "/");
   }

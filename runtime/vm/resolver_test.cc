@@ -66,7 +66,7 @@ static void SetupInstanceFunction(const char* test_library_name,
   SetupFunction(test_library_name, test_class_name, test_function_name, false);
 }
 
-TEST_CASE(DartStaticResolve) {
+ISOLATE_UNIT_TEST_CASE(DartStaticResolve) {
   const char* test_library_name = "ResolverApp";
   const char* test_class_name = "A";
   const char* test_static_function_name = "static_foo";
@@ -125,7 +125,7 @@ TEST_CASE(DartStaticResolve) {
   }
 }
 
-TEST_CASE(DartDynamicResolve) {
+ISOLATE_UNIT_TEST_CASE(DartDynamicResolve) {
   const char* test_library_name = "ResolverApp";
   const char* test_class_name = "A";
   const char* test_function_name = "foo";

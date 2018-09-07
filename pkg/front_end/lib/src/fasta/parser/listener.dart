@@ -155,6 +155,17 @@ class Listener implements UnescapeErrorListener {
     logEvent("MixinHeader");
   }
 
+  /// Handle recovery associated with a mixin header.
+  /// This may be called multiple times after [handleMixinHeader]
+  /// to recover information about the previous mixin header.
+  /// The substructures are a subset of
+  /// and in the same order as [handleMixinHeader]
+  /// - on types
+  /// - implemented types
+  void handleRecoverMixinHeader() {
+    logEvent("RecoverMixinHeader");
+  }
+
   /// Handle the end of a mixin declaration.  Substructures:
   /// - mixin header
   /// - class or mixin body
@@ -257,19 +268,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("FactoryMethod");
   }
 
-  /// [beginToken] is the first token of the parameter, e.g. `int` in
-  /// `int a`, or `this` in `C(this.f)`.
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {}
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {}
 
-  /// [endToken] is the last token of the parameter, e.g. `1` in `{int a = 1}`.
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
@@ -679,7 +682,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the beginning of a method declaration.  Substructures:
   /// - metadata
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {}
+      Token varFinalOrConst, Token getOrSet, Token name) {}
 
   /// Handle the end of a method declaration.  Substructures:
   /// - metadata

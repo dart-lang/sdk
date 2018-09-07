@@ -239,6 +239,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       <UnlinkedExportNonPublicBuilder>[];
 
   /**
+   * List of objects which should be written to [UnlinkedUnit.mixins].
+   */
+  final List<UnlinkedClassBuilder> mixins = <UnlinkedClassBuilder>[];
+
+  /**
    * List of objects which should be written to [UnlinkedUnit.parts].
    */
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
@@ -534,6 +539,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.executables = executables;
     b.exports = exports;
     b.imports = unlinkedImports;
+    b.mixins = mixins;
     b.parts = parts;
     b.references = unlinkedReferences;
     b.typedefs = typedefs;
@@ -813,6 +819,58 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       builder.refinedSlot = assignSlot();
     }
     return builder;
+  }
+
+  /**
+   * Serialize a [MixinDeclaration] into an [UnlinkedClass]
+   * and store the result in [mixins].
+   */
+  void serializeMixin(
+      AstNode node,
+      String name,
+      int nameOffset,
+      TypeParameterList typeParameters,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      NodeList<ClassMember> members,
+      Comment documentationComment,
+      NodeList<Annotation> annotations) {
+    int oldScopesLength = scopes.length;
+    List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    executables = <UnlinkedExecutableBuilder>[];
+    List<UnlinkedVariableBuilder> oldVariables = variables;
+    variables = <UnlinkedVariableBuilder>[];
+    _TypeParameterScope typeParameterScope = new _TypeParameterScope();
+    scopes.add(typeParameterScope);
+    UnlinkedClassBuilder b = new UnlinkedClassBuilder();
+    b.name = name;
+    b.nameOffset = nameOffset;
+    b.typeParameters =
+        serializeTypeParameters(typeParameters, typeParameterScope);
+    if (onClause != null) {
+      b.superclassConstraints =
+          onClause.superclassConstraints.map(serializeType).toList();
+    }
+    if (implementsClause != null) {
+      b.interfaces = implementsClause.interfaces.map(serializeType).toList();
+    }
+    if (members != null) {
+      scopes.add(buildClassMemberScope(name, members));
+      for (ClassMember member in members) {
+        member.accept(this);
+      }
+      scopes.removeLast();
+    }
+    b.executables = executables;
+    b.fields = variables;
+    b.documentationComment = serializeDocumentation(documentationComment);
+    b.annotations = serializeAnnotations(annotations);
+    b.codeRange = serializeCodeRange(node);
+    mixins.add(b);
+    scopes.removeLast();
+    assert(scopes.length == oldScopesLength);
+    executables = oldExecutables;
+    variables = oldVariables;
   }
 
   /**
@@ -1350,6 +1408,20 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.externalKeyword != null || node.body is NativeFunctionBody,
         false,
         false));
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    serializeMixin(
+        node,
+        node.name.name,
+        node.name.offset,
+        node.typeParameters,
+        node.onClause,
+        node.implementsClause,
+        node.members,
+        node.documentationComment,
+        node.metadata);
   }
 
   @override

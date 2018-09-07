@@ -630,7 +630,6 @@ class FileState {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = true;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -639,7 +638,6 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.parseGenericMethodComments = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 
@@ -896,7 +894,7 @@ class FileSystemState {
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);
-      flag = uriSource.fullName == path;
+      flag = uriSource?.fullName == path;
       _hasUriForPath[path] = flag;
     }
     return flag;

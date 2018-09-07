@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
@@ -27,6 +28,7 @@ typedef RawObject* RawCompressed;
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
+  V(NativeEntryData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
@@ -288,13 +290,16 @@ class RawObject {
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
   enum TagBits {
-    kMarkBit = 0,
-    kCanonicalBit = 1,
-    kVMHeapObjectBit = 2,
-    kRememberedBit = 3,
-    kReservedTagPos = 4,  // kReservedBit{10K,100K,1M,10M}
-    kReservedTagSize = 4,
-    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
+    kReservedBit = 0,
+    kOldAndNotMarkedBit = 1,      // Incremental barrier target.
+    kNewBit = 2,                  // Generational barrier target.
+    kOldBit = 3,                  // Incremental barrier source.
+    kOldAndNotRememberedBit = 4,  // Generational barrier source.
+    kCanonicalBit = 5,
+    kVMHeapObjectBit = 6,
+    kGraphMarkedBit = 7,  // ObjectGraph needs to mark through new space.
+
+    kSizeTagPos = 8,
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
@@ -303,6 +308,15 @@ class RawObject {
     kHashTagSize = 16,
 #endif
   };
+
+  static const intptr_t kBarrierOverlapShift = 2;
+  COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
+  COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
+
+  // The bit in the Smi tag position must be something that can be set to 0
+  // for a dead filler object of either generation.
+  // See Object::MakeUnusedSpaceTraversable.
+  COMPILE_ASSERT(kReservedBit == 0);
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
 
@@ -340,6 +354,24 @@ class RawObject {
 
   class ClassIdTag
       : public BitField<uint32_t, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
+
+  class OldAndNotMarkedBit
+      : public BitField<uint32_t, bool, kOldAndNotMarkedBit, 1> {};
+
+  class NewBit : public BitField<uint32_t, bool, kNewBit, 1> {};
+
+  class CanonicalObjectTag : public BitField<uint32_t, bool, kCanonicalBit, 1> {
+  };
+
+  class GraphMarkedBit : public BitField<uint32_t, bool, kGraphMarkedBit, 1> {};
+
+  class VMHeapObjectTag : public BitField<uint32_t, bool, kVMHeapObjectBit, 1> {
+  };
+
+  class OldBit : public BitField<uint32_t, bool, kOldBit, 1> {};
+
+  class OldAndNotRememberedBit
+      : public BitField<uint32_t, bool, kOldAndNotRememberedBit, 1> {};
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -383,23 +415,32 @@ class RawObject {
   }
 
   // Support for GC marking bit.
-  bool IsMarked() const { return MarkBit::decode(ptr()->tags_); }
+  bool IsMarked() const {
+    ASSERT(IsOldObject());
+    return !OldAndNotMarkedBit::decode(ptr()->tags_);
+  }
   void SetMarkBit() {
+    ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    UpdateTagBit<MarkBit>(true);
+    UpdateTagBit<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
+    ASSERT(IsOldObject());
     ASSERT(!IsMarked());
     uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = MarkBit::update(true, tags);
+    ptr()->tags_ = OldAndNotMarkedBit::update(false, tags);
   }
   void ClearMarkBit() {
+    ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    UpdateTagBit<MarkBit>(false);
+    UpdateTagBit<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
-  bool TryAcquireMarkBit() { return TryAcquireTagBit<MarkBit>(); }
+  bool TryAcquireMarkBit() {
+    ASSERT(IsOldObject());
+    return TryClearTagBit<OldAndNotMarkedBit>();
+  }
 
   // Support for object tags.
   bool IsCanonical() const { return CanonicalObjectTag::decode(ptr()->tags_); }
@@ -408,25 +449,44 @@ class RawObject {
   bool IsVMHeapObject() const { return VMHeapObjectTag::decode(ptr()->tags_); }
   void SetVMHeapObject() { UpdateTagBit<VMHeapObjectTag>(true); }
 
+  // Support for ObjectGraph marking bit.
+  bool IsGraphMarked() const {
+    if (IsVMHeapObject()) return true;
+    return GraphMarkedBit::decode(ptr()->tags_);
+  }
+  void SetGraphMarked() {
+    ASSERT(!IsVMHeapObject());
+    uint32_t tags = ptr()->tags_;
+    ptr()->tags_ = GraphMarkedBit::update(true, tags);
+  }
+  void ClearGraphMarked() {
+    ASSERT(!IsVMHeapObject());
+    uint32_t tags = ptr()->tags_;
+    ptr()->tags_ = GraphMarkedBit::update(false, tags);
+  }
+
   // Support for GC remembered bit.
-  bool IsRemembered() const { return RememberedBit::decode(ptr()->tags_); }
+  bool IsRemembered() const {
+    ASSERT(IsOldObject());
+    return !OldAndNotRememberedBit::decode(ptr()->tags_);
+  }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
-    UpdateTagBit<RememberedBit>(true);
+    UpdateTagBit<OldAndNotRememberedBit>(false);
   }
   void SetRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = RememberedBit::update(true, tags);
+    ptr()->tags_ = OldAndNotRememberedBit::update(false, tags);
   }
-  void ClearRememberedBit() { UpdateTagBit<RememberedBit>(false); }
+  void ClearRememberedBit() {
+    ASSERT(IsOldObject());
+    UpdateTagBit<OldAndNotRememberedBit>(true);
+  }
   void ClearRememberedBitUnsynchronized() {
     uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = RememberedBit::update(false, tags);
+    ptr()->tags_ = OldAndNotRememberedBit::update(true, tags);
   }
-  // Returns false if the bit was already set.
-  DART_WARN_UNUSED_RESULT
-  bool TryAcquireRememberedBit() { return TryAcquireTagBit<RememberedBit>(); }
 
 #define DEFINE_IS_CID(clazz)                                                   \
   bool Is##clazz() const { return ((GetClassId() == k##clazz##Cid)); }
@@ -585,20 +645,6 @@ class RawObject {
   uint32_t hash_;
 #endif
 
-  class MarkBit : public BitField<uint32_t, bool, kMarkBit, 1> {};
-
-  class RememberedBit : public BitField<uint32_t, bool, kRememberedBit, 1> {};
-
-  class CanonicalObjectTag : public BitField<uint32_t, bool, kCanonicalBit, 1> {
-  };
-
-  class VMHeapObjectTag : public BitField<uint32_t, bool, kVMHeapObjectBit, 1> {
-  };
-
-  class ReservedBits
-      : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
-  };
-
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
@@ -637,6 +683,12 @@ class RawObject {
     uint32_t old_tags = AtomicOperations::FetchOrRelaxedUint32(
         &ptr()->tags_, TagBitField::encode(true));
     return !TagBitField::decode(old_tags);
+  }
+  template <class TagBitField>
+  bool TryClearTagBit() {
+    uint32_t old_tags = AtomicOperations::FetchAndRelaxedUint32(
+        &ptr()->tags_, ~TagBitField::encode(true));
+    return TagBitField::decode(old_tags);
   }
 
   // All writes to heap objects should ultimately pass through one of the
@@ -1022,6 +1074,23 @@ class RawRedirectionData : public RawObject {
   RawString* identifier_;
   RawFunction* target_;
   VISIT_TO(RawObject*, target_);
+};
+
+// Forward declarations.
+class NativeArguments;
+typedef void (*NativeFunction)(NativeArguments* arguments);
+typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
+                                      Dart_NativeFunction func);
+
+class RawNativeEntryData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(NativeEntryData);
+  VISIT_NOTHING();
+
+  NativeFunctionWrapper trampoline_;
+  NativeFunction native_function_;
+  intptr_t argc_tag_;
+  MethodRecognizer::Kind kind_;
 };
 
 class RawField : public RawObject {
@@ -1697,6 +1766,10 @@ class RawICData : public RawObject {
   RawArray* ic_data_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
+  // Static type of the receiver. If it is set then we are performing
+  // exactness profiling for the receiver type. See StaticTypeExactnessState
+  // class for more information.
+  NOT_IN_PRECOMPILED(RawAbstractType* static_receiver_type_);
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   VISIT_TO(RawObject*, owner_);
   RawObject** to_snapshot(Snapshot::Kind kind) {

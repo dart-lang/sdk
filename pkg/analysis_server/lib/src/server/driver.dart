@@ -255,11 +255,6 @@ class Driver implements ServerStarter {
   static const String CACHE_FOLDER = "cache";
 
   /**
-   * Whether to enable the Dart 2.0 Common Front End implementation.
-   */
-  static const String USE_CFE = "use-cfe";
-
-  /**
    * Whether to enable parsing via the Fasta parser.
    */
   static const String USE_FASTA_PARSER = "use-fasta-parser";
@@ -312,7 +307,6 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    analysisServerOptions.useCFE = results[USE_CFE];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -455,16 +449,14 @@ class Driver implements ServerStarter {
 
       () async {
         // We first analyze code with an empty driver cache.
-        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
-            'with an empty driver cache:');
+        print('Analyzing with an empty driver cache:');
         int exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
         print('');
 
         // Then again with a populated cache.
-        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
-            'with a populated driver cache:');
+        print('Analyzing with a populated driver cache:');
         exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
@@ -479,17 +471,7 @@ class Driver implements ServerStarter {
           // ignore any exception
         }
 
-        if (!analysisServerOptions.useCFE) {
-          print('');
-
-          // And then run everything again with CFE to train both frontends.
-          List<String> args = new List<String>.from(arguments);
-          args.add("--use-cfe");
-          ServerStarter starter = new ServerStarter();
-          starter.start(args);
-        } else {
-          exit(exitCode);
-        }
+        exit(exitCode);
       }();
     } else {
       _captureExceptions(instrumentationService, () {
@@ -600,9 +582,8 @@ class Driver implements ServerStarter {
         help: "[path] path to the location where to cache data");
     parser.addFlag("preview-dart-2",
         help: "Enable the Dart 2.0 preview (deprecated)", hide: true);
-    parser.addFlag(USE_CFE,
-        help: "Enable the Dart 2.0 Common Front End implementation");
     parser.addFlag(USE_FASTA_PARSER,
+        defaultsTo: true,
         help: "Whether to enable parsing via the Fasta parser");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "

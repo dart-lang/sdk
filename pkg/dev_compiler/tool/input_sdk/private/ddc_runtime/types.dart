@@ -55,7 +55,8 @@ final metadata = JS('', 'Symbol("metadata")');
 class TypeRep implements Type {
   String get name => this.toString();
 
-  // TODO(jmesserly): these should never be reached.
+  // TODO(jmesserly): these should never be reached, can be make them abstract?
+  @notNull
   @JSExportName('is')
   bool is_T(object) => instanceOf(object, this);
 
@@ -79,40 +80,62 @@ class DynamicType extends TypeRep {
   check_T(object) => object;
 }
 
+@notNull
 bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
+/// The Dart type that represents a JavaScript class(/constructor) type.
+///
+/// The JavaScript type may not exist, either because it's not loaded yet, or
+/// because it's not available (such as with mocks). To handle this gracefully,
+/// we disable type checks for in these cases, and allow any JS object to work
+/// as if it were an instance of this JS type.
 class LazyJSType extends TypeRep {
-  final Function() _rawJSType;
+  Function() _getRawJSTypeFn;
+  @notNull
   final String _dartName;
+  Object _rawJSType;
 
-  LazyJSType(this._rawJSType, this._dartName);
+  LazyJSType(this._getRawJSTypeFn, this._dartName);
 
-  toString() => typeName(_rawJSType());
+  toString() {
+    var raw = _getRawJSType();
+    return raw != null ? typeName(raw) : "JSObject<$_dartName>";
+  }
 
-  _raw() {
-    var raw = _rawJSType();
+  Object _getRawJSType() {
+    var raw = _rawJSType;
+    if (raw != null) return raw;
+
+    // Try to evaluate the JS type. If this fails for any reason, we'll try
+    // again next time.
+    // TODO(jmesserly): is it worth trying again? It may create unnecessary
+    // overhead, especially if exceptions are being thrown. Also it means the
+    // behavior of a given type check can change later on.
+    try {
+      raw = _getRawJSTypeFn();
+    } catch (e) {}
+
     if (raw == null) {
       _warn('Cannot find native JavaScript type ($_dartName) for type check');
+    } else {
+      _rawJSType = raw;
+      _getRawJSTypeFn = null; // Free the function that computes the JS type.
     }
     return raw;
   }
 
-  rawJSTypeForCheck() {
-    var raw = _raw();
-    if (raw != null) return raw;
-    // Treat as anonymous: return true for any JS object.
-    return jsobject;
-  }
+  Object rawJSTypeForCheck() => _getRawJSType() ?? jsobject;
 
-  bool isRawType(obj) {
-    var raw = _raw();
+  @notNull
+  bool isRawJSType(obj) {
+    var raw = _getRawJSType();
     if (raw != null) return JS('!', '# instanceof #', obj, raw);
-    // Treat as anonymous: return true for any JS object.
     return _isJsObject(obj);
   }
 
+  @notNull
   @JSExportName('is')
-  bool is_T(obj) => isRawType(obj) || instanceOf(obj, this);
+  bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
   as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, false);

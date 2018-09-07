@@ -13,22 +13,30 @@ html/async_test: SkipByDesign
 html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
+html/custom/mirrors_2_test: RuntimeError
+html/custom/mirrors_test: RuntimeError
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/debugger_test: CompileTimeError # Issue 30900
 html/indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+html/indexeddb_1_test/functional: RuntimeError
 html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
+html/indexeddb_3_test: RuntimeError
 html/indexeddb_4_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_5_test: Pass, Timeout # Roll 50 failure
+html/indexeddb_5_test: RuntimeError
 html/isolates_test: SkipByDesign
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+html/js_typed_interop_test: RuntimeError
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 html/worker_api_test: SkipByDesign
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/xhr_test: Pass, Slow
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError # Using bigint seeds for random.
@@ -48,7 +56,10 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 12607
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 12607
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 12607
 profiler/metrics_num_test: Skip # Because of an int / double type test.
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 1533
+typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 typed_data/unmodifiable_typed_data_test: RuntimeError # Issue 10275
@@ -83,7 +94,6 @@ html/js_methods_test: RuntimeError
 html/js_transferrables_test: RuntimeError
 html/js_typed_interop_lazy_test/none: RuntimeError
 html/js_typed_interop_rename_static_test: RuntimeError
-html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
 html/worker_test/functional: RuntimeError # Issue 32261
 
 [ $compiler == dart2js && $runtime == chrome && $strong ]
@@ -106,7 +116,7 @@ html/xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime == d8 && $fasta ]
+[ $compiler == dart2js && $runtime == d8 ]
 async/dart2js_uncaught_error_test: RuntimeError
 html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
@@ -338,7 +348,7 @@ html/xsltprocessor_test: RuntimeError
 js/null_test: RuntimeError
 js/prototype_access_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+[ $compiler == dart2js && $runtime == d8 && $minified ]
 collection/list_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != d8 ]
@@ -514,13 +524,11 @@ html/js_array_test: RuntimeError
 html/typed_arrays_range_checks_test: RuntimeError
 
 [ $compiler == dart2js && $checked ]
+async/stream_listen_zone_test: RuntimeError
 convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
-[ $compiler == dart2js && $checked && $fasta ]
-async/stream_listen_zone_test: RuntimeError
-
-[ $compiler == dart2js && $csp && $fasta && $minified ]
+[ $compiler == dart2js && $csp && $minified ]
 collection/list_test: RuntimeError
 
 [ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
@@ -542,7 +550,7 @@ html/js_util_test: SkipByDesign
 html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
-[ $compiler == dart2js && !$csp && $fasta && $minified ]
+[ $compiler == dart2js && !$csp && $minified ]
 html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
 html/audiobuffersourcenode_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -694,29 +702,11 @@ html/custom/js_custom_test: Fail # mirrors not supported
 html/custom/mirrors_2_test: Fail # mirrors not supported
 html/custom/mirrors_test: Fail # mirrors not supported
 html/mirrors_js_typed_interop_test: Fail # mirrors not supported
-mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
-
-[ $compiler == dart2js && $fast_startup && $fasta ]
 html/notification_permission_test: RuntimeError
 html/xhr_test: RuntimeError
+mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
 
-[ $compiler == dart2js && $fast_startup && !$fasta ]
-html/custom/constructor_calls_created_synchronously_test: Fail
-
-[ $compiler == dart2js && $fasta ]
-html/custom/mirrors_2_test: RuntimeError
-html/custom/mirrors_test: RuntimeError
-html/indexeddb_1_test/functional: RuntimeError
-html/indexeddb_3_test: RuntimeError
-html/indexeddb_5_test: RuntimeError
-html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-html/js_typed_interop_test: RuntimeError
-math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $host_checked ]
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -729,7 +719,14 @@ html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
 html/js_typed_interop_side_cast_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_test: CompileTimeError
 
-[ $compiler == dart2js && $fasta && $minified ]
+[ $compiler == dart2js && $ie ]
+html/fontface_loaded_test: RuntimeError # FontFace polyfill?
+html/fontface_test: Fail # Fontface not supported on ie
+
+[ $compiler == dart2js && $ie && $strong ]
+html/interactive_media_test: RuntimeError
+
+[ $compiler == dart2js && $minified ]
 html/audiobuffersourcenode_test/functional: RuntimeError
 html/audiobuffersourcenode_test/supported: RuntimeError
 html/audiocontext_test/supported: RuntimeError
@@ -740,6 +737,7 @@ html/canvas_pixel_array_type_alias_test/basic: RuntimeError
 html/canvas_pixel_array_type_alias_test/typed_data: RuntimeError
 html/canvas_pixel_array_type_alias_test/types1: RuntimeError
 html/canvas_pixel_array_type_alias_test/types2: RuntimeError
+html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_elements_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -804,19 +802,6 @@ html/trusted_html_tree_sanitizer_test/untrusted: RuntimeError
 html/typed_arrays_1_test/arrays: RuntimeError
 html/typed_arrays_1_test/supported: RuntimeError
 html/webgl_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-
-[ $compiler == dart2js && !$fasta ]
-async/future_or_bad_type_test: MissingCompileTimeError
-
-[ $compiler == dart2js && $ie ]
-html/fontface_loaded_test: RuntimeError # FontFace polyfill?
-html/fontface_test: Fail # Fontface not supported on ie
-
-[ $compiler == dart2js && $ie && $strong ]
-html/interactive_media_test: RuntimeError
-
-[ $compiler == dart2js && $minified ]
-html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $strong ]
 async/future_or_type_test: RuntimeError

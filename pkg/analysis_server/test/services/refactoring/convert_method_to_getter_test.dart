@@ -17,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertMethodToGetterTest);
-    defineReflectiveTests(ConvertMethodToGetterTest_UseCFE);
   });
 }
 
@@ -213,10 +212,4 @@ void test() {}
     ExecutableElement element = findNodeElementAtString(search);
     _createRefactoringForElement(element);
   }
-}
-
-@reflectiveTest
-class ConvertMethodToGetterTest_UseCFE extends ConvertMethodToGetterTest {
-  @override
-  bool get useCFE => true;
 }

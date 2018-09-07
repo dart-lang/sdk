@@ -8,6 +8,10 @@
 // Change to a subtype of test::C::m::T.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:21:106: Error: Expected 0 type arguments.
+//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ /*@error=TypeArgumentMismatch*/ m<
+//                                                                                                          ^
 
 library test;
 import self as self;

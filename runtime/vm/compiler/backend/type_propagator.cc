@@ -8,7 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
@@ -695,7 +695,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
-      CHA* cha = thread->cha();
+      CHA& cha = thread->compiler_state().cha();
       // Don't infer a cid from an abstract type since there can be multiple
       // compatible classes with different cids.
       if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
@@ -710,7 +710,7 @@ intptr_t CompileType::ToNullableCid() {
                       type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
+            cha.AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -968,8 +968,9 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToGuardedClasses(type_class,
-                                                 /*subclass_count=*/0);
+              thread->compiler_state().cha().AddToGuardedClasses(
+                  type_class,
+                  /*subclass_count=*/0);
             }
             cid = type_class.id();
           }
@@ -980,7 +981,7 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
     // Note: in catch-blocks we have ParameterInstr for each local variable
     // not only for normal parameters.
@@ -1132,7 +1133,7 @@ CompileType InstanceCallInstr::ComputeType() const {
     return *inferred_type;
   }
 
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
       const AbstractType& result_type =
@@ -1165,7 +1166,7 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
     }
   }
 
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     CompileType* type = instance_call()->Type();
     TraceStrongModeType(this, type);
     return *type;
@@ -1188,8 +1189,7 @@ CompileType StaticCallInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  if ((isolate->strong() && FLAG_use_strong_mode_types) ||
-      isolate->type_checks()) {
+  if ((isolate->can_use_strong_mode_types()) || isolate->type_checks()) {
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
     // TODO(dartbug.com/30480): instantiate generic result_type if possible.
@@ -1208,8 +1208,7 @@ CompileType StaticCallInstr::ComputeType() const {
 
 CompileType LoadLocalInstr::ComputeType() const {
   const Isolate* isolate = Isolate::Current();
-  if ((isolate->strong() && FLAG_use_strong_mode_types) ||
-      isolate->type_checks()) {
+  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
     const AbstractType& local_type = local().type();
     TraceStrongModeType(this, local_type);
     return CompileType::FromAbstractType(local_type);
@@ -1245,8 +1244,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
   const Isolate* isolate = Isolate::Current();
-  if ((isolate->strong() && FLAG_use_strong_mode_types) ||
-      isolate->type_checks()) {
+  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
     cid = kIllegalCid;
     abstract_type = &AbstractType::ZoneHandle(field.type());
     TraceStrongModeType(this, *abstract_type);
@@ -1301,7 +1299,7 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   const Isolate* isolate = Isolate::Current();
   CompileType compile_type_annotation = CompileType::None();
-  if ((isolate->strong() && FLAG_use_strong_mode_types) ||
+  if (isolate->can_use_strong_mode_types() ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
     const AbstractType* abstract_type = &type();
@@ -1381,7 +1379,7 @@ CompileType UnaryInt64OpInstr::ComputeType() const {
 }
 
 CompileType CheckedSmiOpInstr::ComputeType() const {
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     if (left()->Type()->IsNullableInt() && right()->Type()->IsNullableInt()) {
       const AbstractType& abstract_type =
           AbstractType::ZoneHandle(Type::IntType());
@@ -1398,7 +1396,7 @@ CompileType CheckedSmiOpInstr::ComputeType() const {
 }
 
 CompileType CheckedSmiComparisonInstr::ComputeType() const {
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     CompileType* type = call()->Type();
     TraceStrongModeType(this, type);
     return *type;

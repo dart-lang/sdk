@@ -41,13 +41,10 @@ bool OptionProcessor::TryProcess(const char* option,
   return false;
 }
 
-static void* GetHashmapKeyFromString(char* key) {
-  return reinterpret_cast<void*>(key);
-}
-
-bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
-                                               CommandLineOptions* vm_options,
-                                               dart::HashMap** environment) {
+bool OptionProcessor::ProcessEnvironmentOption(
+    const char* arg,
+    CommandLineOptions* vm_options,
+    dart::SimpleHashMap** environment) {
   ASSERT(arg != NULL);
   ASSERT(environment != NULL);
   if (*arg == '\0') {
@@ -64,7 +61,7 @@ bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
     return true;
   }
   if (*environment == NULL) {
-    *environment = new HashMap(&HashMap::SameStringValue, 4);
+    *environment = new SimpleHashMap(&SimpleHashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
   char* name;
@@ -85,9 +82,10 @@ bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
   strncpy(name, arg, name_len);
   name[name_len] = '\0';
   value = strdup(equals_pos + 1);
-  HashMap::Entry* entry = (*environment)
-                              ->Lookup(GetHashmapKeyFromString(name),
-                                       HashMap::StringHash(name), true);
+  SimpleHashMap::Entry* entry =
+      (*environment)
+          ->Lookup(GetHashmapKeyFromString(name),
+                   SimpleHashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
   if (entry->value != NULL) {
     free(name);

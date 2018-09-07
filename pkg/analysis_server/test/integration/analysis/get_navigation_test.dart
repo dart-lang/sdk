@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
-    defineReflectiveTests(GetNavigationTest_UseCFE);
   });
 }
 
@@ -65,14 +64,4 @@ class Bar {
         await sendAnalysisGetNavigation(pathname, 0, 0);
     expect(result.targets, isEmpty);
   }
-}
-
-@reflectiveTest
-class GetNavigationTest_UseCFE extends GetNavigationTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_navigation_no_result() => super.test_navigation_no_result();
 }

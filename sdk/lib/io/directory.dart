@@ -135,6 +135,7 @@ abstract class Directory implements FileSystemEntity {
     return overrides.createDirectory(path);
   }
 
+  @pragma("vm:entry-point")
   factory Directory.fromRawPath(Uint8List path) {
     // TODO(bkonyi): Handle overrides.
     return new _Directory.fromRawPath(path);

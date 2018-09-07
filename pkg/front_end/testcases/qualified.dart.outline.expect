@@ -15,6 +15,10 @@ class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → void
     ;
 }
+class IllegalSupertype extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
 class C<T extends core::Object = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
   static field dynamic _redirecting# = <dynamic>[self::C::b];
   constructor •() → void

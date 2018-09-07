@@ -73,7 +73,10 @@ import 'member_kind.dart' show MemberKind;
 import 'modifier_context.dart' show ModifierRecoveryContext, isModifier;
 
 import 'recovery_listeners.dart'
-    show ClassHeaderRecoveryListener, ImportRecoveryListener;
+    show
+        ClassHeaderRecoveryListener,
+        ImportRecoveryListener,
+        MixinHeaderRecoveryListener;
 
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
@@ -1432,8 +1435,8 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
-        parameterKind, memberKind, token);
+    listener.endFormalParameter(
+        thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
     return token;
   }
 
@@ -1869,12 +1872,13 @@ class Parser {
     assert(optional('mixin', mixinKeyword));
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinDeclaration);
-    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    Token headerStart =
+        computeTypeParamOrArg(name, true).parseVariables(name, this);
     listener.beginMixinDeclaration(mixinKeyword, name);
-    token = parseMixinHeaderOpt(token, mixinKeyword);
+    Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next)) {
       // Recovery
-      token = parseMixinHeaderRecovery(mixinKeyword);
+      token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
     token = parseClassOrMixinBody(token);
@@ -1889,9 +1893,67 @@ class Parser {
     return token;
   }
 
-  Token parseMixinHeaderRecovery(Token mixinKeyword) {
-    // TODO(danrubel): Add mixin recovery similiar to class recovery.
-    return mixinKeyword;
+  Token parseMixinHeaderRecovery(
+      Token token, Token mixinKeyword, Token headerStart) {
+    final primaryListener = listener;
+    final recoveryListener = new MixinHeaderRecoveryListener();
+
+    // Reparse to determine which clauses have already been parsed
+    // but intercept the events so they are not sent to the primary listener.
+    listener = recoveryListener;
+    token = parseMixinHeaderOpt(headerStart, mixinKeyword);
+    bool hasOn = recoveryListener.onKeyword != null;
+    bool hasImplements = recoveryListener.implementsKeyword != null;
+
+    // Update the recovery listener to forward subsequent events
+    // to the primary listener.
+    recoveryListener.listener = primaryListener;
+
+    // Parse additional out-of-order clauses
+    Token start;
+    do {
+      start = token;
+
+      // Check for extraneous token in the middle of a class header.
+      token = skipUnexpectedTokenOpt(
+          token, const <String>['on', 'implements', '{']);
+
+      // During recovery, clauses are parsed in the same order and
+      // generate the same events as in the parseMixinHeaderOpt method above.
+      recoveryListener.clear();
+      token = parseMixinOnOpt(token);
+
+      if (recoveryListener.onKeyword != null) {
+        if (hasOn) {
+          reportRecoverableError(
+              recoveryListener.onKeyword, fasta.messageMultipleOnClauses);
+        } else {
+          if (hasImplements) {
+            reportRecoverableError(
+                recoveryListener.onKeyword, fasta.messageImplementsBeforeOn);
+          }
+          hasOn = true;
+        }
+      }
+
+      token = parseClassOrMixinImplementsOpt(token);
+
+      if (recoveryListener.implementsKeyword != null) {
+        if (hasImplements) {
+          reportRecoverableError(recoveryListener.implementsKeyword,
+              fasta.messageMultipleImplements);
+        } else {
+          hasImplements = true;
+        }
+      }
+
+      listener.handleRecoverMixinHeader();
+
+      // Exit if a mixin body is detected, or if no progress has been made
+    } while (!optional('{', token.next) && start != token);
+
+    listener = primaryListener;
+    return token;
   }
 
   /// ```
@@ -2429,9 +2491,23 @@ class Parser {
       next = token.next;
     }
     if (!optional('(', next)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedAfterButGot.withArguments('('));
-      rewriter.insertParens(token, false);
+      // Recovery
+      if (optional('?.', next)) {
+        // An error for `super?.` is reported in parseSuperExpression.
+        token = next;
+        next = token.next;
+        if (!next.isIdentifier) {
+          // Insert a synthetic identifier but don't report another error.
+          next = rewriter.insertSyntheticIdentifier(token);
+        }
+        token = next;
+        next = token.next;
+      }
+      if (!optional('(', next)) {
+        reportRecoverableError(
+            next, fasta.templateExpectedAfterButGot.withArguments('('));
+        rewriter.insertParens(token, false);
+      }
     }
     return parseInitializerExpressionRest(start);
   }
@@ -2868,8 +2944,8 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+    listener.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name));
@@ -3596,20 +3672,15 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    Token next = token.next;
-    TokenType type = next.type;
-    int tokenLevel = type.precedence;
-    Token typeArguments;
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       // For example a(b)<T>(c), where token is before '<'.
-      typeArguments = next;
       token = typeArg.parseArguments(token, this);
-      next = token.next;
-      assert(optional('(', next));
-      type = next.type;
-      tokenLevel = type.precedence;
+      assert(optional('(', token.next));
     }
+    Token next = token.next;
+    TokenType type = next.type;
+    int tokenLevel = type.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
       while (identical(tokenLevel, level)) {
@@ -3646,8 +3717,7 @@ class Parser {
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
-            token = parseArgumentOrIndexStar(token, typeArguments);
-            next = token.next;
+            token = parseArgumentOrIndexStar(token, typeArg);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
@@ -3655,7 +3725,7 @@ class Parser {
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             rewriter.replaceTokenFollowing(token, replacement);
             replacement.endToken = replacement.next;
-            token = parseArgumentOrIndexStar(token, null);
+            token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
           } else {
             // Recovery
             reportRecoverableErrorWithToken(
@@ -3699,7 +3769,7 @@ class Parser {
     assert(optional('..', cascadeOperator));
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
-      token = parseArgumentOrIndexStar(token, null);
+      token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
@@ -3714,16 +3784,14 @@ class Parser {
         next = token.next;
         listener.endBinaryExpression(period);
       }
-      Token typeArguments;
       TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
       if (typeArg != noTypeParamOrArg) {
         // For example a(b)..<T>(c), where token is '<'.
-        typeArguments = next;
         token = typeArg.parseArguments(token, this);
         next = token.next;
         assert(optional('(', next));
       }
-      token = parseArgumentOrIndexStar(token, typeArguments);
+      token = parseArgumentOrIndexStar(token, typeArg);
       next = token.next;
     } while (!identical(mark, token));
 
@@ -3794,15 +3862,12 @@ class Parser {
     return parsePrimary(token, IdentifierContext.expression);
   }
 
-  Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
-    // TODO(danrubel): Accept the token before typeArguments
-    // TODO(brianwilkerson): Consider replacing `typeArguments` with a boolean
-    // flag, given that the only thing it's used for is to compare it with null.
+  Token parseArgumentOrIndexStar(Token token, TypeParamOrArgInfo typeArg) {
     Token next = token.next;
     Token beginToken = next;
     while (true) {
       if (optional('[', next)) {
-        assert(typeArguments == null);
+        assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
@@ -3817,15 +3882,26 @@ class Parser {
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
+        typeArg = computeMethodTypeArguments(token);
+        if (typeArg != noTypeParamOrArg) {
+          // For example a[b]<T>(c), where token is before '<'.
+          token = typeArg.parseArguments(token, this);
+          assert(optional('(', token.next));
+        }
         next = token.next;
       } else if (optional('(', next)) {
-        if (typeArguments == null) {
+        if (typeArg == noTypeParamOrArg) {
           listener.handleNoTypeArguments(next);
         }
         token = parseArguments(token);
+        typeArg = computeMethodTypeArguments(token);
+        if (typeArg != noTypeParamOrArg) {
+          // For example a(b)<T>(c), where token is before '<'.
+          token = typeArg.parseArguments(token, this);
+          assert(optional('(', token.next));
+        }
         next = token.next;
         listener.handleSend(beginToken, next);
-        typeArguments = null;
       } else {
         break;
       }

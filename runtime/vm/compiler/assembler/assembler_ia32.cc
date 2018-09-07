@@ -2233,6 +2233,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
@@ -2277,6 +2278,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);

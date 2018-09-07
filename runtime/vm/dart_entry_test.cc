@@ -16,7 +16,7 @@
 
 namespace dart {
 
-TEST_CASE(DartEntry) {
+ISOLATE_UNIT_TEST_CASE(DartEntry) {
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return 42; }\n"
@@ -42,7 +42,7 @@ TEST_CASE(DartEntry) {
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
-TEST_CASE(InvokeStatic_CompileError) {
+ISOLATE_UNIT_TEST_CASE(InvokeStatic_CompileError) {
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return ++++; }\n"
@@ -66,7 +66,7 @@ TEST_CASE(InvokeStatic_CompileError) {
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
 
-TEST_CASE(InvokeDynamic_CompileError) {
+ISOLATE_UNIT_TEST_CASE(InvokeDynamic_CompileError) {
   const char* kScriptChars =
       "class A {\n"
       "  foo() { return ++++; }\n"

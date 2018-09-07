@@ -45,8 +45,6 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         TypeBuilder;
 
-import '../combinator.dart';
-
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
@@ -103,8 +101,6 @@ import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser;
 
 import 'outline_builder.dart' show OutlineBuilder;
-
-import 'outline_listener.dart' show OutlineListener;
 
 import 'source_class_builder.dart' show SourceClassBuilder;
 
@@ -182,8 +178,8 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addCompileTimeError(error.assertionMessage,
-            offsetForToken(token), lengthForToken(token), uri);
+        library.addProblem(error.assertionMessage, offsetForToken(token),
+            lengthForToken(token), uri);
       }
       token = token.next;
     }
@@ -213,13 +209,9 @@ class SourceLoader<L> extends Loader<L> {
       // time we suppress lexical errors.
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
-
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
-
-      listener.currentUnit = library;
       parser.parseUnit(tokens);
-
       for (SourceLibraryBuilder part in library.parts) {
         if (part.partOfLibrary != library) {
           // Part was included in multiple libraries. Skip it here.
@@ -227,7 +219,6 @@ class SourceLoader<L> extends Loader<L> {
         }
         Token tokens = await tokenize(part);
         if (tokens != null) {
-          listener.currentUnit = part;
           listener.uri = part.fileUri;
           listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
@@ -347,21 +338,6 @@ class SourceLoader<L> extends Loader<L> {
       // exporter to exportee. This creates a reference in the wrong direction
       // and can lead to memory leaks.
       exportee.exporters.clear();
-    }
-    for (var library in builders.values) {
-      if (library is SourceLibraryBuilder) {
-        OutlineListener outlineListener = library.outlineListener;
-        if (outlineListener != null) {
-          for (var import in library.imports) {
-            storeCombinatorIdentifiersResolution(
-                outlineListener, import.imported, import.combinators);
-          }
-          for (var export in library.exports) {
-            storeCombinatorIdentifiersResolution(
-                outlineListener, export.exported, export.combinators);
-          }
-        }
-      }
     }
     ticker.logMs("Computed library scopes");
     // debugPrintExports();
@@ -566,7 +542,7 @@ class SourceLoader<L> extends Loader<L> {
       // [cyclicCandidates] is sensitive to if the platform (or other modules)
       // are included in [classes].
       for (LocatedMessage message in messages.keys.toList()..sort()) {
-        messages[message].addCompileTimeError(
+        messages[message].addProblem(
             message.messageObject, message.charOffset, message.length);
       }
     }
@@ -585,13 +561,11 @@ class SourceLoader<L> extends Loader<L> {
       target.addDirectSupertype(cls, directSupertypes);
       for (ClassBuilder supertype in directSupertypes) {
         if (supertype is EnumBuilder) {
-          cls.addCompileTimeError(
-              templateExtendingEnum.withArguments(supertype.name),
-              cls.charOffset,
-              noLength);
+          cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
+              cls.charOffset, noLength);
         } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
-          cls.addCompileTimeError(
+          cls.addProblem(
               templateExtendingRestricted.withArguments(supertype.name),
               cls.charOffset,
               noLength);
@@ -607,7 +581,7 @@ class SourceLoader<L> extends Loader<L> {
             for (Declaration constructory
                 in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
-                cls.addCompileTimeError(
+                cls.addProblem(
                     templateIllegalMixinDueToConstructors
                         .withArguments(builder.fullNameForErrors),
                     cls.charOffset,
@@ -623,7 +597,7 @@ class SourceLoader<L> extends Loader<L> {
           }
         }
         if (!isClassBuilder) {
-          cls.addCompileTimeError(
+          cls.addProblem(
               templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
               cls.charOffset,
               noLength);
@@ -715,13 +689,14 @@ class SourceLoader<L> extends Loader<L> {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Component component) {
-    DartType Function(Class) instantiateWithBottom =
-        (Class cls) => new InterfaceType(cls, <DartType>[const BottomType()]);
-
     coreTypes = new CoreTypes(component);
-    futureOfBottom = instantiateWithBottom(coreTypes.futureClass);
-    iterableOfBottom = instantiateWithBottom(coreTypes.iterableClass);
-    streamOfBottom = instantiateWithBottom(coreTypes.streamClass);
+
+    futureOfBottom = new InterfaceType(
+        coreTypes.futureClass, <DartType>[const BottomType()]);
+    iterableOfBottom = new InterfaceType(
+        coreTypes.iterableClass, <DartType>[const BottomType()]);
+    streamOfBottom = new InterfaceType(
+        coreTypes.streamClass, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }
@@ -900,8 +875,7 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression buildCompileTimeError(
-      Message message, int offset, int length, Uri uri) {
+  Expression buildProblem(Message message, int offset, int length, Uri uri) {
     String text = target.context
         .format(message.withLocation(uri, offset, length), Severity.error);
     return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
@@ -971,20 +945,5 @@ class SourceLoader<L> extends Loader<L> {
   void releaseAncillaryResources() {
     hierarchy = null;
     typeInferenceEngine = null;
-  }
-
-  void storeCombinatorIdentifiersResolution(OutlineListener outlineListener,
-      LibraryBuilder consumed, List<Combinator> combinators) {
-    if (combinators != null) {
-      for (var combinator in combinators) {
-        for (var identifier in combinator.identifiers) {
-          var declaration = consumed.exportScope.local[identifier.name];
-          declaration ??= consumed.exportScope.setters[identifier.name];
-          outlineListener.store(identifier.offset, identifier.isSynthetic,
-              isNamespaceCombinatorReference: true,
-              reference: declaration?.target);
-        }
-      }
-    }
   }
 }

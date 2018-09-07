@@ -210,13 +210,13 @@ doTest(String allocation, {bool nullify}) async {
   var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   var compiler = result.compiler;
-  var typesInferrer = compiler.globalInference.typesInferrerInternal;
-  var closedWorld = typesInferrer.closedWorld;
+  var results = compiler.globalInference.resultsForTesting;
+  var closedWorld = results.closedWorld;
   var commonMasks = closedWorld.abstractValueDomain;
 
   checkType(String name, type) {
     var element = findMember(closedWorld, name);
-    ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
+    ContainerTypeMask mask = results.resultOfMember(element).type;
     if (nullify) type = type.nullable();
     Expect.equals(type, simplify(mask.elementType, closedWorld), name);
   }

@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -57,11 +58,6 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
-
-  /**
-   * Return `true` to enable the Dart 2.0 Common Front End.
-   */
-  bool get useCFE => false;
 
   void addFlutterPackage() {
     addMetaPackageSource();
@@ -153,8 +149,7 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl()..useFastaParser = useCFE,
-        useCFE: useCFE);
+        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

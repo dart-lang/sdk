@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -553,6 +554,7 @@ struct InstrAttrs {
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
   M(CheckNull, kNoGC)                                                          \
+  M(CheckCondition, kNoGC)                                                     \
   M(Constant, kNoGC)                                                           \
   M(UnboxedConstant, kNoGC)                                                    \
   M(CheckEitherNonSmi, kNoGC)                                                  \
@@ -674,14 +676,17 @@ struct TargetInfo : public CidRange {
   TargetInfo(intptr_t cid_start_arg,
              intptr_t cid_end_arg,
              const Function* target_arg,
-             intptr_t count_arg)
+             intptr_t count_arg,
+             StaticTypeExactnessState exactness)
       : CidRange(cid_start_arg, cid_end_arg),
         target(target_arg),
-        count(count_arg) {
+        count(count_arg),
+        exactness(exactness) {
     ASSERT(target->IsZoneHandle());
   }
   const Function* target;
   intptr_t count;
+  StaticTypeExactnessState exactness;
 };
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
@@ -771,7 +776,7 @@ class Instruction : public ZoneAllocated {
     kNotSpeculative
   };
 
-  explicit Instruction(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
         lifetime_position_(kNoPlaceId),
         previous_(NULL),
@@ -955,7 +960,7 @@ class Instruction : public ZoneAllocated {
   // to.
   virtual intptr_t DeoptimizationTarget() const {
     UNREACHABLE();
-    return Thread::kNoDeoptId;
+    return DeoptId::kNone;
   }
 
   // Returns a replacement for the instruction or NULL if the instruction can
@@ -1070,6 +1075,7 @@ class Instruction : public ZoneAllocated {
  private:
   friend class BranchInstr;      // For RawSetInputAt.
   friend class IfThenElseInstr;  // For RawSetInputAt.
+  friend class CheckConditionInstr;  // For RawSetInputAt.
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1131,7 +1137,7 @@ template <intptr_t N,
 class TemplateInstruction
     : public CSETrait<Instruction, PureInstruction>::Base {
  public:
-  explicit TemplateInstruction(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateInstruction(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Instruction, PureInstruction>::Base(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -1835,7 +1841,7 @@ class AliasIdentity : public ValueObject {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  explicit Definition(intptr_t deopt_id = Thread::kNoDeoptId);
+  explicit Definition(intptr_t deopt_id = DeoptId::kNone);
 
   // Overridden by definitions that have call counts.
   virtual intptr_t CallCount() const {
@@ -2017,7 +2023,7 @@ template <intptr_t N,
           template <typename Impure, typename Pure> class CSETrait = NoCSE>
 class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
  public:
-  explicit TemplateDefinition(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateDefinition(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Definition, PureDefinition>::Base(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -2631,7 +2637,7 @@ class ComparisonInstr : public Definition {
  protected:
   ComparisonInstr(TokenPosition token_pos,
                   Token::Kind kind,
-                  intptr_t deopt_id = Thread::kNoDeoptId)
+                  intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id),
         token_pos_(token_pos),
         kind_(kind),
@@ -2663,7 +2669,7 @@ class TemplateComparison
  public:
   TemplateComparison(TokenPosition token_pos,
                      Token::Kind kind,
-                     intptr_t deopt_id = Thread::kNoDeoptId)
+                     intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<ComparisonInstr, PureComparison>::Base(token_pos,
                                                         kind,
                                                         deopt_id),
@@ -3329,6 +3335,11 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
 
+  void set_static_receiver_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr && receiver_type->IsInstantiated());
+    static_receiver_type_ = receiver_type;
+  }
+
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
@@ -3386,6 +3397,8 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+
+  const AbstractType* static_receiver_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -3457,6 +3470,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   CompileType* result_type() const { return instance_call()->result_type(); }
   intptr_t result_cid() const { return instance_call()->result_cid(); }
+
+  Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -3563,7 +3578,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != Thread::kNoDeoptId;
+    return GetDeoptId() != DeoptId::kNone;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -3826,6 +3841,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
     }
+    new_call->set_entry_kind(call->entry_kind());
     return new_call;
   }
 
@@ -4075,7 +4091,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   bool link_lazily,
                   TokenPosition position,
                   PushArgumentsArray* args)
-      : TemplateDartCall(Thread::kNoDeoptId,
+      : TemplateDartCall(DeoptId::kNone,
                          0,
                          Array::null_array(),
                          args,
@@ -4465,7 +4481,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != Thread::kNoDeoptId;
+    return GetDeoptId() != DeoptId::kNone;
   }
 
   virtual Representation representation() const;
@@ -4746,7 +4762,7 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 // either reside in new space or be in the store buffer.
 class AllocationInstr : public Definition {
  public:
-  explicit AllocationInstr(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit AllocationInstr(intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id) {}
 
   // TODO(sjindel): Update these conditions when the incremental write barrier
@@ -4762,7 +4778,7 @@ class AllocationInstr : public Definition {
 template <intptr_t N, typename ThrowsTrait>
 class TemplateAllocation : public AllocationInstr {
  public:
-  explicit TemplateAllocation(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateAllocation(intptr_t deopt_id = DeoptId::kNone)
       : AllocationInstr(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -5512,7 +5528,7 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual intptr_t DeoptimizationTarget() const { return Thread::kNoDeoptId; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -7385,6 +7401,52 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
+};
+
+// Instruction evaluates the given comparison and deoptimizes if it evaluates
+// to false.
+class CheckConditionInstr : public Instruction {
+ public:
+  CheckConditionInstr(ComparisonInstr* comparison, intptr_t deopt_id)
+      : Instruction(deopt_id), comparison_(comparison) {
+    ASSERT(comparison->ArgumentCount() == 0);
+    ASSERT(comparison->env() == nullptr);
+    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+      comparison->InputAt(i)->set_instruction(this);
+    }
+  }
+
+  ComparisonInstr* comparison() const { return comparison_; }
+
+  DECLARE_INSTRUCTION(CheckCondition)
+
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->Cast<CheckConditionInstr>()->comparison()->AttributesEqual(
+        comparison());
+  }
+
+  virtual intptr_t InputCount() const { return comparison()->InputCount(); }
+  virtual Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    comparison()->RawSetInputAt(i, value);
+  }
+
+  ComparisonInstr* comparison_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
 class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {

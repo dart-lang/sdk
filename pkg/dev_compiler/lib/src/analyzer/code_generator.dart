@@ -309,7 +309,7 @@ class CodeGenerator extends Object
           null,
           sdk is SummaryBasedDartSdk
               ? sdk.bundle
-              : (sdk as FolderBasedDartSdk).getSummarySdkBundle(true));
+              : (sdk as FolderBasedDartSdk).getSummarySdkBundle());
     }
 
     var assembler = PackageBundleAssembler();
@@ -327,8 +327,7 @@ class CodeGenerator extends Object
             uriToUnit.keys.toSet(),
             (uri) => summaryData.linkedMap[uri],
             (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-            context.declaredVariables.get,
-            true)
+            context.declaredVariables.get)
         .forEach(assembler.addLinkedLibrary);
 
     var bundle = assembler.assemble();
@@ -1813,14 +1812,14 @@ class CodeGenerator extends Object
   /// (alternatively, a setter), then there is an implicit override of the
   /// setter (alternatively, the getter) that does nothing.
   JS.Method _emitSuperAccessorWrapper(
-      MethodDeclaration method, InterfaceType type) {
-    var methodElement = method.declaredElement as PropertyAccessorElement;
-    var field = methodElement.variable;
-    if (!field.isSynthetic) return null;
+      MethodDeclaration member, InterfaceType type) {
+    var accessorElement = member.declaredElement as PropertyAccessorElement;
+    var field = accessorElement.variable;
+    if (!field.isSynthetic || accessorElement.isAbstract) return null;
 
     // Generate a corresponding virtual getter / setter.
-    var name = _declareMemberName(methodElement);
-    if (method.isGetter) {
+    var name = _declareMemberName(accessorElement);
+    if (member.isGetter) {
       var setter = field.setter;
       if ((setter == null || setter.isAbstract) &&
           _classProperties.inheritedSetters.contains(field.name)) {

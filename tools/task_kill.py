@@ -25,7 +25,6 @@ POSIX_INFO = 'ps -p %s -o args'
 EXECUTABLE_NAMES = {
   'win32': {
     'chrome': 'chrome.exe',
-    'content_shell': 'content_shell.exe',
     'dart_bootstrap': 'dart_bootstrap.exe',
     'dart': 'dart.exe',
     'dart_precompiled_runtime': 'dart_precompiled_runtime.exe',
@@ -38,7 +37,6 @@ EXECUTABLE_NAMES = {
   },
   'linux': {
     'chrome': 'chrome',
-    'content_shell': 'content_shell',
     'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
     'dart_precompiled_runtime': 'dart_precompiled_runtime',
@@ -49,7 +47,6 @@ EXECUTABLE_NAMES = {
   'macos': {
     'chrome': 'Chrome',
     'chrome_helper': 'Chrome Helper',
-    'content_shell': 'Content Shell',
     'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
     'dart_precompiled_runtime': 'dart_precompiled_runtime',
@@ -221,12 +218,6 @@ def KillBrowsers():
   status += Kill('chrome_helper')
   status += Kill('iexplore')
   status += Kill('safari')
-  if os_name == "win32":
-    # TODO(29599): Let content_shell affect exit code on windows,
-    # once issue with zombie renderers is fixed.
-    Kill('content_shell')
-  else:
-    status += Kill('content_shell')
   return status
 
 def KillVCSystems():

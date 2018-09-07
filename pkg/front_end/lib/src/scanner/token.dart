@@ -1418,20 +1418,6 @@ class TokenType {
   static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
       '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
 
-  static const TokenType GENERIC_METHOD_TYPE_LIST = const TokenType(
-      'generic_comment_list',
-      'GENERIC_METHOD_TYPE_LIST',
-      NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_LIST_TOKEN,
-      stringValue: null);
-
-  static const TokenType GENERIC_METHOD_TYPE_ASSIGN = const TokenType(
-      'generic_comment_assign',
-      'GENERIC_METHOD_TYPE_ASSIGN',
-      NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_ASSIGN_TOKEN,
-      stringValue: null);
-
   static const TokenType AS = Keyword.AS;
 
   static const TokenType IS = Keyword.IS;
@@ -1523,8 +1509,6 @@ class TokenType {
     TokenType.BACKPING,
     TokenType.BACKSLASH,
     TokenType.PERIOD_PERIOD_PERIOD,
-    TokenType.GENERIC_METHOD_TYPE_LIST,
-    TokenType.GENERIC_METHOD_TYPE_ASSIGN,
 
     // TODO(danrubel): Should these be added to the "all" list?
     //TokenType.IS,

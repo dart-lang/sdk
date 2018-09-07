@@ -7,13 +7,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../test_utilities/utillities.dart';
 import 'abstract_rename.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
-    defineReflectiveTests(RenameUnitMemberTest_UseCFE);
   });
 }
 
@@ -611,16 +609,4 @@ main() {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class RenameUnitMemberTest_UseCFE extends RenameUnitMemberTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() =>
-      callFailingTest(super
-          .test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator());
 }

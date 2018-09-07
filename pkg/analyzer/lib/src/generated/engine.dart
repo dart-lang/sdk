@@ -1461,12 +1461,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool trackCacheDependencies = true;
 
   @override
-  bool useFastaParser = false;
-
-  /// [useCFE] exists on [AnalysisOptionsImpl] but not [AnalysisOptions] so as
-  /// not to make it public API. It's used when calculating the driver signature
-  /// of cached results.
-  bool useCFE = false;
+  bool useFastaParser = true;
 
   @override
   bool disableCacheFlushing = false;
@@ -1497,6 +1492,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This option is experimental and subject to change.
    */
   bool implicitDynamic = true;
+
+  /**
+   * Return `true` to enable mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  bool isMixinSupportEnabled = false;
 
   /**
    * Initialize a newly created set of analysis options to have their default
@@ -1530,7 +1531,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
-      useCFE = options.useCFE;
+      isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1670,7 +1671,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
       buffer.addBool(previewDart2);
-      buffer.addBool(useCFE);
+      buffer.addBool(isMixinSupportEnabled);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);

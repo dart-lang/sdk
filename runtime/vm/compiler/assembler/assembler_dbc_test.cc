@@ -6,19 +6,21 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 static RawObject* ExecuteTest(const Code& code) {
-  Thread* thread = Thread::Current();
-  TransitionToGenerated transition(thread);
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 0;
-  return Simulator::Current()->Call(
-      code, Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)),
-      Array::Handle(Array::New(0)), thread);
+  const Array& args_desc =
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
+  const Array& args = Array::Handle(Array::New(0));
+  Thread* thread = Thread::Current();
+  TransitionToGenerated transition(thread);
+  return Simulator::Current()->Call(code, args_desc, args, thread);
 }
 
 #define EXECUTE_TEST_CODE_INTPTR(code)                                         \
@@ -82,7 +84,7 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
   const ICData& ic_data = ICData::Handle(ICData::New(
       dummy_instance_function, String::Handle(dummy_instance_function.name()),
-      dummy_arguments_descriptor, Thread::kNoDeoptId, 2, ICData::kInstance));
+      dummy_arguments_descriptor, DeoptId::kNone, 2, ICData::kInstance));
 
   // Wire up the Function in the ICData.
   GrowableArray<intptr_t> cids(2);

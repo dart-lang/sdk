@@ -56,10 +56,9 @@ runTest(List<String> options, {bool trust: true}) async {
   MemberDefinition definition =
       backendStrategy.elementMap.getMemberDefinition(loadDeferredLibrary);
   ir.Procedure procedure = definition.node;
-  typeMask = compiler.globalInference.resultsForTesting
-      .resultOfParameter(localsMap
-          .getLocalVariable(procedure.function.positionalParameters.first))
-      .type;
+  typeMask = compiler.globalInference.resultsForTesting.resultOfParameter(
+      localsMap
+          .getLocalVariable(procedure.function.positionalParameters.first));
 
   if (trust) {
     Expect.equals(

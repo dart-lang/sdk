@@ -159,6 +159,7 @@ class PageSpaceController {
                                  SpaceUsage after,
                                  int64_t start,
                                  int64_t end);
+  void EvaluateSnapshotLoad(SpaceUsage after);
 
   int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
   void set_last_code_collection_in_us(int64_t t) {
@@ -231,6 +232,9 @@ class PageSpace {
 
   bool NeedsGarbageCollection() const {
     return page_space_controller_.NeedsGarbageCollection(usage_);
+  }
+  void EvaluateSnapshotLoad() {
+    page_space_controller_.EvaluateSnapshotLoad(usage_);
   }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }

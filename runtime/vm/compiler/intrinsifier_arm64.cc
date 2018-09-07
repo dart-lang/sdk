@@ -213,7 +213,10 @@ static int GetScaleFactor(intptr_t size) {
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));                 \
+    uint32_t tags = 0;                                                         \
+    tags = RawObject::ClassIdTag::update(cid, tags);                           \
+    tags = RawObject::NewBit::update(true, tags);                              \
+    __ LoadImmediate(TMP, tags);                                               \
     __ orr(R2, R2, Operand(TMP));                                              \
     __ str(R2, FieldAddress(R0, type_name::tags_offset())); /* Tags. */        \
   }                                                                            \
@@ -2075,7 +2078,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
     // This also clears the hash, which is in the high word of the tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }

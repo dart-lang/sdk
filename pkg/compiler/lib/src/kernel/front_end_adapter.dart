@@ -78,7 +78,6 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
     DiagnosticReporter reporter, fe.CompilationMessage message) {
-  // TODO(sigmund): translate message kinds using message.dart2jsCode
   MessageKind kind = MessageKind.GENERIC;
   Spannable span;
   if (message.span != null) {

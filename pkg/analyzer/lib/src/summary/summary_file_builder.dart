@@ -27,27 +27,24 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 class SummaryBuilder {
   final Iterable<Source> librarySources;
   final AnalysisContext context;
-
-  /**
-   * TODO(brianwilkerson) Remove this field.
-   */
-  final bool strong;
-
   /**
    * Create a summary builder for these [librarySources] and [context].
+   *
+   * TODO(paulberry): remove optional "strong" parameter once all callers have
+   * stopped passing it in.
    */
-  SummaryBuilder(this.librarySources, this.context, this.strong);
+  SummaryBuilder(this.librarySources, this.context);
 
   /**
    * Create an SDK summary builder for the dart SDK at the given [sdkPath].
    */
-  factory SummaryBuilder.forSdk(String sdkPath, bool strong) {
+  factory SummaryBuilder.forSdk(String sdkPath) {
     //
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-        resourceProvider, resourceProvider.getFolder(sdkPath), strong);
+        resourceProvider, resourceProvider.getFolder(sdkPath), true);
     sdk.useSummary = false;
     sdk.analysisOptions = new AnalysisOptionsImpl();
 
@@ -63,30 +60,25 @@ class SummaryBuilder {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context, strong);
+    return new SummaryBuilder(librarySources, sdk.context);
   }
 
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() => new _Builder(context, librarySources, strong).build();
+  List<int> build() => new _Builder(context, librarySources).build();
 }
 
 class _Builder {
   final AnalysisContext context;
   final Iterable<Source> librarySources;
 
-  /**
-   * TODO(brianwilkerson) Remove this field.
-   */
-  final bool strong;
-
   final Set<String> libraryUris = new Set<String>();
   final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
 
   final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
 
-  _Builder(this.context, this.librarySources, this.strong);
+  _Builder(this.context, this.librarySources);
 
   /**
    * Build the linked bundle and return its bytes.
@@ -104,7 +96,7 @@ class _Builder {
       return unlinked;
     }, (String name) {
       throw new StateError('Unexpected call to GetDeclaredVariable($name).');
-    }, strong);
+    });
     map.forEach(bundleAssembler.addLinkedLibrary);
 
     return bundleAssembler.assemble().toBuffer();
@@ -143,13 +135,11 @@ class _Builder {
     String code = source.contents.data;
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = strong;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
-    parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

@@ -14,7 +14,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetServerPortTest);
-    defineReflectiveTests(GetServerPortTest_UseCFE);
   });
 }
 
@@ -35,10 +34,4 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     String responseBody = await utf8.decodeStream(response);
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
-}
-
-@reflectiveTest
-class GetServerPortTest_UseCFE extends GetServerPortTest {
-  @override
-  bool get useCFE => true;
 }

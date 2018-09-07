@@ -285,12 +285,22 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
     compareLineInfo(resynthesized.lineInfo, original.lineInfo);
+
     expect(resynthesized.types.length, original.types.length,
         reason: '$desc.types.length');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
+
+    // TODO(scheglov) Uncomment once the tasks based implementation is ready.
+//    expect(resynthesized.mixins.length, original.mixins.length,
+//        reason: '$desc.mixins.length');
+//    for (int i = 0; i < resynthesized.mixins.length; i++) {
+//      compareClassElements(
+//          resynthesized.mixins[i], original.mixins[i], original.mixins[i].name);
+//    }
+
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length,
         reason: '$desc.topLevelVariables.length');
@@ -8991,7 +9001,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x]);
+        a/*location: test.dart;a?*/ dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -9064,7 +9074,7 @@ dynamic f(@
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ () → dynamic g]) {}
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
 ''');
   }
 
@@ -9222,7 +9232,7 @@ dynamic f(@
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ dynamic x]) {}
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
 ''');
   }
 
@@ -9413,6 +9423,48 @@ class B {
 dynamic c;
 ''');
     }
+  }
+
+  test_mixin() async {
+    var library = await checkLibrary(r'''
+class A {}
+class B {}
+class C {}
+class D {}
+
+mixin M<T extends num, U> on A, B implements C, D {
+  T f;
+  U get g => 0;
+  set s(int v) {}
+  int m(double v) => 0;
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B {
+}
+class C {
+}
+class D {
+}
+mixin M<T extends num, U> on A, B implements C, D {
+  T f;
+  U get g {}
+  void set s(int v) {}
+  int m(double v) {}
+}
+''');
+  }
+
+  test_mixin_implicitObjectSuperclassConstraint() async {
+    var library = await checkLibrary(r'''
+mixin M {}
+''');
+    checkElementText(library, r'''
+mixin M on Object {
+}
+''');
   }
 
   test_nameConflict_exportedAndLocal() async {

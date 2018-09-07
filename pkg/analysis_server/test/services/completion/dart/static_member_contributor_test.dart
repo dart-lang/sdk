@@ -12,7 +12,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticMemberContributorTest);
-    defineReflectiveTests(StaticMemberContributorTest_UseCFE);
   });
 }
 
@@ -305,15 +304,4 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('Object');
     assertNotSuggested('==');
   }
-}
-
-@reflectiveTest
-class StaticMemberContributorTest_UseCFE extends StaticMemberContributorTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_PrefixedIdentifier_class_const() =>
-      super.test_PrefixedIdentifier_class_const();
 }

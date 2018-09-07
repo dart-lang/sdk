@@ -65,17 +65,6 @@ testIfThenElse() {
     return 1;
 }
 
-/*kernel.element: testForIn:
- dynamic=[
-  current,
-  iterator,
-  moveNext(0)],
- static=[
-  checkConcurrentModificationError],
- type=[
-  inst:JSNull,
-  inst:Null]
-*/
 /*strong.element: testForIn:
  dynamic=[
   current,
@@ -93,18 +82,6 @@ testForIn(o) {
   for (var e in o) {}
 }
 
-/*kernel.element: testForInTyped:
- dynamic=[
-  current,
-  iterator,
-  moveNext(0)],
- static=[
-  checkConcurrentModificationError],
- type=[
-  check:int,
-  inst:JSNull,
-  inst:Null]
-*/
 /*strong.element: testForInTyped:
  dynamic=[
   current,

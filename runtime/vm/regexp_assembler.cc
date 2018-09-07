@@ -61,7 +61,8 @@ BlockLabel::BlockLabel()
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.
-    block_ = new JoinEntryInstr(-1, -1, Thread::Current()->GetNextDeoptId());
+    block_ =
+        new JoinEntryInstr(-1, -1, CompilerState::Current().GetNextDeoptId());
   }
 #endif
 }

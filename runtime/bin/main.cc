@@ -114,40 +114,6 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   return dart_arguments;
 }
 
-static void* GetHashmapKeyFromString(char* key) {
-  return reinterpret_cast<void*>(key);
-}
-
-static Dart_Handle EnvironmentCallback(Dart_Handle name) {
-  uint8_t* utf8_array;
-  intptr_t utf8_len;
-  Dart_Handle result = Dart_Null();
-  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
-  if (Dart_IsError(handle)) {
-    handle = Dart_ThrowException(
-        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
-  } else {
-    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
-    memmove(name_chars, utf8_array, utf8_len);
-    name_chars[utf8_len] = '\0';
-    const char* value = NULL;
-    if (Options::environment() != NULL) {
-      HashMap::Entry* entry = Options::environment()->Lookup(
-          GetHashmapKeyFromString(name_chars), HashMap::StringHash(name_chars),
-          false);
-      if (entry != NULL) {
-        value = reinterpret_cast<char*>(entry->value);
-      }
-    }
-    if (value != NULL) {
-      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
-                                      strlen(value));
-    }
-    free(name_chars);
-  }
-  return result;
-}
-
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = strdup(Dart_GetError(result));                                      \
   if (Dart_IsCompilationError(result)) {                                       \
@@ -330,7 +296,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif
   }
 
-  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -626,7 +592,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
-  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
   CHECK_RESULT(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -1182,6 +1148,7 @@ void main(int argc, char** argv) {
       Platform::Exit(kErrorExitCode);
     }
   }
+  DartUtils::SetEnvironment(Options::environment());
 
   Loader::InitOnce();
 

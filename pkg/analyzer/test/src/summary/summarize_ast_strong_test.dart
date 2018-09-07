@@ -4,7 +4,8 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'summarize_ast_test.dart';
+import 'summary_common.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -12,11 +13,9 @@ main() {
   });
 }
 
-/**
- * Override of [LinkedSummarizeAstTest] which uses strong mode.
- */
 @reflectiveTest
-class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
+class LinkedSummarizeAstStrongTest extends SummaryBlackBoxTestStrategyTwoPhase
+    with SummaryTestCases {
   @override
   @failingTest
   test_bottom_reference_shared() {

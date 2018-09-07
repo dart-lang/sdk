@@ -4,8 +4,16 @@
 
 [ $compiler == fasta ]
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Expressions/Instance_Creation/New/generic_type_t01: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t03: CompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t07: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
@@ -151,10 +159,6 @@ Language/Classes/Constructors/Factories/accessible_class_t02/01: CompileTimeErro
 Language/Classes/Constructors/Factories/accessible_class_t03/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/02: CompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
-Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t02: CompileTimeError
 Language/Classes/Constructors/Factories/redirecting_constructor_call_t01: CompileTimeError
 Language/Classes/Constructors/Factories/redirecting_constructor_call_t02: CompileTimeError
@@ -196,7 +200,6 @@ Language/Classes/Instance_Methods/override_subtype_t03: CompileTimeError
 Language/Classes/Instance_Methods/override_subtype_t04: CompileTimeError
 Language/Classes/Instance_Methods/override_subtype_t05: CompileTimeError
 Language/Classes/Instance_Methods/override_subtype_t06: CompileTimeError
-Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Instance_Variables/definition_t03: CompileTimeError
 Language/Classes/Setters/name_t01: CompileTimeError
 Language/Classes/Setters/name_t05: CompileTimeError
@@ -573,6 +576,8 @@ Language/Expressions/Lists/static_type_t04: CompileTimeError
 Language/Expressions/Lists/static_type_t05: CompileTimeError
 Language/Expressions/Lists/value_of_a_constant_list_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/evaluation_form_and_t01: CompileTimeError
+Language/Expressions/Logical_Boolean_Expressions/evaluation_form_and_t02: CompileTimeError
+Language/Expressions/Logical_Boolean_Expressions/evaluation_form_or_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/static_type_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t10/01: CompileTimeError
@@ -884,6 +889,7 @@ Language/Functions/Formal_Parameters/scope_t01: CompileTimeError
 Language/Functions/async_return_type_t01: CompileTimeError
 Language/Functions/generator_return_type_t01: CompileTimeError
 Language/Functions/generator_return_type_t02: CompileTimeError
+Language/Functions/implicit_return_t01: CompileTimeError
 Language/Functions/syntax_t01: CompileTimeError
 Language/Functions/syntax_t36: CompileTimeError
 Language/Functions/syntax_t37: CompileTimeError
@@ -921,7 +927,6 @@ Language/Libraries_and_Scripts/Imports/dart_core_t03: CompileTimeError
 Language/Libraries_and_Scripts/Imports/dart_core_t04: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t01: CompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t03: CompileTimeError
@@ -1013,6 +1018,7 @@ Language/Statements/Continue/control_transfer_t08: CompileTimeError
 Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Do/condition_type_t01: CompileTimeError
+Language/Statements/Do/condition_type_t02: CompileTimeError
 Language/Statements/Do/condition_type_t03: CompileTimeError
 Language/Statements/Do/execution_t03: CompileTimeError
 Language/Statements/Expression_Statements/syntax_t01: CompileTimeError
@@ -1051,9 +1057,6 @@ Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/execution_case_no_default_t02: CompileTimeError
 Language/Statements/Switch/execution_case_t02: CompileTimeError
 Language/Statements/Switch/execution_t01: CompileTimeError
-Language/Statements/Switch/expressions_t01: MissingCompileTimeError
-Language/Statements/Switch/expressions_t02: MissingCompileTimeError
-Language/Statements/Switch/expressions_t04: MissingCompileTimeError
 Language/Statements/Switch/last_statement_t01: CompileTimeError
 Language/Statements/Switch/scope_t02: CompileTimeError
 Language/Statements/Switch/type_t01: CompileTimeError
@@ -1110,8 +1113,14 @@ Language/Types/Static_Types/malformed_type_t04: CompileTimeError
 Language/Types/Static_Types/malformed_type_t05: CompileTimeError
 Language/Types/Static_Types/malformed_type_t06: CompileTimeError
 Language/Types/Type_Declarations/Typedef/syntax_t01: CompileTimeError
+Language/Types/Type_Void/returning_t03: CompileTimeError
+Language/Types/Type_Void/returning_t04: CompileTimeError
+Language/Types/Type_Void/returning_t05: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t09: Pass
+Language/Types/Type_Void/using_t01: CompileTimeError
+Language/Types/Type_Void/using_t02: CompileTimeError
 Language/Variables/constant_variable_t01: CompileTimeError
 Language/Variables/constant_variable_t02: CompileTimeError
 Language/Variables/constant_variable_t03: CompileTimeError
@@ -1188,6 +1197,9 @@ LibTest/async/Zone/bindUnaryCallback_A01_t02: CompileTimeError
 LibTest/async/Zone/registerBinaryCallback_A01_t01: CompileTimeError
 LibTest/async/Zone/registerCallback_A01_t01: CompileTimeError
 LibTest/async/Zone/registerUnaryCallback_A01_t01: CompileTimeError
+LibTest/async/Zone/runBinaryGuarded_A01_t01: CompileTimeError
+LibTest/async/Zone/runGuarded_A01_t01: CompileTimeError
+LibTest/async/Zone/runUnaryGuarded_A01_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/firstWhere_A02_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/firstWhere_A03_t01: CompileTimeError
@@ -1678,8 +1690,6 @@ Utils/tests/Expect/throws_A01_t04: CompileTimeError
 
 [ $fasta && !$strong ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t03: CompileTimeError # super initializer not last
@@ -1688,7 +1698,6 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
-Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Invalid test, see #33237
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
@@ -1729,7 +1738,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError

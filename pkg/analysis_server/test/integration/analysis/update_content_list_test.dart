@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_UseCFE);
   });
 }
 
@@ -50,14 +49,4 @@ main() {
       expect(currentAnalysisErrors[pathname], isEmpty);
     });
   }
-}
-
-@reflectiveTest
-class UpdateContentTest_UseCFE extends UpdateContentTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_updateContent_list() => super.test_updateContent_list();
 }

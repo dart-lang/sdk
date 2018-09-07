@@ -119,14 +119,12 @@ class KernelTarget extends TargetImplementation {
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  final TypeBuilder dynamicType =
-      new KernelNamedTypeBuilder(null, -1, "dynamic", null);
+  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   final NamedTypeBuilder objectType =
-      new KernelNamedTypeBuilder(null, -1, "Object", null);
+      new KernelNamedTypeBuilder("Object", null);
 
-  final TypeBuilder bottomType =
-      new KernelNamedTypeBuilder(null, -1, "Null", null);
+  final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -219,7 +217,7 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder(null, -1, "Object", null)
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
       ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
@@ -435,7 +433,7 @@ class KernelTarget extends TargetImplementation {
               if (cls != objectClass) {
                 cls.supertype ??= objectClass.asRawSupertype;
                 declaration.supertype ??=
-                    new KernelNamedTypeBuilder(null, -1, "Object", null)
+                    new KernelNamedTypeBuilder("Object", null)
                       ..bind(objectClassBuilder);
               }
               if (declaration.isMixinApplication) {
@@ -659,10 +657,8 @@ class KernelTarget extends TargetImplementation {
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
-            builder.addCompileTimeError(
-                messageConstConstructorRedirectionToNonConst,
-                initializer.fileOffset,
-                initializer.target.name.name.length);
+            builder.addProblem(messageConstConstructorRedirectionToNonConst,
+                initializer.fileOffset, initializer.target.name.name.length);
           }
           isRedirecting = true;
           break;
@@ -676,7 +672,7 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            builder.addCompileTimeError(
+            builder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass.name),
                 constructor.fileOffset,
@@ -716,7 +712,7 @@ class KernelTarget extends TargetImplementation {
         }
         constructorInitializedFields[constructor] = myInitializedFields;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          builder.addCompileTimeError(messageConstConstructorNonFinalField,
+          builder.addProblem(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause

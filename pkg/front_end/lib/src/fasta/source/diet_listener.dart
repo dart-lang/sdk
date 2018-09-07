@@ -32,7 +32,11 @@ import '../deprecated_problems.dart'
     show deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
+    show
+        LocatedMessage,
+        Message,
+        messageExpectedBlockToSkip,
+        templateInternalProblemNotFound;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -41,9 +45,6 @@ import '../kernel/kernel_formal_parameter_builder.dart'
 
 import '../kernel/kernel_function_type_alias_builder.dart'
     show KernelFunctionTypeAliasBuilder;
-
-import '../kernel/kernel_procedure_builder.dart'
-    show KernelRedirectingFactoryBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
@@ -75,11 +76,6 @@ class DietListener extends StackListener {
 
   int importExportDirectiveIndex = 0;
   int partDirectiveIndex = 0;
-
-  /// The unit currently being parsed, might be the same as [library] when
-  /// the defining unit of the library is being parsed, updated from outside
-  /// before parsing each part.
-  SourceLibraryBuilder currentUnit;
 
   ClassBuilder currentClass;
 
@@ -126,8 +122,7 @@ class DietListener extends StackListener {
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     if (hasName) discard(1);
-    Token metadata = pop();
-    parseMetadata(currentUnit, metadata, currentUnit.target);
+    discard(1); // Metadata.
   }
 
   @override
@@ -288,8 +283,9 @@ class DietListener extends StackListener {
     String name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name),
-        MemberKind.TopLevelMethod, metadata);
+    final StackListener listener =
+        createFunctionListener(lookupBuilder(beginToken, getOrSet, name));
+    buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
   @override
@@ -324,7 +320,8 @@ class DietListener extends StackListener {
     debugEvent("handleQualified");
     String suffix = pop();
     var prefix = pop();
-    push(new QualifiedName(prefix, suffix, period.charOffset));
+    assert(identical(suffix, period.next.lexeme));
+    push(new QualifiedName(prefix, period.next));
   }
 
   @override
@@ -498,37 +495,16 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
-      // TODO(dmitryas): Consider building redirecting factory bodies here.
-      KernelRedirectingFactoryBuilder factory =
-          lookupConstructor(beginToken, name);
-      parseMetadata(factory, metadata, factory.target);
 
-      if (factory.formals != null) {
-        List<int> metadataOffsets = new List<int>(factory.formals.length);
-        for (int i = 0; i < factory.formals.length; ++i) {
-          List<MetadataBuilder> metadata = factory.formals[i].metadata;
-          if (metadata != null && metadata.length > 0) {
-            // [parseMetadata] is using [Parser.parseMetadataStar] under the
-            // hood, so we only need the offset of the first annotation.
-            metadataOffsets[i] = metadata[0].charOffset;
-          } else {
-            metadataOffsets[i] = -1;
-          }
-        }
-        List<Token> metadataTokens =
-            tokensForOffsets(beginToken, endToken, metadataOffsets);
-        for (int i = 0; i < factory.formals.length; ++i) {
-          Token metadata = metadataTokens[i];
-          if (metadata == null) continue;
-          parseMetadata(
-              factory.formals[i], metadata, factory.formals[i].target);
-        }
-      }
-      return;
+    ProcedureBuilder builder = lookupConstructor(beginToken, name);
+    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+      parseMetadata(builder, metadata, builder.target);
+      buildRedirectingFactoryMethod(
+          bodyToken, builder, MemberKind.Factory, metadata);
+    } else {
+      buildFunctionBody(createFunctionListener(builder), bodyToken, metadata,
+          MemberKind.Factory);
     }
-    buildFunctionBody(bodyToken, lookupConstructor(beginToken, name),
-        MemberKind.Factory, metadata);
   }
 
   @override
@@ -575,10 +551,12 @@ class DietListener extends StackListener {
       builder = lookupBuilder(beginToken, getOrSet, name);
     }
     buildFunctionBody(
+        createFunctionListener(builder),
         beginParam,
-        builder,
-        builder.isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod,
-        metadata);
+        metadata,
+        builder.isStatic
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod);
   }
 
   StackListener createListener(
@@ -610,19 +588,40 @@ class DietListener extends StackListener {
       ..constantContext = constantContext;
   }
 
-  void buildFunctionBody(
-      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
-    Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
-    Scope formalParameterScope =
+  StackListener createFunctionListener(ProcedureBuilder builder) {
+    final Scope typeParameterScope =
+        builder.computeTypeParameterScope(memberScope);
+    final Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
     assert(typeParameterScope != null);
     assert(formalParameterScope != null);
-    parseFunctionBody(
-        createListener(builder, typeParameterScope, builder.isInstanceMember,
-            formalParameterScope),
-        token,
-        metadata,
-        kind);
+    return createListener(builder, typeParameterScope, builder.isInstanceMember,
+        formalParameterScope);
+  }
+
+  void buildRedirectingFactoryMethod(
+      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
+    final StackListener listener = createFunctionListener(builder);
+    try {
+      Parser parser = new Parser(listener);
+
+      if (metadata != null) {
+        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+        listener.pop();
+      }
+
+      token = parser.parseFormalParametersOpt(
+          parser.syntheticPreviousToken(token), MemberKind.Factory);
+
+      listener.pop();
+      listener.checkEmpty(token.next.charOffset);
+    } on DebugAbort {
+      rethrow;
+    } on deprecated_InputError {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
@@ -751,7 +750,7 @@ class DietListener extends StackListener {
     listener.finishFields();
   }
 
-  void parseFunctionBody(StackListener listener, Token startToken,
+  void buildFunctionBody(StackListener listener, Token startToken,
       Token metadata, MemberKind kind) {
     Token token = startToken;
     try {
@@ -823,14 +822,11 @@ class DietListener extends StackListener {
   Declaration lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentClass != null);
     Declaration declaration;
-    String name;
     String suffix;
     if (nameOrQualified is QualifiedName) {
-      name = nameOrQualified.prefix;
-      suffix = nameOrQualified.suffix;
+      suffix = nameOrQualified.name;
     } else {
-      name = nameOrQualified;
-      suffix = name == currentClass.name ? "" : name;
+      suffix = nameOrQualified == currentClass.name ? "" : nameOrQualified;
     }
     declaration = currentClass.constructors.local[suffix];
     checkBuilder(token, declaration, nameOrQualified);
@@ -852,12 +848,10 @@ class DietListener extends StackListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, length, uri);
-  }
-
-  void addProblem(Message message, int charOffset, int length) {
-    library.addProblem(message, charOffset, length, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    library.addProblem(message, charOffset, length, uri,
+        wasHandled: wasHandled, context: context);
   }
 
   @override

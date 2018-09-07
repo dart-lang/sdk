@@ -25,12 +25,10 @@ class Code<T> {
 
   final String analyzerCode;
 
-  final String dart2jsCode;
-
   final Severity severity;
 
   const Code(this.name, this.template,
-      {this.analyzerCode, this.dart2jsCode, this.severity});
+      {this.analyzerCode, this.severity: Severity.error});
 
   String toString() => name;
 }
@@ -62,14 +60,10 @@ class MessageCode extends Code<Null> implements Message {
 
   const MessageCode(String name,
       {String analyzerCode,
-      String dart2jsCode,
-      Severity severity,
+      Severity severity: Severity.error,
       this.message,
       this.tip})
-      : super(name, null,
-            analyzerCode: analyzerCode,
-            dart2jsCode: dart2jsCode,
-            severity: severity);
+      : super(name, null, analyzerCode: analyzerCode, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 

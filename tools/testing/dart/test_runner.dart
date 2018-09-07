@@ -153,6 +153,24 @@ class TestCase extends UniqueObject {
   }
 
   Expectation get result => lastCommandOutput.result(this);
+  Expectation get realResult => lastCommandOutput.realResult(this);
+  Expectation get realExpected {
+    if (isNegative || (isNegativeIfChecked && configuration.isChecked)) {
+      return Expectation.fail;
+    }
+    if (configuration.compiler == Compiler.specParser) {
+      if (hasSyntaxError) {
+        return Expectation.syntaxError;
+      }
+    } else if ((hasCompileError) ||
+        (hasCompileErrorIfChecked && configuration.isChecked)) {
+      return Expectation.compileTimeError;
+    }
+    if (configuration.runtime != Runtime.none && hasRuntimeError) {
+      return Expectation.runtimeError;
+    }
+    return Expectation.pass;
+  }
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.length == 0) {
@@ -1302,13 +1320,7 @@ class CommandExecutorImpl implements CommandExecutor {
       completer.complete(new BrowserCommandOutput(browserCommand, output));
     };
 
-    BrowserTest browserTest;
-    if (browserCommand is BrowserHtmlTestCommand) {
-      browserTest = new HtmlTest(browserCommand.url, callback, timeout,
-          browserCommand.expectedMessages);
-    } else {
-      browserTest = new BrowserTest(browserCommand.url, callback, timeout);
-    }
+    var browserTest = new BrowserTest(browserCommand.url, callback, timeout);
     _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
       testRunner.enqueueTest(browserTest);
     });
@@ -1358,14 +1370,6 @@ bool shouldRetryCommand(CommandOutput output) {
           return true;
         }
       }
-    }
-
-    // As long as we use a legacy version of our custom content_shell (which
-    // became quite flaky after chrome-50 roll) we'll re-run tests on it.
-    // The plan is to use chrome's content_shell instead of our own.
-    // See http://dartbug.com/29655 .
-    if (command is ContentShellCommand) {
-      return true;
     }
 
     if (io.Platform.operatingSystem == 'linux') {

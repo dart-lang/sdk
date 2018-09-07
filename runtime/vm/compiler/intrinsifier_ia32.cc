@@ -203,7 +203,10 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));                \
+    uint32_t tags = 0;                                                         \
+    tags = RawObject::ClassIdTag::update(cid, tags);                           \
+    tags = RawObject::NewBit::update(true, tags);                              \
+    __ orl(EDI, Immediate(tags));                                              \
     __ movl(FieldAddress(EAX, type_name::tags_offset()), EDI); /* Tags. */     \
   }                                                                            \
   /* Set the length field. */                                                  \
@@ -1995,7 +1998,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, String::tags_offset()), EDI);  // Tags.
   }
 

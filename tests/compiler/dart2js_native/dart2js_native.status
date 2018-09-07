@@ -5,11 +5,6 @@
 [ $compiler == dart2js ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError # Issue 13010
-
-[ $browser ]
-*: Skip
-
-[ $compiler == dart2js && $fasta ]
 field_type2_test: CompileTimeError # Issue 33762
 field_type_test: CompileTimeError # Issue 33762
 native_exceptions1_frog_test: CompileTimeError # Issue 33762
@@ -22,6 +17,9 @@ subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
+
+[ $browser ]
+*: Skip
 
 [ $compiler == dart2js && $minified ]
 optimization_hints_test: RuntimeError, OK # Test relies on unminified names.

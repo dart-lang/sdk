@@ -16,7 +16,6 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetPriorityFilesTest);
-    defineReflectiveTests(SetPriorityFilesTest_UseCFE);
   });
 }
 
@@ -129,10 +128,4 @@ analyzer:
     List<String> prioritySources = driver.priorityFiles;
     expect(prioritySources, [path]);
   }
-}
-
-@reflectiveTest
-class SetPriorityFilesTest_UseCFE extends SetPriorityFilesTest {
-  @override
-  bool get useCFE => true;
 }

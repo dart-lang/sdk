@@ -983,7 +983,7 @@ class BoundsCheckGeneralizer {
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
       CheckArrayBoundInstr* precondition = new CheckArrayBoundInstr(
           new Value(max_smi), new Value(non_positive_symbols[i]),
-          Thread::kNoDeoptId);
+          DeoptId::kNone);
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
       if (precondition == NULL) {
@@ -997,7 +997,7 @@ class BoundsCheckGeneralizer {
 
     CheckArrayBoundInstr* new_check = new CheckArrayBoundInstr(
         new Value(UnwrapConstraint(check->length()->definition())),
-        new Value(upper_bound), Thread::kNoDeoptId);
+        new Value(upper_bound), DeoptId::kNone);
     new_check->mark_generalized();
     if (new_check->IsRedundant(array_length)) {
       if (FLAG_trace_range_analysis) {
@@ -1035,7 +1035,7 @@ class BoundsCheckGeneralizer {
                                  Definition* left,
                                  Definition* right) {
     return new BinarySmiOpInstr(op_kind, new Value(left), new Value(right),
-                                Thread::kNoDeoptId);
+                                DeoptId::kNone);
   }
 
   BinarySmiOpInstr* MakeBinaryOp(Token::Kind op_kind,

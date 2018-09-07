@@ -23,6 +23,7 @@
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -132,18 +133,6 @@ static void PrecompilationModeHandler(bool value) {
 DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
-
-static void UnsafeModeHandler(bool value) {
-  if (value) {
-    FLAG_omit_strong_type_checks = true;
-    FLAG_use_strong_mode_types = false;
-  }
-}
-
-DEFINE_FLAG_HANDLER(UnsafeModeHandler,
-                    experimental_unsafe_mode_use_at_your_own_risk,
-                    "Omit runtime strong mode type checks and disable "
-                    "optimizations based on types.");
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
@@ -688,7 +677,10 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
           THR_Print("--> FAIL: Loading invalidation.");
         }
       }
-      if (!thread()->cha()->IsConsistentWithCurrentHierarchy()) {
+      if (!thread()
+               ->compiler_state()
+               .cha()
+               .IsConsistentWithCurrentHierarchy()) {
         code_is_valid = false;
         if (trace_compiler) {
           THR_Print("--> FAIL: Class hierarchy has new subclasses.");
@@ -718,7 +710,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
       // The generated code was compiled under certain assumptions about
       // class hierarchy and field types. Register these dependencies
       // to ensure that the code will be deoptimized if they are violated.
-      thread()->cha()->RegisterDependencies(code);
+      thread()->compiler_state().cha().RegisterDependencies(code);
 
       const ZoneGrowableArray<const Field*>& guarded_fields =
           *flow_graph->parsed_function().guarded_fields();
@@ -753,7 +745,7 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
   if (!isolate()->background_compiler()->is_running()) {
     // The background compiler is being stopped.
     Compiler::AbortBackgroundCompilation(
-        Thread::kNoDeoptId, "Background compilation is being stopped");
+        DeoptId::kNone, "Background compilation is being stopped");
   }
 }
 
@@ -788,16 +780,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
     *result = Code::null();
-    const intptr_t prev_deopt_id = thread()->deopt_id();
-    thread()->set_deopt_id(0);
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      // Class hierarchy analysis is registered with the thread in the
-      // constructor and unregisters itself upon destruction.
-      CHA cha(thread());
+      CompilerState compiler_state(thread());
 
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
@@ -825,7 +813,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
             Compiler::AbortBackgroundCompilation(
-                Thread::kNoDeoptId, "RestoreICDataMap: ICData array cleared.");
+                DeoptId::kNone, "RestoreICDataMap: ICData array cleared.");
           }
         }
 
@@ -968,8 +956,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         thread()->clear_sticky_error();
       }
     }
-    // Reset global isolate state.
-    thread()->set_deopt_id(prev_deopt_id);
   }
   return result->raw();
 }
@@ -1029,7 +1015,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
         // Loading occured while parsing. We need to abort here because state
         // changed while compiling.
         Compiler::AbortBackgroundCompilation(
-            Thread::kNoDeoptId,
+            DeoptId::kNone,
             "Invalidated state during parsing because of script loading");
       }
     }
@@ -1366,8 +1352,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
-  const intptr_t prev_deopt_id = Thread::Current()->deopt_id();
-  Thread::Current()->set_deopt_id(0);
+  CompilerState state(Thread::Current());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ZoneGrowableArray<const ICData*>* ic_data_array =
@@ -1399,7 +1384,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
-  Thread::Current()->set_deopt_id(prev_deopt_id);
 }
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
@@ -1844,7 +1828,7 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
   // TODO(srdjan): Checking different strategy for collecting garbage
   // accumulated by background compiler.
   if (isolate_->heap()->NeedsGarbageCollection()) {
-    isolate_->heap()->CollectAllGarbage();
+    isolate_->heap()->CollectMostGarbage();
   }
   {
     MonitorLocker ml(queue_monitor_);

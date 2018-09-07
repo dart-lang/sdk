@@ -22,14 +22,6 @@ import '../equivalence/id_equivalence_helper.dart';
 const List<String> skipForStrong = const <String>[
   // TODO(johnniwinther): Remove this when issue 31767 is fixed.
   'mixin_constructor_default_parameter_values.dart',
-  // These contain compile-time errors:
-  'erroneous_super_get.dart',
-  'erroneous_super_invoke.dart',
-  'erroneous_super_set.dart',
-  'switch3.dart',
-  'switch4.dart',
-  // TODO(johnniwinther): Make a strong mode clean version of this?
-  'call_in_loop.dart',
 ];
 
 main(List<String> args) {
@@ -81,7 +73,7 @@ class TypeMaskDataComputer extends DataComputer {
 /// IR visitor for computing inference data for a member.
 class TypeMaskIrComputer extends IrDataExtractor {
   final GlobalTypeInferenceResults results;
-  GlobalTypeInferenceElementResult result;
+  GlobalTypeInferenceMemberResult result;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final ClosureDataLookup _closureDataLookup;
@@ -114,9 +106,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult elementResult =
-        results.resultOfParameter(parameter);
-    return getTypeMaskValue(elementResult.type);
+    return getTypeMaskValue(results.resultOfParameter(parameter));
   }
 
   String getTypeMaskValue(TypeMask typeMask) {

@@ -1234,7 +1234,21 @@ static RawFunction* InlineCacheMissHandler(
     return target_function.raw();
   }
   if (args.length() == 1) {
-    ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
+    if (ic_data.IsTrackingExactness()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& receiver = *args[0];
+      const auto state = StaticTypeExactnessState::Compute(
+          Type::Cast(AbstractType::Handle(ic_data.StaticReceiverType())),
+          receiver);
+      ic_data.AddReceiverCheck(
+          receiver.GetClassId(), target_function,
+          /*count=*/1, /*exactness=*/state.CollapseSuperTypeExactness());
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
+    }
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
     ASSERT(ic_data.NumArgsTested() == args.length());
@@ -1414,7 +1428,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
                               kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   // Maybe add the new target.
@@ -1490,7 +1504,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   const Array& descriptor = Array::Handle(zone, unlinked.args_descriptor());
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -1570,7 +1584,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
                               kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   // Add the first target.
@@ -2708,7 +2722,7 @@ uword RuntimeEntry::InterpretCallEntry() {
   return reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
 }
 
-// Interpret a function call. Should be called only for uncompiled functions.
+// Interpret a function call. Should be called only for non-jitted functions.
 // argc indicates the number of arguments, including the type arguments.
 // argv points to the first argument.
 // If argc < 0, arguments are passed at decreasing memory addresses from argv.
@@ -2723,6 +2737,9 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   uword exit_fp = thread->top_exit_frame_info();
   ASSERT(exit_fp != 0);
   ASSERT(thread == Thread::Current());
+  // Caller is InterpretCall stub called from generated code.
+  // We stay in "in generated code" execution state when interpreting code.
+  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ASSERT(!Function::HasCode(function));
   ASSERT(Function::HasBytecode(function));
   ASSERT(interpreter != NULL);
@@ -2730,7 +2747,12 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   const Object& result = Object::Handle(
       thread->zone(), interpreter->Call(function, argdesc, argc, argv, thread));
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  CheckResultError(result);
+  if (result.IsError()) {
+    // Propagating an error may cause allocation. Check if we need to block for
+    // a safepoint by switching to "in VM" execution state.
+    TransitionGeneratedToVM transition(thread);
+    Exceptions::PropagateError(Error::Cast(result));
+  }
   return result.raw();
 #else
   UNREACHABLE();

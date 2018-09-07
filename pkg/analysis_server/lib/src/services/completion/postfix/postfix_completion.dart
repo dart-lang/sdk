@@ -547,6 +547,10 @@ class PostfixCompletionProcessor {
   }
 
   Expression _findOuterExpression(AstNode start, InterfaceType builtInType) {
+    if (start is SimpleIdentifier && start.staticElement is PrefixElement) {
+      return null;
+    }
+
     AstNode parent;
     if (start is Expression) {
       parent = start;
@@ -556,13 +560,16 @@ class PostfixCompletionProcessor {
     if (parent == null) {
       return null;
     }
+
     var list = <Expression>[];
     while (parent is Expression) {
       list.add(parent);
       parent = parent.parent;
     }
+
     Expression expr = list.firstWhere((expr) {
       DartType type = expr.staticType;
+      if (type == null) return false;
       if (type.isSubtypeOf(builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {

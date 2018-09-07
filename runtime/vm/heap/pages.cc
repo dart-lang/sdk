@@ -1372,7 +1372,36 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
   if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB\n",
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=gc\n",
+              heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
+              idle_gc_threshold_in_words_ / KBInWords);
+  }
+}
+
+void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
+  // Number of pages we can allocate and still be within the desired growth
+  // ratio.
+  intptr_t growth_in_pages =
+      (static_cast<intptr_t>(after.CombinedCapacityInWords() /
+                             desired_utilization_) -
+       (after.CombinedCapacityInWords())) /
+      kPageSizeInWords;
+
+  // Apply growth cap.
+  growth_in_pages =
+      Utils::Minimum(static_cast<intptr_t>(heap_growth_max_), growth_in_pages);
+
+  // Save final threshold compared before growing.
+  gc_threshold_in_words_ =
+      after.CombinedCapacityInWords() + (kPageSizeInWords * growth_in_pages);
+
+  // Set a tight idle threshold.
+  idle_gc_threshold_in_words_ =
+      after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
+
+  if (FLAG_log_growth) {
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
+              "kB, reason=snapshot\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords);
   }

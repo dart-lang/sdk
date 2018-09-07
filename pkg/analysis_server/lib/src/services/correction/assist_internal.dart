@@ -1827,6 +1827,13 @@ class AssistProcessor {
           return !flutter.isExactWidgetTypeCenter(expr.staticType);
         });
     await _addProposal_flutterWrapWidgetImpl(
+        kind: DartAssistKind.FLUTTER_WRAP_CONTAINER,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Container',
+        widgetValidator: (expr) {
+          return !flutter.isExactWidgetTypeContainer(expr.staticType);
+        });
+    await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_PADDING,
         parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Padding',

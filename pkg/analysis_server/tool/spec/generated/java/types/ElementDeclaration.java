@@ -82,6 +82,12 @@ public class ElementDeclaration {
   private final String className;
 
   /**
+   * The name of the mixin enclosing this declaration. If the declaration is not a mixin member, this
+   * field will be absent.
+   */
+  private final String mixinName;
+
+  /**
    * The parameter list for the element. If the element is not a method or function this field will
    * not be defined. If the element doesn't have parameters (e.g. getter), this field will not be
    * defined. If the element has zero parameters, this field will have a value of "()". The value
@@ -93,7 +99,7 @@ public class ElementDeclaration {
   /**
    * Constructor for {@link ElementDeclaration}.
    */
-  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, int codeOffset, int codeLength, String className, String parameters) {
+  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, int codeOffset, int codeLength, String className, String mixinName, String parameters) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
@@ -103,6 +109,7 @@ public class ElementDeclaration {
     this.codeOffset = codeOffset;
     this.codeLength = codeLength;
     this.className = className;
+    this.mixinName = mixinName;
     this.parameters = parameters;
   }
 
@@ -120,6 +127,7 @@ public class ElementDeclaration {
         other.codeOffset == codeOffset &&
         other.codeLength == codeLength &&
         ObjectUtilities.equals(other.className, className) &&
+        ObjectUtilities.equals(other.mixinName, mixinName) &&
         ObjectUtilities.equals(other.parameters, parameters);
     }
     return false;
@@ -135,8 +143,9 @@ public class ElementDeclaration {
     int codeOffset = jsonObject.get("codeOffset").getAsInt();
     int codeLength = jsonObject.get("codeLength").getAsInt();
     String className = jsonObject.get("className") == null ? null : jsonObject.get("className").getAsString();
+    String mixinName = jsonObject.get("mixinName") == null ? null : jsonObject.get("mixinName").getAsString();
     String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
-    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, codeOffset, codeLength, className, parameters);
+    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, codeOffset, codeLength, className, mixinName, parameters);
   }
 
   public static List<ElementDeclaration> fromJsonArray(JsonArray jsonArray) {
@@ -202,6 +211,14 @@ public class ElementDeclaration {
   }
 
   /**
+   * The name of the mixin enclosing this declaration. If the declaration is not a mixin member, this
+   * field will be absent.
+   */
+  public String getMixinName() {
+    return mixinName;
+  }
+
+  /**
    * The name of the declaration.
    */
   public String getName() {
@@ -238,6 +255,7 @@ public class ElementDeclaration {
     builder.append(codeOffset);
     builder.append(codeLength);
     builder.append(className);
+    builder.append(mixinName);
     builder.append(parameters);
     return builder.toHashCode();
   }
@@ -254,6 +272,9 @@ public class ElementDeclaration {
     jsonObject.addProperty("codeLength", codeLength);
     if (className != null) {
       jsonObject.addProperty("className", className);
+    }
+    if (mixinName != null) {
+      jsonObject.addProperty("mixinName", mixinName);
     }
     if (parameters != null) {
       jsonObject.addProperty("parameters", parameters);
@@ -283,6 +304,8 @@ public class ElementDeclaration {
     builder.append(codeLength + ", ");
     builder.append("className=");
     builder.append(className + ", ");
+    builder.append("mixinName=");
+    builder.append(mixinName + ", ");
     builder.append("parameters=");
     builder.append(parameters);
     builder.append("]");

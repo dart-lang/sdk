@@ -380,9 +380,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    super.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    super.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
     begin('Method');
   }
 
@@ -755,16 +755,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     end('FormalParameter');
     super.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind, endToken);
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
   }
 
   @override
@@ -1136,6 +1131,12 @@ class ForwardingTestListener extends ForwardingListener {
   void handleRecoverImport(Token semicolon) {
     expectIn('CompilationUnit');
     listener.handleRecoverImport(semicolon);
+  }
+
+  @override
+  void handleRecoverMixinHeader() {
+    expectIn('MixinDeclaration');
+    listener.handleRecoverMixinHeader();
   }
 
   @override

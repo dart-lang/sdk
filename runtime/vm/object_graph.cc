@@ -34,7 +34,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   // Marks and pushes. Used to initialize this stack with roots.
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
-      if ((*current)->IsHeapObject() && !(*current)->IsMarked()) {
+      if ((*current)->IsHeapObject() && !(*current)->IsGraphMarked()) {
         if (!include_vm_objects_) {
           intptr_t cid = (*current)->GetClassId();
           if (((cid < kInstanceCid) || (cid == kTypeArgumentsCid)) &&
@@ -42,7 +42,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
             continue;
           }
         }
-        (*current)->SetMarkBit();
+        (*current)->SetGraphMarked();
         Node node;
         node.ptr = current;
         node.obj = *current;
@@ -149,8 +149,8 @@ class Unmarker : public ObjectVisitor {
   Unmarker() {}
 
   void VisitObject(RawObject* obj) {
-    if (obj->IsMarked()) {
-      obj->ClearMarkBit();
+    if (obj->IsGraphMarked()) {
+      obj->ClearGraphMarked();
     }
   }
 

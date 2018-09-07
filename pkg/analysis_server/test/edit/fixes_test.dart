@@ -20,7 +20,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixesTest);
-    defineReflectiveTests(FixesTest_UseCFE);
   });
 }
 
@@ -169,10 +168,4 @@ bbb:${asFileUri('/bbb/lib')}
     expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
     expect(fixes.fixes, hasLength(1));
   }
-}
-
-@reflectiveTest
-class FixesTest_UseCFE extends FixesTest {
-  @override
-  bool get useCFE => true;
 }

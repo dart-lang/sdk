@@ -29,8 +29,13 @@ class ClassDeclaration extends Declaration {
    */
   final String fileIdentifier;
 
-  ClassDeclaration(
-      String documentation, String name, this.isTopLevel, this.fileIdentifier)
+  /**
+   * Indicates whether the class has the `deprecated` annotation.
+   */
+  final bool isDeprecated;
+
+  ClassDeclaration(String documentation, String name, this.isTopLevel,
+      this.fileIdentifier, this.isDeprecated)
       : super(documentation, name);
 
   /**

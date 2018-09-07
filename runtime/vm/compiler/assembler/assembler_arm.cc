@@ -3007,8 +3007,8 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   }
 }
 
-void Assembler::LeaveFrame(RegList regs) {
-  ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
+void Assembler::LeaveFrame(RegList regs, bool allow_pop_pc) {
+  ASSERT(allow_pop_pc || (regs & (1 << PC)) == 0);  // Must not pop PC.
   if ((regs & (1 << FP)) != 0) {
     // Use FP to set SP.
     sub(SP, FP, Operand(4 * NumRegsBelowFP(regs)));
@@ -3122,16 +3122,24 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   AddImmediate(SP, -extra_size);
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
-  if (restore_pp == kRestoreCallerPP) {
-    ldr(PP,
-        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
-    set_constant_pool_allowed(false);
-  }
+void Assembler::LeaveDartFrame() {
+  ldr(PP,
+      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
   // first.
   LeaveFrame((1 << FP) | (1 << LR));
+}
+
+void Assembler::LeaveDartFrameAndReturn() {
+  ldr(PP,
+      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  set_constant_pool_allowed(false);
+
+  // This will implicitly drop saved PP, PC marker due to restoring SP from FP
+  // first.
+  LeaveFrame((1 << FP) | (1 << PC), /*allow_pop_pc=*/true);
 }
 
 void Assembler::EnterStubFrame() {
@@ -3272,6 +3280,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, Object::tags_offset()));
 
@@ -3318,6 +3327,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
     LoadImmediate(temp2, tags);
     str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 

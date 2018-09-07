@@ -25,7 +25,7 @@ import 'crash.dart' show Crash, reportCrash, resetCrashReporting;
 /// Used to report an error in input.
 ///
 /// Avoid using this for reporting compile-time errors, instead use
-/// `LibraryBuilder.addCompileTimeError` for those.
+/// `LibraryBuilder.addProblem` for those.
 ///
 /// An input error is any error that isn't an internal error. We use the term
 /// "input error" in favor of "user error". This way, if an input error isn't

@@ -1385,6 +1385,12 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                               true,   // is_method
                               false,  // is_closure
                               &function_node_helper);
+
+    if (library.is_dart_scheme() &&
+        H.IsPrivate(constructor_helper.canonical_name_)) {
+      function.set_is_reflectable(false);
+    }
+
     if (constructor_helper.IsSynthetic()) {
       function.set_is_debuggable(false);
     }
@@ -1603,8 +1609,11 @@ void KernelLoader::LoadProcedure(const Library& library,
     expression_evaluation_function_ = function.raw();
   }
   function.set_kernel_offset(procedure_offset);
-  function.set_is_reflectable(function.is_reflectable() &&
-                              library.raw() != Library::InternalLibrary());
+  if ((library.is_dart_scheme() &&
+       H.IsPrivate(procedure_helper.canonical_name_)) ||
+      (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
+    function.set_is_reflectable(false);
+  }
 
   ActiveMemberScope active_member(&active_class_, &function);
 

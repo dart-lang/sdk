@@ -25,7 +25,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
-    defineReflectiveTests(AssistProcessorTest_UseCFE);
   });
 }
 
@@ -1013,6 +1012,21 @@ Future<String> f() async => '';
 ''');
   }
 
+  test_convertToAsyncBody_OK_getter_expression_noSpace() async {
+    await resolveTestUnit('''
+class C {
+  int get g=>0;
+}
+''');
+    await assertHasAssistAt('get g', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> get g async =>0;
+}
+''');
+  }
+
   test_convertToAsyncBody_OK_method() async {
     await resolveTestUnit('''
 class C {
@@ -1025,6 +1039,21 @@ import 'dart:async';
 
 class C {
   Future<int> m() async { return 0; }
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_abstract() async {
+    await resolveTestUnit('''
+abstract class C {
+  int m();
+}
+''');
+    await assertHasAssistAt('m()', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+abstract class C {
+  Future<int> m();
 }
 ''');
   }
@@ -4212,6 +4241,44 @@ main() {
 ''');
   }
 
+  test_flutterWrapContainer_BAD_onContainer() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  return /*caret*/new Container();
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER);
+  }
+
+  test_flutterWrapContainer_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Text('a');
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/Container(child: new Text('a'));
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Center(child: new Text('a'));
+}
+''');
+    }
+  }
+
   test_flutterWrapPadding_BAD_onPadding() async {
     addFlutterPackage();
     await resolveTestUnit('''
@@ -6308,17 +6375,6 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
-}
-
-@reflectiveTest
-class AssistProcessorTest_UseCFE extends AssistProcessorTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_importAddShow_BAD_unresolvedUri() =>
-      super.test_importAddShow_BAD_unresolvedUri();
 }
 
 class _DartAssistContextForValues implements DartAssistContext {

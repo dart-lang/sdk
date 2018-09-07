@@ -1442,15 +1442,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
-  UNREACHABLE();
-  return nullptr;
-}
-
-void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
+DEFINE_UNIMPLEMENTED_INSTRUCTION(GuardFieldTypeInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(CheckConditionInstr)
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -2541,7 +2534,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
-  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id);
   } else {

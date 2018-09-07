@@ -8,13 +8,11 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../test_utilities/utillities.dart';
 import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementReferencesTest);
-    defineReflectiveTests(FindElementReferencesTest_UseCFE);
   });
 }
 
@@ -71,15 +69,4 @@ main() {
     expect(searchParams.isLast, isTrue);
     return searchParams.results;
   }
-}
-
-@reflectiveTest
-class FindElementReferencesTest_UseCFE extends FindElementReferencesTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  // TimeoutException
-  test_findReferences() => callFailingTest(super.test_findReferences());
 }

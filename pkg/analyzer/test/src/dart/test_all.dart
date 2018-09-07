@@ -10,6 +10,7 @@ import 'analysis/test_all.dart' as analysis;
 import 'ast/test_all.dart' as ast;
 import 'constant/test_all.dart' as constant;
 import 'element/test_all.dart' as element;
+import 'resolution/test_all.dart' as resolution;
 import 'sdk/test_all.dart' as sdk;
 
 /// Utility for manually running all tests.
@@ -19,6 +20,7 @@ main() {
     ast.main();
     constant.main();
     element.main();
+    resolution.main();
     sdk.main();
   }, name: 'dart');
 }

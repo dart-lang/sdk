@@ -38,6 +38,5 @@ abstract class ContextBuilder {
   AnalysisContext createContext(
       {@required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
-      String sdkPath,
-      @deprecated bool useCFE});
+      String sdkPath});
 }

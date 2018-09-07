@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./issue_34291_lib.dart" as iss;
+
+class B extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+static method foo() → iss::A
+  ;
+static method main() → dynamic
+  ;

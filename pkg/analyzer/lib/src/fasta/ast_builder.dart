@@ -30,6 +30,7 @@ import 'package:front_end/src/scanner/token.dart'
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show
+        LocatedMessage,
         Message,
         messageConstConstructorWithBody,
         messageConstMethod,
@@ -70,8 +71,6 @@ class AstBuilder extends StackListener {
   /// The parser that uses this listener, used to parse optional parts, e.g.
   /// `native` support.
   Parser parser;
-
-  bool parseGenericMethodComments = false;
 
   /// The class currently being parsed, or `null` if no class is being parsed.
   ClassDeclarationImpl classDeclaration;
@@ -597,12 +596,15 @@ class AstBuilder extends StackListener {
               initializerObject.operator,
               initializerObject.methodName,
               initializerObject.argumentList));
-        } else {
+        } else if (target is ThisExpression) {
           initializers.add(ast.redirectingConstructorInvocation(
-              (target as ThisExpression).thisKeyword,
+              target.thisKeyword,
               initializerObject.operator,
               initializerObject.methodName,
               initializerObject.argumentList));
+        } else {
+          // Invalid initializer
+          // TODO(danrubel): Capture this in the AST.
         }
       } else if (initializerObject is AssignmentExpression) {
         Token thisKeyword;
@@ -1153,13 +1155,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
     assert(thisKeyword == null
         ? periodAfterThis == null
@@ -1927,6 +1924,29 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    OnClause onClause = pop(NullValue.IdentifierList);
+
+    if (onClause != null) {
+      if (mixinDeclaration.onClause == null) {
+        mixinDeclaration.onClause = onClause;
+      } else {
+        mixinDeclaration.onClause.superclassConstraints
+            .addAll(onClause.superclassConstraints);
+      }
+    }
+    if (implementsClause != null) {
+      if (mixinDeclaration.implementsClause == null) {
+        mixinDeclaration.implementsClause = implementsClause;
+      } else {
+        mixinDeclaration.implementsClause.interfaces
+            .addAll(implementsClause.interfaces);
+      }
+    }
+  }
+
+  @override
   void endMixinDeclaration(Token token) {
     debugEvent("MixinDeclaration");
     mixinDeclaration = null;
@@ -2022,7 +2042,7 @@ class AstBuilder extends StackListener {
     } else {
       int offset = startToken.offset;
       int length = endToken.end - offset;
-      addCompileTimeError(message, offset, length);
+      addProblem(message, offset, length);
     }
   }
 
@@ -2294,7 +2314,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
+      Token varFinalOrConst, Token getOrSet, Token name) {
     _Modifiers modifiers = new _Modifiers();
     if (externalToken != null) {
       assert(externalToken.isModifier);
@@ -2302,7 +2322,10 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      if (name?.lexeme == classDeclaration.name.name) {
+      String className = classDeclaration != null
+          ? classDeclaration.name.name
+          : mixinDeclaration.name.name;
+      if (name?.lexeme == className && getOrSet == null) {
         // This error is also reported in OutlineBuilder.beginMethod
         handleRecoverableError(
             messageStaticConstructor, staticToken, staticToken);
@@ -2744,12 +2767,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int offset, int length) {
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
         message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
       message = messageDirectiveAfterDeclaration;
     }
-    errorReporter.reportMessage(message, offset, length);
+    errorReporter.reportMessage(message, charOffset, length);
   }
 
   /// Return `true` if [token] is either `null` or is the symbol or keyword

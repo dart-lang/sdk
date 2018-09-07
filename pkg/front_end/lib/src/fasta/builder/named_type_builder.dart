@@ -6,41 +6,38 @@ library fasta.named_type_builder;
 
 import '../fasta_codes.dart'
     show
-        Message,
+        LocatedMessage,
+        noLength,
         templateMissingExplicitTypeArguments,
-        templateTypeArgumentMismatch;
+        templateTypeArgumentMismatch,
+        templateTypeNotFound;
 
-import '../source/outline_listener.dart';
+import '../problems.dart' show unhandled;
 
 import 'builder.dart'
     show
         Declaration,
+        Identifier,
         InvalidTypeBuilder,
         LibraryBuilder,
         PrefixBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        flattenName;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
-  final OutlineListener outlineListener;
   final Object name;
 
   List<T> arguments;
 
   TypeDeclarationBuilder<T, R> declaration;
 
-  /// If the number of [arguments] does not correspond to the number of
-  /// type parameters in the [declaration], semantically we should replace
-  /// [declaration] with [InvalidTypeBuilder]. But we still need to store
-  /// the original declaration into [outlineListener].
-  TypeDeclarationBuilder<T, R> actualDeclaration;
+  NamedTypeBuilder(this.name, this.arguments);
 
-  NamedTypeBuilder(this.outlineListener, this.name, this.arguments);
-
-  InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri,
-      [Message message]);
+  @override
+  InvalidTypeBuilder<T, R> buildInvalidType(LocatedMessage message);
 
   @override
   void bind(TypeDeclarationBuilder declaration) {
@@ -54,40 +51,50 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     final name = this.name;
     Declaration member;
     if (name is QualifiedName) {
-      Declaration prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      Object qualifier = name.qualifier;
+      String prefixName = flattenName(qualifier, charOffset, fileUri);
+      Declaration prefix = scope.lookup(prefixName, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
-        outlineListener?.store(charOffset, false,
-            importIndex: prefix.importIndex);
-        member = prefix.lookup(name.suffix, name.charOffset, fileUri);
+        member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
-    } else {
+    } else if (name is String) {
       member = scope.lookup(name, charOffset, fileUri);
+    } else {
+      unhandled("${name.runtimeType}", "resolveIn", charOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
       if (arguments == null && declaration.typeVariablesCount != 0) {
+        String typeName;
+        int typeNameOffset;
+        if (name is Identifier) {
+          typeName = name.name;
+          typeNameOffset = name.charOffset;
+        } else {
+          typeName = name;
+          typeNameOffset = charOffset;
+        }
         library.addProblem(
             templateMissingExplicitTypeArguments
                 .withArguments(declaration.typeVariablesCount),
-            charOffset,
-            "$name".length,
+            typeNameOffset,
+            typeName.length,
             fileUri);
       }
       return;
     }
-    declaration = buildInvalidType(charOffset, fileUri);
+    declaration = buildInvalidType(templateTypeNotFound
+        .withArguments(flattenName(name, charOffset, fileUri))
+        .withLocation(fileUri, charOffset, noLength));
   }
 
   @override
   void check(int charOffset, Uri fileUri) {
     if (arguments != null &&
         arguments.length != declaration.typeVariablesCount) {
-      actualDeclaration = declaration;
-      declaration = buildInvalidType(
-          charOffset,
-          fileUri,
-          templateTypeArgumentMismatch.withArguments(
-              name, declaration.typeVariablesCount));
+      declaration = buildInvalidType(templateTypeArgumentMismatch
+          .withArguments(declaration.typeVariablesCount)
+          .withLocation(fileUri, charOffset, noLength));
     }
   }
 

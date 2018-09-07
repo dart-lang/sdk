@@ -313,6 +313,7 @@ namespace dart {
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
+  V(Internal_boundsCheckForPartialInstantiation, 2)                            \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \

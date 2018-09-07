@@ -31,7 +31,7 @@ static method main() → dynamic {
   };
   (core::bool) → core::int g = (core::bool b) → core::int {
     if(b) {
-      return;
+      return null;
     }
     else {
       return 0;
@@ -66,7 +66,7 @@ static method main() → dynamic {
       return 0;
     }
     else {
-      return;
+      return null;
     }
   };
   (core::bool) → core::int l = (core::bool b) → core::int {

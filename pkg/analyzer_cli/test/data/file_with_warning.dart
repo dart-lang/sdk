@@ -1,3 +1,0 @@
-main() {
-  final String foo;
-}

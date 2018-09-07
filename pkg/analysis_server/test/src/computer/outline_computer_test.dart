@@ -16,9 +16,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
-    defineReflectiveTests(FlutterOutlineComputerTest_UseCFE);
     defineReflectiveTests(OutlineComputerTest);
-    defineReflectiveTests(OutlineComputerTest_UseCFE);
   });
 }
 
@@ -137,12 +135,6 @@ MyWidget
     }
     return buffer.toString();
   }
-}
-
-@reflectiveTest
-class FlutterOutlineComputerTest_UseCFE extends FlutterOutlineComputerTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -838,6 +830,77 @@ f() {
     }
   }
 
+  test_mixin() async {
+    Outline unitOutline = await _computeOutline('''
+mixin M<N> {
+  c(int d) {}
+  String get e => null;
+  set f(int g) {}
+}
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // M
+    {
+      Outline outline_M = topOutlines[0];
+      Element element_M = outline_M.element;
+      expect(element_M.kind, ElementKind.MIXIN);
+      expect(element_M.name, "M");
+      expect(element_M.typeParameters, "<N>");
+      {
+        Location location = element_M.location;
+        expect(location.offset, testCode.indexOf("M<N>"));
+        expect(location.length, 1);
+      }
+      expect(element_M.parameters, isNull);
+      expect(element_M.returnType, isNull);
+      // M children
+      List<Outline> outlines_M = outline_M.children;
+      expect(outlines_M, hasLength(3));
+      {
+        Outline outline = outlines_M[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "c");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("c(int d)"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, "(int d)");
+        expect(element.returnType, "");
+        expect(element.isAbstract, isFalse);
+        expect(element.isStatic, isFalse);
+      }
+      {
+        Outline outline = outlines_M[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.GETTER);
+        expect(element.name, "e");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("e => null"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, isNull);
+        expect(element.returnType, "String");
+      }
+      {
+        Outline outline = outlines_M[2];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.SETTER);
+        expect(element.name, "f");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("f(int g)"));
+          expect(location.length, 1);
+        }
+        expect(element.parameters, "(int g)");
+        expect(element.returnType, "");
+      }
+    }
+  }
+
   test_sourceRanges_fields() async {
     Outline unitOutline = await _computeOutline('''
 class A {
@@ -1159,10 +1222,4 @@ set propB(int v) {}
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
   }
-}
-
-@reflectiveTest
-class OutlineComputerTest_UseCFE extends OutlineComputerTest {
-  @override
-  bool get useCFE => true;
 }

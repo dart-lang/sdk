@@ -18,29 +18,16 @@ main() {
 
 @reflectiveTest
 class ErrorSuppressionTest extends ResolverTestCase {
-  String get ignoredCode => useCFE
-      ? 'not_constant_expression, const_initialized_with_non_constant_value'
-      : 'const_initialized_with_non_constant_value';
+  String get ignoredCode => 'const_initialized_with_non_constant_value';
 
-  List<ErrorCode> get reportedCodes => useCFE
-      ? [
-          CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-        ]
-      : [
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-        ];
+  List<ErrorCode> get reportedCodes => [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+      ];
 
-  List<ErrorCode> get reportedCodesWithAssignment => useCFE
-      ? [
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-        ]
-      : [
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-        ];
+  List<ErrorCode> get reportedCodesWithAssignment => [
+        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+      ];
 
   test_error_code_mismatch() async {
     Source source = addSource('''

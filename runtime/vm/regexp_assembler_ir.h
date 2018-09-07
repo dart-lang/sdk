@@ -133,7 +133,9 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   void FinalizeRegistersArray();
 
  private:
-  intptr_t GetNextDeoptId() const { return thread_->GetNextDeoptId(); }
+  intptr_t GetNextDeoptId() const {
+    return thread_->compiler_state().GetNextDeoptId();
+  }
 
   // Generate the contents of preset blocks. The entry block is the entry point
   // of the generated code.

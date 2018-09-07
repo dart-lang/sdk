@@ -30,21 +30,30 @@ async_test: SkipByDesign
 custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
+custom/mirrors_2_test: RuntimeError
+custom/mirrors_test: RuntimeError
 fileapi_test/directoryReader: Pass, Timeout # Roll 50 failure
 fileapi_test/entry: Pass, Timeout # Roll 50 failure
+fileapi_test/entry: RuntimeError
 fileapi_test/fileEntry: Pass, Timeout # Roll 50 failure
 fileapi_test/getDirectory: Pass, Timeout # Roll 50 failure
 fileapi_test/getFile: Pass, Timeout # Roll 50 failure
 indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+indexeddb_1_test/functional: RuntimeError
 indexeddb_2_test: Pass, Timeout # Roll 50 failure
 indexeddb_3_test: Pass, Timeout # Roll 50 failure
+indexeddb_3_test: RuntimeError
 indexeddb_4_test: Pass, Timeout # Roll 50 failure
 indexeddb_5_test: Pass, Timeout # Roll 50 failure
+indexeddb_5_test: RuntimeError
 input_element_test/attributes: Fail # Issue 21555
 isolates_test: SkipByDesign
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+js_typed_interop_test/static_method_tearoff_1: RuntimeError
 mirrors_js_typed_interop_test: Pass, Slow
+mirrors_js_typed_interop_test: SkipByDesign
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 worker_api_test: SkipByDesign
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
@@ -62,7 +71,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does no
 crypto_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 css_test/supportsPointConversions: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
-deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 element_animate_test: Fail # Element.animate not supported on these browsers.
 element_test/click: Fail # IE does not support firing this event.
 element_types_test/supported_content: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -90,12 +98,10 @@ media_stream_test/supported_MediaStreamTrackEvent: Fail # IE11 Feature support s
 media_stream_test/supported_media: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 mediasource_test/functional: Pass, Fail # Fails on Windows 8
 mediasource_test/supported: Pass, Fail # Should pass on Windows 8
-no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 notification_test/supported_notification: Fail # Notification not supported on IE
 postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
 request_animation_frame_test: Skip # Times out. Issue 22167
 rtc_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
-scripts_htmltest: Skip # Times out on IE.  Issue 21537
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -110,7 +116,6 @@ text_event_test: RuntimeError # Issue 23437
 touchevent_test/supported: Fail # IE does not support TouchEvents
 transferables_test: Pass, Fail # Issues 20659.
 transition_event_test/functional: Skip # Times out. Issue 22167
-two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 webgl_1_test/functional: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 websql_test: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -192,7 +197,7 @@ speechrecognition_test/supported: Fail # TODO(dart2js-team): Please triage this 
 speechrecognition_test/types: Fail # TODO(dart2js-team): Please triage this failure.
 xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime == d8 && $fasta ]
+[ $compiler == dart2js && $runtime == d8 ]
 async_spawnuri_test: RuntimeError
 audiobuffersourcenode_test: RuntimeError
 audiocontext_test: RuntimeError
@@ -362,7 +367,7 @@ xhr_cross_origin_test: RuntimeError
 xhr_test: RuntimeError
 xsltprocessor_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+[ $compiler == dart2js && $runtime == d8 && $minified ]
 fontface_loaded_test: RuntimeError
 streams_test: RuntimeError
 
@@ -402,9 +407,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 custom/js_custom_test: Fail # Issue 14643
 
 [ $compiler == dart2js && $checked ]
-js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
-
-[ $compiler == dart2js && $checked && $fasta ]
 canvasrenderingcontext2d_test/drawImage_image_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Timeout
@@ -440,6 +442,7 @@ history_test/history: Timeout
 indexeddb_1_test/functional: RuntimeError
 indexeddb_2_test: RuntimeError
 indexeddb_4_test: RuntimeError
+js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 js_test/JsObject.fromBrowserObject(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
 js_util_test/js_util.jsify(): RuntimeError
@@ -486,19 +489,7 @@ custom/mirrors_2_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fasta ]
-custom/mirrors_2_test: RuntimeError
-custom/mirrors_test: RuntimeError
-deferred_multi_app_htmltest: CompileTimeError
-fileapi_test/entry: RuntimeError
-indexeddb_1_test/functional: RuntimeError
-indexeddb_3_test: RuntimeError
-indexeddb_5_test: RuntimeError
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_test/static_method_tearoff_1: RuntimeError
-mirrors_js_typed_interop_test: SkipByDesign
-
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $host_checked ]
 fontface_loaded_test: RuntimeError
 streams_test: RuntimeError
 
@@ -524,10 +515,6 @@ request_animation_frame_test: Skip # Times out. Issue 22167
 transition_event_test/functional: Skip # Times out. Issue 22167
 
 [ $runtime == chrome && $csp ]
-deferred_multi_app_htmltest: SkipByDesign # uses inline script
-no_linked_scripts_htmltest: SkipByDesign # uses inline script
-scripts_htmltest: SkipByDesign # uses inline script
-two_scripts_htmltest: SkipByDesign # uses inline script
 worker_test/functional: SkipByDesign # starts worker with inline script
 
 [ $runtime == chrome || $runtime == chromeOnAndroid ]

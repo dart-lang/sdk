@@ -909,7 +909,7 @@ library l;''');
   }
 
   void test_visitRethrowExpression() {
-    _assertCloneExpression('rethrow');
+    _assertCloneStatement('rethrow;');
   }
 
   void test_visitReturnStatement_expression() {

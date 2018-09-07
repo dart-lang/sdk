@@ -2657,7 +2657,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
-  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id);
   } else {
@@ -5218,6 +5218,24 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(value, Immediate(Smi::RawValue(cids_.Extent())));
     __ j(ABOVE, deopt);
   }
+}
+
+LocationSummary* CheckConditionInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  comparison()->InitializeLocationSummary(zone, opt);
+  comparison()->locs()->set_out(0, Location::NoLocation());
+  return comparison()->locs();
+}
+
+void CheckConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label if_true;
+  Label* if_false = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnknown);
+  BranchLabels labels = {&if_true, if_false, &if_true};
+  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  if (true_condition != INVALID_CONDITION) {
+    __ j(NegateCondition(true_condition), if_false);
+  }
+  __ Bind(&if_true);
 }
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
