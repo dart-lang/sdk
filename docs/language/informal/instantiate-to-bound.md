@@ -4,7 +4,7 @@
 
 **Version**: 0.7 (2018-02-26)
 
-**Status**: Under implementation.
+**Status**: Implemented.
 
 Based on [this description](https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397) by leafp@.
 

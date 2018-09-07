@@ -2,7 +2,7 @@
 
 **Owner**: eernst@
 
-**Status**: Under discussion.
+**Status**: Implemented.
 
 **Version**: 0.2 (2018-05-22)
 
