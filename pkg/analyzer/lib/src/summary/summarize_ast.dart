@@ -15,8 +15,13 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:front_end/src/base/api_signature.dart';
 
 /// Serialize all the declarations in [compilationUnit] to an unlinked summary.
-UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
-  return new _SummarizeAstVisitor().serializeCompilationUnit(compilationUnit);
+///
+/// [serializeInferrableFields] indicates whether field initializers and closure
+/// bodies should be serialized to facilitate type inference.
+UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit,
+    {bool serializeInferrableFields: true}) {
+  return new _SummarizeAstVisitor(serializeInferrableFields)
+      .serializeCompilationUnit(compilationUnit);
 }
 
 /// Instances of this class keep track of intermediate state during
@@ -188,6 +193,14 @@ class _ScopedTypeParameter extends _ScopedEntity {
 
 /// Visitor used to create a summary from an AST.
 class _SummarizeAstVisitor extends RecursiveAstVisitor {
+  /// Indicates whether non-const field initializers and closure bodies should
+  /// be serialized to facilitate type inference.
+  ///
+  /// For one-phase summary generation, the only field initializers that need to
+  /// be serialized are those involved in constants, since type inference is
+  /// performed using the AST representation.
+  final bool _serializeInferrableFields;
+
   /// List of objects which should be written to [UnlinkedUnit.classes].
   final List<UnlinkedClassBuilder> classes = <UnlinkedClassBuilder>[];
 
@@ -289,6 +302,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// Indicates whether parameters found during visitors might inherit
   /// covariance.
   bool _parametersMayInheritCovariance = false;
+
+  _SummarizeAstVisitor(this._serializeInferrableFields);
 
   /// Create a slot id for storing a propagated or inferred type or const cycle
   /// info.
@@ -617,7 +632,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     bool oldSerializeClosureBodyExprs = _serializeClosureBodyExprs;
     executables = <UnlinkedExecutableBuilder>[];
     _localClosureIndexMap = <int, int>{};
-    _serializeClosureBodyExprs = serializeBodyExpr;
+    _serializeClosureBodyExprs =
+        serializeBodyExpr && _serializeInferrableFields;
     if (initializers != null) {
       for (ConstructorInitializer initializer in initializers) {
         initializer.accept(this);
@@ -940,7 +956,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
       bool serializeBodyExpr = variable.isConst ||
           variable.isFinal && isField && !isDeclaredStatic ||
-          variables.type == null;
+          _serializeInferrableFields && variables.type == null;
       b.initializer = serializeInitializerFunction(
           variable.initializer, serializeBodyExpr, b.isConst);
       if (isField && !isDeclaredStatic && !variables.isFinal) {

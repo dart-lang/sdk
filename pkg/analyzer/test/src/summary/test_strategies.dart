@@ -143,6 +143,12 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
    */
   void set allowMissingFiles(bool value);
 
+  /// Indicates whether the summary contains expressions for non-const fields.
+  ///
+  /// When one-phase summarization is in use, only const field initializer
+  /// expressions are stored in the summary.
+  bool get containsNonConstExprs;
+
   /**
    * Get access to the linked summary that results from serializing and
    * then deserializing the library under test.
@@ -195,6 +201,9 @@ class SummaryBlackBoxTestStrategyOnePhase
   void set allowMissingFiles(bool value) {
     _allowMissingFiles = value;
   }
+
+  @override
+  bool get containsNonConstExprs => false;
 
   @override
   bool get skipFullyLinkedData => false;
@@ -527,6 +536,9 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   void set allowMissingFiles(bool value) {
     _allowMissingFiles = value;
   }
+
+  @override
+  bool get containsNonConstExprs => true;
 
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {

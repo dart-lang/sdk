@@ -30,7 +30,8 @@ void summarize(
     bool allowMissingFiles) {
   var uriToUnlinked = <String, UnlinkedUnitBuilder>{};
   uriToUnit.forEach((uri, compilationUnit) {
-    var unlinkedUnit = serializeAstUnlinked(compilationUnit);
+    var unlinkedUnit =
+        serializeAstUnlinked(compilationUnit, serializeInferrableFields: false);
     uriToUnlinked[uri] = unlinkedUnit;
     assembler.addUnlinkedUnitViaUri(uri, unlinkedUnit);
   });
