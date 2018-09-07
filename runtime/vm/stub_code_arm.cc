@@ -1673,6 +1673,11 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
+void StubCode::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
@@ -1704,6 +1709,11 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
                                     kInlineCacheMissHandlerOneArgRuntimeEntry,
                                     Token::kILLEGAL, true /* optimized */);
+}
+
+void StubCode::GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
 }
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
