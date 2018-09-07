@@ -3302,12 +3302,20 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   final bool _implicitlyTyped;
 
+  // TODO(ahe): Remove this field. We can get rid of it by recording closure
+  // mutation in [BodyBuilder].
   final int _functionNestingLevel;
 
+  // TODO(ahe): Remove this field. It's only used locally when compiling a
+  // method, and this can thus be tracked in a [Set] (actually, tracking this
+  // information in a [List] is probably even faster as the average size will
+  // be close to zero).
   bool _mutatedInClosure = false;
 
+  // TODO(ahe): Investigate if this can be removed.
   bool _mutatedAnywhere = false;
 
+  // TODO(ahe): Investigate if this can be removed.
   final bool _isLocalFunction;
 
   Object binder;

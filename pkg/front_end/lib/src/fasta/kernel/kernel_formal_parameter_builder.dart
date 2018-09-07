@@ -34,9 +34,10 @@ class KernelFormalParameterBuilder
 
   VariableDeclaration get target => declaration;
 
-  VariableDeclaration build(KernelLibraryBuilder library) {
+  VariableDeclaration build(
+      KernelLibraryBuilder library, int functionNestingLevel) {
     if (declaration == null) {
-      declaration = new VariableDeclarationJudgment(name, 0,
+      declaration = new VariableDeclarationJudgment(name, functionNestingLevel,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,

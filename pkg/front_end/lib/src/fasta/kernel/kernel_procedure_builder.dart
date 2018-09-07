@@ -152,7 +152,7 @@ abstract class KernelFunctionBuilder
     }
     if (formals != null) {
       for (KernelFormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build(library);
+        VariableDeclaration parameter = formal.build(library, 0);
         if (formal.isNamed) {
           result.namedParameters.add(parameter);
         } else {
