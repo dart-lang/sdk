@@ -26,8 +26,17 @@ if [ ! -e src/third_party/dart ]; then
 fi
 pinned_dart_sdk=$(grep -E "'dart_revision':.*" src/flutter/DEPS |
                   sed -E "s/.*'([^']*)',/\1/")
+need_runhooks=false
+patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
+if [ -e "$patch" ]; then
+  (cd flutter && git apply ../$patch)
+  need_runhooks=true
+fi
 patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.patch
 if [ -e "$patch" ]; then
   (cd src/flutter && git apply ../../$patch)
+  need_runhooks=true
+fi
+if [ $need_runhooks == true ]; then
   gclient runhooks
 fi
