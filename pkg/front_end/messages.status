@@ -363,6 +363,5 @@ UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
-WithWithoutExtends/script: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail

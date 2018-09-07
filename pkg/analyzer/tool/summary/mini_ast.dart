@@ -181,6 +181,21 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    debugEvent("NoClassWithClause");
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
+  }
+
+  @override
   void handleRecoverClassHeader() {
     pop(); // superclass
   }

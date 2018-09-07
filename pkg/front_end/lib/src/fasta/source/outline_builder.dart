@@ -765,8 +765,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    debugEvent("MixinApplication");
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
     List<TypeBuilder> mixins = pop();
     TypeBuilder supertype = pop();
     push(
@@ -1325,6 +1325,31 @@ class OutlineBuilder extends StackListener {
   void endMember() {
     debugEvent("Member");
     assert(nativeMethodName == null);
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
+
+    List<TypeBuilder> mixins = pop();
+    int extendsOffset = pop();
+    TypeBuilder supertype = pop();
+
+    if (supertype != null) {
+      push(library.addMixinApplication(
+          supertype, mixins, withKeyword.charOffset));
+    } else {
+      // TODO(danrubel): What is the appropriate supertype for the mixin
+      // in the declaration `class C with M { }` ?
+      //push(library.addMixinApplication(null, mixins, withKeyword.charOffset));
+      push(NullValue.Type);
+    }
+    push(extendsOffset);
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    debugEvent("ClassNoWithClause");
   }
 
   @override

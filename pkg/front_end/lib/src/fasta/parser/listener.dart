@@ -111,7 +111,8 @@ class Listener implements UnescapeErrorListener {
   /// - modifiers
   /// - class name
   /// - type variables
-  /// - supertype (may be a mixin application)
+  /// - supertype
+  /// - with clause
   /// - implemented types
   /// - native clause
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
@@ -123,7 +124,8 @@ class Listener implements UnescapeErrorListener {
   /// to recover information about the previous class header.
   /// The substructures are a subset of
   /// and in the same order as [handleClassHeader]:
-  /// - supertype (may be a mixin application)
+  /// - supertype
+  /// - with clause
   /// - implemented types
   void handleRecoverClassHeader() {
     logEvent("RecoverClassHeader");
@@ -433,14 +435,16 @@ class Listener implements UnescapeErrorListener {
     logEvent("FunctionTypeAlias");
   }
 
-  void beginMixinApplication(Token token) {}
-
-  /// Handle the end of a mixin application construct (e.g. "A with B, C").
+  /// Handle the end of a with clause (e.g. "with B, C").
   /// Substructures:
-  /// - supertype
   /// - mixin types (TypeList)
-  void endMixinApplication(Token withKeyword) {
-    logEvent("MixinApplication");
+  void handleClassWithClause(Token withKeyword) {
+    logEvent("ClassWithClause");
+  }
+
+  /// Handle the absence of a with clause.
+  void handleClassNoWithClause() {
+    logEvent("ClassNoWithClause");
   }
 
   /// Handle the beginning of a named mixin application.
@@ -449,12 +453,21 @@ class Listener implements UnescapeErrorListener {
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {}
 
+  /// Handle a named mixin application with clause (e.g. "A with B, C").
+  /// Substructures:
+  /// - supertype
+  /// - mixin types (TypeList)
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    logEvent("NamedMixinApplicationWithClause");
+  }
+
   /// Handle the end of a named mixin declaration.  Substructures:
   /// - metadata
   /// - modifiers
   /// - class name
   /// - type variables
-  /// - mixin application
+  /// - supertype
+  /// - with clause
   /// - implemented types (TypeList)
   ///
   /// TODO(paulberry,ahe): it seems inconsistent that for a named mixin

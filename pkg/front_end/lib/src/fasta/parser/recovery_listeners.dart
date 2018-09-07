@@ -18,12 +18,6 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    this.withKeyword = withKeyword;
-    super.endMixinApplication(withKeyword);
-  }
-
-  @override
   void handleClassExtends(Token extendsKeyword) {
     this.extendsKeyword = extendsKeyword;
     super.handleClassExtends(extendsKeyword);
@@ -34,6 +28,12 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
       Token implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
     super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    this.withKeyword = withKeyword;
+    super.handleClassWithClause(withKeyword);
   }
 }
 

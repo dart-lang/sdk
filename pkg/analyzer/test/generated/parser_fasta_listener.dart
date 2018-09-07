@@ -387,12 +387,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMixinApplication(Token token) {
-    super.beginMixinApplication(token);
-    begin('MixinApplication');
-  }
-
-  @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
     super.beginMixinDeclaration(mixinKeyword, name);
     begin('MixinDeclaration');
@@ -895,12 +889,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     end('Method');
     super.endMethod(getOrSet, beginToken, beginParam, endToken);
-  }
-
-  @override
-  void endMixinApplication(Token withKeyword) {
-    end('MixinApplication');
-    super.endMixinApplication(withKeyword);
   }
 
   @override

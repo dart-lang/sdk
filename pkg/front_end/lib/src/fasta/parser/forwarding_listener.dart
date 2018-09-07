@@ -291,11 +291,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMixinApplication(Token token) {
-    listener?.beginMixinApplication(token);
-  }
-
-  @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
     listener?.beginMixinDeclaration(mixinKeyword, name);
   }
@@ -727,11 +722,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    listener?.endMixinApplication(withKeyword);
-  }
-
-  @override
   void endMixinDeclaration(Token token) {
     listener?.endMixinDeclaration(token);
   }
@@ -928,9 +918,19 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleClassNoWithClause() {
+    listener?.handleClassNoWithClause();
+  }
+
+  @override
   void handleClassOrMixinImplements(
       Token implementsKeyword, int interfacesCount) {
     listener?.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    listener?.handleClassWithClause(withKeyword);
   }
 
   @override
@@ -1135,6 +1135,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNamedArgument(Token colon) {
     listener?.handleNamedArgument(colon);
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    listener?.handleNamedMixinApplicationWithClause(withKeyword);
   }
 
   @override

@@ -1103,6 +1103,7 @@ class Parser {
   Token parseMixinApplicationRest(Token token) {
     Token withKeyword = token.next;
     if (!optional('with', withKeyword)) {
+      // Recovery: Report an error and insert synthetic `with` clause.
       reportRecoverableError(
           withKeyword, fasta.templateExpectedButGot.withArguments('with'));
       withKeyword =
@@ -1112,10 +1113,19 @@ class Parser {
         rewriter.insertSyntheticIdentifier(withKeyword);
       }
     }
-    listener.beginMixinApplication(withKeyword);
-    assert(optional('with', withKeyword));
     token = parseTypeList(withKeyword);
-    listener.endMixinApplication(withKeyword);
+    listener.handleNamedMixinApplicationWithClause(withKeyword);
+    return token;
+  }
+
+  Token parseWithClauseOpt(Token token) {
+    Token withKeyword = token.next;
+    if (optional('with', withKeyword)) {
+      token = parseTypeList(withKeyword);
+      listener.handleClassWithClause(withKeyword);
+    } else {
+      listener.handleClassNoWithClause();
+    }
     return token;
   }
 
@@ -1712,6 +1722,7 @@ class Parser {
 
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
+    token = parseWithClauseOpt(token);
     token = parseClassOrMixinImplementsOpt(token);
     Token nativeToken;
     if (optional('native', token.next)) {
@@ -1733,7 +1744,7 @@ class Parser {
     token = parseClassHeaderOpt(token, begin, classKeyword);
     bool hasExtends = recoveryListener.extendsKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
-    Token withKeyword = recoveryListener.withKeyword;
+    bool hasWith = recoveryListener.withKeyword != null;
 
     // Update the recovery listener to forward subsequent events
     // to the primary listener.
@@ -1751,42 +1762,29 @@ class Parser {
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseClassHeader method above.
       recoveryListener.clear();
-      Token next = token.next;
-      if (optional('with', next)) {
-        // If there is a `with` clause without a preceding `extends` clause
-        // then insert a synthetic `extends` clause and parse both clauses.
-        Token extendsKeyword =
-            new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
-        Token superclassToken = new SyntheticStringToken(
-            TokenType.IDENTIFIER, 'Object', next.offset, 0);
-        rewriter.insertTokenAfter(token, extendsKeyword);
-        rewriter.insertTokenAfter(extendsKeyword, superclassToken);
-        token = computeType(extendsKeyword, true)
-            .ensureTypeNotVoid(extendsKeyword, this);
-        token = parseMixinApplicationRest(token);
-        listener.handleClassExtends(extendsKeyword);
-      } else {
-        token = parseClassExtendsOpt(token);
 
-        if (recoveryListener.extendsKeyword != null) {
-          if (hasExtends) {
-            reportRecoverableError(
-                recoveryListener.extendsKeyword, fasta.messageMultipleExtends);
-          } else {
-            if (withKeyword != null) {
-              reportRecoverableError(recoveryListener.extendsKeyword,
-                  fasta.messageWithBeforeExtends);
-            } else if (hasImplements) {
-              reportRecoverableError(recoveryListener.extendsKeyword,
-                  fasta.messageImplementsBeforeExtends);
-            }
-            hasExtends = true;
+      token = parseClassExtendsOpt(token);
+
+      if (recoveryListener.extendsKeyword != null) {
+        if (hasExtends) {
+          reportRecoverableError(
+              recoveryListener.extendsKeyword, fasta.messageMultipleExtends);
+        } else {
+          if (hasWith) {
+            reportRecoverableError(recoveryListener.extendsKeyword,
+                fasta.messageWithBeforeExtends);
+          } else if (hasImplements) {
+            reportRecoverableError(recoveryListener.extendsKeyword,
+                fasta.messageImplementsBeforeExtends);
           }
+          hasExtends = true;
         }
       }
 
+      token = parseWithClauseOpt(token);
+
       if (recoveryListener.withKeyword != null) {
-        if (withKeyword != null) {
+        if (hasWith) {
           reportRecoverableError(
               recoveryListener.withKeyword, fasta.messageMultipleWith);
         } else {
@@ -1794,7 +1792,7 @@ class Parser {
             reportRecoverableError(recoveryListener.withKeyword,
                 fasta.messageImplementsBeforeWith);
           }
-          withKeyword = recoveryListener.withKeyword;
+          hasWith = true;
         }
       }
 
@@ -1823,11 +1821,6 @@ class Parser {
     if (optional('extends', next)) {
       Token extendsKeyword = next;
       token = computeType(next, true).ensureTypeNotVoid(next, this);
-      if (optional('with', token.next)) {
-        token = parseMixinApplicationRest(token);
-      } else {
-        token = token;
-      }
       listener.handleClassExtends(extendsKeyword);
     } else {
       listener.handleNoType(token);
