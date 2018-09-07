@@ -37,6 +37,6 @@ if [ -e "$patch" ]; then
   (cd src/flutter && git apply ../../$patch)
   need_runhooks=true
 fi
-if [ $need_runhooks == true ]; then
+if [ $need_runhooks = true ]; then
   gclient runhooks
 fi
