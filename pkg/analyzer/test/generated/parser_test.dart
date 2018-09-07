@@ -5680,8 +5680,7 @@ void main() {
     createParser('class A with B, C {}');
     ClassDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.WITH_WITHOUT_EXTENDS, 8, 4)]);
+    listener.assertNoErrors();
   }
 
   void test_wrongSeparatorForPositionalParameter() {

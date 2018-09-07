@@ -1814,10 +1814,6 @@ class Parser {
       // Exit if a class body is detected, or if no progress has been made
     } while (!optional('{', token.next) && start != token);
 
-    if (withKeyword != null && !hasExtends) {
-      reportRecoverableError(withKeyword, fasta.messageWithWithoutExtends);
-    }
-
     listener = primaryListener;
     return token;
   }

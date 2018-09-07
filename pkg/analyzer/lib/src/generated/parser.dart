@@ -1270,10 +1270,6 @@ class Parser {
         foundClause = false;
       }
     }
-    if (withClause != null && extendsClause == null) {
-      _reportErrorForToken(
-          ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword);
-    }
     //
     // Look for and skip over the extra-lingual 'native' specification.
     //

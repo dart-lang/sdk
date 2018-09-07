@@ -46,6 +46,7 @@ Language/Classes/Setters/syntax_t04: CompileTimeError # co19 issue 153
 Language/Classes/Setters/type_object_t02: CompileTimeError # co19 issue 153
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Invalid test, see #33237
 Language/Classes/method_definition_t06: MissingCompileTimeError # Please triage this failure
+Language/Classes/mixins_t02: MissingCompileTimeError # This syntax is now allowed
 Language/Enums/syntax_t08: CompileTimeError # Issue 33995
 Language/Enums/syntax_t09: CompileTimeError # Issue 33995
 Language/Errors_and_Warnings/static_warning_t01: CompileTimeError # issue #34319

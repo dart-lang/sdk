@@ -104,18 +104,6 @@ class A with B extends C {}
 class A extends C with B {}
 ''');
   }
-
-  void test_withWithoutExtends() {
-    testRecovery('''
-class A with B, C {}
-''', [ParserErrorCode.WITH_WITHOUT_EXTENDS], '''
-class A extends Object with B, C {}
-''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
-      ClassDeclaration declaration = unit.declarations[0];
-      declaration.extendsClause = null;
-      return unit;
-    });
-  }
 }
 
 /**
