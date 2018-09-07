@@ -57,6 +57,7 @@ ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't 
 ConstConstructorWithNonConstSuper/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
+ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail

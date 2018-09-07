@@ -978,6 +978,35 @@ const MessageCode messageConstEvalContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            name)> templateConstEvalDeferredLibrary = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""'#name' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+    tipTemplate:
+        r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+    withArguments: _withArgumentsConstEvalDeferredLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstEvalDeferredLibrary =
+    const Code<Message Function(String name)>(
+        "ConstEvalDeferredLibrary", templateConstEvalDeferredLibrary,
+        analyzerCode: "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalDeferredLibrary(String name) {
+  return new Message(codeConstEvalDeferredLibrary,
+      message:
+          """'${name}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+      tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         Constant
             _constant)> templateConstEvalDuplicateKey = const Template<
         Message Function(Constant _constant)>(

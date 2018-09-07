@@ -1045,6 +1045,12 @@ class ConstantEvaluator extends RecursiveVisitor {
         'Only tear-off constants can be partially instantiated.');
   }
 
+  @override
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    errorReporter.deferredLibrary(contextChain, node, node.import.name);
+    throw const _AbortCurrentEvaluation();
+  }
+
   // Helper methods:
 
   void ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
@@ -1297,6 +1303,7 @@ abstract class ErrorReporter {
   failedAssertion(List<TreeNode> context, TreeNode node, String message);
   nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName);
+  deferredLibrary(List<TreeNode> context, TreeNode node, String importName);
 }
 
 abstract class ErrorReporterBase implements ErrorReporter {
@@ -1406,6 +1413,14 @@ abstract class ErrorReporterBase implements ErrorReporter {
         context,
         'The variable "$variableName" cannot be used inside a constant '
         'expression.',
+        node);
+  }
+
+  deferredLibrary(List<TreeNode> context, TreeNode node, String importName) {
+    report(
+        context,
+        'Deferred "$importName" cannot be used inside a constant '
+        'expression',
         node);
   }
 }
