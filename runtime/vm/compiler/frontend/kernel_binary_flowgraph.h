@@ -39,7 +39,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                             &type_translator_,
                             active_class_,
                             flow_graph_builder),
+#if defined(DART_USE_INTERPRETER)
         bytecode_metadata_helper_(this, &type_translator_, active_class_),
+#endif  // defined(DART_USE_INTERPRETER)
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
@@ -417,7 +419,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;
   ConstantEvaluator constant_evaluator_;
+#if defined(DART_USE_INTERPRETER)
   BytecodeMetadataHelper bytecode_metadata_helper_;
+#endif  // defined(DART_USE_INTERPRETER)
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;

@@ -13,6 +13,7 @@
 #include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
 
 #define Z (zone_)
 #define H (translation_helper_)
@@ -681,4 +682,5 @@ RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
 }  // namespace kernel
 }  // namespace dart
 
+#endif  // defined(DART_USE_INTERPRETER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

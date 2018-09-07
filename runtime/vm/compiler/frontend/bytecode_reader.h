@@ -9,6 +9,7 @@
 #include "vm/object.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
 
 namespace dart {
 namespace kernel {
@@ -44,5 +45,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
 }  // namespace kernel
 }  // namespace dart
 
+#endif  // defined(DART_USE_INTERPRETER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_BYTECODE_READER_H_

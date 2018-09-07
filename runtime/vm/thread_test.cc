@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
-
 VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
   TestCase::CreateTestIsolate();
@@ -498,11 +496,11 @@ TEST_CASE(SafepointTestDart) {
 // to get their verification done and exit. Use a specific UserTag
 // to enable the helpers to verify that the main thread is
 // successfully interrupted in the pure Dart loop.
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) || defined(DART_USE_INTERPRETER)
   const intptr_t kLoopCount = 12345678;
 #else
-  const intptr_t kLoopCount = FLAG_enable_interpreter ? 12345678 : 1234567890;
-#endif  // defined(USING_SIMULATOR)
+  const intptr_t kLoopCount = 1234567890;
+#endif  // defined(USING_SIMULATOR) || defined(DART_USE_INTERPRETER)
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  "import 'dart:developer';\n"

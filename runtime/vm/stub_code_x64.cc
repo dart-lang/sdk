@@ -33,7 +33,6 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(bool, enable_interpreter);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -976,13 +975,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 //   RDX : address of first argument.
 //   RCX : current thread.
 void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  __ Stop("Not using interpreter");
-#else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
+#if defined(DART_USE_INTERPRETER)
   // Save frame pointer coming in.
   __ EnterFrame(0);
 
@@ -1110,7 +1103,9 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ LeaveFrame();
 
   __ ret();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#else
+  __ Stop("Not using interpreter");
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Called for inline allocation of contexts.
@@ -1990,13 +1985,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 // R10: Arguments descriptor.
 // RAX: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  __ Stop("Not using interpreter");
-#else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
+#if defined(DART_USE_INTERPRETER)
   __ EnterStubFrame();
 
 #if defined(DEBUG)
@@ -2061,7 +2050,9 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ ret();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#else
+  __ Stop("Not using interpreter");
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // RBX: Contains an ICData.

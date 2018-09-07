@@ -911,9 +911,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
-#if !defined(DART_PRECOMPILED_RUNTIME)
       interpreter_(NULL),
-#endif
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -990,7 +988,7 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
   delete interpreter_;
 #endif
 #if defined(USING_SIMULATOR)
@@ -1982,11 +1980,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
   if (interpreter() != NULL) {
     interpreter()->VisitObjectPointers(visitor);
   }
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {

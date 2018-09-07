@@ -6,7 +6,7 @@
 #define RUNTIME_VM_INTERPRETER_H_
 
 #include "vm/globals.h"
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
@@ -221,6 +221,6 @@ class Interpreter {
 
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_USE_INTERPRETER)
 
 #endif  // RUNTIME_VM_INTERPRETER_H_

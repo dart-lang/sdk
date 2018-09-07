@@ -25,7 +25,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, trace_deoptimization);
 DEFINE_FLAG(bool,
             print_stacktrace_at_throw,
@@ -464,20 +463,15 @@ void Exceptions::JumpToFrame(Thread* thread,
   Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
                                     frame_pointer, thread);
 #else
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
+  Interpreter* interpreter = thread->isolate()->interpreter();
+  if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
+    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
+                             thread);
+  }
   // TODO(regis): We still possibly need to unwind interpreter frames if they
   // are callee frames of the C++ frame handling the exception.
-  if (FLAG_enable_interpreter) {
-    Interpreter* interpreter = thread->isolate()->interpreter();
-    ASSERT(interpreter != NULL);
-    if (interpreter->HasFrame(frame_pointer)) {
-      interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
-                               thread);
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
+#endif
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
   StackResource::Unwind(thread);

@@ -64,8 +64,8 @@ def GetGNArgs(args):
   return args.split()
 
 
-def GetOutDir(mode, arch, target_os):
-  return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+def GetOutDir(mode, arch, target_os, kbc):
+  return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, kbc=kbc)
 
 
 def ToCommandLine(gn_args):
@@ -174,6 +174,9 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
 
+  if args.bytecode:
+    gn_args['dart_use_interpreter'] = True
+
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
     # snapshots instead.
@@ -185,9 +188,6 @@ def ToGnArgs(args, mode, arch, target_os):
   # Linux and Windows.
   if gn_args['target_os'] in ['linux', 'win']:
     gn_args['dart_use_fallback_root_certificates'] = True
-
-  if args.bytecode:
-    gn_args['dart_platform_bytecode'] = True
 
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
@@ -345,6 +345,10 @@ def parse_args(args):
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
+  common_group.add_argument('--bytecode', '-b',
+      help='Configure with the kernel bytecode interpreter',
+      default=False,
+      action="store_true")
   common_group.add_argument('--mode', '-m',
       type=str,
       help='Build variants (comma-separated).',
@@ -373,10 +377,6 @@ def parse_args(args):
       help='Disable ASAN',
       dest='asan',
       action='store_false')
-  other_group.add_argument('--bytecode', '-b',
-      help='Include bytecode in the VMs platform dill',
-      default=False,
-      action="store_true")
   other_group.add_argument('--clang',
       help='Use Clang',
       default=True,
@@ -488,7 +488,7 @@ def Main(argv):
   for target_os in args.os:
     for mode in args.mode:
       for arch in args.arch:
-        out_dir = GetOutDir(mode, arch, target_os)
+        out_dir = GetOutDir(mode, arch, target_os, args.bytecode)
         # TODO(infra): Re-enable --check. Many targets fail to use
         # public_deps to re-expose header files to their dependents.
         # See dartbug.com/32364

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_USE_INTERPRETER)
 
 #include "vm/compiler/assembler/disassembler_kbc.h"
 
@@ -370,4 +370,4 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
 
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_USE_INTERPRETER)

@@ -135,24 +135,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     FLAG_verify_gc_contains = true;
   }
 #endif
-
-  if (FLAG_enable_interpreter) {
-#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-    return strdup(
-        "--enable-interpreter is not supported when targeting "
-        "a sim* architecture.");
-#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(34393): The interpreter currently relies on computed gotos, which
-    // aren't supported on Windows.
-    return strdup("--enable-interpreter is not supported on Windows.");
-#endif  // defined(TARGET_OS_WINDOWS)
-
-    FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
-  }
-
   FrameLayout::InitOnce();
 
   set_thread_exit_callback(thread_exit);
@@ -732,6 +714,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(" x64-win");
 #else
     buffer.AddString(" x64-sysv");
+#endif
+
+#if defined(DART_USE_INTERPRETER)
+    buffer.AddString(" kbc");
 #endif
 
 #elif defined(TARGET_ARCH_DBC)

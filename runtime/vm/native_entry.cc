@@ -103,6 +103,7 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   UNREACHABLE();
 }
 
+#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
@@ -113,6 +114,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
   func(args);
 }
+#endif
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);

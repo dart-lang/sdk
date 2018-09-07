@@ -161,7 +161,11 @@ class StackFrame : public ValueObject {
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
+#if defined(DART_USE_INTERPRETER)
   virtual bool is_interpreted() const { return is_interpreted_; }
+#else
+  virtual bool is_interpreted() const { return false; }
+#endif
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
@@ -175,8 +179,13 @@ class StackFrame : public ValueObject {
 
  protected:
   explicit StackFrame(Thread* thread)
+#if defined(DART_USE_INTERPRETER)
       : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {
   }
+#else
+      : fp_(0), sp_(0), pc_(0), thread_(thread) {
+  }
+#endif
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
@@ -220,7 +229,9 @@ class StackFrame : public ValueObject {
   uword sp_;
   uword pc_;
   Thread* thread_;
+#if defined(DART_USE_INTERPRETER)
   bool is_interpreted_;
+#endif
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -338,6 +349,7 @@ class StackFrameIterator : public ValueObject {
     StackFrame* NextFrame(bool validate);
 
    private:
+#if defined(DART_USE_INTERPRETER)
     explicit FrameSetIterator(Thread* thread)
         : fp_(0),
           sp_(0),
@@ -347,13 +359,20 @@ class StackFrameIterator : public ValueObject {
           is_interpreted_(false) {}
     bool is_interpreted() const { return is_interpreted_; }
     void CheckIfInterpreted(uword exit_marker);
+#else
+    explicit FrameSetIterator(Thread* thread)
+        : fp_(0), sp_(0), pc_(0), stack_frame_(thread), thread_(thread) {}
+    bool is_interpreted() const { return false; }
+#endif
 
     uword fp_;
     uword sp_;
     uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
     Thread* thread_;
+#if defined(DART_USE_INTERPRETER)
     bool is_interpreted_;
+#endif
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -374,7 +393,9 @@ class StackFrameIterator : public ValueObject {
   void SetupLastExitFrameData();
   void SetupNextExitFrameData();
 
+#if defined(DART_USE_INTERPRETER)
   void CheckInterpreterExitFrame(uword exit_marker);
+#endif
 
   bool validate_;     // Validate each frame as we traverse the frames.
   EntryFrame entry_;  // Singleton entry frame returned by NextEntryFrame().

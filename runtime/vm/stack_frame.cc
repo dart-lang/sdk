@@ -21,8 +21,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
-
 const FrameLayout invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
@@ -430,9 +428,9 @@ void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
-  if (FLAG_enable_interpreter) {
-    frames_.CheckIfInterpreted(exit_marker);
-  }
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(exit_marker);
+#endif
 }
 
 void StackFrameIterator::SetupNextExitFrameData() {
@@ -444,9 +442,9 @@ void StackFrameIterator::SetupNextExitFrameData() {
   frames_.fp_ = exit_marker;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
-  if (FLAG_enable_interpreter) {
-    frames_.CheckIfInterpreted(exit_marker);
-  }
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(exit_marker);
+#endif
 }
 
 // Tell MemorySanitizer that generated code initializes part of the stack.
@@ -486,9 +484,9 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
-  if (FLAG_enable_interpreter) {
-    frames_.CheckIfInterpreted(last_fp);
-  }
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(last_fp);
+#endif
 }
 
 #if !defined(TARGET_ARCH_DBC)
@@ -509,9 +507,9 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;
-  if (FLAG_enable_interpreter) {
-    frames_.CheckIfInterpreted(fp);
-  }
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(fp);
+#endif
 }
 #endif
 
@@ -577,17 +575,16 @@ StackFrame* StackFrameIterator::NextFrame() {
   return current_frame_;
 }
 
+#if defined(DART_USE_INTERPRETER)
 void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
     uword exit_marker) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(regis): We should rely on a new thread vm_tag to identify an
   // interpreter frame and not need the HasFrame() method.
-  ASSERT(FLAG_enable_interpreter);
   Isolate* isolate = thread_->isolate();
   Interpreter* interpreter = isolate != NULL ? isolate->interpreter() : NULL;
   is_interpreted_ = (interpreter != NULL) && interpreter->HasFrame(exit_marker);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
+#endif
 
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
@@ -596,11 +593,15 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   frame->sp_ = sp_;
   frame->fp_ = fp_;
   frame->pc_ = pc_;
+#if defined(DART_USE_INTERPRETER)
   frame->is_interpreted_ = is_interpreted_;
+#endif
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
   pc_ = frame->GetCallerPc();
+#if defined(DART_USE_INTERPRETER)
   ASSERT(is_interpreted_ == frame->is_interpreted_);
+#endif
   ASSERT(!validate || frame->IsValid());
   return frame;
 }
@@ -609,11 +610,15 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   exit_.sp_ = frames_.sp_;
   exit_.fp_ = frames_.fp_;
   exit_.pc_ = frames_.pc_;
+#if defined(DART_USE_INTERPRETER)
   exit_.is_interpreted_ = frames_.is_interpreted_;
+#endif
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
+#if defined(DART_USE_INTERPRETER)
   ASSERT(frames_.is_interpreted_ == exit_.is_interpreted_);
+#endif
   ASSERT(!validate_ || exit_.IsValid());
   return &exit_;
 }
@@ -623,7 +628,9 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   entry_.sp_ = frames_.sp_;
   entry_.fp_ = frames_.fp_;
   entry_.pc_ = frames_.pc_;
+#if defined(DART_USE_INTERPRETER)
   entry_.is_interpreted_ = frames_.is_interpreted_;
+#endif
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
   ASSERT(!validate_ || entry_.IsValid());
   return &entry_;

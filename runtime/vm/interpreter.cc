@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "vm/globals.h"
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)
+#if defined(DART_USE_INTERPRETER)
 
 #include "vm/interpreter.h"
 
@@ -4852,4 +4852,4 @@ void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)
+#endif  // defined(DART_USE_INTERPRETER)

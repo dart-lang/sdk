@@ -20,8 +20,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 
-DECLARE_FLAG(bool, enable_interpreter);
-
 StubEntry* StubCode::entries_[kNumStubEntries] = {
 #define STUB_CODE_DECLARE(name) NULL,
     VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
@@ -92,30 +90,25 @@ bool StubCode::HasBeenInitialized() {
 bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter) {
-    if (is_interpreted_frame) {
-      // Recognize special marker set up by interpreter in entry frame.
-      return (pc & 2) != 0;
-    }
-    {
-      uword entry = StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint();
-      uword size = StubCode::InvokeDartCodeFromBytecodeSize();
-      if ((pc >= entry) && (pc < (entry + size))) {
-        return true;
-      }
+#if defined(DART_USE_INTERPRETER)
+  if (is_interpreted_frame) {
+    // Recognize special marker set up by interpreter in entry frame.
+    return (pc & 2) != 0;
+  }
+  {
+    uword entry = StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint();
+    uword size = StubCode::InvokeDartCodeFromBytecodeSize();
+    if ((pc >= entry) && (pc < (entry + size))) {
+      return true;
     }
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
+#elif defined(DART_USE_INTERPRETER)
+#error "Simultaneous usage of DBC simulator and interpreter not yet supported."
 #else
-  if (FLAG_enable_interpreter) {
-    FATAL(
-        "Simultaneous usage of DBC simulator "
-        "and interpreter not yet supported.");
-  }
   // On DBC we use a special marker PC to signify entry frame because there is
   // no such thing as invocation stub.
   return (pc & 2) != 0;

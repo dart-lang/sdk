@@ -89,7 +89,6 @@ DEFINE_FLAG(bool,
             false,
             "Enable compiler verification assertions");
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, unbox_numeric_fields);
@@ -163,8 +162,11 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
                                      /* not inlining */ NULL, optimized,
                                      osr_id);
     FlowGraph* graph = builder.BuildGraph();
-    ASSERT((graph != NULL) || (FLAG_enable_interpreter &&
-                               parsed_function->function().HasBytecode()));
+#if defined(DART_USE_INTERPRETER)
+    ASSERT((graph != NULL) || parsed_function->function().HasBytecode());
+#else
+    ASSERT(graph != NULL);
+#endif
     return graph;
   }
   FlowGraphBuilder builder(*parsed_function, ic_data_array,
@@ -258,13 +260,14 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
     }
     Exceptions::PropagateError(Error::Cast(result));
   }
+#if defined(DART_USE_INTERPRETER)
   // TODO(regis): Revisit.
-  if (FLAG_enable_interpreter && !function.HasCode() &&
-      function.HasBytecode()) {
+  if (!function.HasCode() && function.HasBytecode()) {
     // Function was not actually compiled, but its bytecode was loaded.
     // Verify that InterpretCall stub code was installed.
     ASSERT(function.CurrentCode() == StubCode::InterpretCall_entry()->code());
   }
+#endif
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
@@ -829,11 +832,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             zone, parsed_function(), *ic_data_array, osr_id(), optimized());
       }
 
+#if defined(DART_USE_INTERPRETER)
       // TODO(regis): Revisit.
-      if (FLAG_enable_interpreter && (flow_graph == NULL) &&
-          function.HasBytecode()) {
+      if (flow_graph == NULL && function.HasBytecode()) {
         return Code::null();
       }
+#endif
 
       const bool print_flow_graph =
           (FLAG_print_flow_graph ||
@@ -1018,10 +1022,12 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
+#if defined(DART_USE_INTERPRETER)
     // TODO(regis): Revisit.
-    if (FLAG_enable_interpreter && result.IsNull() && function.HasBytecode()) {
+    if (result.IsNull() && function.HasBytecode()) {
       return Object::null();
     }
+#endif
 
     if (!result.IsNull()) {
       if (!optimized) {
@@ -1397,9 +1403,11 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
     if (!func.HasCode() &&
+#if defined(DART_USE_INTERPRETER)
         // TODO(regis): Revisit.
         // Do not compile function if its bytecode is already loaded.
-        (!FLAG_enable_interpreter || !func.HasBytecode()) &&
+        !func.HasBytecode() &&
+#endif
         !func.is_abstract() && !func.IsRedirectingFactory()) {
       if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
           func.HasOptionalParameters()) {
@@ -1410,10 +1418,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
+#if defined(DART_USE_INTERPRETER)
       // TODO(regis): Revisit.
       // The compiler may load bytecode and return Code::null().
-      ASSERT(!result.IsNull() ||
-             (FLAG_enable_interpreter && func.HasBytecode()));
+      ASSERT(!result.IsNull() || func.HasBytecode());
+#else
+      ASSERT(!result.IsNull());
+#endif
     }
   }
   return Error::null();
@@ -1500,13 +1511,15 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
       const Code& code = Code::Handle(helper.Compile(&pipeline));
       const Function& initializer = parsed_function->function();
-
       if (!code.IsNull()) {
         code.set_var_descriptors(Object::empty_var_descriptors());
-        return DartEntry::InvokeFunction(initializer, Object::empty_array());
-      } else if (FLAG_enable_interpreter && initializer.HasBytecode()) {
-        // In case the initializer has bytecode, the compilation step above only
-        // loaded the bytecode without generating code.
+#if defined(DART_USE_INTERPRETER)
+      }
+      // In case the initializer has bytecode, the compilation step above only
+      // loaded the bytecode without generating code.
+      if (!code.IsNull() || initializer.HasBytecode()) {
+#endif
+        // Invoke the function to evaluate the expression.
         return DartEntry::InvokeFunction(initializer, Object::empty_array());
       }
     }

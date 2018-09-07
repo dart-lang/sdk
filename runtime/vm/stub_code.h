@@ -116,9 +116,7 @@ class SnapshotWriter;
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
   V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)                                                     \
-  V(InvokeDartCodeFromBytecode)                                                \
-  V(InterpretCall)
+  V(AsynchronousGapMarker)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
