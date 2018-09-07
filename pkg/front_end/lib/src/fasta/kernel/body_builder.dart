@@ -2262,8 +2262,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       value = symbolPartToString(part);
       push(forest.literalSymbolSingluar(value, hashToken, part));
     } else {
-      List<Identifier> parts = popList(identifierCount,
-          new List<Identifier>.filled(identifierCount, null, growable: true));
+      List<Identifier> parts =
+          popList(identifierCount, new List<Identifier>(identifierCount));
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
@@ -2600,9 +2600,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<KernelFormalParameterBuilder> parameters;
     if (count + optionalsCount > 0) {
-      parameters = new List<KernelFormalParameterBuilder>.filled(
-          count + optionalsCount, null,
-          growable: true);
+      parameters =
+          new List<KernelFormalParameterBuilder>(count + optionalsCount);
       popList(count, parameters);
       if (optionals != null) {
         parameters.setRange(count, count + optionalsCount, optionals);
@@ -3588,8 +3587,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels =
-        new List<Label>.filled(labelCount, null, growable: true);
+    List<Label> labels = new List<Label>(labelCount);
     popList(labelCount, labels);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
