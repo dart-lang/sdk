@@ -18,6 +18,106 @@ class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
 abstract class ClassResolutionMixin implements ResolutionTest {
+  test_error_conflictingConstructorAndStaticField_field() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  static int foo;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+    ]);
+  }
+
+  test_error_conflictingConstructorAndStaticField_getter() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+    ]);
+  }
+
+  test_error_conflictingConstructorAndStaticField_OK_notSameClass() async {
+    addTestFile(r'''
+class A {
+  static int foo;
+}
+class B extends A {
+  B.foo();
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_conflictingConstructorAndStaticField_OK_notStatic() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  int foo;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_conflictingConstructorAndStaticField_setter() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  static void set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+    ]);
+  }
+
+  test_error_conflictingConstructorAndStaticMethod() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+    ]);
+  }
+
+  test_error_conflictingConstructorAndStaticMethod_OK_notSameClass() async {
+    addTestFile(r'''
+class A {
+  static void foo() {}
+}
+class B extends A {
+  B.foo();
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_conflictingConstructorAndStaticMethod_OK_notStatic() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_conflictingFieldAndMethod_inSuper_field() async {
     addTestFile(r'''
 class A {
@@ -401,6 +501,32 @@ class B extends A {
 ''');
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_duplicateConstructorDefault() async {
+    addTestFile(r'''
+class C {
+  C();
+  C();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+    ]);
+  }
+
+  test_error_duplicateConstructorName() async {
+    addTestFile(r'''
+class C {
+  C.foo();
+  C.foo();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+    ]);
   }
 
   test_error_duplicateDefinition_field_field() async {

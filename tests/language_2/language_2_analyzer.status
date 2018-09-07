@@ -93,8 +93,8 @@ mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
@@ -118,13 +118,8 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 regress_32660_test/01: MissingCompileTimeError # Issue #32660.
 regress_32660_test/04: CompileTimeError
-regress_33235_03_test/01: MissingCompileTimeError
-regress_33235_19_test: CompileTimeError
-regress_33235_20_test: CompileTimeError
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-static_setter_conflicts_test/11: MissingCompileTimeError
-static_setter_conflicts_test/12: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError

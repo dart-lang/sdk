@@ -704,42 +704,6 @@ f(var a) {
     verify([source]);
   }
 
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_field() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-  A.x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_getter() async {
-    Source source = addSource(r'''
-class A {
-  int get x => 42;
-  A.x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_method() async {
-    Source source = addSource(r'''
-class A {
-  const A.x();
-  void x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_conflictingGenericInterfaces_hierarchyLoop() async {
     // There is no interface conflict here, but there is a loop in the class
     // hierarchy leading to a finite set of implemented types; this loop
@@ -1774,34 +1738,6 @@ main() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-  }
-
-  test_duplicateConstructorName_named() async {
-    Source source = addSource(r'''
-class A {
-  A.a() {}
-  A.a() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME
-    ]);
-    verify([source]);
-  }
-
-  test_duplicateConstructorName_unnamed() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-  A() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT
-    ]);
-    verify([source]);
   }
 
   test_duplicateDefinition_acrossLibraries() async {

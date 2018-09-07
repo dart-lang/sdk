@@ -354,20 +354,34 @@ class CompileTimeErrorCode extends ErrorCode {
           "The switch case expression type '{0}' can't override the == operator.");
 
   /**
-   * 7.6 Constructors: A constructor name always begins with the name of its
-   * immediately enclosing class, and may optionally be followed by a dot and an
-   * identifier <i>id</i>. It is a compile-time error if <i>id</i> is the name
-   * of a member declared in the immediately enclosing class.
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a constructor named `C.n`, and a static member with
+   * basename `n`.
    *
    * Parameters:
    * 0: the name of the constructor
    */
-  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD =
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD =
       const CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD',
-          "'{0}' can't be used to name both a constructor and a field in this "
-          "class.",
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+          "'{0}' can't be used to name both a constructor and a static field "
+          "in this class.",
           correction: "Try renaming either the constructor or the field.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a constructor named `C.n`, and a static member with
+   * basename `n`.
+   *
+   * Parameters:
+   * 0: the name of the constructor
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
+      const CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+          "'{0}' can't be used to name both a constructor and a static method "
+          "in this class.",
+          correction: "Try renaming either the constructor or the method.");
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -386,22 +400,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "with the same name.",
           correction: "Try converting the getter to a method, or "
               "renaming the field to a name that doesn't conflit.");
-
-  /**
-   * 7.6 Constructors: A constructor name always begins with the name of its
-   * immediately enclosing class, and may optionally be followed by a dot and an
-   * identifier <i>id</i>. It is a compile-time error if <i>id</i> is the name
-   * of a member declared in the immediately enclosing class.
-   *
-   * Parameters:
-   * 0: the name of the constructor
-   */
-  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD =
-      const CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD',
-          "'{0}' can't be used to name both a constructor and a method in this "
-          "class.",
-          correction: "Try renaming either the constructor or the field.");
 
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       const CompileTimeErrorCode(

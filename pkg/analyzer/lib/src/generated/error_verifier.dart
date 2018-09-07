@@ -568,7 +568,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
-      _checkForConflictingConstructorNameAndMember(node, constructorElement);
       _checkForAllFinalInitializedErrorCodes(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMixinDeclaresConstructor(node);
@@ -1387,15 +1386,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateClassMembers(List<ClassMember> members) {
+    Set<String> constructorNames = new HashSet<String>();
     Map<String, Element> instanceGetters = new HashMap<String, Element>();
     Map<String, Element> instanceSetters = new HashMap<String, Element>();
     Map<String, Element> staticGetters = new HashMap<String, Element>();
     Map<String, Element> staticSetters = new HashMap<String, Element>();
 
     for (ClassMember member in members) {
-      // We ignore constructors because they are checked in the method
-      // _checkForConflictingConstructorNameAndMember.
-      if (member is FieldDeclaration) {
+      if (member is ConstructorDeclaration) {
+        var name = member.name?.name ?? '';
+        if (!constructorNames.add(name)) {
+          if (name.isEmpty) {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
+          } else {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                member,
+                [name]);
+          }
+        }
+      } else if (member is FieldDeclaration) {
         for (VariableDeclaration field in member.fields.variables) {
           SimpleIdentifier identifier = field.name;
           _checkDuplicateIdentifier(
@@ -1415,7 +1426,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     // Check for local static members conflicting with local instance members.
     for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
+      if (member is ConstructorDeclaration) {
+        if (member.name != null) {
+          String name = member.name.name;
+          var staticMember = staticGetters[name] ?? staticSetters[name];
+          if (staticMember != null) {
+            if (staticMember is PropertyAccessorElement) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+                member.name,
+                [name],
+              );
+            } else {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+                member.name,
+                [name],
+              );
+            }
+          }
+        }
+      } else if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
             SimpleIdentifier identifier = field.name;
@@ -2494,61 +2525,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           name,
           inherited.enclosingElement.displayName
         ]);
-      }
-    }
-  }
-
-  /**
-   * Verify all possible conflicts of the given [constructor]'s name with other
-   * constructors and members of the same class. The [constructorElement] is the
-   * constructor's element.
-   *
-   * See [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT],
-   * [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME],
-   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD], and
-   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD].
-   */
-  void _checkForConflictingConstructorNameAndMember(
-      ConstructorDeclaration constructor,
-      ConstructorElement constructorElement) {
-    SimpleIdentifier constructorName = constructor.name;
-    String name = constructorElement.name;
-    ClassElement classElement = constructorElement.enclosingElement;
-    // constructors
-    List<ConstructorElement> constructors = classElement.constructors;
-    for (ConstructorElement otherConstructor in constructors) {
-      if (identical(otherConstructor, constructorElement)) {
-        continue;
-      }
-      if (name == otherConstructor.name) {
-        if (name == null || name.length == 0) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, constructor);
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-              constructor,
-              [name]);
-        }
-        return;
-      }
-    }
-    // conflict with class member
-    if (constructorName != null &&
-        constructorElement != null &&
-        !constructorName.isSynthetic) {
-      FieldElement field = classElement.getField(name);
-      if (field != null && field.getter != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
-            constructor,
-            [name]);
-      } else if (classElement.getMethod(name) != null) {
-        // methods
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
-            constructor,
-            [name]);
       }
     }
   }
