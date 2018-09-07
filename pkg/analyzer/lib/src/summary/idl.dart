@@ -1452,6 +1452,14 @@ abstract class UnlinkedClass extends base.SummaryClass {
   List<EntityRef> get superclassConstraints;
 
   /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  @Id(15)
+  List<String> get superInvokedNames;
+
+  /**
    * Supertype of the class, or `null` if either (a) the class doesn't
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).

@@ -8791,6 +8791,117 @@ mixin M on A, B implements C, D {}
     checkTypeRef(mixin.interfaces[1], null, 'D');
   }
 
+  test_mixin_superInvokedNames_methodInvocation() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a();
+    super.b().c();
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a', 'b']));
+  }
+
+  test_mixin_superInvokedNames_operator_binary() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super + 1;
+    super - 2;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['+', '-']));
+  }
+
+  test_mixin_superInvokedNames_operator_index() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0];
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]']));
+  }
+
+  test_mixin_superInvokedNames_operator_index_indexEq() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0] += 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]', '[]=']));
+  }
+
+  test_mixin_superInvokedNames_operator_indexEq() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0] = 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]=']));
+  }
+
+  test_mixin_superInvokedNames_operator_prefix() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    ~super;
+    -super;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['~', 'unary-']));
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_get() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a;
+    super.b.c;
+
+    ~super.e;
+    -super.d;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a', 'b', 'd', 'e']));
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_get_set() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a++;
+    --super.b;
+    super.c += 1;
+  }
+}
+''');
+    expect(
+      mixin.superInvokedNames,
+      unorderedEquals(['a', 'b', 'c', 'a=', 'b=', 'c=']),
+    );
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_set() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a = 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a=']));
+  }
+
   test_mixin_typeParameters() {
     UnlinkedClass mixin = serializeMixinText('mixin M<T extends num, U> {}');
     expect(mixin.typeParameters, hasLength(2));

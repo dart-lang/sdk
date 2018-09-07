@@ -24,6 +24,92 @@ UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit,
       .serializeCompilationUnit(compilationUnit);
 }
 
+/// Visitor that collects super-invoked names in a mixin declaration.
+class _AddMixinSuperInvokedNames extends RecursiveAstVisitor<void> {
+  final Set<String> names;
+
+  _AddMixinSuperInvokedNames(this.names);
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    if (node.leftOperand is SuperExpression) {
+      names.add(node.operator.lexeme);
+    }
+    super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    if (node.target is SuperExpression) {
+      if (_isRead(node)) {
+        names.add('[]');
+      }
+      if (_isWrite(node)) {
+        names.add('[]=');
+      }
+    }
+    super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.target is SuperExpression) {
+      names.add(node.methodName.name);
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    if (node.operand is SuperExpression) {
+      TokenType operatorType = node.operator.type;
+      if (operatorType == TokenType.MINUS) {
+        names.add('unary-');
+      } else if (operatorType == TokenType.TILDE) {
+        names.add('~');
+      }
+    }
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    if (node.target is SuperExpression) {
+      var name = node.propertyName.name;
+      if (_isRead(node)) {
+        names.add(name);
+      }
+      if (_isWrite(node)) {
+        names.add('$name=');
+      }
+    }
+    super.visitPropertyAccess(node);
+  }
+
+  static bool _isRead(Expression e) {
+    var parent = e.parent;
+    if (parent is AssignmentExpression) {
+      return parent.leftHandSide != e || parent.operator.type != TokenType.EQ;
+    } else {
+      return true;
+    }
+  }
+
+  static bool _isWrite(Expression e) {
+    var parent = e.parent;
+    if (parent is AssignmentExpression) {
+      return parent.leftHandSide == e;
+    }
+    if (parent is PostfixExpression) {
+      return true;
+    }
+    if (parent is PrefixExpression) {
+      return parent.operator.type.isIncrementOperator;
+    }
+    return false;
+  }
+}
+
 /// Instances of this class keep track of intermediate state during
 /// serialization of a single constant [Expression].
 class _ConstExprSerializer extends AbstractConstExprSerializer {
@@ -217,6 +303,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   /// List of objects which should be written to [UnlinkedUnit.mixins].
   final List<UnlinkedClassBuilder> mixins = <UnlinkedClassBuilder>[];
+
+  /// List of names of methods, getters, setters, and operators that are
+  /// super-invoked in the current mixin declaration.
+  Set<String> mixinSuperInvokedNames;
 
   /// List of objects which should be written to [UnlinkedUnit.parts].
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
@@ -591,6 +681,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     serializeFunctionBody(
         b, null, body, serializeBodyExpr, serializeBody, false);
+
+    if (mixinSuperInvokedNames != null) {
+      body?.accept(new _AddMixinSuperInvokedNames(mixinSuperInvokedNames));
+    }
+
     _parameterNames = oldParameterNames;
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -736,13 +831,18 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       NodeList<ClassMember> members,
       Comment documentationComment,
       NodeList<Annotation> annotations) {
-    int oldScopesLength = scopes.length;
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
     executables = <UnlinkedExecutableBuilder>[];
+
+    mixinSuperInvokedNames = new Set<String>();
+
     List<UnlinkedVariableBuilder> oldVariables = variables;
     variables = <UnlinkedVariableBuilder>[];
+
+    int oldScopesLength = scopes.length;
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
+
     UnlinkedClassBuilder b = new UnlinkedClassBuilder();
     b.name = name;
     b.nameOffset = nameOffset;
@@ -764,13 +864,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.executables = executables;
     b.fields = variables;
+    b.superInvokedNames = mixinSuperInvokedNames.toList();
     b.documentationComment = serializeDocumentation(documentationComment);
     b.annotations = serializeAnnotations(annotations);
     b.codeRange = serializeCodeRange(node);
     mixins.add(b);
+
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
+
     executables = oldExecutables;
+    mixinSuperInvokedNames = null;
     variables = oldVariables;
   }
 
