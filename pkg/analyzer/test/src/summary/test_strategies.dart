@@ -23,9 +23,7 @@ import 'package:test/test.dart';
 
 import '../context/mock_sdk.dart';
 
-/**
- * Convert the given Posix style file [path] to the corresponding absolute URI.
- */
+/// Convert the given Posix style file [path] to the corresponding absolute URI.
 String absUri(String path) {
   String absolutePath = posix.absolute(path);
   return posix.toUri(absolutePath).toString();
@@ -44,9 +42,7 @@ CompilationUnit _parseText(String text) {
   return unit;
 }
 
-/**
- * Verify invariants of the given [linkedLibrary].
- */
+/// Verify invariants of the given [linkedLibrary].
 void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
   for (LinkedUnit unit in linkedLibrary.units) {
     for (LinkedReference reference in unit.references) {
@@ -80,14 +76,12 @@ void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
   }
 }
 
-/**
- * [SerializedMockSdk] is a singleton class representing the result of
- * serializing the mock SDK to summaries.  It is computed once and then shared
- * among test invocations so that we don't bog down the tests.
- *
- * Note: should an exception occur during computation of [instance], it will
- * silently be set to null to allow other tests to complete quickly.
- */
+/// [SerializedMockSdk] is a singleton class representing the result of
+/// serializing the mock SDK to summaries.  It is computed once and then shared
+/// among test invocations so that we don't bog down the tests.
+///
+/// Note: should an exception occur during computation of [instance], it will
+/// silently be set to null to allow other tests to complete quickly.
 class SerializedMockSdk {
   static final SerializedMockSdk instance = _serializeMockSdk();
 
@@ -123,10 +117,8 @@ class SerializedMockSdk {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBaseTestStrategy {
-  /**
-   * Add the given source file so that it may be referenced by the file under
-   * test.
-   */
+  /// Add the given source file so that it may be referenced by the file under
+  /// test.
   void addNamedSource(String filePath, String contents);
 }
 
@@ -137,10 +129,8 @@ abstract class SummaryBaseTestStrategy {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
-  /**
-   * A test will set this to `true` if it contains `import`, `export`, or
-   * `part` declarations that deliberately refer to non-existent files.
-   */
+  /// A test will set this to `true` if it contains `import`, `export`, or
+  /// `part` declarations that deliberately refer to non-existent files.
   void set allowMissingFiles(bool value);
 
   /// Indicates whether the summary contains expressions for non-const fields.
@@ -149,28 +139,20 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
   /// expressions are stored in the summary.
   bool get containsNonConstExprs;
 
-  /**
-   * Get access to the linked summary that results from serializing and
-   * then deserializing the library under test.
-   */
+  /// Get access to the linked summary that results from serializing and
+  /// then deserializing the library under test.
   LinkedLibrary get linked;
 
-  /**
-   * `true` if the linked portion of the summary only contains prelinked data.
-   * This happens because we don't yet have a full linker; only a prelinker.
-   */
+  /// `true` if the linked portion of the summary only contains prelinked data.
+  /// This happens because we don't yet have a full linker; only a prelinker.
   bool get skipFullyLinkedData;
 
-  /**
-   * Get access to the unlinked compilation unit summaries that result from
-   * serializing and deserializing the library under test.
-   */
+  /// Get access to the unlinked compilation unit summaries that result from
+  /// serializing and deserializing the library under test.
   List<UnlinkedUnit> get unlinkedUnits;
 
-  /**
-   * Serialize the given library [text], then deserialize it and store its
-   * summary in [lib].
-   */
+  /// Serialize the given library [text], then deserialize it and store its
+  /// summary in [lib].
   void serializeLibraryText(String text, {bool allowErrors: false});
 }
 
@@ -323,20 +305,16 @@ abstract class SummaryLinkerTestStrategy extends SummaryBaseTestStrategy {
 
   LibraryElementInBuildUnit get testLibrary;
 
-  /**
-   * Add the given package bundle as a dependency so that it may be referenced
-   * by the files under test.
-   */
+  /// Add the given package bundle as a dependency so that it may be referenced
+  /// by the files under test.
   void addBundle(String path, PackageBundle bundle);
 
   void createLinker(String text, {String path: '/test.dart'});
 
-  /**
-   * Link together the given file, along with any other files passed to
-   * [addNamedSource], to form a package bundle.  Reset the state of the buffers
-   * accumulated by [addNamedSource] and [addBundle] so that further bundles
-   * can be created.
-   */
+  /// Link together the given file, along with any other files passed to
+  /// [addNamedSource], to form a package bundle.  Reset the state of the
+  /// buffers accumulated by [addNamedSource] and [addBundle] so that further
+  /// bundles can be created.
   PackageBundleBuilder createPackageBundle(String text,
       {String path: '/test.dart', String uri});
 }
@@ -396,31 +374,24 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
   }
 }
 
-/**
- * [_FilesToLink] stores information about a set of files to be linked together.
- * This information is grouped into a class to allow it to be reset easily when
- * [_SummaryBaseTestStrategyTwoPhase._createLinkerInputs] is called.
- *
- * The generic parameter [U] is the type of information stored for each
- * compilation unit.
- */
+/// [_FilesToLink] stores information about a set of files to be linked
+/// together.  This information is grouped into a class to allow it to be reset
+/// easily when [_SummaryBaseTestStrategyTwoPhase._createLinkerInputs] is
+/// called.
+///
+/// The generic parameter [U] is the type of information stored for each
+/// compilation unit.
 class _FilesToLink<U> {
-  /**
-   * Map from absolute URI to the [U] for each compilation unit passed to
-   * [addNamedSource].
-   */
+  /// Map from absolute URI to the [U] for each compilation unit passed to
+  /// [addNamedSource].
   Map<String, U> uriToUnit = <String, U>{};
 
-  /**
-   * Information about summaries to be included in the link process.
-   */
+  /// Information about summaries to be included in the link process.
   SummaryDataStore summaryDataStore = new SummaryDataStore([]);
 }
 
-/**
- * Instances of the class [_LinkerInputs] encapsulate the necessary information
- * to pass to the summary linker.
- */
+/// Instances of the class [_LinkerInputs] encapsulate the necessary information
+/// to pass to the summary linker.
 class _LinkerInputs {
   final bool _allowMissingFiles;
   final Map<String, UnlinkedUnit> _uriToUnit;
@@ -475,9 +446,7 @@ class _LinkerInputs {
 /// using the old two-phase API.
 abstract class _SummaryBaseTestStrategyTwoPhase
     implements SummaryBaseTestStrategy {
-  /**
-   * Information about the files to be linked.
-   */
+  /// Information about the files to be linked.
   _FilesToLink<UnlinkedUnitBuilder> _filesToLink =
       new _FilesToLink<UnlinkedUnitBuilder>();
 
