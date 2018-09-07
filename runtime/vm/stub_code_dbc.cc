@@ -121,6 +121,14 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Trap();
 }
 
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
+  __ Trap();
+}
+
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
+  __ Trap();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_DBC

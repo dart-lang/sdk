@@ -97,8 +97,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.strong = true;
     api_flags.unsafe_trust_strong_mode_types = false;
     api_flags.sync_async = true;
-#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                 \
-    !defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
 #endif
 #if !defined(DART_PRECOMPILER)

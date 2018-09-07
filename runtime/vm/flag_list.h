@@ -12,13 +12,6 @@
 #define USING_DBC false
 #endif
 
-// Don't use USING_KBC outside of this file.
-#if defined(DART_USE_INTERPRETER)
-#define USING_KBC true
-#else
-#define USING_KBC false
-#endif
-
 // Don't use USING_MULTICORE outside of this file.
 #if defined(ARCH_IS_MULTI_CORE)
 #define USING_MULTICORE true
@@ -132,7 +125,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
-  P(optimization_counter_threshold, int, USING_KBC ? -1 : 30000,               \
+  P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \
@@ -195,7 +188,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
-  P(use_field_guards, bool, !USING_DBC && !USING_KBC,                          \
+  P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
@@ -216,6 +209,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(enable_testing_pragmas, false, bool, false,                                \
     "Enable magical pragmas for testing purposes. Use at your own risk!")      \
   R(eliminate_type_checks, true, bool, true,                                   \
-    "Eliminate type checks when allowed by static type analysis.")
+    "Eliminate type checks when allowed by static type analysis.")             \
+  P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

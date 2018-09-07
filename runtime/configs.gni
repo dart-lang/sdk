@@ -16,33 +16,13 @@ _base_fuchsia_config = [
   "$_dart_runtime:dart_os_fuchsia_config",
 ]
 
-_maybe_interpreter_maybe_product = [
-  "$_dart_runtime:dart_maybe_interpreter_config",
-  "$_dart_runtime:dart_maybe_product_config",
-]
+_maybe_product = [ "$_dart_runtime:dart_maybe_product_config" ]
 
-_maybe_interpreter_product = [
-  "$_dart_runtime:dart_maybe_interpreter_config",
-  "$_dart_runtime:dart_product_config",
-]
+_product = [ "$_dart_runtime:dart_product_config" ]
 
-_interpreter_maybe_product = [
-  "$_dart_runtime:dart_interpreter_config",
-  "$_dart_runtime:dart_maybe_product_config",
-]
+_jit_config = _base_config + _maybe_product
 
-_interpreter_product = [
-  "$_dart_runtime:dart_interpreter_config",
-  "$_dart_runtime:dart_product_config",
-]
-
-_jit_config = _base_config + _maybe_interpreter_maybe_product
-
-_jit_product_config = _base_config + _maybe_interpreter_product
-
-_jit_interpreter_config = _base_config + _interpreter_maybe_product
-
-_jit_product_interpreter_config = _base_config + _interpreter_product
+_jit_product_config = _base_config + _product
 
 _precompiled_runtime_config =
     _base_config + [
@@ -72,28 +52,16 @@ _nosnapshot_precompiler_base = [
 ]
 
 _nosnapshot_with_precompiler_config =
-    _base_config + _nosnapshot_precompiler_base + _maybe_interpreter_maybe_product
-
-_nosnapshot_with_precompiler_interpreter_config =
-    _base_config + _nosnapshot_precompiler_base + _interpreter_maybe_product
-
-_nosnapshot_with_precompiler_product_interpreter_config =
-    _base_config + _nosnapshot_precompiler_base + _interpreter_product
+    _base_config + _nosnapshot_precompiler_base + _maybe_product
 
 _nosnapshot_with_precompiler_product_config =
-    _base_config + _nosnapshot_precompiler_base + _maybe_interpreter_product
+    _base_config + _nosnapshot_precompiler_base + _product
 
 _nosnapshot_with_precompiler_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_interpreter_maybe_product
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_product
 
 _nosnapshot_with_precompiler_product_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_interpreter_product
-
-_nosnapshot_with_precompiler_interpreter_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _interpreter_maybe_product
-
-_nosnapshot_with_precompiler_product_interpreter_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _interpreter_product
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _product
 
 _all_configs = [
   {
@@ -147,42 +115,6 @@ _all_configs = [
     snapshot = false
   },
 ]
-
-# The interpreter is not currently needed on Windows.
-if (!is_win) {
-  _all_configs += [
-    {
-      suffix = "_jit_interpreter"
-      configs = _jit_interpreter_config
-      snapshot = true
-    },
-    {
-      suffix = "_jit_product_interpreter"
-      configs = _jit_product_interpreter_config
-      snapshot = true
-    },
-    {
-      suffix = "_nosnapshot_with_precompiler_interpreter"
-      configs = _nosnapshot_with_precompiler_interpreter_config
-      snapshot = false
-    },
-    {
-      suffix = "_nosnapshot_with_precompiler_product_interpreter"
-      configs = _nosnapshot_with_precompiler_product_interpreter_config
-      snapshot = false
-    },
-    {
-      suffix = "_nosnapshot_with_precompiler_interpreter_fuchsia"
-      configs = _nosnapshot_with_precompiler_interpreter_fuchsia_config
-      snapshot = false
-    },
-    {
-      suffix = "_nosnapshot_with_precompiler_product_interpreter_fuchsia"
-      configs = _nosnapshot_with_precompiler_product_interpreter_fuchsia_config
-      snapshot = false
-    },
-  ]
-}
 
 # This template creates a target for each of the configurations listed above.
 # For example:

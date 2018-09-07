@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get DART_USE_INTERPRETER.
-#if defined(DART_USE_INTERPRETER)
-
 #include "vm/instructions.h"
 #include "vm/instructions_kbc.h"
 
@@ -31,5 +28,3 @@ RawNativeEntryData* KBCNativeCallPattern::GetNativeEntryDataAt(
 }
 
 }  // namespace dart
-
-#endif  // defined DART_USE_INTERPRETER

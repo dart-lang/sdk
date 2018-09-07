@@ -14,6 +14,9 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
+
+DECLARE_FLAG(bool, enable_interpreter);
+
 namespace kernel {
 
 #define Z (zone_)
@@ -1903,10 +1906,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   SetOffset(kernel_offset);
 
-#if defined(DART_USE_INTERPRETER)
   // TODO(regis): Clean up this logic of when to compile.
   // If the bytecode was previously loaded, we really want to compile.
-  if (!function.HasBytecode()) {
+  if (FLAG_enable_interpreter && !function.HasBytecode()) {
     // TODO(regis): For now, we skip bytecode loading for functions that were
     // synthesized and that do not have bytecode. Since they inherited the
     // kernel offset of a concrete function, the wrong bytecode would be loaded.
@@ -1927,7 +1929,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       }
     }
   }
-#endif
 
   // Mark forwarding stubs.
   switch (function.kind()) {

@@ -5959,15 +5959,19 @@ void Function::AttachCode(const Code& value) const {
 bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
-#if defined(DART_USE_INTERPRETER)
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
-#else
+#if defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
-#endif
+#else
+  if (FLAG_enable_interpreter) {
+    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+           raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  } else {
+    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Function::AttachBytecode(const Code& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // Finish setting up code before activating it.
@@ -5985,18 +5989,21 @@ bool Function::HasBytecode() const {
   return raw_ptr()->bytecode_ != Code::null();
 }
 
-bool Function::HasCode(RawFunction* function) {
-  NoSafepointScope no_safepoint;
-  ASSERT(function->ptr()->code_ != Code::null());
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
-}
-
 bool Function::HasBytecode(RawFunction* function) {
   return function->ptr()->bytecode_ != Code::null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#endif
+bool Function::HasCode(RawFunction* function) {
+  NoSafepointScope no_safepoint;
+  ASSERT(function->ptr()->code_ != Code::null());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code();
+#else
+  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 void Function::ClearCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6005,9 +6012,9 @@ void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-#if defined(DART_USE_INTERPRETER)
-  StorePointer(&raw_ptr()->bytecode_, Code::null());
-#endif  // defined(DART_USE_INTERPRETER)
+  if (FLAG_enable_interpreter) {
+    StorePointer(&raw_ptr()->bytecode_, Code::null());
+  }
 
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -8510,7 +8517,8 @@ RawNativeEntryData* NativeEntryData::New() {
 }
 
 const char* NativeEntryData::ToCString() const {
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(FLAG_enable_interpreter);
   if (IsNull()) {
     return "NativeEntryData: null";
   }
@@ -8530,7 +8538,7 @@ const char* NativeEntryData::ToCString() const {
       reinterpret_cast<uword>(native_function()));
 #else
   UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawField* Field::CloneFromOriginal() const {
@@ -15820,9 +15828,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", compiler, assembler, optimized, stats);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_USE_INTERPRETER)
 RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                                 intptr_t bytecode_size,
                                 const ObjectPool& object_pool,
@@ -15880,7 +15886,8 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
            code.comments().comments_.Length());
   return code.raw();
 }
-#endif  // defined(DART_USE_INTERPRETER)
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);

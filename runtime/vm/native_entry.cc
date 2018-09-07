@@ -103,7 +103,6 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   UNREACHABLE();
 }
 
-#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
@@ -114,7 +113,6 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
   func(args);
 }
-#endif
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
@@ -285,7 +283,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     NativeFunction current_function = NULL;
     if (caller_frame->is_interpreted()) {
-#if defined(DART_USE_INTERPRETER)
+      ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper current_trampoline = KBCPatcher::GetNativeCallAt(
           caller_frame->pc(), code, &current_function);
       ASSERT(current_function ==
@@ -293,9 +291,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       ASSERT(current_trampoline == &BootstrapNativeCallWrapper ||
              current_trampoline == &AutoScopeNativeCallWrapper ||
              current_trampoline == &NoScopeNativeCallWrapper);
-#else
-      UNREACHABLE();
-#endif  // defined DART_USE_INTERPRETER
     } else {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
@@ -329,7 +324,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                                    patch_target_function, trampoline);
 #else
     if (caller_frame->is_interpreted()) {
-#if defined(DART_USE_INTERPRETER)
+      ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper trampoline;
       if (is_bootstrap_native) {
         trampoline = &BootstrapNativeCallWrapper;
@@ -340,9 +335,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       }
       KBCPatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                     patch_target_function, trampoline);
-#else
-      UNREACHABLE();
-#endif  // defined DART_USE_INTERPRETER
     } else {
       Code& trampoline = Code::Handle(zone);
       if (is_bootstrap_native) {

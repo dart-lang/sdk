@@ -57,6 +57,7 @@ DEFINE_FLAG(bool,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
+DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 #ifndef PRODUCT
@@ -261,14 +262,14 @@ ActivationFrame::ActivationFrame(uword pc,
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(regis): If debugging of interpreted code is required, recognize an
   // interpreted activation frame and respect alternate frame layout.
   // For now, punt.
-#if defined(DART_USE_INTERPRETER)
-  if (function_.Bytecode() == code_.raw()) {
+  if (FLAG_enable_interpreter && function_.Bytecode() == code_.raw()) {
     UNIMPLEMENTED();
   }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ActivationFrame::ActivationFrame(Kind kind)
