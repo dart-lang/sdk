@@ -112,7 +112,6 @@ class Options {
 #undef CB_OPTIONS_DECL
 
   static bool preview_dart_2() { return !no_preview_dart_2(); }
-  static void SetDart2Options(CommandLineOptions* vm_options);
   static void SetDart1Options(CommandLineOptions* vm_options);
 
   static dart::SimpleHashMap* environment() { return environment_; }

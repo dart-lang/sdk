@@ -141,10 +141,6 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
   V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
     FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(PRODUCT, reify_generic_functions, ReifyGenericFunctions,                   \
-    reify_generic_functions, FLAG_reify_generic_functions)                     \
-  V(PRODUCT, sync_async, SyncAsync, sync_async, FLAG_sync_async)               \
-  V(PRODUCT, strong, Strong, strong, FLAG_strong)                              \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
@@ -705,7 +701,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool can_use_strong_mode_types() const {
-    return strong() && FLAG_use_strong_mode_types &&
+    return FLAG_strong && FLAG_use_strong_mode_types &&
            !unsafe_trust_strong_mode_types();
   }
 
@@ -769,7 +765,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool should_emit_strong_mode_checks() const {
-    return strong() && !unsafe_trust_strong_mode_types();
+    return FLAG_strong && !unsafe_trust_strong_mode_types();
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -884,9 +880,6 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
-  V(ReifyGenericFunctions)                                                     \
-  V(SyncAsync)                                                                 \
-  V(Strong)                                                                    \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \

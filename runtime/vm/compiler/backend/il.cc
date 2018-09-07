@@ -2695,7 +2695,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
     // In strong mode type is already verified either by static analysis
     // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (Isolate::Current()->strong() && !value()->Type()->is_nullable()) {
+    if (FLAG_strong && !value()->Type()->is_nullable()) {
       return value()->definition();
     }
   }

@@ -2537,7 +2537,7 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (I->strong()) {
+    if (FLAG_strong) {
       if (!I->should_emit_strong_mode_checks()) {
         return false;
       }

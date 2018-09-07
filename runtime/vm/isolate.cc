@@ -1083,6 +1083,12 @@ Isolate* Isolate::Init(const char* name_prefix,
   if (!Thread::EnterIsolate(result)) {
     // We failed to enter the isolate, it is possible the VM is shutting down,
     // return back a NULL so that CreateIsolate reports back an error.
+    if (KernelIsolate::IsKernelIsolate(result)) {
+      KernelIsolate::SetKernelIsolate(NULL);
+    }
+    if (ServiceIsolate::IsServiceIsolate(result)) {
+      ServiceIsolate::SetServiceIsolate(NULL);
+    }
     delete result;
     return NULL;
   }

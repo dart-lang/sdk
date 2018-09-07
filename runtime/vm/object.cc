@@ -4335,7 +4335,6 @@ bool Class::TypeTestNonRecursive(const Class& cls,
   // instead of recursing, reset it to the super class and loop.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
     // Each occurrence of DynamicType in type T is interpreted as the dynamic
@@ -4351,13 +4350,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Class FutureOr is mapped to dynamic in non-strong mode.
     // Detect snapshots compiled in strong mode and run in non-strong mode.
-    ASSERT(isolate->strong() || !other.IsFutureOrClass());
+    ASSERT(FLAG_strong || !other.IsFutureOrClass());
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
-        this_class.FutureOrTypeTest(zone, type_arguments, other,
-                                    other_type_arguments, bound_error,
-                                    bound_trail, space)) {
+    if (FLAG_strong && this_class.FutureOrTypeTest(
+                           zone, type_arguments, other, other_type_arguments,
+                           bound_error, bound_trail, space)) {
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
@@ -4365,7 +4363,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (this_class.IsDynamicClass()) {
-      return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
+      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
     }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
@@ -4392,14 +4390,14 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
+        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong() && other.IsDartFunctionClass()) {
+    if (!FLAG_strong && other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
           Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
@@ -4459,7 +4457,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         }
       }
       // In Dart 2, implementing Function has no meaning.
-      if (isolate->strong() && interface_class.IsDartFunctionClass()) {
+      if (FLAG_strong && interface_class.IsDartFunctionClass()) {
         continue;
       }
       if (interface_class.TypeTest(test_kind, interface_args, other,
@@ -4505,7 +4503,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
                              Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsFutureOrClass()) {
     if (other_type_arguments.IsNull()) {
       return true;
@@ -5242,7 +5240,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
       name = type.BuildName(name_visibility);
     } else {
       // Show dynamic type argument in strong mode.
-      ASSERT(thread->isolate()->strong());
+      ASSERT(FLAG_strong);
       name = Symbols::Dynamic().raw();
     }
     pieces.Add(name);
@@ -7060,7 +7058,7 @@ const char* Function::ToQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
   ASSERT(Isolate::Current()->error_on_bad_override());
-  ASSERT(!Isolate::Current()->strong());
+  ASSERT(!FLAG_strong);
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -7235,7 +7233,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
-  if (Isolate::Current()->strong()) {
+  if (FLAG_strong) {
     const AbstractType& param_type =
         AbstractType::Handle(ParameterTypeAt(parameter_position));
     if (param_type.IsTopType()) {
@@ -7326,8 +7324,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
-  if (isolate->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -7338,7 +7335,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
-  if (isolate->strong()) {
+  if (FLAG_strong) {
     // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
     if (!other_res_type.IsTopType()) {
       const AbstractType& res_type = AbstractType::Handle(zone, result_type());
@@ -7710,7 +7707,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
   // The VM's parser erases covariant types immediately in strong mode.
-  if (thread->isolate()->strong() && !is_static() && kernel_offset() > 0) {
+  if (FLAG_strong && !is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     translation_helper.InitFromScript(function_script);
@@ -7874,7 +7871,7 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (Isolate::Current()->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
@@ -17244,7 +17241,6 @@ bool Instance::IsInstanceOf(
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsTopType() || other.IsDartFunctionType() ||
@@ -17269,7 +17265,7 @@ bool Instance::IsInstanceOf(
         return true;
       }
     }
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
@@ -17319,7 +17315,7 @@ bool Instance::IsInstanceOf(
   other_type_arguments = instantiated_other.arguments();
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   // In strong mode, subtyping rules of callable instances are restricted.
-  if (!isolate->strong() &&
+  if (!FLAG_strong &&
       (other_is_dart_function || instantiated_other.IsFunctionType())) {
     // Check if this instance understands a call() method of a compatible type.
     Function& sig_fun =
@@ -17355,7 +17351,7 @@ bool Instance::IsInstanceOf(
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
     // We already checked other for dynamic and void.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
@@ -17368,7 +17364,7 @@ bool Instance::IsInstanceOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     const AbstractType& other,
                                     Error* bound_error) const {
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -17947,7 +17943,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       } else {
         ASSERT(num_args == 0);  // Type is raw.
         // No need to fill up with "dynamic", unless running in strong mode.
-        if (!thread->isolate()->strong()) {
+        if (!FLAG_strong) {
           num_type_params = 0;
         }
       }
@@ -17968,8 +17964,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
   if ((num_type_params == 0) ||
-      (!thread->isolate()->strong() &&
-       args.IsRaw(first_type_param_index, num_type_params))) {
+      (!FLAG_strong && args.IsRaw(first_type_param_index, num_type_params))) {
     // Do nothing.
   } else {
     const String& args_name = String::Handle(
@@ -18132,7 +18127,6 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -18212,7 +18206,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
@@ -18239,7 +18233,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong()) {
+    if (!FLAG_strong) {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
@@ -18277,7 +18271,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (IsFunctionType()) {
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
@@ -18296,7 +18290,7 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
                                     Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -18777,7 +18771,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (Isolate::Current()->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     // Compare function type parameters and their bounds.
     // Check the type parameters and bounds of generic functions.
     if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {

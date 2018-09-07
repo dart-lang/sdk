@@ -34,8 +34,7 @@ bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
                                                 PrologueInfo* prologue_info) {
-  Isolate* isolate = Isolate::Current();
-  const bool strong = isolate->strong();
+  const bool strong = FLAG_strong;
 
   // We always have to build the graph, but we only link it sometimes.
   const bool link = !is_inlining_ && !compiling_for_osr_;
@@ -44,7 +43,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args =
-      function_.IsGeneric() && isolate->reify_generic_functions();
+      function_.IsGeneric() && FLAG_reify_generic_functions;
   const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);

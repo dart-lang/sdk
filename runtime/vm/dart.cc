@@ -694,7 +694,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   // isolate is always initialized from a vm_snapshot generated in non strong
   // mode.
   if (!is_vm_isolate) {
-    ADD_FLAG(strong, strong, FLAG_strong);
+    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
   }
 
   if (Snapshot::IncludesCode(kind)) {
@@ -706,9 +706,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
              FLAG_error_on_bad_override);
     // sync-async and reify_generic_functions also affect deopt_ids.
-    ADD_FLAG(sync_async, sync_async, FLAG_sync_async);
-    ADD_FLAG(reify_generic_functions, reify_generic_functions,
-             FLAG_reify_generic_functions);
+    buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
+    buffer.AddString(FLAG_reify_generic_functions
+                         ? " reify_generic_functions"
+                         : " no-reify_generic_functions");
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -780,6 +781,9 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();
+  if (KernelIsolate::IsKernelIsolate(isolate)) {
+    KernelIsolate::SetKernelIsolate(NULL);
+  }
   delete isolate;
 }
 

@@ -156,13 +156,13 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
-  P(reify_generic_functions, bool, false,                                      \
+  P(reify_generic_functions, bool, true,                                       \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
+  P(strong, bool, true, "Enable strong mode.")                                 \
+  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \

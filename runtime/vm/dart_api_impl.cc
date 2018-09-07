@@ -1487,7 +1487,7 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   Isolate* I = T->isolate();
   CHECK_NULL(script_snapshot_buffer);
   CHECK_NULL(script_snapshot_size);
-  if (I->strong()) {
+  if (I->use_dart_frontend()) {
     return Api::NewError("Script snapshots are not supported in Dart 2");
   }
   // Finalize all classes if needed.
@@ -5078,7 +5078,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
-  if (I->strong()) {
+  if (I->use_dart_frontend()) {
     return Api::NewError("Script snapshots are not supported in Dart 2");
   }
   NoHeapGrowthControlScope no_growth_control;

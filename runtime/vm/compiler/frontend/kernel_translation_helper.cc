@@ -2865,7 +2865,7 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (I->reify_generic_functions()) {
+        if (FLAG_reify_generic_functions) {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
@@ -2884,7 +2884,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (I->reify_generic_functions()) {
+      if (FLAG_reify_generic_functions) {
         result_ ^=
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {

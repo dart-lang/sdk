@@ -661,6 +661,13 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
   args = [
     "--deterministic",
+
+    # TODO(asiva) remove these flags once the core snapshot is switched to
+    # dart 2.
+    "--no-strong",
+    "--no-sync-async",
+    "--reify-generic-functions",
+
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
     "--vm_snapshot_instructions=" +

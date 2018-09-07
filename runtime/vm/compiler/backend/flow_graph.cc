@@ -1048,7 +1048,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      (isolate()->reify_generic_functions() && (inlining_parameters != NULL) &&
+      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
        function().IsGeneric())
           ? 1
           : 0;
@@ -1091,7 +1091,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
     if (!IsCompiledForOsr()) {
       const bool reify_generic_argument =
-          function().IsGeneric() && isolate()->reify_generic_functions();
+          function().IsGeneric() && FLAG_reify_generic_functions;
 
       // Replace the type arguments slot with a special parameter.
       if (reify_generic_argument) {

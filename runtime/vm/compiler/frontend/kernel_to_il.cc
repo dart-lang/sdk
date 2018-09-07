@@ -152,7 +152,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 // arguments of the current function.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
-  if (!Isolate::Current()->reify_generic_functions()) {
+  if (!FLAG_reify_generic_functions) {
     instructions += NullConstant();
     return instructions;
   }
@@ -451,9 +451,7 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
   const intptr_t num_args =
       function->NumParameters() +
-      ((function->IsGeneric() && Isolate::Current()->reify_generic_functions())
-           ? 1
-           : 0);
+      ((function->IsGeneric() && FLAG_reify_generic_functions) ? 1 : 0);
   ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
@@ -470,7 +468,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
   // Emit a type check of the return type in checked mode for all functions
   // and in strong mode for native functions.
   if (!omit_result_type_check &&
-      (I->type_checks() || (function.is_native() && I->strong()))) {
+      (I->type_checks() || (function.is_native() && FLAG_strong))) {
     const AbstractType& return_type =
         AbstractType::Handle(Z, function.result_type());
     instructions += CheckAssignable(return_type, Symbols::FunctionResult());
@@ -928,8 +926,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
-      if (function.IsGeneric() &&
-          Isolate::Current()->reify_generic_functions()) {
+      if (function.IsGeneric() && FLAG_reify_generic_functions) {
         body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
         body += PushArgument();
       }
@@ -1046,7 +1043,7 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
 
 Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
   Fragment instructions;
-  if (I->strong() || I->type_checks() || I->asserts()) {
+  if (FLAG_strong || I->type_checks() || I->asserts()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions += AssertBool(position);

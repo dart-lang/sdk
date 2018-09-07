@@ -428,7 +428,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
     const Function& function,
     intptr_t type_parameters_offset) {
-  if (function.IsGeneric() && I->reify_generic_functions()) {
+  if (function.IsGeneric() && FLAG_reify_generic_functions) {
     AlternativeReadingScope alt(&reader_);
     SetOffset(type_parameters_offset);
     intptr_t num_type_params = ReadListLength();
@@ -544,7 +544,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       FunctionNodeHelper::kPositionalParameters);
 
   intptr_t type_args_len = 0;
-  if (I->reify_generic_functions() && function.IsGeneric()) {
+  if (function.IsGeneric() && FLAG_reify_generic_functions) {
     type_args_len = function.NumTypeParameters();
     ASSERT(parsed_function()->function_type_arguments() != NULL);
     body += LoadLocal(parsed_function()->function_type_arguments());
@@ -703,7 +703,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += IntConstant(0);
   body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
   body += Drop();
-  if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+  if (function.IsGeneric() && FLAG_reify_generic_functions) {
     Fragment then;
     Fragment otherwise;
     otherwise += IntConstant(1);
@@ -752,7 +752,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     //   arguments[0] = function_type_arguments;
     //   i = 1;
     // }
-    if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+    if (function.IsGeneric() && FLAG_reify_generic_functions) {
       Fragment store;
       store += LoadLocal(arguments);
       store += IntConstant(0);
@@ -965,7 +965,7 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
   }
 
   const bool has_reified_type_arguments =
-      I->strong() && I->reify_generic_functions();
+      FLAG_strong && FLAG_reify_generic_functions;
 
   TypeParameter& forwarding_param = TypeParameter::Handle(Z);
   Fragment check_bounds;
@@ -1094,7 +1094,7 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
 }
 
 Fragment StreamingFlowGraphBuilder::PushAllArguments(PushedArguments* pushed) {
-  ASSERT(I->strong());
+  ASSERT(FLAG_strong);
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
@@ -1109,7 +1109,7 @@ Fragment StreamingFlowGraphBuilder::PushAllArguments(PushedArguments* pushed) {
       helper.Finish();
     }
 
-    if (I->reify_generic_functions()) {
+    if (FLAG_reify_generic_functions) {
       body += LoadLocal(parsed_function()->function_type_arguments());
       body += PushArgument();
       pushed->type_args_len = num_type_params;
@@ -1318,7 +1318,7 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
 
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0 &&
-      I->reify_generic_functions()) {
+      FLAG_reify_generic_functions) {
     LocalVariable* closure =
         parsed_function()->node_sequence()->scope()->VariableAt(0);
 
@@ -2981,7 +2981,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (I->strong() && !H.IsRoot(itarget_name) &&
+  if (FLAG_strong && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
         Z,
@@ -3061,7 +3061,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (I->strong() && !H.IsRoot(itarget_name)) {
+  if (FLAG_strong && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         H.LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
@@ -3571,7 +3571,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   intptr_t type_args_len = 0;
   LocalVariable* type_arguments_temp = NULL;
-  if (I->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
     SkipName();                               // skip method name
@@ -3659,7 +3659,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (I->strong() && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
+  if (FLAG_strong && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, H.LookupMethodByMember(itarget_name,
                                   H.DartProcedureName(itarget_name)));
@@ -3750,7 +3750,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   Fragment instructions;
   intptr_t type_args_len = 0;
-  if (I->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
     ReadCanonicalNameReference();             // skip target reference
@@ -3816,7 +3816,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   intptr_t type_args_len = 0;
-  if (I->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     AlternativeReadingScope alt(&reader_);
     SkipName();                        // skip method name
     ReadUInt();                        // read argument count.
@@ -3920,7 +3920,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
   } else {
     Fragment instructions;
 
-    if (I->reify_generic_functions()) {
+    if (FLAG_reify_generic_functions) {
       AlternativeReadingScope alt(&reader_);
       ReadUInt();                               // read argument count.
       intptr_t list_length = ReadListLength();  // read types list length.
@@ -4019,7 +4019,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else if (!special_case && I->reify_generic_functions()) {
+  } else if (!special_case && FLAG_reify_generic_functions) {
     AlternativeReadingScope alt(&reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
@@ -4224,7 +4224,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
     const bool is_bool = top->IsStrictCompare() || top->IsBooleanNegate();
     if (!is_bool) {
       right_value += CheckBoolean(position);
-      if (!I->strong()) {
+      if (!FLAG_strong) {
         right_value += Constant(Bool::True());
         right_value += StrictCompare(Token::kEQ_STRICT);
       }

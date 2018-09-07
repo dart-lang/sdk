@@ -4251,7 +4251,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
 
   Assembler::CanBeSmi CanValueBeSmi() const {
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !isolate->strong()) {
+    if (isolate->type_checks() && !FLAG_strong) {
       // Dart 1 sometimes places a store into a context before a parameter
       // type check.
       return Assembler::kValueCanBeSmi;
@@ -4424,7 +4424,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !isolate->strong()) {
+    if (isolate->type_checks() && !FLAG_strong) {
       // Dart 1 sometimes places a store into a context before a parameter
       // type check.
       return Assembler::kValueCanBeSmi;

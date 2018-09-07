@@ -830,7 +830,7 @@ const Object& ConstantEvaluator::RunFunction(TokenPosition position,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (I->strong() && FLAG_precompiled_mode) {
+  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -912,7 +912,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (I->strong() && FLAG_precompiled_mode) {
+  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 

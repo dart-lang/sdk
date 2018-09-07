@@ -93,10 +93,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_error_on_bad_type = false;
     api_flags.enable_error_on_bad_override = false;
     api_flags.use_dart_frontend = true;
-    api_flags.reify_generic_functions = true;
-    api_flags.strong = true;
     api_flags.unsafe_trust_strong_mode_types = false;
-    api_flags.sync_async = true;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
 #endif
@@ -177,9 +174,6 @@ class RunKernelTask : public ThreadPool::Task {
     if (FLAG_trace_kernel) {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Shutdown.\n");
     }
-    // This should be the last line so the check
-    // IsKernelIsolate works during the shutdown process.
-    KernelIsolate::SetKernelIsolate(NULL);
   }
 
   bool RunMain(Isolate* I) {
@@ -451,7 +445,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_sync_async;
     dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = isolate->sync_async();
+    dart_sync_async.value.as_bool = FLAG_sync_async;
 
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
@@ -571,7 +565,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_sync_async;
     dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = isolate->sync_async();
+    dart_sync_async.value.as_bool = FLAG_sync_async;
 
     Dart_CObject package_config_uri;
     if (package_config != NULL) {

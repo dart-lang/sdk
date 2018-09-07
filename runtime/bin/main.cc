@@ -448,7 +448,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     packages_config = Options::packages_file();
   }
 
-  Dart_Isolate isolate;
+  Dart_Isolate isolate = NULL;
   IsolateData* isolate_data = NULL;
   bool isolate_run_app_snapshot = false;
   AppSnapshot* app_snapshot = NULL;
@@ -470,7 +470,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
         DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
         isolate_snapshot_instructions, app_isolate_shared_data,
         app_isolate_shared_instructions, flags, isolate_data, error);
-  } else {
+  }
+  if (isolate == NULL) {
     const uint8_t* kernel_service_buffer = NULL;
     intptr_t kernel_service_buffer_size = 0;
     dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
@@ -890,7 +891,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   }
 
   Dart_Isolate isolate = NULL;
-  if (flags.strong && Options::gen_snapshot_kind() == kAppAOT) {
+  if (Options::preview_dart_2() && Options::gen_snapshot_kind() == kAppAOT) {
     isolate = IsolateSetupHelperAotCompilationDart2(
         script_name, "main", Options::package_root(), Options::packages_file(),
         &flags, &error, &exit_code);
@@ -1261,8 +1262,9 @@ void main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  init_params.start_kernel_isolate =
-      dfe.UseDartFrontend() && dfe.CanUseDartFrontend();
+  init_params.start_kernel_isolate = Options::preview_dart_2() &&
+                                     dfe.UseDartFrontend() &&
+                                     dfe.CanUseDartFrontend();
 #else
   init_params.start_kernel_isolate = false;
 #endif
