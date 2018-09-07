@@ -1499,8 +1499,6 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
-  void LoadDecodableImmediate(Register reg, int64_t imm);
-  void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm);
   void LoadDImmediate(VRegister reg, double immd);
 

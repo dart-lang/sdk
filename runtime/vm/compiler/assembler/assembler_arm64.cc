@@ -459,7 +459,7 @@ void Assembler::LoadObjectHelper(Register dst,
     LoadWordFromPoolOffset(dst, offset);
   } else {
     ASSERT(object.IsSmi());
-    LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
+    LoadImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
   }
 }
 
@@ -495,30 +495,6 @@ void Assembler::CompareObject(Register reg, const Object& object) {
     ASSERT(object.IsSmi());
     CompareImmediate(reg, reinterpret_cast<int64_t>(object.raw()));
   }
-}
-
-void Assembler::LoadDecodableImmediate(Register reg, int64_t imm) {
-  if (constant_pool_allowed()) {
-    const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
-    LoadWordFromPoolOffset(reg, offset);
-  } else {
-    // TODO(zra): Since this sequence only needs to be decodable, it can be
-    // of variable length.
-    LoadImmediateFixed(reg, imm);
-  }
-}
-
-void Assembler::LoadImmediateFixed(Register reg, int64_t imm) {
-  const uint32_t w0 = Utils::Low32Bits(imm);
-  const uint32_t w1 = Utils::High32Bits(imm);
-  const uint16_t h0 = Utils::Low16Bits(w0);
-  const uint16_t h1 = Utils::High16Bits(w0);
-  const uint16_t h2 = Utils::Low16Bits(w1);
-  const uint16_t h3 = Utils::High16Bits(w1);
-  movz(reg, Immediate(h0), 0);
-  movk(reg, Immediate(h1), 1);
-  movk(reg, Immediate(h2), 2);
-  movk(reg, Immediate(h3), 3);
 }
 
 void Assembler::LoadImmediate(Register reg, int64_t imm) {
