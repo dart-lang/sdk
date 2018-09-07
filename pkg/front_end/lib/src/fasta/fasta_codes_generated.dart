@@ -677,6 +677,19 @@ const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCatchSyntaxExtraParameters =
+    messageCatchSyntaxExtraParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
+    "CatchSyntaxExtraParameters",
+    analyzerCode: "CATCH_SYNTAX",
+    message:
+        r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
+    tip:
+        r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeClassInClass = messageClassInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

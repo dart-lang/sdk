@@ -5374,7 +5374,8 @@ class Parser {
             if (!optional(")", traceName.next)) {
               // Recovery
               if (!traceName.isSynthetic) {
-                reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+                reportRecoverableError(
+                    traceName.next, fasta.messageCatchSyntaxExtraParameters);
               }
               if (openParens.endGroup.isSynthetic) {
                 // The scanner did not place the synthetic ')' correctly.

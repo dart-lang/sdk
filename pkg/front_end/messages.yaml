@@ -1099,6 +1099,13 @@ CatchSyntax:
     - "try {} catch () {}"
     - "try {} catch (e,) {}"
 
+CatchSyntaxExtraParameters:
+  template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
+  tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: CATCH_SYNTAX
+  statement:
+    - "try {} catch (e, s, x) {}"
+
 SuperNullAware:
   template: "'super' can't be null."
   tip: "Try replacing '?.' with '.'"

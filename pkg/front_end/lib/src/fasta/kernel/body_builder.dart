@@ -201,8 +201,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   int functionNestingLevel = 0;
 
-  Statement problemInTry;
-
   Statement problemInLoopOrSwitch;
 
   Scope switchScope;
@@ -2636,6 +2634,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
     VariableDeclaration exception;
     VariableDeclaration stackTrace;
+    List<Statement> compileTimeErrors;
     if (catchParameters != null) {
       int requiredCount = catchParameters.required.length;
       if ((requiredCount == 1 || requiredCount == 2) &&
@@ -2647,9 +2646,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           stackTrace.type = coreTypes.stackTraceClass.rawType;
         }
       } else {
-        // TODO(ahe): We're not storing this error in the AST.
-        buildProblem(fasta.messageInvalidCatchArguments,
-            catchParameters.charOffset, catchParameters.charLength);
+        compileTimeErrors ??= <Statement>[];
+        compileTimeErrors.add(buildProblemStatement(
+            fasta.messageCatchSyntaxExtraParameters,
+            catchKeyword.next.charOffset));
 
         var allFormals = <VariableDeclaration>[];
         allFormals.addAll(catchParameters.required);
@@ -2670,20 +2670,39 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     push(forest.catchClause(onKeyword, type, catchKeyword, exception,
         stackTrace, coreTypes.stackTraceClass.rawType, body));
+    if (compileTimeErrors == null) {
+      push(NullValue.Block);
+    } else {
+      push(forest.block(null, compileTimeErrors, null));
+    }
   }
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
-    List<Catch> catches = popList(
-        catchCount, new List<Catch>.filled(catchCount, null, growable: true));
+    List<Catch> catchBlocks;
+    List<Statement> compileTimeErrors;
+    if (catchCount != 0) {
+      List<Object> catchBlocksAndErrors =
+          popList(catchCount * 2, new List<Object>(catchCount * 2));
+      catchBlocks = new List<Catch>.filled(catchCount, null, growable: true);
+      for (int i = 0; i < catchCount; i++) {
+        catchBlocks[i] = catchBlocksAndErrors[i * 2];
+        Statement error = catchBlocksAndErrors[i * 2 + 1];
+        if (error != null) {
+          compileTimeErrors ??= <Statement>[];
+          compileTimeErrors.add(error);
+        }
+      }
+    }
     Statement tryBlock = popStatement();
-    if (problemInTry == null) {
-      push(forest.tryStatement(
-          tryKeyword, tryBlock, catches, finallyKeyword, finallyBlock));
+    Statement tryStatement = forest.tryStatement(
+        tryKeyword, tryBlock, catchBlocks, finallyKeyword, finallyBlock);
+    if (compileTimeErrors != null) {
+      compileTimeErrors.add(tryStatement);
+      push(forest.block(null, compileTimeErrors, null));
     } else {
-      push(problemInTry);
-      problemInTry = null;
+      push(tryStatement);
     }
   }
 
@@ -4162,9 +4181,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage> context, int length}) {
+    length ??= noLength;
     return new ExpressionStatementJudgment(
-        buildProblem(message, charOffset, length ?? noLength, context: context),
-        null);
+        buildProblem(message, charOffset, length, context: context), null);
   }
 
   Statement wrapInProblemStatement(Statement statement, Message message) {

@@ -11,7 +11,8 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
-        messageNativeClauseShouldBeAnnotation,
+        codeCatchSyntaxExtraParameters,
+        codeNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
 import '../parser.dart'
@@ -339,8 +340,12 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    if (message == messageNativeClauseShouldBeAnnotation) {
+    if (message.code == codeNativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native` support.
+      return;
+    }
+    if (message.code == codeCatchSyntaxExtraParameters) {
+      // Ignored. This error is handled by the BodyBuilder.
       return;
     }
     debugEvent("Error: ${message.message}");
