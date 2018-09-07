@@ -217,16 +217,11 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "Dart VM cannot run files of type '$type'.";
     }
 
-    List<String> args = arguments;
-    if (suite.configuration.compiler == Compiler.dartkb) {
-      args.add('--enable_interpreter');
-    }
-
     String executable = suite.dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
       executable = suite.dartVmExecutableFileName;
     }
-    return [Command.vm(executable, args, environmentOverrides)];
+    return [Command.vm(executable, arguments, environmentOverrides)];
   }
 }
 

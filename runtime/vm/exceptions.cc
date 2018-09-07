@@ -470,8 +470,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   // are callee frames of the C++ frame handling the exception.
   if (FLAG_enable_interpreter) {
     Interpreter* interpreter = thread->isolate()->interpreter();
-    ASSERT(interpreter != NULL);
-    if (interpreter->HasFrame(frame_pointer)) {
+    if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
       interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
                                thread);
     }
