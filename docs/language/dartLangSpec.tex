@@ -1234,7 +1234,7 @@ Classes may be defined by class declarations as described below, or via mixin ap
 
 \begin{grammar}
 {\bf classDefinition:}metadata \ABSTRACT{}? \CLASS{} identifier typeParameters?
-  \gnewline{} (superclass mixins?)? interfaces?
+  \gnewline{} superclass? mixins? interfaces?
   \gnewline{} `\{' (metadata classMemberDefinition)* `\}';
   metadata \ABSTRACT{}? \CLASS{} mixinApplicationClass
   .
