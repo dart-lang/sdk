@@ -2,14 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
+[ $compiler != compare_analyzer_cfe ]
 bug34235_test/01: MissingCompileTimeError # Issue 34235
 mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
 mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
-
-[ $compiler == app_jit ]
-deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler == dart2analyzer ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34360
@@ -58,8 +59,15 @@ partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Iss
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
-[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
+[ $compiler != compare_analyzer_cfe && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
+
+[ $compiler != compare_analyzer_cfe && $compiler != dart2js && !$fasta && $strong ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some
@@ -81,13 +89,6 @@ implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeE
 
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dart2js && !$fasta && $strong ]
-compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
 [ $compiler != dart2js && !$fasta && !$strong ]
 implicit_creation/implicit_new_constructor_generic_test: Fail # No support for implicit creation.

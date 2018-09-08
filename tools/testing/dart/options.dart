@@ -96,6 +96,7 @@ none:          Do not compile the Dart code.
 precompiler:   Compile into AOT snapshot before running the test.
 dart2js:       Compile to JavaScript using dart2js.
 dart2analyzer: Perform static analysis on Dart code using the analyzer.
+compareAnalyzerCfe: Compare analyzer and common front end representations.
 app_jit:       Compile the Dart code into an app snapshot.
 app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
 dartk:         Compile the Dart code into Kernel before running test.

@@ -51,6 +51,9 @@ abstract class CompilerConfiguration {
       case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(configuration);
 
+      case Compiler.compareAnalyzerCfe:
+        return new CompareAnalyzerCfeCompilerConfiguration(configuration);
+
       case Compiler.dart2js:
         return new Dart2jsCompilerConfiguration(configuration);
 
@@ -948,6 +951,46 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
       Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
+    ], null, null);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
+  }
+}
+
+/// Configuration for compareAnalyzerCfe.
+class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
+  CompareAnalyzerCfeCompilerConfiguration(TestConfiguration configuration)
+      : super._subclass(configuration);
+
+  int get timeoutMultiplier => 4;
+
+  String computeCompilerPath() {
+    String suffix = executableScriptSuffix;
+    if (_useSdk) {
+      throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
+    }
+    return 'pkg/analyzer_fe_comparison/bin/compare_sdk_tests$suffix';
+  }
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+    if (!previewDart2) {
+      throw new ArgumentError('--no-preview-dart-2 not supported');
+    }
+
+    // Since this is not a real compilation, no artifacts are produced.
+    return new CommandArtifact([
+      Command.compareAnalyzerCfe(
+          computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 
