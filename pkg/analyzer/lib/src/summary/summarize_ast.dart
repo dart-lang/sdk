@@ -7,7 +7,6 @@ library serialization.summarize_ast;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
@@ -139,11 +138,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Identifier name = annotation.name;
     EntityRefBuilder constructor;
     if (name is PrefixedIdentifier && annotation.constructorName == null) {
-      constructor =
-          serializeConstructorRef(null, name.prefix, null, name.identifier);
+      constructor = serializeConstructorRef(name.prefix, null, name.identifier);
     } else {
       constructor = serializeConstructorRef(
-          null, annotation.name, null, annotation.constructorName);
+          annotation.name, null, annotation.constructorName);
     }
     if (annotation.arguments == null) {
       references.add(constructor);
@@ -154,10 +152,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+  EntityRefBuilder serializeConstructorRef(Identifier typeName,
       TypeArgumentList typeArguments, SimpleIdentifier name) {
-    EntityRefBuilder typeBuilder =
-        serializeTypeName(type, typeName, typeArguments);
+    EntityRefBuilder typeBuilder = serializeTypeName(typeName, typeArguments);
     if (name == null) {
       return typeBuilder;
     } else {
@@ -231,7 +228,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   EntityRefBuilder serializeTypeName(
-      DartType type, Identifier name, TypeArgumentList arguments) {
+      Identifier name, TypeArgumentList arguments) {
     return visitor.serializeTypeName(name, arguments);
   }
 }
@@ -1148,8 +1145,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         Map<int, int> localClosureIndexMap = null;
         b.redirectedConstructor =
             new _ConstExprSerializer(true, this, localClosureIndexMap, null)
-                .serializeConstructorRef(null, typeName.name,
-                    typeName.typeArguments, node.redirectedConstructor.name);
+                .serializeConstructorRef(typeName.name, typeName.typeArguments,
+                    node.redirectedConstructor.name);
       }
     } else {
       for (ConstructorInitializer initializer in node.initializers) {

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -153,11 +152,9 @@ abstract class AbstractConstExprSerializer {
 
   /**
    * Return [EntityRefBuilder] that corresponds to the constructor having name
-   * [name] in the class identified by [typeName].  It is expected that [type]
-   * corresponds to the given [typeName] and [typeArguments].  The parameter
-   * [type] might be `null` if the type is not resolved.
+   * [name] in the class identified by [typeName].
    */
-  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+  EntityRefBuilder serializeConstructorRef(Identifier typeName,
       TypeArgumentList typeArguments, SimpleIdentifier name);
 
   /**
@@ -202,7 +199,7 @@ abstract class AbstractConstExprSerializer {
    */
   EntityRefBuilder serializeType(TypeAnnotation type) {
     if (type is TypeName) {
-      return serializeTypeName(type?.type, type?.name, type?.typeArguments);
+      return serializeTypeName(type?.name, type?.typeArguments);
     }
     if (type is GenericFunctionType) {
       return serializeGenericFunctionType(type);
@@ -212,13 +209,11 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
-   * Return [EntityRefBuilder] that corresponds to the [type] with the given
-   * [name] and [arguments].  It is expected that [type] corresponds to the
-   * given [name] and [arguments].  The parameter [type] might be `null` if the
-   * type is not resolved.
+   * Return [EntityRefBuilder] that corresponds to the type with the given
+   * [name] and [arguments].
    */
   EntityRefBuilder serializeTypeName(
-      DartType type, Identifier name, TypeArgumentList arguments);
+      Identifier name, TypeArgumentList arguments);
 
   /**
    * Return the [UnlinkedExprBuilder] that corresponds to the state of this
@@ -364,8 +359,8 @@ abstract class AbstractConstExprSerializer {
       }
       TypeName typeName = expr.constructorName.type;
       serializeInstanceCreation(
-          serializeConstructorRef(typeName.type, typeName.name,
-              typeName.typeArguments, expr.constructorName.name),
+          serializeConstructorRef(
+              typeName.name, typeName.typeArguments, expr.constructorName.name),
           expr.argumentList,
           typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
