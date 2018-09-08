@@ -263,6 +263,11 @@ static int Main(int argc, const char** argv) {
     dart_argc = argc - 2;
     dart_argv = &argv[1];
   }
+
+  bin::Thread::InitOnce();
+  bin::TimerUtils::InitOnce();
+  bin::EventHandler::Start();
+
   const char* error;
   if (!start_kernel_isolate) {
     int extra_argc = dart_argc + 3;
@@ -271,7 +276,7 @@ static int Main(int argc, const char** argv) {
       extra_argv[i] = dart_argv[i];
     }
     extra_argv[dart_argc] = "--no-strong";
-    extra_argv[dart_argc + 1] = "--no-reify-generic-arguments";
+    extra_argv[dart_argc + 1] = "--no-reify_generic_functions";
     extra_argv[dart_argc + 2] = "--no-sync-async";
     error = Flags::ProcessCommandLineFlags(extra_argc, extra_argv);
     ASSERT(error == NULL);
@@ -279,11 +284,6 @@ static int Main(int argc, const char** argv) {
     error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
     ASSERT(error == NULL);
   }
-
-  bin::Thread::InitOnce();
-  bin::TimerUtils::InitOnce();
-  bin::EventHandler::Start();
-
 
   error = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
