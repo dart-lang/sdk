@@ -297,7 +297,7 @@ testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
-testRule(String ruleName, File file, {bool debug: false}) {
+testRule(String ruleName, File file, {bool debug = false}) {
   registerLintRules();
 
   test('$ruleName', () async {

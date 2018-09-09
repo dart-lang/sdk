@@ -307,7 +307,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   Iterable<Expression> _getExpressions(Iterable<Element> elements,
-          {bool value: true}) =>
+          {bool value = true}) =>
       outerScope.getExpressions(elements, value: value);
 
   bool _isLastStatementAnExitStatement(Statement statement) {
@@ -372,7 +372,7 @@ class _ConditionExpression extends _ExpressionBox {
   Expression expression;
   bool value;
 
-  _ConditionExpression(this.expression, {this.value: true});
+  _ConditionExpression(this.expression, {this.value = true});
 
   @override
   bool haveToStop(Iterable<Element> elements) => false;

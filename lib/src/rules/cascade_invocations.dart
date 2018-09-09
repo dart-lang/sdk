@@ -220,7 +220,7 @@ class _CascadableExpression {
       {this.canJoin,
       this.canReceive,
       this.canBeCascaded,
-      this.isCritical: false});
+      this.isCritical = false});
 
   bool compatibleWith(_CascadableExpression expressionBox) =>
       element != null &&

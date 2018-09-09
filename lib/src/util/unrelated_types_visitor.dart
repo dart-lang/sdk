@@ -16,7 +16,7 @@ _InterfaceTypePredicate _buildImplementsDefinitionPredicate(
         interface.element.library.name == definition.library;
 
 List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-        {List<InterfaceType> acc: const []}) =>
+        {List<InterfaceType> acc = const []}) =>
     acc.contains(type)
         ? acc
         : type.interfaces.fold(
@@ -26,7 +26,7 @@ List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
 
 DartType _findIterableTypeArgument(
     InterfaceTypeDefinition definition, InterfaceType type,
-    {List<InterfaceType> accumulator: const []}) {
+    {List<InterfaceType> accumulator = const []}) {
   if (type == null ||
       type.isObject ||
       type.isDynamic ||

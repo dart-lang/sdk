@@ -38,6 +38,7 @@ linter:
 #    - avoid_types_as_parameter_names # under review (see #1068)
 #    - avoid_types_on_closure_parameters
 #    - avoid_unused_constructor_parameters # under review (see #1068)
+#    - avoid_void_async # under review (see #1068)
     - await_only_futures
     - camel_case_types
     - cancel_subscriptions
@@ -85,6 +86,7 @@ linter:
 #    - prefer_const_literals_to_create_immutables # under review (see #1068)
     - prefer_constructors_over_static_methods
     - prefer_contains
+    - prefer_equal_for_default_values
     - prefer_expression_function_bodies
     - prefer_final_fields
 #    - prefer_final_locals
@@ -98,6 +100,7 @@ linter:
 #    - prefer_iterable_whereType # under review (see #1068)
     - prefer_single_quotes
 #    - prefer_typing_uninitialized_variables # under review (see #1068)
+#    - prefer_void_to_null # under review (see #1068)
 #    - public_member_api_docs
     - recursive_getters
     - slash_for_doc_comments
@@ -110,8 +113,10 @@ linter:
     - type_init_formals
     - unawaited_futures
     - unnecessary_brace_in_string_interps
+#    - unnecessary_const # under review (see #1068)
     - unnecessary_getters_setters
     - unnecessary_lambdas
+#    - unnecessary_new # under review (see #1068)
     - unnecessary_null_aware_assignments
     - unnecessary_null_in_if_null_operators
     - unnecessary_overrides

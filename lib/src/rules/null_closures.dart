@@ -92,7 +92,7 @@ class NonNullableFunction {
   InterfaceTypeDefinition _typeDefinition;
 
   NonNullableFunction(this.library, this.type, this.name,
-      {this.positional: const <int>[], this.named: const <String>[]});
+      {this.positional = const <int>[], this.named = const <String>[]});
 
   InterfaceTypeDefinition get typeDefinition =>
       _typeDefinition ??= new InterfaceTypeDefinition(type, library);
