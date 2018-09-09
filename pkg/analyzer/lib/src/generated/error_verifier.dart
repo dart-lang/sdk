@@ -902,6 +902,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (type is InterfaceType) {
         _checkForConstOrNewWithAbstractClass(node, typeName, type);
         _checkForConstOrNewWithEnum(node, typeName, type);
+        _checkForConstOrNewWithMixin(node, typeName, type);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -2761,6 +2762,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isEnum) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANTIATE_ENUM, typeName);
+    }
+  }
+
+  /**
+   * Verify that the given [expression] is not a mixin instantiation.
+   */
+  void _checkForConstOrNewWithMixin(InstanceCreationExpression expression,
+      TypeName typeName, InterfaceType type) {
+    if (type.element.isMixin) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INSTANTIATE, typeName);
     }
   }
 

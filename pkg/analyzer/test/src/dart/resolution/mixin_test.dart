@@ -573,6 +573,43 @@ mixin M {
     assertType(aRef, 'int');
   }
 
+  test_error_mixinInstantiate_default() async {
+    addTestFile(r'''
+mixin M {}
+
+main() {
+  new M();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+
+    var creation = findNode.instanceCreation('M();');
+    var m = findElement.mixin('M');
+    assertInstanceCreation(creation, m, 'M');
+  }
+
+  test_error_mixinInstantiate_named() async {
+    addTestFile(r'''
+mixin M {
+  M.named() {}
+}
+
+main() {
+  new M.named();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+    ]);
+
+    var creation = findNode.instanceCreation('M.named();');
+    var m = findElement.mixin('M');
+    assertInstanceCreation(creation, m, 'M', constructorName: 'named');
+  }
+
   test_error_onClause_deferredClass() async {
     addTestFile(r'''
 import 'dart:math' deferred as math;

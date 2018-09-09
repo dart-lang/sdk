@@ -1728,6 +1728,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "other than Object.");
 
   /**
+   * A mixin declaration introduces a mixin and an interface, but not a class.
+   */
+  static const CompileTimeErrorCode MIXIN_INSTANTIATE =
+      const CompileTimeErrorCode(
+          'MIXIN_INSTANTIATE', "Mixins can't be instantiated.");
+
+  /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or
    * implement Null.
    *

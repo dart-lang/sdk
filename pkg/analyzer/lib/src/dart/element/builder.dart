@@ -86,23 +86,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.abstract = node.isAbstract;
-    element.accessors = holder.accessors;
-    List<ConstructorElement> constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      constructors = _createDefaultConstructors(element);
-    }
-    element.constructors = constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    _currentHolder.addType(element);
     className.staticElement = element;
-    _fieldMap = null;
-    holder.validate();
+    element.abstract = node.isAbstract;
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addType(element);
+
     return null;
   }
 
@@ -591,17 +580,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
     SimpleIdentifier nameNode = node.name;
     MixinElementImpl element = new MixinElementImpl.forNode(nameNode);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.accessors = holder.accessors;
-    element.constructors = holder.constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    _currentHolder.addMixin(element);
     nameNode.staticElement = element;
-    holder.validate();
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addMixin(element);
+
     return null;
   }
 
@@ -716,6 +699,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       }
     } finally {
       _currentHolder = previousHolder;
+      _fieldMap = null;
     }
     return holder;
   }
@@ -768,6 +752,27 @@ class ApiElementBuilder extends _BaseElementBuilder {
       typeArguments[i] = typeParameterType;
     }
     return typeArguments;
+  }
+
+  void _fillClassElement(
+      AnnotatedNode node, ClassElementImpl element, ElementHolder holder) {
+    _setCodeRange(element, node);
+    setElementDocumentationComment(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+
+    element.accessors = holder.accessors;
+
+    List<ConstructorElement> constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      constructors = _createDefaultConstructors(element);
+    }
+    element.constructors = constructors;
+
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
+
+    holder.validate();
   }
 
   @override

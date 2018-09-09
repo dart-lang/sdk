@@ -199,6 +199,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
   CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
   CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+  CompileTimeErrorCode.MIXIN_INSTANTIATE,
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
   CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
   CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
