@@ -9803,7 +9803,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       ErrorCode errorCode = (withClause == null
           ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-      superclassType = _resolveType(extendsClause.superclass, errorCode);
+      superclassType =
+          _resolveType(extendsClause.superclass, errorCode, asClass: true);
     }
     if (classElement != null) {
       if (superclassType == null) {
@@ -9848,7 +9849,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-    InterfaceType superclassType = _resolveType(node.superclass, errorCode);
+    InterfaceType superclassType =
+        _resolveType(node.superclass, errorCode, asClass: true);
     if (superclassType == null) {
       superclassType = typeProvider.objectType;
     }
@@ -10349,7 +10351,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     List<InterfaceType> types;
     if (clause != null) {
       types = _resolveTypes(clause.superclassConstraints,
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS);
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE);
     }
     if (types == null || types.isEmpty) {
       types = [typeProvider.objectType];
@@ -10358,22 +10360,24 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the type specified by the given name.
+   * Return the [InterfaceType] of the given [typeName].
    *
-   * @param typeName the type name specifying the type to be returned
-   * @param nonTypeError the error to produce if the type name is defined to be something other than
-   *          a type
-   * @param enumTypeError the error to produce if the type name is defined to be an enum
-   * @param dynamicTypeError the error to produce if the type name is "dynamic"
-   * @return the type specified by the type name
+   * If the resulting type is not a valid interface type, return `null`.
+   *
+   * The flag [asClass] specifies if the type will be used as a class, so mixin
+   * declarations are not valid (they declare interfaces and mixins, but not
+   * classes).
    */
-  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode) {
+  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode,
+      {bool asClass: false}) {
     DartType type = typeName.type;
     if (type is InterfaceType) {
       ClassElement element = type.element;
-      if (element != null && element.isEnum) {
-        errorReporter.reportErrorForNode(errorCode, typeName);
-        return null;
+      if (element != null) {
+        if (element.isEnum || element.isMixin && asClass) {
+          errorReporter.reportErrorForNode(errorCode, typeName);
+          return null;
+        }
       }
       return type;
     }

@@ -1798,9 +1798,9 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
           "'{0}' can't be used as a super-class constraint.");
 
-  static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS =
-      const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS',
-          "Only classes can be used as super-class constraints.");
+  static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE =
+      const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+          "Only classes and mixins can be used as super-class constraints.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not

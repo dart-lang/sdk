@@ -78,7 +78,6 @@ mixin_declaration/mixin_declaration_invalid_application_supertype_test/none: Com
 mixin_declaration/mixin_declaration_invalid_override_test/none: CompileTimeError # test issue: A5Foo is abstract
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError # bug in analyzer? Exchange UnaryNum, UnaryOptionalNum, and it works.
 mixin_declaration/mixin_declaration_invalid_type_test/22: MissingCompileTimeError # mixin implements itself
-mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError # mixin is not a class, cannot be extended
 mixin_declaration/mixin_declaration_subtype_test: CompileTimeError # test issue: missing formal parameters
 mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError # test issue: class missing
 mixin_declaration/mixin_declaration_supertype_compatible_test/01: MissingCompileTimeError # analyzer does not implement full multiple members inheritance

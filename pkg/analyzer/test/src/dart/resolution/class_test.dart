@@ -683,6 +683,67 @@ class C {
     assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
+  test_error_extendsNonClass_dynamic() async {
+    addTestFile(r'''
+class A extends dynamic {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.EXTENDS_NON_CLASS,
+    ]);
+
+    var a = findElement.class_('A');
+    assertElementType(a.supertype, objectType);
+  }
+
+  test_error_extendsNonClass_enum() async {
+    addTestFile(r'''
+enum E { ONE }
+class A extends E {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.EXTENDS_NON_CLASS,
+    ]);
+
+    var a = findElement.class_('A');
+    assertElementType(a.supertype, objectType);
+
+    var eRef = findNode.typeName('E {}');
+    assertTypeName(eRef, findElement.enum_('E'), 'E');
+  }
+
+  test_error_extendsNonClass_mixin() async {
+    addTestFile(r'''
+mixin M {}
+class A extends M {} // ref
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.EXTENDS_NON_CLASS,
+    ]);
+
+    var a = findElement.class_('A');
+    assertElementType(a.supertype, objectType);
+
+    var mRef = findNode.typeName('M {} // ref');
+    assertTypeName(mRef, findElement.mixin('M'), 'M');
+  }
+
+  test_error_extendsNonClass_variable() async {
+    addTestFile(r'''
+int v;
+class A extends v {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.EXTENDS_NON_CLASS,
+    ]);
+
+    var a = findElement.class_('A');
+    assertElementType(a.supertype, objectType);
+  }
+
   test_error_memberWithClassName_getter() async {
     addTestFile(r'''
 class C {

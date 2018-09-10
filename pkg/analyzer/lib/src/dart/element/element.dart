@@ -756,7 +756,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _interfaces = _unlinkedClass.interfaces
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isClassInterfaceType)
+            .where(_isInterfaceTypeInterfaceOrMixin)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -863,7 +863,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _mixins = _unlinkedClass.mixins
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isClassInterfaceType)
+            .where(_isInterfaceTypeInterfaceOrMixin)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -905,7 +905,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (_unlinkedClass.supertype != null) {
           DartType type = enclosingUnit.resynthesizerContext
               .resolveTypeRef(this, _unlinkedClass.supertype);
-          if (_isClassInterfaceType(type)) {
+          if (_isInterfaceTypeClass(type)) {
             _supertype = type;
           } else {
             _supertype = context.typeProvider.objectType;
@@ -1172,9 +1172,22 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   /**
-   * Return `true` if the given [type] is a class [InterfaceType].
+   * Return `true` if the given [type] is an [InterfaceType] that can be used
+   * as a class.
    */
-  bool _isClassInterfaceType(DartType type) {
+  bool _isInterfaceTypeClass(DartType type) {
+    if (type is InterfaceType) {
+      var element = type.element;
+      return !element.isEnum && !element.isMixin;
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [type] is an [InterfaceType] that can be used
+   * as an interface or a mixin.
+   */
+  bool _isInterfaceTypeInterfaceOrMixin(DartType type) {
     return type is InterfaceType && !type.element.isEnum;
   }
 
@@ -6619,7 +6632,7 @@ class MixinElementImpl extends ClassElementImpl {
           ResynthesizerContext context = enclosingUnit.resynthesizerContext;
           constraints = _unlinkedClass.superclassConstraints
               .map((EntityRef t) => context.resolveTypeRef(this, t))
-              .where(_isClassInterfaceType)
+              .where(_isInterfaceTypeClass)
               .cast<InterfaceType>()
               .toList(growable: false);
         }

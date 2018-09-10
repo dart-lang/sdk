@@ -648,14 +648,14 @@ mixin M on int {}
     assertTypeName(typeRef, intElement, 'int');
   }
 
-  test_error_onClause_nonClass_dynamic() async {
+  test_error_onClause_nonInterface_dynamic() async {
     addTestFile(r'''
 mixin M on dynamic {}
 ''');
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     ]);
 
     var element = findElement.mixin('M');
@@ -665,7 +665,7 @@ mixin M on dynamic {}
     assertTypeName(typeRef, dynamicElement, 'dynamic');
   }
 
-  test_error_onClause_nonClass_enum() async {
+  test_error_onClause_nonInterface_enum() async {
     addTestFile(r'''
 enum E {E1, E2, E3}
 mixin M on E {}
@@ -673,7 +673,7 @@ mixin M on E {}
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     ]);
 
     var element = findElement.mixin('M');
@@ -683,14 +683,14 @@ mixin M on E {}
     assertTypeName(typeRef, findElement.enum_('E'), 'E');
   }
 
-  test_error_onClause_nonClass_void() async {
+  test_error_onClause_nonInterface_void() async {
     addTestFile(r'''
 mixin M on void {}
 ''');
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     ]);
 
     var element = findElement.mixin('M');
@@ -698,6 +698,15 @@ mixin M on void {}
 
     var typeRef = findNode.typeName('void {}');
     assertTypeName(typeRef, null, 'void');
+  }
+
+  test_error_onClause_OK_mixin() async {
+    addTestFile(r'''
+mixin A {}
+mixin B on A {} // ref
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
   }
 
   test_error_undefinedSuperMethod() async {

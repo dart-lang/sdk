@@ -2087,31 +2087,6 @@ class C = String with M;''');
     verify([source]);
   }
 
-  test_extendsNonClass_dynamic() async {
-    Source source = addSource("class B extends dynamic {}");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_enum() async {
-    Source source = addSource(r'''
-enum E { ONE }
-class A extends E {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_variable() async {
-    Source source = addSource(r'''
-int A;
-class B extends A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
-    verify([source]);
-  }
-
   test_extraPositionalArguments_const() async {
     Source source = addSource(r'''
 class A {
