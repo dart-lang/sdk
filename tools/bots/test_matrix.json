@@ -364,7 +364,7 @@
         "use-blobs": true
     }},
     "dartkp-linux-(product|release)-x64": { },
-    "dartkp-obsufcate-linux-release-x64": {
+    "dartkp-obfuscate-linux-release-x64": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": ["--obfuscate"]
