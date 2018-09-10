@@ -33,7 +33,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
@@ -51,6 +50,8 @@ import '../universe/world_builder.dart';
 import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
+import 'element_map.dart';
+import 'element_map_impl.dart';
 import 'locals.dart';
 
 class JsBackendStrategy implements KernelBackendStrategy {

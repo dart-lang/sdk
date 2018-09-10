@@ -14,7 +14,8 @@ import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/indexed.dart';
 
-import '../js_model/elements.dart' show JGeneratorBody;
+import 'element_map.dart';
+import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {
   Map<MemberEntity, KernelToLocalsMap> _localsMaps =
@@ -161,18 +162,6 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   DartType getLocalType(KernelToElementMap elementMap, covariant JLocal local) {
     return _locals.getData(local).getDartType(elementMap);
-  }
-
-  @override
-  CapturedLoopScope getCapturedLoopScope(
-      ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getCapturedLoopScope(node);
-  }
-
-  @override
-  ClosureRepresentationInfo getClosureRepresentationInfo(
-      ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getClosureInfo(node);
   }
 }
 

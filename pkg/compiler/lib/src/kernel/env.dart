@@ -16,6 +16,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import 'element_map.dart';

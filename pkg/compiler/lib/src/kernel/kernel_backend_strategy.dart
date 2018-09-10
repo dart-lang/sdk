@@ -16,6 +16,7 @@ import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
 import '../js_backend/backend.dart';
 import '../js_emitter/sorter.dart';
+import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';

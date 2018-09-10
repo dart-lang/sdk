@@ -12,6 +12,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
+import '../js_model/element_map.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
 import '../ordered_typeset.dart';

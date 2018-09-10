@@ -30,6 +30,7 @@ import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart'
     show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/element_map.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
@@ -1527,7 +1528,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     JumpTarget jumpTarget = localsMap.getJumpTargetForFor(node);
     loopHandler.handleLoop(
         node,
-        localsMap.getCapturedLoopScope(closureDataLookup, node),
+        closureDataLookup.getCapturedLoopScope(node),
         jumpTarget,
         buildInitializer,
         buildCondition,
@@ -1683,7 +1684,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         node,
-        localsMap.getCapturedLoopScope(closureDataLookup, node),
+        closureDataLookup.getCapturedLoopScope(node),
         localsMap.getJumpTargetForForIn(node),
         buildInitializer,
         buildCondition,
@@ -1750,7 +1751,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         node,
-        localsMap.getCapturedLoopScope(closureDataLookup, node),
+        closureDataLookup.getCapturedLoopScope(node),
         localsMap.getJumpTargetForForIn(node),
         buildInitializer,
         buildCondition,
@@ -1823,7 +1824,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Build fake try body:
     loopHandler.handleLoop(
         node,
-        localsMap.getCapturedLoopScope(closureDataLookup, node),
+        closureDataLookup.getCapturedLoopScope(node),
         localsMap.getJumpTargetForForIn(node),
         buildInitializer,
         buildCondition,
@@ -1876,7 +1877,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         node,
-        localsMap.getCapturedLoopScope(closureDataLookup, node),
+        closureDataLookup.getCapturedLoopScope(node),
         localsMap.getJumpTargetForWhile(node),
         () {},
         buildCondition,
@@ -1893,7 +1894,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     CapturedLoopScope loopClosureInfo =
-        localsMap.getCapturedLoopScope(closureDataLookup, node);
+        closureDataLookup.getCapturedLoopScope(node);
     localsHandler.startLoop(loopClosureInfo, sourceInformation);
     JumpTarget target = localsMap.getJumpTargetForDo(node);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
@@ -2461,7 +2462,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildLoop() {
       loopHandler.handleLoop(
           switchStatement,
-          localsMap.getCapturedLoopScope(closureDataLookup, switchStatement),
+          closureDataLookup.getCapturedLoopScope(switchStatement),
           switchTarget,
           () {},
           buildCondition,
@@ -4336,7 +4337,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCreate(node);
     ClosureRepresentationInfo closureInfo =
-        localsMap.getClosureRepresentationInfo(closureDataLookup, node.parent);
+        closureDataLookup.getClosureInfo(node.parent);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
