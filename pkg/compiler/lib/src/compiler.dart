@@ -226,10 +226,7 @@ abstract class Compiler {
   /// have been computed.
   ///
   /// [loadedLibraries] contains the newly loaded libraries.
-  ///
-  /// The method returns a [Future] allowing for the loading of additional
-  /// libraries.
-  LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
+  void processLoadedLibraries(LoadedLibraries loadedLibraries) {
     frontendStrategy.registerLoadedLibraries(loadedLibraries);
     loadedLibraries.forEachLibrary((Uri uri) {
       LibraryEntity library =
@@ -246,7 +243,6 @@ abstract class Compiler {
           MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
     }
     backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
-    return loadedLibraries;
   }
 
   Future runInternal(Uri uri) async {
@@ -310,8 +306,8 @@ abstract class Compiler {
     resolutionEnqueuer.applyImpact(mainImpact);
     reporter.log('Resolving...');
 
-    processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
-        mainFunction, loadedLibraries.libraries,
+    processQueue(
+        frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
         onProgress: showResolutionProgress);
     backend.onResolutionEnd();
     resolutionEnqueuer.logSummary(reporter.log);
@@ -329,6 +325,7 @@ abstract class Compiler {
     }
 
     assert(mainFunction != null);
+    checkQueue(resolutionEnqueuer);
 
     JClosedWorld closedWorld = closeResolution(mainFunction);
     if (retainDataForTesting) {
@@ -347,10 +344,9 @@ abstract class Compiler {
         mainFunction, closedWorld, inferredDataBuilder);
   }
 
-  Enqueuer generateJavaScriptCode(
-      LoadedLibraries loadedLibraries,
-      JClosedWorld closedWorld,
+  void generateJavaScriptCode(
       GlobalTypeInferenceResults globalInferenceResults) {
+    JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Compiling...');
     phase = PHASE_COMPILING;
@@ -358,7 +354,6 @@ abstract class Compiler {
     Enqueuer codegenEnqueuer =
         startCodegen(closedWorld, globalInferenceResults);
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
-        loadedLibraries.libraries,
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
 
@@ -372,22 +367,21 @@ abstract class Compiler {
 
     backend.onCodegenEnd();
 
-    return codegenEnqueuer;
+    checkQueue(codegenEnqueuer);
   }
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries(LoadedLibraries loadedLibraries) =>
-      selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
-        JClosedWorld closedWorld = computeClosedWorld(loadedLibraries);
-        if (closedWorld != null) {
-          GlobalTypeInferenceResults globalInferenceResults =
-              performGlobalTypeInference(closedWorld);
-          if (stopAfterTypeInference) return;
-          Enqueuer codegenEnqueuer = generateJavaScriptCode(
-              loadedLibraries, closedWorld, globalInferenceResults);
-          checkQueues(enqueuer.resolution, codegenEnqueuer);
-        }
-      });
+  void compileLoadedLibraries(LoadedLibraries loadedLibraries) {
+    selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
+      JClosedWorld closedWorld = computeClosedWorld(loadedLibraries);
+      if (closedWorld != null) {
+        GlobalTypeInferenceResults globalInferenceResults =
+            performGlobalTypeInference(closedWorld);
+        if (stopAfterTypeInference) return;
+        generateJavaScriptCode(globalInferenceResults);
+      }
+    });
+  }
 
   Enqueuer startCodegen(JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
@@ -434,10 +428,14 @@ abstract class Compiler {
   }
 
   void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
-      FunctionEntity mainMethod, Iterable<Uri> libraries,
+      FunctionEntity mainMethod,
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
-      enqueuer.open(impactStrategy, mainMethod, libraries);
+      enqueuer.open(
+          impactStrategy,
+          mainMethod,
+          elementEnvironment.libraries
+              .map((LibraryEntity library) => library.canonicalUri));
       progress.startPhase();
       emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
@@ -450,16 +448,11 @@ abstract class Compiler {
     });
   }
 
-  /**
-   * Perform various checks of the queues. This includes checking that
-   * the queues are empty (nothing was added after we stopped
-   * processing the queues). Also compute the number of methods that
-   * were resolved, but not compiled (aka excess resolution).
-   */
-  checkQueues(Enqueuer resolutionEnqueuer, Enqueuer codegenEnqueuer) {
-    for (Enqueuer enqueuer in [resolutionEnqueuer, codegenEnqueuer]) {
-      enqueuer.checkQueueIsEmpty();
-    }
+  /// Perform various checks of the queue. This includes checking that the
+  /// queues are empty (nothing was added after we stopped processing the
+  /// queues).
+  checkQueue(Enqueuer enqueuer) {
+    enqueuer.checkQueueIsEmpty();
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {

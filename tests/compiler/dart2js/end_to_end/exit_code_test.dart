@@ -60,9 +60,9 @@ class TestCompiler extends apiimpl.CompilerImpl {
     return super.run(uri);
   }
 
-  LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
+  void processLoadedLibraries(LoadedLibraries loadedLibraries) {
     test('Compiler.processLoadedLibraries');
-    return super.processLoadedLibraries(loadedLibraries);
+    super.processLoadedLibraries(loadedLibraries);
   }
 
   test(String marker) {
