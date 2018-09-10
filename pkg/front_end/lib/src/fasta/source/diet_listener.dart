@@ -12,7 +12,6 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         LibraryPart,
-        Node,
         TreeNode,
         VariableDeclaration;
 
@@ -51,9 +50,6 @@ import '../parser.dart' show Assert, MemberKind, Parser, optional;
 import '../problems.dart' show DebugAbort, internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
-
-import '../type_inference/type_inference_listener.dart'
-    show KernelTypeInferenceListener, TypeInferenceListener;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -571,16 +567,13 @@ class DietListener extends StackListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope,
-      TypeInferenceListener<int, Node, int> listener]) {
-    listener ??= new KernelTypeInferenceListener();
+      [Scope formalParameterScope]) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(
-            uri, listener, thisType, library);
+        : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;

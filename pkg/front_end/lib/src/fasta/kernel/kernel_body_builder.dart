@@ -34,12 +34,12 @@ class KernelBodyBuilder extends BodyBuilder {
       bool isInstanceMember,
       Uri uri,
       TypeInferrer typeInferrer)
-      : forest = new Fangorn(typeInferrer?.tokensSaver),
+      : forest = const Fangorn(),
         super(library, member, scope, formalParameterScope, hierarchy,
             coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
 
   KernelBodyBuilder.forField(ModifierBuilder member, TypeInferrer typeInferrer)
-      : forest = new Fangorn(typeInferrer?.tokensSaver),
+      : forest = const Fangorn(),
         super.forField(member, typeInferrer);
 
   @override

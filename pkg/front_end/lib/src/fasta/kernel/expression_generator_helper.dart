@@ -34,7 +34,6 @@ import 'kernel_ast_api.dart'
         Initializer,
         Member,
         Name,
-        Node,
         Procedure,
         StaticGet,
         TypeParameter,
@@ -144,8 +143,4 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
-
-  void storeTypeUse(int offset, Node node);
-
-  void storeUnresolved(Token token);
 }

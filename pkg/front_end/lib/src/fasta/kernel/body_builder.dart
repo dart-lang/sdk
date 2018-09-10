@@ -62,9 +62,6 @@ import '../source/scope_listener.dart'
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
-import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceTokensSaver;
-
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
@@ -163,8 +160,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final TypePromoter typePromoter;
 
-  final TypeInferenceTokensSaver tokensSaver;
-
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -244,7 +239,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer?.typePromoter,
-        tokensSaver = _typeInferrer?.tokensSaver,
         super(enclosingScope);
 
   BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
@@ -1006,7 +1000,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
-    ReturnJudgment fakeReturn = new ReturnJudgment(null, null, expression);
+    ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
 
     _typeInferrer.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
@@ -1279,7 +1273,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new IfNullJudgment(
         variable,
-        tokensSaver?.ifNullTokens(token),
         forest.conditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token), this),
             token,
@@ -1675,7 +1668,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return new StaticAccessGenerator(this, token, declaration.target, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
-      _typeInferrer.storePrefix(token, declaration);
       return new PrefixUseGenerator(this, token, declaration);
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator(this, token, declaration);
@@ -2316,8 +2308,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (KernelTypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
-        builder.binder = _typeInferrer.binderForTypeVariable(
-            builder, builder.charOffset, name);
         KernelTypeVariableBuilder existing = scopeBuilder[name];
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
@@ -2338,7 +2328,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
-    _typeInferrer.functionType(functionToken.offset, type);
     exitLocalScope();
     push(type);
   }
@@ -2346,9 +2335,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
-    var type = const VoidType();
-    _typeInferrer.voidType(token.offset, token, type);
-    push(type);
+    push(const VoidType());
   }
 
   @override
@@ -2433,8 +2420,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           .desugared;
     }
 
-    push(new ThrowJudgment(tokensSaver?.throwTokens(throwToken), expression,
-        desugaredError: error)
+    push(new ThrowJudgment(expression, desugaredError: error)
       ..fileOffset = offsetForToken(throwToken));
   }
 
@@ -2548,7 +2534,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
-    _typeInferrer.functionTypedFormalParameter(nameToken.offset, type);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -3293,11 +3278,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpressionJudgment(
-        tokensSaver?.namedExpressionTokens(
-            deprecated_extractToken(identifier), colon),
-        identifier.name,
-        value)
+    push(new NamedExpressionJudgment(identifier.name, value)
       ..fileOffset = identifier.charOffset);
   }
 
@@ -3560,13 +3541,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           buildProblem(message, offsetForToken(token), lengthForToken(token)));
     }
     Statement result = new ForInJudgment(
-        tokensSaver?.forInStatementTokens(awaitToken, forToken, leftParenthesis,
-            inKeyword, leftParenthesis.endGroup),
-        variable,
-        expression,
-        kernelBody,
-        declaresVariable,
-        syntheticAssignment,
+        variable, expression, kernelBody, declaresVariable, syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = kernelBody.fileOffset;
@@ -3629,9 +3604,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 offsetForToken(rethrowToken), lengthForToken(rethrowToken))
             .desugared;
     push(new ExpressionStatementJudgment(
-        new RethrowJudgment(tokensSaver?.rethrowTokens(rethrowToken), error)
-          ..fileOffset = offsetForToken(rethrowToken),
-        tokensSaver?.expressionStatementTokens(endToken)));
+        new RethrowJudgment(error)..fileOffset = offsetForToken(rethrowToken)));
   }
 
   @override
@@ -3773,11 +3746,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCaseJudgment(
-        tokensSaver?.switchCaseTokens(defaultKeyword, colonAfterDefault),
-        expressions,
-        expressionOffsets,
-        block,
+    push(new SwitchCaseJudgment(expressions, expressionOffsets, block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3792,13 +3761,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    // TODO(brianwilkerson): Plumb through the left and right parentheses and
-    // the left and right curly braces.
-    Statement result = new SwitchStatementJudgment(
-        tokensSaver?.switchStatementTokens(
-            switchKeyword, null, null, null, null),
-        expression,
-        cases)
+    Statement result = new SwitchStatementJudgment(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new LabeledStatementJudgment(result);
@@ -3925,10 +3888,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = new ContinueSwitchJudgment(
-            tokensSaver?.continueSwitchStatementTokens(
-                continueKeyword, endToken),
-            null)
+        ContinueSwitchStatement statement = new ContinueSwitchJudgment(null)
           ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
@@ -4008,8 +3968,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // Assume an error is reported elsewhere.
       variable = new KernelTypeVariableBuilder(
           name.name, library, name.charOffset, null);
-      variable.binder = _typeInferrer.binderForTypeVariable(
-          variable, variable.charOffset, variable.name);
     }
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, annotations);
@@ -4174,7 +4132,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context, int length}) {
     length ??= noLength;
     return new ExpressionStatementJudgment(
-        buildProblem(message, charOffset, length, context: context), null);
+        buildProblem(message, charOffset, length, context: context));
   }
 
   Statement wrapInProblemStatement(Statement statement, Message message) {
@@ -4307,10 +4265,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    // TODO(brianwilkerson): Plumb through the `super`, period, and constructor
-    // name tokens.
     return new SuperInitializerJudgment(
-        null, constructor, forest.castArguments(arguments))
+        constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
@@ -4543,16 +4499,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           uri,
           wasHandled: true);
     }
-  }
-
-  @override
-  void storeTypeUse(int offset, Node node) {
-    _typeInferrer.storeTypeUse(offset, node);
-  }
-
-  @override
-  void storeUnresolved(Token token) {
-    _typeInferrer.storePrefix(token, null);
   }
 }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart'
-    show Arguments, DynamicType, Expression, InvalidExpression, Node;
+    show Arguments, Expression, InvalidExpression, Node;
 
 import '../../scanner/token.dart' show Token;
 
@@ -82,9 +82,6 @@ import 'kernel_ast_api.dart'
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
         Initializer,
-        InvalidPropertyGetJudgment,
-        InvalidType,
-        InvalidVariableWriteJudgment,
         InvalidWriteJudgment,
         Let,
         LoadLibraryTearOffJudgment,
@@ -107,7 +104,6 @@ import 'kernel_ast_api.dart'
         TreeNode,
         TypeParameter,
         UnresolvedVariableAssignmentJudgment,
-        UnresolvedVariableGetJudgment,
         VariableAssignmentJudgment,
         VariableDeclaration,
         VariableDeclarationJudgment,
@@ -247,16 +243,12 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildInvalidWriteJudgment(helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
         forest.arguments(<Expression>[value], noLocation),
         offsetForToken(token),
         isSetter: true));
-  }
-
-  Expression buildInvalidWriteJudgment(Expression desugared) {
-    return new SyntheticExpressionJudgment(desugared);
   }
 
   Expression _makeSimpleRead() => _makeRead(null);
@@ -1133,9 +1125,6 @@ class KernelStaticAccessGenerator extends KernelGenerator
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    var offset = offsetForToken(token);
-    typeInferrer.storeTypeReference(
-        offset, token.isSynthetic, readTarget, null, const DynamicType());
     return super.buildTypeWithBuiltArguments(arguments,
         nonInstanceAccessIsError: nonInstanceAccessIsError,
         typeInferrer: typeInferrer);
@@ -1151,7 +1140,7 @@ class KernelStaticAccessGenerator extends KernelGenerator
               templateNotConstantExpression.withArguments('Method invocation'),
               offset,
               readTarget?.name?.name?.length ?? 0)
-          .desugared /* TODO(ahe): Remove `.desugared`? */;
+          .desugared;
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
@@ -1165,12 +1154,6 @@ class KernelStaticAccessGenerator extends KernelGenerator
       return helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset, error: error);
     }
-  }
-
-  @override
-  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
-    typeInferrer.storeTypeReference(offsetForToken(token), token.isSynthetic,
-        readTarget, null, const DynamicType());
   }
 
   @override
@@ -1305,8 +1288,6 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    helper.storeTypeUse(offsetForToken(token), declaration.target);
-
     // `SomeType?.toString` is the same as `SomeType.toString`, not
     // `(SomeType).toString`.
     isNullAware = false;
@@ -1393,18 +1374,6 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
       super._finish(makeLet(value, body), complexAssignment);
 
   @override
-  Expression buildInvalidWriteJudgment(Expression desugared) {
-    var expression = this.expression;
-    if (expression is VariableGet) {
-      return new InvalidVariableWriteJudgment(desugared, expression.variable)
-        ..fileOffset = token.charOffset;
-    } else {
-      // TODO(paulberry): handle other cases
-      return super.buildInvalidWriteJudgment(desugared);
-    }
-  }
-
-  @override
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
         adjustForImplicitCall(plainNameForRead, offset),
@@ -1429,23 +1398,23 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeSimpleRead() => new SyntheticExpressionJudgment(buildError());
+  Expression _makeSimpleRead() => buildError();
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return buildError();
   }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return buildError();
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return buildError();
   }
 }
 
@@ -1475,19 +1444,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
 
   @override
   Expression buildSimpleRead() {
-    Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
-    return new UnresolvedVariableGetJudgment(error, token.isSynthetic)
+    return buildError(forest.argumentsEmpty(token), isGetter: true)
       ..fileOffset = token.charOffset;
-  }
-
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    var type = super.buildTypeWithBuiltArguments(arguments,
-        nonInstanceAccessIsError: nonInstanceAccessIsError,
-        typeInferrer: typeInferrer);
-    typeInferrer.storeTypeReference(
-        token.offset, token.isSynthetic, null, null, type);
-    return type;
   }
 
   @override
@@ -1499,7 +1457,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
     return new UnresolvedVariableAssignmentJudgment(
-      buildError(forest.arguments(<Expression>[value], token), isSetter: true),
+      buildError(forest.arguments(<Expression>[value], token), isSetter: true)
+          .desugared,
       isCompound,
       value,
     )..fileOffset = token.charOffset;
@@ -1610,7 +1569,6 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
       Token nameToken,
       Token nameStringToken,
       Constness constness) {
-    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     return super.invokeConstructor(
         typeArguments, name, arguments, nameToken, nameStringToken, constness);
   }

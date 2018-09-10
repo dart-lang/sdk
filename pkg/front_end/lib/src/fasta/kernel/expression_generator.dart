@@ -75,25 +75,19 @@ import 'kernel_ast_api.dart'
         Procedure,
         StaticInvocationJudgment,
         SyntheticExpressionJudgment,
-        TreeNode,
         TypeParameterType,
         UnresolvedTargetInvocationJudgment,
-        UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         BuiltinTypeBuilder,
-        ClassBuilder,
         Declaration,
-        DynamicTypeBuilder,
         FunctionTypeAliasBuilder,
-        InvalidTypeBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
-        KernelTypeVariableBuilder,
-        TypeVariableBuilder;
+        KernelTypeVariableBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -195,8 +189,10 @@ abstract class Generator implements ExpressionGenerator {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.buildProblem(messageInvalidInitializer, offset,
-            lengthForToken(token)) /* TODO(ahe): Add .desugared here? */,
+        helper
+            .buildProblem(
+                messageInvalidInitializer, offset, lengthForToken(token))
+            .desugared,
         offset);
   }
 
@@ -252,12 +248,6 @@ abstract class Generator implements ExpressionGenerator {
         nameToken.charOffset);
 
     return new InvalidConstructorInvocationJudgment(error, null, arguments);
-  }
-
-  /// This generator was unexpectedly used as a prefix in a type name.
-  /// Store its resolution anyway.
-  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
-    typeInferrer.storeUnresolved(token);
   }
 
   bool get isThisPropertyAccess => false;
@@ -633,28 +623,6 @@ abstract class TypeUseGenerator implements Generator {
       type =
           declaration.buildTypesWithBuiltArguments(helper.library, arguments);
     }
-    TreeNode declarationTarget;
-    Object declarationBinder;
-    if (declaration is KernelTypeVariableBuilder &&
-        declaration.binder != null) {
-      declarationBinder = declaration.binder;
-    } else if (declaration is DynamicTypeBuilder ||
-        declaration is InvalidTypeBuilder) {
-      // There's no target associated with these types, so we have to let
-      // the analyzer fill it in.
-    } else if (declaration is ClassBuilder ||
-        declaration is TypeVariableBuilder ||
-        declaration is FunctionTypeAliasBuilder) {
-      declarationTarget = declaration.target;
-    } else {
-      return unhandled(
-          "${declaration.runtimeType}",
-          "TypeUseGenerator.buildTypeWithBuiltArguments",
-          offsetForToken(token),
-          helper.uri);
-    }
-    typeInferrer?.storeTypeReference(token.charOffset, token.isSynthetic,
-        declarationTarget, declarationBinder, type);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);
@@ -670,7 +638,6 @@ abstract class TypeUseGenerator implements Generator {
       Token nameToken,
       Token nameLastToken,
       Constness constness) {
-    helper.storeTypeUse(offsetForToken(token), declaration.target);
     return helper.buildConstructorInvocation(
         declaration,
         nameToken,
@@ -680,12 +647,6 @@ abstract class TypeUseGenerator implements Generator {
         typeArguments,
         offsetForToken(nameToken ?? token),
         constness);
-  }
-
-  @override
-  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
-    typeInferrer.storeTypeReference(offsetForToken(token), token.isSynthetic,
-        declaration.target, null, const DynamicType());
   }
 }
 
@@ -713,16 +674,16 @@ abstract class LargeIntAccessGenerator implements Generator {
   @override
   String get debugName => "LargeIntAccessGenerator";
 
-  Expression buildError() {
-    return helper
-        .buildProblem(templateIntegerLiteralIsOutOfRange.withArguments(token),
-            offsetForToken(token), lengthForToken(token))
-        .desugared /* TODO(ahe): Remove `.desugared`? */;
+  SyntheticExpressionJudgment buildError() {
+    return helper.buildProblem(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
   }
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return new SyntheticExpressionJudgment(buildError());
+    return buildError();
   }
 
   @override
@@ -736,7 +697,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
   /// to [ExpressionGeneratorHelper.throwNoSuchMethodError] if it is used.
-  Expression buildError(Arguments arguments,
+  SyntheticExpressionJudgment buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
   Name get name => unsupported("name", offsetForToken(token), uri);
@@ -748,14 +709,13 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
-        buildError(forest.argumentsEmpty(token), isSetter: true)));
+    return helper.buildInvalidInitializer(
+        buildError(forest.argumentsEmpty(token), isSetter: true).desugared);
   }
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return new SyntheticExpressionJudgment(
-        buildError(arguments, offset: offset));
+    return buildError(arguments, offset: offset);
   }
 
   @override
@@ -767,9 +727,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
   }
 
   @override
@@ -779,34 +738,29 @@ abstract class ErroneousExpressionGenerator implements Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isGetter: true));
+    return buildError(forest.arguments(<Expression>[value], token),
+        isGetter: true);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var error = buildError(
+    return buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(
-        error, token?.offset, token?.isSynthetic)
+        isGetter: true)
       ..fileOffset = offset;
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var error = buildError(
+    return buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(
-        error, token?.offset, token?.isSynthetic)
+        isGetter: true)
       ..fileOffset = offset;
   }
 
@@ -814,24 +768,24 @@ abstract class ErroneousExpressionGenerator implements Generator {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
   }
 
   @override
-  Expression buildSimpleRead() => new SyntheticExpressionJudgment(
-      buildError(forest.argumentsEmpty(token), isGetter: true));
+  Expression buildSimpleRead() {
+    return buildError(forest.argumentsEmpty(token), isGetter: true);
+  }
 
   @override
-  Expression makeInvalidRead() => new SyntheticExpressionJudgment(
-      buildError(forest.argumentsEmpty(token), isGetter: true));
+  Expression makeInvalidRead() {
+    return buildError(forest.argumentsEmpty(token), isGetter: true);
+  }
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
   }
 
   @override
@@ -842,13 +796,12 @@ abstract class ErroneousExpressionGenerator implements Generator {
       Token nameToken,
       Token nameLastToken,
       Constness constness) {
-    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    var error = buildError(arguments);
-    return new InvalidConstructorInvocationJudgment(error, null, arguments);
+    return new InvalidConstructorInvocationJudgment(
+        buildError(arguments).desugared, null, arguments);
   }
 }
 
@@ -864,26 +817,26 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   @override
   Expression doInvocation(int charOffset, Arguments arguments) {
     return new UnresolvedTargetInvocationJudgment(
-        buildError(arguments, offset: charOffset), arguments)
+        buildError(arguments, offset: charOffset).desugared, arguments)
       ..fileOffset = arguments.fileOffset;
   }
 
   @override
-  Expression buildError(Arguments arguments,
+  SyntheticExpressionJudgment buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = offset,
         plainNameForRead,
         arguments,
         offset,
         isGetter: isGetter,
-        isSetter: isSetter);
+        isSetter: isSetter))
+      ..fileOffset = offset;
   }
 
   @override
   /* Expression | Generator */ Object qualifiedLookup(Token name) {
-    helper.storeUnresolved(token);
     return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
 }
@@ -1227,8 +1180,6 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme),
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token));
-    prefixGenerator.storeUnexpectedTypePrefix(typeInferrer);
-    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     return const InvalidType();
   }
 
