@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Avoid defining unused paramters in constructors.';
+const _desc = r'Avoid defining unused parameters in constructors.';
 
 const _details = r'''
 
