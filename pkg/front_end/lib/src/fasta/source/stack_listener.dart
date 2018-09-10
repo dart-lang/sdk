@@ -196,13 +196,28 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    debugEvent("MixinOn");
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
     debugEvent("ClassHeader");
   }
 
   @override
+  void handleMixinHeader(Token mixinKeyword) {
+    debugEvent("MixinHeader");
+  }
+
+  @override
   void handleRecoverClassHeader() {
     debugEvent("RecoverClassHeader");
+  }
+
+  @override
+  void handleRecoverMixinHeader() {
+    debugEvent("RecoverMixinHeader");
   }
 
   @override

@@ -1859,6 +1859,7 @@ class Parser {
   /// ```
   Token parseMixin(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
+    listener.beginClassOrNamedMixinApplication(mixinKeyword);
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinDeclaration);
     Token headerStart =
@@ -1871,7 +1872,7 @@ class Parser {
       ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
     token = parseClassOrMixinBody(token);
-    listener.endMixinDeclaration(token);
+    listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
 

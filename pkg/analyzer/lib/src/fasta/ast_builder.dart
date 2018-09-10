@@ -1949,7 +1949,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinDeclaration(Token token) {
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     debugEvent("MixinDeclaration");
     mixinDeclaration = null;
   }

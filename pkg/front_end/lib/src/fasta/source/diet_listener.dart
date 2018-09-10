@@ -689,6 +689,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+    debugEvent("MixinDeclaration");
+    checkEmpty(mixinKeyword.charOffset);
+  }
+
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
 

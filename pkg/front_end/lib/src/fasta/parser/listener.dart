@@ -171,7 +171,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of a mixin declaration.  Substructures:
   /// - mixin header
   /// - class or mixin body
-  void endMixinDeclaration(Token token) {
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     logEvent("MixinDeclaration");
   }
 

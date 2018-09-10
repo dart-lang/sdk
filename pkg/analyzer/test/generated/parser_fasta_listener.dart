@@ -892,9 +892,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMixinDeclaration(Token token) {
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     end('MixinDeclaration');
-    super.endMixinDeclaration(token);
+    end('ClassOrNamedMixinApplication');
+    super.endMixinDeclaration(mixinKeyword, endToken);
   }
 
   @override

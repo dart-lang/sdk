@@ -722,8 +722,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token token) {
-    listener?.endMixinDeclaration(token);
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+    listener?.endMixinDeclaration(mixinKeyword, endToken);
   }
 
   @override
