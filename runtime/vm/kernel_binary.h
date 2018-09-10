@@ -17,7 +17,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 12;
+static const uint32_t kBinaryFormatVersion = 11;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -138,13 +138,12 @@ enum ConstantTag {
   kIntConstant = 2,
   kDoubleConstant = 3,
   kStringConstant = 4,
-  kSymbolConstant = 5,
-  kMapConstant = 6,
-  kListConstant = 7,
-  kInstanceConstant = 8,
-  kPartialInstantiationConstant = 9,
-  kTearOffConstant = 10,
-  kTypeLiteralConstant = 11,
+  kMapConstant = 5,
+  kListConstant = 6,
+  kInstanceConstant = 7,
+  kPartialInstantiationConstant = 8,
+  kTearOffConstant = 9,
+  kTypeLiteralConstant = 10,
 };
 
 static const int SpecializedIntLiteralBias = 3;

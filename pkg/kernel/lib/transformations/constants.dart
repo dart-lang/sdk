@@ -1025,9 +1025,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
-    final libraryReference =
-        node.value.startsWith('_') ? libraryOf(node).reference : null;
-    return canonicalize(new SymbolConstant(node.value, libraryReference));
+    final value = canonicalize(new StringConstant(node.value));
+    return canonicalize(backend.buildSymbolConstant(value));
   }
 
   visitInstantiation(Instantiation node) {
@@ -1194,15 +1193,6 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     return value;
   }
-
-  Library libraryOf(TreeNode node) {
-    // The tree structure of the kernel AST ensures we always have an enclosing
-    // library.
-    while (true) {
-      if (node is Library) return node;
-      node = node.parent;
-    }
-  }
 }
 
 /// Holds the necessary information for a constant object, namely
@@ -1280,6 +1270,8 @@ abstract class ConstantsBackend {
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments);
+  Constant buildSymbolConstant(StringConstant value);
+
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
 }

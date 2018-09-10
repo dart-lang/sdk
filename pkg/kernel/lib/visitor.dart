@@ -269,7 +269,6 @@ class ConstantVisitor<R> {
   R visitIntConstant(IntConstant node) => defaultConstant(node);
   R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
   R visitStringConstant(StringConstant node) => defaultConstant(node);
-  R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
@@ -322,7 +321,6 @@ class Visitor<R> extends TreeVisitor<R>
   R visitIntConstant(IntConstant node) => defaultConstant(node);
   R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
   R visitStringConstant(StringConstant node) => defaultConstant(node);
-  R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
@@ -346,8 +344,6 @@ class Visitor<R> extends TreeVisitor<R>
   R visitDoubleConstantReference(DoubleConstant node) =>
       defaultConstantReference(node);
   R visitStringConstantReference(StringConstant node) =>
-      defaultConstantReference(node);
-  R visitSymbolConstantReference(SymbolConstant node) =>
       defaultConstantReference(node);
   R visitMapConstantReference(MapConstant node) =>
       defaultConstantReference(node);

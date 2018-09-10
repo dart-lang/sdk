@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 12;
+  UInt32 formatVersion = 11;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -865,45 +865,39 @@ type StringConstant extends Constant {
   StringReference value;
 }
 
-type SymbolConstant extends Constant {
-  Byte tag = 5;
-  Option<LibraryReference> library;
-  StringReference name;
-}
-
 type MapConstant extends Constant {
-  Byte tag = 6;
+  Byte tag = 5;
   DartType keyType;
   DartType valueType;
   List<[ConstantReference, ConstantReference]> keyValueList;
 }
 
 type ListConstant extends Constant {
-  Byte tag = 7;
+  Byte tag = 6;
   DartType type;
   List<ConstantReference> values;
 }
 
 type InstanceConstant extends Constant {
-  Byte tag = 8;
+  Byte tag = 7;
   CanonicalNameReference class;
   List<DartType> typeArguments;
   List<[FieldReference, ConstantReference]> values;
 }
 
 type PartialInstantiationConstant extends Constant {
-  Byte tag = 9;
+  Byte tag = 8;
   ConstantReference tearOffConstant;
   List<DartType> typeArguments;
 }
 
 type TearOffConstant extends Constant {
-  Byte tag = 10;
+  Byte tag = 9;
   CanonicalNameReference staticProcedureReference;
 }
 
 type TypeLiteralConstant extends Constant {
-  Byte tag = 11;
+  Byte tag = 10;
   DartType type;
 }
 

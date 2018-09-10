@@ -206,12 +206,6 @@ class BinaryBuilder {
         return new DoubleConstant(readDouble());
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
-      case ConstantTag.SymbolConstant:
-        Reference libraryReference;
-        if (readAndCheckOptionTag()) {
-          libraryReference = readLibraryReference();
-        }
-        return new SymbolConstant(readStringReference(), libraryReference);
       case ConstantTag.MapConstant:
         final DartType keyType = readDartType();
         final DartType valueType = readDartType();
