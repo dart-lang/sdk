@@ -9,7 +9,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/world.dart' show KClosedWorld;
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""

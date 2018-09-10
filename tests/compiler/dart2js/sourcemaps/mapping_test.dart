@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const List<String> TESTS = const <String>[
   '''

@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart'
     show ClassEntity, LibraryEntity;
-import 'type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   Future runTests() async {

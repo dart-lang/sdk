@@ -11,7 +11,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
-import 'type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   asyncTest(() async {

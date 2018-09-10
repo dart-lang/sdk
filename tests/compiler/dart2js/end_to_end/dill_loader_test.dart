@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/common_elements.dart';

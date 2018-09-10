@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 /// Error code that creates 1 warning, 1 hint, and 1 info.
 const ERROR_CODE = """

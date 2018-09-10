@@ -9,7 +9,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 class NoSuchMethodInfo {
   final String className;

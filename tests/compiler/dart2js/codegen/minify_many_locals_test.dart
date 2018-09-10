@@ -5,7 +5,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 main() {
   runTests({int numberOfParameters}) async {

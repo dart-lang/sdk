@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
 /// `true` if ANSI colors are supported by stdout.

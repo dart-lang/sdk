@@ -1,13 +1,14 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test that parameters keep their names in the output.
 
 import 'dart:convert';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String TEST_BASIC = r"""
 library main;

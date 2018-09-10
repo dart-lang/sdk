@@ -9,7 +9,7 @@ import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import 'type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 main() {
   asyncTest(() async {

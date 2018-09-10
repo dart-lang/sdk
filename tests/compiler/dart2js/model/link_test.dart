@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'package:front_end/src/fasta/util/link.dart' show Link;
-import 'link_helper.dart';
+import '../helpers/link_helper.dart';
 
 main() {
   test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),

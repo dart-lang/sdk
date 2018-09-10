@@ -15,7 +15,7 @@ import 'package:compiler/src/types/abstract_value_domain.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String source = '''
 import 'package:expect/expect.dart' deferred as expect;

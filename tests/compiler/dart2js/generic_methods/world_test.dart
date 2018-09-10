@@ -8,7 +8,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:expect/expect.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String code = r'''
 import 'package:meta/dart2js.dart';

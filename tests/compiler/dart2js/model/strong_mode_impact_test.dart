@@ -11,7 +11,7 @@ import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 main() {
   asyncTest(() async {

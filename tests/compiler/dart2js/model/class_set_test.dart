@@ -13,7 +13,7 @@ import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/world.dart';
 import 'package:front_end/src/fasta/util/link.dart' show Link;
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   asyncTest(() async {

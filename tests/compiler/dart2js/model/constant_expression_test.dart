@@ -11,7 +11,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/elements/entities.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import 'constant_expression_evaluate_test.dart' show MemoryEnvironment;
 
 class TestData {

@@ -21,7 +21,7 @@ import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 class Test {
   final String name;

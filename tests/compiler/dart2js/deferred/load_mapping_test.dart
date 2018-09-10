@@ -5,8 +5,8 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import '../memory_source_file_helper.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_source_file_helper.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {

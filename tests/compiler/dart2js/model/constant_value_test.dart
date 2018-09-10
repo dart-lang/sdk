@@ -10,7 +10,7 @@ import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/constants/values.dart';
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   enableDebugMode();

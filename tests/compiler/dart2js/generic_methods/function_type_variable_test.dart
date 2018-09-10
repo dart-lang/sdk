@@ -6,7 +6,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'F1', '<T>(T t)'),

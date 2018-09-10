@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart' show runCompiler, OutputCollector;
+import '../helpers/memory_compiler.dart' show runCompiler, OutputCollector;
 
 Future<String> compileSources(sources, {bool minify}) async {
   var options = <String>[];

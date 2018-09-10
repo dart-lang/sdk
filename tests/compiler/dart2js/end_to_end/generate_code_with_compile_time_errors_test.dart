@@ -11,8 +11,8 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'memory_compiler.dart';
-import 'output_collector.dart';
+import '../helpers/memory_compiler.dart';
+import '../helpers/output_collector.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': ''' 

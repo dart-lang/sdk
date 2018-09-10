@@ -9,7 +9,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String source = '''
 abstract class I<T> {
