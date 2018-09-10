@@ -533,42 +533,6 @@ class C {
 ''', [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  test_inconsistentMethodInheritance_paramCount() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int x(int y);
-}
-class C implements A, B {
-}''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_paramType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
   test_instanceAccessToStaticMember_method_invocation() async {
     await assertErrorsInCode(r'''
 class A {

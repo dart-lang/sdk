@@ -1175,6 +1175,166 @@ mixin M implements A, B {} // M
     assertTypeName(bRef, findElement.class_('B'), 'B');
   }
 
+  test_inconsistentMethodInheritance_implements_parameterType() async {
+    addTestFile(r'''
+abstract class A {
+  x(int i);
+}
+abstract class B {
+  x(String s);
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_implements_requiredParameters() async {
+    addTestFile(r'''
+abstract class A {
+  x();
+}
+abstract class B {
+  x(int y);
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_implements_returnType() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  String x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_parameterType() async {
+    addTestFile(r'''
+abstract class A {
+  x(int i);
+}
+abstract class B {
+  x(String s);
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_requiredParameters() async {
+    addTestFile(r'''
+abstract class A {
+  x();
+}
+abstract class B {
+  x(int y);
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_returnType() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  String x();
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_implements_getter_method() async {
+    addTestFile(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_implements_method_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  int get x;
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_on_getter_method() async {
+    addTestFile(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_on_method_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  int get x;
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
   test_metadata() async {
     addTestFile(r'''
 const a = 0;

@@ -3741,15 +3741,11 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try importing the library that the part is a part of.");
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause
-   * multiple members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the
-   * same name <i>n</i> that would be inherited (because identically named
-   * members existed in several superinterfaces) then at most one member is
-   * inherited.
-   *
-   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i> are
-   * getters none of the <i>m<sub>i</sub></i> are inherited, and a static
-   * warning is issued.
+   * 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
+   * class `C` declared in library `L`. `I` inherits all members of
+   * `inherited(I, L)` and `I` overrides `m'` if `m' ∈ overrides(I, L)`. It is
+   * a compile-time error if `m` is a method and `m'` is a getter, or if `m`
+   * is a getter and `m'` is a method.
    */
   static const StaticWarningCode
       INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD =

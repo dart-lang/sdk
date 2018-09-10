@@ -897,6 +897,86 @@ class C {
     expect(method.isStatic, isTrue);
   }
 
+  test_inconsistentMethodInheritance_parameterType() async {
+    addTestFile(r'''
+abstract class A {
+  x(int i);
+}
+abstract class B {
+  x(String s);
+}
+abstract class C implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_requiredParameters() async {
+    addTestFile(r'''
+abstract class A {
+  x();
+}
+abstract class B {
+  x(int y);
+}
+abstract class C implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_returnType() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  String x();
+}
+abstract class C implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_getter_method() async {
+    addTestFile(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int x();
+}
+abstract class C implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_method_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  int get x;
+}
+abstract class C implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
   test_recursiveInterfaceInheritance_extends() async {
     addTestFile(r'''
 class A extends B {}

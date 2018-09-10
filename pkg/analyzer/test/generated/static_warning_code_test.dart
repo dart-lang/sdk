@@ -1843,22 +1843,6 @@ var a = new p.A();'''
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod() async {
-    Source source = addSource(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int get x;
-}
-class C implements A, B {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
   test_invalidGetterOverrideReturnType() async {
     Source source = addSource(r'''
 class A {

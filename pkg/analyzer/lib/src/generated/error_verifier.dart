@@ -5792,7 +5792,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
 //      _checkForNonAbstractClassInheritsAbstractMember(node.name);
-//      _checkForInconsistentMethodInheritance();
+      _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
 //      _checkImplementsSuperClass(implementsClause);
