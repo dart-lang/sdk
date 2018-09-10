@@ -677,9 +677,26 @@ class RecordEnv implements ClassEnv {
   }
 }
 
-class ClassData {
-  /// TODO(johnniwinther): Remove this from the [ClassData] interface. Use
-  /// `definition.node` instead.
+abstract class ClassData {
+  ClassDefinition get definition;
+
+  InterfaceType get thisType;
+  InterfaceType get rawType;
+  InterfaceType get supertype;
+  InterfaceType get mixedInType;
+  List<InterfaceType> get interfaces;
+  OrderedTypeSet get orderedTypeSet;
+  DartType get callType;
+
+  bool get isEnumClass;
+  bool get isMixinApplication;
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+
+  ClassData copy();
+}
+
+class ClassDataImpl implements ClassData {
   final ir.Class cls;
   final ClassDefinition definition;
   bool isMixinApplication;
@@ -691,20 +708,22 @@ class ClassData {
   InterfaceType mixedInType;
   List<InterfaceType> interfaces;
   OrderedTypeSet orderedTypeSet;
-  DartType callType;
 
   Iterable<ConstantValue> _metadata;
 
-  ClassData(this.cls, this.definition);
+  ClassDataImpl(this.cls, this.definition);
 
   bool get isEnumClass => cls != null && cls.isEnum;
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
+  DartType get callType => null;
+
+  Iterable<ConstantValue> getMetadata(
+      covariant KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(cls.annotations);
   }
 
   ClassData copy() {
-    return new ClassData(cls, definition);
+    return new ClassDataImpl(cls, definition);
   }
 }
 

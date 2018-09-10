@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../ordered_typeset.dart';
 import '../options.dart';
 import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
@@ -873,6 +874,48 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
   Entity get rootOfScope => enclosingClass;
 }
 
+class RecordClassData implements ClassData {
+  @override
+  final ClassDefinition definition;
+
+  @override
+  final InterfaceType thisType;
+
+  @override
+  final OrderedTypeSet orderedTypeSet;
+
+  @override
+  final InterfaceType supertype;
+
+  RecordClassData(
+      this.definition, this.thisType, this.supertype, this.orderedTypeSet);
+
+  @override
+  ClassData copy() => this;
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) =>
+      const <ConstantValue>[];
+
+  @override
+  bool get isMixinApplication => false;
+
+  @override
+  bool get isEnumClass => false;
+
+  @override
+  DartType get callType => null;
+
+  @override
+  List<InterfaceType> get interfaces => const <InterfaceType>[];
+
+  @override
+  InterfaceType get mixedInType => null;
+
+  @override
+  InterfaceType get rawType => thisType;
+}
+
 /// A container for variables declared in a particular scope that are accessed
 /// elsewhere.
 // TODO(efortuna, johnniwinther): Don't implement JClass. This isn't actually a
@@ -900,6 +943,15 @@ class JRecordField extends JField {
 
   @override
   bool get isInstanceMember => false;
+}
+
+class ClosureClassData extends RecordClassData {
+  @override
+  FunctionType callType;
+
+  ClosureClassData(ClassDefinition definition, InterfaceType thisType,
+      InterfaceType supertype, OrderedTypeSet orderedTypeSet)
+      : super(definition, thisType, supertype, orderedTypeSet);
 }
 
 class ClosureClassDefinition implements ClassDefinition {
