@@ -3679,7 +3679,7 @@ A constant expression is one of the following:
 \begin{itemize}
 \item A literal number (\ref{numbers}).
 \item A literal boolean (\ref{booleans}).
-\item A literal string (\ref{strings}) where any interpolated expression (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to the null object (\ref{null}).
+\item A literal string (\ref{strings}) where every interpolated expression (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to the null object (\ref{null}).
 \rationale{
 It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.
 However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.
