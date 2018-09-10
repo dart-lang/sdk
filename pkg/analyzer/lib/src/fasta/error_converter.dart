@@ -184,12 +184,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ENUM_IN_CLASS, offset, length);
         return;
-      case "EQUALITY_CANNOT_BE_EQUALITY_OPERAND":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
-            offset,
-            length);
-        return;
       case "EXPECTED_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_CLASS_MEMBER, offset, length);
@@ -724,7 +718,14 @@ class FastaErrorReporter {
   /// the given [offset] and [length].
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
-
+    int index = code.index;
+    if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
+      ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
+      if (errorCode != null) {
+        errorReporter?.reportErrorForOffset(errorCode, offset, length);
+        return;
+      }
+    }
     reportByCode(code.analyzerCode, offset, length, message);
   }
 

@@ -11,6 +11,8 @@ import 'package:analyzer/error/error.dart';
 
 export 'package:front_end/src/scanner/errors.dart' show ScannerErrorCode;
 
+part 'syntactic_errors.g.dart';
+
 /**
  * The error codes used for errors detected by the parser. The convention for
  * this class is for the name of the error code to indicate the problem that
@@ -225,9 +227,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try moving the enum to the top-level.");
 
   static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND =
-      const ParserErrorCode('EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
-          "An equality expression can't be an operand of another equality expression.",
-          correction: "Try re-writing the expression.");
+      _EQUALITY_CANNOT_BE_EQUALITY_OPERAND;
 
   static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = const ParserErrorCode(
       'EXPECTED_CASE_OR_DEFAULT', "Expected 'case' or 'default'.",

@@ -310,8 +310,13 @@ String constant = '$buffer';
   List<String> codeArguments = <String>[];
   if (index != null) {
     codeArguments.add('index: $index');
-  }
-  if (analyzerCode != null) {
+  } else if (analyzerCode != null) {
+    // If "index:" is defined, then "analyzerCode:" should not be generated
+    // in the front end. Instead, this field should contain the fully formed
+    // name of the corresponding public Analyzer error const
+    // (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
+    // which will be used when generating code in Analyzer
+    // for translating fasta error codes to Analyzer error codes.
     codeArguments.add('analyzerCode: "$analyzerCode"');
   }
   if (severity != null) {

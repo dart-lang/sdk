@@ -350,7 +350,7 @@ EqualityCannotBeEqualityOperand:
   index: 1
   template: "An equality expression can't be an operand of another equality expression."
   tip: "Try re-writing the expression."
-  analyzerCode: EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  analyzerCode: ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
   script:
     - "main() { var b = a < b < c; }"
     - "main() { var b = a == b != c; }"
