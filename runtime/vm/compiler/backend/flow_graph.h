@@ -325,6 +325,10 @@ class FlowGraph : public ZoneAllocated {
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
 
+  // Attaches new ICData's to static/instance calls which don't already have
+  // them.
+  void PopulateWithICData(const Function& function);
+
   void SelectRepresentations();
 
   void WidenSmiToInt32();

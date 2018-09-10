@@ -2132,6 +2132,46 @@ bool FlowGraph::Canonicalize() {
   return changed;
 }
 
+void FlowGraph::PopulateWithICData(const Function& function) {
+  Zone* zone = Thread::Current()->zone();
+
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone,
+              ICData::New(function, call->function_name(), arguments_descriptor,
+                          call->deopt_id(), call->checked_argument_count(),
+                          ICData::kInstance));
+          call->set_ic_data(&ic_data);
+        }
+      } else if (instr->IsStaticCall()) {
+        StaticCallInstr* call = instr->AsStaticCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
+          const Function& target = call->function();
+          int num_args_checked =
+              MethodRecognizer::NumArgsCheckedForStaticCall(target);
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone, ICData::New(function, String::Handle(zone, target.name()),
+                                arguments_descriptor, call->deopt_id(),
+                                num_args_checked, ICData::kStatic));
+          ic_data.AddTarget(target);
+          call->set_ic_data(&ic_data);
+        }
+      }
+    }
+  }
+}
+
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
 // shift can be a truncating Smi shift-left and result is always Smi.
 // Merging occurs only per basic-block.

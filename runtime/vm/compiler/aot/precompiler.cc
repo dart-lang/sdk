@@ -2678,46 +2678,6 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
-void Precompiler::PopulateWithICData(const Function& function,
-                                     FlowGraph* graph) {
-  Zone* zone = Thread::Current()->zone();
-
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    ForwardInstructionIterator it(block_it.Current());
-    for (; !it.Done(); it.Advance()) {
-      Instruction* instr = it.Current();
-      if (instr->IsInstanceCall()) {
-        InstanceCallInstr* call = instr->AsInstanceCall();
-        if (!call->HasICData()) {
-          const Array& arguments_descriptor =
-              Array::Handle(zone, call->GetArgumentsDescriptor());
-          const ICData& ic_data = ICData::ZoneHandle(
-              zone,
-              ICData::New(function, call->function_name(), arguments_descriptor,
-                          call->deopt_id(), call->checked_argument_count(),
-                          ICData::kInstance));
-          call->set_ic_data(&ic_data);
-        }
-      } else if (instr->IsStaticCall()) {
-        StaticCallInstr* call = instr->AsStaticCall();
-        if (!call->HasICData()) {
-          const Array& arguments_descriptor =
-              Array::Handle(zone, call->GetArgumentsDescriptor());
-          const Function& target = call->function();
-          int num_args_checked =
-              MethodRecognizer::NumArgsCheckedForStaticCall(target);
-          const ICData& ic_data = ICData::ZoneHandle(
-              zone, ICData::New(function, String::Handle(zone, target.name()),
-                                arguments_descriptor, call->deopt_id(),
-                                num_args_checked, ICData::kStatic));
-          ic_data.AddTarget(target);
-          call->set_ic_data(&ic_data);
-        }
-      }
-    }
-  }
-}
 
 void Precompiler::ResetPrecompilerState() {
   changed_ = false;
@@ -2856,8 +2816,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
 
       if (optimized()) {
-        Precompiler::PopulateWithICData(parsed_function()->function(),
-                                        flow_graph);
+        flow_graph->PopulateWithICData(parsed_function()->function());
       }
 
       const bool print_flow_graph =

@@ -293,11 +293,26 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   }
 #endif
 
+#if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
+#define EMIT_BREAKPOINT() compiler->assembler()->Breakpoint()
+#else
+#define EMIT_BREAKPOINT()
+#endif
+
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
-  case MethodRecognizer::k##enum_name:                                         \
+  case MethodRecognizer::k##enum_name: {                                       \
     compiler->assembler()->Comment("Intrinsic");                               \
-    enum_name(compiler->assembler());                                          \
-    break;
+    Label normal_ir_body;                                                      \
+    const auto size_before = compiler->assembler()->CodeSize();                \
+    enum_name(compiler->assembler(), &normal_ir_body);                         \
+    const auto size_after = compiler->assembler()->CodeSize();                 \
+    if (size_before == size_after) return false;                               \
+    if (!normal_ir_body.IsBound()) {                                           \
+      EMIT_BREAKPOINT();                                                       \
+      return true;                                                             \
+    }                                                                          \
+    return false;                                                              \
+  }
 
   switch (function.recognized_kind()) {
     ALL_INTRINSICS_NO_INTEGER_LIB_LIST(EMIT_CASE);
@@ -319,6 +334,8 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
       break;
   }
 #endif
+
+#undef EMIT_BREAKPOINT
 
 #undef EMIT_INTRINSIC
   return false;
@@ -960,12 +977,13 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
+void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler,
+                                         Label* normal_ir_body) {
   if (Isolate::Current()->argument_type_checks()) {
     return;
   }
 
-  ObjectArraySetIndexedUnchecked(assembler);
+  ObjectArraySetIndexedUnchecked(assembler, normal_ir_body);
 }
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
@@ -1222,20 +1240,24 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);
 }
 
-void Intrinsifier::String_identityHash(Assembler* assembler) {
-  String_getHashCode(assembler);
+void Intrinsifier::String_identityHash(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  String_getHashCode(assembler, normal_ir_body);
 }
 
-void Intrinsifier::Double_identityHash(Assembler* assembler) {
-  Double_hashCode(assembler);
+void Intrinsifier::Double_identityHash(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  Double_hashCode(assembler, normal_ir_body);
 }
 
-void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
-  IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/false);
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler,
+                                       Label* normal_ir_body) {
+  IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body, /*sticky=*/false);
 }
 
-void Intrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler) {
-  IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/true);
+void Intrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler,
+                                             Label* normal_ir_body) {
+  IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body, /*sticky=*/true);
 }
 #endif  // !defined(TARGET_ARCH_DBC)
 

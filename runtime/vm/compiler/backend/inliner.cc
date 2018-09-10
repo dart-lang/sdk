@@ -999,8 +999,14 @@ class CallSiteInliner : public ValueObject {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
         if (FLAG_precompiled_mode) {
-          Precompiler::PopulateWithICData(parsed_function->function(),
-                                          callee_graph);
+          callee_graph->PopulateWithICData(parsed_function->function());
+        }
+#else
+        // If we inline a function which is intrinsified without a fall-through
+        // to IR code, we will not have any ICData attached, so we do it
+        // manually here.
+        if (function.is_intrinsic()) {
+          callee_graph->PopulateWithICData(parsed_function->function());
         }
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
     // !defined(TARGET_ARCH_IA32)
