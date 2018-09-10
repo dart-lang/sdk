@@ -386,6 +386,42 @@ defineTests() {
       });
     });
 
+    group('flutter_style_todos', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('on bad TODOs', () async {
+        await cli.run(
+            ['test/_data/flutter_style_todos', '--rules=flutter_style_todos']);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 8:1 [lint] Use Flutter TODO format:',
+              'a.dart 9:1 [lint] Use Flutter TODO format:',
+              'a.dart 10:1 [lint] Use Flutter TODO format:',
+              'a.dart 11:1 [lint] Use Flutter TODO format:',
+              'a.dart 12:1 [lint] Use Flutter TODO format:',
+              'a.dart 13:1 [lint] Use Flutter TODO format:',
+              'a.dart 14:1 [lint] Use Flutter TODO format:',
+              'a.dart 15:1 [lint] Use Flutter TODO format:',
+              'a.dart 16:1 [lint] Use Flutter TODO format:',
+              'a.dart 17:1 [lint] Use Flutter TODO format:',
+              'a.dart 18:1 [lint] Use Flutter TODO format:',
+              '1 file analyzed, 11 issues found, in'
+            ]));
+      });
+    });
+
     group('lines_longer_than_80_chars', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
