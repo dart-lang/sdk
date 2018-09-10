@@ -146,6 +146,9 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
+[ $arch == x64 && $compiler == dartk && $mode == release && $system == windows ]
+regexp_function_test: Crash # Issue http://dartbug.com/34422
+
 [ $compiler == app_jitk && $mode == debug ]
 code_test: RuntimeError
 step_test: RuntimeError
