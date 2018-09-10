@@ -20,7 +20,7 @@ import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'element_map_mixins.dart';
+import 'visitors.dart';
 import 'kelements.dart' show KImport;
 
 /// Environment for fast lookup of component libraries.

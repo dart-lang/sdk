@@ -5,6 +5,7 @@
 library dart2js.kernel.element_map;
 
 import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
+import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -12,7 +13,7 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../compile_time_constants.dart';
@@ -27,13 +28,17 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart';
 import '../js_model/locals.dart';
@@ -43,13 +48,16 @@ import '../options.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../ssa/type_builder.dart';
+import '../universe/call_structure.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
+
+import 'kernel_debug.dart';
 import 'element_map.dart';
-import 'element_map_mixins.dart';
+import 'visitors.dart';
 import 'env.dart';
 import 'indexed.dart';
 import 'kelements.dart';
@@ -86,8 +94,8 @@ abstract class KernelToElementMapImpl {
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable);
 }
 
-abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin
-    implements KernelToElementMapImpl {
+abstract class KernelToElementMapBase
+    implements KernelToElementMap, KernelToElementMapImpl {
   final CompilerOptions options;
   final DiagnosticReporter reporter;
   CommonElements _commonElements;
@@ -124,7 +132,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin
 
   DartTypes get types => _types;
 
-  @override
   ElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
@@ -509,7 +516,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin
         namedParameters, namedParameterTypes, typeVariables);
   }
 
-  @override
   ConstantValue computeConstantValue(
       Spannable spannable, ConstantExpression constant,
       {bool requireConstant: true}) {
@@ -581,7 +587,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin
     return data.getDefaultType(this);
   }
 
-  ClassEntity _getAppliedMixin(IndexedClass cls) {
+  ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     ClassData data = _classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -772,6 +778,330 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin
       // as static type.
       return commonElements.dynamicType;
     }
+  }
+
+  @override
+  Name getName(ir.Name name) {
+    return new Name(
+        name.name, name.isPrivate ? getLibrary(name.library) : null);
+  }
+
+  CallStructure getCallStructure(ir.Arguments arguments) {
+    int argumentCount = arguments.positional.length + arguments.named.length;
+    List<String> namedArguments = arguments.named.map((e) => e.name).toList();
+    return new CallStructure(
+        argumentCount, namedArguments, arguments.types.length);
+  }
+
+  @override
+  Selector getSelector(ir.Expression node) {
+    // TODO(efortuna): This is screaming for a common interface between
+    // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
+    // folks.
+    if (node is ir.PropertyGet) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.SuperPropertyGet) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.PropertySet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.SuperPropertySet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.InvocationExpression) {
+      return getInvocationSelector(node);
+    }
+    throw failedAt(
+        CURRENT_ELEMENT_SPANNABLE,
+        "Can only get the selector for a property get or an invocation: "
+        "${node}");
+  }
+
+  Selector getInvocationSelector(ir.InvocationExpression invocation) {
+    Name name = getName(invocation.name);
+    SelectorKind kind;
+    if (Selector.isOperatorName(name.text)) {
+      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
+        kind = SelectorKind.INDEX;
+      } else {
+        kind = SelectorKind.OPERATOR;
+      }
+    } else {
+      kind = SelectorKind.CALL;
+    }
+
+    CallStructure callStructure = getCallStructure(invocation.arguments);
+    return new Selector(kind, name, callStructure);
+  }
+
+  Selector getGetterSelector(ir.Name irName) {
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+    return new Selector.getter(name);
+  }
+
+  Selector getSetterSelector(ir.Name irName) {
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+    return new Selector.setter(name);
+  }
+
+  /// Looks up [typeName] for use in the spec-string of a `JS` call.
+  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
+  // the `ForeignResolver`.
+  native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+    return resolveAsRaw
+        ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
+        : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
+  }
+
+  native.TypeLookup _cachedTypeLookupRaw;
+  native.TypeLookup _cachedTypeLookupFull;
+
+  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+    bool cachedMayLookupInMain;
+    bool mayLookupInMain() {
+      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
+      // Tests permit lookup outside of dart: libraries.
+      return mainUri.path.contains('tests/compiler/dart2js_native') ||
+          mainUri.path.contains('tests/compiler/dart2js_extra');
+    }
+
+    DartType lookup(String typeName, {bool required}) {
+      DartType findInLibrary(LibraryEntity library) {
+        if (library != null) {
+          ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
+          if (cls != null) {
+            // TODO(johnniwinther): Align semantics.
+            return resolveAsRaw
+                ? elementEnvironment.getRawType(cls)
+                : elementEnvironment.getThisType(cls);
+          }
+        }
+        return null;
+      }
+
+      DartType findIn(Uri uri) {
+        return findInLibrary(elementEnvironment.lookupLibrary(uri));
+      }
+
+      // TODO(johnniwinther): Narrow the set of lookups based on the depending
+      // library.
+      // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      DartType type;
+      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+        type ??= findInLibrary(elementEnvironment.mainLibrary);
+      }
+      type ??= findIn(Uris.dart_core);
+      type ??= findIn(Uris.dart__js_helper);
+      type ??= findIn(Uris.dart__interceptors);
+      type ??= findIn(Uris.dart__native_typed_data);
+      type ??= findIn(Uris.dart_collection);
+      type ??= findIn(Uris.dart_math);
+      type ??= findIn(Uris.dart_html);
+      type ??= findIn(Uris.dart_html_common);
+      type ??= findIn(Uris.dart_svg);
+      type ??= findIn(Uris.dart_web_audio);
+      type ??= findIn(Uris.dart_web_gl);
+      type ??= findIn(Uris.dart_web_sql);
+      type ??= findIn(Uris.dart_indexed_db);
+      type ??= findIn(Uris.dart_typed_data);
+      type ??= findIn(Uris.dart_mirrors);
+      if (type == null && required) {
+        reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+            MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
+      }
+      return type;
+    }
+
+    return lookup;
+  }
+
+  String _getStringArgument(ir.StaticInvocation node, int index) {
+    return node.arguments.positional[index].accept(new Stringifier());
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
+      return new native.NativeBehavior();
+    }
+
+    String codeString = _getStringArgument(node, 1);
+    if (codeString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
+      return new native.NativeBehavior();
+    }
+
+    return native.NativeBehavior.ofJsCall(
+        specString,
+        codeString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new native.NativeBehavior();
+    }
+    return native.NativeBehavior.ofJsBuiltinCall(
+        specString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global expression has no type.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length > 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global has more than 2 arguments.");
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new native.NativeBehavior();
+    }
+    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
+        specString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsGetNameEnum);
+    if (index == null) return null;
+    return namer.getNameForJsGetName(
+        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
+  }
+
+  int _extractEnumIndexFromConstantValue(
+      ConstantValue constant, ClassEntity classElement) {
+    if (constant is ConstructedConstantValue) {
+      if (constant.type.element == classElement) {
+        assert(constant.fields.length == 1 || constant.fields.length == 2);
+        ConstantValue indexConstant = constant.fields.values.first;
+        if (indexConstant is IntConstantValue) {
+          return indexConstant.intValue.toInt();
+        }
+      }
+    }
+    return null;
+  }
+
+  ConstantValue getConstantValue(ir.Expression node,
+      {bool requireConstant: true, bool implicitNull: false}) {
+    ConstantExpression constant;
+    if (node == null) {
+      if (!implicitNull) {
+        throw failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
+      }
+      constant = new NullConstantExpression();
+    } else {
+      constant =
+          new Constantifier(this, requireConstant: requireConstant).visit(node);
+    }
+    if (constant == null) {
+      if (requireConstant) {
+        throw new UnsupportedError(
+            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      }
+      return null;
+    }
+    ConstantValue value = computeConstantValue(
+        computeSourceSpanFromTreeNode(node), constant,
+        requireConstant: requireConstant);
+    if (!value.isConstant && !requireConstant) {
+      return null;
+    }
+    return value;
+  }
+
+  /// Converts [annotations] into a list of [ConstantValue]s.
+  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
+    if (annotations.isEmpty) return const <ConstantValue>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
+    annotations.forEach((ir.Expression node) {
+      metadata.add(getConstantValue(node));
+    });
+    return metadata;
+  }
+
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+    while (cls != null) {
+      cls = elementEnvironment.getSuperClass(cls);
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
+      if (member != null && !member.isAbstract) {
+        if (member.isFunction) {
+          FunctionEntity function = member;
+          if (function.parameterStructure.positionalParameters >= 1) {
+            return function;
+          }
+        }
+        // If [member] is not a valid `noSuchMethod` the target is
+        // `Object.superNoSuchMethod`.
+        break;
+      }
+    }
+    FunctionEntity function = elementEnvironment.lookupLocalClassMember(
+        commonElements.objectClass, Identifiers.noSuchMethod_);
+    assert(function != null,
+        failedAt(cls, "No super noSuchMethod found for class $cls."));
+    return function;
   }
 }
 
@@ -1099,86 +1429,11 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
       {bool isStatic, bool isAssignable, bool isConst});
 }
 
-/// Completes the [ElementCreatorMixin] by creating K-model elements.
-abstract class KElementCreatorMixin implements ElementCreatorMixin {
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new KLibrary(name, canonicalUri);
-  }
-
-  IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
-    return new KClass(library, name, isAbstract: isAbstract);
-  }
-
-  @override
-  IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    return new KTypedef(library, name);
-  }
-
-  TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
-    return new KTypeVariable(typeDeclaration, name, index);
-  }
-
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
-    return new KGenerativeConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal, isConst: isConst);
-  }
-
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
-    return new KFactoryConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal,
-        isConst: isConst,
-        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
-  }
-
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new KGetter(library, enclosingClass, name, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
-    return new KMethod(
-        library, enclosingClass, name, parameterStructure, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new KSetter(library, enclosingClass, name,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
-    return new KField(library, enclosingClass, name,
-        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
-  }
-}
-
 /// Implementation of [KernelToElementMapForImpact] that only supports world
 /// impact computation.
 class KernelToElementMapForImpactImpl extends KernelToElementMapBase
-    with
-        KernelToElementMapForImpactMixin,
-        ElementCreatorMixin,
-        KElementCreatorMixin {
+    with ElementCreatorMixin
+    implements KernelToElementMapForImpact {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
@@ -1223,7 +1478,6 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     _env.addComponent(component);
   }
 
-  @override
   native.BehaviorBuilder get nativeBehaviorBuilder =>
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
@@ -1355,6 +1609,158 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     }
     return null;
   }
+
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  // TODO(johnniwinther): Cache this for later use.
+  bool isNativeClass(ir.Class node) {
+    for (ir.Expression annotation in node.annotations) {
+      if (annotation is ir.ConstructorInvocation) {
+        FunctionEntity target = getConstructor(annotation.target);
+        if (target.enclosingClass == commonElements.nativeAnnotationClass) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Compute the kind of foreign helper function called by [node], if any.
+  ForeignKind getForeignKind(ir.StaticInvocation node) {
+    if (commonElements.isForeignHelper(getMember(node.target))) {
+      switch (node.target.name.name) {
+        case JavaScriptBackend.JS:
+          return ForeignKind.JS;
+        case JavaScriptBackend.JS_BUILTIN:
+          return ForeignKind.JS_BUILTIN;
+        case JavaScriptBackend.JS_EMBEDDED_GLOBAL:
+          return ForeignKind.JS_EMBEDDED_GLOBAL;
+        case JavaScriptBackend.JS_INTERCEPTOR_CONSTANT:
+          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+      }
+    }
+    return ForeignKind.NONE;
+  }
+
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length != 1 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    }
+    ir.Node argument = node.arguments.positional.first;
+    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+      return getInterfaceType(argument.type);
+    }
+    return null;
+  }
+
+  /// Computes the native behavior for reading the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      {bool isJsInterop}) {
+    DartType type = getDartType(field.type);
+    List<ConstantValue> metadata = getMetadata(field.annotations);
+    return nativeBehaviorBuilder.buildFieldLoadBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: isJsInterop);
+  }
+
+  /// Computes the native behavior for writing to the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
+    DartType type = getDartType(field.type);
+    return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
+  }
+
+  /// Computes the native behavior for calling [member].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      {bool isJsInterop}) {
+    DartType type;
+    if (member is ir.Procedure) {
+      type = getFunctionType(member.function);
+    } else if (member is ir.Constructor) {
+      type = getFunctionType(member.function);
+    } else {
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
+    }
+    List<ConstantValue> metadata = getMetadata(member.annotations);
+    return nativeBehaviorBuilder.buildMethodBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: isJsInterop);
+  }
+
+  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
+    return new KLibrary(name, canonicalUri);
+  }
+
+  IndexedClass createClass(LibraryEntity library, String name,
+      {bool isAbstract}) {
+    return new KClass(library, name, isAbstract: isAbstract);
+  }
+
+  @override
+  IndexedTypedef createTypedef(LibraryEntity library, String name) {
+    return new KTypedef(library, name);
+  }
+
+  TypeVariableEntity createTypeVariable(
+      Entity typeDeclaration, String name, int index) {
+    return new KTypeVariable(typeDeclaration, name, index);
+  }
+
+  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst}) {
+    return new KGenerativeConstructor(enclosingClass, name, parameterStructure,
+        isExternal: isExternal, isConst: isConst);
+  }
+
+  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
+    return new KFactoryConstructor(enclosingClass, name, parameterStructure,
+        isExternal: isExternal,
+        isConst: isConst,
+        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
+  }
+
+  IndexedFunction createGetter(LibraryEntity library,
+      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new KGetter(library, enclosingClass, name, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createMethod(
+      LibraryEntity library,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      AsyncMarker asyncMarker,
+      {bool isStatic,
+      bool isExternal,
+      bool isAbstract}) {
+    return new KMethod(
+        library, enclosingClass, name, parameterStructure, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createSetter(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new KSetter(library, enclosingClass, name,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedField createField(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isAssignable, bool isConst}) {
+    return new KField(library, enclosingClass, name,
+        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
+  }
 }
 
 class KernelElementEnvironment extends ElementEnvironment {
@@ -1413,7 +1819,7 @@ class KernelElementEnvironment extends ElementEnvironment {
   ClassEntity getEffectiveMixinClass(ClassEntity cls) {
     if (!isMixinApplication(cls)) return null;
     do {
-      cls = elementMap._getAppliedMixin(cls);
+      cls = elementMap.getAppliedMixin(cls);
     } while (isMixinApplication(cls));
     return cls;
   }
@@ -1879,75 +2285,6 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
-abstract class KernelClosedWorldMixin implements ClosedWorldBase {
-  KernelToElementMapBase get elementMap;
-
-  @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
-    while (cls != null) {
-      MemberEntity member = elementEnvironment.lookupLocalClassMember(
-          cls, selector.name,
-          setter: selector.isSetter);
-      if (member != null &&
-          !member.isAbstract &&
-          (!selector.memberName.isPrivate ||
-              member.library == selector.library)) {
-        return member == element;
-      }
-      cls = elementEnvironment.getSuperClass(cls);
-    }
-    return false;
-  }
-
-  @override
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
-    assert(classHierarchy.isInstantiated(cls),
-        failedAt(cls, '$cls has not been instantiated.'));
-    MemberEntity element = elementEnvironment
-        .lookupClassMember(cls, selector.name, setter: selector.isSetter);
-    if (element == null) return false;
-
-    if (element.isAbstract) {
-      ClassEntity enclosingClass = element.enclosingClass;
-      return hasConcreteMatch(
-          elementEnvironment.getSuperClass(enclosingClass), selector);
-    }
-    return selector.appliesUntyped(element);
-  }
-
-  @override
-  bool isNamedMixinApplication(ClassEntity cls) {
-    return elementMap._isMixinApplication(cls) &&
-        !elementMap._isUnnamedMixinApplication(cls);
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    return elementMap._getAppliedMixin(cls);
-  }
-
-  @override
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    return elementMap.getInterfaces(cls).map((t) => t.element);
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap.getSuperType(cls)?.element;
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    return elementMap.getHierarchyDepth(cls);
-  }
-
-  @override
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
-    return elementMap.getOrderedTypeSet(cls);
-  }
-}
-
 class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final KernelToElementMapForImpactImpl elementMap;
   final ElementEnvironment elementEnvironment;
@@ -2100,7 +2437,6 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
 
 class JsKernelToElementMap extends KernelToElementMapBase
     with
-        KernelToElementMapForBuildingMixin,
         JsElementCreatorMixin,
         // TODO(johnniwinther): Avoid mixing in [ElementCreatorMixin]. The
         // codegen world should be a strict subset of the resolution world and
@@ -2112,7 +2448,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         // library.
         ElementCreatorMixin
     implements
-        KernelToWorldBuilder {
+        KernelToWorldBuilder,
+        KernelToElementMapForBuilding {
   /// Map from members to the call methods created for their nested closures.
   Map<MemberEntity, List<FunctionEntity>> _nestedClosureMap =
       <MemberEntity, List<FunctionEntity>>{};
@@ -2799,6 +3136,14 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   JGeneratorBody createGeneratorBody(
       FunctionEntity function, DartType elementType);
+
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsBuiltinEnum);
+    if (index == null) return null;
+    return emitter.builtinTemplateFor(JsBuiltin.values[index]);
+  }
 }
 
 class KernelClassQueries extends ClassQueries {
@@ -2833,6 +3178,6 @@ class KernelClassQueries extends ClassQueries {
 
   @override
   ClassEntity getAppliedMixin(ClassEntity cls) {
-    return elementMap._getAppliedMixin(cls);
+    return elementMap.getAppliedMixin(cls);
   }
 }

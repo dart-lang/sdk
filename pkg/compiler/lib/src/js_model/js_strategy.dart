@@ -39,6 +39,7 @@ import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
+import '../ordered_typeset.dart';
 import '../options.dart';
 import '../ssa/ssa.dart';
 import '../types/abstract_value_domain.dart';
@@ -615,7 +616,7 @@ class JsClosedWorldBuilder {
   }
 }
 
-class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
+class JsClosedWorld extends ClosedWorldBase {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
@@ -667,6 +668,71 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   @override
   AbstractValueDomain get abstractValueDomain {
     return _abstractValueDomain;
+  }
+
+  @override
+  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+    while (cls != null) {
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, selector.name,
+          setter: selector.isSetter);
+      if (member != null &&
+          !member.isAbstract &&
+          (!selector.memberName.isPrivate ||
+              member.library == selector.library)) {
+        return member == element;
+      }
+      cls = elementEnvironment.getSuperClass(cls);
+    }
+    return false;
+  }
+
+  @override
+  bool hasConcreteMatch(ClassEntity cls, Selector selector,
+      {ClassEntity stopAtSuperclass}) {
+    assert(classHierarchy.isInstantiated(cls),
+        failedAt(cls, '$cls has not been instantiated.'));
+    MemberEntity element = elementEnvironment
+        .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+    if (element == null) return false;
+
+    if (element.isAbstract) {
+      ClassEntity enclosingClass = element.enclosingClass;
+      return hasConcreteMatch(
+          elementEnvironment.getSuperClass(enclosingClass), selector);
+    }
+    return selector.appliesUntyped(element);
+  }
+
+  @override
+  bool isNamedMixinApplication(ClassEntity cls) {
+    return elementMap.elementEnvironment.isMixinApplication(cls) &&
+        !elementMap.elementEnvironment.isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    return elementMap.getAppliedMixin(cls);
+  }
+
+  @override
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    return elementMap.getInterfaces(cls).map((t) => t.element);
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    return elementMap.getSuperType(cls)?.element;
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return elementMap.getHierarchyDepth(cls);
+  }
+
+  @override
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
+    return elementMap.getOrderedTypeSet(cls);
   }
 }
 
