@@ -2512,7 +2512,9 @@ class CompileTimeErrorCode extends ErrorCode {
           'TYPE_PARAMETER_IN_CONST_EXPRESSION');
 
   static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('TYPE_PARAMETER_ON_CONSTRUCTOR');
+      const CompileTimeErrorCode('TYPE_PARAMETER_ON_CONSTRUCTOR',
+          "Constructors can't have type parameters.",
+          correction: "Try removing the type parameters.");
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
