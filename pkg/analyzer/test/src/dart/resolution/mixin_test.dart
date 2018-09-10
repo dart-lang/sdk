@@ -180,6 +180,313 @@ class D = Object with M2;
     assertNoTestErrors();
   }
 
+  test_error_conflictingStaticAndInstance_inClass_getter_getter() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_method() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_setter() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_getter() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_method() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_setter() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_getter() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_method() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_setter() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
   test_error_conflictingTypeVariableAndClass() async {
     addTestFile(r'''
 mixin M<M> {}

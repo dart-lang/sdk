@@ -1035,7 +1035,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
-//      _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
@@ -5708,7 +5707,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 //      _checkForNonAbstractClassInheritsAbstractMember(node.name);
 //      _checkForInconsistentMethodInheritance();
 //      _checkForRecursiveInterfaceInheritance(_enclosingClass);
-//      _checkForConflictingGetterAndMethod();
+      _checkForConflictingClassMembers();
 //      _checkImplementsSuperClass(implementsClause);
 //      _checkForMixinHasNoConstructors(node);
 //      _checkMixinInference(node, onClause);

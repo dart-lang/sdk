@@ -295,6 +295,110 @@ class C {
     assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
+  test_error_conflictingStaticAndInstance_inInterface_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+abstract class B implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+abstract class B implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+abstract class B implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+abstract class B implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+abstract class B implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+abstract class B implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+abstract class B implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+abstract class B implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
   test_error_conflictingStaticAndInstance_inMixin_getter_getter() async {
     addTestFile(r'''
 class A {
