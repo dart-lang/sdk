@@ -14,6 +14,7 @@ import 'package:compiler/compiler_new.dart'
         CompilerOutput,
         Diagnostic,
         PackagesDiscoveryProvider;
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -113,6 +114,7 @@ CompilerImpl compilerFor(
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
+  retainDataForTesting = true;
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri platformBinaries = computePlatformBinariesLocation();
 

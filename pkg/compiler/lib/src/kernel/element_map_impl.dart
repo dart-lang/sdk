@@ -2126,32 +2126,6 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   }
 }
 
-// Interface for testing equivalence of Kernel-based entities.
-class WorldDeconstructionForTesting {
-  final KernelToElementMapBase elementMap;
-
-  WorldDeconstructionForTesting(this.elementMap);
-
-  IndexedClass getSuperclassForClass(IndexedClass cls) {
-    ClassEnv env = elementMap._classes.getEnv(cls);
-    ir.Supertype supertype = env.cls.supertype;
-    if (supertype == null) return null;
-    return elementMap.getClass(supertype.classNode);
-  }
-
-  bool isUnnamedMixinApplication(IndexedClass cls) {
-    return elementMap._isUnnamedMixinApplication(cls);
-  }
-
-  InterfaceType getMixinTypeForClass(IndexedClass cls) {
-    ClassEnv env = elementMap._classes.getEnv(cls);
-    ir.Supertype mixedInType = env.cls.mixedInType;
-    if (mixedInType == null) return null;
-    return elementMap.createInterfaceType(
-        mixedInType.classNode, mixedInType.typeArguments);
-  }
-}
-
 class KernelNativeMemberResolver extends NativeMemberResolverBase {
   final KernelToElementMapForImpactImpl elementMap;
   final NativeBasicData nativeBasicData;

@@ -4,6 +4,7 @@
 
 library js_backend.runtime_types;
 
+import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
@@ -21,8 +22,6 @@ import '../world.dart' show JClosedWorld, KClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 import 'native_data.dart';
-
-bool cacheRtiDataForTesting = false;
 
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
@@ -1737,7 +1736,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         if (methodsNeedingTypeArguments.contains(target) ||
             localFunctionsNeedingTypeArguments.contains(target)) {
           selectorsNeedingTypeArguments.add(selector);
-          if (cacheRtiDataForTesting) {
+          if (retainDataForTesting) {
             selectorsNeedingTypeArgumentsForTesting ??=
                 <Selector, Set<Entity>>{};
             selectorsNeedingTypeArgumentsForTesting
@@ -1759,7 +1758,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           // expression.
           instantiationsNeedingTypeArguments
               .add(instantiation.typeArguments.length);
-          if (cacheRtiDataForTesting) {
+          if (retainDataForTesting) {
             instantiationsNeedingTypeArgumentsForTesting ??=
                 <GenericInstantiation, Set<Entity>>{};
             instantiationsNeedingTypeArgumentsForTesting
@@ -1772,7 +1771,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       }
     });
 
-    if (cacheRtiDataForTesting) {
+    if (retainDataForTesting) {
       typeVariableTestsForTesting = typeVariableTests;
     }
 
@@ -1890,7 +1889,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
-    if (cacheRtiDataForTesting) {
+    if (retainDataForTesting) {
       classUseMapForTesting = classUseMap;
     }
 

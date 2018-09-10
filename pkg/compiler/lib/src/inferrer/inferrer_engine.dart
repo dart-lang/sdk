@@ -251,8 +251,6 @@ abstract class InferrerEngine {
 }
 
 class InferrerEngineImpl extends InferrerEngine {
-  static bool retainDataForTesting = false;
-
   final Map<Local, TypeInformation> defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();

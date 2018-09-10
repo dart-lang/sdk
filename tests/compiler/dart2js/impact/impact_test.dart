@@ -7,7 +7,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
@@ -34,11 +33,6 @@ class Tags {
 
 class ImpactDataComputer extends DataComputer {
   const ImpactDataComputer();
-
-  @override
-  void setup() {
-    ImpactCacheDeleter.retainCachesForTesting = true;
-  }
 
   @override
   void computeMemberData(

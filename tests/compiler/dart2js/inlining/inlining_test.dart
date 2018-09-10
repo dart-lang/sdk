@@ -29,11 +29,6 @@ main(List<String> args) {
 class InliningDataComputer extends DataComputer {
   const InliningDataComputer();
 
-  @override
-  void setup() {
-    JavaScriptBackend.cacheCodegenImpactForTesting = true;
-  }
-
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.

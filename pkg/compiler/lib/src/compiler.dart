@@ -10,8 +10,7 @@ import 'package:front_end/src/fasta/scanner.dart' show StringToken;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
-import 'common/names.dart' show Selectors;
-import 'common/names.dart' show Uris;
+import 'common/names.dart' show Selectors, Uris;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -332,7 +331,9 @@ abstract class Compiler {
     assert(mainFunction != null);
 
     JClosedWorld closedWorld = closeResolution(mainFunction);
-    backendClosedWorldForTesting = closedWorld;
+    if (retainDataForTesting) {
+      backendClosedWorldForTesting = closedWorld;
+    }
     return closedWorld;
   }
 
@@ -917,15 +918,13 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
   final Map<Entity, WorldImpact> _impactCache;
   _MapImpactCacheDeleter(this._impactCache);
 
-  bool retainCachesForTesting = false;
-
   void uncacheWorldImpact(Entity element) {
-    if (retainCachesForTesting) return;
+    if (retainDataForTesting) return;
     _impactCache.remove(element);
   }
 
   void emptyCache() {
-    if (retainCachesForTesting) return;
+    if (retainDataForTesting) return;
     _impactCache.clear();
   }
 }

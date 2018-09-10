@@ -20,7 +20,6 @@ import '../helpers/program_lookup.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    cacheRtiDataForTesting = true;
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(dataDir, const RtiEmissionDataComputer(),
@@ -89,11 +88,6 @@ abstract class ComputeValueMixin {
 
 class RtiEmissionDataComputer extends DataComputer {
   const RtiEmissionDataComputer();
-
-  @override
-  void setup() {
-    cacheRtiDataForTesting = true;
-  }
 
   @override
   bool get computesClassData => true;

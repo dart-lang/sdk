@@ -5,32 +5,22 @@
 library compiler_helper;
 
 import 'dart:async';
-import "package:expect/expect.dart";
-
 import 'package:compiler/compiler_new.dart';
-
 import 'package:compiler/src/common_elements.dart';
-
 import 'package:compiler/src/elements/entities.dart';
-
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
-
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/world.dart';
+import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:expect/expect.dart';
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'memory_compiler.dart';
+import 'output_collector.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
 export 'package:compiler/src/util/util.dart';
-
-import 'package:compiler/src/world.dart';
-
-import 'package:compiler/src/compiler.dart' show Compiler;
-
-import 'package:front_end/src/fasta/util/link.dart' show Link;
-
-import 'memory_compiler.dart';
-
-import 'output_collector.dart';
 export 'output_collector.dart';
 
 /// Compile [code] and returns either the code for [methodName] or, if

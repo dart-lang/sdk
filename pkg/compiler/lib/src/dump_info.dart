@@ -290,7 +290,7 @@ class ElementInfoCollector {
 
     String inferredReturnType = '${_resultOfMember(function).returnType}';
     String sideEffects =
-        '${compiler.globalInference.resultsForTesting.inferredData.getSideEffectsOfElement(function)}';
+        '${_globalInferenceResults.inferredData.getSideEffectsOfElement(function)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;

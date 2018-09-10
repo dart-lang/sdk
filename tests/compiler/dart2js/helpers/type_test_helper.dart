@@ -8,10 +8,10 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
@@ -30,21 +30,17 @@ class TypeEnvironment {
       bool testBackendWorld: false,
       List<String> options: const <String>[],
       Map<String, String> fieldTypeMap: const <String, String>{}}) async {
-    Uri uri;
-    Compiler compiler;
-    memory.DiagnosticCollector collector;
-    collector = new memory.DiagnosticCollector();
-    uri = Uri.parse('memory:main.dart');
+    memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
+    Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
         entryPoint: uri,
         memorySourceFiles: {'main.dart': source},
         options: [Flags.disableTypeInference]..addAll(options),
         diagnosticHandler: collector,
         beforeRun: (compiler) {
-          ImpactCacheDeleter.retainCachesForTesting = true;
           compiler.stopAfterTypeInference = true;
         });
-    compiler = result.compiler;
+    Compiler compiler = result.compiler;
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');

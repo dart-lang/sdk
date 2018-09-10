@@ -9,7 +9,6 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
@@ -28,11 +27,6 @@ main(List<String> args) {
 
 class CallersDataComputer extends DataComputer {
   const CallersDataComputer();
-
-  @override
-  void setup() {
-    InferrerEngineImpl.retainDataForTesting = true;
-  }
 
   @override
   void computeMemberData(

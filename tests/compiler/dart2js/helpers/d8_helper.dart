@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
 import 'package:expect/expect.dart';
@@ -38,6 +39,7 @@ Future<D8Result> runWithD8(
     String expectedOutput,
     bool printJs: false,
     bool printSteps: false}) async {
+  retainDataForTesting = true;
   entryPoint ??= Uri.parse('memory:main.dart');
   Uri mainFile =
       await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);

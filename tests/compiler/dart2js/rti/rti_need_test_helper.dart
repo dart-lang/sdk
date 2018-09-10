@@ -28,7 +28,6 @@ main(List<String> args) {
 }
 
 runTests(List<String> args, [int shardIndex]) {
-  cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
@@ -231,11 +230,6 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
 
 class RtiNeedDataComputer extends DataComputer {
   const RtiNeedDataComputer();
-
-  @override
-  void setup() {
-    cacheRtiDataForTesting = true;
-  }
 
   @override
   bool get computesClassData => true;

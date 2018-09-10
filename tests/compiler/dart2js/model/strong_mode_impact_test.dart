@@ -4,10 +4,10 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -71,7 +71,7 @@ main() {
     'method13': new Impact(implicitCasts: ['int'], parameterChecks: ['String']),
   };
 
-  ImpactCacheDeleter.retainCachesForTesting = true;
+  retainDataForTesting = true;
   CompilationResult result =
       await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);

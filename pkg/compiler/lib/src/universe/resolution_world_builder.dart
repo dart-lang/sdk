@@ -985,7 +985,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "${_classHierarchyBuilder.classHierarchyNodes} vs "
         "${_classHierarchyBuilder.classSets}");
-    return _closedWorldCache = new KClosedWorldImpl(_elementMap,
+    KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
@@ -1006,6 +1006,10 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: _classHierarchyBuilder.classHierarchyNodes,
         classSets: _classHierarchyBuilder.classSets);
+    if (retainDataForTesting) {
+      _closedWorldCache = closedWorld;
+    }
+    return closedWorld;
   }
 
   @override

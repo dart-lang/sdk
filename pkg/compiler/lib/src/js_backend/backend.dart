@@ -666,7 +666,6 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
-  static bool cacheCodegenImpactForTesting = false;
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
   WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
@@ -700,7 +699,7 @@ class JavaScriptBackend {
       }
       generatedCode[element] = function;
     }
-    if (cacheCodegenImpactForTesting) {
+    if (retainDataForTesting) {
       codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
       codegenImpactsForTesting[element] = work.registry.worldImpact;
     }
