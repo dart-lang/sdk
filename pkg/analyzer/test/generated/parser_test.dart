@@ -908,6 +908,25 @@ Function(int, String) v;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_get_static_namedAsClass() {
+    createParser('static int get C => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new TypeMatcher<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_get_type() {
     createParser('int get() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -938,44 +957,6 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_get_static_namedAsClass() {
-    createParser('static int get C => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_set_static_namedAsClass() {
-    createParser('static void set C(_) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
@@ -1188,6 +1169,25 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_set_static_namedAsClass() {
+    createParser('static void set C(_) {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new TypeMatcher<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
@@ -3946,6 +3946,15 @@ class Wrong<T> {
     StringLiteral literal = parseExpression("'\\x0'",
         errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)]);
     expectNotNullIfNoErrors(literal);
+  }
+
+  void test_invalidInlineFunctionType() {
+    parseCompilationUnit(
+      'typedef F = int Function(int a());',
+      errors: [
+        expectedError(CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 30, 1)
+      ],
+    );
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {

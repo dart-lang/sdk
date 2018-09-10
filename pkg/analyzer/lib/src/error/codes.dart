@@ -1488,6 +1488,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "The name of a factory constructor must be the same as the name of "
           "the immediately enclosing class.");
 
+  static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
+      const CompileTimeErrorCode('INVALID_INLINE_FUNCTION_TYPE',
+          "Inline function types cannot be used for parameters in a generic function type.",
+          correction:
+              "Try using a generic function type (returnType 'Function(' parameters ')').");
+
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level
    * function or variable initializer, in a factory constructor, or in a static

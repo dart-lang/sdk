@@ -324,6 +324,10 @@ class FastaErrorReporter {
             length,
             [type1, type2]);
         return;
+      case "INVALID_INLINE_FUNCTION_TYPE":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, offset, length);
+        return;
       case "INVALID_LITERAL_IN_CONFIGURATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);

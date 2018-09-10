@@ -176,6 +176,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_INITIALIZER,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+  CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,

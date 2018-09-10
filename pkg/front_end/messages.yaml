@@ -1035,8 +1035,9 @@ GeneratorReturnsValue:
   analyzerCode: RETURN_IN_GENERATOR
 
 InvalidInlineFunctionType:
-  template: "Invalid inline function type."
+  template: "Inline function types cannot be used for parameters in a generic function type."
   tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
+  analyzerCode: INVALID_INLINE_FUNCTION_TYPE
   declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:

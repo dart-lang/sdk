@@ -211,7 +211,6 @@ InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
 InvalidInitializer/example: Fail
-InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidUseOfNullAwareAccess/example: Fail

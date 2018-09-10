@@ -4647,7 +4647,9 @@ const Code<Null> codeInvalidInlineFunctionType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInlineFunctionType = const MessageCode(
     "InvalidInlineFunctionType",
-    message: r"""Invalid inline function type.""",
+    analyzerCode: "INVALID_INLINE_FUNCTION_TYPE",
+    message:
+        r"""Inline function types cannot be used for parameters in a generic function type.""",
     tip:
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
