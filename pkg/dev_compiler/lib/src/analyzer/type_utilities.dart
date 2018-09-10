@@ -18,15 +18,26 @@ Set<TypeParameterElement> freeTypeParameters(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.element);
     } else if (t is FunctionType) {
-      // Visit type arguments of typedefs, because we use these when we're
-      // emitting the type.
       if (t.name != '' && t.name != null) {
+        // For a typedef type like `Foo<T>`, we only need to check if the
+        // type argument `T` has or is a free type parameter.
+        //
+        // For example, if `Foo` is a typedef type and `S` is a type parameter,
+        // then the type `Foo<List<S>>` has `S` as its free type parameter,
+        // regardless of what function is declared by the typedef.
+        //
+        // Also we need to find free type parameters whether or not they're
+        // actually used by the typedef's function type (for example,
+        // `typedef Foo<T> = int Function()` does not use `T`). So we must visit
+        // the type arguments, instead of the substituted parameter and return
+        // types.
         t.typeArguments.forEach(find);
+      } else {
+        find(t.returnType);
+        t.parameters.forEach((p) => find(p.type));
+        t.typeFormals.forEach((p) => find(p.bound));
+        t.typeFormals.forEach(result.remove);
       }
-      find(t.returnType);
-      t.parameters.forEach((p) => find(p.type));
-      t.typeFormals.forEach((p) => find(p.bound));
-      t.typeFormals.forEach(result.remove);
     } else if (t is InterfaceType) {
       t.typeArguments.forEach(find);
     }

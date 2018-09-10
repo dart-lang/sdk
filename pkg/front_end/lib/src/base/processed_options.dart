@@ -361,6 +361,13 @@ class ProcessedOptions {
     return _inputSummariesComponents;
   }
 
+  void set inputSummariesComponents(List<Component> components) {
+    if (_inputSummariesComponents != null) {
+      throw new StateError("inputSummariesComponents already loaded.");
+    }
+    _inputSummariesComponents = components;
+  }
+
   /// Load each of the [CompilerOptions.linkedDependencies] components.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {

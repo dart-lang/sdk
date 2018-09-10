@@ -1582,7 +1582,14 @@ class ProgramCompiler extends Object
 
     var savedUri = _currentUri;
     for (var m in c.procedures) {
-      _currentUri = m.fileUri ?? savedUri;
+      // For the Dart SDK, we use the member URI because it may be different
+      // from the class (because of patch files). User code does not need this.
+      //
+      // TODO(jmesserly): CFE has a bug(?) where nSM forwarders sometimes have a
+      // bogus file URI, that is mismatched compared to the offsets. This causes
+      // a crash when we look up the location. So for those forwarders, we just
+      // suppress source spans.
+      _currentUri = m.isNoSuchMethodForwarder ? null : (m.fileUri ?? savedUri);
       if (_isForwardingStub(m)) {
         // TODO(jmesserly): is there any other kind of forwarding stub?
         jsMethods.addAll(_emitCovarianceCheckStub(m));

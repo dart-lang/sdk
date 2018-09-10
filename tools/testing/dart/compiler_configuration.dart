@@ -497,7 +497,11 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    var sdkSummaryFile = useKernel ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+    // TODO(jmesserly): restore testing on this once we have everyone migrated
+    // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
+    // summaries to Kernel IL.
+    final useDillFormat = false;
+    var sdkSummaryFile = useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
     var sdkSummary = new Path(_configuration.buildDirectory)
         .append("/gen/utils/dartdevc/$sdkSummaryFile")
         .absolute
@@ -534,8 +538,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var pkgDir = useKernel ? 'pkg_kernel' : 'pkg';
-    var pkgExtension = useKernel ? 'dill' : 'sum';
+    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
+    var pkgExtension = useDillFormat ? 'dill' : 'sum';
     for (var package in testPackages) {
       args.add("-s");
 
