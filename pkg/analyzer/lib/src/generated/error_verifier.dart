@@ -1926,6 +1926,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             if (_checkForMixinSuperclassConstraints(mixinName, mixinElement)) {
               problemReported = true;
             }
+            if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
+              problemReported = true;
+            }
           } else {
             if (_checkForMixinClassDeclaresConstructor(
                 mixinName, mixinElement)) {
@@ -4261,6 +4264,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
             mixinName.name,
             [constraint.displayName]);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Check that the [_enclosingClass] has concrete implementations of all
+  /// the super-invoked members of the [mixinElement].
+  bool _checkForMixinSuperInvokedMembers(
+      TypeName mixinName, ClassElementImpl mixinElement) {
+    for (var name in mixinElement.superInvokedNames) {
+      if (_enclosingClass.lookUpInheritedConcreteMember(
+              name, _currentLibrary) ==
+          null) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+            mixinName.name,
+            [name]);
         return true;
       }
     }

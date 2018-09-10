@@ -1651,6 +1651,21 @@ class CompileTimeErrorCode extends ErrorCode {
           "The class doesn't implement the required class '{0}'.");
 
   /**
+   * It's a compile-time error to apply a mixin containing super-invocations to
+   * a class that doesn't have a concrete implementation of the super-invoked
+   * members compatible with the super-constraint interface.
+   *
+   * Parameters:
+   * 0: the display name of the member without a concrete implementation
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER =
+      const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+          "The class doesn't have a concrete implementation of the "
+          "super-invoked member '{0}'.");
+
+  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *

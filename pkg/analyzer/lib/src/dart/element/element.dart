@@ -219,6 +219,16 @@ abstract class AbstractClassElementImpl extends ElementImpl
               getter.isAccessibleIn(library) &&
               getter.enclosingElement != this));
 
+  ExecutableElement lookUpInheritedConcreteMember(
+      String name, LibraryElement library) {
+    if (name.endsWith('=')) {
+      return lookUpInheritedConcreteSetter(name, library);
+    } else {
+      return lookUpInheritedConcreteMethod(name, library) ??
+          lookUpInheritedConcreteGetter(name, library);
+    }
+  }
+
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
@@ -897,6 +907,13 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return offset;
   }
+
+  /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  List<String> get superInvokedNames => const <String>[];
 
   @override
   InterfaceType get supertype {
@@ -6603,6 +6620,13 @@ class MixinElementImpl extends ClassElementImpl {
   List<InterfaceType> _superclassConstraints;
 
   /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  List<String> _superInvokedNames;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -6652,6 +6676,23 @@ class MixinElementImpl extends ClassElementImpl {
     // only store superclass constraints if we are using the old task model.
     if (_unlinkedClass == null) {
       _superclassConstraints = superclassConstraints;
+    }
+  }
+
+  @override
+  List<String> get superInvokedNames {
+    if (_superInvokedNames == null) {
+      if (_unlinkedClass != null) {
+        _superInvokedNames = _unlinkedClass.superInvokedNames;
+      }
+    }
+    return _superInvokedNames ?? const <String>[];
+  }
+
+  void set superInvokedNames(List<String> superInvokedNames) {
+    _assertNotResynthesized(_unlinkedClass);
+    if (_unlinkedClass == null) {
+      _superInvokedNames = superInvokedNames;
     }
   }
 

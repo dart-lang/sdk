@@ -258,6 +258,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is PrefixExpression) {
       return node.staticElement;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

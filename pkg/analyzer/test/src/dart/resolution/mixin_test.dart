@@ -783,6 +783,80 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int get foo;
+}
+
+mixin M on A {
+  void bar() {
+    super.foo;
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_method() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_notInvoked() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() async {
+    addTestFile(r'''
+abstract class A {
+  void set foo(_);
+}
+
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
   test_error_mixinApplicationNotImplementedInterface() async {
     addTestFile(r'''
 class A {}
@@ -1178,7 +1252,29 @@ mixin A on A {}
     ]);
   }
 
-  test_superInvocation() async {
+  test_superInvocation_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void bar() {
+    super.foo;
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var access = findNode.propertyAccess('super.foo;');
+    assertElement(access, findElement.getter('foo'));
+    assertType(access, 'int');
+  }
+
+  test_superInvocation_method() async {
     addTestFile(r'''
 class A {
   void foo(int x) {}
@@ -1189,6 +1285,8 @@ mixin M on A {
     super.foo(42);
   }
 }
+
+class X extends A with M {}
 ''');
     await resolveTestFile();
     assertNoTestErrors();
@@ -1198,8 +1296,52 @@ mixin M on A {
     assertInvokeType(invocation, '(int) → void');
     assertType(invocation, 'void');
   }
+
+  test_superInvocation_setter() async {
+    addTestFile(r'''
+class A {
+  void set foo(_) {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var access = findNode.propertyAccess('super.foo = 0');
+    assertElement(access, findElement.setter('foo'));
+    // Hm... Does it need any type?
+    assertTypeDynamic(access);
+  }
 }
 
 @reflectiveTest
 class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {}
+    with MixinResolutionMixin {
+  @override
+  @failingTest
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() {
+    return super
+        .test_error_mixinApplicationNoConcreteSuperInvokedMember_getter();
+  }
+
+  @override
+  @failingTest
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_method() {
+    return super
+        .test_error_mixinApplicationNoConcreteSuperInvokedMember_method();
+  }
+
+  @override
+  @failingTest
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() {
+    return super
+        .test_error_mixinApplicationNoConcreteSuperInvokedMember_setter();
+  }
+}

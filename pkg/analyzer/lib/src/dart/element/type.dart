@@ -1697,6 +1697,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1843,6 +1849,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       String setterName, LibraryElement library) {
     for (InterfaceType mixin in mixins.reversed) {
       PropertyAccessorElement element = mixin.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
