@@ -669,7 +669,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-${system}-${mode}-${arch}"
+            "-ndartkp-${system}-${mode}-${arch}",
+            "-v"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -695,7 +696,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-obfuscate-${system}-${mode}-${arch}"
+            "-ndartkp-obfuscate-${system}-${mode}-${arch}",
+            "-v"
           ],
           "fileset": "vm-kernel",
           "shards": 10
