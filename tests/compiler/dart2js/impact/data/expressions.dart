@@ -70,7 +70,7 @@ main() {
 testNot() => !false;
 
 /*element: testUnaryMinus:
- dynamic=[unary-],
+ dynamic=[int.unary-],
  type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
 */
 testUnaryMinus() => -1;

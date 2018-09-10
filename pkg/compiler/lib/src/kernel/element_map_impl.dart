@@ -2272,11 +2272,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedLibrary newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] =
           _libraries.register<IndexedLibrary, LibraryData, LibraryEnv>(
-              newLibrary,
-              data.copy(),
-              useStrongModeWorldStrategy
-                  ? env.copyLive(_elementMap, liveMembers)
-                  : env);
+              newLibrary, data.copy(), env.copyLive(_elementMap, liveMembers));
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
     }
     for (int classIndex = 0;
@@ -2289,11 +2285,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       LibraryEntity newLibrary = _libraries.getEntity(oldLibrary.libraryIndex);
       IndexedClass newClass = convertClass(newLibrary, oldClass);
       _classMap[env.cls] = _classes.register(
-          newClass,
-          data.copy(),
-          useStrongModeWorldStrategy
-              ? env.copyLive(_elementMap, liveMembers)
-              : env);
+          newClass, data.copy(), env.copyLive(_elementMap, liveMembers));
       assert(newClass.classIndex == oldClass.classIndex);
     }
     for (int typedefIndex = 0;
@@ -2320,7 +2312,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         memberIndex < _elementMap._members.length;
         memberIndex++) {
       IndexedMember oldMember = _elementMap._members.getEntity(memberIndex);
-      if (useStrongModeWorldStrategy && !liveMembers.contains(oldMember)) {
+      if (!liveMembers.contains(oldMember)) {
         _members.skipIndex(oldMember.memberIndex);
         continue;
       }

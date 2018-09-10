@@ -1098,9 +1098,10 @@ class CommonElements {
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');
 
-  FunctionEntity _extractTypeArguments;
-  FunctionEntity get extractTypeArguments => _extractTypeArguments ??=
-      _findLibraryMember(internalLibrary, 'extractTypeArguments');
+  bool isExtractTypeArguments(FunctionEntity member) {
+    return member.name == 'extractTypeArguments' &&
+        member.library == internalLibrary;
+  }
 
   FunctionEntity get toStringForNativeObject =>
       _findHelperFunction('toStringForNativeObject');

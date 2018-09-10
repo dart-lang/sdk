@@ -3293,7 +3293,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (function == _commonElements.extractTypeArguments &&
+    if (_commonElements.isExtractTypeArguments(function) &&
         handleExtractTypeArguments(node, sourceInformation)) {
       return;
     }

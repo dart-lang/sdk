@@ -42,11 +42,13 @@ testClassSets() async {
     print('---- testing $instantiated ---------------------------------------');
     StringBuffer main = new StringBuffer();
     main.writeln(CLASSES);
-    main.write('main() {');
+    main.writeln('main() {');
+    main.writeln('  dynamic d;');
+    main.writeln('  d.foo(); d.bar(); d.baz();');
     for (String cls in instantiated) {
-      main.write('new $cls();');
+      main.writeln('  new $cls();');
     }
-    main.write('}');
+    main.writeln('}');
     testMode = '$instantiated';
 
     var env =

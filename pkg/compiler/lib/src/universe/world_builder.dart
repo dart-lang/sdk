@@ -112,47 +112,6 @@ abstract class SelectorConstraintsStrategy {
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
 }
 
-class OpenWorldStrategy implements SelectorConstraintsStrategy {
-  const OpenWorldStrategy();
-
-  OpenWorldConstraints createSelectorConstraints(Selector selector) {
-    return new OpenWorldConstraints();
-  }
-
-  @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world) {
-    Selector selector = dynamicUse.selector;
-    return selector.appliesUnnamed(member);
-  }
-}
-
-class OpenWorldConstraints extends UniverseSelectorConstraints {
-  bool isAll = false;
-
-  @override
-  bool applies(MemberEntity element, Selector selector, World world) => isAll;
-
-  @override
-  bool needsNoSuchMethodHandling(Selector selector, World world) => isAll;
-
-  @override
-  bool addReceiverConstraint(Object constraint) {
-    if (isAll) return false;
-    isAll = true;
-    return true;
-  }
-
-  String toString() {
-    if (isAll) {
-      return '<all>';
-    } else {
-      return '<none>';
-    }
-  }
-}
-
-bool useStrongModeWorldStrategy = false;
-
 /// Open world strategy that constrains instance member access to subtypes of
 /// the static type of the receiver.
 ///

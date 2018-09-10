@@ -614,9 +614,7 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
-            useStrongModeWorldStrategy
-                ? const StrongModeWorldStrategy()
-                : const OpenWorldStrategy(),
+            const StrongModeWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(

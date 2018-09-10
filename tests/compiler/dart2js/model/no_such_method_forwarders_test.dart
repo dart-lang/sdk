@@ -98,6 +98,8 @@ main() {
   new F3();
   new G3();
   new H3();
+  dynamic d;
+  d.method();
 }
 ''';
 

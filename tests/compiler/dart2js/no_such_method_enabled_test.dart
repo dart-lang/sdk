@@ -44,8 +44,10 @@ class NoSuchMethodTest {
 
 const List<NoSuchMethodTest> TESTS = const <NoSuchMethodTest>[
   const NoSuchMethodTest("""
-class A {
-  foo() => 3;
+abstract class I {
+  foo();
+}
+class A implements I {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 main() {
@@ -55,8 +57,10 @@ main() {
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
   const NoSuchMethodTest("""
-class A extends B {
-  foo() => 3;
+abstract class I {
+  foo();
+}
+class A extends B implements I {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 class B {}
@@ -67,8 +71,10 @@ main() {
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
   const NoSuchMethodTest("""
-class A extends B {
-  foo() => 3;
+abstract class I {
+  foo();
+}
+class A extends B implements I {
   noSuchMethod(x) {
     return super.noSuchMethod(x);
   }
@@ -81,8 +87,10 @@ main() {
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
   const NoSuchMethodTest("""
-class A extends B {
-  foo() => 3;
+abstract class I {
+  foo();
+}
+class A extends B implements I {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 class B {
@@ -97,8 +105,10 @@ main() {
     const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
   ]),
   const NoSuchMethodTest("""
-class A extends B {
-  foo() => 3;
+abstract class I {
+  foo();
+}
+class A extends B implements I {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 class B {
@@ -123,15 +133,31 @@ main() {
     const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
   ], isNoSuchMethodUsed: true),
   const NoSuchMethodTest("""
-class A {
+abstract class I {
+  foo();
+}
+class A implements I {
   noSuchMethod(x, [y]) => super.noSuchMethod(x);
 }
 main() {
-  print((new A() as dynamic).foo());
+  print(new A().foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
+  const NoSuchMethodTest("""
+abstract class I {
+  foo();
+}
+class A implements I {
+  noSuchMethod(x, [y]) => super.noSuchMethod(y);
+}
+main() {
+  print(new A().foo());
+}
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+  ], isNoSuchMethodUsed: true),
   const NoSuchMethodTest("""
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x) + y;
@@ -180,15 +206,31 @@ main() {
     const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
   ], isNoSuchMethodUsed: true),
   const NoSuchMethodTest("""
-class A {
+abstract class I {
+  foo();
+}
+class A implements I {
   noSuchMethod(x) => super.noSuchMethod(x) as dynamic;
 }
 main() {
-  print((new A() as dynamic).foo());
+  print(new A().foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
+  const NoSuchMethodTest("""
+abstract class I {
+  foo();
+}
+class A implements I {
+  noSuchMethod(x) => super.noSuchMethod(x) as int;
+}
+main() {
+  print(new A().foo());
+}
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+  ], isNoSuchMethodUsed: true),
 ];
 
 main() {
@@ -198,6 +240,7 @@ main() {
       print(test.code);
       CompilationResult result =
           await runCompiler(memorySourceFiles: {'main.dart': test.code});
+      Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
       checkTest(compiler, test);
     }

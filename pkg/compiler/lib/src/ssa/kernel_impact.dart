@@ -388,7 +388,7 @@ class KernelImpactBuilder extends ir.Visitor {
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
       List<DartType> typeArguments = _visitArguments(node.arguments);
-      if (target == commonElements.extractTypeArguments) {
+      if (commonElements.isExtractTypeArguments(target)) {
         _handleExtractTypeArguments(node, target, typeArguments);
         return;
       }
@@ -487,14 +487,11 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
     List<DartType> typeArguments = _visitArguments(node.arguments);
+    MemberEntity member = elementMap.getMember(node.target);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
-    Object constraint;
-    MemberEntity member = elementMap.getMember(node.target);
-    if (useStrongModeWorldStrategy) {
-      // TODO(johnniwinther): Restrict this to subclasses?
-      constraint = new StrongModeConstraint(member.enclosingClass);
-    }
+    // TODO(johnniwinther): Restrict this to subclasses?
+    Object constraint = new StrongModeConstraint(member.enclosingClass);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.call(
             member.memberName, elementMap.getCallStructure(node.arguments)),
@@ -592,27 +589,45 @@ class KernelImpactBuilder extends ir.Visitor {
           new ConstrainedDynamicUse(selector, null, typeArguments));
     } else {
       visitNode(node.receiver);
-      Object constraint;
-      if (useStrongModeWorldStrategy) {
+
+      ir.Member interfaceTarget = node.interfaceTarget;
+      if (interfaceTarget == null) {
+        // TODO(johnniwinther): Avoid treating a known function call as a
+        // dynamic call when CFE provides a way to distinguish the two.
+        impactBuilder.registerDynamicUse(
+            new ConstrainedDynamicUse(selector, null, typeArguments));
+        if (operatorFromString(node.name.name) == null) {
+          impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+              selector.toCallSelector(), null, typeArguments));
+        }
+      } else {
+        Object constraint;
         DartType receiverType = elementMap.getStaticType(node.receiver);
         if (receiverType is InterfaceType) {
           constraint = new StrongModeConstraint(receiverType.element);
         }
-      }
 
-      impactBuilder.registerDynamicUse(
-          new ConstrainedDynamicUse(selector, constraint, typeArguments));
-
-      ir.Member interfaceTarget = node.interfaceTarget;
-      if (operatorFromString(node.name.name) == null) {
-        if (interfaceTarget == null ||
-            interfaceTarget is ir.Field ||
+        if (interfaceTarget is ir.Field ||
             interfaceTarget is ir.Procedure &&
                 interfaceTarget.kind == ir.ProcedureKind.Getter) {
+          impactBuilder.registerDynamicUse(
+              new ConstrainedDynamicUse(selector, constraint, typeArguments));
           // An `o.foo()` invocation is (potentially) an `o.foo.call()`
           // invocation.
+          Object getterConstraint;
+          if (interfaceTarget != null) {
+            DartType receiverType =
+                elementMap.getDartType(interfaceTarget.getterType);
+            if (receiverType is InterfaceType) {
+              getterConstraint = new StrongModeConstraint(receiverType.element);
+            }
+          }
+
           impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-              selector.toCallSelector(), null, typeArguments));
+              selector.toCallSelector(), getterConstraint, typeArguments));
+        } else {
+          impactBuilder.registerDynamicUse(
+              new ConstrainedDynamicUse(selector, constraint, typeArguments));
         }
       }
     }
@@ -622,11 +637,9 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitPropertyGet(ir.PropertyGet node) {
     visitNode(node.receiver);
     Object constraint;
-    if (useStrongModeWorldStrategy) {
-      DartType receiverType = elementMap.getStaticType(node.receiver);
-      if (receiverType is InterfaceType) {
-        constraint = new StrongModeConstraint(receiverType.element);
-      }
+    DartType receiverType = elementMap.getStaticType(node.receiver);
+    if (receiverType is InterfaceType) {
+      constraint = new StrongModeConstraint(receiverType.element);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
@@ -663,11 +676,9 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(node.receiver);
     visitNode(node.value);
     Object constraint;
-    if (useStrongModeWorldStrategy) {
-      DartType receiverType = elementMap.getStaticType(node.receiver);
-      if (receiverType is InterfaceType) {
-        constraint = new StrongModeConstraint(receiverType.element);
-      }
+    DartType receiverType = elementMap.getStaticType(node.receiver);
+    if (receiverType is InterfaceType) {
+      constraint = new StrongModeConstraint(receiverType.element);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.setter(elementMap.getName(node.name)),

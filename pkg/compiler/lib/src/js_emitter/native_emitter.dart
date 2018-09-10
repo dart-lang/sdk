@@ -263,9 +263,7 @@ class NativeEmitter {
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    FunctionEntity converter = _commonElements.closureConverter;
-    jsAst.Expression closureConverter =
-        _emitterTask.staticFunctionAccess(converter);
+    jsAst.Expression closureConverter;
     _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
@@ -273,6 +271,9 @@ class NativeEmitter {
         if (stubParameter.name == name) {
           type = type.unaliased;
           if (type.isFunctionType) {
+            closureConverter ??= _emitterTask
+                .staticFunctionAccess(_commonElements.closureConverter);
+
             // The parameter type is a function type either directly or through
             // typedef(s).
             FunctionType functionType = type;

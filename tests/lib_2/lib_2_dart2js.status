@@ -258,7 +258,6 @@ html/js_jsfunc_callmethod_test: RuntimeError
 html/js_jsify_test: RuntimeError
 html/js_jsobject_test: RuntimeError
 html/js_methods_test: RuntimeError
-html/js_mock_test: RuntimeError
 html/js_transferrables_test: RuntimeError
 html/js_typed_interop_bind_this_test: RuntimeError
 html/js_typed_interop_callable_object_test: RuntimeError
