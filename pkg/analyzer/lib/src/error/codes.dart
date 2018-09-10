@@ -195,9 +195,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
 
-  static const CompileTimeErrorCode AMBIGUOUS_SUPERTYPES =
-      const CompileTimeErrorCode.fromFasta('AMBIGUOUS_SUPERTYPES');
-
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
    * and evaluated in the scope surrounding the declaration being annotated.
@@ -222,7 +219,8 @@ class CompileTimeErrorCode extends ErrorCode {
               "defining a class with the given name.");
 
   static const CompileTimeErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
-      const CompileTimeErrorCode.fromFasta('ANNOTATION_WITH_TYPE_ARGUMENTS');
+      const CompileTimeErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS',
+          "An annotation (metadata) can't use type arguments.");
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
@@ -235,10 +233,6 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ARGUMENT_DEFINITION_TEST_NON_PARAMETER =
       const CompileTimeErrorCode(
           'ARGUMENT_DEFINITION_TEST_NON_PARAMETER', "'{0}' isn't a parameter.");
-
-  static const CompileTimeErrorCode ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta(
-          'ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION');
 
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
@@ -473,19 +467,11 @@ class CompileTimeErrorCode extends ErrorCode {
           "this class.",
           correction: "Try renaming either the type variable or the member.");
 
-  static const CompileTimeErrorCode CONFLICTS_WITH_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_CONSTRUCTOR');
-
-  static const CompileTimeErrorCode CONFLICTS_WITH_INHERITED_MEMBER =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_INHERITED_MEMBER');
-
-  static const CompileTimeErrorCode CONFLICTS_WITH_MEMBER =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_MEMBER');
-
   static const CompileTimeErrorCode
       CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION =
-      const CompileTimeErrorCode.fromFasta(
-          'CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION');
+      const CompileTimeErrorCode(
+          'CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION',
+          "Can't extend a mixin application and be 'const'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -809,13 +795,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "The class '{0}' doesn't have a default constant constructor.",
           correction: "Try calling a different contructor.");
 
-  static const CompileTimeErrorCode CONSTRUCTOR_NOT_FOUND =
-      const CompileTimeErrorCode.fromFasta('CONSTRUCTOR_NOT_FOUND');
-
-  static const CompileTimeErrorCode DECLARED_MEMBER_CONFLICTS_WITH_INHERITED =
-      const CompileTimeErrorCode.fromFasta(
-          'DECLARED_MEMBER_CONFLICTS_WITH_INHERITED');
-
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are
    * specified in the signature of a function type alias.
@@ -914,9 +893,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing one of the named arguments, or "
               "correcting one of the names to reference a different named parameter.");
 
-  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_ENUM_NAME =
-      const CompileTimeErrorCode.fromFasta('ENUM_CONSTANT_WITH_ENUM_NAME');
-
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
@@ -1001,11 +977,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
-  static const CompileTimeErrorCode
-      EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS =
-      const CompileTimeErrorCode.fromFasta(
-          'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS');
-
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
@@ -1040,10 +1011,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Too many positional arguments: {0} expected, but {1} found.",
           correction: "Try removing the extra positional arguments, "
               "or specifying the name for named arguments.");
-
-  static const CompileTimeErrorCode FACTORY_REDIRECTS_TO_ABSTRACT_CLASS =
-      const CompileTimeErrorCode.fromFasta(
-          'FACTORY_REDIRECTS_TO_ABSTRACT_CLASS');
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -1134,9 +1101,6 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try using an explicit typedef, or changing type parameters to "
               "`dynamic`.");
 
-  static const CompileTimeErrorCode ILLEGAL_MIXIN =
-      const CompileTimeErrorCode.fromFasta('ILLEGAL_MIXIN');
-
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a
@@ -1220,9 +1184,6 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
           "'{0}' can't be used in both 'extends' and 'implements' clauses.",
           correction: "Try removing one of the occurances.");
-
-  static const CompileTimeErrorCode IMPLICIT_CALL_OF_NON_METHOD =
-      const CompileTimeErrorCode.fromFasta('IMPLICIT_CALL_OF_NON_METHOD');
 
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the
@@ -1310,9 +1271,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "'{0}' is a static field in the enclosing class. Fields initialized "
           "in a constructor can't be static.",
           correction: "Try removing the initialization.");
-
-  static const CompileTimeErrorCode INITIALIZER_OUTSIDE_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('INITIALIZER_OUTSIDE_CONSTRUCTOR');
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form
@@ -1423,9 +1381,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'INVALID_ANNOTATION_GETTER', "Getters cannot be used as annotations.",
           correction: "Try using a top-level variable or a field.");
 
-  static const CompileTimeErrorCode INVALID_CATCH_ARGUMENTS =
-      const CompileTimeErrorCode.fromFasta('INVALID_CATCH_ARGUMENTS');
-
   /**
    * 15.31 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await or yield is used as an identifier in a function
@@ -1438,9 +1393,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "'async', 'async*' or 'sync*'.",
           correction: "Try using a different name, or "
               "remove the modifier on the function body.");
-
-  static const CompileTimeErrorCode INVALID_INITIALIZER =
-      const CompileTimeErrorCode.fromFasta('INVALID_INITIALIZER');
 
   /**
    * 9. Functions: It is a compile-time error if an async, async* or sync*
@@ -1544,12 +1496,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "methods or before non-final instance fields.",
           correction: "Try removing the 'covariant' keyword.");
 
-  static const CompileTimeErrorCode INVALID_USE_OF_NULL_AWARE_ACCESS =
-      const CompileTimeErrorCode.fromFasta('INVALID_USE_OF_NULL_AWARE_ACCESS');
-
-  static const CompileTimeErrorCode INVALID_USE_OF_VOID =
-      const CompileTimeErrorCode.fromFasta('INVALID_USE_OF_VOID');
-
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
@@ -1601,9 +1547,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'LABEL_UNDEFINED', "Can't reference undefined label '{0}'.",
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
-
-  static const CompileTimeErrorCode LOAD_LIBRARY_TAKES_NO_ARGUMENTS =
-      const CompileTimeErrorCode.fromFasta('LOAD_LIBRARY_TAKES_NO_ARGUMENTS');
 
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
@@ -1906,9 +1849,6 @@ class CompileTimeErrorCode extends ErrorCode {
               "declaring a constructor in {1} that explicitly invokes a "
               "constructor in '{0}'.");
 
-  static const CompileTimeErrorCode NOT_AN_LVALUE =
-      const CompileTimeErrorCode.fromFasta('NOT_AN_LVALUE');
-
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant
    * map literal that has no explicit type arguments appears in a place where a
@@ -2093,14 +2033,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "initializers.",
           correction: "Try changing the import to not be deferred.");
 
-  static const CompileTimeErrorCode NON_SYNC_ABSTRACT_METHOD =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_ABSTRACT_METHOD');
-
-  static const CompileTimeErrorCode NON_SYNC_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_CONSTRUCTOR');
-
   static const CompileTimeErrorCode NON_SYNC_FACTORY =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY');
+      const CompileTimeErrorCode('NON_SYNC_FACTORY',
+          "Factory bodies can't use 'async', 'async*', or 'sync*'.");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
@@ -2131,9 +2066,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try calling a different constructor in the superclass, or "
               "making the called constructor not be a factory constructor.");
-
-  static const CompileTimeErrorCode NOT_CONSTANT_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta('NOT_CONSTANT_EXPRESSION');
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause
@@ -2426,9 +2358,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "directives.",
           correction: "Try renaming one of the prefixes.");
 
-  static const CompileTimeErrorCode SUPER_AS_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta('SUPER_AS_EXPRESSION');
-
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
@@ -2511,9 +2440,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the type parameters '<{0}>', or using"
               " 'dynamic' as the type argument here instead of a function.");
 
-  static const CompileTimeErrorCode THIS_ACCESS_FROM_INITIALIZER =
-      const CompileTimeErrorCode.fromFasta('THIS_ACCESS_FROM_INITIALIZER');
-
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
    * another typedef, is a compile time error.
@@ -2523,10 +2449,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
           "another typedef.");
-
-  static const CompileTimeErrorCode TYPE_PARAMETER_IN_CONST_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta(
-          'TYPE_PARAMETER_IN_CONST_EXPRESSION');
 
   static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
       const CompileTimeErrorCode('TYPE_PARAMETER_ON_CONSTRUCTOR',
@@ -2733,14 +2655,6 @@ class CompileTimeErrorCode extends ErrorCode {
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
-
-  /**
-   * Initialize a newly created error code to have the given [name]. No message
-   * or correction are necessary because the error code is only used when
-   * translating an error produced by fasta, and both will be taken from the
-   * error being translated.
-   */
-  const CompileTimeErrorCode.fromFasta(String name) : this(name, '');
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
