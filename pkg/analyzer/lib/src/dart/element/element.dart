@@ -756,7 +756,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _interfaces = _unlinkedClass.interfaces
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterfaceOrMixin)
+            .where(_isInterfaceTypeInterface)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -863,7 +863,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _mixins = _unlinkedClass.mixins
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterfaceOrMixin)
+            .where(_isInterfaceTypeInterface)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -1187,7 +1187,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Return `true` if the given [type] is an [InterfaceType] that can be used
    * as an interface or a mixin.
    */
-  bool _isInterfaceTypeInterfaceOrMixin(DartType type) {
+  bool _isInterfaceTypeInterface(DartType type) {
     return type is InterfaceType && !type.element.isEnum;
   }
 
@@ -6632,7 +6632,7 @@ class MixinElementImpl extends ClassElementImpl {
           ResynthesizerContext context = enclosingUnit.resynthesizerContext;
           constraints = _unlinkedClass.superclassConstraints
               .map((EntityRef t) => context.resolveTypeRef(this, t))
-              .where(_isInterfaceTypeClass)
+              .where(_isInterfaceTypeInterface)
               .cast<InterfaceType>()
               .toList(growable: false);
         }

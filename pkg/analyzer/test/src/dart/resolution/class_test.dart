@@ -896,6 +896,147 @@ class C {
     expect(method.isSetter, isTrue);
     expect(method.isStatic, isTrue);
   }
+
+  test_recursiveInterfaceInheritance_extends() async {
+    addTestFile(r'''
+class A extends B {}
+class B extends A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_extends_implements() async {
+    addTestFile(r'''
+class A extends B {}
+class B implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_implements() async {
+    addTestFile(r'''
+class A implements B {}
+class B implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_mixin() async {
+    addTestFile(r'''
+class M1 = Object with M2;
+class M2 = Object with M1;''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_mixin_superclass() async {
+    // Make sure we don't get CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS in
+    // addition--that would just be confusing.
+    addTestFile('''
+class C = D with M;
+class D = C with M;
+class M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_tail() async {
+    addTestFile(r'''
+abstract class A implements A {}
+class B implements A {}''');
+    await resolveTestFile();
+    assertTestErrors(
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
+  }
+
+  test_recursiveInterfaceInheritance_tail2() async {
+    addTestFile(r'''
+abstract class A implements B {}
+abstract class B implements A {}
+class C implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_tail3() async {
+    addTestFile(r'''
+abstract class A implements B {}
+abstract class B implements C {}
+abstract class C implements A {}
+class D implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritanceExtends() async {
+    addTestFile("class A extends A {}");
+    await resolveTestFile();
+    assertTestErrors(
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS]);
+  }
+
+  test_recursiveInterfaceInheritanceExtends_abstract() async {
+    addTestFile(r'''
+class C extends C {
+  var bar = 0;
+  m();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
+      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritanceImplements() async {
+    addTestFile("class A implements A {}");
+    await resolveTestFile();
+    assertTestErrors(
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
+  }
+
+  test_recursiveInterfaceInheritanceImplements_typeAlias() async {
+    addTestFile(r'''
+class A {}
+class M {}
+class B = A with M implements B;''');
+    await resolveTestFile();
+    assertTestErrors(
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
+  }
+
+  test_recursiveInterfaceInheritanceWith() async {
+    addTestFile("class M = Object with M;");
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH,
+    ]);
+  }
 }
 
 @reflectiveTest

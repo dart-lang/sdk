@@ -2255,10 +2255,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
           "'{0}' can't extend itself.");
 
   /**
@@ -2274,11 +2272,17 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
           "'{0}' can't implement itself.");
+
+  /**
+   * Parameters:
+   * 0: the name of the mixin that constraints itself recursively
+   */
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_ON',
+          "'{0}' can't use itself as a superclass constraint.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -2293,10 +2297,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_WITH',
           "'{0}' can't use itself as a mixin.");
 
   /**

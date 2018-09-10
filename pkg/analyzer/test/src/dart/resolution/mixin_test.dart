@@ -1014,6 +1014,10 @@ mixin B on A {} // ref
 ''');
     await resolveTestFile();
     assertNoTestErrors();
+
+    var a = findElement.mixin('A');
+    var b = findElement.mixin('B');
+    assertElementTypes(b.superclassConstraints, [a.type]);
   }
 
   test_error_undefinedSuperMethod() async {
@@ -1140,6 +1144,38 @@ mixin M on A, B {} // M
 
     var bRef = findNode.typeName('B {} // M');
     assertTypeName(bRef, findElement.class_('B'), 'B');
+  }
+
+  test_recursiveInterfaceInheritance_implements() async {
+    addTestFile(r'''
+mixin A implements B {}
+mixin B implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_on() async {
+    addTestFile(r'''
+mixin A on B {}
+mixin B on A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritanceOn() async {
+    addTestFile(r'''
+mixin A on A {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON,
+    ]);
   }
 
   test_superInvocation() async {
