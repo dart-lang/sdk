@@ -279,6 +279,7 @@ static int Main(int argc, const char** argv) {
     extra_argv[dart_argc + 1] = "--no-reify_generic_functions";
     extra_argv[dart_argc + 2] = "--no-sync-async";
     error = Flags::ProcessCommandLineFlags(extra_argc, extra_argv);
+    delete[] extra_argv;
     ASSERT(error == NULL);
   } else {
     error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
