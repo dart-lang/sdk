@@ -2342,6 +2342,7 @@ const Code<Null> codeEqualityCannotBeEqualityOperand =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
     "EqualityCannotBeEqualityOperand",
+    index: 1,
     analyzerCode: "EQUALITY_CANNOT_BE_EQUALITY_OPERAND",
     message:
         r"""An equality expression can't be an operand of another equality expression.""",
