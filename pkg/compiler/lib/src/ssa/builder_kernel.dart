@@ -4575,11 +4575,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     List<DartType> typeArguments =
         _getStaticTypeArguments(member, node.arguments);
+
+    MemberDefinition targetDefinition = _elementMap.getMemberDefinition(member);
+    ir.Procedure target = targetDefinition.node;
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        node.interfaceTarget.function,
-        node.arguments,
-        typeArguments,
-        sourceInformation);
+        target.function, node.arguments, typeArguments, sourceInformation);
     _buildInvokeSuper(
         _elementMap.getSelector(node),
         _elementMap.getClass(_containingClass(node)),

@@ -1,0 +1,27 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(johnniwinther): Changes this and other supermixin tests to use the
+// new syntax when supported by CFE.
+
+import 'package:expect/expect.dart';
+
+class SuperA {
+  method(a) => 'A$a';
+}
+
+class SuperB extends SuperA {
+  method(a) => 'B$a';
+}
+
+class Mixin extends SuperA {
+  method(a) => super.method('M$a');
+}
+
+class Class extends SuperB with Mixin {}
+
+main() {
+  var c = new Class();
+  Expect.equals("BMC", c.method('C'));
+}

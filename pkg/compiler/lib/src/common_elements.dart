@@ -1481,6 +1481,10 @@ abstract class ElementEnvironment {
   /// Returns `true` if [cls] is an unnamed mixin application.
   bool isUnnamedMixinApplication(ClassEntity cls);
 
+  /// Returns `true` if [cls] is a mixin application that mixes in methods with
+  /// super calls.
+  bool isSuperMixinApplication(ClassEntity cls);
+
   /// Returns the 'effective' mixin class if [cls] is a mixin application, and
   /// `null` otherwise.
   ///

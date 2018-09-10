@@ -240,6 +240,10 @@ abstract class ClassEnv {
   /// Whether the class is an unnamed mixin application.
   bool get isUnnamedMixinApplication;
 
+  /// Whether the class is a mixin application that mixes in methods with super
+  /// calls.
+  bool get isSuperMixinApplication;
+
   /// Ensures that all members have been computed for [cls].
   void ensureMembers(KernelToElementMapBase elementMap);
 
@@ -288,6 +292,7 @@ class ClassEnvImpl implements ClassEnv {
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
   List<ir.Member> _members; // in declaration order.
+  bool _isSuperMixinApplication;
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
@@ -295,9 +300,14 @@ class ClassEnvImpl implements ClassEnv {
   ClassEnvImpl(this.cls);
 
   ClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members);
+      this._setterMap, this._members, this._isSuperMixinApplication);
 
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
+
+  bool get isSuperMixinApplication {
+    assert(_isSuperMixinApplication != null);
+    return _isSuperMixinApplication;
+  }
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
@@ -356,69 +366,65 @@ class ClassEnvImpl implements ClassEnv {
     _setterMap = <String, ir.Member>{};
     _constructorMap = <String, ir.Member>{};
     var members = <ir.Member>[];
+    _isSuperMixinApplication = false;
 
-    void addFields(ir.Class c, {bool includeStatic}) {
-      for (ir.Field member in c.fields) {
-        if (!includeStatic && member.isStatic) continue;
-        var name = member.name.name;
-        if (name.contains('#')) {
-          // Skip synthetic .dill members.
-          continue;
-        }
-        _memberMap[name] = member;
-        if (member.isMutable) {
-          _setterMap[name] = member;
-        }
-        members.add(member);
+    void addField(ir.Field member, {bool includeStatic}) {
+      if (!includeStatic && member.isStatic) return;
+      var name = member.name.name;
+      if (name.contains('#')) {
+        // Skip synthetic .dill members.
+        return;
       }
+      _memberMap[name] = member;
+      if (member.isMutable) {
+        _setterMap[name] = member;
+      }
+      members.add(member);
     }
 
-    void addProcedures(ir.Class c,
+    void addProcedure(ir.Procedure member,
         {bool includeStatic, bool includeNoSuchMethodForwarders}) {
-      for (ir.Procedure member in c.procedures) {
-        if (member.isForwardingStub && member.isAbstract) {
-          // Skip abstract forwarding stubs. These are never emitted but they
-          // might shadow the inclusion of a mixed in method in code like:
-          //
-          //     class Super {}
-          //     class Mixin<T> {
-          //       void method(T t) {}
-          //     }
-          //     class Class extends Super with Mixin<int> {}
-          //     main() => new Class().method();
-          //
-          // Here a stub is created for `Super&Mixin.method` hiding that
-          // `Mixin.method` is inherited by `Class`.
-          continue;
+      if (member.isForwardingStub && member.isAbstract) {
+        // Skip abstract forwarding stubs. These are never emitted but they
+        // might shadow the inclusion of a mixed in method in code like:
+        //
+        //     class Super {}
+        //     class Mixin<T> {
+        //       void method(T t) {}
+        //     }
+        //     class Class extends Super with Mixin<int> {}
+        //     main() => new Class().method();
+        //
+        // Here a stub is created for `Super&Mixin.method` hiding that
+        // `Mixin.method` is inherited by `Class`.
+        return;
+      }
+      if (!includeStatic && member.isStatic) return;
+      if (member.isNoSuchMethodForwarder) {
+        // TODO(sigmund): remove once #33665 is fixed.
+        if (!includeNoSuchMethodForwarders ||
+            member.name.isPrivate &&
+                member.name.libraryName != member.enclosingLibrary.reference) {
+          return;
         }
-        if (!includeStatic && member.isStatic) continue;
-        if (member.isNoSuchMethodForwarder) {
-          // TODO(sigmund): remove once #33665 is fixed.
-          if (!includeNoSuchMethodForwarders ||
-              member.name.isPrivate &&
-                  member.name.libraryName !=
-                      member.enclosingLibrary.reference) {
-            continue;
-          }
+      }
+      var name = member.name.name;
+      assert(!name.contains('#'));
+      if (member.kind == ir.ProcedureKind.Factory) {
+        if (member.function.body is ir.RedirectingFactoryBody) {
+          // Don't include redirecting factories.
+          return;
         }
-        var name = member.name.name;
-        assert(!name.contains('#'));
-        if (member.kind == ir.ProcedureKind.Factory) {
-          if (member.function.body is ir.RedirectingFactoryBody) {
-            // Don't include redirecting factories.
-            continue;
-          }
-          _constructorMap[name] = member;
-        } else if (member.kind == ir.ProcedureKind.Setter) {
-          _setterMap[name] = member;
-          members.add(member);
-        } else {
-          assert(member.kind == ir.ProcedureKind.Method ||
-              member.kind == ir.ProcedureKind.Getter ||
-              member.kind == ir.ProcedureKind.Operator);
-          _memberMap[name] = member;
-          members.add(member);
-        }
+        _constructorMap[name] = member;
+      } else if (member.kind == ir.ProcedureKind.Setter) {
+        _setterMap[name] = member;
+        members.add(member);
+      } else {
+        assert(member.kind == ir.ProcedureKind.Method ||
+            member.kind == ir.ProcedureKind.Getter ||
+            member.kind == ir.ProcedureKind.Operator);
+        _memberMap[name] = member;
+        members.add(member);
       }
     }
 
@@ -431,18 +437,40 @@ class ClassEnvImpl implements ClassEnv {
     }
 
     int mixinMemberCount = 0;
+
     if (cls.mixedInClass != null) {
-      elementMap.ensureClassMembers(cls.mixedInClass);
-      addFields(cls.mixedInClass.mixin, includeStatic: false);
-      addProcedures(cls.mixedInClass.mixin,
-          includeStatic: false, includeNoSuchMethodForwarders: false);
+      CloneVisitor cloneVisitor;
+      for (ir.Field field in cls.mixedInClass.mixin.fields) {
+        if (field.containsSuperCalls) {
+          _isSuperMixinApplication = true;
+          cloneVisitor ??= new SuperCloner(getSubstitutionMap(cls.mixedInType));
+          cls.addMember(cloneVisitor.clone(field));
+          continue;
+        }
+        addField(field, includeStatic: false);
+      }
+      for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
+        if (procedure.containsSuperCalls) {
+          _isSuperMixinApplication = true;
+          cloneVisitor ??= new SuperCloner(getSubstitutionMap(cls.mixedInType));
+          cls.addMember(cloneVisitor.clone(procedure));
+          continue;
+        }
+        addProcedure(procedure,
+            includeStatic: false, includeNoSuchMethodForwarders: false);
+      }
       mergeSort(members, compare: orderByFileOffset);
       mixinMemberCount = members.length;
     }
-    addFields(cls, includeStatic: true);
+
+    for (ir.Field member in cls.fields) {
+      addField(member, includeStatic: true);
+    }
     addConstructors(cls);
-    addProcedures(cls,
-        includeStatic: true, includeNoSuchMethodForwarders: true);
+    for (ir.Procedure member in cls.procedures) {
+      addProcedure(member,
+          includeStatic: true, includeNoSuchMethodForwarders: true);
+    }
 
     if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
       // Ensure that constructors are created for the superclass in case it
@@ -568,8 +596,8 @@ class ClassEnvImpl implements ClassEnv {
         }
       });
     }
-    return new ClassEnvImpl.internal(
-        cls, constructorMap, memberMap, setterMap, members);
+    return new ClassEnvImpl.internal(cls, constructorMap, memberMap, setterMap,
+        members, _isSuperMixinApplication);
   }
 }
 
@@ -598,8 +626,9 @@ class RecordEnv implements ClassEnv {
   RecordEnv(this._memberMap);
 
   @override
-  void ensureMembers(KernelToElementMapBase elementMap) {
+  List<ir.Member> ensureMembers(KernelToElementMapBase elementMap) {
     // All members have been computed at creation.
+    return const <ir.Member>[];
   }
 
   @override
@@ -634,6 +663,9 @@ class RecordEnv implements ClassEnv {
 
   @override
   bool get isUnnamedMixinApplication => false;
+
+  @override
+  bool get isSuperMixinApplication => false;
 
   @override
   ir.Class get cls => null;
@@ -1039,5 +1071,31 @@ class TypeVariableData {
 
   TypeVariableData copy() {
     return new TypeVariableData(node);
+  }
+}
+
+class SuperCloner extends CloneVisitor {
+  SuperCloner(Map<ir.TypeParameter, ir.DartType> typeSubstitution)
+      : super(typeSubstitution: typeSubstitution, cloneAnnotations: true);
+
+  @override
+  visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    // We ensure that we re-resolve the target by setting the interface target
+    // to `null`.
+    return new ir.SuperMethodInvocation(node.name, clone(node.arguments));
+  }
+
+  @override
+  visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    // We ensure that we re-resolve the target by setting the interface target
+    // to `null`.
+    return new ir.SuperPropertyGet(node.name);
+  }
+
+  @override
+  visitSuperPropertySet(ir.SuperPropertySet node) {
+    // We ensure that we re-resolve the target by setting the interface target
+    // to `null`.
+    return new ir.SuperPropertySet(node.name, clone(node.value), null);
   }
 }

@@ -42,9 +42,8 @@ class ClassEmitter extends CodeEmitterHelper {
       superName = namer.className(superclass);
     }
 
-    if (cls.isMixinApplication) {
-      MixinApplication mixinApplication = cls;
-      jsAst.Name mixinName = mixinApplication.mixinClass.name;
+    if (cls.mixinClass != null) {
+      jsAst.Name mixinName = cls.mixinClass.name;
       superName = new CompoundName([superName, Namer.literalPlus, mixinName]);
       emitter.needsMixinSupport = true;
     }
@@ -226,7 +225,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
     ClassEntity classElement = cls.element;
 
-    if (cls.onlyForRti || cls.isMixinApplication) return;
+    if (cls.onlyForRti || cls.isSimpleMixinApplication) return;
 
     // TODO(herhut): This is a no-op. Should it be removed?
     for (Field field in cls.fields) {

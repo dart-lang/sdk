@@ -501,7 +501,8 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
   while (node != null) {
     if (node.fileOffset != ir.TreeNode.noOffset) {
       offset = node.fileOffset;
-      uri = node.location.file;
+      // @patch annotations have no location.
+      uri = node.location?.file;
       break;
     }
     node = node.parent;

@@ -1018,10 +1018,9 @@ class FragmentEmitter {
         if (cls.isSoftDeferred != softDeferred) continue;
         collect(cls);
 
-        if (cls.isMixinApplication) {
-          MixinApplication mixin = cls;
+        if (cls.mixinClass != null) {
           mixinCalls.add(js.js.statement('mixin(#, #)',
-              [classReference(cls), classReference(mixin.mixinClass)]));
+              [classReference(cls), classReference(cls.mixinClass)]));
         }
       }
     }

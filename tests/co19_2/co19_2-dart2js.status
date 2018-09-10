@@ -39,7 +39,6 @@ Language/Metadata/before_param_t08: RuntimeError
 Language/Metadata/before_type_param_t01: RuntimeError
 Language/Metadata/before_typedef_t01: RuntimeError
 Language/Metadata/before_variable_t01: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t24: RuntimeError
 Language/Statements/Assert/execution_t03: RuntimeError
 Language/Statements/Assert/execution_t08: RuntimeError
 Language/Statements/Assert/execution_t11: RuntimeError
@@ -1270,8 +1269,6 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError
@@ -3507,8 +3504,6 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError
@@ -5170,8 +5165,6 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError
@@ -6094,8 +6087,6 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError
@@ -7025,8 +7016,6 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError

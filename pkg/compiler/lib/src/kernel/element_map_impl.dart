@@ -718,6 +718,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return env.isUnnamedMixinApplication;
   }
 
+  bool _isSuperMixinApplication(IndexedClass cls) {
+    assert(checkFamily(cls));
+    ClassEnv env = _classes.getEnv(cls);
+    env.ensureMembers(this);
+    return env.isSuperMixinApplication;
+  }
+
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
     assert(checkFamily(cls));
     ClassData data = _classes.getData(cls);
@@ -1511,6 +1518,11 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   bool isUnnamedMixinApplication(ClassEntity cls) {
     return elementMap._isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  bool isSuperMixinApplication(ClassEntity cls) {
+    return elementMap._isSuperMixinApplication(cls);
   }
 
   @override
