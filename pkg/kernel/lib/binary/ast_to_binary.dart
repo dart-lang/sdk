@@ -164,6 +164,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else if (constant is StringConstant) {
       writeByte(ConstantTag.StringConstant);
       writeStringReference(constant.value);
+    } else if (constant is SymbolConstant) {
+      writeByte(ConstantTag.SymbolConstant);
+      writeOptionalReference(constant.libraryReference);
+      writeStringReference(constant.name);
     } else if (constant is MapConstant) {
       writeByte(ConstantTag.MapConstant);
       writeDartType(constant.keyType);
@@ -1877,6 +1881,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitSymbolConstant(SymbolConstant node) {
+    throw new UnsupportedError('serialization of SymbolConstants');
+  }
+
+  @override
+  void visitSymbolConstantReference(SymbolConstant node) {
+    throw new UnsupportedError('serialization of SymbolConstant references');
+  }
+
+  @override
   void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
     throw new UnsupportedError(
         'serialization of PartialInstantiationConstants ');
@@ -1997,6 +2011,8 @@ class ConstantIndexer extends RecursiveVisitor {
 
     if (constant is StringConstant) {
       stringIndexer.put(constant.value);
+    } else if (constant is SymbolConstant) {
+      stringIndexer.put(constant.name);
     } else if (constant is DoubleConstant) {
       stringIndexer.put('${constant.value}');
     } else if (constant is IntConstant) {

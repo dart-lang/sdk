@@ -4975,6 +4975,8 @@ class ProgramCompiler extends Object
   @override
   defaultConstant(Constant node) => _emitInvalidNode(node);
   @override
+  visitSymbolConstant(node) => defaultConstant(node);
+  @override
   visitMapConstant(node) => defaultConstant(node);
   @override
   visitListConstant(node) => defaultConstant(node);

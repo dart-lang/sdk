@@ -535,6 +535,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Type get _stringType =>
       _cachedStringType ??= new Type.cone(_environment.stringType);
 
+  Type _cachedSymbolType;
+  Type get _symbolType =>
+      _cachedSymbolType ??= new Type.cone(_environment.symbolType);
+
   Type _cachedNullType;
   Type get _nullType => _cachedNullType ??= new Type.nullable(new Type.empty());
 
@@ -1256,6 +1260,11 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   @override
   Type visitStringConstant(StringConstant constant) {
     return summaryCollector._stringType;
+  }
+
+  @override
+  visitSymbolConstant(SymbolConstant constant) {
+    return summaryCollector._symbolType;
   }
 
   @override

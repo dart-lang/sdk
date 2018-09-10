@@ -940,6 +940,11 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitStringConstant(StringConstant constant) {}
 
   @override
+  visitSymbolConstant(SymbolConstant constant) {
+    // The Symbol class and it's _name field are always retained.
+  }
+
+  @override
   visitMapConstant(MapConstant node) {
     throw 'The kernel2kernel constants transformation desugars const maps!';
   }
