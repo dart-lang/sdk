@@ -2285,8 +2285,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (name is Generator) {
-      push(name.buildTypeWithBuiltArguments(arguments,
-          typeInferrer: _typeInferrer));
+      push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else {
@@ -2898,7 +2897,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       LocatedMessage argMessage = checkArgumentsForFunction(
           target.function, arguments, charOffset, typeParameters);
       if (argMessage != null) {
-        var error = throwNoSuchMethodError(
+        Expression error = throwNoSuchMethodError(
             forest.literalNull(null)..fileOffset = charOffset,
             target.name.name,
             arguments,
@@ -3598,13 +3597,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
-    var error = inCatchBlock
+    push(new ExpressionStatementJudgment(new RethrowJudgment(inCatchBlock
         ? null
         : buildProblem(fasta.messageRethrowNotCatch,
                 offsetForToken(rethrowToken), lengthForToken(rethrowToken))
-            .desugared;
-    push(new ExpressionStatementJudgment(
-        new RethrowJudgment(error)..fileOffset = offsetForToken(rethrowToken)));
+            .desugared)
+      ..fileOffset = offsetForToken(rethrowToken)));
   }
 
   @override

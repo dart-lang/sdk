@@ -1581,8 +1581,7 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
             isVoidAllowed: typeArgument is VoidType);
       }
     }
-    var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
-    this.inferredType = inferredType;
+    inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
     return null;
   }
 }
@@ -2217,8 +2216,7 @@ class StaticInvocationJudgment extends StaticInvocation
         : new FunctionType([], const DynamicType());
     var inferenceResult = inferrer.inferInvocation(typeContext, fileOffset,
         calleeType, calleeType.returnType, argumentJudgments);
-    var inferredType = inferenceResult.type;
-    this.inferredType = inferredType;
+    inferredType = inferenceResult.type;
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
       parent = null;
@@ -2422,6 +2420,7 @@ class SymbolLiteralJudgment extends SymbolLiteral
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// constructor, or a constructor that cannot be invoked, or a resolved
 /// constructor with wrong number of arguments.
+// TODO(ahe): Remove this?
 class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   final Member constructor;
   final Arguments arguments;

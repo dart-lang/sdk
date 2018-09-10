@@ -31,8 +31,6 @@ import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
-
 import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
@@ -1120,14 +1118,6 @@ class KernelStaticAccessGenerator extends KernelGenerator
     complexAssignment?.write = write;
     write.fileOffset = offsetForToken(token);
     return write;
-  }
-
-  @override
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    return super.buildTypeWithBuiltArguments(arguments,
-        nonInstanceAccessIsError: nonInstanceAccessIsError,
-        typeInferrer: typeInferrer);
   }
 
   @override

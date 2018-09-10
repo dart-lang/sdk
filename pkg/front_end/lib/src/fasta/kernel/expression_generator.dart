@@ -45,8 +45,6 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
-
 import 'constness.dart' show Constness;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -82,12 +80,9 @@ import 'kernel_ast_api.dart'
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
-        BuiltinTypeBuilder,
         Declaration,
-        FunctionTypeAliasBuilder,
         KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder,
-        KernelTypeVariableBuilder;
+        KernelFunctionTypeAliasBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -220,7 +215,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+      {bool nonInstanceAccessIsError: false}) {
     helper.addProblem(templateNotAType.withArguments(token.lexeme),
         offsetForToken(token), lengthForToken(token));
     return const InvalidType();
@@ -241,13 +236,14 @@ abstract class Generator implements ExpressionGenerator {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    var error = helper.throwNoSuchMethodError(
-        forest.literalNull(token),
-        name == "" ? plainNameForRead : "${plainNameForRead}.$name",
-        arguments,
-        nameToken.charOffset);
-
-    return new InvalidConstructorInvocationJudgment(error, null, arguments);
+    return new InvalidConstructorInvocationJudgment(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(token),
+            name == "" ? plainNameForRead : "${plainNameForRead}.$name",
+            arguments,
+            nameToken.charOffset),
+        null,
+        arguments);
   }
 
   bool get isThisPropertyAccess => false;
@@ -495,7 +491,7 @@ abstract class DeferredAccessGenerator implements Generator {
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    var propertyAccess =
+    Object propertyAccess =
         suffixGenerator.buildPropertyAccess(send, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
@@ -518,12 +514,11 @@ abstract class DeferredAccessGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+      {bool nonInstanceAccessIsError: false}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
             suffixGenerator.buildTypeWithBuiltArguments(arguments,
-                nonInstanceAccessIsError: nonInstanceAccessIsError,
-                typeInferrer: typeInferrer),
+                nonInstanceAccessIsError: nonInstanceAccessIsError),
             prefixGenerator.plainNameForRead),
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token));
@@ -576,23 +571,9 @@ abstract class TypeUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    var declaration = this.declaration;
+      {bool nonInstanceAccessIsError: false}) {
     if (arguments != null) {
-      int expected = 0;
-      if (declaration is KernelClassBuilder) {
-        expected = declaration.target.typeParameters.length;
-      } else if (declaration is FunctionTypeAliasBuilder) {
-        expected = declaration.target.typeParameters.length;
-      } else if (declaration is KernelTypeVariableBuilder) {
-        // Type arguments on a type variable - error reported elsewhere.
-      } else if (declaration is BuiltinTypeBuilder) {
-        // Type arguments on a built-in type, for example, dynamic or void.
-        expected = 0;
-      } else {
-        return unhandled("${declaration.runtimeType}",
-            "TypeUseGenerator.buildType", offsetForToken(token), helper.uri);
-      }
+      int expected = declaration.typeVariablesCount;
       if (arguments.length != expected) {
         helper.warnTypeArgumentsMismatch(
             declaration.name, expected, offsetForToken(token));
@@ -1087,12 +1068,12 @@ abstract class PrefixUseGenerator implements Generator {
   @override
   /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments) {
-    var error = helper.wrapInLocatedProblem(
-        helper.evaluateArgumentsBefore(arguments, forest.literalNull(token)),
-        messageCantUsePrefixAsExpression.withLocation(
-            helper.uri, offsetForToken(token), lengthForToken(token)));
     return new StaticInvocationJudgment(null, forest.castArguments(arguments),
-        desugaredError: error)
+        desugaredError: helper.wrapInLocatedProblem(
+            helper.evaluateArgumentsBefore(
+                arguments, forest.literalNull(token)),
+            messageCantUsePrefixAsExpression.withLocation(
+                helper.uri, offsetForToken(token), lengthForToken(token))))
       ..fileOffset = offset;
   }
 
@@ -1172,7 +1153,7 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+      {bool nonInstanceAccessIsError: false}) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
