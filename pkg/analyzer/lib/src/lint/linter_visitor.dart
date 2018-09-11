@@ -427,6 +427,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _runSubscriptions(node, registry._forMixinDeclaration);
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _runSubscriptions(node, registry._forNamedExpression);
     super.visitNamedExpression(node);
@@ -436,6 +442,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     _runSubscriptions(node, registry._forNullLiteral);
     super.visitNullLiteral(node);
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    _runSubscriptions(node, registry._forOnClause);
+    super.visitOnClause(node);
   }
 
   @override
@@ -747,8 +759,10 @@ class NodeLintRegistry {
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
+  final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
   final List<_Subscription<NamedExpression>> _forNamedExpression = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
+  final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
       _forParenthesizedExpression = [];
   final List<_Subscription<PartDirective>> _forPartDirective = [];
@@ -1122,6 +1136,11 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addMixinDeclaration(LintRule linter, AstVisitor visitor) {
+    _forMixinDeclaration
+        .add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addNamedExpression(LintRule linter, AstVisitor visitor) {
     _forNamedExpression
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
@@ -1129,6 +1148,10 @@ class NodeLintRegistry {
 
   void addNullLiteral(LintRule linter, AstVisitor visitor) {
     _forNullLiteral.add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addOnClause(LintRule linter, AstVisitor visitor) {
+    _forOnClause.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addParenthesizedExpression(LintRule linter, AstVisitor visitor) {
