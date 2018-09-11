@@ -1797,7 +1797,7 @@ class FixProcessor {
       if (target is Identifier) {
         Identifier targetIdentifier = target;
         Element targetElement = targetIdentifier.staticElement;
-        staticModifier = targetElement.kind == ElementKind.CLASS;
+        staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
       targetClassElement = getEnclosingClassElement(node);
