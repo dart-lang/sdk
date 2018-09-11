@@ -2456,8 +2456,11 @@ void Assembler::Branch(const StubEntry& stub_entry,
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
-  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
-  bx(IP, cond);
+  Branch(FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
+}
+
+void Assembler::Branch(const Address& address, Condition cond) {
+  ldr(PC, address, cond);
 }
 
 void Assembler::BranchLink(const Code& target,
@@ -3160,17 +3163,11 @@ void Assembler::MonomorphicCheckedEntry() {
   set_use_far_branches(false);
 #endif
 
-  Label miss;
-  Bind(&miss);
-  ldr(IP, Address(THR, Thread::monomorphic_miss_entry_offset()));
-  bx(IP);
-
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
   LoadClassIdMayBeSmi(IP, R0);
-  SmiUntag(R9);
-  cmp(IP, Operand(R9));
-  b(&miss, NE);
+  cmp(R9, Operand(IP, LSL, 1));
+  Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);

@@ -2249,8 +2249,7 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 
   // Tail-call the function.
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 }
 
 // On stack: user tag (+0).

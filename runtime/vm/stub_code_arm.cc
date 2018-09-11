@@ -399,8 +399,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ LeaveStubFrame();
   // Jump to the dart function.
   __ mov(CODE_REG, Operand(R0));
-  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
-  __ bx(R0);
+  __ Branch(FieldAddress(R0, Code::entry_point_offset()));
 }
 
 // Called from a static call only when an invalid code has been entered
@@ -424,8 +423,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ LeaveStubFrame();
   // Jump to the dart function.
   __ mov(CODE_REG, Operand(R0));
-  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
-  __ bx(R0);
+  __ Branch(FieldAddress(R0, Code::entry_point_offset()));
 }
 
 // Called from object allocate instruction when the allocation stub has been
@@ -446,8 +444,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ LeaveStubFrame();
   // Jump to the dart function.
   __ mov(CODE_REG, Operand(R0));
-  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
-  __ bx(R0);
+  __ Branch(FieldAddress(R0, Code::entry_point_offset()));
 }
 
 // Input parameters:
@@ -739,8 +736,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 
   // Tail-call to target function.
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
-  __ bx(R2);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 }
 
 // Called for inline allocation of arrays.
@@ -1639,9 +1635,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ bx(R2);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 
 #if !defined(PRODUCT)
   if (!optimized) {
@@ -1775,8 +1770,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // Get function and call it, if possible.
   __ LoadFromOffset(kWord, R0, R8, target_offset);
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
-  __ bx(R2);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -1815,8 +1809,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   // When using the interpreter, the function's code may now point to the
   // InterpretCall stub. Make sure R0, R4, and R9 are preserved.
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
-  __ bx(R2);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 }
 
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
@@ -1833,8 +1826,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ PopList((1 << R0) | (1 << R9));
   __ LeaveStubFrame();
   __ mov(CODE_REG, Operand(R0));
-  __ ldr(R0, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(R0);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
@@ -1845,8 +1837,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ PopList((1 << CODE_REG));
   __ LeaveStubFrame();
-  __ ldr(R0, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(R0);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
@@ -2074,8 +2065,7 @@ void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
   __ BranchIf(EQUAL, &done);
 
   __ ldr(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
-  __ ldr(R9, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(R9);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 
   __ Bind(&done);
   __ Ret();
@@ -2107,8 +2097,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
                                       kInstanceReg, kClassIdReg);
 
   __ ldr(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
-  __ ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(TMP);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 void TypeTestingStubGenerator::
@@ -2374,8 +2363,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Pop(R4);  // Restore argument descriptor.
   __ LeaveStubFrame();
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
   __ bkpt(0);
 }
 
@@ -2520,9 +2508,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // be invoked as a normal Dart function.
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
   __ ldr(R4, FieldAddress(R9, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -2565,15 +2552,13 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ Bind(&found);
   const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
   __ LoadFromOffset(kWord, R0, R8, target_offset);
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(R0, Function::entry_point_offset()));
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
@@ -2600,15 +2585,13 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ Bind(&found);
   const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
-  __ ldr(R1, Address(R8, entry_offset));
   __ ldr(CODE_REG, Address(R8, code_offset));
-  __ bx(R1);
+  __ Branch(Address(R8, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 // Called from switchable IC calls.
@@ -2630,9 +2613,8 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                        Code::EntryKind::kMonomorphic)));
-  __ bx(R1);
+  __ Branch(FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 }
 
 // Called from switchable IC calls.
@@ -2651,9 +2633,8 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ cmp(R1, Operand(R3));
   __ b(&miss, GT);
 
-  __ ldr(R1, FieldAddress(R9, SingleTargetCache::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R9, SingleTargetCache::target_offset()));
-  __ bx(R1);
+  __ Branch(FieldAddress(R9, SingleTargetCache::entry_point_offset()));
 
   __ Bind(&miss);
   __ EnterStubFrame();
@@ -2670,9 +2651,8 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                        Code::EntryKind::kMonomorphic)));
-  __ bx(R1);
+  __ Branch(FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 }
 
 // Called from the monomorphic checked entry.
@@ -2693,9 +2673,8 @@ void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                        Code::EntryKind::kMonomorphic)));
-  __ bx(R1);
+  __ Branch(FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 }
 
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {

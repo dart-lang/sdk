@@ -696,6 +696,8 @@ class Assembler : public ValueObject {
               Register pp = PP,
               Condition cond = AL);
 
+  void Branch(const Address& address, Condition cond = AL);
+
   void BranchLink(
       const StubEntry& stub_entry,
       ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);

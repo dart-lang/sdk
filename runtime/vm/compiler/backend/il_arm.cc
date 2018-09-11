@@ -64,8 +64,7 @@ DEFINE_BACKEND(TailCall,
                 Temp<Register> temp)) {
   __ LoadObject(CODE_REG, instr->code());
   __ LeaveDartFrame();  // The arguments are still on the stack.
-  __ ldr(temp, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ bx(temp);
+  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
 
   // Even though the TailCallInstr will be the last instruction in a basic
   // block, the flow graph compiler will emit native code for other blocks after

@@ -1244,25 +1244,15 @@ void Assembler::MonomorphicCheckedEntry() {
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
-  Label immediate, have_cid, miss;
+  Label immediate, miss;
   Bind(&miss);
   ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
-  Bind(&immediate);
-  movz(IP0, Immediate(kSmiCid), 0);
-  b(&have_cid);
-
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-  tsti(R0, Immediate(kSmiTagMask));
-  SmiUntag(R5);
-  b(&immediate, EQ);
-
-  LoadClassId(IP0, R0);
-
-  Bind(&have_cid);
-  cmp(IP0, Operand(R5));
+  LoadClassIdMayBeSmi(IP0, R0);
+  cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
