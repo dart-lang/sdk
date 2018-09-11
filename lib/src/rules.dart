@@ -19,6 +19,7 @@ import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_field_initializers_in_const_classes.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
+import 'package:linter/src/rules/avoid_implementing_value_types.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_js_rounded_ints.dart';
 import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
@@ -148,6 +149,7 @@ void registerLintRules() {
     ..register(new AvoidEmptyElse())
     ..register(new AvoidFieldInitializersInConstClasses())
     ..register(new AvoidFunctionLiteralInForeachMethod())
+    ..register(new AvoidImplementingValueTypes())
     ..register(new AvoidInitToNull())
     ..register(new AvoidJsRoundedInts())
     ..register(new AvoidNullChecksInEqualityOperators())
