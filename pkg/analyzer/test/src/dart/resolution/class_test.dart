@@ -1117,6 +1117,90 @@ class B = A with M implements B;''');
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH,
     ]);
   }
+
+  test_undefinedSuperGetter() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  get g {
+    return super.g;
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
+  }
+
+  test_undefinedSuperMethod() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  m() {
+    return super.m();
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+  }
+
+  test_undefinedSuperOperator_binaryExpression() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  operator +(value) {
+    return super + value;
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  test_undefinedSuperOperator_indexBoth() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  operator [](index) {
+    return super[index]++;
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  test_undefinedSuperOperator_indexGetter() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  operator [](index) {
+    return super[index + 1];
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  test_undefinedSuperOperator_indexSetter() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  operator []=(index, value) {
+    super[index] = 0;
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  test_undefinedSuperSetter() async {
+    addTestFile(r'''
+class A {}
+class B extends A {
+  f() {
+    super.m = 0;
+  }
+}''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
+  }
 }
 
 @reflectiveTest

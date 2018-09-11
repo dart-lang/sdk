@@ -784,7 +784,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element == null) {
         if (identifier.inSetterContext()) {
           _resolver.errorReporter.reportErrorForNode(
-              StaticWarningCode.UNDEFINED_SETTER,
+              StaticTypeWarningCode.UNDEFINED_SETTER,
               identifier,
               [identifier.name, prefixElement.name]);
           return null;
@@ -797,7 +797,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               [identifier.name]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
-              StaticWarningCode.UNDEFINED_GETTER,
+              StaticTypeWarningCode.UNDEFINED_GETTER,
               identifier,
               [identifier.name, prefixElement.name]);
         }
@@ -2103,17 +2103,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode errorCode;
         var arguments = [propertyName.name, staticType.displayName];
         if (target is SuperExpression) {
-          if (isStaticProperty && !staticType.isVoid) {
-            errorCode = StaticWarningCode.UNDEFINED_SUPER_SETTER;
-          } else {
-            errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
-          }
+          errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
         } else {
           if (staticType.isVoid) {
             errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
             arguments = [];
-          } else if (isStaticProperty) {
-            errorCode = StaticWarningCode.UNDEFINED_SETTER;
           } else {
             errorCode = StaticTypeWarningCode.UNDEFINED_SETTER;
           }
@@ -2124,17 +2118,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode errorCode;
         var arguments = [propertyName.name, staticType.displayName];
         if (target is SuperExpression) {
-          if (isStaticProperty && !staticType.isVoid) {
-            errorCode = StaticWarningCode.UNDEFINED_SUPER_GETTER;
-          } else {
-            errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
-          }
+          errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
         } else {
           if (staticType.isVoid) {
             errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
             arguments = [];
-          } else if (isStaticProperty) {
-            errorCode = StaticWarningCode.UNDEFINED_GETTER;
           } else {
             errorCode = StaticTypeWarningCode.UNDEFINED_GETTER;
           }

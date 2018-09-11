@@ -37,14 +37,6 @@ g(C c) {
     verify([source]);
   }
 
-  fail_undefinedGetter() async {
-    Source source = addSource(r'''
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.UNDEFINED_GETTER]);
-    verify([source]);
-  }
-
   fail_undefinedIdentifier_commentReference() async {
     Source source = addSource(r'''
 /** [m] xxx [new B.c] */
@@ -55,17 +47,6 @@ class A {
       StaticWarningCode.UNDEFINED_IDENTIFIER,
       StaticWarningCode.UNDEFINED_IDENTIFIER
     ]);
-  }
-
-  fail_undefinedSetter() async {
-    Source source = addSource(r'''
-class C {}
-f(var p) {
-  C.m = 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.UNDEFINED_SETTER]);
-    verify([source]);
   }
 
   test_ambiguousImport_as() async {
@@ -3897,19 +3878,6 @@ f(var p) {
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
   }
 
-  test_undefinedGetter_fromLibrary() async {
-    Source source1 = addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource("/lib2.dart", r'''
-import 'lib.dart' as lib;
-void f() {
-  var g = lib.gg;
-}''');
-    await computeAnalysisResult(source1);
-    await computeAnalysisResult(source2);
-    assertErrors(source2, [StaticWarningCode.UNDEFINED_GETTER]);
-    verify([source1]);
-  }
-
   test_undefinedIdentifier_for() async {
     Source source = addSource(r'''
 f(var l) {
@@ -3998,17 +3966,6 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_NAMED_PARAMETER]);
     // no verify(), 'c' is not resolved
-  }
-
-  test_undefinedSetter() async {
-    addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource("/lib2.dart", r'''
-import 'lib.dart' as lib;
-void f() {
-  lib.gg = null;
-}''');
-    await computeAnalysisResult(source2);
-    assertErrors(source2, [StaticWarningCode.UNDEFINED_SETTER]);
   }
 
   test_undefinedStaticMethodOrGetter_getter() async {

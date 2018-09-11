@@ -3987,14 +3987,6 @@ f(var a) {
     }
   }
 
-  test_undefinedGetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_GETTER.message,
-        StaticTypeWarningCode.UNDEFINED_GETTER.message);
-  }
-
   test_undefinedIdentifier_exportHide() async {
     Source source = addSource(r'''
 library L;
@@ -4179,14 +4171,6 @@ f(var a) {
     } else {
       assertErrors(source, [HintCode.UNDEFINED_SETTER]);
     }
-  }
-
-  test_undefinedSetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_SETTER.message,
-        StaticTypeWarningCode.UNDEFINED_SETTER.message);
   }
 
   test_unnecessaryCast_type_supertype() async {
