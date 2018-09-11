@@ -62,6 +62,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -2251,6 +2252,7 @@ class ExprTypeComputer {
       var expressionForInference = _functionElement._expressionForInference;
       if (expressionForInference != null) {
         expression = AstCloner().cloneNode(expressionForInference);
+        expression.accept(LocalElementBuilder(ElementHolder(), null));
       }
     } else if (_builder.uc != null && _builder.uc.operations.isNotEmpty) {
       expression = _builder.build();

@@ -48,18 +48,6 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
-  test_constExpr_functionExpression_asArgument() {
-    super.test_constExpr_functionExpression_asArgument();
-  }
-
-  @override
-  @failingTest
-  test_constExpr_functionExpression_asArgument_multiple() {
-    super.test_constExpr_functionExpression_asArgument_multiple();
-  }
-
-  @override
-  @failingTest
   test_constExpr_makeTypedList() {
     super.test_constExpr_makeTypedList();
   }
