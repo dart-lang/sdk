@@ -1929,9 +1929,15 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
     summary->set_temp(0, Location::RequiresRegister());
     summary->set_temp(1, Location::RequiresRegister());
   } else {
+#if defined(CONCURRENT_MARKING)
+    summary->set_in(1, ShouldEmitStoreBarrier()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(value()));
+#else
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::WritableRegister()
                            : Location::RegisterOrConstant(value()));
+#endif
   }
   return summary;
 }
@@ -2120,8 +2126,12 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   LocationSummary* locs =
       new (zone) LocationSummary(zone, 1, 1, LocationSummary::kNoCall);
-  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                              : Location::RequiresRegister());
+#if defined(CONCURRENT_MARKING)
+  locs->set_in(0, Location::RequiresRegister());
+#else
+  locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
+                                               : Location::RequiresRegister());
+#endif
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
@@ -2131,7 +2141,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp = locs()->temp(0).reg();
 
   __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
-  if (this->value()->NeedsStoreBuffer()) {
+  if (this->value()->NeedsWriteBarrier()) {
     __ StoreIntoObjectOffset(temp, Field::static_value_offset(), value,
                              CanValueBeSmi());
   } else {

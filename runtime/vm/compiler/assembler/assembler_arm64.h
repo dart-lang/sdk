@@ -1467,7 +1467,11 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
-  // Storing into an object.
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,

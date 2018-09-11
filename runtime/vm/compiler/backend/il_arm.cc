@@ -2218,9 +2218,15 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
     summary->set_temp(2, opt ? Location::RequiresFpuRegister()
                              : Location::FpuRegisterLocation(Q1));
   } else {
+#if defined(CONCURRENT_MARKING)
+    summary->set_in(1, ShouldEmitStoreBarrier()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(value()));
+#else
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::WritableRegister()
                            : Location::RegisterOrConstant(value()));
+#endif
   }
   if (ShouldEmitStoreBarrier()) {
     summary->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
@@ -2428,13 +2434,17 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps =
-      value()->NeedsStoreBuffer() ? 2 : 1;  // Block LR for the store barrier.
+      value()->NeedsWriteBarrier() ? 2 : 1;  // Block LR for the store barrier.
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                              : Location::RequiresRegister());
+#if defined(CONCURRENT_MARKING)
+  locs->set_in(0, Location::RequiresRegister());
+#else
+  locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
+                                               : Location::RequiresRegister());
+#endif
   locs->set_temp(0, Location::RequiresRegister());
-  if (value()->NeedsStoreBuffer()) {
+  if (value()->NeedsWriteBarrier()) {
     locs->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
   }
   return locs;
@@ -2445,7 +2455,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp = locs()->temp(0).reg();
 
   __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
-  if (this->value()->NeedsStoreBuffer()) {
+  if (this->value()->NeedsWriteBarrier()) {
     __ StoreIntoObject(temp, FieldAddress(temp, Field::static_value_offset()),
                        value, CanValueBeSmi(),
                        /*lr_reserved=*/!compiler->intrinsic_mode());

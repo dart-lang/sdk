@@ -26,8 +26,8 @@ class SnapshotWriter;
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
-  V(UpdateStoreBuffer)                                                         \
-  V(UpdateStoreBufferWrappers)                                                 \
+  V(WriteBarrier)                                                              \
+  V(WriteBarrierWrappers)                                                      \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \

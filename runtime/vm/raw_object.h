@@ -309,6 +309,8 @@ class RawObject {
 #endif
   };
 
+  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
   static const intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
@@ -474,18 +476,9 @@ class RawObject {
     ASSERT(!IsRemembered());
     UpdateTagBit<OldAndNotRememberedBit>(false);
   }
-  void SetRememberedBitUnsynchronized() {
-    ASSERT(!IsRemembered());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotRememberedBit::update(false, tags);
-  }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
     UpdateTagBit<OldAndNotRememberedBit>(true);
-  }
-  void ClearRememberedBitUnsynchronized() {
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotRememberedBit::update(true, tags);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -698,11 +691,51 @@ class RawObject {
   template <typename type>
   void StorePointer(type const* addr, type value) {
     *const_cast<type*>(addr) = value;
-    // Filter stores based on source and target.
+
     if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && this->IsOldObject() && !this->IsRemembered()) {
-      this->SetRememberedBit();
-      Thread::Current()->StoreBufferAddObject(this);
+
+    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t target_tags = value->ptr()->tags_;
+    Thread* thread = Thread::Current();
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
+        // Generational barrier: record when a store creates an
+        // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
+        this->SetRememberedBit();
+        thread->StoreBufferAddObject(this);
+      } else {
+        // Incremental barrier: record when a store creates an
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
+        UNREACHABLE();
+      }
+    }
+  }
+
+  template <typename type>
+  void StorePointer(type const* addr, type value, Thread* thread) {
+    *const_cast<type*>(addr) = value;
+
+    if (!value->IsHeapObject()) return;
+
+    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t target_tags = value->ptr()->tags_;
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
+        // Generational barrier: record when a store creates an
+        // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
+        this->SetRememberedBit();
+        thread->StoreBufferAddObject(this);
+      } else {
+        // Incremental barrier: record when a store creates an
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
+        UNREACHABLE();
+      }
     }
   }
 

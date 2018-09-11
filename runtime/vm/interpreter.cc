@@ -193,7 +193,8 @@ class InterpreterHelpers {
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2]);
+      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
+                          thread);
       return true;
     }
     return false;
@@ -228,7 +229,8 @@ class InterpreterHelpers {
         static_cast<RawGrowableObjectArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
       RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2]);
+      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
+                         thread);
       return true;
     }
     return false;
@@ -1042,7 +1044,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       }
       instance->StorePointer(
           reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-          value);
+          value, thread);
       *SP = call_base;
       **SP = null_value;
       *invoked = true;
@@ -3473,7 +3475,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     BYTECODE(StoreStaticTOS, A_D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    field->StorePointer(&field->ptr()->value_.static_value_, value);
+    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
     DISPATCH();
   }
 
@@ -3497,8 +3499,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     ASSERT(!thread->isolate()->use_field_guards());
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -3512,8 +3514,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     UNREACHABLE();  // TODO(regis): unused, remove.
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -3529,8 +3531,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     ASSERT(!thread->isolate()->use_field_guards());
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -3545,7 +3547,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
     instance->StorePointer(
         reinterpret_cast<RawContext**>(instance->ptr()) + offset_in_words,
-        value);
+        value, thread);
 
     DISPATCH();
   }
@@ -3559,8 +3561,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     SP -= 2;  // Drop instance and value.
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -4490,7 +4492,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
@@ -4500,7 +4503,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 

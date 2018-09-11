@@ -1592,12 +1592,40 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != LR);
   ASSERT(value != LR);
 
+#if defined(CONCURRENT_MARKING)
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+
+  str(value, dest);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  if (!lr_reserved) Push(LR);
+  ldrb(TMP, FieldAddress(object, Object::tags_offset()));
+  ldrb(LR, FieldAddress(value, Object::tags_offset()));
+  and_(TMP, LR, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  ldr(LR, Address(THR, Thread::write_barrier_mask_offset()));
+  tst(TMP, Operand(LR));
+  mov(TMP, Operand(value), NE);
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
+  blx(LR, NE);
+  if (!lr_reserved) Pop(LR);
+  Bind(&done);
+#else
   str(value, dest);
   // A store buffer update is required.
   if (lr_reserved) {
     StoreIntoObjectFilter(object, value, nullptr, can_be_smi, kNoJump);
-    ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)),
-        NE);
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
     blx(LR, NE);
   } else {
     Label done;
@@ -1611,11 +1639,12 @@ void Assembler::StoreIntoObject(Register object,
     if (object != R0) {
       mov(R0, Operand(object));
     }
-    ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     blx(LR);
     PopList(regs);
     Bind(&done);
   }
+#endif
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,

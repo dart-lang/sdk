@@ -113,6 +113,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -302,6 +305,9 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
@@ -403,6 +409,9 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   // Restore SP and CSP.
   __ mov(SP, CSP);
   __ mov(CSP, R25);
+
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -947,6 +956,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
@@ -1088,6 +1099,8 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
@@ -1296,7 +1309,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
@@ -1305,7 +1318,7 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
     __ Push(LR);
     __ Push(R0);
     __ mov(R0, reg);
-    __ ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    __ ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     __ blr(LR);
     __ Pop(R0);
     __ Pop(LR);
@@ -1318,8 +1331,15 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   R0: Address being stored
-void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+//   R0: Source object (old)
+//   TMP2: Target object (old or new)
+// If TMP2 is new, add R0 to the store buffer. Otherwise TMP2 is old, mark TMP2
+// and add it to the mark list.
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+#if defined(CONCURRENT_MARKING)
+  Label add_to_mark_stack;
+  __ tbz(&add_to_mark_stack, TMP2, kNewObjectBitPosition);
+#else
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
@@ -1328,6 +1348,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ret();
 
   __ Bind(&add_to_buffer);
+#endif
+
   // Save values being destroyed.
   __ Push(R1);
   __ Push(R2);
@@ -1350,7 +1372,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // StoreBufferBlock and add the address to the pointers_.
   __ LoadFromOffset(R1, THR, Thread::store_buffer_block_offset());
   __ LoadFromOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
-  __ add(R3, R1, Operand(R2, LSL, 3));
+  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
   __ StoreToOffset(R0, R3, StoreBufferBlock::pointers_offset());
 
   // Increment top_ and check for overflow.
@@ -1372,7 +1394,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ Push(CODE_REG);
-  __ ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
+  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
@@ -1380,6 +1402,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LeaveCallRuntimeFrame();
   __ Pop(CODE_REG);
   __ ret();
+
+#if defined(CONCURRENT_MARKING)
+  __ Bind(&add_to_mark_stack);
+  __ Stop("Incremental barrier");
+#endif
 }
 
 // Called for inline allocation of objects.
@@ -2030,6 +2057,9 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
@@ -2517,6 +2547,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(SP, R1);  // Stack pointer.
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(THR, R3);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());

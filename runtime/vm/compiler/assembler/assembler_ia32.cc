@@ -1870,7 +1870,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
   j(condition, label, distance);
 }
 
-// Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
@@ -1888,7 +1887,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  call(Address(THR, Thread::write_barrier_entry_point_offset()));
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }

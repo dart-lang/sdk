@@ -296,9 +296,9 @@ class Value : public ZoneAllocated {
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
-  // Compile time constants, Bool, Smi and Nulls do not need to update
-  // the store buffer.
-  bool NeedsStoreBuffer();
+  // Return true if storing the value into a heap object requires applying the
+  // write barrier.
+  bool NeedsWriteBarrier();
 
   bool Equals(Value* other) const;
 
@@ -4222,7 +4222,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
       return false;
     }
 
-    return value()->NeedsStoreBuffer() &&
+    return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
@@ -4679,7 +4679,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
       return false;
     }
 
-    return value()->NeedsStoreBuffer() &&
+    return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 

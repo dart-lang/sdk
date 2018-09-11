@@ -2058,14 +2058,17 @@ static void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
@@ -4090,11 +4093,14 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ SetupDartSP();
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ Push(LR);
   __ mov(THR, R2);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
   __ Pop(LR);
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ RestoreCSP();

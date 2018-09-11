@@ -605,6 +605,12 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
+  // Store into a heap object and apply the generational write barrier. (Unlike
+  // the other architectures, this does not apply the incremental write barrier,
+  // and so concurrent marking is not enabled for now on IA32.) All stores into
+  // heap objects must pass through this function or, if the value can be proven
+  // either Smi or old-and-premarked, its NoBarrier variants.
+  // Destroys the value register.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.

@@ -468,9 +468,9 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ b(&enter);
   Label loop;
   __ Bind(&loop);
-  __ ldr(IP, Address(R1, kWordSize, Address::PreIndex));
+  __ ldr(R8, Address(R1, kWordSize, Address::PreIndex));
   // Generational barrier is needed, array is not necessarily in new space.
-  __ StoreIntoObject(R0, Address(R3, R2, LSL, 1), IP);
+  __ StoreIntoObject(R0, Address(R3, R2, LSL, 1), R8);
   __ Bind(&enter);
   __ subs(R2, R2, Operand(Smi::RawValue(1)));  // R2 is Smi.
   __ b(&loop, PL);
@@ -1112,7 +1112,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   RegList saved = (1 << LR) | (1 << R0);
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
@@ -1121,7 +1121,7 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
     intptr_t start = __ CodeSize();
     __ PushList(saved);
     __ mov(R0, Operand(reg));
-    __ ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    __ ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     __ blx(LR);
     __ PopList(saved);
     __ bx(LR);
@@ -1133,8 +1133,16 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   R0: address (i.e. object) being stored into.
-void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+//   R0: Source object (old)
+//  TMP: Target object (old or new)
+// If TMP is new, add R0 to the store buffer. Otherwise TMP is old, mark TMP
+// and add it to the mark list.
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+#if defined(CONCURRENT_MARKING)
+  Label add_to_mark_stack;
+  __ tst(TMP, Operand(1 << kNewObjectBitPosition));
+  __ b(&add_to_mark_stack, ZERO);
+#else
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
@@ -1146,16 +1154,17 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&add_to_buffer);
+#endif
 
   // Save values being destroyed.
   __ PushList((1 << R1) | (1 << R2) | (1 << R3));
 
-  // R2: Header word.
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
 // TODO(21263): Implement 'swp' and use it below.
 #if !defined(USING_SIMULATOR)
     ASSERT(OS::NumberOfAvailableProcessors() <= 1);
 #endif
+    __ ldr(R2, FieldAddress(R0, Object::tags_offset()));
     __ bic(R2, R2, Operand(1 << RawObject::kOldAndNotRememberedBit));
     __ str(R2, FieldAddress(R0, Object::tags_offset()));
   } else {
@@ -1176,7 +1185,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // StoreBufferBlock and add the address to the pointers_.
   __ ldr(R1, Address(THR, Thread::store_buffer_block_offset()));
   __ ldr(R2, Address(R1, StoreBufferBlock::top_offset()));
-  __ add(R3, R1, Operand(R2, LSL, 2));
+  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
   __ str(R0, Address(R3, StoreBufferBlock::pointers_offset()));
 
   // Increment top_ and check for overflow.
@@ -1196,7 +1205,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ Push(CODE_REG);
-  __ ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
+  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, Operand(THR));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
@@ -1204,6 +1213,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LeaveCallRuntimeFrame();
   __ Pop(CODE_REG);
   __ Ret();
+
+#if defined(CONCURRENT_MARKING)
+  __ Bind(&add_to_mark_stack);
+  __ Stop("Incremental barrier");
+#endif
 }
 
 // Called for inline allocation of objects.

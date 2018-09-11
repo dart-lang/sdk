@@ -972,7 +972,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   // Not used on IA32.
   __ Breakpoint();
 }
@@ -980,7 +980,7 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   EDX: Address being stored
-void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Save values being destroyed.
   __ pushl(EAX);
   __ pushl(ECX);

@@ -1242,7 +1242,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
@@ -1250,7 +1250,7 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
     intptr_t start = __ CodeSize();
     __ pushq(RDX);
     __ movq(RDX, reg);
-    __ call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    __ call(Address(THR, Thread::write_barrier_entry_point_offset()));
     __ popq(RDX);
     __ ret();
     intptr_t end = __ CodeSize();
@@ -1261,8 +1261,16 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   RDX: Address being stored
-void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+//   RDX: Source object (old)
+//   TMP: Target object (old or new)
+// If TMP is new, add RDX to the store buffer. Otherwise TMP is old, mark TMP
+// and add it to the mark list.
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+#if defined(CONCURRENT_MARKING)
+  Label add_to_mark_stack;
+  __ testq(TMP, Immediate(1 << kNewObjectBitPosition));
+  __ j(ZERO, &add_to_mark_stack);
+#else
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
@@ -1272,12 +1280,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ ret();
 
+  __ Bind(&add_to_buffer);
+#endif
+
   // Update the tags that this object has been remembered.
   // Note that we use 32 bit operations here to match the size of the
   // background sweeper which is also manipulating this 32 bit word.
   // RDX: Address being stored
   // RAX: Current tag value
-  __ Bind(&add_to_buffer);
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(RDX, Object::tags_offset()),
@@ -1311,13 +1321,18 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
   __ pushq(CODE_REG);
-  __ movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
+  __ movq(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
   __ EnterCallRuntimeFrame(0);
   __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ popq(CODE_REG);
   __ ret();
+
+#if defined(CONCURRENT_MARKING)
+  __ Bind(&add_to_mark_stack);
+  __ Stop("Incremental barrier");
+#endif
 }
 
 // Called for inline allocation of objects.

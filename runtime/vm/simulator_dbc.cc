@@ -202,7 +202,8 @@ class SimulatorHelpers {
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2]);
+      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
+                          thread);
       return true;
     }
     return false;
@@ -237,7 +238,8 @@ class SimulatorHelpers {
         static_cast<RawGrowableObjectArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
       RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2]);
+      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
+                         thread);
       return true;
     }
     return false;
@@ -2627,7 +2629,7 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(StoreStaticTOS, A_D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    field->StorePointer(&field->ptr()->value_.static_value_, value);
+    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
     DISPATCH();
   }
 
@@ -2648,8 +2650,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = FP[value_reg];
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -2661,8 +2663,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = FP[rD];
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -2673,8 +2675,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
     SP -= 2;  // Drop instance and value.
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -3632,7 +3634,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
@@ -3642,7 +3645,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
