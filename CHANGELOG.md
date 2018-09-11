@@ -1,3 +1,11 @@
+# 0.1.61
+
+* new lint: `flutter_style_todos`
+* improved handling of constant expressions with generic type params
+* NPE fix for `invariant_booleans`
+* Google lints example moved to `package:pedantic`
+* improved docs for `unawaited_futures`
+
 # 0.1.60
 
 * new lint: `avoid_void_async`
