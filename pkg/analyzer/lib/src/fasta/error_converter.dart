@@ -122,10 +122,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
         return;
-      case "COVARIANT_AFTER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AFTER_VAR, offset, length);
-        return;
       case "COVARIANT_AND_STATIC":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
@@ -314,10 +310,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);
         return;
-      case "INVALID_AWAIT_IN_FOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_AWAIT_IN_FOR, offset, length);
-        return;
       case "IMPLEMENTS_BEFORE_EXTENDS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
@@ -329,12 +321,6 @@ class FastaErrorReporter {
       case "IMPLEMENTS_BEFORE_WITH":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
-        return;
-      case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            offset,
-            length);
         return;
       case "IMPORT_OF_NON_LIBRARY":
         errorReporter?.reportErrorForOffset(
@@ -532,10 +518,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
         return;
-      case "PREFIX_AFTER_COMBINATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
-        return;
       case "RECURSIVE_CONSTRUCTOR_REDIRECT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
@@ -607,10 +589,6 @@ class FastaErrorReporter {
       case "TYPE_PARAMETER_ON_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
-        return;
-      case "TYPEDEF_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
         return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -706,7 +684,13 @@ class FastaErrorReporter {
     if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
       ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter?.reportErrorForOffset(errorCode, offset, length);
+        errorReporter.reportError(new AnalysisError.forValues(
+            errorReporter.source,
+            offset,
+            length,
+            errorCode,
+            message.message,
+            message.tip));
         return;
       }
     }

@@ -1625,7 +1625,7 @@ const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAfterVar = const MessageCode(
     "CovariantAfterVar",
-    analyzerCode: "COVARIANT_AFTER_VAR",
+    index: 8,
     message:
         r"""The modifier 'covariant' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -3602,7 +3602,7 @@ const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
-    analyzerCode: "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE",
+    index: 10,
     message: r"""Import directives must preceed part directives.""",
     tip: r"""Try moving the import directives before the part directives.""");
 
@@ -4283,7 +4283,7 @@ const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
-    analyzerCode: "INVALID_AWAIT_IN_FOR",
+    index: 9,
     message:
         r"""The keyword 'await' isn't allowed for a normal 'for' statement.""",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
@@ -6237,7 +6237,7 @@ const Code<Null> codePrefixAfterCombinator = messagePrefixAfterCombinator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrefixAfterCombinator = const MessageCode(
     "PrefixAfterCombinator",
-    analyzerCode: "PREFIX_AFTER_COMBINATOR",
+    index: 6,
     message:
         r"""The prefix ('as' clause) should come before any show/hide combinators.""",
     tip: r"""Try moving the prefix before the combinators.""");
@@ -7141,7 +7141,7 @@ const Code<Null> codeTypedefInClass = messageTypedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefInClass = const MessageCode("TypedefInClass",
-    analyzerCode: "TYPEDEF_IN_CLASS",
+    index: 7,
     message: r"""Typedefs can't be declared inside classes.""",
     tip: r"""Try moving the typedef to the top-level.""");
 

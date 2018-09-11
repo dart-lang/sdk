@@ -148,10 +148,7 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'covariant' should be before the modifier 'final'.",
       correction: "Try re-ordering the modifiers.");
 
-  static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
-      'COVARIANT_AFTER_VAR',
-      "The modifier 'covariant' should be before the modifier 'final'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode COVARIANT_AFTER_VAR = _COVARIANT_AFTER_VAR;
 
   static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
       'COVARIANT_AND_STATIC',
@@ -418,10 +415,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try moving the with clause before the implements clause.");
 
   static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
-      const ParserErrorCode('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-          "Import directives must preceed part directives.",
-          correction:
-              "Try moving the import directives before the part directives.");
+      _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
   static const ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH =
       const ParserErrorCode('INITIALIZED_VARIABLE_IN_FOR_EACH',
@@ -429,10 +423,7 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try removing the initializer, or using a different kind of loop.");
 
-  static const ParserErrorCode INVALID_AWAIT_IN_FOR = const ParserErrorCode(
-      'INVALID_AWAIT_IN_FOR',
-      "The keyword 'await' isn't allowed for a normal 'for' statement.",
-      correction: "Try removing the keyword, or use a for-each statement.");
+  static const ParserErrorCode INVALID_AWAIT_IN_FOR = _INVALID_AWAIT_IN_FOR;
 
   /**
    * Parameters:
@@ -803,10 +794,8 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try surrounding the positional parameters in square brackets.");
 
-  static const ParserErrorCode PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
-      'PREFIX_AFTER_COMBINATOR',
-      "The prefix ('as' clause) should come before any show/hide combinators.",
-      correction: "Try moving the prefix before the combinators.");
+  static const ParserErrorCode PREFIX_AFTER_COMBINATOR =
+      _PREFIX_AFTER_COMBINATOR;
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
@@ -888,9 +877,7 @@ class ParserErrorCode extends ErrorCode {
           "Can't use type arguments with type variable '{0}'.",
           correction: "Try removing the type arguments.");
 
-  static const ParserErrorCode TYPEDEF_IN_CLASS = const ParserErrorCode(
-      'TYPEDEF_IN_CLASS', "Typedefs can't be declared inside classes.",
-      correction: "Try moving the typedef to the top-level.");
+  static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
   /**
    * Parameters:

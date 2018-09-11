@@ -428,9 +428,10 @@ EnumInClass:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
 TypedefInClass:
+  index: 7
   template: "Typedefs can't be declared inside classes."
   tip: "Try moving the typedef to the top-level."
-  analyzerCode: TYPEDEF_IN_CLASS
+  analyzerCode: ParserErrorCode.TYPEDEF_IN_CLASS
   script:
     - "abstract class C { typedef int F(int x); }"
 
@@ -539,9 +540,10 @@ CovariantAfterFinal:
     - "final covariant f;"
 
 CovariantAfterVar:
+  index: 8
   template: "The modifier 'covariant' should be before the modifier 'var'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: COVARIANT_AFTER_VAR
+  analyzerCode: ParserErrorCode.COVARIANT_AFTER_VAR
   script:
     - "var covariant f;"
 
@@ -792,9 +794,10 @@ InitializedVariableInForEach:
     - "for (int a = 0 in <int>[10]) {}"
 
 InvalidAwaitFor:
+  index: 9
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
   tip: "Try removing the keyword, or use a for-each statement."
-  analyzerCode: INVALID_AWAIT_IN_FOR
+  analyzerCode: ParserErrorCode.INVALID_AWAIT_IN_FOR
   script:
     - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
@@ -1550,9 +1553,10 @@ DuplicatePrefix:
   analyzerCode: DUPLICATE_PREFIX
 
 PrefixAfterCombinator:
+  index: 6
   template: "The prefix ('as' clause) should come before any show/hide combinators."
   tip: "Try moving the prefix before the combinators."
-  analyzerCode: PREFIX_AFTER_COMBINATOR
+  analyzerCode: ParserErrorCode.PREFIX_AFTER_COMBINATOR
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
@@ -1876,9 +1880,10 @@ LibraryDirectiveNotFirst:
     - "part 'a.dart'; library l;"
 
 ImportAfterPart:
+  index: 10
   template: "Import directives must preceed part directives."
   tip: "Try moving the import directives before the part directives."
-  analyzerCode: IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
     - "part 'foo.dart'; import 'bar.dart';"
 
