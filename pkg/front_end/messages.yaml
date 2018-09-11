@@ -2180,6 +2180,37 @@ TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  declaration:
+    - |
+      class C<T> {
+        static List<T> staticMethod() {}
+      }
+    - |
+      class C<T> {
+        static T staticMethod() {}
+      }
+    - |
+      class C<T> {
+        static staticMethod(List<T> argument) {}
+      }
+    - |
+      class C<T> {
+        static staticMethod(T argument) {}
+      }
+    - |
+      class C<T> {
+        static staticMethod() {
+          List<T> t = null;
+          return t;
+        }
+      }
+    - |
+      class C<T> {
+        static staticMethod() {
+          T t = null;
+          return t;
+        }
+      }
 
 TypeVariableInConstantContext:
   template: "Type variables can't be used as constants."

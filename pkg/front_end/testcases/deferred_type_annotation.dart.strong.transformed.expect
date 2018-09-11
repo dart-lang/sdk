@@ -1,0 +1,13 @@
+// Errors:
+//
+// pkg/front_end/testcases/deferred_type_annotation.dart:7:5: Error: The type '#lib1::C' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+// Try removing 'deferred' from the import of 'd' or use a supertype of '#lib1::C' that isn't deferred.
+// bad(d.C x) {}
+//     ^^^
+
+library;
+import self as self;
+import "./deferred_lib.dart" as def;
+
+static method bad(def::C x) → dynamic {}
+static method main() → dynamic {}

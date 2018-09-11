@@ -22,7 +22,8 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
+import 'kernel_builder.dart'
+    show KernelTypeBuilder, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -36,8 +37,7 @@ import 'kernel_ast_api.dart'
         Name,
         Procedure,
         StaticGet,
-        TypeParameter,
-        TypeParameterType;
+        TypeParameter;
 
 import 'kernel_builder.dart'
     show
@@ -121,12 +121,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<DartType> typeArguments,
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       int charOffset,
       Constness constness);
 
-  DartType validatedTypeVariableUse(
-      TypeParameterType type, int offset, bool nonInstanceAccessIsError);
+  UnresolvedType<KernelTypeBuilder> validateTypeUse(
+      UnresolvedType<KernelTypeBuilder> unresolved,
+      bool nonInstanceAccessIsError);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -143,4 +144,10 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
+
+  DartType buildDartType(UnresolvedType<KernelTypeBuilder> unresolvedType,
+      {bool nonInstanceAccessIsError});
+
+  List<DartType> buildDartTypeArguments(
+      List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes);
 }

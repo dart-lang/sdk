@@ -67,7 +67,12 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart'
-    show LoadLibraryBuilder, PrefixBuilder, UnlinkedDeclaration;
+    show
+        KernelTypeBuilder,
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        UnlinkedDeclaration,
+        UnresolvedType;
 
 import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
@@ -1257,7 +1262,10 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
               ..fileOffset = offset);
       } else {
         super.expression = forest.literalType(
-            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            helper.buildDartType(
+                new UnresolvedType<KernelTypeBuilder>(
+                    buildTypeWithResolvedArguments(null), offset, uri),
+                nonInstanceAccessIsError: true),
             token);
       }
     }
@@ -1551,17 +1559,6 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
   KernelUnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, this.prefixGenerator, this.isUnresolved)
       : super(helper, token);
-
-  Expression invokeConstructor(
-      List<DartType> typeArguments,
-      String name,
-      Arguments arguments,
-      Token nameToken,
-      Token nameStringToken,
-      Constness constness) {
-    return super.invokeConstructor(
-        typeArguments, name, arguments, nameToken, nameStringToken, constness);
-  }
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

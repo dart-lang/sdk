@@ -954,10 +954,10 @@ class OutlineBuilder extends StackListener {
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
-    var parameters = new List<KernelFormalParameterBuilder>.filled(count, null,
-        growable: true);
+    List<KernelFormalParameterBuilder> parameters =
+        new List<KernelFormalParameterBuilder>(count);
     popList(count, parameters);
-    for (FormalParameterBuilder parameter in parameters) {
+    for (KernelFormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
     push(parameters);

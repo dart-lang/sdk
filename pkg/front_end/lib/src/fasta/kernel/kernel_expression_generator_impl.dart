@@ -213,6 +213,8 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       ExpressionGeneratorHelper helper, Token token, this.member, this.message)
       : super(helper, token, null);
 
+  String get plainNameForRead => token.lexeme;
+
   String get debugName => "IncompleteErrorGenerator";
 
   @override

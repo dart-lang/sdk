@@ -336,10 +336,10 @@ TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
-TypeVariableInConstantContext/declaration1: Fail
-TypeVariableInConstantContext/declaration2: Fail
-TypeVariableInConstantContext/declaration3: Fail
-TypeVariableInStaticContext/example: Fail
+TypeVariableInStaticContext/declaration1: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration2: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration3: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration4: Fail # Unfortunate message from outline phase.
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/script1: Fail

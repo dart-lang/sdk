@@ -11,6 +11,7 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         Template,
         messageCantUsePrefixAsExpression,
@@ -67,13 +68,11 @@ import 'kernel_ast_api.dart'
         Expression,
         Initializer,
         InvalidConstructorInvocationJudgment,
-        InvalidType,
         Member,
         Name,
         Procedure,
         StaticInvocationJudgment,
         SyntheticExpressionJudgment,
-        TypeParameterType,
         UnresolvedTargetInvocationJudgment,
         VariableDeclaration;
 
@@ -81,8 +80,10 @@ import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         Declaration,
-        KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder;
+        KernelInvalidTypeBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder,
+        UnresolvedType;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -214,11 +215,14 @@ abstract class Generator implements ExpressionGenerator {
     }
   }
 
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(templateNotAType.withArguments(token.lexeme),
-        offsetForToken(token), lengthForToken(token));
-    return const InvalidType();
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+    KernelNamedTypeBuilder result =
+        new KernelNamedTypeBuilder(token.lexeme, null);
+    result.bind(result.buildInvalidType(templateNotAType
+        .withArguments(token.lexeme)
+        .withLocation(uri, offsetForToken(token), lengthForToken(token))));
+    return result;
   }
 
   /* Expression | Generator */ Object qualifiedLookup(Token name) {
@@ -226,7 +230,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   Expression invokeConstructor(
-      List<DartType> typeArguments,
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -234,7 +238,8 @@ abstract class Generator implements ExpressionGenerator {
       Constness constness) {
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
-      forest.argumentsSetTypeArguments(arguments, typeArguments);
+      forest.argumentsSetTypeArguments(
+          arguments, helper.buildDartTypeArguments(typeArguments));
     }
     return new InvalidConstructorInvocationJudgment(
         helper.throwNoSuchMethodError(
@@ -513,16 +518,30 @@ abstract class DeferredAccessGenerator implements Generator {
   String get debugName => "DeferredAccessGenerator";
 
   @override
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(
-        templateDeferredTypeAnnotation.withArguments(
-            suffixGenerator.buildTypeWithBuiltArguments(arguments,
-                nonInstanceAccessIsError: nonInstanceAccessIsError),
-            prefixGenerator.plainNameForRead),
-        offsetForToken(prefixGenerator.token),
-        lengthOfSpan(prefixGenerator.token, token));
-    return const InvalidType();
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+    String name =
+        "${prefixGenerator.plainNameForRead}.${suffixGenerator.plainNameForRead}";
+    KernelTypeBuilder type =
+        suffixGenerator.buildTypeWithResolvedArguments(arguments);
+    LocatedMessage message;
+    if (type is KernelNamedTypeBuilder &&
+        type.declaration is KernelInvalidTypeBuilder) {
+      KernelInvalidTypeBuilder declaration = type.declaration;
+      message = declaration.message;
+    } else {
+      int charOffset = offsetForToken(prefixGenerator.token);
+      message = templateDeferredTypeAnnotation
+          .withArguments(
+              helper.buildDartType(
+                  new UnresolvedType<KernelTypeBuilder>(type, charOffset, uri)),
+              prefixGenerator.plainNameForRead)
+          .withLocation(
+              uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
+    }
+    KernelNamedTypeBuilder result = new KernelNamedTypeBuilder(name, null);
+    result.bind(result.buildInvalidType(message));
+    return result;
   }
 
   @override
@@ -535,7 +554,7 @@ abstract class DeferredAccessGenerator implements Generator {
 
   @override
   Expression invokeConstructor(
-      List<DartType> typeArguments,
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -570,11 +589,13 @@ abstract class TypeUseGenerator implements Generator {
   String get debugName => "TypeUseGenerator";
 
   @override
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
     if (arguments != null) {
       int expected = declaration.typeVariablesCount;
       if (arguments.length != expected) {
+        // Build the type arguments to report any errors they may have.
+        helper.buildDartTypeArguments(arguments);
         helper.warnTypeArgumentsMismatch(
             declaration.name, expected, offsetForToken(token));
         // We ignore the provided arguments, which will in turn return the
@@ -591,29 +612,21 @@ abstract class TypeUseGenerator implements Generator {
           lengthForToken(token));
     }
 
-    DartType type;
-    if (arguments == null) {
-      TypeDeclarationBuilder typeDeclaration = declaration;
-      if (typeDeclaration is KernelClassBuilder) {
-        type = typeDeclaration.buildType(helper.library, null);
-      } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
-        type = typeDeclaration.buildType(helper.library, null);
+    List<KernelTypeBuilder> argumentBuilders;
+    if (arguments != null) {
+      argumentBuilders = new List<KernelTypeBuilder>(arguments.length);
+      for (int i = 0; i < argumentBuilders.length; i++) {
+        argumentBuilders[i] =
+            helper.validateTypeUse(arguments[i], false).builder;
       }
     }
-    if (type == null) {
-      type =
-          declaration.buildTypesWithBuiltArguments(helper.library, arguments);
-    }
-    if (type is TypeParameterType) {
-      return helper.validatedTypeVariableUse(
-          type, offsetForToken(token), nonInstanceAccessIsError);
-    }
-    return type;
+    return new KernelNamedTypeBuilder(plainNameForRead, argumentBuilders)
+      ..bind(declaration);
   }
 
   @override
   Expression invokeConstructor(
-      List<DartType> typeArguments,
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -628,6 +641,14 @@ abstract class TypeUseGenerator implements Generator {
         typeArguments,
         offsetForToken(nameToken ?? token),
         constness);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", declaration: ");
+    sink.write(declaration);
+    sink.write(", plainNameForRead: ");
+    sink.write(plainNameForRead);
   }
 }
 
@@ -771,7 +792,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Expression invokeConstructor(
-      List<DartType> typeArguments,
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -779,7 +800,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
       Constness constness) {
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
-      forest.argumentsSetTypeArguments(arguments, typeArguments);
+      forest.argumentsSetTypeArguments(
+          arguments, helper.buildDartTypeArguments(typeArguments));
     }
     return new InvalidConstructorInvocationJudgment(
         buildError(arguments).desugared, null, arguments);
@@ -1152,16 +1174,18 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
   }
 
   @override
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
-    helper.addProblem(
-        template.withArguments(prefixGenerator.token.lexeme, token.lexeme),
-        offsetForToken(prefixGenerator.token),
-        lengthOfSpan(prefixGenerator.token, token));
-    return const InvalidType();
+    KernelNamedTypeBuilder result =
+        new KernelNamedTypeBuilder(plainNameForRead, null);
+    result.bind(result.buildInvalidType(template
+        .withArguments(prefixGenerator.token.lexeme, token.lexeme)
+        .withLocation(uri, offsetForToken(prefixGenerator.token),
+            lengthOfSpan(prefixGenerator.token, token))));
+    return result;
   }
 
   @override
