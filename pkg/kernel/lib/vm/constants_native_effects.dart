@@ -91,13 +91,6 @@ class VmConstantsBackend implements ConstantsBackend {
     throw 'No native effect registered for constant evaluation: $nativeName';
   }
 
-  Constant buildSymbolConstant(StringConstant value) {
-    return new InstanceConstant(
-        internalSymbolClass.reference,
-        const <DartType>[],
-        <Reference, Constant>{symbolNameField.reference: value});
-  }
-
   Constant lowerMapConstant(MapConstant constant) {
     // The _ImmutableMap class is implemented via one field pointing to a list
     // of key/value pairs -- see runtime/lib/immutable_map.dart!

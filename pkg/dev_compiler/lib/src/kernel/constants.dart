@@ -304,14 +304,6 @@ class _ConstantsBackend implements ConstantsBackend {
       throw StateError('unreachable'); // DDC does not use VM native syntax
 
   @override
-  buildSymbolConstant(StringConstant value) {
-    return InstanceConstant(
-        coreTypes.internalSymbolClass.reference,
-        const <DartType>[],
-        <Reference, Constant>{symbolNameField.reference: value});
-  }
-
-  @override
   lowerMapConstant(constant) => constant;
 
   @override

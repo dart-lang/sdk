@@ -1050,19 +1050,33 @@ ConstantHelper::ConstantHelper(Zone* zone,
       const_evaluator_(helper, type_translator, active_class, nullptr),
       translation_helper_(helper->translation_helper_),
       skip_vmservice_library_(skip_vmservice_library),
+      symbol_class_(Class::Handle(zone)),
+      symbol_name_field_(Field::Handle(zone)),
       temp_type_(AbstractType::Handle(zone)),
       temp_type_arguments_(TypeArguments::Handle(zone)),
       temp_type_arguments2_(TypeArguments::Handle(zone)),
       temp_type_arguments3_(TypeArguments::Handle(zone)),
       temp_object_(Object::Handle(zone)),
+      temp_string_(String::Handle(zone)),
       temp_array_(Array::Handle(zone)),
       temp_instance_(Instance::Handle(zone)),
       temp_field_(Field::Handle(zone)),
       temp_class_(Class::Handle(zone)),
+      temp_library_(Library::Handle(zone)),
       temp_function_(Function::Handle(zone)),
       temp_closure_(Closure::Handle(zone)),
       temp_context_(Context::Handle(zone)),
-      temp_integer_(Integer::Handle(zone)) {}
+      temp_integer_(Integer::Handle(zone)) {
+  temp_library_ = Library::InternalLibrary();
+  ASSERT(!temp_library_.IsNull());
+
+  symbol_class_ = temp_library_.LookupClass(Symbols::Symbol());
+  ASSERT(!symbol_class_.IsNull());
+
+  symbol_name_field_ =
+      symbol_class_.LookupInstanceFieldAllowPrivate(Symbols::_name());
+  ASSERT(!symbol_name_field_.IsNull());
+}
 
 const Array& ConstantHelper::ReadConstantTable() {
   const intptr_t number_of_constants = helper_.ReadUInt();
@@ -1109,6 +1123,21 @@ const Array& ConstantHelper::ReadConstantTable() {
       case kStringConstant: {
         temp_instance_ =
             H.Canonicalize(H.DartString(helper_.ReadStringReference()));
+        break;
+      }
+      case kSymbolConstant: {
+        Tag initializer_tag = helper_.ReadTag();
+        if (initializer_tag == kSomething) {
+          const NameIndex index = helper_.ReadCanonicalNameReference();
+          temp_library_ = H.LookupLibraryByKernelLibrary(index);
+        } else {
+          temp_library_ = Library::null();
+        }
+        const String& symbol =
+            H.DartIdentifier(temp_library_, helper_.ReadStringReference());
+        temp_instance_ = Instance::New(symbol_class_, Heap::kOld);
+        temp_instance_.SetField(symbol_name_field_, symbol);
+        temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }
       case kListConstant: {
