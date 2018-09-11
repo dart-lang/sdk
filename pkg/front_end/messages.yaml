@@ -32,6 +32,14 @@
 #
 # Long term, the analyzer and front-end need to share the same error codes. So
 # eventually all error codes should have an `analyzerCode` field.
+# Any error code with an `index` field and an `analyzerCode` field
+# will be auto generated as an Analyzer error code.
+# `index` field values should be unique, consecutive whole numbers starting with 1.
+# If `index` is defined, then `analyzerCode` should be the fully formed
+# name of the corresponding public Analyzer error const
+# (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
+# which will be used when generating code in Analyzer for translating
+# fasta error codes to Analyzer error codes.
 #
 # In some cases a mesage is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.
@@ -707,9 +715,10 @@ StaticAfterVar:
     - "class C { var static f; }"
 
 StaticConstructor:
+  index: 4
   template: "Constructors can't be static."
   tip: "Try removing the keyword 'static'."
-  analyzerCode: STATIC_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.STATIC_CONSTRUCTOR
   script:
     - "class C { static C() {} }"
     - "class C { static C.m() {} }"
@@ -736,9 +745,10 @@ BreakTargetOutsideFunction:
   analyzerCode: LABEL_IN_OUTER_SCOPE
 
 ContinueOutsideOfLoop:
+  index: 2
   template: "A continue statement can't be used outside of a loop or switch statement."
   tip: "Try removing the continue statement."
-  analyzerCode: CONTINUE_OUTSIDE_OF_LOOP
+  analyzerCode: ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
   script:
     - "main() { continue; }"
 
@@ -1814,16 +1824,18 @@ EnumDeclarationEmpty:
     - "enum E {}"
 
 ExternalClass:
+  index: 3
   template: "Classes can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CLASS
+  analyzerCode: ParserErrorCode.EXTERNAL_CLASS
   script:
     - "external class C {}"
 
 ExternalEnum:
+  index: 5
   template: "Enums can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_ENUM
+  analyzerCode: ParserErrorCode.EXTERNAL_ENUM
   script:
     - "external enum E {ONE}"
 

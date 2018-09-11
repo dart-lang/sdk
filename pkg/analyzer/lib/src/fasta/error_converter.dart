@@ -114,10 +114,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, offset, length);
         return;
-      case "CONTINUE_OUTSIDE_OF_LOOP":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, offset, length);
-        return;
       case "CONTINUE_WITHOUT_LABEL_IN_CASE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, offset, length);
@@ -222,17 +218,9 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
         return;
-      case "EXTERNAL_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CLASS, offset, length);
-        return;
       case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
-      case "EXTERNAL_ENUM":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_ENUM, offset, length);
         return;
       case "EXTERNAL_FIELD":
         errorReporter?.reportErrorForOffset(
@@ -586,10 +574,6 @@ class FastaErrorReporter {
       case "STATIC_AFTER_VAR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_VAR, offset, length);
-        return;
-      case "STATIC_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_CONSTRUCTOR, offset, length);
         return;
       case "STATIC_OPERATOR":
         errorReporter?.reportErrorForOffset(

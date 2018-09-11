@@ -1547,7 +1547,7 @@ const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueOutsideOfLoop = const MessageCode(
     "ContinueOutsideOfLoop",
-    analyzerCode: "CONTINUE_OUTSIDE_OF_LOOP",
+    index: 2,
     message:
         r"""A continue statement can't be used outside of a loop or switch statement.""",
     tip: r"""Try removing the continue statement.""");
@@ -2799,7 +2799,7 @@ const Code<Null> codeExternalClass = messageExternalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalClass = const MessageCode("ExternalClass",
-    analyzerCode: "EXTERNAL_CLASS",
+    index: 3,
     message: r"""Classes can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -2832,7 +2832,7 @@ const Code<Null> codeExternalEnum = messageExternalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalEnum = const MessageCode("ExternalEnum",
-    analyzerCode: "EXTERNAL_ENUM",
+    index: 5,
     message: r"""Enums can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -6587,7 +6587,7 @@ const Code<Null> codeStaticConstructor = messageStaticConstructor;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticConstructor = const MessageCode(
     "StaticConstructor",
-    analyzerCode: "STATIC_CONSTRUCTOR",
+    index: 4,
     message: r"""Constructors can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
 

@@ -134,10 +134,8 @@ class ParserErrorCode extends ErrorCode {
           "Constructors can't have a return type.",
           correction: "Try removing the return type.");
 
-  static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
-      'CONTINUE_OUTSIDE_OF_LOOP',
-      "A continue statement can't be used outside of a loop or switch statement.",
-      correction: "Try removing the continue statement.");
+  static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
+      _CONTINUE_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
       'CONTINUE_WITHOUT_LABEL_IN_CASE',
@@ -282,9 +280,7 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'external' should be before the modifier 'static'.",
       correction: "Try re-ordering the modifiers.");
 
-  static const ParserErrorCode EXTERNAL_CLASS = const ParserErrorCode(
-      'EXTERNAL_CLASS', "Classes can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode('EXTERNAL_CONSTRUCTOR_WITH_BODY',
@@ -292,9 +288,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the body of the constructor, or "
               "removing the keyword 'external'.");
 
-  static const ParserErrorCode EXTERNAL_ENUM = const ParserErrorCode(
-      'EXTERNAL_ENUM', "Enums can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
 
   static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode(
       'EXTERNAL_FIELD', "Fields can't be declared to be 'external'.",
@@ -851,9 +845,7 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'static' should be before the modifier 'var'.",
       correction: "Try re-ordering the modifiers.");
 
-  static const ParserErrorCode STATIC_CONSTRUCTOR = const ParserErrorCode(
-      'STATIC_CONSTRUCTOR', "Constructors can't be static.",
-      correction: "Try removing the keyword 'static'.");
+  static const ParserErrorCode STATIC_CONSTRUCTOR = _STATIC_CONSTRUCTOR;
 
   static const ParserErrorCode STATIC_GETTER_WITHOUT_BODY = const ParserErrorCode(
       'STATIC_GETTER_WITHOUT_BODY', "A 'static' getter must have a body.",

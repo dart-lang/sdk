@@ -86,7 +86,8 @@ part of fasta.codes;
         map['analyzerCode'], map['severity']));
   }
   if (largestIndex > indexNameMap.length) {
-    print('Error: The "index:" fields should be sequential starting with 1.');
+    print('Error: The "index:" field values should be unique, consecutive'
+        ' whole numbers starting with 1.');
     hasError = true;
     // Fall through to print more information.
   }
@@ -312,11 +313,7 @@ String constant = '$buffer';
     codeArguments.add('index: $index');
   } else if (analyzerCode != null) {
     // If "index:" is defined, then "analyzerCode:" should not be generated
-    // in the front end. Instead, this field should contain the fully formed
-    // name of the corresponding public Analyzer error const
-    // (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
-    // which will be used when generating code in Analyzer
-    // for translating fasta error codes to Analyzer error codes.
+    // in the front end. See comment in messages.yaml
     codeArguments.add('analyzerCode: "$analyzerCode"');
   }
   if (severity != null) {
