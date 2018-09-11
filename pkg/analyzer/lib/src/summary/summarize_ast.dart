@@ -7,6 +7,7 @@ library serialization.summarize_ast;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
@@ -21,92 +22,6 @@ UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit,
     {bool serializeInferrableFields: true}) {
   return new _SummarizeAstVisitor(serializeInferrableFields)
       .serializeCompilationUnit(compilationUnit);
-}
-
-/// Visitor that collects super-invoked names in a mixin declaration.
-class _AddMixinSuperInvokedNames extends RecursiveAstVisitor<void> {
-  final Set<String> names;
-
-  _AddMixinSuperInvokedNames(this.names);
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    if (node.leftOperand is SuperExpression) {
-      names.add(node.operator.lexeme);
-    }
-    super.visitBinaryExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    if (node.target is SuperExpression) {
-      if (_isRead(node)) {
-        names.add('[]');
-      }
-      if (_isWrite(node)) {
-        names.add('[]=');
-      }
-    }
-    super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.target is SuperExpression) {
-      names.add(node.methodName.name);
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    if (node.operand is SuperExpression) {
-      TokenType operatorType = node.operator.type;
-      if (operatorType == TokenType.MINUS) {
-        names.add('unary-');
-      } else if (operatorType == TokenType.TILDE) {
-        names.add('~');
-      }
-    }
-    super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.target is SuperExpression) {
-      var name = node.propertyName.name;
-      if (_isRead(node)) {
-        names.add(name);
-      }
-      if (_isWrite(node)) {
-        names.add('$name=');
-      }
-    }
-    super.visitPropertyAccess(node);
-  }
-
-  static bool _isRead(Expression e) {
-    var parent = e.parent;
-    if (parent is AssignmentExpression) {
-      return parent.leftHandSide != e || parent.operator.type != TokenType.EQ;
-    } else {
-      return true;
-    }
-  }
-
-  static bool _isWrite(Expression e) {
-    var parent = e.parent;
-    if (parent is AssignmentExpression) {
-      return parent.leftHandSide == e;
-    }
-    if (parent is PostfixExpression) {
-      return true;
-    }
-    if (parent is PrefixExpression) {
-      return parent.operator.type.isIncrementOperator;
-    }
-    return false;
-  }
 }
 
 /// Instances of this class keep track of intermediate state during
@@ -680,7 +595,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         b, null, body, serializeBodyExpr, serializeBody, false);
 
     if (mixinSuperInvokedNames != null) {
-      body?.accept(new _AddMixinSuperInvokedNames(mixinSuperInvokedNames));
+      body?.accept(new MixinSuperInvokedNamesCollector(mixinSuperInvokedNames));
     }
 
     _parameterNames = oldParameterNames;

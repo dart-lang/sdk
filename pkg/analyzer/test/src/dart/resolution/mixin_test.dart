@@ -1483,25 +1483,4 @@ class X extends A with M {}
 
 @reflectiveTest
 class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {
-  @override
-  @failingTest
-  test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() {
-    return super
-        .test_error_mixinApplicationNoConcreteSuperInvokedMember_getter();
-  }
-
-  @override
-  @failingTest
-  test_error_mixinApplicationNoConcreteSuperInvokedMember_method() {
-    return super
-        .test_error_mixinApplicationNoConcreteSuperInvokedMember_method();
-  }
-
-  @override
-  @failingTest
-  test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() {
-    return super
-        .test_error_mixinApplicationNoConcreteSuperInvokedMember_setter();
-  }
-}
+    with MixinResolutionMixin {}

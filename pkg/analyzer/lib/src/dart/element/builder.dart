@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1068,6 +1069,10 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  * model representing the AST structure.
  */
 class ElementBuilder extends ApiElementBuilder {
+  /// List of names of methods, getters, setters, and operators that are
+  /// super-invoked in the current mixin declaration.
+  Set<String> _mixinSuperInvokedNames;
+
   /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
@@ -1098,6 +1103,18 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    _mixinSuperInvokedNames = new Set<String>();
+    try {
+      return super.visitMixinDeclaration(node);
+    } finally {
+      MixinElementImpl element = node.declaredElement;
+      element.superInvokedNames = _mixinSuperInvokedNames.toList();
+      _mixinSuperInvokedNames = null;
+    }
+  }
+
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElementImpl element = node.declaredElement as VariableElementImpl;
@@ -1105,8 +1122,12 @@ class ElementBuilder extends ApiElementBuilder {
     return null;
   }
 
-  void _buildLocal(AstNode node) {
-    node.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+  void _buildLocal(FunctionBody body) {
+    body.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+    // This is not efficient - we visit AST second time.
+    if (_mixinSuperInvokedNames != null) {
+      body.accept(new MixinSuperInvokedNamesCollector(_mixinSuperInvokedNames));
+    }
   }
 }
 
