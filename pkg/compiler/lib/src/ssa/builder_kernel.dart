@@ -25,7 +25,7 @@ import '../ir/util.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
-import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
 import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart'
@@ -123,6 +123,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   StackFrame _currentFrame;
 
+  final FunctionInlineCache inlineCache;
+
   KernelSsaGraphBuilder(
     this.initialTargetElement,
     InterfaceType instanceType,
@@ -138,7 +140,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     this._sourceInformationStrategy,
   )   : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
-        _allocatorAnalysis = closedWorld.allocatorAnalysis {
+        _allocatorAnalysis = closedWorld.allocatorAnalysis,
+        inlineCache = new FunctionInlineCache(closedWorld.annotationsData) {
     _enterFrame(targetElement, null);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);

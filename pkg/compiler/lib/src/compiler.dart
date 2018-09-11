@@ -338,8 +338,8 @@ abstract class Compiler {
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Inferring types...');
-    InferredDataBuilder inferredDataBuilder = new InferredDataBuilderImpl();
-    backend.processAnnotations(closedWorld, inferredDataBuilder);
+    InferredDataBuilder inferredDataBuilder =
+        new InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
         mainFunction, closedWorld, inferredDataBuilder);
   }
@@ -397,7 +397,7 @@ abstract class Compiler {
   JClosedWorld closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
-    KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
+    KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     JClosedWorld closedWorldRefiner =
         backendStrategy.createJClosedWorld(closedWorld);

@@ -241,26 +241,26 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   // TODO(johnniwinther): Reinsert these when [ElementCreatorMixin] is no longer
   // mixed in.
-  /*@override
-  FieldEntity _getField(ir.Field node) {
-    FieldEntity field = _fieldMap[node];
+  @override
+  FieldEntity getFieldInternal(ir.Field node) {
+    FieldEntity field = fieldMap[node];
     assert(field != null, "No field entity for $node");
     return field;
-  }*/
+  }
 
-  /*@override
-  FunctionEntity _getMethod(ir.Procedure node) {
-    FunctionEntity function = _methodMap[node];
+  @override
+  FunctionEntity getMethodInternal(ir.Procedure node) {
+    FunctionEntity function = methodMap[node];
     assert(function != null, "No function entity for $node");
     return function;
-  }*/
+  }
 
-  /*@override
-  ConstructorEntity _getConstructor(ir.Member node) {
-    ConstructorEntity constructor = _constructorMap[node];
+  @override
+  ConstructorEntity getConstructorInternal(ir.Member node) {
+    ConstructorEntity constructor = constructorMap[node];
     assert(constructor != null, "No constructor entity for $node");
     return constructor;
-  }*/
+  }
 
   @override
   FunctionEntity getConstructorBody(ir.Constructor node) {

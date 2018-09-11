@@ -968,7 +968,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  KClosedWorld closeWorld() {
+  KClosedWorld closeWorld(DiagnosticReporter reporter) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
@@ -985,6 +985,10 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "${_classHierarchyBuilder.classHierarchyNodes} vs "
         "${_classHierarchyBuilder.classSets}");
+
+    AnnotationsData annotationsData = processAnnotations(
+        reporter, _commonElements, _elementEnvironment, _processedMembers);
+
     KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
@@ -1005,7 +1009,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: _classHierarchyBuilder.classHierarchyNodes,
-        classSets: _classHierarchyBuilder.classSets);
+        classSets: _classHierarchyBuilder.classSets,
+        annotationsData: annotationsData);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

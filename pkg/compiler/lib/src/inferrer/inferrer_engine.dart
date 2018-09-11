@@ -14,7 +14,6 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart' as optimizerHints;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
@@ -1261,14 +1260,13 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   bool trustTypeAnnotations(MemberEntity member) {
-    return optimizerHints.trustTypeAnnotations(
-        closedWorld.elementEnvironment, commonElements, member);
+    return closedWorld.annotationsData.trustTypeAnnotationsMembers
+        .contains(member);
   }
 
   @override
   bool assumeDynamic(MemberEntity member) {
-    return optimizerHints.assumeDynamic(
-        closedWorld.elementEnvironment, commonElements, member);
+    return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
   }
 }
 

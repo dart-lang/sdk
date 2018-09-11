@@ -27,6 +27,7 @@ import '../io/source_information.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../js_emitter/sorter.dart';
 import '../js/js_source_mapping.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -388,6 +389,20 @@ class JsClosedWorldBuilder {
     JAllocatorAnalysis allocatorAnalysis =
         JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
 
+    AnnotationsData annotationsData = new AnnotationsDataImpl(
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.nonInlinableFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.tryInlineFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.cannotThrowFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.sideEffectFreeFunctions),
+        map.toBackendMemberSet(
+            closedWorld.annotationsData.trustTypeAnnotationsMembers),
+        map.toBackendMemberSet(
+            closedWorld.annotationsData.assumeDynamicMembers));
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
@@ -411,7 +426,8 @@ class JsClosedWorldBuilder {
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         abstractValueStrategy: _abstractValueStrategy,
-        allocatorAnalysis: allocatorAnalysis);
+        allocatorAnalysis: allocatorAnalysis,
+        annotationsData: annotationsData);
   }
 
   BackendUsage _convertBackendUsage(
@@ -629,6 +645,7 @@ class JsClosedWorld extends ClosedWorldBase {
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
   final JAllocatorAnalysis allocatorAnalysis;
+  final AnnotationsData annotationsData;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -650,7 +667,8 @@ class JsClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets,
-      AbstractValueStrategy abstractValueStrategy})
+      AbstractValueStrategy abstractValueStrategy,
+      this.annotationsData})
       : super(
             elementEnvironment,
             dartTypes,

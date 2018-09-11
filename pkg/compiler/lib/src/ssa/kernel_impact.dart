@@ -317,7 +317,8 @@ class KernelImpactBuilder extends ir.Visitor {
         constructor.isFromEnvironmentConstructor &&
         !isConst) {
       impactBuilder.registerFeature(Feature.THROW_UNSUPPORTED_ERROR);
-      return;
+      // We need to register the external constructor as live below, so don't
+      // return here.
     }
 
     InterfaceType type = elementMap.createInterfaceType(

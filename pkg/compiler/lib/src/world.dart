@@ -10,8 +10,10 @@ import 'common.dart';
 import 'common/names.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'constants/constant_system.dart';
+import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart'
     show JAllocatorAnalysis, KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
@@ -70,6 +72,8 @@ abstract class JClosedWorld implements World {
   Iterable<MemberEntity> get processedMembers;
 
   ClassHierarchy get classHierarchy;
+
+  AnnotationsData get annotationsData;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
@@ -198,7 +202,7 @@ abstract class JClosedWorld implements World {
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
 
-  KClosedWorld closeWorld();
+  KClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
@@ -631,4 +635,6 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get processedMembers;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
+
+  AnnotationsData get annotationsData;
 }

@@ -10,6 +10,7 @@ import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'annotations.dart';
 
 abstract class InferredData {
   /// Returns the side effects of executing [element].
@@ -163,7 +164,10 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   final Set<FunctionEntity> _functionsThatMightBePassedToApply =
       new Set<FunctionEntity>();
 
-  InferredDataBuilderImpl();
+  InferredDataBuilderImpl(AnnotationsData annotationsData) {
+    annotationsData.cannotThrowFunctions.forEach(registerCannotThrow);
+    annotationsData.sideEffectFreeFunctions.forEach(registerSideEffectsFree);
+  }
 
   @override
   SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {

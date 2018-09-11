@@ -33,6 +33,7 @@ import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/backend_usage.dart';
@@ -2271,6 +2272,8 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
 
   final ClassHierarchy classHierarchy;
 
+  final AnnotationsData annotationsData;
+
   KClosedWorldImpl(this.elementMap,
       {CompilerOptions options,
       this.elementEnvironment,
@@ -2291,7 +2294,8 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
       this.mixinUses,
       this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
+      Map<ClassEntity, ClassSet> classSets,
+      this.annotationsData})
       : _implementedClasses = implementedClasses,
         classHierarchy = new ClassHierarchyImpl(
             commonElements, classHierarchyNodes, classSets) {

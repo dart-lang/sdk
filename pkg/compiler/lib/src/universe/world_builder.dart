@@ -12,6 +12,7 @@ import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
