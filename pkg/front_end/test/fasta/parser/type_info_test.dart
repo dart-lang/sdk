@@ -1390,19 +1390,6 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<S super T>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined T 1',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeVariable > 0 super',
-      'endTypeVariables < >',
-    ]);
     expectComplexTypeParam('<S extends List<T>>', expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',

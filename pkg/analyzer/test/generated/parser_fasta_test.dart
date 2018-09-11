@@ -843,6 +843,21 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  void test_invalidTypeParameters_super() {
+    parseCompilationUnit('class C<X super Y> {}', errors: [
+      // TODO(danrubel): Improve recovery.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 5),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
+    ]);
+  }
+
   @override
   void test_equalityExpression_precedence_relational_right() {
     parseExpression("== is", codes: [
