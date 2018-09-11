@@ -5000,13 +5000,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return InlineWeeder.canBeInlined(_elementMap, function, null,
             enableUserAssertions: options.enableUserAssertions);
       }
-      // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
-      // case we miss by doing nothing is inlining very simple constructors
-      // where all fields are initialized with values from the arguments at this
-      // call site.  The code is slightly larger (`new Foo(1)` vs `Foo$(1)`) but
-      // that usually means the factory constructor is left unused and not
-      // emitted.
-      // We at least inline bodies that are empty (and thus have a size of 1).
+      if (InlineReductiveWeeder.canBeInlined(
+          _elementMap, function, providedArguments.length,
+          enableUserAssertions: options.enableUserAssertions,
+          omitImplicitCasts: options.omitImplicitChecks)) {
+        return true;
+      }
       return doesNotContainCode();
     }
 
@@ -5765,6 +5764,329 @@ class InlineWeeder extends ir.Visitor {
     }
     // This is last so that [tooDifficult] is always updated.
     if (!registerNode()) return;
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    if (!enableUserAssertions) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    if (!enableUserAssertions) return;
+    defaultNode(node);
+  }
+}
+
+/// Determines if inlining a function is very likely to reduce code size.
+class InlineReductiveWeeder extends ir.Visitor {
+  // We allow the body to be a single function call that does not have any more
+  // inputs than the inlinee.
+  //
+  // We allow the body to be the return of an 'eligible' constant. A constant is
+  // 'eligible' if it is not large (e.g. a long string).
+  //
+  // We skip 'e as{TypeError} T' when the checks are omitted.
+  //
+  //
+  // TODO(sra): Consider slightly expansive simple constructors where all we
+  // gain is a 'new' keyword, e.g. `new X.Foo(a)` vs `X.Foo$(a)`.
+  //
+  // TODO(25231): Make larger string constants eligible by sharing references.
+
+  static bool canBeInlined(
+      JsToElementMap elementMap, FunctionEntity function, int argumentCount,
+      {bool enableUserAssertions: null, bool omitImplicitCasts: null}) {
+    return cannotBeInlinedReason(elementMap, function, argumentCount,
+            enableUserAssertions: enableUserAssertions,
+            omitImplicitCasts: omitImplicitCasts) ==
+        null;
+  }
+
+  static String cannotBeInlinedReason(
+      JsToElementMap elementMap, FunctionEntity function, int argumentCount,
+      {bool enableUserAssertions: null, bool omitImplicitCasts: null}) {
+    assert(enableUserAssertions != null);
+    assert(omitImplicitCasts != null);
+    var visitor = new InlineReductiveWeeder(
+        argumentCount, enableUserAssertions, omitImplicitCasts);
+    ir.FunctionNode node = getFunctionNode(elementMap, function);
+    if (function.isConstructor) {
+      return visitor.tooDifficultReason ??= 'constructor';
+    }
+    node.accept(visitor);
+    return visitor.tooDifficultReason;
+  }
+
+  final int argumentCount;
+  final bool enableUserAssertions;
+  final bool omitImplicitCasts;
+  final int maxInliningNodes;
+
+  bool seenReturn = false;
+  int nodeCount = 0;
+  int callCount = 0;
+  String tooDifficultReason;
+  bool get tooDifficult => tooDifficultReason != null;
+
+  InlineReductiveWeeder(
+      this.argumentCount, this.enableUserAssertions, this.omitImplicitCasts)
+      :
+        // Node budget that covers one call and the passed-in arguments.
+        // The +1 also allows a top-level zero-argument to be inlined if it
+        // returns a constant.
+        maxInliningNodes = argumentCount + 1;
+
+  bool registerNode() {
+    if (++nodeCount > maxInliningNodes) {
+      tooDifficultReason ??= 'too many nodes';
+      return false;
+    }
+    return true;
+  }
+
+  bool registerCall() {
+    if (++callCount > 1) {
+      tooDifficultReason ??= 'too many calls';
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  defaultNode(ir.Node node) {
+    if (tooDifficult) return;
+    if (seenReturn) {
+      tooDifficultReason ??= 'code after return';
+      return;
+    }
+    if (!registerNode()) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitReturnStatement(ir.ReturnStatement node) {
+    if (seenReturn) {
+      tooDifficultReason ??= 'code after return';
+      return;
+    }
+    node.visitChildren(this);
+    seenReturn = true;
+  }
+
+  @override
+  visitThrow(ir.Throw node) {
+    tooDifficultReason ??= 'throw';
+  }
+
+  @override
+  visitEmptyStatement(ir.EmptyStatement node) {}
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  visitBlock(ir.Block node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  visitStringLiteral(ir.StringLiteral node) {
+    registerNode();
+    // Avoid copying long strings into call site.
+    if (node.value.length > 14) tooDifficultReason ??= 'long string';
+  }
+
+  @override
+  visitPropertyGet(ir.PropertyGet node) {
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    node.receiver.accept(this);
+  }
+
+  @override
+  visitDirectPropertyGet(ir.DirectPropertyGet node) {
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    node.receiver.accept(this);
+  }
+
+  @override
+  visitPropertySet(ir.PropertySet node) {
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    node.receiver.accept(this);
+    node.value.accept(this);
+  }
+
+  @override
+  visitDirectPropertySet(ir.DirectPropertySet node) {
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    node.receiver.accept(this);
+    node.value.accept(this);
+  }
+
+  @override
+  visitVariableGet(ir.VariableGet node) {
+    registerNode();
+  }
+
+  @override
+  visitThisExpression(ir.ThisExpression node) {
+    registerNode();
+  }
+
+  @override
+  visitStaticGet(ir.StaticGet node) {
+    // Assume lazy-init static, loaded via a call: `$.$get$foo()`.
+    if (!registerCall()) return;
+    registerNode();
+  }
+
+  @override
+  visitConstructorInvocation(ir.ConstructorInvocation node) {
+    if (node.isConst) {
+      // A const constructor call compiles to a constant pool reference.
+      registerNode();
+      return;
+    }
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    _processArguments(node.arguments, node.target?.function);
+  }
+
+  @override
+  visitStaticInvocation(ir.StaticInvocation node) {
+    if (node.isConst) {
+      tooDifficultReason ??= 'external const constructor';
+      return;
+    }
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    _processArguments(node.arguments, node.target?.function);
+  }
+
+  @override
+  visitMethodInvocation(ir.MethodInvocation node) {
+    if (!registerCall()) return;
+    if (!registerNode()) return;
+    node.receiver.accept(this);
+    _processArguments(node.arguments, null);
+  }
+
+  _processArguments(ir.Arguments arguments, ir.FunctionNode target) {
+    if (arguments.types.isNotEmpty) {
+      tooDifficultReason ??= 'type arguments';
+      return;
+    }
+    int count = arguments.positional.length + arguments.named.length;
+    if (count > argumentCount) {
+      tooDifficultReason ??= 'increasing arguments';
+      return;
+    }
+
+    if (target != null) {
+      // Disallow defaulted optional arguments since they will be passed
+      // explicitly.
+      if (target.positionalParameters.length + target.namedParameters.length >
+          count) {
+        tooDifficultReason ??= 'argument defaulting';
+        return;
+      }
+    }
+
+    for (var e in arguments.positional) {
+      e.accept(this);
+      if (tooDifficult) return;
+    }
+    for (var e in arguments.named) {
+      e.value.accept(this);
+      if (tooDifficult) return;
+    }
+  }
+
+  @override
+  visitAsExpression(ir.AsExpression node) {
+    if (node.isTypeError && omitImplicitCasts) {
+      node.operand.accept(this);
+      return;
+    }
+    tooDifficultReason ??= 'cast';
+  }
+
+  @override
+  visitVariableDeclaration(ir.VariableDeclaration node) {
+    // A local variable is an alias for the initializer expression.
+    if (node.initializer != null) {
+      --nodeCount; // discount one reference to the variable.
+      node.initializer.accept(this);
+      return;
+    }
+  }
+
+  @override
+  visitForStatement(ir.ForStatement node) {
+    tooDifficultReason ??= 'loop';
+  }
+
+  @override
+  visitForInStatement(ir.ForInStatement node) {
+    tooDifficultReason ??= 'loop';
+  }
+
+  @override
+  visitWhileStatement(ir.WhileStatement node) {
+    tooDifficultReason ??= 'loop';
+  }
+
+  @override
+  visitDoStatement(ir.DoStatement node) {
+    tooDifficultReason ??= 'loop';
+  }
+
+  @override
+  visitTryCatch(ir.TryCatch node) {
+    tooDifficultReason ??= 'try';
+  }
+
+  @override
+  visitTryFinally(ir.TryFinally node) {
+    tooDifficultReason ??= 'try';
+  }
+
+  @override
+  visitIfStatement(ir.IfStatement node) {
+    tooDifficultReason ??= 'if';
+  }
+
+  @override
+  visitFunctionExpression(ir.FunctionExpression node) {
+    tooDifficultReason ??= 'closure';
+  }
+
+  @override
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    tooDifficultReason ??= 'closure';
+  }
+
+  @override
+  visitFunctionNode(ir.FunctionNode node) {
+    if (node.asyncMarker != ir.AsyncMarker.Sync) {
+      tooDifficultReason ??= 'async/await';
+      return;
+    }
+    // TODO(sra): Cost of parameter checking?
+    node.body.accept(this);
+  }
+
+  @override
+  visitConditionalExpression(ir.ConditionalExpression node) {
+    if (!registerNode()) return;
+    node.visitChildren(this);
   }
 
   @override
