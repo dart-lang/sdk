@@ -1809,7 +1809,7 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 }
 
 abstract class ClassOrMixinDeclarationImpl
-    extends NamedCompilationUnitMemberImpl {
+    extends NamedCompilationUnitMemberImpl implements ClassOrMixinDeclaration {
   /**
    * The type parameters for the class or mixin,
    * or `null` if the declaration does not have any type parameters.
