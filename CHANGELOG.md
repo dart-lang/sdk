@@ -21,6 +21,11 @@
     succeed.
 *   Exported `Future` and `Stream` from `dart:core`.
 
+#### `dart:async`
+
+*   Fix a bug where calling `stream.take(0).drain(value)` would not correctly
+    forward the `value` through the returned `Future`.
+
 ## 2.1.0-dev.3.0
 
 ### Core library changes
