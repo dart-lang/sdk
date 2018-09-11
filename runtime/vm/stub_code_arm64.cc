@@ -1392,6 +1392,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
          (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
+
+  const Register kTypeArgumentsReg = R1;
+  const Register kInstanceReg = R0;
+  const Register kNullReg = R3;
+  const Register kTempReg = R4;
+  const Register kTopReg = R5;
+
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1399,111 +1406,62 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
   if (is_cls_parameterized) {
-    __ ldr(R1, Address(SP));
-    // R1: instantiated type arguments.
+    __ ldr(kTypeArgumentsReg, Address(SP));
   }
   Isolate* isolate = Isolate::Current();
+
+  __ LoadObject(kNullReg, Object::null_object());
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
       !cls.TraceAllocation(isolate)) {
     Label slow_case;
-    // Allocate the object and update top to point to
-    // next object start and initialize the allocated object.
-    // R1: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R2, Address(THR, Thread::top_offset()));
-    __ AddImmediate(R3, R2, instance_size);
-    // Check if the allocation fits into the remaining space.
-    // R2: potential new object start.
-    // R3: potential next object start.
-    __ ldr(TMP, Address(THR, Thread::end_offset()));
-    __ CompareRegisters(R3, TMP);
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ b(&slow_case, CS);  // Unsigned higher or equal.
-    }
-    __ str(R3, Address(THR, Thread::top_offset()));
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
-
-    // R2: new object start.
-    // R3: next object start.
-    // R1: new object type arguments (if is_cls_parameterized).
-    // Set the tags.
-    uint32_t tags = 0;
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.id() != kIllegalCid);
-    tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    tags = RawObject::NewBit::update(true, tags);
-    __ LoadImmediate(R0, tags);
-    // 64 bit store also zeros the hash_field.
-    __ StoreToOffset(R0, R2, Instance::tags_offset());
+    // Allocate the object & initialize header word.
+    __ TryAllocate(cls, &slow_case, kInstanceReg, kTopReg,
+                   /*tag_result=*/false);
 
     // Initialize the remaining words of the object.
-    __ LoadObject(R0, Object::null_object());
-
-    // R0: raw null.
-    // R2: new object start.
-    // R3: next object start.
-    // R1: new object type arguments (if is_cls_parameterized).
-    // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
-      // Check if the object contains any non-header fields.
-      // Small objects are initialized using a consecutive set of writes.
-      for (intptr_t current_offset = Instance::NextFieldOffset();
-           current_offset < instance_size; current_offset += kWordSize) {
-        __ StoreToOffset(R0, R2, current_offset);
+      intptr_t current_offset = Instance::NextFieldOffset();
+      while ((current_offset + kWordSize) < instance_size) {
+        __ stp(kNullReg, kNullReg,
+               Address(kInstanceReg, current_offset, Address::PairOffset));
+        current_offset += 2 * kWordSize;
+      }
+      while (current_offset < instance_size) {
+        __ str(kNullReg, Address(kInstanceReg, current_offset));
+        current_offset += kWordSize;
       }
     } else {
-      __ AddImmediate(R4, R2, Instance::NextFieldOffset());
-      // Loop until the whole object is initialized.
-      // R0: raw null.
-      // R2: new object.
-      // R3: next object start.
-      // R4: next word to be initialized.
-      // R1: new object type arguments (if is_cls_parameterized).
-      Label init_loop;
-      Label done;
+      __ AddImmediate(kTempReg, kInstanceReg, Instance::NextFieldOffset());
+      Label done, init_loop;
       __ Bind(&init_loop);
-      __ CompareRegisters(R4, R3);
+      __ CompareRegisters(kTempReg, kTopReg);
       __ b(&done, CS);
-      __ str(R0, Address(R4));
-      __ AddImmediate(R4, kWordSize);
+      __ str(kNullReg, Address(kTempReg, kWordSize, Address::PostIndex));
       __ b(&init_loop);
+
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // R1: new object type arguments.
-      // Set the type arguments in the new object.
-      __ StoreToOffset(R1, R2, cls.type_arguments_field_offset());
+      __ StoreToOffset(kTypeArgumentsReg, kInstanceReg,
+                       cls.type_arguments_field_offset());
     }
-    // Done allocating and initializing the instance.
-    // R2: new object still missing its heap tag.
-    __ add(R0, R2, Operand(kHeapObjectTag));
-    // R0: new object.
+    __ add(kInstanceReg, kInstanceReg, Operand(kHeapObjectTag));
     __ ret();
 
     __ Bind(&slow_case);
   }
+
   // If is_cls_parameterized:
-  // R1: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
-  __ Push(ZR);          // Result slot.
-  __ PushObject(cls);   // Push class of object to be allocated.
-  if (is_cls_parameterized) {
-    // Push type arguments.
-    __ Push(R1);
-  } else {
-    // Push null type arguments.
-    __ PushObject(Object::null_object());
-  }
+  __ LoadObject(R0, cls);
+  __ PushPair(R0, kNullReg);  // Pushes cls, result slot.
+  __ Push(is_cls_parameterized ? kTypeArgumentsReg : kNullReg);
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ Drop(2);                                      // Pop arguments.
-  __ Pop(R0);  // Pop result (newly allocated object).
-  // R0: new object
-  // Restore the frame pointer.
-  __ LeaveStubFrame();
+  __ ldr(kInstanceReg,
+         Address(SP, 2 * kWordSize));  // Pop result (newly allocated object).
+  __ LeaveStubFrame();                 // Restores correct SP.
   __ ret();
 }
 

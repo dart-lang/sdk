@@ -1573,10 +1573,14 @@ class Assembler : public ValueObject {
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
+  // Result:
+  //   * [instance_reg] will contain allocated new-space object
+  //   * [top_reg] will contain Thread::top_offset()
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
-                   Register temp_reg);
+                   Register top_reg,
+                   bool tag_result = true);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,

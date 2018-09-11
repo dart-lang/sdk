@@ -1361,31 +1361,34 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             Register instance_reg,
-                            Register temp_reg) {
+                            Register top_reg,
+                            bool tag_result) {
   ASSERT(failure != NULL);
   const intptr_t instance_size = cls.instance_size();
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    ldr(instance_reg, Address(THR, Thread::top_offset()));
-    // TODO(koda): Protect against unsigned overflow here.
-    AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
+    NOT_IN_PRODUCT(
+        MaybeTraceAllocation(cls.id(), /*temp_reg=*/top_reg, failure));
+
+    const Register kEndReg = TMP;
 
     // instance_reg: potential next object start.
-    ldr(TMP, Address(THR, Thread::end_offset()));
-    CompareRegisters(TMP, instance_reg);
-    // fail if heap end unsigned less than or equal to instance_reg.
-    b(failure, LS);
+    RELEASE_ASSERT((Thread::top_offset() + kWordSize) == Thread::end_offset());
+    ldp(instance_reg, kEndReg,
+        Address(THR, Thread::top_offset(), Address::PairOffset));
+
+    // TODO(koda): Protect against unsigned overflow here.
+    AddImmediate(top_reg, instance_reg, instance_size);
+    cmp(kEndReg, Operand(top_reg));
+    b(failure, LS);  // Unsigned lower or equal.
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(THR, Thread::top_offset()));
+    str(top_reg, Address(THR, Thread::top_offset()));
 
-    ASSERT(instance_size >= kHeapObjectTag);
-    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
     uint32_t tags = 0;
@@ -1396,7 +1399,11 @@ void Assembler::TryAllocate(const Class& cls,
     // Extends the 32 bit tags with zeros, which is the uninitialized
     // hash code.
     LoadImmediate(TMP, tags);
-    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
+    StoreToOffset(TMP, instance_reg, Object::tags_offset());
+
+    if (tag_result) {
+      AddImmediate(instance_reg, kHeapObjectTag);
+    }
   } else {
     b(failure);
   }

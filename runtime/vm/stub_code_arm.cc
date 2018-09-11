@@ -1216,126 +1216,103 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
          (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
+
+  const Register kNullReg = R8;
+  const Register kOtherNullReg = R9;
+  const Register kTypeArgumentsReg = R3;
+  const Register kInstanceReg = R0;
+  const Register kEndReg = R1;
+  const Register kEndOfInstanceReg = R2;
+
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
+  ASSERT(instance_size % kObjectAlignment == 0);
+  if (is_cls_parameterized) {
+    __ ldr(kTypeArgumentsReg, Address(SP, 0));
+  }
   Isolate* isolate = Isolate::Current();
+
+  __ LoadObject(kNullReg, Object::null_object());
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
       !cls.TraceAllocation(isolate)) {
     Label slow_case;
+
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R0, Address(THR, Thread::top_offset()));
-    __ AddImmediate(R1, R0, instance_size);
-    // Check if the allocation fits into the remaining space.
-    // R0: potential new object start.
-    // R1: potential next object start.
-    __ ldr(IP, Address(THR, Thread::end_offset()));
-    __ cmp(R1, Operand(IP));
+
+    RELEASE_ASSERT((Thread::top_offset() + kWordSize) == Thread::end_offset());
+    __ ldrd(kInstanceReg, kEndReg, THR, Thread::top_offset());
+    __ AddImmediate(kEndOfInstanceReg, kInstanceReg, instance_size);
+    __ cmp(kEndOfInstanceReg, Operand(kEndReg));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R1, Address(THR, Thread::top_offset()));
+    __ str(kEndOfInstanceReg, Address(THR, Thread::top_offset()));
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R9, cls.id()));
+    NOT_IN_PRODUCT(static Register kAllocationStatsReg = R4);
+    NOT_IN_PRODUCT(
+        __ LoadAllocationStatsAddress(kAllocationStatsReg, cls.id()));
 
-    // R0: new object start.
-    // R1: next object start.
-    // R9: allocation stats table.
     // Set the tags.
     uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     tags = RawObject::NewBit::update(true, tags);
-    __ LoadImmediate(R2, tags);
-    __ str(R2, Address(R0, Instance::tags_offset()));
-    __ add(R0, R0, Operand(kHeapObjectTag));
+    __ LoadImmediate(R1, tags);
+    __ str(R1, Address(kInstanceReg, Instance::tags_offset()));
+    __ add(kInstanceReg, kInstanceReg, Operand(kHeapObjectTag));
 
-    // Initialize the remaining words of the object.
-    __ LoadObject(R2, Object::null_object());
-
-    // R2: raw null.
-    // R0: new object (tagged).
-    // R1: next object start.
-    // R9: allocation stats table.
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
-      // Small objects are initialized using a consecutive set of writes.
       intptr_t begin_offset = Instance::NextFieldOffset() - kHeapObjectTag;
       intptr_t end_offset = instance_size - kHeapObjectTag;
-      // Save one move if less than two fields.
       if ((end_offset - begin_offset) >= (2 * kWordSize)) {
-        __ mov(R3, Operand(R2));
+        __ mov(kOtherNullReg, Operand(kNullReg));
       }
-      __ InitializeFieldsNoBarrierUnrolled(R0, R0, begin_offset, end_offset, R2,
-                                           R3);
+      __ InitializeFieldsNoBarrierUnrolled(kInstanceReg, kInstanceReg,
+                                           begin_offset, end_offset, kNullReg,
+                                           kOtherNullReg);
     } else {
-      // There are more than kInlineInstanceSize(12) fields
-      __ add(R4, R0, Operand(Instance::NextFieldOffset() - kHeapObjectTag));
-      __ mov(R3, Operand(R2));
-      // Loop until the whole object is initialized.
-      // R2: raw null.
-      // R3: raw null.
-      // R0: new object (tagged).
-      // R1: next object start.
-      // R4: next word to be initialized.
-      // R9: allocation stats table.
-      __ InitializeFieldsNoBarrier(R0, R4, R1, R2, R3);
+      __ add(R1, kInstanceReg,
+             Operand(Instance::NextFieldOffset() - kHeapObjectTag));
+      __ mov(kOtherNullReg, Operand(kNullReg));
+      __ InitializeFieldsNoBarrier(kInstanceReg, R1, kEndOfInstanceReg,
+                                   kNullReg, kOtherNullReg);
     }
     if (is_cls_parameterized) {
-      // Set the type arguments in the new object.
-      __ ldr(R4, Address(SP, 0));
-      FieldAddress type_args(R0, cls.type_arguments_field_offset());
-      __ StoreIntoObjectNoBarrier(R0, type_args, R4);
+      __ StoreIntoObjectNoBarrier(
+          kInstanceReg,
+          FieldAddress(kInstanceReg, cls.type_arguments_field_offset()),
+          kTypeArgumentsReg);
     }
 
-    // Done allocating and initializing the instance.
-    // R0: new object (tagged).
-    // R9: allocation stats table.
-
     // Update allocation stats.
-    NOT_IN_PRODUCT(__ IncrementAllocationStats(R9, cls.id(), space));
+    NOT_IN_PRODUCT(
+        __ IncrementAllocationStats(kAllocationStatsReg, cls.id(), space));
 
-    // R0: new object (tagged).
     __ Ret();
-
     __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    // Load the type arguments.
-    __ ldr(R4, Address(SP, 0));
-  }
-  // If is_cls_parameterized:
-  // R4: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
-  __ LoadObject(R2, Object::null_object());
-  __ Push(R2);         // Setup space on stack for return value.
-  __ PushObject(cls);  // Push class of object to be allocated.
-  if (is_cls_parameterized) {
-    // Push type arguments.
-    __ Push(R4);
-  } else {
-    // Push null type arguments.
-    __ Push(R2);
-  }
+  __ LoadObject(R1, cls);
+  __ PushList(1 << kNullReg | 1 << R1);  // Pushes cls, result slot.
+  __ Push(is_cls_parameterized ? kTypeArgumentsReg : kNullReg);
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ Drop(2);                                      // Pop arguments.
-  __ Pop(R0);  // Pop result (newly allocated object).
-  // R0: new object
-  // Restore the frame pointer.
-  __ LeaveStubFrame();
-  __ Ret();
+  __ ldr(kInstanceReg,
+         Address(SP, 2 * kWordSize));  // Pop result (newly allocated object).
+  __ LeaveDartFrameAndReturn();        // Restores correct SP.
 }
 
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
