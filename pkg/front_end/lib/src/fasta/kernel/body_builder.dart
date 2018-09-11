@@ -33,8 +33,6 @@ import '../parser.dart'
         offsetForToken,
         optional;
 
-import '../parser/class_member_parser.dart' show ClassMemberParser;
-
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
 
@@ -54,8 +52,6 @@ import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 import '../scope.dart' show ProblemBuilder;
 
 import '../severity.dart' show Severity;
-
-import '../source/outline_builder.dart' show OutlineBuilder;
 
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -2377,14 +2373,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator");
-    UnresolvedType<KernelTypeBuilder> type = pop();
+    DartType type = buildDartType(pop());
     Expression operand = popForValue();
     bool isInverted = not != null;
     Expression isExpression =
-        forest.isExpression(operand, isOperator, not, buildDartType(type));
+        forest.isExpression(operand, isOperator, not, type);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
-          buildDartType(type), functionNestingLevel);
+          type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
       push(buildProblem(
@@ -3940,55 +3936,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginTypeVariables(Token token) {
-    debugEvent("beginTypeVariables");
-
-    // TODO(danrubel): Now that the type variable events have been reordered,
-    // we should be able to cleanup body builder type variable declaration
-    // handling and remove this hack.
-
-    OutlineBuilder listener = new OutlineBuilder(library);
-    // TODO(dmitryas):  [ClassMemberParser] shouldn't be used to parse and build
-    // the type variables for the local function.  It also causes the unresolved
-    // types from the bounds of the type variables to appear in [library.types].
-    // See the code that resolves them below.
-    new ClassMemberParser(listener)
-        .parseTypeVariablesOpt(new Token.eof(-1)..next = token);
-    List<Object> typeVariables = listener.pop();
-    if (typeVariables != null) {
-      typeVariables = new List<KernelTypeVariableBuilder>.from(typeVariables);
-    }
-    enterFunctionTypeScope(typeVariables);
-
-    // The invocation of [enterFunctionTypeScope] above has put the type
-    // variables into the scope, and now the possibly unresolved types from
-    // the bounds of the variables can be resolved.  This is needed to apply
-    // instantiate-to-bound later.
-    // TODO(dmitryas):  Move the resolution to the appropriate place once
-    // [ClassMemberParser] is not used to build the type variables for the local
-    // function.  See the comment above.
-    for (UnresolvedType<TypeBuilder> t in library.types) {
-      t.resolveIn(scope, library);
-    }
-    library.types.clear();
-  }
-
-  @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
     Identifier name = pop();
     List<Expression> annotations = pop();
-
-    KernelTypeVariableBuilder variable;
-    Object inScope = scopeLookup(scope, name.name, token);
-    if (inScope is TypeUseGenerator) {
-      variable = inScope.declaration;
-    } else {
-      // Something went wrong when pre-parsing the type variables.
-      // Assume an error is reported elsewhere.
-      variable = new KernelTypeVariableBuilder(
-          name.name, library, name.charOffset, null);
-    }
+    KernelTypeVariableBuilder variable = new KernelTypeVariableBuilder(
+        name.name, library, name.charOffset, null);
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, annotations);
       for (Expression annotation in annotations) {
@@ -4004,10 +3957,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     assert(count > 0);
     List<KernelTypeVariableBuilder> typeVariables =
         popList(count, new List<KernelTypeVariableBuilder>(count));
-
-    // TODO(danrubel): Call enterFunctionScope here
-    // once the hack in beginTypeVariables has been removed.
-    //enterFunctionTypeScope(typeVariables);
+    enterFunctionTypeScope(typeVariables);
     push(typeVariables);
   }
 
