@@ -1753,11 +1753,6 @@
           "arguments": ["--fatal-warnings", "pkg/dart_internal"]
         },
         {
-          "name": "analyze pkg/dart_messages",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "pkg/dart_messages"]
-        },
-        {
           "name": "analyze pkg/dev_compiler",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/dev_compiler"]
