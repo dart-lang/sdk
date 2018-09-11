@@ -3874,10 +3874,16 @@ It has the numeric integer value of the decimal numeral.
 An {\em integer literal} is either a hexadecimal integer literal or a decimal integer literal.
 
 \LMHash{}
-An integer literal has static type \code{int},
-unless the surrounding static context type is a type
-which \code{int} is not assignable to, and \code{double} is.
-In that case the static type of the integer literal is \code{double}.
+Let $l$ be an integer literal that is not the operand
+of by a unary minus operator,
+and let $T$ be the static context type of $l$.
+If \code{double} is assignable to $T$ and \code{int} is not assignable to $T$,
+then the static type of $l$ is \code{double};
+otherwise the static type of $l$ is \code{int}.
+\commentary{
+  This means that an integer literal denotes a \code{double}
+  when it would satisfy the type requirement, and an \code{int} would not. Otherwise it is an \code{int}, even in situations where that is an error.
+}
 
 \LMHash{}
 A numeric literal that is not an integer literal is a {\em double literal}.
@@ -3885,19 +3891,20 @@ A numeric literal that is not an integer literal is a {\em double literal}.
 The static type of a double literal is \code{double}.
 
 \LMHash{}
-If the \code{int} class is implemented as signed 64-bit two's complement integers,
-and a hexadecimal integer literal with static type \code{int}
-and numeric value $i \ge{} 2^{63}$ is not prefixed by a unary minus operator,
-then it is a compile-time error if $i \ge{} 2^{64}$, and otherwise
-the hexadecimal integer literal evaluates to an instance of the \code{int} class
-representing the value $i - 2^{64}$.
-
-\LMHash{}
-Otherwise an integer literal with static type \code{int}
-that is not prefixed by a unary minus operator,
-evaluates to an instance of the \code{int} class representing the integer value $i$,
-and it is a compile-time error if the integer $i$ cannot be represented exactly
-by an instance of \code{int}.
+If $l$ is an integer literal with numeric value $i$ and static type \code{int},
+and $l$ is not the operand of a unary minus operator,
+then evaluation of $l$ proceeds as follows:
+\begin{itemize}
+  \item{} If $l$ is a hexadecimal integer literal,
+  $2^{63} \le{} i \lt{} 2^{64}$ and the \code{int} class is implemented as
+  signed 64-bit two's complement integers,
+  then $l$ evaluates to an instance of the \code{int} class
+  representing the numeric value $i - 2^{64}$,
+  \item{} Otherwise $l$ evaluates to an instance of the \code{int} class
+  representing the numeric value $i$.
+  It is a compile-time error if the integer $i$ cannot be represented
+  exactly by an instance of \code{int}.
+\end{itemize}
 
 \commentary{
 Integers in Dart are designed to be implemented as
@@ -3918,7 +3925,7 @@ as specified by the IEEE 754 standard.
 An integer literal with static type \code{double} and numeric value $i$
 evaluates to an instance of the \code{double} class representing
 the value $i$. It is a compile-time error if the value $i$ cannot be
-represented {\em precisely} by the an instace of \code{double}.
+represented {\em precisely} by the an instance of \code{double}.
 \commentary{
 A 64 bit double precision floating point number
 is usually taken to represent a range of real numbers
@@ -7212,23 +7219,27 @@ Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e
 \LMHash{}
 If $e$ is an expression of the form \code{-$l$}
 where $l$ is an integer literal (\ref{numbers}) with numeric integer value $i$,
-then the static type of $e$ is the same as the static type of an integer literal
-with the same context type,
-and evaluation of $e$ first proceeds as for an integer literal
-with numeric value $-i$, evaluating to a value $v$.
-Then, if the static type of the $e$ is \code{double} and $v$ is the \code{double} value 0.0, then $e$ evaluates to the \code{double} value -0.0,
-otherwise $e$ evaluates to $v$.
+and with static contex type $T$.
+If \code{double} is assignable to $T$ and \code{int} is not assignable to $T$,
+then the static type of $e$ is \code{double};
+otherwise the static type of $e$ is \code{int}.
+
+\LMHash{}
+If the static type of $e$ is \code{int} then $e$ evaluates to
+to an instance of the \code{int} class representing the numeric value $-i$.
+It is a compile-time error if the integer $-i$ cannot be represented
+exactly by an instance of \code{int}.
+
+\LMHash{}
+If the static type of $e$ is \code{double} then $e$ evaluates to
+to an instance of the \code{double} class representing the numeric value $-i$.
+It is a compile-time error if the integer $-i$ cannot be represented
+exactly by an instance of \code{double}.
 \commentary{
-We treat \code{-$l$} \emph{as if} it is a single integer literal with a negative
-numeric value. The specified semantics of integer literals (\ref{numbers})
-allows negative numeric values, so they can be applied as-is to the value $-i$,
-except that we want \code{-0} in a \code{double} context
-to evaluate to \code{-0.0}.
-The expression \code{-$l$} is not \emph{itself} an integer literal,
-it's merely treated as one,
-so this rule does not apply twice to \code{- -$l$}.
-It also does not apply to \code{-($l$)}
-since a parenthesized expression is not an integer literal expression.
+We treat \code{-$l$} \emph{as if} it is a single integer literal
+with a negative numeric value.
+We do not evaluate $l$ individually as an expression,
+or concern ourselves with its static type.
 }
 
 \LMHash{}
