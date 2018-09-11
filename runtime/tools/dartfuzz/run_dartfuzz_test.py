@@ -8,6 +8,7 @@ import abc
 import argparse
 import os
 import shutil
+import signal
 import subprocess
 import sys
 
@@ -269,6 +270,8 @@ class DartFuzzTester(object):
     print('Exec-Mode 1 :', self._runner1.description)
     print('Exec-Mode 2 :', self._runner2.description)
     print('Dart Dev    :', os.environ.get('DART_TOP'))
+    print('Orig Dir    :', self._save_dir)
+    print('Temp Dir    :', self._tmp_dir)
     print()
     self.ShowStats()  # show all zeros on start
     for self._test in range(1, self._repeat + 1):
@@ -278,7 +281,7 @@ class DartFuzzTester(object):
   def Setup(self):
     """Initial setup of the testing environment."""
     # Fuzzer command.
-    self._dartfuzz = self._save_dir + '/dartfuzz.py'
+    self._dartfuzz = self._save_dir + '/dartfuzz.dart'
     # Statistics.
     self._test = 0
     self._num_success = 0
@@ -311,7 +314,7 @@ class DartFuzzTester(object):
       FatalError: error when DartFuzz fails.
     """
     # Invoke dartfuzz script on command line rather than calling py code.
-    if (RunCommand([self._dartfuzz], out='fuzz.dart') != RetCode.SUCCESS):
+    if (RunCommand(['dart', self._dartfuzz], out='fuzz.dart') != RetCode.SUCCESS):
       raise FatalError('Unexpected error while running DartFuzz')
 
   def CheckForDivergence(self, out1, retcode1, out2, retcode2):
