@@ -1440,7 +1440,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(aligned());
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObject(array, element_address, value, CanValueBeSmi());
+        __ StoreIntoObject(array, element_address, value, CanValueBeSmi(),
+                           /*lr_reserved=*/!compiler->intrinsic_mode());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);
@@ -1902,7 +1903,8 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ MoveRegister(temp, box_reg);
   __ StoreIntoObjectOffset(instance_reg, offset, temp,
-                           Assembler::kValueIsNotSmi);
+                           Assembler::kValueIsNotSmi,
+                           /*lr_reserved=*/!compiler->intrinsic_mode());
   __ Bind(&done);
 }
 
@@ -1973,7 +1975,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2,
-                               Assembler::kValueIsNotSmi);
+                               Assembler::kValueIsNotSmi,
+                               /*lr_reserved=*/!compiler->intrinsic_mode());
     } else {
       __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
     }
@@ -2143,7 +2146,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
   if (this->value()->NeedsWriteBarrier()) {
     __ StoreIntoObjectOffset(temp, Field::static_value_offset(), value,
-                             CanValueBeSmi());
+                             CanValueBeSmi(),
+                             /*lr_reserved=*/!compiler->intrinsic_mode());
   } else {
     __ StoreIntoObjectOffsetNoBarrier(temp, Field::static_value_offset(),
                                       value);
