@@ -60,6 +60,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -101,6 +102,9 @@ bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
 /// are the types of initializing formals, which are inferred from the types of
 /// the corresponding fields.
 ///
+/// If [getAst] is provided, it is used to obtain ASTs of source files in this
+/// build unit, and these ASTs are used for type inference.
+///
 /// A map is returned whose keys are the URIs of the libraries in this
 /// build unit, and whose values are the corresponding
 /// [LinkedLibraryBuilder]s.
@@ -108,10 +112,11 @@ Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable) {
+    GetDeclaredVariable getDeclaredVariable,
+    [GetAstCallback getAst]) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  _relink(linkedLibraries, getDependency, getUnit);
+  _relink(linkedLibraries, getDependency, getUnit, getAst);
   return linkedLibraries;
 }
 
@@ -256,13 +261,19 @@ DartType _dynamicIfNull(DartType type) {
 /// [UnlinkedUnit] objects from both this build unit and other build
 /// units.
 ///
+/// If a non-null [getAst] is provided, it is used to obtain ASTs of source
+/// files in this build unit, and these ASTs are used for type inference.
+///
 /// The [strong] flag controls whether type inference is performed in strong
 /// mode or spec mode.  Note that in spec mode, the only types that are inferred
 /// are the types of initializing formals, which are inferred from the types of
 /// the corresponding fields.
-void _relink(Map<String, LinkedLibraryBuilder> libraries,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
-  new Linker(libraries, getDependency, getUnit).link();
+void _relink(
+    Map<String, LinkedLibraryBuilder> libraries,
+    GetDependencyCallback getDependency,
+    GetUnitCallback getUnit,
+    GetAstCallback getAst) {
+  new Linker(libraries, getDependency, getUnit, getAst).link();
 }
 
 /// Create an [UnlinkedParam] representing the given [parameter], which should
@@ -360,6 +371,9 @@ void _storeTypeArguments(
   }
   encodedType.typeArguments = encodedTypeArguments;
 }
+
+/// Type of the callback used by [link] to request [CompilationUnit] objects.
+typedef CompilationUnit GetAstCallback(String absoluteUri);
 
 /// Type of the callback used by [link] and [relink] to request
 /// [LinkedLibrary] objects from other build units.
@@ -521,6 +535,10 @@ class ClassElementForLink_Class extends ClassElementForLink
   @override
   final bool isMixin;
 
+  /// If non-null, the AST for the class or mixin declaration; this is used to
+  /// obtain initializer expressions for type inference.
+  final ClassOrMixinDeclaration _astForInference;
+
   List<ConstructorElementForLink> _constructors;
   ConstructorElementForLink _unnamedConstructor;
   bool _unnamedConstructorComputed = false;
@@ -534,7 +552,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<PropertyAccessorElementForLink> _accessors;
 
   ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
-      this._unlinkedClass, this.isMixin)
+      this._unlinkedClass, this.isMixin, this._astForInference)
       : super(enclosingElement);
 
   @override
@@ -608,8 +626,27 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<FieldElementForLink_ClassField> get fields {
     if (_fields == null) {
       _fields = <FieldElementForLink_ClassField>[];
-      for (UnlinkedVariable field in _unlinkedClass.fields) {
-        _fields.add(new FieldElementForLink_ClassField(this, field));
+      List<Expression> initializerExpressionsForInference;
+      if (_astForInference != null) {
+        initializerExpressionsForInference = [];
+        for (var member in _astForInference.members) {
+          if (member is FieldDeclaration) {
+            for (var variable in member.fields.variables) {
+              initializerExpressionsForInference.add(variable.initializer);
+            }
+          }
+        }
+        assert(initializerExpressionsForInference.length ==
+            _unlinkedClass.fields.length);
+      }
+      for (int i = 0; i < _unlinkedClass.fields.length; i++) {
+        var field = _unlinkedClass.fields[i];
+        _fields.add(new FieldElementForLink_ClassField(
+            this,
+            field,
+            initializerExpressionsForInference == null
+                ? null
+                : initializerExpressionsForInference[i]));
       }
     }
     return _fields;
@@ -977,8 +1014,12 @@ abstract class CompilationUnitElementForLink
   @override
   final Source source;
 
+  /// If non-null, the AST for the compilation unit; this is used to obtain
+  /// initializer expressions for type inference.
+  final CompilationUnit _astForInference;
+
   CompilationUnitElementForLink(UnlinkedUnit unlinkedUnit, this.unitNum,
-      int numReferences, this._absoluteUri)
+      int numReferences, this._absoluteUri, this._astForInference)
       : _references = new List<_ReferenceInfo>(numReferences),
         _unlinkedUnit = unlinkedUnit,
         source = new InSummarySource(Uri.parse(_absoluteUri), null),
@@ -1088,9 +1129,26 @@ abstract class CompilationUnitElementForLink
   @override
   List<ClassElementForLink_Class> get mixins {
     if (_mixins == null) {
+      List<MixinDeclaration> declarationsForInference;
+      if (_astForInference != null) {
+        declarationsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is MixinDeclaration) {
+            declarationsForInference.add(declaration);
+          }
+        }
+        assert(declarationsForInference.length == _unlinkedUnit.mixins.length);
+      }
       _mixins = <ClassElementForLink_Class>[];
-      for (UnlinkedClass unlinkedClass in _unlinkedUnit.mixins) {
-        _mixins.add(new ClassElementForLink_Class(this, unlinkedClass, true));
+      for (int i = 0; i < _unlinkedUnit.mixins.length; i++) {
+        var unlinkedClass = _unlinkedUnit.mixins[i];
+        _mixins.add(new ClassElementForLink_Class(
+            this,
+            unlinkedClass,
+            true,
+            declarationsForInference == null
+                ? null
+                : declarationsForInference[i]));
       }
     }
     return _mixins;
@@ -1102,10 +1160,28 @@ abstract class CompilationUnitElementForLink
   @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
     if (_topLevelVariables == null) {
+      List<Expression> initializerExpressionsForInference;
+      if (_astForInference != null) {
+        initializerExpressionsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is TopLevelVariableDeclaration) {
+            for (var variable in declaration.variables.variables) {
+              initializerExpressionsForInference.add(variable.initializer);
+            }
+          }
+        }
+        assert(initializerExpressionsForInference.length ==
+            _unlinkedUnit.variables.length);
+      }
       _topLevelVariables = <TopLevelVariableElementForLink>[];
-      for (UnlinkedVariable unlinkedVariable in _unlinkedUnit.variables) {
-        _topLevelVariables
-            .add(new TopLevelVariableElementForLink(this, unlinkedVariable));
+      for (int i = 0; i < _unlinkedUnit.variables.length; i++) {
+        var unlinkedVariable = _unlinkedUnit.variables[i];
+        _topLevelVariables.add(new TopLevelVariableElementForLink(
+            this,
+            unlinkedVariable,
+            initializerExpressionsForInference == null
+                ? null
+                : initializerExpressionsForInference[i]));
       }
     }
     return _topLevelVariables;
@@ -1114,9 +1190,28 @@ abstract class CompilationUnitElementForLink
   @override
   List<ClassElementForLink_Class> get types {
     if (_types == null) {
+      List<ClassDeclaration> declarationsForInference;
+      if (_astForInference != null) {
+        declarationsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is ClassDeclaration) {
+            declarationsForInference.add(declaration);
+          } else if (declaration is ClassTypeAlias) {
+            declarationsForInference.add(null);
+          }
+        }
+        assert(declarationsForInference.length == _unlinkedUnit.classes.length);
+      }
       _types = <ClassElementForLink_Class>[];
-      for (UnlinkedClass unlinkedClass in _unlinkedUnit.classes) {
-        _types.add(new ClassElementForLink_Class(this, unlinkedClass, false));
+      for (int i = 0; i < _unlinkedUnit.classes.length; i++) {
+        var unlinkedClass = _unlinkedUnit.classes[i];
+        _types.add(new ClassElementForLink_Class(
+            this,
+            unlinkedClass,
+            false,
+            declarationsForInference == null
+                ? null
+                : declarationsForInference[i]));
       }
     }
     return _types;
@@ -1304,9 +1399,10 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       UnlinkedUnit unlinkedUnit,
       this._linkedUnit,
       int unitNum,
-      String absoluteUri)
-      : super(
-            unlinkedUnit, unitNum, unlinkedUnit.references.length, absoluteUri);
+      String absoluteUri,
+      CompilationUnit astForInference)
+      : super(unlinkedUnit, unitNum, unlinkedUnit.references.length,
+            absoluteUri, astForInference);
 
   @override
   bool get isInBuildUnit => true;
@@ -1522,8 +1618,8 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
       int unitNum,
       String absoluteUri)
       : _linkedUnit = linkedUnit,
-        super(
-            unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri) {
+        super(unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri,
+            null) {
     parametersInheritingCovariant =
         _linkedUnit.parametersInheritingCovariant.toSet();
     // Make one pass through the linked types to determine the lengths for
@@ -2100,6 +2196,10 @@ class ExprTypeComputer {
 
   final ResolverVisitor _resolverVisitor;
 
+  final Linker _linker;
+
+  FunctionElementForLink_Local _functionElement;
+
   factory ExprTypeComputer(FunctionElementForLink_Local functionElement) {
     CompilationUnitElementForLink unit = functionElement.compilationUnit;
     LibraryElementForLink library = unit.enclosingElement;
@@ -2119,6 +2219,7 @@ class ExprTypeComputer {
         unit._unitResynthesizer,
         astRewriteVisitor,
         resolverVisitor,
+        linker,
         errorListener,
         functionElement,
         unlinkedConst,
@@ -2129,11 +2230,13 @@ class ExprTypeComputer {
       UnitResynthesizer unitResynthesizer,
       this._astRewriteVisitor,
       this._resolverVisitor,
+      this._linker,
       AnalysisErrorListener _errorListener,
-      ElementImpl context,
+      this._functionElement,
       UnlinkedExpr unlinkedConst,
       List<UnlinkedExecutable> localFunctions)
-      : _builder = new ExprBuilder(unitResynthesizer, context, unlinkedConst,
+      : _builder = new ExprBuilder(
+            unitResynthesizer, _functionElement, unlinkedConst,
             requireValidConst: false, localFunctions: localFunctions);
 
   TopLevelInferenceErrorKind get errorKind {
@@ -2143,16 +2246,20 @@ class ExprTypeComputer {
   }
 
   DartType compute() {
-    if (_builder.uc == null) {
+    Expression expression;
+    if (_linker.getAst != null) {
+      var expressionForInference = _functionElement._expressionForInference;
+      if (expressionForInference != null) {
+        expression = AstCloner().cloneNode(expressionForInference);
+      }
+    } else if (_builder.uc != null && _builder.uc.operations.isNotEmpty) {
+      expression = _builder.build();
+    }
+    if (expression == null) {
       // No function body was stored for this function, so we can't infer its
       // return type.  Assume `dynamic`.
       return DynamicTypeImpl.instance;
     }
-    // If no operations, we cannot compute the type.  Assume `dynamic`.
-    if (_builder.uc.operations.isEmpty) {
-      return DynamicTypeImpl.instance;
-    }
-    var expression = _builder.build();
     var container =
         astFactory.expressionFunctionBody(null, null, expression, null);
     expression.accept(_astRewriteVisitor);
@@ -2185,9 +2292,10 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   TopLevelInferenceErrorBuilder _inferenceError;
 
   FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
-      UnlinkedVariable unlinkedVariable)
+      UnlinkedVariable unlinkedVariable, Expression initializerForInference)
       : enclosingElement = enclosingElement,
-        super(unlinkedVariable, enclosingElement.enclosingElement);
+        super(unlinkedVariable, enclosingElement.enclosingElement,
+            initializerForInference);
 
   @override
   bool get isStatic => unlinkedVariable.isStatic;
@@ -2408,6 +2516,9 @@ class FunctionElementForLink_Initializer extends Object
   /// The variable for which this element is the initializer.
   final VariableElementForLink _variable;
 
+  @override
+  final Expression _expressionForInference;
+
   /// The type inference node for this function, or `null` if it hasn't been
   /// computed yet.
   TypeInferenceNode _typeInferenceNode;
@@ -2416,7 +2527,8 @@ class FunctionElementForLink_Initializer extends Object
   DartType _inferredReturnType;
   TopLevelInferenceErrorBuilder _inferenceError;
 
-  FunctionElementForLink_Initializer(this._variable);
+  FunctionElementForLink_Initializer(
+      this._variable, this._expressionForInference);
 
   @override
   TypeInferenceNode get asTypeInferenceNode =>
@@ -2439,11 +2551,7 @@ class FunctionElementForLink_Initializer extends Object
 
   @override
   List<FunctionElementForLink_Local_NonSynthetic> get functions =>
-      _functions ??= _variable.unlinkedVariable.initializer.localFunctions
-          .map((UnlinkedExecutable ex) =>
-              new FunctionElementForLink_Local_NonSynthetic(
-                  _variable.compilationUnit, this, ex))
-          .toList();
+      _functions ??= _computeFunctions();
 
   @override
   String get identifier => '';
@@ -2509,6 +2617,21 @@ class FunctionElementForLink_Initializer extends Object
   @override
   String toString() => _variable.toString();
 
+  List<FunctionElementForLink_Local_NonSynthetic> _computeFunctions() {
+    var localFunctionsFromSummary =
+        _variable.unlinkedVariable.initializer.localFunctions;
+    var count = localFunctionsFromSummary.length;
+    var result = List<FunctionElementForLink_Local_NonSynthetic>(count);
+    for (int i = 0; i < count; i++) {
+      result[i] = FunctionElementForLink_Local_NonSynthetic(
+          _variable.compilationUnit,
+          this,
+          localFunctionsFromSummary[i],
+          i == 0 ? _expressionForInference : null);
+    }
+    return result;
+  }
+
   @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {
     assert(!_hasTypeBeenInferred);
@@ -2529,6 +2652,11 @@ abstract class FunctionElementForLink_Local
         ExecutableElementForLink,
         FunctionElementImpl,
         ReferenceableElementForLink {
+  /// If this function element represents the initializer of a field or a
+  /// top-level variable, returns the AST for the initializer expression; this
+  /// is used for inferring the expression type.
+  Expression get _expressionForInference;
+
   /// Indicates whether type inference has completed for this function.
   bool get _hasTypeBeenInferred;
 
@@ -2549,6 +2677,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   @override
   final ExecutableElementForLink enclosingElement;
 
+  @override
+  final Expression _expressionForInference;
+
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
 
   /// The type inference node for this function, or `null` if it hasn't been
@@ -2558,7 +2689,8 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   FunctionElementForLink_Local_NonSynthetic(
       CompilationUnitElementForLink compilationUnit,
       this.enclosingElement,
-      UnlinkedExecutable unlinkedExecutable)
+      UnlinkedExecutable unlinkedExecutable,
+      this._expressionForInference)
       : super(compilationUnit, unlinkedExecutable);
 
   @override
@@ -2574,7 +2706,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
       _functions ??= serializedExecutable.localFunctions
           .map((UnlinkedExecutable ex) =>
               new FunctionElementForLink_Local_NonSynthetic(
-                  compilationUnit, this, ex))
+                  compilationUnit, this, ex, null))
           .toList();
 
   @override
@@ -3310,9 +3442,12 @@ class LibraryElementInBuildUnit
 
   @override
   CompilationUnitElementInBuildUnit _makeUnitElement(
-          UnlinkedUnit unlinkedUnit, int i, String absoluteUri) =>
-      new CompilationUnitElementInBuildUnit(
-          this, unlinkedUnit, _linkedLibrary.units[i], i, absoluteUri);
+      UnlinkedUnit unlinkedUnit, int i, String absoluteUri) {
+    var astNodeForInference =
+        _linker.getAst == null ? null : _linker.getAst(absoluteUri);
+    return new CompilationUnitElementInBuildUnit(this, unlinkedUnit,
+        _linkedLibrary.units[i], i, absoluteUri, astNodeForInference);
+  }
 }
 
 /// Element representing a library which is depended upon (either
@@ -3395,6 +3530,9 @@ class Linker {
   /// Callback to ask the client for an [UnlinkedUnit].
   final GetUnitCallback getUnit;
 
+  /// Callback to ask the client for a [CompilationUnit].
+  final GetAstCallback getAst;
+
   /// Map containing all library elements accessed during linking,
   /// whether they are part of the build unit being linked or whether
   /// they are dependencies.
@@ -3417,7 +3555,7 @@ class Linker {
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit) {
+      this.getUnit, this.getAst) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries
@@ -4308,8 +4446,8 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
 class TopLevelVariableElementForLink extends VariableElementForLink
     implements TopLevelVariableElement {
   TopLevelVariableElementForLink(CompilationUnitElementForLink enclosingElement,
-      UnlinkedVariable unlinkedVariable)
-      : super(unlinkedVariable, enclosingElement);
+      UnlinkedVariable unlinkedVariable, Expression initializerForInference)
+      : super(unlinkedVariable, enclosingElement, initializerForInference);
 
   @override
   CompilationUnitElementForLink get enclosingElement => compilationUnit;
@@ -4682,6 +4820,10 @@ abstract class VariableElementForLink
   /// The unlinked representation of the variable in the summary.
   final UnlinkedVariable unlinkedVariable;
 
+  /// If non-null, the AST for the initializer expression; this is used for
+  /// inferring the expression type.
+  final Expression _initializerForInference;
+
   /// If this variable is declared `const` and the enclosing library is
   /// part of the build unit being linked, the variable's node in the
   /// constant evaluation dependency graph.  Otherwise `null`.
@@ -4701,7 +4843,8 @@ abstract class VariableElementForLink
   /// The compilation unit in which this variable appears.
   final CompilationUnitElementForLink compilationUnit;
 
-  VariableElementForLink(this.unlinkedVariable, this.compilationUnit) {
+  VariableElementForLink(this.unlinkedVariable, this.compilationUnit,
+      this._initializerForInference) {
     if (compilationUnit.isInBuildUnit &&
         unlinkedVariable.initializer?.bodyExpr != null) {
       _constNode = new ConstVariableNode(this);
@@ -4766,7 +4909,8 @@ abstract class VariableElementForLink
     if (unlinkedVariable.initializer == null) {
       return null;
     } else {
-      return _initializer ??= new FunctionElementForLink_Initializer(this);
+      return _initializer ??= new FunctionElementForLink_Initializer(
+          this, _initializerForInference);
     }
   }
 

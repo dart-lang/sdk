@@ -350,8 +350,8 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
         _linkerInputs.linkedLibraries,
         _linkerInputs.getUnit,
         _linkerInputs.getDeclaredVariable);
-    linker = new Linker(
-        linkedLibraries, _linkerInputs.getDependency, _linkerInputs.getUnit);
+    linker = new Linker(linkedLibraries, _linkerInputs.getDependency,
+        _linkerInputs.getUnit, null);
   }
 
   @override

@@ -56,10 +56,21 @@ void summarize(
     return unlinkedUnit;
   }
 
+  CompilationUnit getAst(String absoluteUri) {
+    if (absoluteUri == null) {
+      return null;
+    }
+    var compilationUnit = uriToUnit[absoluteUri];
+    if (compilationUnit == null && !allowMissingFiles) {
+      throw new StateError('Missing unit $absoluteUri');
+    }
+    return compilationUnit;
+  }
+
   // TODO(paulberry): is this bad?  Are we passing parts to link that we
   // shouldn't?
-  var linkedLibraries = link(
-      uriToUnlinked.keys.toSet(), getDependency, getUnit, getDeclaredVariable);
+  var linkedLibraries = link(uriToUnlinked.keys.toSet(), getDependency, getUnit,
+      getDeclaredVariable, getAst);
 
   linkedLibraries.forEach(assembler.addLinkedLibrary);
 }

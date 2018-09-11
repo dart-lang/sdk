@@ -48,6 +48,48 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
+  test_constExpr_functionExpression_asArgument() {
+    super.test_constExpr_functionExpression_asArgument();
+  }
+
+  @override
+  @failingTest
+  test_constExpr_functionExpression_asArgument_multiple() {
+    super.test_constExpr_functionExpression_asArgument_multiple();
+  }
+
+  @override
+  @failingTest
+  test_constExpr_makeTypedList() {
+    super.test_constExpr_makeTypedList();
+  }
+
+  @override
+  @failingTest
+  test_constExpr_makeTypedList_dynamic() {
+    super.test_constExpr_makeTypedList_dynamic();
+  }
+
+  @override
+  @failingTest
+  test_constExpr_makeTypedMap() {
+    super.test_constExpr_makeTypedMap();
+  }
+
+  @override
+  @failingTest
+  test_constExpr_makeTypedMap_dynamic() {
+    super.test_constExpr_makeTypedMap_dynamic();
+  }
+
+  @override
+  @failingTest
+  test_field_final_typeParameter() {
+    super.test_field_final_typeParameter();
+  }
+
+  @override
+  @failingTest
   test_field_inferred_type_nonstatic_implicit_initialized() {
     super.test_field_inferred_type_nonstatic_implicit_initialized();
   }
@@ -72,6 +114,12 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
+  test_inferred_type_keeps_leading_dynamic() {
+    super.test_inferred_type_keeps_leading_dynamic();
+  }
+
+  @override
+  @failingTest
   test_inferred_type_reference_shared_prefixed() {
     super.test_inferred_type_reference_shared_prefixed();
   }
@@ -92,6 +140,12 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
   @failingTest
   test_inferred_type_refers_to_nested_function_typed_param_named() {
     super.test_inferred_type_refers_to_nested_function_typed_param_named();
+  }
+
+  @override
+  @failingTest
+  test_inferred_type_skips_trailing_dynamic() {
+    super.test_inferred_type_skips_trailing_dynamic();
   }
 
   @override
