@@ -162,6 +162,12 @@ type ConstantEmptyTypeArguments extends ConstantPoolEntry {
   Byte tag = 24;
 }
 
+type ConstantSymbol extends ConstantPoolEntry {
+  Byte tag = 25;
+  Option<LibraryReference> library;
+  StringReference name;
+}
+
 */
 
 enum ConstantTag {
@@ -190,6 +196,7 @@ enum ConstantTag {
   kSubtypeTestCache,
   kPartialTearOffInstantiation,
   kEmptyTypeArguments,
+  kSymbol,
 }
 
 abstract class ConstantPoolEntry {
@@ -262,6 +269,8 @@ abstract class ConstantPoolEntry {
         return new ConstantPartialTearOffInstantiation.readFromBinary(source);
       case ConstantTag.kEmptyTypeArguments:
         return new ConstantEmptyTypeArguments.readFromBinary(source);
+      case ConstantTag.kSymbol:
+        return new ConstantSymbol.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -1098,6 +1107,41 @@ class ConstantEmptyTypeArguments extends ConstantPoolEntry {
 
   @override
   bool operator ==(other) => other is ConstantEmptyTypeArguments;
+}
+
+class ConstantSymbol extends ConstantPoolEntry {
+  final Reference _libraryRef;
+  final String value;
+
+  ConstantSymbol(this._libraryRef, this.value);
+
+  @override
+  ConstantTag get tag => ConstantTag.kSymbol;
+
+  Library get library => _libraryRef?.asLibrary;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {
+    sink.writeCanonicalNameReference(library?.canonicalName);
+    sink.writeStringReference(value);
+  }
+
+  ConstantSymbol.readFromBinary(BinarySource source)
+      : _libraryRef = source.readCanonicalNameReference()?.getReference(),
+        value = source.readStringReference();
+
+  @override
+  String toString() => 'Symbol '
+      '${library != null ? '$library::' : ''}\'$value\'';
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantSymbol &&
+      this.value == other.value &&
+      this.library == other.library;
 }
 
 /// Reserved constant pool entry.

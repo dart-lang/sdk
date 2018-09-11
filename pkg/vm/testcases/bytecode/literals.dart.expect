@@ -658,22 +658,28 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack
-  PushConstant         CP#2
-  PushConstant         CP#4
-  IndirectStaticCall   1, CP#3
-  Drop1
   PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#3
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#5
   ReturnTOS
 }
 ConstantPool {
-  [0] = Null
-  [1] = String 'test_symbol'
-  [2] = Instance dart._internal::Symbol type-args CP#0 {_name: CP#1}
-  [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [0] = Symbol 'test_symbol'
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = Symbol #lib::'_private_symbol'
+  [4] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [5] = Null
 }
 ]static method test_symbol() → void {
   core::print(#test_symbol);
+  core::print(#_private_symbol);
 }
 [@vm.bytecode=
 Bytecode {

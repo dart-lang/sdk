@@ -10,6 +10,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/object_store.h"
 #include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -123,6 +124,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kSubtypeTestCache,
     kPartialTearOffInstantiation,
     kEmptyTypeArguments,
+    kSymbol,
   };
 
   enum InvocationKind {
@@ -141,6 +143,8 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   Class& cls = Class::Handle(helper_->zone_);
   String& name = String::Handle(helper_->zone_);
   TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
+  Class* symbol_class = nullptr;
+  Field* symbol_name_field = nullptr;
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
     const intptr_t tag = helper_->ReadTag();
@@ -513,6 +517,30 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       case ConstantPoolTag::kEmptyTypeArguments:
         obj = Object::empty_type_arguments().raw();
         break;
+      case ConstantPoolTag::kSymbol: {
+        const NameIndex lib_index = helper_->ReadCanonicalNameReference();
+        obj = Library::null();
+        if (!H.IsRoot(lib_index)) {
+          obj = H.LookupLibraryByKernelLibrary(lib_index);
+        }
+        const String& symbol = H.DartIdentifier(Library::Cast(obj),
+                                                helper_->ReadStringReference());
+        if (symbol_class == nullptr) {
+          elem = Library::InternalLibrary();
+          ASSERT(!elem.IsNull());
+          symbol_class = &Class::Handle(
+              helper_->zone_,
+              Library::Cast(elem).LookupClass(Symbols::Symbol()));
+          ASSERT(!symbol_class->IsNull());
+          symbol_name_field = &Field::Handle(
+              helper_->zone_,
+              symbol_class->LookupInstanceFieldAllowPrivate(Symbols::_name()));
+          ASSERT(!symbol_name_field->IsNull());
+        }
+        obj = Instance::New(*symbol_class, Heap::kOld);
+        Instance::Cast(obj).SetField(*symbol_name_field, symbol);
+        obj = H.Canonicalize(Instance::Cast(obj));
+      } break;
       default:
         UNREACHABLE();
     }

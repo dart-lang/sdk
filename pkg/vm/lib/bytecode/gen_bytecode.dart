@@ -2755,6 +2755,10 @@ class ConstantEmitter extends ConstantVisitor<int> {
       cp.add(new ConstantString(node.value));
 
   @override
+  int visitSymbolConstant(SymbolConstant node) =>
+      cp.add(new ConstantSymbol(node.libraryReference, node.name));
+
+  @override
   int visitListConstant(ListConstant node) => cp.add(new ConstantList(
       node.typeArgument,
       new List<int>.from(node.entries.map((Constant c) => c.accept(this)))));
