@@ -27,7 +27,6 @@ abstract class ParserAdapter implements Parser {
       {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
-    fastaParser.isMixinSupportEnabled = true;
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;

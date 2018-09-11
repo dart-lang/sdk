@@ -26,7 +26,6 @@ void/*: Skip # https://github.com/dart-lang/sdk/issues/34011
 
 [ $compiler == fasta ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34357
-mixin_declaration/*: Skip  # See https://github.com/dart-lang/language/issues/7
 
 [ $compiler == spec_parser ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34355
@@ -226,7 +225,6 @@ type_parameter_test/05: Pass
 
 [ $compiler == app_jit || $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == none || $compiler == precompiler ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34358
-mixin_declaration/*: Skip  # See https://github.com/dart-lang/language/issues/7
 
 [ $compiler == app_jit || $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013

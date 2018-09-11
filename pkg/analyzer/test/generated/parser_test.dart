@@ -9413,10 +9413,6 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    if (parser is ParserAdapter) {
-      (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
-          isMixinSupportEnabled;
-    }
     parser.currentToken = token;
   }
 
@@ -9563,9 +9559,6 @@ class ParserTestCase extends EngineTestCase
 
     Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    if (parser is ParserAdapter) {
-      parser.fastaParser.isMixinSupportEnabled = isMixinSupportEnabled;
-    }
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {

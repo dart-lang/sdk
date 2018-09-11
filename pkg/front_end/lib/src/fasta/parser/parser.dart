@@ -259,9 +259,6 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
-  // TODO(danrubel): remove this once mixin support is enabled by default.
-  bool isMixinSupportEnabled = false;
-
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by
   /// external clients, for example, to parse an expression outside a function.
@@ -580,12 +577,6 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
-        // TODO(danrubel): Remove this once mixin support is enabled by default.
-        if (!isMixinSupportEnabled && identical(value, 'mixin')) {
-          directiveState?.checkDeclaration();
-          return parseTopLevelMemberImpl(start);
-        }
-
         parseTopLevelKeywordModifiers(start, keyword);
         if (identical(value, 'mixin')) {
           directiveState?.checkDeclaration();
