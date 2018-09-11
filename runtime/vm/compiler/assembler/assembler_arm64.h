@@ -1514,6 +1514,9 @@ class Assembler : public ValueObject {
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
   void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadDoubleWordFromPoolOffset(Register lower,
+                                    Register upper,
+                                    uint32_t offset);
 
   void PushObject(const Object& object) {
     LoadObject(TMP, object);

@@ -408,6 +408,46 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
   ldr(dst, Address(dst, lower12));
 }
 
+void Assembler::LoadDoubleWordFromPoolOffset(Register lower,
+                                             Register upper,
+                                             uint32_t offset) {
+  // This implementation needs to be kept in sync with
+  // [InstructionPattern::DecodeLoadDoubleWordFromPool].
+  ASSERT(constant_pool_allowed());
+  ASSERT(lower != PP && upper != PP);
+  ASSERT(offset < (1 << 24));
+
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
+  const uint32_t lower12 = offset & 0x00000fff;
+  if (Address::CanHoldOffset(offset, Address::PairOffset)) {
+    ldp(lower, upper, Address(PP, offset, Address::PairOffset));
+  } else if (Operand::CanHold(offset, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    add(TMP, PP, op);
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+                 Operand::Immediate &&
+             Address::CanHoldOffset(lower12, Address::PairOffset)) {
+    add(TMP, PP, op);
+    ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
+  } else {
+    const uint32_t lower12 = offset & 0xfff;
+    const uint32_t higher12 = offset & 0xfff000;
+
+    Operand op_high, op_low;
+    bool ok = Operand::CanHold(higher12, kXRegSizeInBits, &op_high) ==
+                  Operand::Immediate &&
+              Operand::CanHold(lower12, kXRegSizeInBits, &op_low) ==
+                  Operand::Immediate;
+    RELEASE_ASSERT(ok);
+
+    add(TMP, PP, op_high);
+    add(TMP, TMP, op_low);
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  }
+}
+
 intptr_t Assembler::FindImmediate(int64_t imm) {
   return object_pool_wrapper().FindImmediate(imm);
 }
