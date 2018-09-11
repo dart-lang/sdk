@@ -59,6 +59,8 @@ abstract class A5Foo = C5Foo with M5;
 // Invalid since super-invocaton of foo does not hit concrete implementation.
 abstract class _ = C5Bar with M5;  //# 08: compile-time error
 
+class A5FooConcrete = A5Foo with C5Bar;
+
 main() {
-  Expect.equals(42, A5Foo().baz(42));
+  Expect.equals(42, A5FooConcrete().baz(42));
 }

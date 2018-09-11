@@ -37,7 +37,7 @@ class C1 {
   num foo(num x) => x;
 }
 
-abstract C2 extends C1 implements UnaryOptionalNum {
+abstract class C2 extends C1 implements UnaryOptionalNum {
   num foo([num x]);
 }
 
@@ -57,6 +57,6 @@ class A2 extends C2 //
 }
 
 main() {
-  A1().bar();
-  A2().bar();
+  A1().bar(); //# 04: continued
+  A2().bar(); //# 05: continued
 }

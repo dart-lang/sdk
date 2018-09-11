@@ -30,13 +30,13 @@ class GC<T> implements GA<T>, GB<List<T>> {}
 
 class GD<T> = GC<T> with GM<T>;
 
-bool expectSubtype<Sub, Super> {
+bool expectSubtype<Sub, Super>() {
   if (<Sub>[] is! List<Super>) {
     Expect.fail("$Sub is not a subtype of $Super");
   }
 }
 
-bool expectNotSubtype<Sub, Super> {
+bool expectNotSubtype<Sub, Super>() {
   if (<Sub>[] is List<Super>) {
     Expect.fail("$Sub is a subtype of $Super");
   }

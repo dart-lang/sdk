@@ -28,6 +28,6 @@ class _ = UnaryNum with M2;  //# 05: compile-time error
 
 main() {
   // M1 and M2 are valid types.
-  Expect.isNotType<M1>(null);
-  Expect.isNotType<M2>(null);
+  Expect.notType<M1>(null);
+  Expect.notType<M2>(null);
 }

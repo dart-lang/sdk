@@ -74,11 +74,9 @@ issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
-mixin_declaration/mixin_declaration_invalid_application_supertype_test/none: CompileTimeError # test issue: Expect.isNotType is not defined
-mixin_declaration/mixin_declaration_invalid_override_test/none: CompileTimeError # test issue: A5Foo is abstract
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError # bug in analyzer? Exchange UnaryNum, UnaryOptionalNum, and it works.
-mixin_declaration/mixin_declaration_subtype_test: CompileTimeError # test issue: missing formal parameters
-mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError # test issue: class missing
+mixin_declaration/mixin_declaration_subtype_test: CompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_supertype_compatible_test/04: MissingCompileTimeError # no most specific signature
 mixin_declaration/mixin_declaration_syntax_test: CompileTimeError # test issue: many of them
 mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
