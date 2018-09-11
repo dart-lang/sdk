@@ -1492,6 +1492,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 
   bool needs_base = false;
   intptr_t kNumTemps = 0;
+  if (ShouldEmitStoreBarrier()) {
+    kNumTemps += 1;  // Block LR for the store barrier.
+  }
   if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
                           false,  // Store.
                           &needs_base)) {
@@ -1558,6 +1561,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       UNREACHABLE();
       return NULL;
   }
+
+  if (ShouldEmitStoreBarrier()) {
+    locs->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
+  }
+
   return locs;
 }
 
@@ -1603,7 +1611,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObject(array, element_address, value);
+        __ StoreIntoObject(array, element_address, value, CanValueBeSmi(),
+                           /*lr_reserved=*/!compiler->intrinsic_mode());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);
@@ -2188,7 +2197,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
       ((IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0)) +
-      (ShouldEmitStoreBarrier() ? 1 : 0);  // block LR for the store barrier
+      (ShouldEmitStoreBarrier() ? 1 : 0);  // Block LR for the store barrier.
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2234,7 +2243,8 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
 
   __ MoveRegister(temp, box_reg);
-  __ StoreIntoObjectOffset(instance_reg, offset, temp);
+  __ StoreIntoObjectOffset(instance_reg, offset, temp,
+                           Assembler::kValueIsNotSmi);
   __ Bind(&done);
 }
 
@@ -2269,7 +2279,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2,
+                               Assembler::kValueIsNotSmi);
     } else {
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
     }
@@ -2415,11 +2426,17 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  LocationSummary* locs =
-      new (zone) LocationSummary(zone, 1, 1, LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      value()->NeedsStoreBuffer() ? 2 : 1;  // Block LR for the store barrier.
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
                                               : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
+  if (value()->NeedsStoreBuffer()) {
+    locs->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
+  }
   return locs;
 }
 
@@ -2430,7 +2447,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp, FieldAddress(temp, Field::static_value_offset()),
-                       value, CanValueBeSmi());
+                       value, CanValueBeSmi(),
+                       /*lr_reserved=*/!compiler->intrinsic_mode());
   } else {
     __ StoreIntoObjectNoBarrier(
         temp, FieldAddress(temp, Field::static_value_offset()), value);

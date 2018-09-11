@@ -1587,7 +1587,11 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 CanBeSmi can_be_smi,
                                 bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+
   str(value, dest);
   // A store buffer update is required.
   if (lr_reserved) {

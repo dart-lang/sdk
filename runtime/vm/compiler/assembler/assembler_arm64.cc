@@ -976,7 +976,11 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 CanBeSmi can_be_smi,
                                 bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+
   str(value, dest);
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);

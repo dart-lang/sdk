@@ -1875,7 +1875,9 @@ void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+
   movl(dest, value);
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);

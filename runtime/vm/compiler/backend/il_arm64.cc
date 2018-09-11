@@ -1440,7 +1440,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(aligned());
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObject(array, element_address, value);
+        __ StoreIntoObject(array, element_address, value, CanValueBeSmi());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);
@@ -1901,7 +1901,8 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ b(&done, NE);
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ MoveRegister(temp, box_reg);
-  __ StoreIntoObjectOffset(instance_reg, offset, temp);
+  __ StoreIntoObjectOffset(instance_reg, offset, temp,
+                           Assembler::kValueIsNotSmi);
   __ Bind(&done);
 }
 
@@ -1965,7 +1966,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2,
+                               Assembler::kValueIsNotSmi);
     } else {
       __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
     }

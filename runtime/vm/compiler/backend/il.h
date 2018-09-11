@@ -4216,6 +4216,12 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
   bool ShouldEmitStoreBarrier() const {
+    if (instance()->definition() == value()->definition()) {
+      // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
+      // reference.
+      return false;
+    }
+
     return value()->NeedsStoreBuffer() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
@@ -4667,6 +4673,12 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
+    if (array()->definition() == value()->definition()) {
+      // `x[slot] = x` cannot create an old->new or old&marked->old&unmarked
+      // reference.
+      return false;
+    }
+
     return value()->NeedsStoreBuffer() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
@@ -4688,6 +4700,10 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
+  Assembler::CanBeSmi CanValueBeSmi() const {
+    return Assembler::kValueCanBeSmi;
+  }
+
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
