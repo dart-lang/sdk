@@ -35,10 +35,79 @@ intptr_t MethodRecognizer::NumArgsCheckedForStaticCall(
 }
 
 intptr_t MethodRecognizer::ResultCid(const Function& function) {
+  // Use the 'vm:exact-result-type' annotation if available. This can only be
+  // used within the core library, see 'result_type_pragma.md', detail 1.2 for
+  // explanation.
+  Class& cls = Thread::Current()->ClassHandle();
+  Library& lib = Thread::Current()->LibraryHandle();
+  cls = function.Owner();
+  lib = cls.library();
+  const bool can_use_pragma =
+      function.kernel_offset() > 0 && lib.IsAnyCoreLibrary();
+  cls = Class::null();
+  if (can_use_pragma) {
+    Isolate* I = Isolate::Current();
+    auto& option = Object::Handle();
+    if (function.FindPragma(I, Symbols::vm_exact_result_type(), &option)) {
+      if (option.IsType()) {
+        return Type::Cast(option).type_class_id();
+      } else if (option.IsString()) {
+        auto& str = String::Cast(option);
+        // 'str' should match the pattern '([^#]+)#([^#\?]+)' where group 1
+        // is the library URI and group 2 is the class name.
+        bool parse_failure = false;
+        intptr_t library_end = -1;
+        for (intptr_t i = 0; i < str.Length(); ++i) {
+          if (str.CharAt(i) == '#') {
+            if (library_end != -1) {
+              parse_failure = true;
+              break;
+            } else {
+              library_end = i;
+            }
+          }
+        }
+        if (!parse_failure && library_end > 0) {
+          auto& libraryUri = String::Handle(
+              String::SubString(str, 0, library_end, Heap::kOld));
+          auto& className = String::Handle(
+              String::SubString(str, library_end + 1,
+                                str.Length() - library_end - 1, Heap::kOld));
+
+          Library& lib = Library::Handle(
+              Library::LookupLibrary(Thread::Current(), libraryUri));
+          if (!lib.IsNull()) {
+            Class& klass =
+                Class::Handle(lib.LookupClassAllowPrivate(className));
+            if (!klass.IsNull()) {
+              return klass.id();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // No result-type annotation can be used, so fall back on the table of
+  // recognized methods.
   switch (function.recognized_kind()) {
 #define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \
-  case k##ename:                                                               \
-    return k##result_type##Cid;
+  case k##ename: {                                                             \
+    const intptr_t cid = k##result_type##Cid;                                  \
+    if (FLAG_strong && cid != kDynamicCid) {                                   \
+      String& err = String::Handle();                                          \
+      err = function.QualifiedScrubbedName();                                  \
+      err = String::Concat(                                                    \
+          err,                                                                 \
+          String::Handle(String::New(" (MethodRecognizer::k" #ename            \
+                                     ") should be using pragma annotation"     \
+                                     " rather than method recognizer.",        \
+                                     Heap::kOld)),                             \
+          Heap::kOld);                                                         \
+      FATAL(err.ToCString());                                                  \
+    }                                                                          \
+    return cid;                                                                \
+  }
     RECOGNIZED_LIST(DEFINE_CASE)
 #undef DEFINE_CASE
     default:

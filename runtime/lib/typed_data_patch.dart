@@ -2045,19 +2045,24 @@ abstract class _TypedList extends _TypedListBase {
 
   // Methods implementing the collection interface.
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "TypedData_length";
 
   // Internal utility methods.
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _getInt8(int offsetInBytes) native "TypedData_GetInt8";
   void _setInt8(int offsetInBytes, int value) native "TypedData_SetInt8";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _getUint8(int offsetInBytes) native "TypedData_GetUint8";
   void _setUint8(int offsetInBytes, int value) native "TypedData_SetUint8";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _getInt16(int offsetInBytes) native "TypedData_GetInt16";
   void _setInt16(int offsetInBytes, int value) native "TypedData_SetInt16";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _getUint16(int offsetInBytes) native "TypedData_GetUint16";
   void _setUint16(int offsetInBytes, int value) native "TypedData_SetUint16";
 
@@ -2073,18 +2078,22 @@ abstract class _TypedList extends _TypedListBase {
   int _getUint64(int offsetInBytes) native "TypedData_GetUint64";
   void _setUint64(int offsetInBytes, int value) native "TypedData_SetUint64";
 
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double _getFloat32(int offsetInBytes) native "TypedData_GetFloat32";
   void _setFloat32(int offsetInBytes, double value)
       native "TypedData_SetFloat32";
 
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double _getFloat64(int offsetInBytes) native "TypedData_GetFloat64";
   void _setFloat64(int offsetInBytes, double value)
       native "TypedData_SetFloat64";
 
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 _getFloat32x4(int offsetInBytes) native "TypedData_GetFloat32x4";
   void _setFloat32x4(int offsetInBytes, Float32x4 value)
       native "TypedData_SetFloat32x4";
 
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 _getInt32x4(int offsetInBytes) native "TypedData_GetInt32x4";
   void _setInt32x4(int offsetInBytes, Int32x4 value)
       native "TypedData_SetInt32x4";
@@ -2114,6 +2123,7 @@ abstract class _TypedList extends _TypedListBase {
 @patch
 class Int8List {
   @patch
+  @pragma("vm:exact-result-type", _Int8List)
   factory Int8List(int length) native "TypedData_Int8Array_new";
 
   @patch
@@ -2126,6 +2136,7 @@ class Int8List {
 @pragma("vm:entry-point")
 class _Int8List extends _TypedList with _IntListMixin implements Int8List {
   // Method(s) implementing List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2154,6 +2165,7 @@ class _Int8List extends _TypedList with _IntListMixin implements Int8List {
 @patch
 class Uint8List {
   @patch
+  @pragma("vm:exact-result-type", _Uint8List)
   factory Uint8List(int length) native "TypedData_Uint8Array_new";
 
   @patch
@@ -2166,6 +2178,7 @@ class Uint8List {
 @pragma("vm:entry-point")
 class _Uint8List extends _TypedList with _IntListMixin implements Uint8List {
   // Methods implementing List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2194,6 +2207,7 @@ class _Uint8List extends _TypedList with _IntListMixin implements Uint8List {
 @patch
 class Uint8ClampedList {
   @patch
+  @pragma("vm:exact-result-type", _Uint8ClampedList)
   factory Uint8ClampedList(int length) native "TypedData_Uint8ClampedArray_new";
 
   @patch
@@ -2208,6 +2222,7 @@ class _Uint8ClampedList extends _TypedList
     with _IntListMixin
     implements Uint8ClampedList {
   // Methods implementing List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2236,6 +2251,7 @@ class _Uint8ClampedList extends _TypedList
 @patch
 class Int16List {
   @patch
+  @pragma("vm:exact-result-type", _Int16List)
   factory Int16List(int length) native "TypedData_Int16Array_new";
 
   @patch
@@ -2248,6 +2264,7 @@ class Int16List {
 @pragma("vm:entry-point")
 class _Int16List extends _TypedList with _IntListMixin implements Int16List {
   // Method(s) implementing List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2295,6 +2312,7 @@ class _Int16List extends _TypedList with _IntListMixin implements Int16List {
 @patch
 class Uint16List {
   @patch
+  @pragma("vm:exact-result-type", _Uint16List)
   factory Uint16List(int length) native "TypedData_Uint16Array_new";
 
   @patch
@@ -2307,6 +2325,7 @@ class Uint16List {
 @pragma("vm:entry-point")
 class _Uint16List extends _TypedList with _IntListMixin implements Uint16List {
   // Method(s) implementing the List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2354,6 +2373,7 @@ class _Uint16List extends _TypedList with _IntListMixin implements Uint16List {
 @patch
 class Int32List {
   @patch
+  @pragma("vm:exact-result-type", _Int32List)
   factory Int32List(int length) native "TypedData_Int32Array_new";
 
   @patch
@@ -2402,6 +2422,7 @@ class _Int32List extends _TypedList with _IntListMixin implements Int32List {
 @patch
 class Uint32List {
   @patch
+  @pragma("vm:exact-result-type", _Uint32List)
   factory Uint32List(int length) native "TypedData_Uint32Array_new";
 
   @patch
@@ -2450,6 +2471,7 @@ class _Uint32List extends _TypedList with _IntListMixin implements Uint32List {
 @patch
 class Int64List {
   @patch
+  @pragma("vm:exact-result-type", _Int64List)
   factory Int64List(int length) native "TypedData_Int64Array_new";
 
   @patch
@@ -2498,6 +2520,7 @@ class _Int64List extends _TypedList with _IntListMixin implements Int64List {
 @patch
 class Uint64List {
   @patch
+  @pragma("vm:exact-result-type", _Uint64List)
   factory Uint64List(int length) native "TypedData_Uint64Array_new";
 
   @patch
@@ -2546,6 +2569,7 @@ class _Uint64List extends _TypedList with _IntListMixin implements Uint64List {
 @patch
 class Float32List {
   @patch
+  @pragma("vm:exact-result-type", _Float32List)
   factory Float32List(int length) native "TypedData_Float32Array_new";
 
   @patch
@@ -2560,6 +2584,7 @@ class _Float32List extends _TypedList
     with _DoubleListMixin
     implements Float32List {
   // Method(s) implementing the List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2596,6 +2621,7 @@ class _Float32List extends _TypedList
 @patch
 class Float64List {
   @patch
+  @pragma("vm:exact-result-type", _Float64List)
   factory Float64List(int length) native "TypedData_Float64Array_new";
 
   @patch
@@ -2610,6 +2636,7 @@ class _Float64List extends _TypedList
     with _DoubleListMixin
     implements Float64List {
   // Method(s) implementing the List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2646,6 +2673,7 @@ class _Float64List extends _TypedList
 @patch
 class Float32x4List {
   @patch
+  @pragma("vm:exact-result-type", _Float32x4List)
   factory Float32x4List(int length) native "TypedData_Float32x4Array_new";
 
   @patch
@@ -2659,6 +2687,7 @@ class Float32x4List {
 class _Float32x4List extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2695,6 +2724,7 @@ class _Float32x4List extends _TypedList
 @patch
 class Int32x4List {
   @patch
+  @pragma("vm:exact-result-type", _Int32x4List)
   factory Int32x4List(int length) native "TypedData_Int32x4Array_new";
 
   @patch
@@ -2708,6 +2738,7 @@ class Int32x4List {
 class _Int32x4List extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2744,6 +2775,7 @@ class _Int32x4List extends _TypedList
 @patch
 class Float64x2List {
   @patch
+  @pragma("vm:exact-result-type", _Float64x2List)
   factory Float64x2List(int length) native "TypedData_Float64x2Array_new";
 
   @patch
@@ -2757,6 +2789,7 @@ class Float64x2List {
 class _Float64x2List extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2825,6 +2858,7 @@ class _ExternalUint8Array extends _TypedList
     with _IntListMixin
     implements Uint8List {
   // Method(s) implementing the List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3310,70 +3344,106 @@ class _ExternalFloat64x2Array extends _TypedList
 @patch
 class Float32x4 {
   @patch
+  @pragma("vm:exact-result-type", _Float32x4)
   factory Float32x4(double x, double y, double z, double w)
       native "Float32x4_fromDoubles";
 
   @patch
+  @pragma("vm:exact-result-type", _Float32x4)
   factory Float32x4.splat(double v) native "Float32x4_splat";
 
   @patch
+  @pragma("vm:exact-result-type", _Float32x4)
   factory Float32x4.zero() native "Float32x4_zero";
 
   @patch
+  @pragma("vm:exact-result-type", _Float32x4)
   factory Float32x4.fromInt32x4Bits(Int32x4 x)
       native "Float32x4_fromInt32x4Bits";
 
   @patch
+  @pragma("vm:exact-result-type", _Float32x4)
   factory Float32x4.fromFloat64x2(Float64x2 v) native "Float32x4_fromFloat64x2";
 }
 
 @pragma("vm:entry-point")
 class _Float32x4 implements Float32x4 {
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator +(Float32x4 other) native "Float32x4_add";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator -() native "Float32x4_negate";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator -(Float32x4 other) native "Float32x4_sub";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator *(Float32x4 other) native "Float32x4_mul";
   Float32x4 operator /(Float32x4 other) native "Float32x4_div";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 lessThan(Float32x4 other) native "Float32x4_cmplt";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 lessThanOrEqual(Float32x4 other) native "Float32x4_cmplte";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 greaterThan(Float32x4 other) native "Float32x4_cmpgt";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 greaterThanOrEqual(Float32x4 other) native "Float32x4_cmpgte";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 equal(Float32x4 other) native "Float32x4_cmpequal";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 notEqual(Float32x4 other) native "Float32x4_cmpnequal";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 scale(double s) native "Float32x4_scale";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 abs() native "Float32x4_abs";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit)
       native "Float32x4_clamp";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get x native "Float32x4_getX";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get y native "Float32x4_getY";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get z native "Float32x4_getZ";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get w native "Float32x4_getW";
   int get signMask native "Float32x4_getSignMask";
 
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 shuffle(int mask) native "Float32x4_shuffle";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 shuffleMix(Float32x4 zw, int mask) native "Float32x4_shuffleMix";
 
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 withX(double x) native "Float32x4_setX";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 withY(double y) native "Float32x4_setY";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 withZ(double z) native "Float32x4_setZ";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 withW(double w) native "Float32x4_setW";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 min(Float32x4 other) native "Float32x4_min";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 max(Float32x4 other) native "Float32x4_max";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 sqrt() native "Float32x4_sqrt";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 reciprocal() native "Float32x4_reciprocal";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 reciprocalSqrt() native "Float32x4_reciprocalSqrt";
 }
 
 @patch
 class Int32x4 {
   @patch
+  @pragma("vm:exact-result-type", _Int32x4)
   factory Int32x4(int x, int y, int z, int w) native "Int32x4_fromInts";
 
   @patch
+  @pragma("vm:exact-result-type", _Int32x4)
   factory Int32x4.bool(bool x, bool y, bool z, bool w)
       native "Int32x4_fromBools";
 
   @patch
+  @pragma("vm:exact-result-type", _Int32x4)
   factory Int32x4.fromFloat32x4Bits(Float32x4 x)
       native "Int32x4_fromFloat32x4Bits";
 }
@@ -3390,20 +3460,31 @@ class _Int32x4 implements Int32x4 {
   int get z native "Int32x4_getZ";
   int get w native "Int32x4_getW";
   int get signMask native "Int32x4_getSignMask";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 shuffle(int mask) native "Int32x4_shuffle";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 shuffleMix(Int32x4 zw, int mask) native "Int32x4_shuffleMix";
   Int32x4 withX(int x) native "Int32x4_setX";
   Int32x4 withY(int y) native "Int32x4_setY";
   Int32x4 withZ(int z) native "Int32x4_setZ";
   Int32x4 withW(int w) native "Int32x4_setW";
+  @pragma("vm:exact-result-type", bool)
   bool get flagX native "Int32x4_getFlagX";
+  @pragma("vm:exact-result-type", bool)
   bool get flagY native "Int32x4_getFlagY";
+  @pragma("vm:exact-result-type", bool)
   bool get flagZ native "Int32x4_getFlagZ";
+  @pragma("vm:exact-result-type", bool)
   bool get flagW native "Int32x4_getFlagW";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 withFlagX(bool x) native "Int32x4_setFlagX";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 withFlagY(bool y) native "Int32x4_setFlagY";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 withFlagZ(bool z) native "Int32x4_setFlagZ";
+  @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 withFlagW(bool w) native "Int32x4_setFlagW";
+  @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue)
       native "Int32x4_select";
 }
@@ -3411,36 +3492,50 @@ class _Int32x4 implements Int32x4 {
 @patch
 class Float64x2 {
   @patch
+  @pragma("vm:exact-result-type", _Float64x2)
   factory Float64x2(double x, double y) native "Float64x2_fromDoubles";
 
   @patch
+  @pragma("vm:exact-result-type", _Float64x2)
   factory Float64x2.splat(double v) native "Float64x2_splat";
 
   @patch
+  @pragma("vm:exact-result-type", _Float64x2)
   factory Float64x2.zero() native "Float64x2_zero";
 
   @patch
+  @pragma("vm:exact-result-type", _Float64x2)
   factory Float64x2.fromFloat32x4(Float32x4 v) native "Float64x2_fromFloat32x4";
 }
 
 @pragma("vm:entry-point")
 class _Float64x2 implements Float64x2 {
   Float64x2 operator +(Float64x2 other) native "Float64x2_add";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 operator -() native "Float64x2_negate";
   Float64x2 operator -(Float64x2 other) native "Float64x2_sub";
   Float64x2 operator *(Float64x2 other) native "Float64x2_mul";
   Float64x2 operator /(Float64x2 other) native "Float64x2_div";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 scale(double s) native "Float64x2_scale";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 abs() native "Float64x2_abs";
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit)
       native "Float64x2_clamp";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get x native "Float64x2_getX";
+  @pragma("vm:exact-result-type", "dart:core#_Double")
   double get y native "Float64x2_getY";
   int get signMask native "Float64x2_getSignMask";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 withX(double x) native "Float64x2_setX";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 withY(double y) native "Float64x2_setY";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 min(Float64x2 other) native "Float64x2_min";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 max(Float64x2 other) native "Float64x2_max";
+  @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 sqrt() native "Float64x2_sqrt";
 }
 
@@ -4432,6 +4527,7 @@ int _toUint8(int value) {
   return value & 0xFF;
 }
 
+@pragma("vm:exact-result-type", "dart:core#_Smi")
 int _toClampedUint8(int value) {
   if (value < 0) return 0;
   if (value > 0xFF) return 0xFF;

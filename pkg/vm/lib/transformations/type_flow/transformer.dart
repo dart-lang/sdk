@@ -33,7 +33,7 @@ const bool kDumpClassHierarchy =
 /// Assumes strong mode and closed world.
 Component transformComponent(
     CoreTypes coreTypes, Component component, List<String> entryPoints,
-    [EntryPointsAnnotationMatcher matcher]) {
+    [PragmaAnnotationParser matcher]) {
   if ((entryPoints == null) || entryPoints.isEmpty) {
     throw 'Error: unable to perform global type flow analysis without entry points.';
   }

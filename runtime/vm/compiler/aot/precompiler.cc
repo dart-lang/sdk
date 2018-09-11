@@ -624,43 +624,6 @@ void PrecompilerEntryPointsPrinter::Print() {
   }
 
   writer.CloseArray();  // roots
-
-  writer.OpenObject("native-methods");
-
-  GrowableObjectArray& recognized_methods = GrowableObjectArray::Handle(
-      Z, MethodRecognizer::QueryRecognizedMethods(Z));
-  ASSERT(!recognized_methods.IsNull());
-
-  for (intptr_t i = 0; i < recognized_methods.Length(); ++i) {
-    const Function& func = Function::CheckedHandle(Z, recognized_methods.At(i));
-    if (!func.is_native()) {
-      continue;
-    }
-
-    intptr_t result_cid = MethodRecognizer::ResultCid(func);
-    if (result_cid == kDynamicCid) {
-      continue;
-    }
-
-    ASSERT(Isolate::Current()->class_table()->HasValidClassAt(result_cid));
-
-    writer.OpenArray(String::Handle(func.native_name()).ToCString());
-    writer.OpenObject();
-
-    writer.PrintProperty("action", "return");
-
-    const Class& result_cls =
-        Class::Handle(Isolate::Current()->class_table()->At(result_cid));
-    DescribeClass(&writer, result_cls);
-
-    writer.PrintPropertyBool("nullable", false);
-
-    writer.CloseObject();
-    writer.CloseArray();
-  }
-
-  writer.CloseObject();  // native-methods
-
   writer.CloseObject();  // top-level
 
   const char* contents = writer.ToCString();

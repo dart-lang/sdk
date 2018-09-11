@@ -1316,6 +1316,7 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* scripts_;
   RawArray* constants_;
   RawGrowableObjectArray* potential_natives_;
+  RawGrowableObjectArray* potential_pragma_functions_;
   RawExternalTypedData* constants_table_;
   VISIT_TO(RawObject*, constants_table_);
 

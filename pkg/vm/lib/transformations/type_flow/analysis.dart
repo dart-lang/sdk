@@ -1176,7 +1176,8 @@ class _WorkList {
 class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
-  final NativeCodeOracle nativeCodeOracle;
+  final PragmaAnnotationParser annotationMatcher;
+  NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
   _InvocationsCache _invocationsCache;
@@ -1187,8 +1188,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   TypeFlowAnalysis(Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
-      {List<String> entryPointsJSONFiles, EntryPointsAnnotationMatcher matcher})
-      : nativeCodeOracle = new NativeCodeOracle(libraryIndex) {
+      {List<String> entryPointsJSONFiles, PragmaAnnotationParser matcher})
+      : annotationMatcher =
+            matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
+    nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy);
     summaryCollector =
         new SummaryCollector(environment, this, nativeCodeOracle);
@@ -1199,10 +1202,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       nativeCodeOracle.processEntryPointsJSONFiles(entryPointsJSONFiles, this);
     }
 
-    matcher ??= new ConstantEntryPointsAnnotationMatcher(coreTypes);
-
-    component
-        .accept(new PragmaEntryPointsVisitor(this, nativeCodeOracle, matcher));
+    component.accept(new PragmaEntryPointsVisitor(
+        this, nativeCodeOracle, annotationMatcher));
   }
 
   _Invocation get currentInvocation => workList.callStack.last;

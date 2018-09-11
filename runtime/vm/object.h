@@ -697,7 +697,7 @@ class Object {
   static RawClass* namespace_class_;     // Class of Namespace vm object.
   static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                 // object.
-  static RawClass* code_class_;          // Class of the Code vm object.
+  static RawClass* code_class_;                 // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
@@ -4093,6 +4093,9 @@ class Library : public Object {
 
   bool IsCoreLibrary() const { return raw() == CoreLibrary(); }
 
+  // Includes 'dart:async', 'dart:typed_data', etc.
+  bool IsAnyCoreLibrary() const;
+
   inline intptr_t UrlHash() const;
 
   RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
@@ -4313,6 +4316,12 @@ class KernelProgramInfo : public Object {
     return raw_ptr()->potential_natives_;
   }
   void set_potential_natives(const GrowableObjectArray& candidates) const;
+
+  RawGrowableObjectArray* potential_pragma_functions() const {
+    return raw_ptr()->potential_pragma_functions_;
+  }
+  void set_potential_pragma_functions(
+      const GrowableObjectArray& candidates) const;
 
   RawScript* ScriptAt(intptr_t index) const;
 

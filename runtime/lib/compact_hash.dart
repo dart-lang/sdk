@@ -46,18 +46,23 @@ abstract class _HashFieldBase {
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.
 abstract class _HashVMBase {
+  @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   Uint32List get _index native "LinkedHashMap_getIndex";
   void set _index(Uint32List value) native "LinkedHashMap_setIndex";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _hashMask native "LinkedHashMap_getHashMask";
   void set _hashMask(int value) native "LinkedHashMap_setHashMask";
 
+  @pragma("vm:exact-result-type", "dart:core#_List")
   List get _data native "LinkedHashMap_getData";
   void set _data(List value) native "LinkedHashMap_setData";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _usedData native "LinkedHashMap_getUsedData";
   void set _usedData(int value) native "LinkedHashMap_setUsedData";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _deletedKeys native "LinkedHashMap_getDeletedKeys";
   void set _deletedKeys(int value) native "LinkedHashMap_setDeletedKeys";
 }

@@ -104,10 +104,13 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>.withData(data);
   }
 
+  @pragma("vm:exact-result-type", _GrowableList)
   factory _GrowableList.withData(_List data) native "GrowableList_allocate";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _capacity native "GrowableList_getCapacity";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "GrowableList_getLength";
 
   void set length(int new_length) {
