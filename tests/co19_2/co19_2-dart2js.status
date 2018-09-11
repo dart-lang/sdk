@@ -5703,6 +5703,7 @@ LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError
 LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError
 LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError
+LayoutTests/fast/multicol/inline-getclientrects_t01: RuntimeError
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError
 LayoutTests/fast/multicol/widows_t01: RuntimeError
@@ -7467,7 +7468,7 @@ LayoutTests/fast/speechsynthesis/speech-synthesis-boundary-events_t01: Timeout, 
 LayoutTests/fast/speechsynthesis/speech-synthesis-cancel_t01: RuntimeError
 LayoutTests/fast/speechsynthesis/speech-synthesis-pause-resume_t01: Timeout, Pass
 LayoutTests/fast/speechsynthesis/speech-synthesis-speak_t01: Timeout, Pass
-LayoutTests/fast/speechsynthesis/speech-synthesis-utterance-uses-voice_t01: Timeout
+LayoutTests/fast/speechsynthesis/speech-synthesis-utterance-uses-voice_t01: Timeout, Pass
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError
 LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError
 LayoutTests/fast/svg/whitespace-angle_t01: RuntimeError
