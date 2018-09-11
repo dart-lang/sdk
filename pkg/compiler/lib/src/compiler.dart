@@ -29,7 +29,7 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
-import 'kernel/kernel_backend_strategy.dart';
+import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
@@ -152,7 +152,7 @@ abstract class Compiler {
     kernelFrontEndTask = new GenericTask('Front end', measurer);
     frontendStrategy = new KernelFrontEndStrategy(
         kernelFrontEndTask, options, reporter, environment);
-    backendStrategy = new KernelBackendStrategy(this);
+    backendStrategy = new JsBackendStrategy(this);
     _impactCache = <Entity, WorldImpact>{};
     _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 

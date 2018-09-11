@@ -11,7 +11,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:expect/expect.dart';
@@ -35,8 +35,8 @@ class ClosureDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
     ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
@@ -75,7 +75,7 @@ class ClosureIrChecker extends IrDataExtractor {
   ClosureIrChecker(
       DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
-      KernelToElementMapForBuilding elementMap,
+      JsToElementMap elementMap,
       this.member,
       this._localsMap,
       this.closureDataLookup,

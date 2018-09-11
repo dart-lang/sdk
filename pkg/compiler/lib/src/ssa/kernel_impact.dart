@@ -13,6 +13,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/util.dart';
 import '../kernel/element_map.dart';
 import '../kernel/runtime_type_analysis.dart';
 import '../options.dart';
@@ -25,7 +26,7 @@ import '../universe/world_builder.dart';
 
 ResolutionImpact buildKernelImpact(
     ir.Member member,
-    KernelToElementMapForImpact elementMap,
+    KernelToElementMap elementMap,
     DiagnosticReporter reporter,
     CompilerOptions options) {
   KernelImpactBuilder builder = new KernelImpactBuilder(
@@ -42,7 +43,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelToElementMapForImpact elementMap;
+  final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
   final MemberEntity currentMember;

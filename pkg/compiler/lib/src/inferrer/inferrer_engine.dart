@@ -290,7 +290,7 @@ class InferrerEngineImpl extends InferrerEngine {
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
   final Sorter sorter;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup _closureDataLookup;
 
@@ -1273,7 +1273,7 @@ class InferrerEngineImpl extends InferrerEngine {
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
-  KernelToElementMapForBuilding _elementMap;
+  JsToElementMap _elementMap;
   GlobalLocalsMap _globalLocalsMap;
   ClosureDataLookup _closureDataLookup;
 

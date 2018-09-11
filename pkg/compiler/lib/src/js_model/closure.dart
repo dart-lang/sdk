@@ -12,6 +12,8 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
+import '../ir/element_map.dart';
+import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
@@ -76,7 +78,7 @@ class KernelClosureAnalysis {
 // ClosureConversionTask doesn't inherit from ClosureTask because it's just a
 // glorified timer.
 class KernelClosureConversionTask extends ClosureConversionTask {
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final CompilerOptions _options;
 
@@ -629,8 +631,8 @@ class KernelScopeInfo {
 
 /// Helper method to get or create a Local variable out of a variable
 /// declaration or type parameter.
-Local _getLocal(ir.Node variable, KernelToLocalsMap localsMap,
-    KernelToElementMap elementMap) {
+Local _getLocal(
+    ir.Node variable, KernelToLocalsMap localsMap, JsToElementMap elementMap) {
   assert(variable is ir.VariableDeclaration ||
       variable is TypeVariableTypeWithContext);
   if (variable is ir.VariableDeclaration) {
@@ -653,7 +655,7 @@ class JsScopeInfo extends ScopeInfo {
   final Set<Local> freeVariables;
 
   JsScopeInfo.from(this.boxedVariables, KernelScopeInfo info,
-      KernelToLocalsMap localsMap, KernelToElementMap elementMap)
+      KernelToLocalsMap localsMap, JsToElementMap elementMap)
       : this.thisLocal =
             info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
         this.localsUsedInTryOrSync =
@@ -733,7 +735,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
       Map<Local, JRecordField> boxedVariables,
       KernelCapturedScope capturedScope,
       KernelToLocalsMap localsMap,
-      KernelToElementMap elementMap)
+      JsToElementMap elementMap)
       : this.context =
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
         super.from(boxedVariables, capturedScope, localsMap, elementMap);
@@ -775,7 +777,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
       Map<Local, JRecordField> boxedVariables,
       KernelCapturedLoopScope capturedScope,
       KernelToLocalsMap localsMap,
-      KernelToElementMap elementMap)
+      JsToElementMap elementMap)
       : this.boxedLoopVariables = capturedScope.boxedLoopVariables
             .map(localsMap.getLocalVariable)
             .toList(),
@@ -803,7 +805,7 @@ class KernelClosureClassInfo extends JsScopeInfo
       KernelToLocalsMap localsMap,
       this.closureEntity,
       this.thisLocal,
-      KernelToElementMap elementMap)
+      JsToElementMap elementMap)
       : super.from(boxedVariables, info, localsMap, elementMap);
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
@@ -895,7 +897,7 @@ class RecordClassData implements ClassData {
   ClassData copy() => this;
 
   @override
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) =>
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) =>
       const <ConstantValue>[];
 
   @override
@@ -977,12 +979,12 @@ abstract class ClosureMemberData implements MemberData {
   ClosureMemberData(this.definition, this.memberThisType);
 
   @override
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) {
     return const <ConstantValue>[];
   }
 
   @override
-  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+  InterfaceType getMemberThisType(JsToElementMap elementMap) {
     return memberThisType;
   }
 }
@@ -1002,7 +1004,7 @@ class ClosureFunctionData extends ClosureMemberData
       this.classTypeVariableAccess)
       : super(definition, memberThisType);
 
-  void forEachParameter(KernelToElementMapForBuilding elementMap,
+  void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
       DartType type = elementMap.getDartType(node.type);
@@ -1028,7 +1030,7 @@ class ClosureFunctionData extends ClosureMemberData
   }
 
   @override
-  FunctionType getFunctionType(KernelToElementMap elementMap) {
+  FunctionType getFunctionType(IrToElementMap elementMap) {
     return functionType;
   }
 }
@@ -1039,7 +1041,7 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
       : super(definition, memberThisType);
 
   @override
-  DartType getFieldType(KernelToElementMap elementMap) {
+  DartType getFieldType(IrToElementMap elementMap) {
     if (_type != null) return _type;
     ir.TreeNode sourceNode = definition.node;
     ir.DartType type;
@@ -1065,7 +1067,7 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   }
 
   @override
-  ConstantExpression getFieldConstantExpression(KernelToElementMap elementMap) {
+  ConstantExpression getFieldConstantExpression(IrToElementMap elementMap) {
     failedAt(
         definition.member,
         "Unexpected field ${definition.member} in "
@@ -1074,7 +1076,7 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   }
 
   @override
-  ConstantValue getConstantFieldInitializer(KernelToElementMap elementMap) {
+  ConstantValue getConstantFieldInitializer(IrToElementMap elementMap) {
     failedAt(
         definition.member,
         "Unexpected field ${definition.member} in "
@@ -1083,12 +1085,12 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   }
 
   @override
-  bool hasConstantFieldInitializer(KernelToElementMap elementMap) {
+  bool hasConstantFieldInitializer(IrToElementMap elementMap) {
     return false;
   }
 
   @override
-  ConstantValue getFieldConstantValue(KernelToElementMap elementMap) {
+  ConstantValue getFieldConstantValue(IrToElementMap elementMap) {
     return null;
   }
 

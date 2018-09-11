@@ -13,8 +13,10 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
@@ -25,10 +27,23 @@ import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
-import '../kernel/indexed.dart';
 import '../ssa/type_builder.dart';
 
 import 'element_map.dart';
+
+/// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
+abstract class KernelToWorldBuilder implements JsToElementMap {
+  /// Returns `true` if [field] has a constant initializer.
+  bool hasConstantFieldInitializer(FieldEntity field);
+
+  /// Returns the constant initializer for [field].
+  ConstantValue getConstantFieldInitializer(FieldEntity field);
+
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter and the [defaultValue] if the parameter is optional.
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue));
+}
 
 class JsKernelToElementMap extends KernelToElementMapBase
     with
@@ -44,7 +59,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         ElementCreatorMixin
     implements
         KernelToWorldBuilder,
-        KernelToElementMapForBuilding {
+        JsToElementMap {
   /// Map from members to the call methods created for their nested closures.
   Map<MemberEntity, List<FunctionEntity>> _nestedClosureMap =
       <MemberEntity, List<FunctionEntity>>{};
@@ -58,11 +73,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
   Map<ClassEntity, List<MemberEntity>> _injectedClassMembers =
       <ClassEntity, List<MemberEntity>>{};
 
-  JsKernelToElementMap(
-      DiagnosticReporter reporter,
-      Environment environment,
-      KernelToElementMapForImpactImpl _elementMap,
-      Iterable<MemberEntity> liveMembers)
+  JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
+      KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
       : super(_elementMap.options, reporter, environment) {
     env = _elementMap.env;
     for (int libraryIndex = 0;

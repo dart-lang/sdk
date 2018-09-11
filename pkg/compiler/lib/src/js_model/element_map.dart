@@ -9,8 +9,10 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
+import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -18,12 +20,111 @@ import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../ssa/type_builder.dart';
 import '../types/abstract_value_domain.dart';
+import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 
 /// Interface that translates between Kernel IR nodes and entities used for
 /// global type inference and building the SSA graph for members.
-abstract class KernelToElementMapForBuilding implements KernelToElementMap {
+abstract class JsToElementMap {
+  /// Access to the commonly used elements and types.
+  CommonElements get commonElements;
+
+  /// Access to the [DartTypes] object.
+  DartTypes get types;
+
+  /// Returns the [DartType] corresponding to [type].
+  DartType getDartType(ir.DartType type);
+
+  /// Returns the [InterfaceType] corresponding to [type].
+  InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  /// Returns the [TypeVariableType] corresponding to [type].
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type);
+
+  /// Returns the [FunctionType] of the [node].
+  FunctionType getFunctionType(ir.FunctionNode node);
+
+  /// Return the [InterfaceType] corresponding to the [cls] with the given
+  /// [typeArguments].
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments);
+
+  /// Returns the [CallStructure] corresponding to the [arguments].
+  CallStructure getCallStructure(ir.Arguments arguments);
+
+  /// Returns the [Selector] corresponding to the invocation or getter/setter
+  /// access of [node].
+  Selector getSelector(ir.Expression node);
+
+  /// Returns the [MemberEntity] corresponding to the member [node].
+  MemberEntity getMember(ir.Member node);
+
+  /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  FunctionEntity getMethod(ir.Procedure node);
+
+  /// Returns the [ConstructorEntity] corresponding to the generative or factory
+  /// constructor [node].
+  ConstructorEntity getConstructor(ir.Member node);
+
+  /// Returns the [FieldEntity] corresponding to the field [node].
+  FieldEntity getField(ir.Field node);
+
+  /// Returns the [ClassEntity] corresponding to the class [node].
+  ClassEntity getClass(ir.Class node);
+
+  /// Returns the [TypedefType] corresponding to raw type of the typedef [node].
+  TypedefType getTypedefType(ir.Typedef node);
+
+  /// Returns the super [MemberEntity] for a super invocation, get or set of
+  /// [name] from the member [context].
+  ///
+  /// The IR doesn't always resolve super accesses to the corresponding
+  /// [target]. If not, the target is computed using [name] and [setter] from
+  /// the enclosing class of [context].
+  MemberEntity getSuperMember(
+      MemberEntity context, ir.Name name, ir.Member target,
+      {bool setter: false});
+
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
+
+  /// Returns the [Name] corresponding to [name].
+  Name getName(ir.Name name);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+
+  /// Returns the [js.Name] for the `JsGetName` [constant] value.
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
+
+  /// Computes the [ConstantValue] for the constant [expression].
+  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
+  // used in impact builder for symbol constants.
+  ConstantValue getConstantValue(ir.Expression expression,
+      {bool requireConstant: true, bool implicitNull: false});
+
+  /// Return the [ImportEntity] corresponding to [node].
+  ImportEntity getImport(ir.LibraryDependency node);
+
+  /// Returns the definition information for [cls].
+  ClassDefinition getClassDefinition(covariant ClassEntity cls);
+
+  /// Returns the static type of [node].
+  // TODO(johnniwinther): This should be provided directly from kernel.
+  DartType getStaticType(ir.Expression node);
+
   /// [ElementEnvironment] for library, class and member lookup.
   ElementEnvironment get elementEnvironment;
 
@@ -41,9 +142,6 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// returned by [getMemberThisType].
   ClassTypeVariableAccess getClassTypeVariableAccessForMember(
       MemberEntity member);
-
-  /// Returns the definition information for [cls].
-  ClassDefinition getClassDefinition(covariant ClassEntity cls);
 
   /// Returns the [LibraryEntity] corresponding to the library [node].
   LibraryEntity getLibrary(ir.Library node);
@@ -136,13 +234,13 @@ abstract class KernelToLocalsMap {
   Local getLocalVariable(ir.VariableDeclaration node);
 
   Local getLocalTypeVariable(
-      ir.TypeParameterType node, KernelToElementMap elementMap);
+      ir.TypeParameterType node, JsToElementMap elementMap);
 
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);
 
   /// Returns the [DartType] of [local].
-  DartType getLocalType(KernelToElementMap elementMap, Local local);
+  DartType getLocalType(JsToElementMap elementMap, Local local);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);
@@ -185,7 +283,7 @@ abstract class KernelToLocalsMap {
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
 /// is not a constructor, method or local function.
 ir.FunctionNode getFunctionNode(
-    KernelToElementMapForBuilding elementMap, MemberEntity member) {
+    JsToElementMap elementMap, MemberEntity member) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
@@ -220,8 +318,7 @@ ir.FunctionNode getFunctionNode(
 ///
 /// If [field] is an instance field with a null literal initializer `null` is
 /// returned, otherwise the initializer of the [ir.Field] is returned.
-ir.Node getFieldInitializer(
-    KernelToElementMapForBuilding elementMap, FieldEntity field) {
+ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   MemberDefinition definition = elementMap.getMemberDefinition(field);
   ir.Field node = definition.node;
   if (node.isInstanceMember &&

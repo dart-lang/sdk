@@ -56,7 +56,7 @@ class TypeGraphInferrer implements TypesInferrer {
   final JClosedWorld closedWorld;
 
   final Compiler _compiler;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup _closureDataLookup;
   final InferredDataBuilder _inferredDataBuilder;

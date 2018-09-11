@@ -9,9 +9,10 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -89,8 +90,8 @@ class OutputUnitDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap, member,
             compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
@@ -107,8 +108,8 @@ class OutputUnitDataComputer extends DataComputer {
     OutputUnitData data = compiler.backend.outputUnitData;
     String value = outputUnitString(data.outputUnitForClass(cls));
 
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
 
     _registerValue(
@@ -122,7 +123,7 @@ class OutputUnitDataComputer extends DataComputer {
 }
 
 class OutputUnitIrComputer extends IrDataExtractor {
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final OutputUnitData _data;
   final ClosureDataLookup _closureDataLookup;
 

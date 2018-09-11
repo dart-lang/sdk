@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../constants/values.dart';
 import '../js_model/elements.dart' show JsToFrontendMap, JField;
 import '../kernel/element_map.dart';
-import '../kernel/element_map_impl.dart' show KernelElementEnvironment;
+import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField;
 import '../options.dart';
 
@@ -30,15 +30,13 @@ abstract class AllocatorAnalysis {}
 //     this.x = this.z = null;
 //
 class KAllocatorAnalysis implements AllocatorAnalysis {
-  final KernelElementEnvironment _elementEnvironment;
-  KernelToElementMap _elementMap;
+  final KernelToElementMap _elementMap;
 
   final Map<KField, ConstantValue> _fixedInitializers =
       <KField, ConstantValue>{};
 
-  KAllocatorAnalysis(this._elementEnvironment) {
-    _elementMap = _elementEnvironment.elementMap;
-  }
+  KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
+      : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.

@@ -11,8 +11,8 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
@@ -37,8 +37,8 @@ class InliningDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
             compiler.backend, backendStrategy.closureDataLookup)
@@ -49,7 +49,7 @@ class InliningDataComputer extends DataComputer {
 /// AST visitor for computing inference data for a member.
 class InliningIrComputer extends IrDataExtractor {
   final JavaScriptBackend backend;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final ClosureDataLookup _closureDataLookup;
 
   InliningIrComputer(

@@ -390,7 +390,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   bool get isClosed => _closed;
 
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapImpl _elementMap;
 
   ResolutionWorldBuilderImpl(
       this._options,

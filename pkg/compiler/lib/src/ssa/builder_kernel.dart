@@ -21,6 +21,7 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/util.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
@@ -31,8 +32,8 @@ import '../js_model/locals.dart'
     show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
+import '../js_model/js_strategy.dart';
 import '../kernel/element_map.dart';
-import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
@@ -99,7 +100,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   JavaScriptBackend get backend => compiler.backend;
 
   final SourceInformationStrategy _sourceInformationStrategy;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalTypeInferenceResults globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
   LoopHandler loopHandler;
@@ -5595,8 +5596,8 @@ class InlineWeeder extends ir.Visitor {
   static const INLINING_NODES_INSIDE_LOOP = 34;
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
-  static bool canBeInlined(KernelToElementMapForBuilding elementMap,
-      FunctionEntity function, int maxInliningNodes,
+  static bool canBeInlined(
+      JsToElementMap elementMap, FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     return cannotBeInlinedReason(elementMap, function, maxInliningNodes,
             allowLoops: allowLoops,
@@ -5604,8 +5605,8 @@ class InlineWeeder extends ir.Visitor {
         null;
   }
 
-  static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
-      FunctionEntity function, int maxInliningNodes,
+  static String cannotBeInlinedReason(
+      JsToElementMap elementMap, FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     InlineWeeder visitor =
         new InlineWeeder(maxInliningNodes, allowLoops, enableUserAssertions);
@@ -6020,7 +6021,7 @@ class TryCatchFinallyBuilder {
 }
 
 class KernelTypeBuilder extends TypeBuilder {
-  KernelToElementMapForBuilding _elementMap;
+  JsToElementMap _elementMap;
   GlobalLocalsMap _globalLocalsMap;
 
   KernelTypeBuilder(

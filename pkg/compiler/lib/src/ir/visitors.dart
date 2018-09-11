@@ -11,8 +11,8 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
-import 'element_map.dart';
-import 'element_map_impl.dart';
+import '../ir/element_map.dart';
+import '../ir/util.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -36,7 +36,7 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 /// [ConstantExpression].
 class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   final bool requireConstant;
-  final KernelToElementMapBase elementMap;
+  final IrToElementMap elementMap;
   ir.TreeNode failNode;
   final Map<ir.VariableDeclaration, ConstantExpression> _initializerLocals =
       <ir.VariableDeclaration, ConstantExpression>{};
@@ -410,8 +410,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantConstructor computeConstantConstructor(ir.Constructor node) {
     assert(node.isConst);
     ir.Class cls = node.enclosingClass;
-    InterfaceType type =
-        elementMap.elementEnvironment.getThisType(elementMap.getClass(cls));
+    InterfaceType type = elementMap.getThisType(elementMap.getClass(cls));
 
     Map<dynamic, ConstantExpression> defaultValues =
         <dynamic, ConstantExpression>{};

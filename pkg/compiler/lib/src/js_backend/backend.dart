@@ -570,7 +570,8 @@ class JavaScriptBackend {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
-    _allocatorResolutionAnalysis = new KAllocatorAnalysis(elementEnvironment);
+    _allocatorResolutionAnalysis =
+        new KAllocatorAnalysis(compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);

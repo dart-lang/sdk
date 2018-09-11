@@ -46,7 +46,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final TypeSystem _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
   final bool _inGenerativeConstructor;

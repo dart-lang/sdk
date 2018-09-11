@@ -12,9 +12,9 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/inferrer/builder_kernel.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -55,8 +55,8 @@ class TypeMaskDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new TypeMaskIrComputer(
@@ -75,7 +75,7 @@ class TypeMaskDataComputer extends DataComputer {
 class TypeMaskIrComputer extends IrDataExtractor {
   final GlobalTypeInferenceResults results;
   GlobalTypeInferenceMemberResult result;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
   final ClosureDataLookup _closureDataLookup;
 

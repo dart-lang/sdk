@@ -16,12 +16,14 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/element_map.dart';
+import '../ir/visitors.dart';
+import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'visitors.dart';
 import 'kelements.dart' show KImport;
 
 /// Environment for fast lookup of component libraries.
@@ -162,7 +164,7 @@ class LibraryEnv {
   /// Currently all classes are copied.
   // TODO(johnniwinther): Filter unused classes.
   LibraryEnv copyLive(
-      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
     Map<String, ClassEnv> classMap;
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
@@ -251,20 +253,18 @@ abstract class ClassEnv {
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
   /// returned.
-  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+  MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false});
 
   /// Calls [f] for each member of the class.
-  void forEachMember(
-      KernelToElementMap elementMap, void f(MemberEntity member));
+  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
 
   /// Return the [ConstructorEntity] for the constructor [name] in the class.
-  ConstructorEntity lookupConstructor(
-      KernelToElementMap elementMap, String name);
+  ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name);
 
   /// Calls [f] for each constructor of the class.
   void forEachConstructor(
-      KernelToElementMap elementMap, void f(ConstructorEntity constructor));
+      IrToElementMap elementMap, void f(ConstructorEntity constructor));
 
   /// Calls [f] for each constructor body for the live constructors in the
   /// class.
@@ -272,7 +272,7 @@ abstract class ClassEnv {
 
   /// Creates a new [ClassEnv] containing only the members in [liveMembers].
   ClassEnv copyLive(
-      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers);
+      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -505,7 +505,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
   /// `true`, the setter or assignable field corresponding to [name] is
   /// returned.
-  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+  MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false}) {
     _ensureMaps(elementMap);
     ir.Member member = setter ? _setterMap[name] : _memberMap[name];
@@ -513,8 +513,7 @@ class ClassEnvImpl implements ClassEnv {
   }
 
   /// Calls [f] for each member of [cls].
-  void forEachMember(
-      KernelToElementMap elementMap, void f(MemberEntity member)) {
+  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps(elementMap);
     _members.forEach((ir.Member member) {
       f(elementMap.getMember(member));
@@ -522,8 +521,7 @@ class ClassEnvImpl implements ClassEnv {
   }
 
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].
-  ConstructorEntity lookupConstructor(
-      KernelToElementMap elementMap, String name) {
+  ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name) {
     _ensureMaps(elementMap);
     ir.Member constructor = _constructorMap[name];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
@@ -531,7 +529,7 @@ class ClassEnvImpl implements ClassEnv {
 
   /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
-      KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
+      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
     _ensureMaps(elementMap);
     _constructorMap.values.forEach((ir.Member constructor) {
       f(elementMap.getConstructor(constructor));
@@ -548,7 +546,7 @@ class ClassEnvImpl implements ClassEnv {
   }
 
   ClassEnv copyLive(
-      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
     Map<String, ir.Member> constructorMap;
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
@@ -606,7 +604,7 @@ class ClosureClassEnv extends RecordEnv {
   ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
 
   @override
-  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+  MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false}) {
     if (setter) {
       // All closure fields are final.
@@ -617,7 +615,7 @@ class ClosureClassEnv extends RecordEnv {
 
   @override
   ClassEnv copyLive(
-          KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) =>
+          IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) =>
       this;
 }
 
@@ -639,25 +637,23 @@ class RecordEnv implements ClassEnv {
 
   @override
   void forEachConstructor(
-      KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
+      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
     // We do not create constructors for containers.
   }
 
   @override
-  ConstructorEntity lookupConstructor(
-      KernelToElementMap elementMap, String name) {
+  ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name) {
     // We do not create constructors for containers.
     return null;
   }
 
   @override
-  void forEachMember(
-      KernelToElementMap elementMap, void f(MemberEntity member)) {
+  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
     _memberMap.values.forEach(f);
   }
 
   @override
-  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+  MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false}) {
     return _memberMap[name];
   }
@@ -673,7 +669,7 @@ class RecordEnv implements ClassEnv {
 
   @override
   ClassEnv copyLive(
-      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
     return this;
   }
 }
@@ -692,7 +688,7 @@ abstract class ClassData {
   bool get isEnumClass;
   bool get isMixinApplication;
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
   ClassData copy();
 }
@@ -731,9 +727,9 @@ class ClassDataImpl implements ClassData {
 abstract class MemberData {
   MemberDefinition get definition;
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
-  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap);
+  InterfaceType getMemberThisType(JsToElementMap elementMap);
 
   ClassTypeVariableAccess get classTypeVariableAccess;
 }
@@ -754,7 +750,7 @@ abstract class MemberDataImpl implements MemberData {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
-  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+  InterfaceType getMemberThisType(JsToElementMap elementMap) {
     MemberEntity member = elementMap.getMember(node);
     ClassEntity cls = member.enclosingClass;
     if (cls != null) {
@@ -767,12 +763,11 @@ abstract class MemberDataImpl implements MemberData {
 }
 
 abstract class FunctionData implements MemberData {
-  FunctionType getFunctionType(KernelToElementMap elementMap);
+  FunctionType getFunctionType(IrToElementMap elementMap);
 
-  List<TypeVariableType> getFunctionTypeVariables(
-      KernelToElementMap elementMap);
+  List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap);
 
-  void forEachParameter(KernelToElementMapForBuilding elementMap,
+  void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
@@ -818,7 +813,7 @@ class FunctionDataImpl extends MemberDataImpl
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
-  void forEachParameter(KernelToElementMapForBuilding elementMap,
+  void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
       DartType type = elementMap.getDartType(node.type);
@@ -869,25 +864,24 @@ class SignatureFunctionData implements FunctionData {
     return functionType;
   }
 
-  List<TypeVariableType> getFunctionTypeVariables(
-      KernelToElementMap elementMap) {
+  List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap) {
     return typeParameters
         .map<TypeVariableType>((ir.TypeParameter typeParameter) {
       return elementMap.getDartType(new ir.TypeParameterType(typeParameter));
     }).toList();
   }
 
-  void forEachParameter(KernelToElementMapForBuilding elementMap,
+  void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     throw new UnimplementedError('SignatureData.forEachParameter');
   }
 
   @override
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) {
     return const <ConstantValue>[];
   }
 
-  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+  InterfaceType getMemberThisType(JsToElementMap elementMap) {
     return memberThisType;
   }
 }
@@ -901,22 +895,21 @@ abstract class DelegatedFunctionData implements FunctionData {
     return baseData.getFunctionType(elementMap);
   }
 
-  List<TypeVariableType> getFunctionTypeVariables(
-      KernelToElementMap elementMap) {
+  List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap) {
     return baseData.getFunctionTypeVariables(elementMap);
   }
 
-  void forEachParameter(KernelToElementMapForBuilding elementMap,
+  void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     return baseData.forEachParameter(elementMap, f);
   }
 
   @override
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) {
     return const <ConstantValue>[];
   }
 
-  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+  InterfaceType getMemberThisType(JsToElementMap elementMap) {
     return baseData.getMemberThisType(elementMap);
   }
 
@@ -982,7 +975,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
 }
 
 abstract class FieldData extends MemberData {
-  DartType getFieldType(KernelToElementMap elementMap);
+  DartType getFieldType(IrToElementMap elementMap);
 
   ConstantExpression getFieldConstantExpression(
       KernelToElementMapBase elementMap);
@@ -1081,11 +1074,11 @@ class TypeVariableData {
 
   TypeVariableData(this.node);
 
-  DartType getBound(KernelToElementMap elementMap) {
+  DartType getBound(IrToElementMap elementMap) {
     return _bound ??= elementMap.getDartType(node.bound);
   }
 
-  DartType getDefaultType(KernelToElementMap elementMap) {
+  DartType getDefaultType(IrToElementMap elementMap) {
     return _defaultType ??= elementMap.getDartType(node.defaultType);
   }
 

@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
-  KernelToElementMapForImpact _elementMap;
+  KernelToElementMap _elementMap;
   Map<ir.Library, Set<ir.NamedNode>> _additionalExportsSets =
       <ir.Library, Set<ir.NamedNode>>{};
 
@@ -130,7 +130,7 @@ bool _isVisible(List<ir.Combinator> combinators, String name) {
 }
 
 class ConstantCollector extends ir.RecursiveVisitor {
-  final KernelToElementMapForImpact elementMap;
+  final KernelToElementMap elementMap;
   final Dependencies dependencies;
 
   ConstantCollector(this.elementMap, this.dependencies);

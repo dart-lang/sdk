@@ -6,9 +6,9 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import 'indexed.dart';
 
 const String kElementPrefix = 'k:';
 

@@ -6,11 +6,11 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
-import 'element_map_impl.dart';
+import 'element_map.dart';
 
 /// Support for subtype checks of kernel based [DartType]s.
 class KernelDartTypes extends DartTypes {
-  final KernelToElementMapImpl elementMap;
+  final IrToElementMap elementMap;
   final SubtypeVisitor<DartType> subtypeVisitor;
   final PotentialSubtypeVisitor<DartType> potentialSubtypeVisitor;
 
@@ -95,7 +95,7 @@ class KernelDartTypes extends DartTypes {
 }
 
 class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  final KernelToElementMapImpl elementMap;
+  final IrToElementMap elementMap;
 
   KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
       : super(cls, elementMap.commonElements.objectType,
@@ -124,7 +124,7 @@ class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
 
 abstract class AbstractTypeRelationMixin
     implements AbstractTypeRelation<DartType> {
-  KernelToElementMapImpl get elementMap;
+  IrToElementMap get elementMap;
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
@@ -147,14 +147,14 @@ abstract class AbstractTypeRelationMixin
 
 class KernelSubtypeVisitor extends SubtypeVisitor<DartType>
     with AbstractTypeRelationMixin {
-  final KernelToElementMapImpl elementMap;
+  final IrToElementMap elementMap;
 
   KernelSubtypeVisitor(this.elementMap);
 }
 
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
     with AbstractTypeRelationMixin {
-  final KernelToElementMapImpl elementMap;
+  final IrToElementMap elementMap;
 
   _KernelPotentialSubtypeVisitor(this.elementMap);
 }

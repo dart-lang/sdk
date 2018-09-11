@@ -22,10 +22,16 @@ import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../ir/debug.dart';
+import '../ir/element_map.dart';
+import '../ir/types.dart';
+import '../ir/visitors.dart';
+import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -38,7 +44,6 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart';
-import '../js_model/element_map.dart';
 import '../js_model/locals.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -52,47 +57,14 @@ import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
 
-import 'kernel_debug.dart';
 import 'element_map.dart';
 import 'env.dart';
-import 'indexed.dart';
 import 'kelements.dart';
-import 'types.dart';
-import 'visitors.dart';
 
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 
-/// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
-abstract class KernelToWorldBuilder implements KernelToElementMapForBuilding {
-  /// Returns `true` if [field] has a constant initializer.
-  bool hasConstantFieldInitializer(FieldEntity field);
-
-  /// Returns the constant initializer for [field].
-  ConstantValue getConstantFieldInitializer(FieldEntity field);
-
-  /// Calls [f] for each parameter of [function] providing the type and name of
-  /// the parameter and the [defaultValue] if the parameter is optional.
-  void forEachParameter(FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue));
-}
-
-abstract class KernelToElementMapImpl {
-  CommonElements get commonElements;
-  DiagnosticReporter get reporter;
-  InterfaceType getThisType(IndexedClass cls);
-  InterfaceType getSuperType(IndexedClass cls);
-  OrderedTypeSet getOrderedTypeSet(IndexedClass cls);
-  Iterable<InterfaceType> getInterfaces(IndexedClass cls);
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
-  DartType substByContext(DartType type, InterfaceType context);
-  DartType getCallType(InterfaceType type);
-  int getHierarchyDepth(IndexedClass cls);
-  DartType getTypeVariableBound(IndexedTypeVariable typeVariable);
-}
-
-abstract class KernelToElementMapBase
-    implements KernelToElementMap, KernelToElementMapImpl {
+abstract class KernelToElementMapBase implements IrToElementMap {
   final CompilerOptions options;
   final DiagnosticReporter reporter;
   CommonElements _commonElements;
@@ -431,7 +403,6 @@ abstract class KernelToElementMapBase
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
-  @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
       getDartType(type);
 
@@ -443,7 +414,6 @@ abstract class KernelToElementMapBase
     return list;
   }
 
-  @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
       _typeConverter.convert(type);
 
@@ -733,7 +703,6 @@ abstract class KernelToElementMapBase
     return typedefs.getData(typedef).node;
   }
 
-  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     ir.Library library = node.parent;
     LibraryData data = libraries.getData(getLibraryInternal(library));
@@ -769,7 +738,6 @@ abstract class KernelToElementMapBase
     }
   }
 
-  @override
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getLibrary(name.library) : null);
@@ -782,7 +750,6 @@ abstract class KernelToElementMapBase
         argumentCount, namedArguments, arguments.types.length);
   }
 
-  @override
   Selector getSelector(ir.Expression node) {
     // TODO(efortuna): This is screaming for a common interface between
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
@@ -1419,16 +1386,16 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
       {bool isStatic, bool isAssignable, bool isConst});
 }
 
-/// Implementation of [KernelToElementMapForImpact] that only supports world
+/// Implementation of [KernelToElementMap] that only supports world
 /// impact computation.
-class KernelToElementMapForImpactImpl extends KernelToElementMapBase
+class KernelToElementMapImpl extends KernelToElementMapBase
     with ElementCreatorMixin
-    implements KernelToElementMapForImpact {
+    implements KernelToElementMap {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
-  KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
-      Environment environment, this._frontendStrategy, CompilerOptions options)
+  KernelToElementMapImpl(DiagnosticReporter reporter, Environment environment,
+      this._frontendStrategy, CompilerOptions options)
       : super(options, reporter, environment);
 
   @override
@@ -2276,7 +2243,7 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 }
 
 class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
-  final KernelToElementMapForImpactImpl elementMap;
+  final KernelToElementMapImpl elementMap;
   final ElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
   final CommonElements commonElements;
@@ -2338,7 +2305,7 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
 }
 
 class KernelNativeMemberResolver extends NativeMemberResolverBase {
-  final KernelToElementMapForImpactImpl elementMap;
+  final KernelToElementMapImpl elementMap;
   final NativeBasicData nativeBasicData;
   final NativeDataBuilder nativeDataBuilder;
 
@@ -2426,7 +2393,7 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
 }
 
 class KernelClassQueries extends ClassQueries {
-  final KernelToElementMapForImpactImpl elementMap;
+  final KernelToElementMapImpl elementMap;
 
   KernelClassQueries(this.elementMap);
 

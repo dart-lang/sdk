@@ -36,7 +36,7 @@ class KernelSourceInformationStrategy
 // TODO(johnniwinther): Make the closure call names available to
 // `sourcemap_helper.dart`.
 String computeKernelElementNameForSourceMaps(
-    KernelToElementMapForBuilding elementMap, MemberEntity member,
+    JsToElementMap elementMap, MemberEntity member,
     [CallStructure callStructure]) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
@@ -71,7 +71,7 @@ String computeKernelElementNameForSourceMaps(
 /// [SourceInformationBuilder] that generates [PositionSourceInformation] from
 /// Kernel nodes.
 class KernelSourceInformationBuilder implements SourceInformationBuilder {
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final MemberEntity _member;
   final String _name;
 

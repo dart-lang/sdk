@@ -19,6 +19,7 @@ import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_model/locals.dart';
+import '../js_model/element_map_impl.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
 import '../kernel/kelements.dart';
