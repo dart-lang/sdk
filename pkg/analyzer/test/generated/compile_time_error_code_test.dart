@@ -3187,6 +3187,38 @@ E e(String name) {
     verify([source]);
   }
 
+  test_integerLiteralAsDoubleOutOfRange_excessiveExponent() async {
+    Source source = addSource(
+        'double x = 0xfffffffffffff80000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000;');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE]);
+    AnalysisError error = analysisResults[source].errors[0];
+
+    // Check that we suggest the max double instead.
+    expect(
+        true,
+        error.correction.contains(
+            '179769313486231570814527423731704356798070567525844996598917476803'
+            '157260780028538760589558632766878171540458953514382464234321326889'
+            '464182768467546703537516986049910576551282076245490090389328944075'
+            '868508455133942304583236903222948165808559332123348274797826204144'
+            '723168738177180919299881250404026184124858368'));
+  }
+
+  test_integerLiteralAsDoubleOutOfRange_excessiveMantissa() async {
+    Source source = addSource('double x = 9223372036854775809;');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE]);
+    AnalysisError error = analysisResults[source].errors[0];
+    // Check that we suggest a valid double instead.
+    expect(true, error.correction.contains('9223372036854775808'));
+  }
+
   test_integerLiteralOutOfRange_negative() async {
     Source source = addSource('int x = -9223372036854775809;');
     await computeAnalysisResult(source);

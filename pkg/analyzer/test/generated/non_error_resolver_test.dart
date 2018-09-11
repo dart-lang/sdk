@@ -2931,6 +2931,20 @@ class A {
     assertNoErrors(source);
   }
 
+  test_intLiteralInDoubleContext() async {
+    Source source = addSource(r'''
+void takeDouble(double x) {}
+void main() {
+  takeDouble(0);
+  takeDouble(-0);
+  takeDouble(0x0);
+  takeDouble(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_invalidAnnotation_constantVariable_field() async {
     Source source = addSource(r'''
 @A.C

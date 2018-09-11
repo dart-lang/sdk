@@ -227,23 +227,11 @@ LanguageFeatures/Super-bounded-types/static_analysis_A01_t06: CompileTimeError #
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t07: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t09: CompileTimeError # Issue 32903
-LanguageFeatures/int-to-double/arguments_binding_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/arguments_binding_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_class_member_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_class_member_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_global_variable_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_global_variable_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_local_variable_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_local_variable_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_super_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_super_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_this_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/assignment_this_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/max_acceptable_value_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/min_acceptable_values_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/representation_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/representation_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/representation_t03: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/representation_t04: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/return_value_t01: CompileTimeError # Please triage this failure
-LanguageFeatures/int-to-double/return_value_t02: CompileTimeError # Please triage this failure
+LanguageFeatures/int-to-double/assignment_class_member_t01: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/assignment_class_member_t02: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/assignment_global_variable_t01: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/assignment_global_variable_t02: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/assignment_local_variable_t01: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/assignment_local_variable_t02: CompileTimeError # Has const, not working
+LanguageFeatures/int-to-double/min_acceptable_values_t01: CompileTimeError # https://github.com/dart-lang/co19/issues/161
+LanguageFeatures/int-to-double/representation_t01: CompileTimeError # https://github.com/dart-lang/co19/issues/160

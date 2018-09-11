@@ -391,7 +391,6 @@ foo(Object myParameter) {}
     expect(hover.parameter, 'Object myParameter');
   }
 
-  @failingTest
   test_integerLiteral_promoted() async {
     addTestFile('''
 main() {

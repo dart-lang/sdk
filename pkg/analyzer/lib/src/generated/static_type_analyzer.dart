@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -548,12 +549,34 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * The Dart Language Specification, 12.3: <blockquote>The static type of an integer literal is
-   * `int`.</blockquote>
+   * <blockquote>
+   * An integer literal has static type \code{int}, unless the surrounding
+   * static context type is a type which \code{int} is not assignable to, and
+   * \code{double} is. In that case the static type of the integer literal is
+   * \code{double}.
+   * <blockquote>
+   *
+   * and
+   *
+   * <blockquote>
+   * If $e$ is an expression of the form \code{-$l$} where $l$ is an integer
+   * literal (\ref{numbers}) with numeric integer value $i$, then the static
+   * type of $e$ is the same as the static type of an integer literal with the
+   * same contexttype
+   * </blockquote>
    */
   @override
   Object visitIntegerLiteral(IntegerLiteral node) {
-    _recordStaticType(node, _typeProvider.intType);
+    // Check the parent context for negated integer literals.
+    var context = InferenceContext.getContext(
+        (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
+    if (context == null ||
+        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+      _recordStaticType(node, _typeProvider.intType);
+    } else {
+      _recordStaticType(node, _typeProvider.doubleType);
+    }
     return null;
   }
 

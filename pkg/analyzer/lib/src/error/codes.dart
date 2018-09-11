@@ -1344,6 +1344,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.");
 
   /**
+   * An integer literal with static type `double` and numeric value `i`
+   * evaluates to an instance of the `double` class representing the value `i`.
+   * It is a compile-time error if the value `i` cannot be represented
+   * _precisely_ by the an instace of `double`.
+   */
+  static const CompileTimeErrorCode INTEGER_LITERAL_IMPRECISE_AS_DOUBLE =
+      const CompileTimeErrorCode(
+          'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+          "The integer literal is being used as a double, but can't be "
+          'represented as a 64 bit double without overflow and/or loss of '
+          'precision: {0}',
+          correction:
+              'Try using the BigInt class, or switch to the closest valid '
+              'double: {1}');
+
+  /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
    * begin with the character @, followed by a constant expression that must be
    * either a reference to a compile-time constant variable, or a call to a

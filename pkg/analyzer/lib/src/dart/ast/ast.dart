@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -6621,6 +6622,20 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   Token get endToken => literal;
 
+  /**
+   * Returns whether this literal's [parent] is a [PrefixExpression] of unary
+   * negation.
+   *
+   * Note: this does *not* indicate that the value itself is negated, just that
+   * the literal is the child of a negation operation. The literal value itself
+   * will always be positive.
+   */
+  bool get immediatelyNegated {
+    AstNode parent = this.parent; // Capture for type propagation.
+    return parent is PrefixExpression &&
+        parent.operator.type == TokenType.MINUS;
+  }
+
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
@@ -6629,12 +6644,43 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     // There are no children to visit.
   }
 
+  static bool isValidAsDouble(String lexeme) {
+    // Less than 16 characters must be a valid double since it will be less than
+    // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
+    if (lexeme.length < 16) {
+      return true;
+    }
+
+    BigInt fullPrecision = BigInt.tryParse(lexeme);
+    if (fullPrecision == null) {
+      return false;
+    }
+
+    // Usually handled by the length check, however, we must check this before
+    // constructing a mask later, or we'd get a negative-shift runtime error.
+    int bitLengthAsInt = fullPrecision.bitLength;
+    if (bitLengthAsInt <= 53) {
+      return true;
+    }
+
+    // This would overflow the exponent (larger than maximum double).
+    if (fullPrecision > BigInt.from(double.maxFinite)) {
+      return false;
+    }
+
+    // Say [lexeme] uses 100 bits as an integer. The bottom 47 must be 0s -- so
+    // construct a mask of 47 ones, via of 2^n - 1 where n is 47.
+    BigInt bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
+
+    return fullPrecision & bottomMask == BigInt.zero;
+  }
+
   /**
    * Return `true` if the given [lexeme] is a valid lexeme for an integer
    * literal. The flag [isNegative] should be `true` if the lexeme is preceded
    * by a unary negation operator.
    */
-  static bool isValidLiteral(String lexeme, bool isNegative) {
+  static bool isValidAsInteger(String lexeme, bool isNegative) {
     // TODO(jmesserly): this depends on the platform int implementation, and
     // may not be accurate if run on dart4web.
     //
@@ -6645,6 +6691,14 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     if (isNegative) lexeme = '-$lexeme';
     return int.tryParse(lexeme) != null;
   }
+
+  /**
+   * Suggest the nearest valid double to a user. If the integer they wrote
+   * requires more than a 53 bit mantissa, or more than 10 exponent bits, do
+   * them the favor of suggesting the nearest integer that would work for them.
+   */
+  static double nearestValidDouble(String lexeme) =>
+      math.min(double.maxFinite, BigInt.parse(lexeme).toDouble());
 }
 
 /**

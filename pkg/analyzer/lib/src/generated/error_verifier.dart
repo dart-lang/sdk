@@ -4767,17 +4767,52 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  /**
+   * Via informal specification: dart-lang/language/issues/4
+   *
+   * If e is an integer literal which is not the operand of a unary minus
+   * operator, then:
+   *   - If the context type is double, it is a compile-time error if the
+   *   numerical value of e is not precisely representable by a double.
+   *   Otherwise the static type of e is double and the result of evaluating e
+   *   is a double instance representing that value.
+   *   - Otherwise (the current behavior of e, with a static type of int).
+   *
+   * and
+   *
+   * If e is -n and n is an integer literal, then
+   *   - If the context type is double, it is a compile-time error if the
+   *   numerical value of n is not precisley representable by a double.
+   *   Otherwise the static type of e is double and the result of evaluating e
+   *   is the result of calling the unary minus operator on a double instance
+   *   representing the numerical value of n.
+   *   - Otherwise (the current behavior of -n)
+   */
   void _checkForOutOfRange(IntegerLiteral node) {
     String lexeme = node.literal.lexeme;
-    AstNode parent = node.parent;
-    bool isNegated =
-        parent is PrefixExpression && parent.operator.type == TokenType.MINUS;
-    if (!IntegerLiteralImpl.isValidLiteral(lexeme, isNegated)) {
-      if (isNegated) {
-        lexeme = '-$lexeme';
+    final bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
+    final List<Object> extraErrorArgs = [];
+
+    final bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
+    final bool valid = treatedAsDouble
+        ? IntegerLiteralImpl.isValidAsDouble(lexeme)
+        : IntegerLiteralImpl.isValidAsInteger(lexeme, isNegated);
+
+    if (!valid) {
+      extraErrorArgs.add(isNegated ? '-$lexeme' : lexeme);
+
+      if (treatedAsDouble) {
+        // Suggest the nearest valid double (as a BigInt for printing reasons).
+        extraErrorArgs
+            .add(BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme)));
       }
+
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, node, [lexeme]);
+          treatedAsDouble
+              ? CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE
+              : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+          node,
+          extraErrorArgs);
     }
   }
 
