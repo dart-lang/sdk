@@ -34,18 +34,23 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   Stdin._(Stream<List<int>> stream, this._fd) : super(stream);
 
   /**
-   * Synchronously read a line from stdin. This call will block until a full
-   * line is available.
+   * Read a line from stdin.
    *
-   * The argument [encoding] can be used to changed how the input should be
-   * decoded. Default is [systemEncoding].
+   * Blocks until a full line is available.
    *
-   * If [retainNewlines] is `false`, the returned String will not contain the
-   * final newline. If `true`, the returned String will contain the line
+   * Lines my be terminated by either `<CR><LF>` or `<LF>`. On Windows in cases
+   * where the [stdioType] of stdin is [StdioType.termimal] the terminator may
+   * also be a single `<CR>`.
+   *
+   * Input bytes are converted to a string by [encoding].
+   * If [encoding] is omitted, it defaults to [systemEncoding].
+   *
+   * If [retainNewlines] is `false`, the returned String will not include the
+   * final line terminator. If `true`, the returned String will include the line
    * terminator. Default is `false`.
    *
    * If end-of-file is reached after any bytes have been read from stdin,
-   * that data is returned.
+   * that data is returned without a line terminator.
    * Returns `null` if no bytes preceded the end of input.
    */
   String readLineSync(
