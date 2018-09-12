@@ -154,6 +154,49 @@ class NativeEntry : public AllStatic {
   static void PropagateErrors(NativeArguments* arguments);
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+class NativeEntryData : public ValueObject {
+ public:
+  explicit NativeEntryData(const TypedData& data) : data_(data) {}
+
+  MethodRecognizer::Kind kind() const;
+  void set_kind(MethodRecognizer::Kind value) const;
+  static MethodRecognizer::Kind GetKind(RawTypedData* data);
+
+  NativeFunctionWrapper trampoline() const;
+  void set_trampoline(NativeFunctionWrapper value) const;
+  static NativeFunctionWrapper GetTrampoline(RawTypedData* data);
+
+  NativeFunction native_function() const;
+  void set_native_function(NativeFunction value) const;
+  static NativeFunction GetNativeFunction(RawTypedData* data);
+
+  intptr_t argc_tag() const;
+  void set_argc_tag(intptr_t value) const;
+  static intptr_t GetArgcTag(RawTypedData* data);
+
+  static RawTypedData* New(MethodRecognizer::Kind kind,
+                           NativeFunctionWrapper trampoline,
+                           NativeFunction native_function,
+                           intptr_t argc_tag);
+
+ private:
+  struct Payload {
+    NativeFunctionWrapper trampoline;
+    NativeFunction native_function;
+    intptr_t argc_tag;
+    MethodRecognizer::Kind kind;
+  };
+
+  static Payload* FromTypedArray(RawTypedData* data);
+
+  const TypedData& data_;
+  DISALLOW_COPY_AND_ASSIGN(NativeEntryData);
+};
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_NATIVE_ENTRY_H_

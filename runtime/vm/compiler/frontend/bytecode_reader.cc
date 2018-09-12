@@ -635,9 +635,8 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
   }
 }
 
-RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
-    const Function& function,
-    const String& external_name) {
+RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
+                                                  const String& external_name) {
   Zone* zone = helper_->zone_;
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   // This list of recognized methods must be kept in sync with the list of
@@ -697,13 +696,7 @@ RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
     }
     argc_tag = NativeArguments::ComputeArgcTag(function);
   }
-  const NativeEntryData& native_entry =
-      NativeEntryData::Handle(zone, NativeEntryData::New());
-  native_entry.set_kind(kind);
-  native_entry.set_trampoline(trampoline);
-  native_entry.set_native_function(native_function);
-  native_entry.set_argc_tag(argc_tag);
-  return native_entry.raw();
+  return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
 }
 
 }  // namespace kernel

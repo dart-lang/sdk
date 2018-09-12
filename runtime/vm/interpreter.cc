@@ -2489,9 +2489,8 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(NativeCall, __D);
-    RawNativeEntryData* native_entry =
-        static_cast<RawNativeEntryData*>(LOAD_CONSTANT(rD));
-    MethodRecognizer::Kind kind = native_entry->ptr()->kind_;
+    RawTypedData* data = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
+    MethodRecognizer::Kind kind = NativeEntryData::GetKind(data);
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
         SP[-1] = SP[-1] == SP[0] ? Bool::True().raw() : Bool::False().raw();
@@ -2630,9 +2629,9 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline = native_entry->ptr()->trampoline_;
-        NativeFunction function = native_entry->ptr()->native_function_;
-        intptr_t argc_tag = native_entry->ptr()->argc_tag_;
+        NativeFunctionWrapper trampoline = NativeEntryData::GetTrampoline(data);
+        NativeFunction function = NativeEntryData::GetNativeFunction(data);
+        intptr_t argc_tag = NativeEntryData::GetArgcTag(data);
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
 

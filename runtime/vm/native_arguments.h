@@ -213,7 +213,6 @@ class NativeArguments {
   friend class Api;
   friend class BootstrapNatives;
   friend class Interpreter;
-  friend class NativeEntryData;
   friend class Simulator;
 
   // Allow simulator and interpreter to create NativeArguments in reverse order

@@ -28,7 +28,6 @@ typedef RawObject* RawCompressed;
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
-  V(NativeEntryData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
@@ -1105,23 +1104,6 @@ class RawRedirectionData : public RawObject {
   RawString* identifier_;
   RawFunction* target_;
   VISIT_TO(RawObject*, target_);
-};
-
-// Forward declarations.
-class NativeArguments;
-typedef void (*NativeFunction)(NativeArguments* arguments);
-typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
-                                      Dart_NativeFunction func);
-
-class RawNativeEntryData : public RawObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(NativeEntryData);
-  VISIT_NOTHING();
-
-  NativeFunctionWrapper trampoline_;
-  NativeFunction native_function_;
-  intptr_t argc_tag_;
-  MethodRecognizer::Kind kind_;
 };
 
 class RawField : public RawObject {
@@ -2336,13 +2318,14 @@ class RawTypedData : public RawInstance {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class Api;
-  friend class Object;
   friend class Instance;
-  friend class SnapshotReader;
+  friend class NativeEntryData;
+  friend class Object;
   friend class ObjectPool;
-  friend class RawObjectPool;
-  friend class ObjectPoolSerializationCluster;
   friend class ObjectPoolDeserializationCluster;
+  friend class ObjectPoolSerializationCluster;
+  friend class RawObjectPool;
+  friend class SnapshotReader;
 };
 
 class RawExternalTypedData : public RawInstance {

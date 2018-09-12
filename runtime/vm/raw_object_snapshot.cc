@@ -746,22 +746,6 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-RawNativeEntryData* NativeEntryData::ReadFrom(SnapshotReader* reader,
-                                              intptr_t object_id,
-                                              intptr_t tags,
-                                              Snapshot::Kind kind,
-                                              bool as_reference) {
-  UNREACHABLE();
-  return NativeEntryData::null();
-}
-
-void RawNativeEntryData::WriteTo(SnapshotWriter* writer,
-                                 intptr_t object_id,
-                                 Snapshot::Kind kind,
-                                 bool as_reference) {
-  UNREACHABLE();
-}
-
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,

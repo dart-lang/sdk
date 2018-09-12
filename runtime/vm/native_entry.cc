@@ -283,6 +283,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     NativeFunction current_function = NULL;
     if (caller_frame->is_interpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper current_trampoline = KBCPatcher::GetNativeCallAt(
           caller_frame->pc(), code, &current_function);
@@ -291,6 +292,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       ASSERT(current_trampoline == &BootstrapNativeCallWrapper ||
              current_trampoline == &AutoScopeNativeCallWrapper ||
              current_trampoline == &NoScopeNativeCallWrapper);
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
@@ -324,6 +328,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                                    patch_target_function, trampoline);
 #else
     if (caller_frame->is_interpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper trampoline;
       if (is_bootstrap_native) {
@@ -335,6 +340,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       }
       KBCPatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                     patch_target_function, trampoline);
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       Code& trampoline = Code::Handle(zone);
       if (is_bootstrap_native) {
@@ -377,5 +385,76 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
         args, reinterpret_cast<Dart_NativeFunction>(target_function));
   }
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+// Note: not GC safe. Use with care.
+NativeEntryData::Payload* NativeEntryData::FromTypedArray(RawTypedData* data) {
+  return reinterpret_cast<Payload*>(data->ptr()->data());
+}
+
+MethodRecognizer::Kind NativeEntryData::kind() const {
+  return FromTypedArray(data_.raw())->kind;
+}
+
+void NativeEntryData::set_kind(MethodRecognizer::Kind value) const {
+  FromTypedArray(data_.raw())->kind = value;
+}
+
+MethodRecognizer::Kind NativeEntryData::GetKind(RawTypedData* data) {
+  return FromTypedArray(data)->kind;
+}
+
+NativeFunctionWrapper NativeEntryData::trampoline() const {
+  return FromTypedArray(data_.raw())->trampoline;
+}
+
+void NativeEntryData::set_trampoline(NativeFunctionWrapper value) const {
+  FromTypedArray(data_.raw())->trampoline = value;
+}
+
+NativeFunctionWrapper NativeEntryData::GetTrampoline(RawTypedData* data) {
+  return FromTypedArray(data)->trampoline;
+}
+
+NativeFunction NativeEntryData::native_function() const {
+  return FromTypedArray(data_.raw())->native_function;
+}
+
+void NativeEntryData::set_native_function(NativeFunction value) const {
+  FromTypedArray(data_.raw())->native_function = value;
+}
+
+NativeFunction NativeEntryData::GetNativeFunction(RawTypedData* data) {
+  return FromTypedArray(data)->native_function;
+}
+
+intptr_t NativeEntryData::argc_tag() const {
+  return FromTypedArray(data_.raw())->argc_tag;
+}
+
+void NativeEntryData::set_argc_tag(intptr_t value) const {
+  FromTypedArray(data_.raw())->argc_tag = value;
+}
+
+intptr_t NativeEntryData::GetArgcTag(RawTypedData* data) {
+  return FromTypedArray(data)->argc_tag;
+}
+
+RawTypedData* NativeEntryData::New(MethodRecognizer::Kind kind,
+                                   NativeFunctionWrapper trampoline,
+                                   NativeFunction native_function,
+                                   intptr_t argc_tag) {
+  const TypedData& data = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, sizeof(Payload), Heap::kOld));
+  NativeEntryData native_entry(data);
+  native_entry.set_kind(kind);
+  native_entry.set_trampoline(trampoline);
+  native_entry.set_native_function(native_function);
+  native_entry.set_argc_tag(argc_tag);
+  return data.raw();
+}
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

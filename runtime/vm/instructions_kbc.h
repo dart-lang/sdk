@@ -6,15 +6,19 @@
 #ifndef RUNTIME_VM_INSTRUCTIONS_KBC_H_
 #define RUNTIME_VM_INSTRUCTIONS_KBC_H_
 
+#include "vm/globals.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/object.h"
 
 namespace dart {
 
 class KBCNativeCallPattern : public AllStatic {
  public:
-  static RawNativeEntryData* GetNativeEntryDataAt(uword pc,
-                                                  const Code& bytecode);
+  static RawTypedData* GetNativeEntryDataAt(uword pc, const Code& bytecode);
 };
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 
