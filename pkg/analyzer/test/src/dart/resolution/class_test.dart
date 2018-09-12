@@ -251,6 +251,28 @@ abstract class B extends A {
     assertElement(findNode.simple('foo = 0;'), findElement.setter('foo'));
   }
 
+  test_conflictingGenericInterfaces_simple() async {
+    addTestFile('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A implements B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
+  test_conflictingGenericInterfaces_viaMixin() async {
+    addTestFile('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A with B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
   test_error_conflictingConstructorAndStaticField_field() async {
     addTestFile(r'''
 class C {
@@ -1081,6 +1103,31 @@ class A extends v {}
     assertElementType(a.supertype, objectType);
   }
 
+  test_error_implementsRepeated() async {
+    addTestFile(r'''
+class A {}
+class B implements A, A {} // ref
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
+
+    var a = findElement.class_('A');
+    assertTypeName(findNode.typeName('A, A {} // ref'), a, 'A');
+    assertTypeName(findNode.typeName('A {} // ref'), a, 'A');
+  }
+
+  test_error_implementsRepeated_3times() async {
+    addTestFile(r'''
+class A {} class C{}
+class B implements A, A, A, A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+      CompileTimeErrorCode.IMPLEMENTS_REPEATED
+    ]);
+  }
+
   test_error_memberWithClassName_getter() async {
     addTestFile(r'''
 class C {
@@ -1207,6 +1254,62 @@ abstract class C implements A, B {}
     await resolveTestFile();
     assertTestErrors([
       StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_mixinInference_conflictingSubstitution() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<Map<int, String>> with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+class A extends Object with B<String>, C {}
+class B<T> {}
+class C<T> extends B<T> {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var mixins = result.unit.declaredElement.getType('A').mixins;
+    expect(mixins[1].toString(), 'C<String>');
+  }
+
+  test_mixinInference_impossibleSubstitution() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<List<int>> with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M implements A<B> {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
     ]);
   }
 
@@ -1438,4 +1541,35 @@ class B extends A {
 
 @reflectiveTest
 class ClassTaskResolutionTest extends TaskResolutionTest
-    with ClassResolutionMixin {}
+    with ClassResolutionMixin {
+  @failingTest
+  test_conflictingGenericInterfaces_simple() {
+    return super.test_conflictingGenericInterfaces_simple();
+  }
+
+  @failingTest
+  test_conflictingGenericInterfaces_viaMixin() {
+    return super.test_conflictingGenericInterfaces_viaMixin();
+  }
+
+  @failingTest
+  test_mixinInference_conflictingSubstitution() {
+    return super.test_mixinInference_conflictingSubstitution();
+  }
+
+  @failingTest
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() {
+    return super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
+  }
+
+  @failingTest
+  test_mixinInference_impossibleSubstitution() {
+    return super.test_mixinInference_impossibleSubstitution();
+  }
+
+  @failingTest
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() {
+    return super
+        .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
+  }
+}

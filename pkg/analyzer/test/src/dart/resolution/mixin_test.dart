@@ -139,6 +139,17 @@ mixin M {}
     assertTypeNull(aRef);
   }
 
+  test_conflictingGenericInterfaces() async {
+    addTestFile('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+mixin M on A implements B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
   test_element() async {
     addTestFile(r'''
 mixin M {}
@@ -743,6 +754,16 @@ mixin M implements void {}
     assertTypeName(typeRef, null, 'void');
   }
 
+  test_error_implementsRepeated() async {
+    addTestFile(r'''
+class A {}
+mixin M implements A, A {}
+''');
+    await resolveTestFile();
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
+    assertTestErrors([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
+  }
+
   test_error_memberWithClassName_getter() async {
     addTestFile(r'''
 mixin M {
@@ -1106,6 +1127,16 @@ mixin B on A {} // ref
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
     assertElementTypes(b.superclassConstraints, [a.type]);
+  }
+
+  test_error_onRepeated() async {
+    addTestFile(r'''
+class A {}
+mixin M on A, A {}
+''');
+    await resolveTestFile();
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
+    assertTestErrors([CompileTimeErrorCode.ON_REPEATED]);
   }
 
   test_error_undefinedSuperMethod() async {
@@ -1497,4 +1528,9 @@ class X extends A with M {}
 
 @reflectiveTest
 class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {}
+    with MixinResolutionMixin {
+  @failingTest
+  test_conflictingGenericInterfaces() {
+    return super.test_conflictingGenericInterfaces();
+  }
+}

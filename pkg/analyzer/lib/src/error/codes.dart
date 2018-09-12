@@ -408,6 +408,17 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try converting the getter to a method, or "
               "renaming the field to a name that doesn't conflit.");
 
+  /**
+   * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
+   * superinterfaces that are different instantiations of the same generic
+   * class. For example, a class may not have both `List<int>` and `List<num>`
+   * as superinterfaces.
+   *
+   * Parameters:
+   * 0: the name of the class implementing the conflicting interface
+   * 1: the first conflicting type
+   * 1: the second conflicting type
+   */
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       const CompileTimeErrorCode(
           'CONFLICTING_GENERIC_INTERFACES',
@@ -1174,11 +1185,12 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try specifying a class, or remove the name from the list.");
 
   /**
-   * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears
-   * more than once in the implements clause of a class.
+   * 10.10 Superinterfaces: It is a compile-time error if two elements in the
+   * type list of the implements clause of a class `C` specifies the same
+   * type `T`.
    *
    * Parameters:
-   * 0: the name of the class that is implemented more than once
+   * 0: the name of the interface that is implemented more than once
    */
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED =
       const CompileTimeErrorCode(
@@ -2103,6 +2115,19 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS =
       const CompileTimeErrorCode('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
           "The class 'Object' can't extend any other class.");
+
+  /**
+   * 10.10 Superinterfaces: It is a compile-time error if two elements in the
+   * type list of the implements clause of a class `C` specifies the same
+   * type `T`.
+   *
+   * Parameters:
+   * 0: the name of the interface that is implemented more than once
+   */
+  static const CompileTimeErrorCode ON_REPEATED = const CompileTimeErrorCode(
+      'ON_REPEATED',
+      "'{0}' can only be used in super-class constraints only once.",
+      correction: "Try removing all but one occurance of the class name.");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional

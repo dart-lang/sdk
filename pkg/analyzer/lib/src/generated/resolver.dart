@@ -10287,29 +10287,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (classElement != null) {
         classElement.interfaces = interfaceTypes;
       }
-      // TODO(brianwilkerson) Move the following checks to ErrorVerifier.
-      int count = interfaces.length;
-      List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
-      for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
-        detectedRepeatOnIndex[i] = false;
-      }
-      for (int i = 0; i < count; i++) {
-        TypeName typeName = interfaces[i];
-        if (!detectedRepeatOnIndex[i]) {
-          Element element = typeName.name.staticElement;
-          for (int j = i + 1; j < count; j++) {
-            TypeName typeName2 = interfaces[j];
-            Identifier identifier2 = typeName2.name;
-            String name2 = identifier2.name;
-            Element element2 = identifier2.staticElement;
-            if (element != null && element == element2) {
-              detectedRepeatOnIndex[j] = true;
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, [name2]);
-            }
-          }
-        }
-      }
     }
   }
 

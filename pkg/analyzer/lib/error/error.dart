@@ -216,6 +216,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
   CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS,
+  CompileTimeErrorCode.ON_REPEATED,
   CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
   CompileTimeErrorCode.PART_OF_NON_PART,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,

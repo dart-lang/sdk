@@ -730,30 +730,6 @@ class C extends A implements B {}
     assertNoErrors(source);
   }
 
-  @failingTest // Does not work with old task model
-  test_conflictingGenericInterfaces_simple() async {
-    Source source = addSource('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A implements B {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_conflictingGenericInterfaces_viaMixin() async {
-    Source source = addSource('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A with B {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
   test_conflictingTypeVariableAndClass() async {
     Source source = addSource(r'''
 class T<T> {
@@ -2769,28 +2745,6 @@ class C = A with M implements B;''');
     verify([source]);
   }
 
-  test_implementsRepeated() async {
-    Source source = addSource(r'''
-class A {}
-class B implements A, A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
-    verify([source]);
-  }
-
-  test_implementsRepeated_3times() async {
-    Source source = addSource(r'''
-class A {} class C{}
-class B implements A, A, A, A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED
-    ]);
-    verify([source]);
-  }
-
   test_implementsSuperClass() async {
     Source source = addSource(r'''
 class A {}
@@ -3949,56 +3903,6 @@ class C extends B with M {
     verify([source]);
   }
 
-  @failingTest // Does not work with old task model
-  test_mixinInference_conflictingSubstitution() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<Map<int, String>> with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-class A extends Object with B<String>, C {}
-class B<T> {}
-class C<T> extends B<T> {}
-''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    var mixins = analysisResult.unit.declaredElement.getType('A').mixins;
-    expect(mixins[1].toString(), 'C<String>');
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_impossibleSubstitution() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<List<int>> with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4041,24 +3945,6 @@ class C extends Object with M {}
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class B {}
-class M<T> extends A<T> {}
-class C extends Object with M implements A<B> {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
   }
 
   test_mixinInference_noMatchingClass_namedMixinApplication() async {

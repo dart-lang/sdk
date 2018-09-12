@@ -1047,8 +1047,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
-//      _checkForDuplicateDefinitionInheritance();
-//      _checkForConflictingInstanceMethodSetter(node);
 //      _checkForBadFunctionUse(node);
       return super.visitMixinDeclaration(node);
     } finally {
@@ -1353,6 +1351,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
+      _checkForRepeatedType(implementsClause?.interfaces,
+          CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
       _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
@@ -2553,6 +2553,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       visit(type.superclass);
       type.mixins.forEach(visit);
+      type.superclassConstraints.forEach(visit);
       type.interfaces.forEach(visit);
       visitedClasses.removeLast();
     }
@@ -5098,6 +5099,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  void _checkForRepeatedType(List<TypeName> typeNames, ErrorCode errorCode) {
+    if (typeNames == null) {
+      return;
+    }
+
+    int count = typeNames.length;
+    List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
+    for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
+      detectedRepeatOnIndex[i] = false;
+    }
+    for (int i = 0; i < count; i++) {
+      if (!detectedRepeatOnIndex[i]) {
+        Element element = typeNames[i].name.staticElement;
+        for (int j = i + 1; j < count; j++) {
+          TypeName typeName = typeNames[j];
+          if (typeName.name.staticElement == element) {
+            detectedRepeatOnIndex[j] = true;
+            _errorReporter
+                .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Check that the given rethrow [expression] is inside of a catch clause.
    *
@@ -5821,23 +5847,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkMixinInheritance(MixinDeclaration node, OnClause onClause,
       ImplementsClause implementsClause) {
-    // TODO(scheglov) Verify for all mixin errors.
     // Only check for all of the inheritance logic around clauses if there
     // isn't an error code such as "Cannot implement double" already.
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-//      _checkForNonAbstractClassInheritsAbstractMember(node.name);
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
-//      _checkImplementsSuperClass(implementsClause);
-//      _checkForMixinHasNoConstructors(node);
-//      _checkMixinInference(node, onClause);
-//      _checkForMixinWithConflictingPrivateMember(onClause, superclass);
-//      if (!disableConflictingGenericsCheck) {
-//        _checkForConflictingGenerics(node);
-//      }
+      _checkForRepeatedType(
+        onClause?.superclassConstraints,
+        CompileTimeErrorCode.ON_REPEATED,
+      );
+      _checkForRepeatedType(
+        implementsClause?.interfaces,
+        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+      );
+      if (!disableConflictingGenericsCheck) {
+        _checkForConflictingGenerics(node);
+      }
     }
   }
 
