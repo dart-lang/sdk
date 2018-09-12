@@ -1251,8 +1251,8 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseClassMember_method_static_mixin() {
+    if (!usingFastaParser) return;
     var unit = parseCompilationUnit('mixin C { static void m() {} }');
-
     MixinDeclaration c = unit.declarations[0];
     MethodDeclaration method = c.members[0];
     expect(method.documentationComment, isNull);
@@ -3951,9 +3951,12 @@ class Wrong<T> {
   void test_invalidInlineFunctionType() {
     parseCompilationUnit(
       'typedef F = int Function(int a());',
-      errors: [
-        expectedError(CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 30, 1)
-      ],
+      errors: usingFastaParser
+          ? [
+              expectedError(
+                  CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 30, 1)
+            ]
+          : [],
     );
   }
 
@@ -10469,6 +10472,18 @@ class B = Object with A {}''',
     expect(conditionalExpression.thenExpression,
         new TypeMatcher<SimpleIdentifier>());
     expect(conditionalExpression.thenExpression.isSynthetic, isTrue);
+  }
+
+  void test_conditionalExpression_super() {
+    parseExpression('x ? super : z', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 4, 5)
+    ]);
+  }
+
+  void test_conditionalExpression_super2() {
+    parseExpression('x ? z : super', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 8, 5)
+    ]);
   }
 
   void test_declarationBeforeDirective() {

@@ -53,8 +53,6 @@ Language/Classes/mixins_t02: MissingCompileTimeError # This syntax is now allowe
 Language/Enums/syntax_t08: CompileTimeError # Issue 33995
 Language/Enums/syntax_t09: CompileTimeError # Issue 33995
 Language/Errors_and_Warnings/static_warning_t01: CompileTimeError # issue #34319
-Language/Expressions/Conditional/syntax_t03: MissingCompileTimeError # Issue 33995
-Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError # Issue 33995
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Equality/syntax_t02: MissingCompileTimeError # Issue 33995

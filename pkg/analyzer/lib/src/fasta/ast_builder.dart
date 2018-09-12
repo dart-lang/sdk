@@ -331,11 +331,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     Expression expression = pop();
-    if (expression is SuperExpression) {
-      // This error is also reported by the body builder.
-      handleRecoverableError(messageMissingAssignableSelector,
-          expression.beginToken, expression.endToken);
-    }
+    reportErrorIfSuper(expression);
     if (expression is SimpleIdentifier &&
         expression.token?.keyword?.isBuiltInOrPseudo == false) {
       // This error is also reported by the body builder.
@@ -352,6 +348,14 @@ class AstBuilder extends StackListener {
       }
     }
     push(ast.expressionStatement(expression, semicolon));
+  }
+
+  void reportErrorIfSuper(Expression expression) {
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
+    }
   }
 
   @override
@@ -1011,6 +1015,8 @@ class AstBuilder extends StackListener {
     Expression elseExpression = pop();
     Expression thenExpression = pop();
     Expression condition = pop();
+    reportErrorIfSuper(elseExpression);
+    reportErrorIfSuper(thenExpression);
     push(ast.conditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
   }
