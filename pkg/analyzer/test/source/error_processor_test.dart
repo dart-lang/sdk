@@ -39,8 +39,8 @@ main() {
     ['x']
   ]);
 
-  AnalysisError non_bool_operand = new AnalysisError(
-      new TestSource(), 0, 1, StaticTypeWarningCode.NON_BOOL_OPERAND, [
+  AnalysisError assignment_no_type = new AnalysisError(
+      new TestSource(), 0, 1, StaticWarningCode.ASSIGNMENT_TO_TYPE, [
     ['x']
   ]);
 
@@ -71,12 +71,12 @@ analyzer:
       expect(getProcessor(use_of_void_result), isNotNull);
     });
 
-    test('upgrades static type warnings to errors in strong mode', () {
+    test('upgrades static warnings to errors in strong mode', () {
       configureOptions('''
 analyzer:
   strong-mode: true
 ''');
-      expect(getProcessor(non_bool_operand).severity, ErrorSeverity.ERROR);
+      expect(getProcessor(assignment_no_type).severity, ErrorSeverity.ERROR);
     });
 
     test('does not upgrade other warnings to errors in strong mode', () {

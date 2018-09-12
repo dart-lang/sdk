@@ -2699,6 +2699,9 @@ class CompileTimeErrorCode extends ErrorCode {
  * when appropriate, how the problem can be corrected.
  */
 class StaticTypeWarningCode extends ErrorCode {
+  @override
+  final ErrorSeverity errorSeverity;
+
   /**
    * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
    * class implements the built-in class <i>List&lt;E></i> is allocated.
@@ -3276,7 +3279,8 @@ class StaticTypeWarningCode extends ErrorCode {
       WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR = const StaticTypeWarningCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
           "The constructor '{0}.{1}' does not have type parameters.",
-          correction: "Try moving type arguments to after the type name.");
+          correction: "Try moving type arguments to after the type name.",
+          errorSeverity: ErrorSeverity.WARNING);
 
   /**
    * It will be a static type warning if <i>m</i> is not a generic method with
@@ -3353,13 +3357,12 @@ class StaticTypeWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticTypeWarningCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      this.errorSeverity: ErrorSeverity.ERROR,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
 
   @override
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
