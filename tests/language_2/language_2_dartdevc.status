@@ -145,6 +145,7 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 regress_32660_test/01: MissingCompileTimeError # Issue #32660.
 regress_32660_test/04: CompileTimeError
+regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 stacktrace_test: RuntimeError # Issue 29920

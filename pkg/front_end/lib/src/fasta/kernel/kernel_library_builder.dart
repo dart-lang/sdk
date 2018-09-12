@@ -1155,7 +1155,8 @@ class KernelLibraryBuilder
       if (declaration is KernelClassBuilder) {
         {
           List<Object> issues = strongMode
-              ? getNonSimplicityIssuesForDeclaration(declaration)
+              ? getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true)
               : const <Object>[];
           reportIssues(issues);
           // In case of issues, use non-strong mode for error recovery.
@@ -1175,7 +1176,8 @@ class KernelLibraryBuilder
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
         List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForDeclaration(declaration)
+            ? getNonSimplicityIssuesForDeclaration(declaration,
+                performErrorRecovery: true)
             : const <Object>[];
         reportIssues(issues);
         // In case of issues, use non-strong mode for error recovery.
