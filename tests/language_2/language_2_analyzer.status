@@ -71,7 +71,6 @@ issue31596_tearoff_test: CompileTimeError # Issue #31596
 issue31596_test: CompileTimeError # Issue #31596
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError # bug in analyzer? Exchange UnaryNum, UnaryOptionalNum, and it works.
-mixin_declaration/mixin_declaration_subtype_test: CompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_supertype_compatible_test/04: MissingCompileTimeError # no most specific signature
 mixin_declaration/mixin_declaration_syntax_test: CompileTimeError # test issue: many of them

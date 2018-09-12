@@ -1923,7 +1923,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             problemReported = true;
           }
           if (mixinElement.isMixin) {
-            if (_checkForMixinSuperclassConstraints(mixinName, mixinElement)) {
+            if (_checkForMixinSuperclassConstraints(mixinName)) {
               problemReported = true;
             }
             if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
@@ -4254,12 +4254,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /// Check that superclass constrains for the [mixinElement] are satisfied
-  /// by the [_enclosingClass].
-  bool _checkForMixinSuperclassConstraints(
-      TypeName mixinName, ClassElement mixinElement) {
-    for (var constraint in mixinElement.superclassConstraints) {
-      if (!_typeSystem.isSubtypeOf(_enclosingClass.type, constraint)) {
+  /// Check that superclass constrains for the mixin type of [mixinName]
+  /// are satisfied by the [_enclosingClass].
+  bool _checkForMixinSuperclassConstraints(TypeName mixinName) {
+    InterfaceType enclosingType = _enclosingClass.type;
+    InterfaceType mixinType = mixinName.type;
+    for (var constraint in mixinType.superclassConstraints) {
+      if (!_typeSystem.isSubtypeOf(enclosingType, constraint)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
             mixinName.name,

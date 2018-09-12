@@ -885,6 +885,20 @@ class X = A<double> with M;
     ]);
   }
 
+  test_error_mixinApplicationNotImplementedInterface_OK_generic() async {
+    addTestFile(r'''
+class A<T> {}
+
+mixin M<T> on A<T> {}
+
+class B<T> implements A<T> {}
+
+class C<T> = B<T> with M<T>;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNotImplementedInterface_OK_0() async {
     addTestFile(r'''
 mixin M {}
