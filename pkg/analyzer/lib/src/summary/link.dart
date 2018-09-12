@@ -385,19 +385,31 @@ typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
 
 /// Stub implementation of [AnalysisOptions] used during linking.
-class AnalysisOptionsForLink implements AnalysisOptions {
+class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   final Linker _linker;
 
   AnalysisOptionsForLink(this._linker);
 
   @override
+  bool get declarationCasts => true;
+
+  @override
   bool get hint => false;
+
+  @override
+  bool get implicitCasts => true;
+
+  @override
+  List<String> get nonnullableTypes => AnalysisOptionsImpl.NONNULLABLE_TYPES;
 
   @override
   bool get previewDart2 => true;
 
   @override
   bool get strongMode => true;
+
+  @override
+  bool get strongModeHints => false;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -1999,6 +2011,9 @@ class ContextForLink implements AnalysisContext {
   AnalysisOptionsForLink get analysisOptions => _linker.analysisOptions;
 
   @override
+  TypeProvider get typeProvider => _linker.typeProvider;
+
+  @override
   TypeSystem get typeSystem => _linker.typeSystem;
 
   @override
@@ -2197,6 +2212,12 @@ class ExprTypeComputer {
 
   final ResolverVisitor _resolverVisitor;
 
+  final TypeResolverVisitor _typeResolverVisitor;
+
+  final VariableResolverVisitor _variableResolverVisitor;
+
+  final PartialResolverVisitor _partialResolverVisitor;
+
   final Linker _linker;
 
   FunctionElementForLink_Local _functionElement;
@@ -2209,17 +2230,29 @@ class ExprTypeComputer {
     var unlinkedExecutable = functionElement.serializedExecutable;
     UnlinkedExpr unlinkedConst = unlinkedExecutable.bodyExpr;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
+    var source = unit.source;
     var astRewriteVisitor = new AstRewriteVisitor(
-        linker.typeSystem, library, unit.source, typeProvider, errorListener);
+        linker.typeSystem, library, source, typeProvider, errorListener);
     // TODO(paulberry): Do we need to pass a nameScope to
     // resolverVisitor to get type variables to resolve properly?
     var resolverVisitor = new ResolverVisitor(
-        library, unit.source, typeProvider, errorListener,
+        library, source, typeProvider, errorListener,
         propagateTypes: false, reportConstEvaluationErrors: false);
+    var typeResolverVisitor =
+        new TypeResolverVisitor(library, source, typeProvider, errorListener);
+    LibraryScope libraryScope = new LibraryScope(library);
+    var variableResolverVisitor = new VariableResolverVisitor(
+        library, source, typeProvider, errorListener,
+        nameScope: libraryScope);
+    var partialResolverVisitor = new PartialResolverVisitor(
+        library, source, typeProvider, errorListener);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
         astRewriteVisitor,
         resolverVisitor,
+        typeResolverVisitor,
+        variableResolverVisitor,
+        partialResolverVisitor,
         linker,
         errorListener,
         functionElement,
@@ -2231,6 +2264,9 @@ class ExprTypeComputer {
       UnitResynthesizer unitResynthesizer,
       this._astRewriteVisitor,
       this._resolverVisitor,
+      this._typeResolverVisitor,
+      this._variableResolverVisitor,
+      this._partialResolverVisitor,
       this._linker,
       AnalysisErrorListener _errorListener,
       this._functionElement,
@@ -2266,6 +2302,11 @@ class ExprTypeComputer {
         astFactory.expressionFunctionBody(null, null, expression, null);
     expression.accept(_astRewriteVisitor);
     expression = container.expression;
+    if (_linker.getAst != null) {
+      expression.accept(_typeResolverVisitor);
+      expression.accept(_variableResolverVisitor);
+      expression.accept(_partialResolverVisitor);
+    }
     expression.accept(_resolverVisitor);
     return expression.staticType;
   }

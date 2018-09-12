@@ -7912,6 +7912,17 @@ var v = f(g: (x, y) {});
         numTypeParameters: 1, numTypeArguments: 1);
   }
 
+  test_inferred_type_undefined() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('var v = <Undefined>[];');
+    var typeRef = getTypeRefForSlot(v.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'List',
+        numTypeArguments: 1, numTypeParameters: 1);
+    checkLinkedDynamicTypeRef(typeRef.typeArguments[0]);
+  }
+
   test_initializer_executable_with_bottom_return_type() {
     // The synthetic executable for `v` has type `() => Bottom`.
     UnlinkedVariable variable = serializeVariableText('int v = null;');
