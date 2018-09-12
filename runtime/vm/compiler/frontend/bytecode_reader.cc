@@ -141,6 +141,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   Array& array = Array::Handle(helper_->zone_);
   Field& field = Field::Handle(helper_->zone_);
   Class& cls = Class::Handle(helper_->zone_);
+  Library& lib = Library::Handle(helper_->zone_);
   String& name = String::Handle(helper_->zone_);
   TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
   Class* symbol_class = nullptr;
@@ -422,8 +423,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         closure.SetParameterNameAt(pos, Symbols::ClosureParameter());
         pos++;
 
-        const Library& lib =
-            Library::Handle(helper_->zone_, active_class_->klass->library());
+        lib = active_class_->klass->library();
         for (intptr_t j = 0; j < positional_parameter_count; ++j, ++pos) {
           VariableDeclarationHelper helper(helper_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
@@ -519,12 +519,12 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         break;
       case ConstantPoolTag::kSymbol: {
         const NameIndex lib_index = helper_->ReadCanonicalNameReference();
-        obj = Library::null();
+        lib = Library::null();
         if (!H.IsRoot(lib_index)) {
-          obj = H.LookupLibraryByKernelLibrary(lib_index);
+          lib = H.LookupLibraryByKernelLibrary(lib_index);
         }
-        const String& symbol = H.DartIdentifier(Library::Cast(obj),
-                                                helper_->ReadStringReference());
+        const String& symbol =
+            H.DartIdentifier(lib, helper_->ReadStringReference());
         if (symbol_class == nullptr) {
           elem = Library::InternalLibrary();
           ASSERT(!elem.IsNull());
