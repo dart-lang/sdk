@@ -403,13 +403,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     for (int i = 0; i < formalCount; i++) {
       var typeParamElement = originalFormals[i];
 
-      // We don't know in which context the fresh function type will be used.
-      // So, we can only compute De Bruijn index for type parameters.
-      int negativeDeBruijnIndex = -(formalCount - i);
-
-      var freshElement = new TypeParameterElementImpl.synthetic(
-          typeParamElement.name,
-          nestingLevel: negativeDeBruijnIndex);
+      var freshElement =
+          new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
       freshElement.type = freshTypeVar;
 

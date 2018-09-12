@@ -24,12 +24,6 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
-  test_constExpr_makeTypedList_functionType_withTypeParameters() {
-    super.test_constExpr_makeTypedList_functionType_withTypeParameters();
-  }
-
-  @override
-  @failingTest
   test_closure_executable_with_bottom_return_type() {
     super.test_closure_executable_with_bottom_return_type();
   }

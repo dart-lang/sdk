@@ -8509,16 +8509,6 @@ class TypeParameterElementImpl extends ElementImpl
   final UnlinkedTypeParam _unlinkedTypeParam;
 
   /**
-   * The number of type parameters whose scope overlaps this one, and which are
-   * declared earlier in the file.
-   *
-   * If the value is negative, then it represents negated De Bruijn index.
-   *
-   * TODO(scheglov) make private?
-   */
-  final int nestingLevel;
-
-  /**
    * The type defined by this type parameter.
    */
   TypeParameterType _type;
@@ -8535,7 +8525,6 @@ class TypeParameterElementImpl extends ElementImpl
    */
   TypeParameterElementImpl(String name, int offset)
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         super(name, offset);
 
   /**
@@ -8543,21 +8532,20 @@ class TypeParameterElementImpl extends ElementImpl
    */
   TypeParameterElementImpl.forNode(Identifier name)
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  TypeParameterElementImpl.forSerialized(this._unlinkedTypeParam,
-      TypeParameterizedElementMixin enclosingElement, this.nestingLevel)
+  TypeParameterElementImpl.forSerialized(
+      this._unlinkedTypeParam, TypeParameterizedElementMixin enclosingElement)
       : super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
-  TypeParameterElementImpl.synthetic(String name, {this.nestingLevel})
+  TypeParameterElementImpl.synthetic(String name)
       : _unlinkedTypeParam = null,
         super(name, -1) {
     isSynthetic = true;
@@ -8661,12 +8649,6 @@ class TypeParameterElementImpl extends ElementImpl
 abstract class TypeParameterizedElementMixin
     implements TypeParameterizedElement, ElementImpl {
   /**
-   * The cached number of type parameters that are in scope in this context, or
-   * `null` if the number has not yet been computed.
-   */
-  int _nestingLevel;
-
-  /**
    * A cached list containing the type parameters declared by this element
    * directly, or `null` if the elements have not been created yet. This does
    * not include type parameters that are declared by any enclosing elements.
@@ -8723,27 +8705,18 @@ abstract class TypeParameterizedElementMixin
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
-  /**
-   * Find out how many type parameters are in scope in this context.
-   */
-  int get typeParameterNestingLevel =>
-      _nestingLevel ??= (unlinkedTypeParams?.length ?? 0) +
-          (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
-
   @override
   List<TypeParameterElement> get typeParameters {
     if (_typeParameterElements == null) {
       List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
       if (unlinkedParams != null) {
-        int enclosingNestingLevel =
-            enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
         int numTypeParameters = unlinkedParams.length;
         _typeParameterElements =
             new List<TypeParameterElement>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {
           _typeParameterElements[i] =
               new TypeParameterElementImpl.forSerialized(
-                  unlinkedParams[i], this, enclosingNestingLevel + i);
+                  unlinkedParams[i], this);
         }
       }
     }
@@ -8786,16 +8759,22 @@ abstract class TypeParameterizedElementMixin
   }
 
   /**
-   * Find out if the given [typeParameter] is in scope in this context.
+   * Return the given [typeParameter]'s de Bruijn index in this context, or
+   * `null` if it's not in scope.
+   *
+   * If an [offset] is provided, then it is added to the computed index.
    */
-  bool isTypeParameterInScope(TypeParameterElement typeParameter) {
+  int computeDeBruijnIndex(TypeParameterElement typeParameter,
+      {int offset = 0}) {
     if (typeParameter.enclosingElement == this) {
-      return true;
+      var index = typeParameters.indexOf(typeParameter);
+      assert(index >= 0);
+      return typeParameters.length - index + offset;
     } else if (enclosingTypeParameterContext != null) {
-      return enclosingTypeParameterContext
-          .isTypeParameterInScope(typeParameter);
+      return enclosingTypeParameterContext.computeDeBruijnIndex(typeParameter,
+          offset: offset + typeParameters.length);
     } else {
-      return false;
+      return null;
     }
   }
 }

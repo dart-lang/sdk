@@ -171,15 +171,9 @@ EntityRefBuilder _createLinkedType(
     return result;
   } else if (type is TypeParameterType) {
     TypeParameterElementImpl element = type.element;
-    if (typeParameterContext != null &&
-        typeParameterContext.isTypeParameterInScope(element)) {
-      var nestingLevel = element.nestingLevel;
-      if (nestingLevel < 0) {
-        result.paramReference = -nestingLevel;
-      } else {
-        result.paramReference =
-            typeParameterContext.typeParameterNestingLevel - nestingLevel;
-      }
+    var deBruijnIndex = typeParameterContext?.computeDeBruijnIndex(element);
+    if (deBruijnIndex != null) {
+      result.paramReference = deBruijnIndex;
     } else {
       throw new StateError('The type parameter $type (in ${element?.location}) '
           'is out of scope on ${typeParameterContext?.location}.');
