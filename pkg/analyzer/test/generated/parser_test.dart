@@ -10566,6 +10566,12 @@ class B = Object with A {}''',
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_equalityExpression_superRHS() {
+    parseExpression("1 == super", errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 5, 5)
+    ]);
+  }
+
   void test_expressionList_multiple_end() {
     List<Expression> result = parseExpressionList(', 2, 3, 4');
     expectNotNullIfNoErrors(result);

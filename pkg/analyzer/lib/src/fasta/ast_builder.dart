@@ -478,6 +478,7 @@ class AstBuilder extends StackListener {
     } else {
       Expression right = pop();
       Expression left = pop();
+      reportErrorIfSuper(right);
       push(ast.binaryExpression(left, operatorToken, right));
     }
   }

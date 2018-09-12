@@ -55,7 +55,6 @@ Language/Enums/syntax_t09: CompileTimeError # Issue 33995
 Language/Errors_and_Warnings/static_warning_t01: CompileTimeError # issue #34319
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Equality/syntax_t02: MissingCompileTimeError # Issue 33995
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t05: CompileTimeError # Please triage this failure
 Language/Expressions/Function_Invocation/async_cleanup_t01: CompileTimeError # Issue 33995
 Language/Expressions/Function_Invocation/async_cleanup_t02: CompileTimeError # Issue 33995
