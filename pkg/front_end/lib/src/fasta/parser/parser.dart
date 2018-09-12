@@ -3856,10 +3856,18 @@ class Parser {
         next = token.next;
         mayParseFunctionExpressions = old;
         if (!optional(']', next)) {
-          Message message = fasta.templateExpectedButGot.withArguments(']');
-          Token newToken = new SyntheticToken(
-              TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          next = rewriteAndRecover(token, message, newToken).next;
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(']'));
+          // Scanner ensures a closing ']'
+          Token endGroup = openSquareBracket.endGroup;
+          if (endGroup.isSynthetic) {
+            // Scanner inserted closing ']' in the wrong place, so move it.
+            next = rewriter.moveSynthetic(token, endGroup);
+          } else {
+            // Skip over unexpected tokens to where the user placed the `]`.
+            next = endGroup;
+          }
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
