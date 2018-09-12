@@ -525,7 +525,6 @@
           "arguments": [
             "-ndartkb-linux-${mode}-x64",
             "--compiler=dartkb",
-            "vm",
             "language_2"
           ]
         }

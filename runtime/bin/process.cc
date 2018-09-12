@@ -164,10 +164,16 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     result =
         DartUtils::SetIntegerField(status_handle, "_errorCode", error_code);
     ThrowIfError(result);
-    result = DartUtils::SetStringField(status_handle, "_errorMessage",
-                                       os_error_message != NULL
-                                           ? os_error_message
-                                           : "Cannot get error message");
+    Dart_Handle val = DartUtils::NewString(os_error_message != NULL
+                                               ? os_error_message
+                                               : "Cannot get error message");
+    if (Dart_IsError(val)) {
+      // If conversion of the OS error message to a Dart string fails, fall back
+      // on a stock message.
+      val = DartUtils::NewString("OS error message was a not a utf8 string.");
+    }
+    result = Dart_SetField(status_handle, DartUtils::NewString("_errorMessage"),
+                           val);
     ThrowIfError(result);
   }
   Dart_SetBooleanReturnValue(args, error_code == 0);
