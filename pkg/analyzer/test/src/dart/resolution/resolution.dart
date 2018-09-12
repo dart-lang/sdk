@@ -273,6 +273,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     findNode = new FindNode(result.content, result.unit);
     findElement = new FindElement(result.unit);
   }
+
+  void setAnalysisOptions({bool enableSuperMixins});
 }
 
 class TestAnalysisResult {

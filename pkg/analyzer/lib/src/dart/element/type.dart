@@ -1757,6 +1757,69 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
   }
 
+  ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
+      {bool concrete: false, bool setter: false}) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+
+    ExecutableElement lookUpImpl(InterfaceTypeImpl type,
+        {bool acceptAbstract: false, bool includeType: true}) {
+      if (type == null || !visitedClasses.add(type.element)) {
+        return null;
+      }
+
+      if (includeType) {
+        ExecutableElement result;
+        if (setter) {
+          result = type.getSetter(name);
+        } else {
+          result = type.getMethod(name);
+          result ??= type.getGetter(name);
+        }
+        if (result != null && result.isAccessibleIn(library)) {
+          if (!concrete || acceptAbstract || !result.isAbstract) {
+            return result;
+          }
+          ClassElementImpl elementImpl = type.element;
+          if (elementImpl.hasNoSuchMethod) {
+            return result;
+          }
+        }
+      }
+
+      for (InterfaceType mixin in type.mixins.reversed) {
+        var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+        if (result != null) {
+          return result;
+        }
+      }
+
+      // We were not able to find the concrete dispatch target.
+      // It is OK to look into interfaces, we need just some resolution now.
+      if (!concrete) {
+        for (InterfaceType mixin in type.interfaces) {
+          var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+
+      return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+    }
+
+    if (element.isMixin) {
+      for (InterfaceType constraint in superclassConstraints) {
+        var result = lookUpImpl(constraint, acceptAbstract: true);
+        if (result != null) {
+          return result;
+        }
+      }
+      return null;
+    } else {
+      return lookUpImpl(this, includeType: false);
+    }
+  }
+
   @override
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType: true}) {

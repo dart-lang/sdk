@@ -95,8 +95,11 @@ class FindElement {
     fail('Not found top-level function: $name');
   }
 
-  PropertyAccessorElement getter(String name) {
+  PropertyAccessorElement getter(String name, {String className}) {
     for (var class_ in unitElement.types) {
+      if (className != null && class_.name != className) {
+        continue;
+      }
       for (var accessor in class_.accessors) {
         if (accessor.isGetter && accessor.displayName == name) {
           return accessor;
@@ -146,9 +149,12 @@ class FindElement {
     return result;
   }
 
-  MethodElement method(String name) {
-    for (var type in unitElement.types) {
-      for (var method in type.methods) {
+  MethodElement method(String name, {String className}) {
+    for (var class_ in unitElement.types) {
+      if (className != null && class_.name != className) {
+        continue;
+      }
+      for (var method in class_.methods) {
         if (method.name == name) {
           return method;
         }
@@ -210,10 +216,10 @@ class FindElement {
     fail('Prefix not found: $name');
   }
 
-  PropertyAccessorElement setter(String name, {String inClass}) {
+  PropertyAccessorElement setter(String name, {String className}) {
     PropertyAccessorElement result;
     for (var class_ in unitElement.types) {
-      if (inClass != null && class_.name != inClass) {
+      if (className != null && class_.name != className) {
         continue;
       }
       for (var accessor in class_.accessors) {

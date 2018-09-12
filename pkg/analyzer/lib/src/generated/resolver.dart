@@ -484,8 +484,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.methodName);
     _checkForNullAwareHints(node, node.operator);
     DartType staticInvokeType = node.staticInvokeType;
     Element callElement = staticInvokeType?.element;
@@ -510,8 +508,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
     _checkForNullAwareHints(node, node.operator);
     return super.visitPropertyAccess(node);
   }
@@ -603,36 +599,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  void _checkForAbstractSuperMemberReference(
-      Expression target, SimpleIdentifier name) {
-    if (_enclosingClass == null) {
-      return;
-    }
-    if (target is SuperExpression &&
-        !_currentLibrary.context.analysisOptions.enableSuperMixins) {
-      Element element = name.staticElement;
-      if (element is ExecutableElement && element.isAbstract) {
-        ExecutableElement concrete = null;
-        if (element.kind == ElementKind.METHOD) {
-          concrete = _enclosingClass.lookUpInheritedConcreteMethod(
-              element.displayName, _currentLibrary);
-        } else if (element.kind == ElementKind.GETTER) {
-          concrete = _enclosingClass.lookUpInheritedConcreteGetter(
-              element.displayName, _currentLibrary);
-        } else if (element.kind == ElementKind.SETTER) {
-          concrete = _enclosingClass.lookUpInheritedConcreteSetter(
-              element.displayName, _currentLibrary);
-        }
-        if (concrete == null) {
-          _errorReporter.reportTypeErrorForNode(
-              HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-              name,
-              [element.kind.displayName, name.name]);
-        }
-      }
-    }
   }
 
   /**

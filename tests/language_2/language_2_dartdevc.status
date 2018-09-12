@@ -6,7 +6,6 @@
 [ $compiler == dartdevc ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
 accessor_conflict_import2_test: CompileTimeError # Issue 25626

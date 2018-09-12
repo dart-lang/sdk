@@ -18,6 +18,239 @@ class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
 abstract class ClassResolutionMixin implements ResolutionTest {
+  test_abstractSuperMemberReference_getter() async {
+    addTestFile(r'''
+abstract class A {
+  get foo;
+}
+abstract class B extends A {
+  bar() {
+    super.foo; // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(findNode.simple('foo; // ref'), findElement.getter('foo'));
+  }
+
+  test_abstractSuperMemberReference_getter2() async {
+    addTestFile(r'''
+abstract class Foo {
+  String get foo;
+}
+
+abstract class Bar implements Foo {
+}
+
+class Baz extends Bar {
+  String get foo => super.foo; // ref
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(
+      findNode.simple('foo; // ref'),
+      findElement.getter('foo', className: 'Foo'),
+    );
+  }
+
+  test_abstractSuperMemberReference_method_invocation() async {
+    addTestFile(r'''
+abstract class A {
+  foo();
+}
+abstract class B extends A {
+  bar() {
+    super.foo(); // ref
+  }
+
+  foo() {} // does not matter
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(findNode.simple('foo(); // ref'), findElement.method('foo'));
+  }
+
+  test_abstractSuperMemberReference_method_reference() async {
+    addTestFile(r'''
+abstract class A {
+  foo();
+}
+abstract class B extends A {
+  bar() {
+    super.foo; // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
+  }
+
+  test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
+    addTestFile('''
+class A {
+}
+
+class M {
+  void foo() {}
+}
+
+class B = A with M;
+
+class C extends B {
+  void bar() {
+    super.foo(); // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', className: 'M'),
+    );
+  }
+
+  test_abstractSuperMemberReference_OK_noSuchMethod() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+class A {
+  void foo();
+  noSuchMethod(im) {}
+}
+
+abstract class B {
+  void foo();
+  noSuchMethod(im) {}
+}
+
+class C extends A with B {
+  void bar() {
+    super.foo(); // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', className: 'B'),
+    );
+  }
+
+  test_abstractSuperMemberReference_OK_superHasConcrete_mixinHasAbstract_method() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+abstract class B {
+  void foo();
+}
+
+class C extends A with B {
+  void bar() {
+    super.foo(); // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', className: 'A'),
+    );
+  }
+
+  test_abstractSuperMemberReference_OK_superSuperHasConcrete_getter() async {
+    addTestFile('''
+abstract class A {
+  int get foo => 0;
+}
+
+abstract class B extends A {
+  int get foo;
+}
+
+class C extends B {
+  int get bar => super.foo; // ref
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo; // ref'),
+      findElement.getter('foo', className: 'A'),
+    );
+  }
+
+  test_abstractSuperMemberReference_OK_superSuperHasConcrete_method() async {
+    addTestFile('''
+abstract class A {
+  void foo() {}
+}
+
+abstract class B extends A {
+  void foo();
+}
+
+class C extends B {
+  void bar() {
+    super.foo(); // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', className: 'A'),
+    );
+  }
+
+  test_abstractSuperMemberReference_OK_superSuperHasConcrete_setter() async {
+    addTestFile('''
+abstract class A {
+  void set foo(_) {}
+}
+
+abstract class B extends A {
+  void set foo(_);
+}
+
+class C extends B {
+  void bar() {
+    super.foo = 0;
+  }
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertElement(
+      findNode.simple('foo = 0;'),
+      findElement.setter('foo', className: 'A'),
+    );
+  }
+
+  test_abstractSuperMemberReference_setter() async {
+    addTestFile(r'''
+abstract class A {
+  set foo(_);
+}
+abstract class B extends A {
+  bar() {
+    super.foo = 0;
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(findNode.simple('foo = 0;'), findElement.setter('foo'));
+  }
+
   test_error_conflictingConstructorAndStaticField_field() async {
     addTestFile(r'''
 class C {

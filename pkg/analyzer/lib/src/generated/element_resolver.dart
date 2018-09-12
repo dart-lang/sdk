@@ -593,8 +593,31 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               _computeCorrespondingParameters(node.argumentList, staticType);
           return null;
         }
-        staticElement = _resolveInvokedElementWithTarget(
-            target, staticType, methodName, isConditional);
+
+        if (target is SuperExpression) {
+          if (staticType is InterfaceTypeImpl) {
+            staticElement = staticType.lookUpInheritedMember(
+                methodName.name, _definingLibrary,
+                concrete: true);
+            // We were not able to find the concrete dispatch target.
+            // But we would like to give the user at least some resolution.
+            // So, we retry without the "concrete" requirement.
+            if (staticElement == null) {
+              staticElement = staticType.lookUpInheritedMember(
+                  methodName.name, _definingLibrary,
+                  concrete: false);
+              if (staticElement != null) {
+                _resolver.errorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                    methodName,
+                    [staticElement.kind.displayName, methodName.name]);
+              }
+            }
+          }
+        } else {
+          staticElement = _resolveInvokedElementWithTarget(
+              target, staticType, methodName, isConditional);
+        }
       }
     }
 
@@ -2064,7 +2087,29 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       staticElement = _resolveElement(typeReference, propertyName);
     } else {
-      staticElement = _resolveProperty(target, staticType, propertyName);
+      if (target is SuperExpression) {
+        if (staticType is InterfaceTypeImpl) {
+          staticElement = staticType.lookUpInheritedMember(
+              propertyName.name, _definingLibrary,
+              setter: propertyName.inSetterContext(), concrete: true);
+          // We were not able to find the concrete dispatch target.
+          // But we would like to give the user at least some resolution.
+          // So, we retry without the "concrete" requirement.
+          if (staticElement == null) {
+            staticElement = staticType.lookUpInheritedMember(
+                propertyName.name, _definingLibrary,
+                setter: propertyName.inSetterContext(), concrete: false);
+            if (staticElement != null) {
+              _resolver.errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                  propertyName,
+                  [staticElement.kind.displayName, propertyName.name]);
+            }
+          }
+        }
+      } else {
+        staticElement = _resolveProperty(target, staticType, propertyName);
+      }
     }
     // May be part of annotation, record property element only if exists.
     // Error was already reported in validateAnnotationElement().

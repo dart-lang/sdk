@@ -169,6 +169,19 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
  */
 class CompileTimeErrorCode extends ErrorCode {
   /**
+   * Member lookups ignore abstract declarations, which means that there will
+   * be a compile-time error if the targeted member `m` is abstract, as well as
+   * when it does not exist at all.
+   *
+   * Parameters:
+   * 0: the display name for the kind of the found abstract member
+   * 1: the name of the member
+   */
+  static const CompileTimeErrorCode ABSTRACT_SUPER_MEMBER_REFERENCE =
+      const CompileTimeErrorCode('ABSTRACT_SUPER_MEMBER_REFERENCE',
+          "The {0} '{1}' is always abstract in the supertype.");
+
+  /**
    * Enum proposal: It is also a compile-time error to explicitly instantiate an
    * enum via 'new' or 'const' or to access its private fields.
    */

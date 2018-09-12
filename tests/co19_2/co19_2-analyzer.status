@@ -101,6 +101,7 @@ Language/Mixins/Mixin_Application/warning_t02: CompileTimeError # Issue 23878
 Language/Mixins/Mixin_Application/warning_t03: CompileTimeError # Issue 23878
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
+Language/Overview/Privacy/private_and_public_t11: CompileTimeError
 Language/Statements/Continue/async_loops_t01: CompileTimeError # Issue 33995
 Language/Statements/Continue/async_loops_t02: CompileTimeError # Issue 33995
 Language/Statements/Continue/async_loops_t03: CompileTimeError # Issue 33995
