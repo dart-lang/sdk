@@ -6556,7 +6556,7 @@ const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterConst = const MessageCode(
     "StaticAfterConst",
-    analyzerCode: "STATIC_AFTER_CONST",
+    index: 20,
     message:
         r"""The modifier 'static' should be before the modifier 'const'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -6567,7 +6567,7 @@ const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterFinal = const MessageCode(
     "StaticAfterFinal",
-    analyzerCode: "STATIC_AFTER_FINAL",
+    index: 19,
     message:
         r"""The modifier 'static' should be before the modifier 'final'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -6577,7 +6577,7 @@ const Code<Null> codeStaticAfterVar = messageStaticAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
-    analyzerCode: "STATIC_AFTER_VAR",
+    index: 18,
     message: r"""The modifier 'static' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
 
@@ -6596,7 +6596,7 @@ const Code<Null> codeStaticOperator = messageStaticOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
-    analyzerCode: "STATIC_OPERATOR",
+    index: 17,
     message: r"""Operators can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
 
@@ -6860,7 +6860,7 @@ const Code<Null> codeSwitchHasCaseAfterDefault =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
     "SwitchHasCaseAfterDefault",
-    analyzerCode: "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE",
+    index: 16,
     message:
         r"""The default case should be the last case in a switch statement.""",
     tip: r"""Try moving the default case after the other case clauses.""");
@@ -6872,7 +6872,7 @@ const Code<Null> codeSwitchHasMultipleDefaults =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
     "SwitchHasMultipleDefaults",
-    analyzerCode: "SWITCH_HAS_MULTIPLE_DEFAULT_CASES",
+    index: 15,
     message: r"""The 'default' case can only be declared once.""",
     tip: r"""Try removing all but one default case.""");
 
@@ -6998,7 +6998,7 @@ const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTopLevelOperator = const MessageCode(
     "TopLevelOperator",
-    analyzerCode: "TOP_LEVEL_OPERATOR",
+    index: 14,
     message: r"""Operators must be declared within a class.""",
     tip:
         r"""Try removing the operator, moving it to a class, or converting it to be a function.""");
@@ -7045,8 +7045,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
         "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
-        analyzerCode: "TYPE_ARGUMENTS_ON_TYPE_VARIABLE",
-        severity: Severity.errorLegacyWarning);
+        index: 13, severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
@@ -7451,7 +7450,7 @@ const Code<Null> codeVarReturnType = messageVarReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
-    analyzerCode: "VAR_RETURN_TYPE",
+    index: 12,
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
@@ -7501,7 +7500,7 @@ const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWithBeforeExtends = const MessageCode(
     "WithBeforeExtends",
-    analyzerCode: "WITH_BEFORE_EXTENDS",
+    index: 11,
     message: r"""The extends clause must be before the with clause.""",
     tip: r"""Try moving the extends clause before the with clause.""");
 

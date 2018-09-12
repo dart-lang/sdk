@@ -261,9 +261,10 @@ MultipleWith:
   script: "class A extends B with C, D with E {}"
 
 WithBeforeExtends:
+  index: 11
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."
-  analyzerCode: WITH_BEFORE_EXTENDS
+  analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
   script: "class A with B extends C {}"
 
 ImplementsBeforeExtends:
@@ -444,9 +445,10 @@ CovariantMember:
     - "covariant int m() => 0;"
 
 VarReturnType:
+  index: 12
   template: "The return type can't be 'var'."
   tip: "Try removing the keyword 'var', or replacing it with the name of the return type."
-  analyzerCode: VAR_RETURN_TYPE
+  analyzerCode: ParserErrorCode.VAR_RETURN_TYPE
   script:
     - "class C { var m() {} }"
     - "class C { var C() {} }"
@@ -696,23 +698,26 @@ FinalAndVar:
     - "class C { var final x = 5; }"
 
 StaticAfterConst:
+  index: 20
   template: "The modifier 'static' should be before the modifier 'const'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_CONST
+  analyzerCode: ParserErrorCode.STATIC_AFTER_CONST
   script:
     - "class C { const static int f; }"
 
 StaticAfterFinal:
+  index: 19
   template: "The modifier 'static' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_FINAL
+  analyzerCode: ParserErrorCode.STATIC_AFTER_FINAL
   script:
     - "class C { final static int f = 5; }"
 
 StaticAfterVar:
+  index: 18
   template: "The modifier 'static' should be before the modifier 'var'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_VAR
+  analyzerCode: ParserErrorCode.STATIC_AFTER_VAR
   script:
     - "class C { var static f; }"
 
@@ -726,9 +731,10 @@ StaticConstructor:
     - "class C { static C.m() {} }"
 
 StaticOperator:
+  index: 17
   template: "Operators can't be static."
   tip: "Try removing the keyword 'static'."
-  analyzerCode: STATIC_OPERATOR
+  analyzerCode: ParserErrorCode.STATIC_OPERATOR
   script:
     - "class C { static operator +(int x) => x + 1; }"
 
@@ -1951,9 +1957,10 @@ RedirectionInNonFactory:
     - "class C { C() = D; }"
 
 TopLevelOperator:
+  index: 14
   template: "Operators must be declared within a class."
   tip: "Try removing the operator, moving it to a class, or converting it to be a function."
-  analyzerCode: TOP_LEVEL_OPERATOR
+  analyzerCode: ParserErrorCode.TOP_LEVEL_OPERATOR
   script:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"
@@ -2007,10 +2014,11 @@ DeferredPrefixDuplicatedCause:
   severity: CONTEXT
 
 TypeArgumentsOnTypeVariable:
+  index: 13
   template: "Can't use type arguments with type variable '#name'."
   tip: "Try removing the type arguments."
   severity: ERROR_LEGACY_WARNING
-  analyzerCode: TYPE_ARGUMENTS_ON_TYPE_VARIABLE
+  analyzerCode: ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE
   script:
     - "dynamic<T>(x) => 0"
 
@@ -2166,16 +2174,18 @@ SwitchExpressionNotAssignableCause:
   severity: CONTEXT
 
 SwitchHasCaseAfterDefault:
+  index: 16
   template: "The default case should be the last case in a switch statement."
   tip: "Try moving the default case after the other case clauses."
-  analyzerCode: SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
+  analyzerCode: ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
 
 SwitchHasMultipleDefaults:
+  index: 15
   template: "The 'default' case can only be declared once."
   tip: "Try removing all but one default case."
-  analyzerCode: SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+  analyzerCode: ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
 

@@ -18,6 +18,16 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _COVARIANT_AFTER_VAR,
   _INVALID_AWAIT_IN_FOR,
   _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+  _WITH_BEFORE_EXTENDS,
+  _VAR_RETURN_TYPE,
+  _TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
+  _TOP_LEVEL_OPERATOR,
+  _SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+  _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
+  _STATIC_OPERATOR,
+  _STATIC_AFTER_VAR,
+  _STATIC_AFTER_FINAL,
+  _STATIC_AFTER_CONST,
 ];
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
@@ -59,10 +69,59 @@ const ParserErrorCode _PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correction: "Try moving the prefix before the combinators.");
 
+const ParserErrorCode _STATIC_AFTER_CONST = const ParserErrorCode(
+    'STATIC_AFTER_CONST',
+    "The modifier 'static' should be before the modifier 'const'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _STATIC_AFTER_FINAL = const ParserErrorCode(
+    'STATIC_AFTER_FINAL',
+    "The modifier 'static' should be before the modifier 'final'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _STATIC_AFTER_VAR = const ParserErrorCode(
+    'STATIC_AFTER_VAR',
+    "The modifier 'static' should be before the modifier 'var'.",
+    correction: "Try re-ordering the modifiers.");
+
 const ParserErrorCode _STATIC_CONSTRUCTOR = const ParserErrorCode(
     'STATIC_CONSTRUCTOR', "Constructors can't be static.",
     correction: "Try removing the keyword 'static'.");
 
+const ParserErrorCode _STATIC_OPERATOR = const ParserErrorCode(
+    'STATIC_OPERATOR', "Operators can't be static.",
+    correction: "Try removing the keyword 'static'.");
+
+const ParserErrorCode _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE =
+    const ParserErrorCode('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
+        "The default case should be the last case in a switch statement.",
+        correction:
+            "Try moving the default case after the other case clauses.");
+
+const ParserErrorCode _SWITCH_HAS_MULTIPLE_DEFAULT_CASES =
+    const ParserErrorCode('SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
+        "The 'default' case can only be declared once.",
+        correction: "Try removing all but one default case.");
+
+const ParserErrorCode _TOP_LEVEL_OPERATOR = const ParserErrorCode(
+    'TOP_LEVEL_OPERATOR', "Operators must be declared within a class.",
+    correction:
+        "Try removing the operator, moving it to a class, or converting it to be a function.");
+
 const ParserErrorCode _TYPEDEF_IN_CLASS = const ParserErrorCode(
     'TYPEDEF_IN_CLASS', "Typedefs can't be declared inside classes.",
     correction: "Try moving the typedef to the top-level.");
+
+const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
+    'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
+    "Can't use type arguments with type variable '#name'.",
+    correction: "Try removing the type arguments.");
+
+const ParserErrorCode _VAR_RETURN_TYPE = const ParserErrorCode(
+    'VAR_RETURN_TYPE', "The return type can't be 'var'.",
+    correction:
+        "Try removing the keyword 'var', or replacing it with the name of the return type.");
+
+const ParserErrorCode _WITH_BEFORE_EXTENDS = const ParserErrorCode(
+    'WITH_BEFORE_EXTENDS', "The extends clause must be before the with clause.",
+    correction: "Try moving the extends clause before the with clause.");

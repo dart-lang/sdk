@@ -545,46 +545,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STACK_OVERFLOW, offset, length);
         return;
-      case "STATIC_AFTER_CONST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_CONST, offset, length);
-        return;
-      case "STATIC_AFTER_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
-        return;
-      case "STATIC_AFTER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_VAR, offset, length);
-        return;
-      case "STATIC_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_OPERATOR, offset, length);
-        return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, offset, length);
-        return;
-      case "SWITCH_HAS_MULTIPLE_DEFAULT_CASES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, offset, length);
-        return;
-      case "TOP_LEVEL_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
-        return;
-      case "TYPE_ARGUMENTS_ON_TYPE_VARIABLE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
-            offset,
-            length,
-            [arguments['name']]);
         return;
       case "TYPE_PARAMETER_ON_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
@@ -625,14 +590,6 @@ class FastaErrorReporter {
       case "VAR_AND_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.VAR_AND_TYPE, offset, length);
-        return;
-      case "VAR_RETURN_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_RETURN_TYPE, offset, length);
-        return;
-      case "WITH_BEFORE_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WITH_BEFORE_EXTENDS, offset, length);
         return;
       case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
         errorReporter?.reportErrorForOffset(
