@@ -1784,7 +1784,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleClassWithClause(Token withKeyword) {
-    assert(optionalOrNull('with', withKeyword));
+    assert(optional('with', withKeyword));
     List<TypeName> mixinTypes = pop();
     push(ast.withClause(withKeyword, mixinTypes));
   }

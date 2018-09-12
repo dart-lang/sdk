@@ -51,6 +51,7 @@ Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeErro
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError # Issue 30273
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError # Issue 30273
 Language/Classes/method_definition_t06: MissingCompileTimeError # Legal
+Language/Classes/mixins_t02: MissingCompileTimeError # co19 issue 163
 Language/Enums/syntax_t08: CompileTimeError
 Language/Enums/syntax_t09: CompileTimeError
 Language/Expressions/Assignable_Expressions/syntax_t01: CompileTimeError

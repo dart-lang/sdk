@@ -4,6 +4,7 @@
 
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError
+Language/Classes/mixins_t02: MissingCompileTimeError # co19 issue 163
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
 Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError
 Language/Expressions/Booleans/Boolean_Conversion/definition_t01: RuntimeError

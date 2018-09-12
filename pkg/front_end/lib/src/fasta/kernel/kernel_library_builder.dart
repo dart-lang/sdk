@@ -335,7 +335,7 @@ class KernelLibraryBuilder
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      KernelTypeBuilder supertype = type.supertype;
+      KernelTypeBuilder supertype = type.supertype ?? loader.target.objectType;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it

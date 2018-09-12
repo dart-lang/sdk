@@ -265,7 +265,7 @@ WithBeforeExtends:
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."
   analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
-  script: "class A with B extends C {}"
+  script: "class B {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   template: "The extends clause must be before the implements clause."

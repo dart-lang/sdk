@@ -227,6 +227,7 @@ Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/method_definition_t03: CompileTimeError
 Language/Classes/method_definition_t04: CompileTimeError
 Language/Classes/method_definition_t05: CompileTimeError
+Language/Classes/mixins_t02: MissingCompileTimeError # co19 issue 163
 Language/Classes/same_name_instance_and_static_members_t02: Pass
 Language/Classes/same_name_instance_and_static_members_t04: Pass
 Language/Enums/declaration_equivalent_t03: CompileTimeError

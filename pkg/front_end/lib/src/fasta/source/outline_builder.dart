@@ -1401,15 +1401,8 @@ class OutlineBuilder extends StackListener {
     int extendsOffset = pop();
     TypeBuilder supertype = pop();
 
-    if (supertype != null) {
-      push(library.addMixinApplication(
-          supertype, mixins, withKeyword.charOffset));
-    } else {
-      // TODO(danrubel): What is the appropriate supertype for the mixin
-      // in the declaration `class C with M { }` ?
-      //push(library.addMixinApplication(null, mixins, withKeyword.charOffset));
-      push(NullValue.Type);
-    }
+    push(
+        library.addMixinApplication(supertype, mixins, withKeyword.charOffset));
     push(extendsOffset);
   }
 
