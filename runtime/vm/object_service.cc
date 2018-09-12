@@ -454,11 +454,11 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   // Print the line number table
-  if (!source.IsNull()) {
+  const GrowableObjectArray& lineNumberArray =
+      GrowableObjectArray::Handle(GenerateLineNumberArray());
+  if (!lineNumberArray.IsNull()) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
-    const GrowableObjectArray& lineNumberArray =
-        GrowableObjectArray::Handle(GenerateLineNumberArray());
     Object& value = Object::Handle();
     intptr_t pos = 0;
 
