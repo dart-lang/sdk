@@ -665,7 +665,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   // If we are inside the tearoff wrapper function (implicit closure), we need
   // to extract the receiver from the context. We just replace it directly on
   // the stack to simplify the rest of the code.
-  if (is_implicit_closure_function) {
+  if (is_implicit_closure_function && !function.is_static()) {
     if (parsed_function()->has_arg_desc_var()) {
       body += B->LoadArgDescriptor();
       body += LoadField(ArgumentsDescriptor::count_offset());
