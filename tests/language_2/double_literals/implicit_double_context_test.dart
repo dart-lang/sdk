@@ -540,6 +540,29 @@ main() {
   Expect.identical(18446744073709552000.0, sub.method(18446744073709552000));
   Expect.identical(2.0, sub.method(0x02));
   Expect.identical(-2.0, sub.method(-0x02));
+
+  {
+    // Check that the correct value is used as receiver for the cascade.
+    var collector = StringBuffer();
+    double tricky = -42
+      ..toString().codeUnits.forEach(collector.addCharCode);
+    Expect.equals("${-42.0}", collector.toString());
+  }
+
+  bool isDigit(int charCode) => (charCode ^ 0x30) <= 9;
+  // Throws because double context does not affect "4", so the toString does
+  // not contain any non-digit (like ".", which it would if 4 was a double).
+  // The context type of "4.toString..." is not double, and the `-`
+  // is not having a literal as operand.
+  Expect.throws(() {
+    double tricky =
+        -4.toString().codeUnits.firstWhere((c) => !isDigit(c)).toDouble();
+  });
+  // The `?.` operation has the same precedence as `.`.
+  Expect.throws(() {
+    double tricky =
+        -4?.toString().codeUnits.firstWhere((c) => !isDigit(c)).toDouble();
+  });
 }
 
 void test(double expect, double value) {
