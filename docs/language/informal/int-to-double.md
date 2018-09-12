@@ -2,7 +2,7 @@
 
 **Author**: eernst@.
 
-**Version**: 0.4 (2018-08-14).
+**Version**: 0.5 (2018-09-12).
 
 **Status**: Background material, in language specification as of
 [d14b256](https://github.com/dart-lang/sdk/commit/d14b256e351464db352f361f1206e1415db65d9c).
@@ -91,12 +91,12 @@ make the represented number a whole number, which means that we will need
 to add a specific, finite number of zeros.*
 
 *Consequently,
-`double d = 18446744073709551614;`
+`double d = 18446744073709551616;`
 has no error and it will initialize `d` to have the double value
 represented as 0x43F0000000000000. But
-`int i = 18446744073709551614;`
-is a compile-time error because 18446744073709551614 is too large to be
-represented as a 64 bit 2's complement number, and
+`int i = 18446744073709551616;`
+is a compile-time error because 18446744073709551616 is too large to be
+represented as a 64-bit 2's complement number, and
 `double d = 18446744073709551615;`
 is a compile-time error because it cannot be represented exactly using the
 IEEE 754 double-precision format.*
@@ -171,6 +171,7 @@ expressed using a double valued integer literal.
 
 
 ## Updates
+*   Version 0.5 (2018-09-12), Fix typo
 
 *   Version 0.4 (2018-08-14), adjusted rules to allow more expected types,
     such as `FutureOr<double>`, for double valued integer literals.
