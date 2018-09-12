@@ -67,6 +67,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -2223,6 +2224,8 @@ class ExprTypeComputer {
   FunctionElementForLink_Local _functionElement;
 
   factory ExprTypeComputer(FunctionElementForLink_Local functionElement) {
+    ClassElement enclosingClass =
+        functionElement.getAncestor((e) => e is ClassElement);
     CompilationUnitElementForLink unit = functionElement.compilationUnit;
     LibraryElementForLink library = unit.enclosingElement;
     Linker linker = library._linker;
@@ -2233,19 +2236,25 @@ class ExprTypeComputer {
     var source = unit.source;
     var astRewriteVisitor = new AstRewriteVisitor(
         linker.typeSystem, library, source, typeProvider, errorListener);
-    // TODO(paulberry): Do we need to pass a nameScope to
-    // resolverVisitor to get type variables to resolve properly?
+    EnclosedScope nameScope = new LibraryScope(library);
+    if (enclosingClass != null) {
+      nameScope = new ClassScope(
+          new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
+    }
     var resolverVisitor = new ResolverVisitor(
         library, source, typeProvider, errorListener,
-        propagateTypes: false, reportConstEvaluationErrors: false);
-    var typeResolverVisitor =
-        new TypeResolverVisitor(library, source, typeProvider, errorListener);
-    LibraryScope libraryScope = new LibraryScope(library);
+        nameScope: nameScope,
+        propagateTypes: false,
+        reportConstEvaluationErrors: false);
+    var typeResolverVisitor = new TypeResolverVisitor(
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope);
     var variableResolverVisitor = new VariableResolverVisitor(
         library, source, typeProvider, errorListener,
-        nameScope: libraryScope);
+        nameScope: nameScope);
     var partialResolverVisitor = new PartialResolverVisitor(
-        library, source, typeProvider, errorListener);
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
         astRewriteVisitor,
@@ -2637,6 +2646,11 @@ class FunctionElementForLink_Initializer extends Object
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
 
   @override
+  E getAncestor<E extends Element>(Predicate<Element> predicate) {
+    return ElementImpl.getAncestorStatic(enclosingElement, predicate);
+  }
+
+  @override
   FunctionElementForLink_Local getLocalFunction(int index) {
     List<FunctionElementForLink_Local_NonSynthetic> functions = this.functions;
     return index < functions.length ? functions[index] : null;
@@ -2775,6 +2789,11 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     assert(implicitFunctionTypeIndices.isEmpty);
     return type;
+  }
+
+  @override
+  E getAncestor<E extends Element>(Predicate<Element> predicate) {
+    return ElementImpl.getAncestorStatic(enclosingElement, predicate);
   }
 
   @override

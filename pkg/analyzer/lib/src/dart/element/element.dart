@@ -3272,11 +3272,7 @@ abstract class ElementImpl implements Element {
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    Element ancestor = _enclosingElement;
-    while (ancestor != null && !predicate(ancestor)) {
-      ancestor = ancestor.enclosingElement;
-    }
-    return ancestor as E;
+    return getAncestorStatic<E>(_enclosingElement, predicate);
   }
 
   /**
@@ -3420,6 +3416,15 @@ abstract class ElementImpl implements Element {
       }
     }
     throw new StateError('Unable to find $item in $items');
+  }
+
+  static E getAncestorStatic<E extends Element>(
+      Element startingPoint, Predicate<Element> predicate) {
+    Element ancestor = startingPoint;
+    while (ancestor != null && !predicate(ancestor)) {
+      ancestor = ancestor.enclosingElement;
+    }
+    return ancestor as E;
   }
 }
 

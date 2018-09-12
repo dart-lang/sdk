@@ -48,12 +48,6 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
-  test_field_final_typeParameter() {
-    super.test_field_final_typeParameter();
-  }
-
-  @override
-  @failingTest
   test_field_inferred_type_nonstatic_implicit_initialized() {
     super.test_field_inferred_type_nonstatic_implicit_initialized();
   }
