@@ -108,6 +108,8 @@ class Compiler : public AllStatic {
   static RawError* ParseFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
+  // Bytecode is considered unoptimized code.
+  // TODO(regis): Revisit when deoptimizing mixed bytecode and jitted code.
   static RawError* EnsureUnoptimizedCode(Thread* thread,
                                          const Function& function);
 

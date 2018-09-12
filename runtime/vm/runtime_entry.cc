@@ -1980,9 +1980,13 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      // Ensure that we have unoptimized code.
-      frame->function().EnsureHasCompiledUnoptimizedCode();
-      const int num_vars = frame->NumLocalVariables();
+      if (!frame->is_interpreted()) {
+        // Ensure that we have unoptimized code.
+        frame->function().EnsureHasCompiledUnoptimizedCode();
+      }
+      // TODO(regis): Provide var descriptors in kernel bytecode.
+      const int num_vars =
+          frame->is_interpreted() ? 0 : frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;

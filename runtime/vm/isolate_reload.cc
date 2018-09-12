@@ -896,7 +896,9 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     if (frame->IsDartFrame()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      func.EnsureHasCompiledUnoptimizedCode();
+      if (!frame->is_interpreted()) {
+        func.EnsureHasCompiledUnoptimizedCode();
+      }
     }
   }
 }

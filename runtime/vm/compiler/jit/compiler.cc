@@ -1253,6 +1253,10 @@ RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
+  if (FLAG_enable_interpreter && function.HasBytecode()) {
+    // TODO(regis): This may not be sufficient when deoptimizing. Revisit then.
+    return Error::null();
+  }
   if (function.unoptimized_code() != Object::null()) {
     return Error::null();
   }
@@ -1267,6 +1271,9 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                             kNoOSRDeoptId));
   if (result.IsError()) {
     return Error::Cast(result).raw();
+  }
+  if (FLAG_enable_interpreter && function.HasBytecode()) {
+    return Error::null();
   }
   // Since CompileFunctionHelper replaces the current code, re-attach the
   // the original code if the function was already compiled.
@@ -1339,6 +1346,12 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   const Function& function = Function::Handle(code.function());
+  if (FLAG_enable_interpreter && function.Bytecode() == code.raw()) {
+    // TODO(regis): Kernel bytecode does not yet provide var descriptors.
+    ASSERT(code.var_descriptors() == Object::null());
+    code.set_var_descriptors(Object::empty_var_descriptors());
+    return;
+  }
   ParsedFunction* parsed_function = new ParsedFunction(
       Thread::Current(), Function::ZoneHandle(function.raw()));
   ASSERT(code.var_descriptors() == Object::null());

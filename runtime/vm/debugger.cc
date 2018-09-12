@@ -258,18 +258,16 @@ ActivationFrame::ActivationFrame(uword pc,
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kind),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      is_interpreted_(FLAG_enable_interpreter &&
+                      function_.Bytecode() == code_.raw()),
+#else
+      is_interpreted_(false),
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(regis): If debugging of interpreted code is required, recognize an
-  // interpreted activation frame and respect alternate frame layout.
-  // For now, punt.
-  if (FLAG_enable_interpreter && function_.Bytecode() == code_.raw()) {
-    UNIMPLEMENTED();
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ActivationFrame::ActivationFrame(Kind kind)
@@ -289,6 +287,7 @@ ActivationFrame::ActivationFrame(Kind kind)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kind),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -311,14 +310,27 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kAsyncActivation),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!FLAG_enable_interpreter || !function_.HasBytecode()) {
+    function_.EnsureHasCompiledUnoptimizedCode();
+  }
+  if (FLAG_enable_interpreter && function_.HasBytecode()) {
+    is_interpreted_ = true;
+    code_ = function_.Bytecode();
+  } else {
+    code_ = function_.unoptimized_code();
+  }
+#else
   function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
   ASSERT(!ctx_.IsNull());
@@ -652,6 +664,11 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
+    if (is_interpreted()) {
+      // TODO(regis): Kernel bytecode does not yet provide var descriptors.
+      var_descriptors_ = Object::empty_var_descriptors().raw();
+      return;
+    }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
       Thread* thread = Thread::Current();
