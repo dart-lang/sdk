@@ -10,7 +10,7 @@ environment:
   sdk: '>=2.0.0-dev <3.0.0'
 
 dependencies:
-  analyzer: ^0.32.5
+  analyzer: ^0.33.0-alpha.0
   args: '>=1.4.0 <2.0.0'
   glob: ^1.0.3
   meta: ^1.0.2
