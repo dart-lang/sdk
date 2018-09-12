@@ -96,6 +96,7 @@ import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
 import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/prefer_iterable_whereType.dart';
+import 'package:linter/src/rules/prefer_mixin.dart';
 import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
@@ -225,10 +226,11 @@ void registerLintRules() {
     ..register(new PreferIterableWhereType())
     ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
-    ..register(new PublicMemberApiDocs())
+    ..register(new PreferMixin())
     ..register(new PreferSingleQuotes())
     ..register(new PreferTypingUninitializedVariables())
     ..register(new PreferVoidToNull())
+    ..register(new PublicMemberApiDocs())
     ..register(new PubPackageNames())
     ..register(new RecursiveGetters())
     ..registerDefault(new SlashForDocComments())
