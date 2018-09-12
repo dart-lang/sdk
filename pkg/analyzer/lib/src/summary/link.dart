@@ -160,7 +160,7 @@ EntityRefBuilder _createLinkedType(
     _storeTypeArguments(
         type.typeArguments, result, compilationUnit, typeParameterContext);
     return result;
-  } else if (type is DynamicTypeImpl) {
+  } else if (type.isDynamic) {
     result.reference = compilationUnit.addRawReference('dynamic');
     return result;
   } else if (type is VoidTypeImpl) {
@@ -4907,12 +4907,14 @@ abstract class VariableElementForLink
 
   VariableElementForLink(this.unlinkedVariable, this.compilationUnit,
       this._initializerForInference) {
-    if (compilationUnit.isInBuildUnit &&
-        unlinkedVariable.initializer?.bodyExpr != null) {
+    if (!compilationUnit.isInBuildUnit) return;
+    if (unlinkedVariable.initializer?.bodyExpr == null) {
+      if (_initializerForInference == null) return;
+    } else {
       _constNode = new ConstVariableNode(this);
-      if (unlinkedVariable.type == null) {
-        _typeInferenceNode = initializer.asTypeInferenceNode;
-      }
+    }
+    if (unlinkedVariable.type == null) {
+      _typeInferenceNode = initializer.asTypeInferenceNode;
     }
   }
 
