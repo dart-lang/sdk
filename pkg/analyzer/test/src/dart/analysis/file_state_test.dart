@@ -351,6 +351,7 @@ class A2 {}
     expect(_excludeSdk(file.importedFiles), isEmpty);
     expect(file.exportedFiles, isEmpty);
     expect(file.partedFiles, isEmpty);
+    expect(file.libraryFiles, [file]);
     expect(_excludeSdk(file.directReferencedFiles), isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
@@ -468,6 +469,8 @@ class A1 {}
     expect(file.partedFiles, hasLength(1));
     expect(file.partedFiles[0].path, a4);
     expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
+
+    expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
 

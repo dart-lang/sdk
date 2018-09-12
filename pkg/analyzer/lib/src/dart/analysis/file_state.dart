@@ -133,6 +133,7 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<FileState> _libraryFiles;
   List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles = new Set<FileState>();
@@ -244,6 +245,12 @@ class FileState {
       return libraries.first;
     }
   }
+
+  /**
+   * The list of files files that this library consists of, i.e. this library
+   * file itself and its [partedFiles].
+   */
+  List<FileState> get libraryFiles => _libraryFiles;
 
   /**
    * Return information about line in the file.
@@ -505,6 +512,7 @@ class FileState {
           .putIfAbsent(file, () => <FileState>[])
           .add(this);
     }
+    _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
     Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
@@ -583,9 +591,8 @@ class FileState {
     _exportDeclarationsId = 0;
 
     // Append the library declarations.
-    declarations.addAll(topLevelDeclarations);
-    for (FileState part in partedFiles) {
-      declarations.addAll(part.topLevelDeclarations);
+    for (FileState file in libraryFiles) {
+      declarations.addAll(file.topLevelDeclarations);
     }
 
     // Record the declarations only if it is the full result.
@@ -921,18 +928,6 @@ class FileSystemState {
     _partToLibraries.clear();
   }
 
-  void _addFileWithPath(String path, FileState file) {
-    var files = _pathToFiles[path];
-    if (files == null) {
-      knownFilePaths.add(path);
-      knownFiles.add(file);
-      files = <FileState>[];
-      _pathToFiles[path] = files;
-      fileStamp++;
-    }
-    files.add(file);
-  }
-
   /**
    * A specialized version of package:path context.toUri(). This assumes the
    * path is absolute as does a performant conversion to a file: uri.
@@ -943,6 +938,18 @@ class FileSystemState {
     } else {
       return new Uri(scheme: 'file', path: path);
     }
+  }
+
+  void _addFileWithPath(String path, FileState file) {
+    var files = _pathToFiles[path];
+    if (files == null) {
+      knownFilePaths.add(path);
+      knownFiles.add(file);
+      files = <FileState>[];
+      _pathToFiles[path] = files;
+      fileStamp++;
+    }
+    files.add(file);
   }
 }
 

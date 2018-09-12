@@ -509,8 +509,7 @@ class Search {
       String libraryPath = element.library.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         FileState library = _driver.fsState.getFileForPath(libraryPath);
-        List<FileState> candidates = [library]..addAll(library.partedFiles);
-        for (FileState file in candidates) {
+        for (FileState file in library.libraryFiles) {
           if (file.path == path || file.referencedNames.contains(name)) {
             files.add(file.path);
           }

@@ -2458,10 +2458,12 @@ class _TopLevelNameDeclarationsTask {
       FileState file = driver._fsState.getFileForPath(path);
       if (!file.isPart) {
         bool isExported = false;
-        TopLevelDeclaration declaration = file.topLevelDeclarations[name];
-        for (FileState part in file.partedFiles) {
+
+        TopLevelDeclaration declaration;
+        for (FileState part in file.libraryFiles) {
           declaration ??= part.topLevelDeclarations[name];
         }
+
         if (declaration == null) {
           declaration = file.exportedTopLevelDeclarations[name];
           isExported = true;

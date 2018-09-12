@@ -78,11 +78,8 @@ class LibraryContext {
 
           libraries[library.uriStr] = library;
 
-          // Append the defining unit.
-          store.addUnlinkedUnit(library.uriStr, library.unlinked);
-
-          // Append parts.
-          for (FileState part in library.partedFiles) {
+          // Append library units.
+          for (FileState part in library.libraryFiles) {
             store.addUnlinkedUnit(part.uriStr, part.unlinked);
           }
 
