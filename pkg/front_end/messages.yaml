@@ -1920,7 +1920,13 @@ PartOfTwice:
   tip: "Try removing all but one of the part-of directives."
   analyzerCode: MULTIPLE_PART_OF_DIRECTIVES
   script:
-    - "part of l; part of m;"
+    main.dart: |
+      part "part.dart";
+      main() {}
+    other.dart: ""
+    part.dart: |
+      part of "other.dart";
+      part of "main.dart";
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
@@ -1999,8 +2005,60 @@ PartOfInLibrary:
   tip: "Try removing the 'part of' declaration, or using '#uri' as a part."
   analyzerCode: IMPORT_OF_NON_LIBRARY
   script:
-    part.dart: "part of mainlib;"
-    main.dart: "library mainlib; import 'part.dart';"
+    main.dart: |
+      import "part.dart";
+      import "lib.dart";
+      main() {}
+
+    part.dart: |
+      part of "lib.dart";
+
+    lib.dart: |
+      part "part.dart";
+
+PartInPart:
+  template: "A file that's a part of a library can't have parts itself."
+  tip: "Try moving the 'part' declaration to the containing library."
+  analyzerCode: NON_PART_OF_DIRECTIVE_IN_PART
+  script:
+    main.dart: |
+      part "part.dart";
+      main() {}
+
+    part.dart: |
+      part of "main.dart";
+      part "part_part.dart";
+
+    part_part.dart: |
+      part of "part.dart";
+
+PartInPartLibraryContext:
+  template: "This is the containing library."
+  severity: CONTEXT
+
+PartOrphan:
+  template: "This part doesn't have a containing library."
+  tip: "Try removing the 'part of' declaration."
+  script: "part of none; main() {}"
+
+PartExport:
+  template: "Can't export this file because it contains a 'part of' declaration."
+  analyzerCode: EXPORT_OF_NON_LIBRARY
+  script:
+    main.dart: |
+      export "part.dart";
+      import "lib.dart";
+      main() {}
+
+    part.dart: |
+      part of "lib.dart";
+
+    lib.dart: |
+      part "part.dart";
+
+PartExportContext:
+  template: "This is the file that can't be exported."
+  severity: CONTEXT
 
 SupertypeIsFunction:
   template: "Can't use a function type as supertype."

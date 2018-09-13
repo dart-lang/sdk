@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart'
     show
+        Code,
         LocatedMessage,
         Message,
         codeCatchSyntaxExtraParameters,
@@ -355,17 +356,23 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    if (message.code == codeNativeClauseShouldBeAnnotation) {
-      // TODO(danrubel): Ignore this error until we deprecate `native` support.
-      return;
-    }
-    if (message.code == codeCatchSyntaxExtraParameters) {
-      // Ignored. This error is handled by the BodyBuilder.
-      return;
-    }
     debugEvent("Error: ${message.message}");
+    if (isIgnoredError(message.code, startToken)) return;
     addProblem(message, offsetForToken(startToken),
         lengthOfSpan(startToken, endToken));
+  }
+
+  bool isIgnoredError(Code code, Token token) {
+    if (code == codeNativeClauseShouldBeAnnotation) {
+      // TODO(danrubel): Ignore this error until we deprecate `native`
+      // support.
+      return true;
+    } else if (code == codeCatchSyntaxExtraParameters) {
+      // Ignored. This error is handled by the BodyBuilder.
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override

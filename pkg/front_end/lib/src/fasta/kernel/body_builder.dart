@@ -12,8 +12,6 @@ import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
-import 'forest.dart' show Forest;
-
 import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
@@ -89,6 +87,8 @@ import 'expression_generator.dart'
         buildIsNull;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+
+import 'forest.dart' show Forest;
 
 import 'redirecting_factory_body.dart'
     show

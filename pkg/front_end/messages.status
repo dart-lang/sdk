@@ -275,6 +275,7 @@ PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has
 PartOfLibraryNameMismatch/example: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
+PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail

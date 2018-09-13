@@ -6,16 +6,17 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../../scanner/token.dart' show Token;
-
 import '../builder/builder.dart';
 
 import '../builder/metadata_builder.dart' show ExpressionMetadataBuilder;
 
 import '../combinator.dart' show Combinator;
 
+import '../configuration.dart' show Configuration;
+
 import '../fasta_codes.dart'
     show
+        Code,
         LocatedMessage,
         Message,
         messageConstConstructorWithBody,
@@ -35,6 +36,16 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch0,
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
+
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
+
+// TODO(ahe): The outline isn't supposed to import kernel-specific builders.
+import '../kernel/kernel_builder.dart'
+    show
+        KernelFormalParameterBuilder,
+        KernelMixinApplicationBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder;
 
 import '../modifier.dart'
     show
@@ -72,18 +83,11 @@ import '../problems.dart' show unhandled;
 
 import '../quote.dart' show unescapeString;
 
+import '../scanner.dart' show Token;
+
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart' show NullValue, StackListener;
-
-import '../configuration.dart' show Configuration;
-
-import '../kernel/kernel_builder.dart'
-    show
-        KernelFormalParameterBuilder,
-        KernelMixinApplicationBuilder,
-        KernelNamedTypeBuilder,
-        KernelTypeBuilder;
 
 enum MethodBody {
   Abstract,
@@ -1437,6 +1441,12 @@ class OutlineBuilder extends StackListener {
       {bool wasHandled: false, List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
+  }
+
+  @override
+  bool isIgnoredError(Code code, Token token) {
+    return isIgnoredParserError(code, token) ||
+        super.isIgnoredError(code, token);
   }
 
   /// Return the documentation comment for the entity that starts at the

@@ -47,7 +47,6 @@ Severity rewriteSeverity(
       case "entry_points.dart":
       case "kernel/body_builder.dart":
       case "source/diet_listener.dart":
-      case "source/source_library_builder.dart":
         return severity;
     }
   } else if (code == msg.codeMissingExplicitTypeArguments) {

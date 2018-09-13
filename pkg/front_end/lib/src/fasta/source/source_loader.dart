@@ -55,6 +55,7 @@ import '../fasta_codes.dart'
         Message,
         SummaryTemplate,
         Template,
+        messagePartOrphan,
         noLength,
         templateAmbiguousSupertypes,
         templateCantReadFile,
@@ -85,7 +86,7 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
@@ -300,18 +301,29 @@ class SourceLoader<L> extends Loader<L> {
 
   void resolveParts() {
     List<Uri> parts = <Uri>[];
+    List<SourceLibraryBuilder> libraries = <SourceLibraryBuilder>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
-        if (sourceLibrary.isPart) {
-          sourceLibrary.validatePart();
+        if (library.isPart) {
           parts.add(uri);
         } else {
-          sourceLibrary.includeParts();
+          libraries.add(library);
         }
       }
     });
-    parts.forEach(builders.remove);
+    Set<Uri> usedParts = new Set<Uri>();
+    for (SourceLibraryBuilder library in libraries) {
+      library.includeParts(usedParts);
+    }
+    for (Uri uri in parts) {
+      if (usedParts.contains(uri)) {
+        builders.remove(uri);
+      } else {
+        SourceLibraryBuilder part = builders[uri];
+        part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
+        part.validatePart(null, null);
+      }
+    }
     ticker.logMs("Resolved parts");
 
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -657,8 +669,7 @@ class SourceLoader<L> extends Loader<L> {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPart &&
-          !library.isPatch &&
+      if (!library.isPatch &&
           (library.loader == this || library.fileUri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
@@ -823,6 +834,9 @@ class SourceLoader<L> extends Loader<L> {
           in new List<Class>.from(hierarchy.getOrderedClasses(classes))) {
         result[i++] = ShadowClass.getClassInferenceInfo(cls).builder
           ..prepareTopLevelInference();
+      }
+      if (i != result.length) {
+        unexpected("${result.length}", "$i", -1, null);
       }
       orderedClasses = result;
     }

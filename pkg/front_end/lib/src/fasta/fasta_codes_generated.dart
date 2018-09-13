@@ -5970,6 +5970,42 @@ Message _withArgumentsPackagesFileFormat(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartExport = messagePartExport;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartExport = const MessageCode("PartExport",
+    analyzerCode: "EXPORT_OF_NON_LIBRARY",
+    message:
+        r"""Can't export this file because it contains a 'part of' declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartExportContext = messagePartExportContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartExportContext = const MessageCode(
+    "PartExportContext",
+    severity: Severity.context,
+    message: r"""This is the file that can't be exported.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartInPart = messagePartInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartInPart = const MessageCode("PartInPart",
+    analyzerCode: "NON_PART_OF_DIRECTIVE_IN_PART",
+    message: r"""A file that's a part of a library can't have parts itself.""",
+    tip: r"""Try moving the 'part' declaration to the containing library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartInPartLibraryContext = messagePartInPartLibraryContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartInPartLibraryContext = const MessageCode(
+    "PartInPartLibraryContext",
+    severity: Severity.context,
+    message: r"""This is the containing library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templatePartOfInLibrary = const Template<
         Message Function(Uri uri_)>(
@@ -6127,6 +6163,14 @@ Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
       tip: """Try changing the 'part of' declaration to use a relative file name.""",
       arguments: {'uri': uri_, 'uri2': uri2_, 'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartOrphan = messagePartOrphan;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartOrphan = const MessageCode("PartOrphan",
+    message: r"""This part doesn't have a containing library.""",
+    tip: r"""Try removing the 'part of' declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templatePartTwice =

@@ -33,9 +33,12 @@ import '../deprecated_problems.dart'
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        Code,
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
+
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -917,5 +920,11 @@ class DietListener extends StackListener {
       }
     }
     return result;
+  }
+
+  @override
+  bool isIgnoredError(Code code, Token token) {
+    return isIgnoredParserError(code, token) ||
+        super.isIgnoredError(code, token);
   }
 }

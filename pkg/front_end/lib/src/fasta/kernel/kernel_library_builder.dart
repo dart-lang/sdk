@@ -1197,8 +1197,8 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part) {
-    super.includePart(part);
+  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
+    super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
   }
