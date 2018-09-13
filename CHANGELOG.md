@@ -1,3 +1,8 @@
+# 0.1.62
+
+* new lint: `prefer_mixin`
+* new lint: `avoid_implementing_value_types`
+
 # 0.1.61
 
 * new lint: `flutter_style_todos`

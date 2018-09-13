@@ -76,7 +76,15 @@ class G {
 @immutable
 class H {
   final f;
-  H(f) : f = f ?? f == null; // OK
+  H(f) : f = f ?? f == null; // LINT
+}
+
+int not_const = 0;
+
+@immutable
+class HH {
+  final f;
+  HH(f) : f = not_const; // OK
 }
 
 // no lint for class with final field initialized with new
