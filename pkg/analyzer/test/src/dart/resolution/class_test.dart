@@ -273,6 +273,113 @@ class C extends A with B {}
     assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
+  test_element_allSupertypes() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+class D {}
+class E {}
+
+class X1 extends A {}
+class X2 implements B {}
+class X3 extends A implements B {}
+class X4 extends A with B implements C {}
+class X5 extends A with B, C implements D, E {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    var d = findElement.class_('D');
+    var e = findElement.class_('E');
+    assertElementTypes(
+      findElement.class_('X1').allSupertypes,
+      [a.type, objectType],
+    );
+    assertElementTypes(
+      findElement.class_('X2').allSupertypes,
+      [objectType, b.type],
+    );
+    assertElementTypes(
+      findElement.class_('X3').allSupertypes,
+      [a.type, objectType, b.type],
+    );
+    assertElementTypes(
+      findElement.class_('X4').allSupertypes,
+      [a.type, b.type, objectType, c.type],
+    );
+    assertElementTypes(
+      findElement.class_('X5').allSupertypes,
+      [a.type, b.type, c.type, objectType, d.type, e.type],
+    );
+  }
+
+  test_element_allSupertypes_generic() async {
+    addTestFile(r'''
+class A<T> {}
+class B<T, U> {}
+class C<T> extends B<int, T> {}
+
+class X1 extends A<String> {}
+class X2 extends B<String, List<int>> {}
+class X3 extends C<double> {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      findElement.class_('X1').allSupertypes,
+      [
+        a.type.instantiate([stringType]),
+        objectType
+      ],
+    );
+    assertElementTypes(
+      findElement.class_('X2').allSupertypes,
+      [
+        b.type.instantiate([
+          stringType,
+          typeProvider.listType.instantiate([intType])
+        ]),
+        objectType
+      ],
+    );
+    assertElementTypes(
+      findElement.class_('X3').allSupertypes,
+      [
+        c.type.instantiate([doubleType]),
+        b.type.instantiate([intType, doubleType]),
+        objectType
+      ],
+    );
+  }
+
+  test_element_allSupertypes_recursive() async {
+    addTestFile(r'''
+class A extends B {}
+class B extends C {}
+class C extends A {}
+
+class X extends A {}
+''');
+    await resolveTestFile();
+    assertHasTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      findElement.class_('X').allSupertypes,
+      [a.type, b.type, c.type],
+    );
+  }
+
   test_error_conflictingConstructorAndStaticField_field() async {
     addTestFile(r'''
 class C {

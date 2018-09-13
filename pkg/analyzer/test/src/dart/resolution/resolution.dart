@@ -47,6 +47,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get objectType => typeProvider.objectType;
 
+  InterfaceType get stringType => typeProvider.stringType;
+
   TypeProvider get typeProvider =>
       result.unit.declaredElement.context.typeProvider;
 
@@ -77,10 +79,12 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(type, expected);
   }
 
-  void assertElementTypes(List<DartType> types, List<DartType> expected) {
-    expect(types, hasLength(expected.length));
-    for (var i = 0; i < types.length; ++i) {
-      assertElementType(types[i], expected[i]);
+  void assertElementTypes(List<DartType> types, List<DartType> expected,
+      {bool ordered = false}) {
+    if (ordered) {
+      expect(types, expected);
+    } else {
+      expect(types, unorderedEquals(expected));
     }
   }
 

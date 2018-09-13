@@ -165,6 +165,61 @@ mixin M {}
     assertElementTypes(element.superclassConstraints, [objectType]);
   }
 
+  test_element_allSupertypes() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M1 on A, B {}
+mixin M2 on A implements B, C {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      findElement.mixin('M1').allSupertypes,
+      [a.type, b.type, objectType],
+    );
+    assertElementTypes(
+      findElement.mixin('M2').allSupertypes,
+      [a.type, objectType, b.type, c.type],
+    );
+  }
+
+  test_element_allSupertypes_generic() async {
+    addTestFile(r'''
+class A<T, U> {}
+class B<T> extends A<int, T> {}
+
+mixin M1 on A<int, double> {}
+mixin M2 on B<String> {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    assertElementTypes(
+      findElement.mixin('M1').allSupertypes,
+      [
+        a.type.instantiate([intType, doubleType]),
+        objectType
+      ],
+    );
+    assertElementTypes(
+      findElement.mixin('M2').allSupertypes,
+      [
+        b.type.instantiate([stringType]),
+        a.type.instantiate([intType, stringType]),
+        objectType
+      ],
+    );
+  }
+
   test_error_builtInIdentifierAsTypeName() async {
     addTestFile(r'''
 mixin as {}
@@ -906,20 +961,6 @@ class X = A<double> with M;
     ]);
   }
 
-  test_error_mixinApplicationNotImplementedInterface_OK_generic() async {
-    addTestFile(r'''
-class A<T> {}
-
-mixin M<T> on A<T> {}
-
-class B<T> implements A<T> {}
-
-class C<T> = B<T> with M<T>;
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-  }
-
   test_error_mixinApplicationNotImplementedInterface_OK_0() async {
     addTestFile(r'''
 mixin M {}
@@ -937,6 +978,20 @@ class A {}
 mixin M on A {}
 
 class X = A with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_generic() async {
+    addTestFile(r'''
+class A<T> {}
+
+mixin M<T> on A<T> {}
+
+class B<T> implements A<T> {}
+
+class C<T> = B<T> with M<T>;
 ''');
     await resolveTestFile();
     assertNoTestErrors();
