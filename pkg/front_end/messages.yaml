@@ -2357,9 +2357,6 @@ MissingAssignableSelector:
   script:
     - "main(){ ++f(); }"
 
-CannotReadPackagesFile:
-  template: "Unable to read '.packages' file:\n  #string."
-
 CannotReadSdkSpecification:
   template: "Unable to read the 'libraries.json' specification file:\n  #string."
 
@@ -2781,8 +2778,13 @@ UntranslatableUri:
 CantReadFile:
   template: "Error when reading '#uri': #string"
   analyzerCode: URI_DOES_NOT_EXIST
+  external: test/packages_format_error_test.dart
   script: |
     import "non_existing_file.dart";
 
     main() {
     }
+
+PackagesFileFormat:
+  template: "Problem in packages configuration file: #string"
+  external: test/packages_format_error_test.dart

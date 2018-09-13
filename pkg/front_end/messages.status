@@ -271,6 +271,7 @@ OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
+PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail

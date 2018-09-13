@@ -464,26 +464,6 @@ const MessageCode messageCannotAssignToSuper = const MessageCode(
     message: r"""Can't assign to super.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateCannotReadPackagesFile =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Unable to read '.packages' file:
-  #string.""", withArguments: _withArgumentsCannotReadPackagesFile);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeCannotReadPackagesFile =
-    const Code<Message Function(String string)>(
-  "CannotReadPackagesFile",
-  templateCannotReadPackagesFile,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotReadPackagesFile(String string) {
-  return new Message(codeCannotReadPackagesFile,
-      message: """Unable to read '.packages' file:
-  ${string}.""", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateCannotReadSdkSpecification =
     const Template<Message Function(String string)>(
@@ -5967,6 +5947,26 @@ Message _withArgumentsPackageNotFound(String name, Uri uri_) {
   return new Message(codePackageNotFound,
       message: """Could not resolve the package '${name}' in '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templatePackagesFileFormat =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Problem in packages configuration file: #string""",
+        withArguments: _withArgumentsPackagesFileFormat);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codePackagesFileFormat =
+    const Code<Message Function(String string)>(
+  "PackagesFileFormat",
+  templatePackagesFileFormat,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPackagesFileFormat(String string) {
+  return new Message(codePackagesFileFormat,
+      message: """Problem in packages configuration file: ${string}""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

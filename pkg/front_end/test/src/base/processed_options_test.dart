@@ -320,7 +320,7 @@ class ProcessedOptionsTest {
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.asMap(), isEmpty);
     expect(errors.single.message,
-        startsWith(_stringPrefixOf(templateCannotReadPackagesFile)));
+        startsWith(_stringPrefixOf(templateCantReadFile)));
   }
 
   test_validateOptions_noInputs() async {

@@ -44,13 +44,13 @@ import '../fasta/fasta_codes.dart'
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
-        templateCannotReadPackagesFile,
         templateCannotReadSdkSpecification,
+        templateCantReadFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
+        templatePackagesFileFormat,
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
-        templateCantReadFile,
         templateSdkSummaryNotFound;
 
 import '../fasta/messages.dart' show getLocation;
@@ -467,20 +467,32 @@ class ProcessedOptions {
 
   /// Create a [Packages] given the Uri to a `.packages` file.
   Future<Packages> createPackagesFromFile(Uri file) async {
+    List<int> contents;
     try {
-      List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
-      Map<String, Uri> map = package_config.parse(contents, file);
-      _packagesUri = file;
-      return new MapPackages(map);
-    } catch (e) {
-      _packagesUri = null;
-      report(
-          templateCannotReadPackagesFile
-              .withArguments("$e")
-              .withLocation(file, -1, noLength),
-          Severity.error);
-      return Packages.noPackages;
+      // TODO(ahe): We need to compute line endings for this file.
+      contents = await fileSystem.entityForUri(file).readAsBytes();
+    } on FileSystemException catch (e) {
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(file, e.message), Severity.error);
     }
+    if (contents != null) {
+      _packagesUri = file;
+      try {
+        Map<String, Uri> map = package_config.parse(contents, file);
+        return new MapPackages(map);
+      } on FormatException catch (e) {
+        report(
+            templatePackagesFileFormat
+                .withArguments(e.message)
+                .withLocation(file, e.offset, noLength),
+            Severity.error);
+      } catch (e) {
+        reportWithoutLocation(
+            templateCantReadFile.withArguments(file, "$e"), Severity.error);
+      }
+    }
+    _packagesUri = null;
+    return Packages.noPackages;
   }
 
   /// Finds a package resolution strategy using a [FileSystem].
