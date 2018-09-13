@@ -1954,6 +1954,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Timeout
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Timeout, Pass
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Timeout, Pass
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: RuntimeError, Pass
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: RuntimeError, Pass
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: RuntimeError
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-003_t01: RuntimeError
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: RuntimeError
@@ -2044,7 +2045,6 @@ LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError
 LibTest/math/cos_A01_t01: RuntimeError
 WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: RuntimeError
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError
-WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: RuntimeError, Pass
 
 [ $compiler == dart2js && $runtime == chrome && !$fast_startup ]
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError
