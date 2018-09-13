@@ -816,7 +816,7 @@ InvalidSyncModifier:
 InvalidVoid:
   template: "Type 'void' can't be used here because it isn't a return type."
   tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
-  analyzerCode: INVALID_USE_OF_VOID
+  analyzerCode: EXPECTED_TYPE_NAME
   script:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"

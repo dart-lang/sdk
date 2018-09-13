@@ -128,7 +128,6 @@ Language/Statements/Return/no_expression_function_t11: CompileTimeError # issue 
 Language/Statements/Return/no_expression_function_t16: CompileTimeError # issue #34319
 Language/Statements/Return/no_expression_not_function_t01: CompileTimeError # issue #34319
 Language/Types/Interface_Types/subtype_t30: CompileTimeError # Please triage this failure
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # Issue 33995
 Language/Types/Type_Void/syntax_t09: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/using_t02: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_named_extends_neg_assign_l1_t03: MissingCompileTimeError # Issue 34087
@@ -180,7 +179,6 @@ LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t04: Cr
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t05: Crash # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t06: Crash # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t07: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_l1_t04: MissingCompileTimeError # Issue 33995--use-fasta-parser
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t04: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t05: CompileTimeError # Issue 33995
@@ -195,7 +193,6 @@ LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t05
 LanguageFeatures/Instantiate-to-bound/function/function_pos_l1_t01: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t01: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t19: CompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_l1_t01: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 33308
 LanguageFeatures/Instantiate-to-bound/mixin/mixin_neg_l1_t02: MissingCompileTimeError # Issue 33596
@@ -206,11 +203,9 @@ LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t0
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t03: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t03: MissingCompileTimeError # Issue 33995--use-fasta-parser
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t03: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l2_t01: Crash # Issue 33599
 LanguageFeatures/Super-bounded-types/motivation_example_A01_t01: CompileTimeError # Issue 32903

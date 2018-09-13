@@ -14,7 +14,6 @@ Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: Missing
 Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t07: CompileTimeError
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
 LibTest/collection/Maps/*: Skip # Maps class no longer exists.
@@ -1117,7 +1116,6 @@ Language/Types/Type_Declarations/Typedef/syntax_t01: CompileTimeError
 Language/Types/Type_Void/returning_t03: CompileTimeError
 Language/Types/Type_Void/returning_t04: CompileTimeError
 Language/Types/Type_Void/returning_t05: CompileTimeError
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: Pass
 Language/Types/Type_Void/using_t01: CompileTimeError

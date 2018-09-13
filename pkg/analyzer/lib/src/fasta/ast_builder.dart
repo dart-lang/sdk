@@ -46,8 +46,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier,
-        templateExpectedType;
+        templateExpectedIdentifier;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
@@ -950,17 +949,6 @@ class AstBuilder extends StackListener {
     debugEvent("AsOperator");
 
     TypeAnnotation type = pop();
-    if (type is TypeName) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        if (name.name == 'void') {
-          Token token = name.beginToken;
-          // TODO(danrubel): This needs to be reported during fasta resolution.
-          handleRecoverableError(
-              templateExpectedType.withArguments(token), token, token);
-        }
-      }
-    }
     Expression expression = pop();
     push(ast.asExpression(expression, asOperator, type));
   }
@@ -993,17 +981,6 @@ class AstBuilder extends StackListener {
     debugEvent("IsOperator");
 
     TypeAnnotation type = pop();
-    if (type is TypeName) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        if (name.name == 'void') {
-          Token token = name.beginToken;
-          // TODO(danrubel): This needs to be reported during fasta resolution.
-          handleRecoverableError(
-              templateExpectedType.withArguments(token), token, token);
-        }
-      }
-    }
     Expression expression = pop();
     push(ast.isExpression(expression, isOperator, not, type));
   }

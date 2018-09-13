@@ -16205,6 +16205,20 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     _assertIsDeclarationName(declaration.typeParameters.typeParameters[0].name);
   }
 
+  void test_parseClassDeclaration_typeParameters_extends_void() {
+    parseCompilationUnit('class C<T extends void>{}',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 4),
+                expectedError(ParserErrorCode.MISSING_CLASS_BODY, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),
+              ]);
+  }
+
   void test_parseClassDeclaration_withDocumentationComment() {
     createParser('/// Doc\nclass C {}');
     var classDeclaration = parseFullCompilationUnitMember() as ClassDeclaration;

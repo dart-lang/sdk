@@ -1504,6 +1504,24 @@ class TypeParamOrArgInfoTest {
     ]);
   }
 
+  void test_computeTypeParam_complex_extends_void() {
+    expectComplexTypeParam('<T extends void>', expectedErrors: [
+      error(codeInvalidVoid, 11, 4),
+    ], expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleTypeVariablesDefined void 1',
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments >',
+      'handleType void',
+      'endTypeVariable > 0 extends',
+      'endTypeVariables < >'
+    ]);
+  }
+
   void test_computeTypeParam_complex_recovery() {
     expectComplexTypeParam('<S Function()>', expectedErrors: [
       error(codeUnexpectedToken, 3, 8),

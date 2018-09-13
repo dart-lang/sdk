@@ -4732,7 +4732,7 @@ const Code<Null> codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
-    analyzerCode: "INVALID_USE_OF_VOID",
+    analyzerCode: "EXPECTED_TYPE_NAME",
     message:
         r"""Type 'void' can't be used here because it isn't a return type.""",
     tip:

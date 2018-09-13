@@ -842,7 +842,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (typeInfo != null) {
         assert(optional('extends', next2));
         extendsOrSuper = next2;
-        token2 = typeInfo.ensureTypeOrVoid(next2, parser);
+        token2 = typeInfo.ensureTypeNotVoid(next2, parser);
         next2 = token2.next;
       } else {
         assert(!optional('extends', next2));

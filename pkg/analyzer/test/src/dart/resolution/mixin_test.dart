@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -800,6 +801,7 @@ mixin M implements void {}
 
     assertTestErrors([
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
     ]);
 
     var element = findElement.mixin('M');
@@ -1162,6 +1164,7 @@ mixin M on void {}
 
     assertTestErrors([
       CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
     ]);
 
     var element = findElement.mixin('M');
