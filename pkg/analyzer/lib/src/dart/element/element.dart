@@ -1315,6 +1315,9 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (supertype != null) {
           typesToVisit.add(supertype);
         }
+        for (InterfaceType type in currentType.superclassConstraints) {
+          typesToVisit.add(type);
+        }
         for (InterfaceType type in currentType.interfaces) {
           typesToVisit.add(type);
         }
