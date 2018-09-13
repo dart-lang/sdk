@@ -2608,7 +2608,7 @@ const Code<Null> codeExpectedStatement = messageExpectedStatement;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedStatement = const MessageCode(
     "ExpectedStatement",
-    analyzerCode: "MISSING_STATEMENT",
+    index: 29,
     message: r"""Expected a statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5160,7 +5160,7 @@ const Code<Null> codeMissingPrefixInDeferredImport =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     "MissingPrefixInDeferredImport",
-    analyzerCode: "MISSING_PREFIX_IN_DEFERRED_IMPORT",
+    index: 30,
     message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
 
@@ -5223,7 +5223,7 @@ const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleExtends = const MessageCode("MultipleExtends",
-    analyzerCode: "MULTIPLE_EXTENDS_CLAUSES",
+    index: 28,
     message: r"""Each class definition can have at most one extends clause.""",
     tip:
         r"""Try choosing one superclass and define your class to implement (or mix in) the others.""");
@@ -5247,7 +5247,7 @@ const Code<Null> codeMultipleLibraryDirectives =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleLibraryDirectives = const MessageCode(
     "MultipleLibraryDirectives",
-    analyzerCode: "MULTIPLE_LIBRARY_DIRECTIVES",
+    index: 27,
     message: r"""Only one library directive may be declared in a file.""",
     tip: r"""Try removing all but one of the library directives.""");
 
@@ -5257,7 +5257,7 @@ const Code<Null> codeMultipleOnClauses = messageMultipleOnClauses;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleOnClauses = const MessageCode(
     "MultipleOnClauses",
-    analyzerCode: "MULTIPLE_ON_CLAUSES",
+    index: 26,
     message: r"""Each mixin definition can have at most one on clause.""",
     tip: r"""Try combining all of the on clauses into a single clause.""");
 
@@ -5266,7 +5266,7 @@ const Code<Null> codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
-    analyzerCode: "MULTIPLE_WITH_CLAUSES",
+    index: 24,
     message: r"""Each class definition can have at most one with clause.""",
     tip: r"""Try combining all of the with clauses into a single clause.""");
 
@@ -5286,7 +5286,7 @@ const Code<Null> codeNativeClauseShouldBeAnnotation =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
     "NativeClauseShouldBeAnnotation",
-    analyzerCode: "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION",
+    index: 23,
     message: r"""Native clause in this form is deprecated.""",
     tip:
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
@@ -6075,7 +6075,7 @@ const Code<Null> codePartOfTwice = messagePartOfTwice;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwice = const MessageCode("PartOfTwice",
-    analyzerCode: "MULTIPLE_PART_OF_DIRECTIVES",
+    index: 25,
     message: r"""Only one part-of directive may be declared in a file.""",
     tip: r"""Try removing all but one of the part-of directives.""");
 
@@ -6322,7 +6322,7 @@ const Code<Null> codeRedirectingConstructorWithBody =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
     "RedirectingConstructorWithBody",
-    analyzerCode: "REDIRECTING_CONSTRUCTOR_WITH_BODY",
+    index: 22,
     message: r"""Redirecting constructors can't have a body.""",
     tip:
         r"""Try removing the body, or not making this a redirecting constructor.""");
@@ -6333,7 +6333,7 @@ const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRedirectionInNonFactory = const MessageCode(
     "RedirectionInNonFactory",
-    analyzerCode: "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR",
+    index: 21,
     message: r"""Only factory constructor can specify '=' redirection.""",
     tip:
         r"""Try making this a factory constructor, or remove the redirection.""");

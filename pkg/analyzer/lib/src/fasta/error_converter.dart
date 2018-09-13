@@ -454,45 +454,17 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);
         return;
-      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
-        return;
       case "MISSING_STAR_AFTER_SYNC":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
-        return;
-      case "MISSING_STATEMENT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_STATEMENT, offset, length);
         return;
       case "MISSING_TYPEDEF_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, offset, length);
         return;
-      case "MULTIPLE_EXTENDS_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, offset, length);
-        return;
       case "MULTIPLE_IMPLEMENTS_CLAUSES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
-        return;
-      case "MULTIPLE_LIBRARY_DIRECTIVES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
-        return;
-      case "MULTIPLE_ON_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_ON_CLAUSES, offset, length);
-        return;
-      case "MULTIPLE_WITH_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
-        return;
-      case "MULTIPLE_PART_OF_DIRECTIVES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
         return;
       case "NAMED_FUNCTION_EXPRESSION":
         errorReporter?.reportErrorForOffset(
@@ -501,10 +473,6 @@ class FastaErrorReporter {
       case "NAMED_PARAMETER_OUTSIDE_GROUP":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, offset, length);
-        return;
-      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
         errorReporter?.reportErrorForOffset(
@@ -521,16 +489,6 @@ class FastaErrorReporter {
       case "RECURSIVE_CONSTRUCTOR_REDIRECT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
-            offset,
-            length);
-        return;
-      case "REDIRECTING_CONSTRUCTOR_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
-      case "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
             offset,
             length);
         return;

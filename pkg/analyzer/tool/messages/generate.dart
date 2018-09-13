@@ -184,7 +184,7 @@ part of 'syntactic_errors.dart';
     for (ErrorCode errorCode in errorCodeValues) {
       if (errorCode is ParserErrorCode) {
         String message =
-            errorCode.message.replaceAll('{0}', '').replaceAll('{1}', '');
+            errorCode.message.replaceAll(new RegExp(r'\{\d+\}'), '');
         messageToName[message] = errorCode.name;
       }
     }
@@ -262,6 +262,6 @@ Error: Expected the text in the 'analyzerCode:' field to contain
 """;
 
 const shouldRunFastaGenerateMessagesFirst = """
-Error: Encountered an error that would be caught
-       by first running 'pkg/front_end/tool/fasta generate-messages'.
+Error: After modifying message.yaml, run this first:
+       pkg/front_end/tool/fasta generate-messages
 """;

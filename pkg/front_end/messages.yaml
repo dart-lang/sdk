@@ -203,8 +203,9 @@ ExpectedBody:
   script: "main();"
 
 ExpectedStatement:
+  index: 29
   template: "Expected a statement."
-  analyzerCode: MISSING_STATEMENT
+  analyzerCode: ParserErrorCode.MISSING_STATEMENT
   statement: "void;"
 
 ExpectedButGot:
@@ -244,20 +245,23 @@ ExpectedAfterButGot:
     - "main() { return true }"
 
 MultipleLibraryDirectives:
+  index: 27
   template: "Only one library directive may be declared in a file."
   tip: "Try removing all but one of the library directives."
-  analyzerCode: MULTIPLE_LIBRARY_DIRECTIVES
+  analyzerCode: ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES
 
 MultipleExtends:
+  index: 28
   template: "Each class definition can have at most one extends clause."
   tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
-  analyzerCode: MULTIPLE_EXTENDS_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES
   script: "class A extends B extends C {}"
 
 MultipleWith:
+  index: 24
   template: "Each class definition can have at most one with clause."
   tip: "Try combining all of the with clauses into a single clause."
-  analyzerCode: MULTIPLE_WITH_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_WITH_CLAUSES
   script: "class A extends B with C, D with E {}"
 
 WithBeforeExtends:
@@ -311,9 +315,10 @@ MultipleImplements:
   script: "class A implements B implements C, D {}"
 
 MultipleOnClauses:
+  index: 26
   template: "Each mixin definition can have at most one on clause."
   tip: "Try combining all of the on clauses into a single clause."
-  analyzerCode: MULTIPLE_ON_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
 ImplementsFutureOr:
@@ -1425,9 +1430,10 @@ NamedFunctionExpression:
   analyzerCode: NAMED_FUNCTION_EXPRESSION
 
 NativeClauseShouldBeAnnotation:
+  index: 23
   template: "Native clause in this form is deprecated."
   tip: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
-  analyzerCode: NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
+  analyzerCode: ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
 
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
@@ -1533,9 +1539,10 @@ ImportHidesImport:
   severity: IGNORED
 
 MissingPrefixInDeferredImport:
+  index: 30
   template: "Deferred imports should have a prefix."
   tip: "Try adding a prefix to the import."
-  analyzerCode: MISSING_PREFIX_IN_DEFERRED_IMPORT
+  analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
 
 DeferredAfterPrefix:
   template: "The deferred keyword should come immediately before the prefix ('as' clause)."
@@ -1916,9 +1923,10 @@ NonPartOfDirectiveInPart:
     - "part of l; part 'f.dart';"
 
 PartOfTwice:
+  index: 25
   template: "Only one part-of directive may be declared in a file."
   tip: "Try removing all but one of the part-of directives."
-  analyzerCode: MULTIPLE_PART_OF_DIRECTIVES
+  analyzerCode: ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES
   script:
     main.dart: |
       part "part.dart";
@@ -1956,9 +1964,10 @@ FactoryTopLevelDeclaration:
     - "factory class C {}"
 
 RedirectionInNonFactory:
+  index: 21
   template: "Only factory constructor can specify '=' redirection."
   tip: "Try making this a factory constructor, or remove the redirection."
-  analyzerCode: REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
   script:
     - "class C { C() = D; }"
 
@@ -2384,9 +2393,10 @@ MissingAssignmentInInitializer:
     - "class C { C() : x(3) {} }"
 
 RedirectingConstructorWithBody:
+  index: 22
   template: "Redirecting constructors can't have a body."
   tip: "Try removing the body, or not making this a redirecting constructor."
-  analyzerCode: REDIRECTING_CONSTRUCTOR_WITH_BODY
+  analyzerCode: ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY
   script:
     - "class C { C() : this.x() {} }"
 

@@ -28,6 +28,16 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _STATIC_AFTER_VAR,
   _STATIC_AFTER_FINAL,
   _STATIC_AFTER_CONST,
+  _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+  _REDIRECTING_CONSTRUCTOR_WITH_BODY,
+  _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+  _MULTIPLE_WITH_CLAUSES,
+  _MULTIPLE_PART_OF_DIRECTIVES,
+  _MULTIPLE_ON_CLAUSES,
+  _MULTIPLE_LIBRARY_DIRECTIVES,
+  _MULTIPLE_EXTENDS_CLAUSES,
+  _MISSING_STATEMENT,
+  _MISSING_PREFIX_IN_DEFERRED_IMPORT,
 ];
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
@@ -64,10 +74,62 @@ const ParserErrorCode _INVALID_AWAIT_IN_FOR = const ParserErrorCode(
     "The keyword 'await' isn't allowed for a normal 'for' statement.",
     correction: "Try removing the keyword, or use a for-each statement.");
 
+const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
+    const ParserErrorCode('MISSING_PREFIX_IN_DEFERRED_IMPORT',
+        "Deferred imports should have a prefix.",
+        correction: "Try adding a prefix to the import.");
+
+const ParserErrorCode _MISSING_STATEMENT =
+    const ParserErrorCode('MISSING_STATEMENT', "Expected a statement.");
+
+const ParserErrorCode _MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode(
+    'MULTIPLE_EXTENDS_CLAUSES',
+    "Each class definition can have at most one extends clause.",
+    correction:
+        "Try choosing one superclass and define your class to implement (or mix in) the others.");
+
+const ParserErrorCode _MULTIPLE_LIBRARY_DIRECTIVES = const ParserErrorCode(
+    'MULTIPLE_LIBRARY_DIRECTIVES',
+    "Only one library directive may be declared in a file.",
+    correction: "Try removing all but one of the library directives.");
+
+const ParserErrorCode _MULTIPLE_ON_CLAUSES = const ParserErrorCode(
+    'MULTIPLE_ON_CLAUSES',
+    "Each mixin definition can have at most one on clause.",
+    correction: "Try combining all of the on clauses into a single clause.");
+
+const ParserErrorCode _MULTIPLE_PART_OF_DIRECTIVES = const ParserErrorCode(
+    'MULTIPLE_PART_OF_DIRECTIVES',
+    "Only one part-of directive may be declared in a file.",
+    correction: "Try removing all but one of the part-of directives.");
+
+const ParserErrorCode _MULTIPLE_WITH_CLAUSES = const ParserErrorCode(
+    'MULTIPLE_WITH_CLAUSES',
+    "Each class definition can have at most one with clause.",
+    correction: "Try combining all of the with clauses into a single clause.");
+
+const ParserErrorCode _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION = const ParserErrorCode(
+    'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+    "Native clause in this form is deprecated.",
+    correction:
+        "Try removing this native clause and adding @native() or @native('native-name') before the declaration.");
+
 const ParserErrorCode _PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
     'PREFIX_AFTER_COMBINATOR',
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correction: "Try moving the prefix before the combinators.");
+
+const ParserErrorCode _REDIRECTING_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
+    'REDIRECTING_CONSTRUCTOR_WITH_BODY',
+    "Redirecting constructors can't have a body.",
+    correction:
+        "Try removing the body, or not making this a redirecting constructor.");
+
+const ParserErrorCode _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
+    const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
+        "Only factory constructor can specify '=' redirection.",
+        correction:
+            "Try making this a factory constructor, or remove the redirection.");
 
 const ParserErrorCode _STATIC_AFTER_CONST = const ParserErrorCode(
     'STATIC_AFTER_CONST',

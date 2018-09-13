@@ -602,17 +602,14 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try adding a library name after the 'of'.");
 
   static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT =
-      const ParserErrorCode('MISSING_PREFIX_IN_DEFERRED_IMPORT',
-          "Deferred imports should have a prefix.",
-          correction: "Try adding a prefix to the import.");
+      _MISSING_PREFIX_IN_DEFERRED_IMPORT;
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = const ParserErrorCode(
       'MISSING_STAR_AFTER_SYNC',
       "The modifier 'sync' must be followed by a star ('*').",
       correction: "Try removing the modifier, or add a star.");
 
-  static const ParserErrorCode MISSING_STATEMENT =
-      const ParserErrorCode('MISSING_STATEMENT', "Expected a statement.");
+  static const ParserErrorCode MISSING_STATEMENT = _MISSING_STATEMENT;
 
   /**
    * Parameters:
@@ -638,11 +635,8 @@ class ParserErrorCode extends ErrorCode {
       "Can't have both positional and named parameters in a single parameter list.",
       correction: "Try choosing a single style of optional parameters.");
 
-  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_EXTENDS_CLAUSES',
-      "Each class definition can have at most one extends clause.",
-      correction:
-          "Try choosing one superclass and define your class to implement (or mix in) the others.");
+  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES =
+      _MULTIPLE_EXTENDS_CLAUSES;
 
   static const ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = const ParserErrorCode(
       'MULTIPLE_IMPLEMENTS_CLAUSES',
@@ -651,24 +645,17 @@ class ParserErrorCode extends ErrorCode {
           "Try combining all of the implements clauses into a single clause.");
 
   static const ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES =
-      const ParserErrorCode('MULTIPLE_LIBRARY_DIRECTIVES',
-          "Only one library directive may be declared in a file.",
-          correction: "Try removing all but one of the library directives.");
+      _MULTIPLE_LIBRARY_DIRECTIVES;
 
   static const ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS =
       const ParserErrorCode('MULTIPLE_NAMED_PARAMETER_GROUPS',
           "Can't have multiple groups of named parameters in a single parameter list.",
           correction: "Try combining all of the groups into a single group.");
 
-  static const ParserErrorCode MULTIPLE_ON_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_ON_CLAUSES',
-      "Each mixin definition can have at most one on clause.",
-      correction: "Try combining all of the on clauses into a single clause.");
+  static const ParserErrorCode MULTIPLE_ON_CLAUSES = _MULTIPLE_ON_CLAUSES;
 
   static const ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES =
-      const ParserErrorCode('MULTIPLE_PART_OF_DIRECTIVES',
-          "Only one part-of directive may be declared in a file.",
-          correction: "Try removing all but one of the part-of directives.");
+      _MULTIPLE_PART_OF_DIRECTIVES;
 
   static const ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS =
       const ParserErrorCode('MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
@@ -687,11 +674,7 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all but one of the declarations inside the loop body.");
 
-  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_WITH_CLAUSES',
-      "Each class definition can have at most one with clause.",
-      correction:
-          "Try combining all of the with clauses into a single clause.");
+  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = _MULTIPLE_WITH_CLAUSES;
 
   static const ParserErrorCode NAMED_FUNCTION_EXPRESSION = const ParserErrorCode(
       'NAMED_FUNCTION_EXPRESSION', "Function expressions can't be named.",
@@ -722,10 +705,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the word 'native'.");
 
   static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
-      const ParserErrorCode('NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
-          "Native clause in this form is deprecated.",
-          correction: "Try removing this native clause and adding @native()"
-              " or @native('native-name') before the declaration.");
+      _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION;
 
   static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode(
       'NON_CONSTRUCTOR_FACTORY',
@@ -798,16 +778,10 @@ class ParserErrorCode extends ErrorCode {
       _PREFIX_AFTER_COMBINATOR;
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
-          "Redirecting constructors can't have a body.",
-          correction: "Try removing the body, or "
-              "not making this a redirecting constructor.");
+      _REDIRECTING_CONSTRUCTOR_WITH_BODY;
 
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
-      const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
-          "Only factory constructor can specify '=' redirection.",
-          correction: "Try making this a factory constructor, or "
-              "not making this a redirecting constructor.");
+      _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR;
 
   static const ParserErrorCode SETTER_IN_FUNCTION = const ParserErrorCode(
       'SETTER_IN_FUNCTION',
