@@ -909,7 +909,7 @@ var A2 = B1;
     // Notify the driver about the change.
     driver.changeFile(testFile);
 
-    // The file was added, so it is scheduled for analysis.
+    // The file was changed, so it is scheduled for analysis.
     expect(driver.test.fileTracker.isFilePending(testFile), isTrue);
 
     // We get a new result.

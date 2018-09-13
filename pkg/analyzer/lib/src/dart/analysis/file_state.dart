@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/one_phase_summaries_selector.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -386,7 +387,8 @@ class FileState {
    *
    * If an exception happens during parsing, an empty unit is returned.
    */
-  CompilationUnit parse(AnalysisErrorListener errorListener) {
+  CompilationUnit parse([AnalysisErrorListener errorListener]) {
+    errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return PerformanceStatistics.parse.makeCurrentWhile(() {
         return _parse(errorListener);
@@ -430,9 +432,10 @@ class FileState {
     {
       bytes = _fsState._byteStore.get(_unlinkedKey);
       if (bytes == null || bytes.isEmpty) {
-        CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
+        CompilationUnit unit = parse();
         _fsState._logger.run('Create unlinked for $path', () {
-          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit,
+              serializeInferrableFields: !enableOnePhaseSummaries);
           DefinedNames definedNames = computeDefinedNames(unit);
           List<String> referencedNames = computeReferencedNames(unit).toList();
           List<String> subtypedNames = computeSubtypedNames(unit).toList();
