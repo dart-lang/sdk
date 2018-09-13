@@ -13,22 +13,10 @@ import 'package:kernel/target/targets.dart';
 
 /// Compiles the given [inputs] to kernel using the front_end, and returns a
 /// [ComparisonNode] representing them.
-Future<ComparisonNode> driveKernel(
+Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
-  var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
-  var target = NoneTarget(targetFlags);
-  var fileSystem = StandardFileSystem.instance;
-
-  var compilerOptions = CompilerOptions()
-    ..fileSystem = fileSystem
-    ..packagesFileUri = packagesFileUri
-    ..sdkSummary = platformUri
-    ..strongMode = true
-    ..target = target
-    ..throwOnErrorsForDebugging = true
-    ..embedSourceText = false;
-
-  var component = await kernelForComponent(inputs, compilerOptions);
+  var component = await kernelForComponent(
+      inputs, _makeCompilerOptions(packagesFileUri, platformUri));
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
   for (var library in component.libraries) {
@@ -37,6 +25,39 @@ Future<ComparisonNode> driveKernel(
     }
   }
   return ComparisonNode.sorted('Component', libraryNodes);
+}
+
+/// Compiles the given [input] to kernel using the front_end, and returns a
+/// [ComparisonNode] representing it.
+///
+/// Only libraries whose URI passes the [uriFilter] are included in the results.
+Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
+    Uri platformUri, bool uriFilter(Uri uri)) async {
+  var component = await kernelForProgram(
+      input, _makeCompilerOptions(packagesFileUri, platformUri));
+  var libraryNodes = <ComparisonNode>[];
+  var visitor = _KernelVisitor(libraryNodes);
+  for (var library in component.libraries) {
+    if (uriFilter(library.importUri)) {
+      library.accept(visitor);
+    }
+  }
+  return ComparisonNode.sorted('Component', libraryNodes);
+}
+
+CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri) {
+  var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
+  var target = NoneTarget(targetFlags);
+  var fileSystem = StandardFileSystem.instance;
+
+  return CompilerOptions()
+    ..fileSystem = fileSystem
+    ..packagesFileUri = packagesFileUri
+    ..sdkSummary = platformUri
+    ..strongMode = true
+    ..target = target
+    ..throwOnErrorsForDebugging = false
+    ..embedSourceText = false;
 }
 
 /// Visitor for serializing a kernel representation of a program into

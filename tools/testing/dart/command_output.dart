@@ -584,8 +584,12 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // TODO(paulberry): parse command output
-    return Expectation.pass;
+    if (exitCode != 0) return Expectation.fail;
+    for (var line in decodeUtf8(this.stdout).split('\n')) {
+      if (line.indexOf('No differences found') != -1) return Expectation.pass;
+      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    }
+    return Expectation.fail;
   }
 
   /// Cloned code from member result(), with changes.
@@ -596,8 +600,12 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // TODO(paulberry): parse command output
-    return Expectation.pass;
+    if (exitCode != 0) return Expectation.fail;
+    for (var line in decodeUtf8(this.stdout).split('\n')) {
+      if (line.indexOf('No differences found') != -1) return Expectation.pass;
+      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    }
+    return Expectation.fail;
   }
 }
 
