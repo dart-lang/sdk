@@ -2861,6 +2861,52 @@ void main() {
     verify([source]);
   }
 
+  test_intLiteralInDoubleContext_const() async {
+    Source source = addSource(r'''
+class C {
+  const C(double x)
+    : assert((x + 3) / 2 == 1.5)
+    , assert(x == 0.0);
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  @failingTest
+  test_intLiteralInDoubleContext_const_exact() async {
+    // TODO(mfairhurst): get the commented out assertions to pass.
+    Source source = addSource(r'''
+class C {
+  const C(double x)
+    : assert("$x" == "0.0")
+    , assert(identical(x, 0.0));
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_invalidAnnotation_constantVariable_field() async {
     Source source = addSource(r'''
 @A.C

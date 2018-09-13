@@ -879,6 +879,11 @@ class ConstantEvaluationEngine {
     if (type.isUndefined) {
       return false;
     }
+    // TODO(mfairhurst): Remove this once #33441 is solved and we can use
+    // inference properly. This is a hack.
+    if (obj.type == typeProvider.intType && type == typeProvider.doubleType) {
+      return true;
+    }
     return obj.type.isSubtypeOf(type);
   }
 

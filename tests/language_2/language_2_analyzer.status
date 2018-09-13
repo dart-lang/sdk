@@ -19,6 +19,9 @@ config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-des
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
+const_constructor3_test/02: MissingCompileTimeError # Needs triage, see Issue #34443
+const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
+const_init2_test/02: MissingCompileTimeError # Needs triage, see Issue #34443
 constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 default_implementation2_test: CompileTimeError # Issue #34338, however, needs triage (#34337) and blocked (#34336)
