@@ -6,22 +6,19 @@ library fasta.testing.suite;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File, Platform;
-
 import 'dart:convert' show jsonDecode;
 
-import 'package:front_end/src/api_prototype/standard_file_system.dart'
-    show StandardFileSystem;
-
-import 'package:front_end/src/base/libraries_specification.dart'
-    show TargetLibrariesSpecification;
-
-import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
-    show ValidatingInstrumentation;
-
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'dart:io' show File, Platform;
 
 import 'package:kernel/ast.dart' show Library, Component;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 import 'package:testing/testing.dart'
     show
@@ -34,8 +31,16 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
+import 'package:vm/target/vm.dart' show VmTarget;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
+
+import 'package:front_end/src/base/libraries_specification.dart'
+    show TargetLibrariesSpecification;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -48,27 +53,23 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
 
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
+
+import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+    show ValidatingInstrumentation;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
-
-import 'package:kernel/target/targets.dart' show TargetFlags;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:front_end/src/fasta/uri_translator_impl.dart'
+    show UriTranslatorImpl;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
