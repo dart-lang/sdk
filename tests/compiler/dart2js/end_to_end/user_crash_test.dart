@@ -5,10 +5,14 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/fasta/messages.dart'
+    show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_new.dart';
 import '../helpers/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
+
+final Uri entryPoint = Uri.parse('memory:main.dart');
 
 main() {
   runTests() async {
@@ -39,9 +43,11 @@ main() {
             packagesDiscoveryProvider: (_) => new Future.error(EXCEPTION)),
         expectedExceptions: [EXCEPTION]);
 
+    var cantReadFile =
+        templateCantReadFile.withArguments(entryPoint, EXCEPTION);
     List<String> expectedLines = [
-      'Error: Input file not found: memory:main.dart.',
-      'memory:main.dart:\nError: Crash-marker',
+      "Error: ${cantReadFile.message}",
+      "${entryPoint}:\nError: ${messageMissingMain.message}",
     ];
     test('Throw in input provider',
         await run(memorySourceFiles: new CrashingMap()),
@@ -69,7 +75,7 @@ void test(String title, RunResult result,
       "Unexpected number of exceptions.");
   for (int i = 0; i < expectedLines.length; i++) {
     if (expectedLines[i] != null) {
-      Expect.equals(expectedLines[i], result.lines[i]);
+      Expect.stringEquals(expectedLines[i], result.lines[i]);
     }
   }
 }
@@ -82,7 +88,7 @@ Future<RunResult> run(
   await runZoned(() async {
     try {
       await runCompiler(
-          entryPoint: Uri.parse('memory:main.dart'),
+          entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
           packagesDiscoveryProvider: packagesDiscoveryProvider);

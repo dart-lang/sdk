@@ -37,9 +37,6 @@ out_of_memory_test: RuntimeError
 [ $compiler == dartkb ]
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
-[ $compiler == fasta ]
-io/arguments_test: CompileTimeError
-
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
 package/package1_test: CompileTimeError

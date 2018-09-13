@@ -50,10 +50,8 @@ import '../fasta/fasta_codes.dart'
         templateInternalProblemUnsupported,
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
+        templateCantReadFile,
         templateSdkSummaryNotFound;
-
-// TODO(ahe): Remove this import.
-import '../fasta/fasta_codes.dart' show templateUnspecified;
 
 import '../fasta/messages.dart' show getLocation;
 
@@ -257,21 +255,6 @@ class ProcessedOptions {
       return false;
     }
 
-    for (var source in inputs) {
-      // Note: we don't translate Uris at this point because some of the
-      // validation further below must be done before we even construct an
-      // UriTranslator
-      // TODO(sigmund): consider validating dart/packages uri right after we
-      // build the uri translator.
-      if (source.scheme != 'dart' &&
-          source.scheme != 'package' &&
-          !await fileSystem.entityForUri(source).exists()) {
-        reportWithoutLocation(
-            templateInputFileNotFound.withArguments(source), Severity.error);
-        return false;
-      }
-    }
-
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
       reportWithoutLocation(
@@ -294,6 +277,8 @@ class ProcessedOptions {
     }
 
     for (Uri source in _raw.linkedDependencies) {
+      // TODO(ahe): Remove this check, the compiler itself should handle and
+      // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
@@ -645,11 +630,8 @@ class ProcessedOptions {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
       report(
-          // TODO(ahe): Change to templateCantReadFile.withArguments(error.uri,
-          // error.message) when CL 63144 has landed.
-          templateUnspecified
-              .withArguments(
-                  "Error when reading '${error.uri}': ${error.message}")
+          templateCantReadFile
+              .withArguments(error.uri, error.message)
               .withoutLocation(),
           Severity.error);
       return new Uint8List(0);

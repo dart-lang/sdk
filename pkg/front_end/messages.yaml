@@ -2768,3 +2768,21 @@ DefaultValueInRedirectingFactoryConstructor:
         factory A.f({int x = 42}) = A.g;
         A.g() {}
       }
+
+UntranslatableUri:
+  template: "Not found: '#uri'"
+  analyzerCode: URI_DOES_NOT_EXIST
+  script: |
+    import "dart:non_existing_library";
+
+    main() {
+    }
+
+CantReadFile:
+  template: "Error when reading '#uri': #string"
+  analyzerCode: URI_DOES_NOT_EXIST
+  script: |
+    import "non_existing_file.dart";
+
+    main() {
+    }

@@ -40,6 +40,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        Message,
         messageConstructorWithWrongName,
         messageExpectedUri,
         messageMemberWithSameNameAsClass,
@@ -98,6 +99,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   final bool disableTypeInference;
 
+  final List<Object> accessors = <Object>[];
+
   String documentationComment;
 
   String name;
@@ -116,6 +119,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
+  /// Non-null if this library causes an error upon access, that is, there was
+  /// an error reading its source.
+  Message accessProblem;
+
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
             scope ?? new Scope.top());
@@ -133,6 +140,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
+
+  @override
+  bool get isSynthetic => accessProblem != null;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
 
@@ -308,7 +318,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     } else {
       resolvedUri = resolve(this.uri, uri, uriOffset);
-      builder = loader.read(resolvedUri, charOffset, accessor: this);
+      builder = loader.read(resolvedUri, uriOffset, accessor: this);
     }
 
     imports.add(new Import(this, builder, deferred, prefix, combinators,
@@ -758,6 +768,33 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Declaration member) {
       member.instrumentTopLevelInference(instrumentation);
     });
+  }
+
+  @override
+  void recordAccess(int charOffset, int length, Uri fileUri) {
+    accessors.add(fileUri);
+    accessors.add(charOffset);
+    accessors.add(length);
+    if (accessProblem != null) {
+      addProblem(accessProblem, charOffset, length, fileUri);
+    }
+  }
+
+  void addProblemAtAccessors(Message message) {
+    if (accessProblem == null) {
+      if (accessors.isEmpty && this == loader.first) {
+        // This is the entry point library, and nobody access it directly. So
+        // we need to report a problem.
+        loader.addProblem(message, -1, 1, null);
+      }
+      for (int i = 0; i < accessors.length; i += 3) {
+        Uri accessor = accessors[i];
+        int charOffset = accessors[i + 1];
+        int length = accessors[i + 2];
+        addProblem(message, charOffset, length, accessor);
+      }
+      accessProblem = message;
+    }
   }
 }
 

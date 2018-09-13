@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         Class,
         ConstructorInvocation,
         DartType,
+        DynamicType,
         Expression,
         Field,
         Library,
@@ -162,14 +163,12 @@ class KernelLibraryBuilder
 
   Uri get uri => library.importUri;
 
-  void becomeCoreLibrary(dynamicType) {
-    if (scope.local["dynamic"] == null) {
-      addBuilder(
-          "dynamic",
-          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-              dynamicType, this, -1),
-          -1);
-    }
+  void addSyntheticDeclarationOfDynamic() {
+    addBuilder(
+        "dynamic",
+        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+            const DynamicType(), this, -1),
+        -1);
   }
 
   KernelTypeBuilder addNamedType(

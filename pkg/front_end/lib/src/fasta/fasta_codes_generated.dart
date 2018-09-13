@@ -580,6 +580,26 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)> templateCantReadFile =
+    const Template<Message Function(Uri uri_, String string)>(
+        messageTemplate: r"""Error when reading '#uri': #string""",
+        withArguments: _withArgumentsCantReadFile);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)> codeCantReadFile =
+    const Code<Message Function(Uri uri_, String string)>(
+        "CantReadFile", templateCantReadFile,
+        analyzerCode: "URI_DOES_NOT_EXIST");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantReadFile(Uri uri_, String string) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeCantReadFile,
+      message: """Error when reading '${uri}': ${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Token
@@ -7425,6 +7445,25 @@ const Code<Null> codeUnterminatedToken = messageUnterminatedToken;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnterminatedToken =
     const MessageCode("UnterminatedToken", message: r"""Incomplete token.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateUntranslatableUri =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""Not found: '#uri'""",
+        withArguments: _withArgumentsUntranslatableUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeUntranslatableUri =
+    const Code<Message Function(Uri uri_)>(
+        "UntranslatableUri", templateUntranslatableUri,
+        analyzerCode: "URI_DOES_NOT_EXIST");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUntranslatableUri(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeUntranslatableUri,
+      message: """Not found: '${uri}'""", arguments: {'uri': uri_});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
