@@ -99,10 +99,4 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
   test_syntheticFunctionType_inGenericClass() {
     super.test_syntheticFunctionType_inGenericClass();
   }
-
-  @override
-  @failingTest
-  test_variable_final_top_level_untyped() {
-    super.test_variable_final_top_level_untyped();
-  }
 }

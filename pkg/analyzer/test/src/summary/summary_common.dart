@@ -9834,8 +9834,10 @@ var v;''';
   }
 
   test_variable_final_top_level_untyped() {
+    if (skipFullyLinkedData) return;
     UnlinkedVariable variable = serializeVariableText('final v = 0;');
-    expect(variable.initializer.bodyExpr, isNotNull);
+    var typeRef = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'int');
   }
 
   test_variable_implicit_dynamic() {
