@@ -53,6 +53,10 @@ abstract class IrToElementMap {
   /// Returns the [CallStructure] corresponding to the [arguments].
   CallStructure getCallStructure(ir.Arguments arguments);
 
+  /// Returns the [TypeVariableEntity] corresponding to the type parameter
+  /// [node].
+  TypeVariableEntity getTypeVariable(ir.TypeParameter node);
+
   CommonElements get commonElements;
   DiagnosticReporter get reporter;
   InterfaceType getThisType(IndexedClass cls);

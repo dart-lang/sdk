@@ -46,20 +46,28 @@ abstract class KernelToWorldBuilder implements JsToElementMap {
 }
 
 class JsKernelToElementMap extends KernelToElementMapBase
-    with
-        JsElementCreatorMixin,
-        // TODO(johnniwinther): Avoid mixing in [ElementCreatorMixin]. The
-        // codegen world should be a strict subset of the resolution world and
-        // creating elements for IR nodes should therefore not be needed.
-        // Currently some are created purely for testing (like
-        // `element == commonElements.foo`, where 'foo' might not be live).
-        // Others are created because we do a
-        // `elementEnvironment.forEachLibraryMember(...)` call on each emitted
-        // library.
-        ElementCreatorMixin
-    implements
-        KernelToWorldBuilder,
-        JsToElementMap {
+    with JsElementCreatorMixin
+    implements KernelToWorldBuilder, JsToElementMap {
+  Map<ir.Library, IndexedLibrary> libraryMap = <ir.Library, IndexedLibrary>{};
+  Map<ir.Class, IndexedClass> classMap = <ir.Class, IndexedClass>{};
+  Map<ir.Typedef, IndexedTypedef> typedefMap = <ir.Typedef, IndexedTypedef>{};
+
+  /// Map from [ir.TypeParameter] nodes to the corresponding
+  /// [TypeVariableEntity].
+  ///
+  /// Normally the type variables are [IndexedTypeVariable]s, but for type
+  /// parameters on local function (in the frontend) these are _not_ since
+  /// their type declaration is neither a class nor a member. In the backend,
+  /// these type parameters belong to the call-method and are therefore indexed.
+  Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap =
+      <ir.TypeParameter, TypeVariableEntity>{};
+  Map<ir.Member, IndexedConstructor> constructorMap =
+      <ir.Member, IndexedConstructor>{};
+  Map<ir.Procedure, IndexedFunction> methodMap =
+      <ir.Procedure, IndexedFunction>{};
+  Map<ir.Field, IndexedField> fieldMap = <ir.Field, IndexedField>{};
+  Map<ir.TreeNode, Local> localFunctionMap = <ir.TreeNode, Local>{};
+
   /// Map from members to the call methods created for their nested closures.
   Map<MemberEntity, List<FunctionEntity>> _nestedClosureMap =
       <MemberEntity, List<FunctionEntity>>{};
@@ -166,21 +174,18 @@ class JsKernelToElementMap extends KernelToElementMapBase
       }
       IndexedTypeVariable newTypeVariable = createTypeVariable(
           newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
-      typeVariables.register<IndexedTypeVariable, TypeVariableData>(
-          newTypeVariable, oldTypeVariableData.copy());
+      typeVariableMap[oldTypeVariableData.node] =
+          typeVariables.register<IndexedTypeVariable, TypeVariableData>(
+              newTypeVariable, oldTypeVariableData.copy());
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
+    //typeVariableMap.keys.forEach((n) => print(n.parent));
     // TODO(johnniwinther): We should close the environment in the beginning of
     // this constructor but currently we need the [MemberEntity] to query if the
     // member is live, thus potentially creating the [MemberEntity] in the
     // process. Avoid this.
     _elementMap.envIsClosed = true;
-  }
-
-  @override
-  Entity getClosure(ir.FunctionDeclaration node) {
-    throw new UnsupportedError('JsKernelToElementMap.getClosure');
   }
 
   @override
@@ -239,8 +244,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return cls;
   }
 
-  // TODO(johnniwinther): Reinsert these when [ElementCreatorMixin] is no longer
-  // mixed in.
   @override
   FieldEntity getFieldInternal(ir.Field node) {
     FieldEntity field = fieldMap[node];
@@ -260,6 +263,40 @@ class JsKernelToElementMap extends KernelToElementMapBase
     ConstructorEntity constructor = constructorMap[node];
     assert(constructor != null, "No constructor entity for $node");
     return constructor;
+  }
+
+  @override
+  TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
+    TypeVariableEntity typeVariable = typeVariableMap[node];
+    if (typeVariable == null) {
+      if (node.parent is ir.FunctionNode) {
+        ir.FunctionNode func = node.parent;
+        int index = func.typeParameters.indexOf(node);
+        if (func.parent is ir.Constructor) {
+          ir.Constructor constructor = func.parent;
+          ir.Class cls = constructor.enclosingClass;
+          typeVariableMap[node] =
+              typeVariable = getTypeVariableInternal(cls.typeParameters[index]);
+        } else if (func.parent is ir.Procedure) {
+          ir.Procedure procedure = func.parent;
+          if (procedure.kind == ir.ProcedureKind.Factory) {
+            ir.Class cls = procedure.enclosingClass;
+            typeVariableMap[node] = typeVariable =
+                getTypeVariableInternal(cls.typeParameters[index]);
+          }
+        }
+      }
+    }
+    assert(typeVariable != null,
+        "No type variable entity for $node on ${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    return typeVariable;
+  }
+
+  @override
+  TypedefEntity getTypedefInternal(ir.Typedef node) {
+    TypedefEntity typedef = typedefMap[node];
+    assert(typedef != null, "No typedef entity for $node");
+    return typedef;
   }
 
   @override

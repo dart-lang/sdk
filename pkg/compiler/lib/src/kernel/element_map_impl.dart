@@ -751,6 +751,20 @@ abstract class KernelToElementMapBase implements IrToElementMap {
         argumentCount, namedArguments, arguments.types.length);
   }
 
+  ParameterStructure getParameterStructure(ir.FunctionNode node,
+      // TODO(johnniwinther): Remove this when type arguments are passed to
+      // constructors like calling a generic method.
+      {bool includeTypeParameters: true}) {
+    // TODO(johnniwinther): Cache the computed function type.
+    int requiredParameters = node.requiredParameterCount;
+    int positionalParameters = node.positionalParameters.length;
+    int typeParameters = node.typeParameters.length;
+    List<String> namedParameters =
+        node.namedParameters.map((p) => p.name).toList()..sort();
+    return new ParameterStructure(requiredParameters, positionalParameters,
+        namedParameters, includeTypeParameters ? typeParameters : 0);
+  }
+
   Selector getSelector(ir.Expression node) {
     // TODO(efortuna): This is screaming for a common interface between
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
@@ -1257,52 +1271,61 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   }
 
   FunctionEntity getMethodInternal(ir.Procedure node) {
-    return methodMap[node] ??= _getMethodCreate(node);
-  }
-
-  FunctionEntity _getMethodCreate(ir.Procedure node) {
-    assert(
-        !envIsClosed,
-        "Environment of $this is closed. Trying to create "
-        "function for $node.");
-    LibraryEntity library;
-    ClassEntity enclosingClass;
-    if (node.enclosingClass != null) {
-      enclosingClass = getClassInternal(node.enclosingClass);
-      library = enclosingClass.library;
-    } else {
-      library = getLibraryInternal(node.enclosingLibrary);
+    IndexedFunction function = methodMap[node];
+    if (function == null) {
+      assert(
+          !envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "function for $node.");
+      LibraryEntity library;
+      ClassEntity enclosingClass;
+      if (node.enclosingClass != null) {
+        enclosingClass = getClassInternal(node.enclosingClass);
+        library = enclosingClass.library;
+      } else {
+        library = getLibraryInternal(node.enclosingLibrary);
+      }
+      Name name = getName(node.name);
+      bool isStatic = node.isStatic;
+      bool isExternal = node.isExternal;
+      // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
+      bool isAbstract = node.isAbstract && !node.isExternal;
+      AsyncMarker asyncMarker = getAsyncMarker(node.function);
+      switch (node.kind) {
+        case ir.ProcedureKind.Factory:
+          throw new UnsupportedError("Cannot create method from factory.");
+        case ir.ProcedureKind.Getter:
+          function = createGetter(library, enclosingClass, name, asyncMarker,
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
+          break;
+        case ir.ProcedureKind.Method:
+        case ir.ProcedureKind.Operator:
+          function = createMethod(library, enclosingClass, name,
+              getParameterStructure(node.function), asyncMarker,
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
+          break;
+        case ir.ProcedureKind.Setter:
+          assert(asyncMarker == AsyncMarker.SYNC);
+          function = createSetter(library, enclosingClass, name.setter,
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
+          break;
+      }
+      members.register<IndexedFunction, FunctionData>(
+          function,
+          new FunctionDataImpl(node, node.function,
+              new RegularMemberDefinition(function, node)));
+      methodMap[node] = function;
+      for (ir.TypeParameter typeParameter in node.function.typeParameters) {
+        getTypeVariable(typeParameter);
+      }
     }
-    Name name = getName(node.name);
-    bool isStatic = node.isStatic;
-    bool isExternal = node.isExternal;
-    // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
-    bool isAbstract = node.isAbstract && !node.isExternal;
-    AsyncMarker asyncMarker = getAsyncMarker(node.function);
-    IndexedFunction function;
-    switch (node.kind) {
-      case ir.ProcedureKind.Factory:
-        throw new UnsupportedError("Cannot create method from factory.");
-      case ir.ProcedureKind.Getter:
-        function = createGetter(library, enclosingClass, name, asyncMarker,
-            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-        break;
-      case ir.ProcedureKind.Method:
-      case ir.ProcedureKind.Operator:
-        function = createMethod(library, enclosingClass, name,
-            getParameterStructure(node.function), asyncMarker,
-            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-        break;
-      case ir.ProcedureKind.Setter:
-        assert(asyncMarker == AsyncMarker.SYNC);
-        function = createSetter(library, enclosingClass, name.setter,
-            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-        break;
-    }
-    return members.register<IndexedFunction, FunctionData>(
-        function,
-        new FunctionDataImpl(
-            node, node.function, new RegularMemberDefinition(function, node)));
+    return function;
   }
 
   FieldEntity getFieldInternal(ir.Field node) {
@@ -1330,20 +1353,6 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
         isConst: node.isConst);
     return members.register<IndexedField, FieldData>(field,
         new FieldDataImpl(node, new RegularMemberDefinition(field, node)));
-  }
-
-  ParameterStructure getParameterStructure(ir.FunctionNode node,
-      // TODO(johnniwinther): Remove this when type arguments are passed to
-      // constructors like calling a generic method.
-      {bool includeTypeParameters: true}) {
-    // TODO(johnniwinther): Cache the computed function type.
-    int requiredParameters = node.requiredParameterCount;
-    int positionalParameters = node.positionalParameters.length;
-    int typeParameters = node.typeParameters.length;
-    List<String> namedParameters =
-        node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, includeTypeParameters ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);
@@ -2036,119 +2045,6 @@ class KernelElementEnvironment extends ElementEnvironment {
     assert(elementMap.checkFamily(cls));
     ClassData classData = elementMap.classes.getData(cls);
     return classData.isEnumClass;
-  }
-}
-
-/// Visitor that converts kernel dart types into [DartType].
-class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  final KernelToElementMapBase elementMap;
-  final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
-      <ir.TypeParameter, DartType>{};
-  bool topLevel = true;
-
-  DartTypeConverter(this.elementMap);
-
-  DartType convert(ir.DartType type) {
-    topLevel = true;
-    return type.accept(this);
-  }
-
-  /// Visit a inner type.
-  DartType visitType(ir.DartType type) {
-    topLevel = false;
-    return type.accept(this);
-  }
-
-  InterfaceType visitSupertype(ir.Supertype node) {
-    ClassEntity cls = elementMap.getClass(node.classNode);
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
-  }
-
-  List<DartType> visitTypes(List<ir.DartType> types) {
-    topLevel = false;
-    return new List.generate(
-        types.length, (int index) => types[index].accept(this));
-  }
-
-  @override
-  DartType visitTypeParameterType(ir.TypeParameterType node) {
-    DartType typeParameter = currentFunctionTypeParameters[node.parameter];
-    if (typeParameter != null) {
-      return typeParameter;
-    }
-    if (node.parameter.parent is ir.Typedef) {
-      // Typedefs are only used in type literals so we never need their type
-      // variables.
-      return const DynamicType();
-    }
-    return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
-  }
-
-  @override
-  DartType visitFunctionType(ir.FunctionType node) {
-    int index = 0;
-    List<FunctionTypeVariable> typeVariables;
-    for (ir.TypeParameter typeParameter in node.typeParameters) {
-      FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
-      currentFunctionTypeParameters[typeParameter] = typeVariable;
-      typeVariables ??= <FunctionTypeVariable>[];
-      typeVariables.add(typeVariable);
-      index++;
-    }
-    if (typeVariables != null) {
-      for (int index = 0; index < typeVariables.length; index++) {
-        typeVariables[index].bound =
-            node.typeParameters[index].bound.accept(this);
-      }
-    }
-
-    FunctionType type = new FunctionType(
-        visitType(node.returnType),
-        visitTypes(node.positionalParameters
-            .take(node.requiredParameterCount)
-            .toList()),
-        visitTypes(node.positionalParameters
-            .skip(node.requiredParameterCount)
-            .toList()),
-        node.namedParameters.map((n) => n.name).toList(),
-        node.namedParameters.map((n) => visitType(n.type)).toList(),
-        typeVariables ?? const <FunctionTypeVariable>[]);
-    for (ir.TypeParameter typeParameter in node.typeParameters) {
-      currentFunctionTypeParameters.remove(typeParameter);
-    }
-    return type;
-  }
-
-  @override
-  DartType visitInterfaceType(ir.InterfaceType node) {
-    ClassEntity cls = elementMap.getClass(node.classNode);
-    if (cls.name == 'FutureOr' &&
-        cls.library == elementMap.commonElements.asyncLibrary) {
-      return new FutureOrType(visitTypes(node.typeArguments).single);
-    }
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
-  }
-
-  @override
-  DartType visitVoidType(ir.VoidType node) {
-    return const VoidType();
-  }
-
-  @override
-  DartType visitDynamicType(ir.DynamicType node) {
-    return const DynamicType();
-  }
-
-  @override
-  DartType visitInvalidType(ir.InvalidType node) {
-    // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
-    // cased in the builder, nested invalid types are treated as `dynamic`.
-    return const DynamicType();
-  }
-
-  @override
-  DartType visitBottomType(ir.BottomType node) {
-    return elementMap.commonElements.nullType;
   }
 }
 

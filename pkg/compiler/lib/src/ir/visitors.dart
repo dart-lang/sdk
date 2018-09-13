@@ -507,3 +507,116 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     }
   }
 }
+
+/// Visitor that converts kernel dart types into [DartType].
+class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
+  final IrToElementMap elementMap;
+  final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
+      <ir.TypeParameter, DartType>{};
+  bool topLevel = true;
+
+  DartTypeConverter(this.elementMap);
+
+  DartType convert(ir.DartType type) {
+    topLevel = true;
+    return type.accept(this);
+  }
+
+  /// Visit a inner type.
+  DartType visitType(ir.DartType type) {
+    topLevel = false;
+    return type.accept(this);
+  }
+
+  InterfaceType visitSupertype(ir.Supertype node) {
+    ClassEntity cls = elementMap.getClass(node.classNode);
+    return new InterfaceType(cls, visitTypes(node.typeArguments));
+  }
+
+  List<DartType> visitTypes(List<ir.DartType> types) {
+    topLevel = false;
+    return new List.generate(
+        types.length, (int index) => types[index].accept(this));
+  }
+
+  @override
+  DartType visitTypeParameterType(ir.TypeParameterType node) {
+    DartType typeParameter = currentFunctionTypeParameters[node.parameter];
+    if (typeParameter != null) {
+      return typeParameter;
+    }
+    if (node.parameter.parent is ir.Typedef) {
+      // Typedefs are only used in type literals so we never need their type
+      // variables.
+      return const DynamicType();
+    }
+    return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
+  }
+
+  @override
+  DartType visitFunctionType(ir.FunctionType node) {
+    int index = 0;
+    List<FunctionTypeVariable> typeVariables;
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
+      currentFunctionTypeParameters[typeParameter] = typeVariable;
+      typeVariables ??= <FunctionTypeVariable>[];
+      typeVariables.add(typeVariable);
+      index++;
+    }
+    if (typeVariables != null) {
+      for (int index = 0; index < typeVariables.length; index++) {
+        typeVariables[index].bound =
+            node.typeParameters[index].bound.accept(this);
+      }
+    }
+
+    FunctionType type = new FunctionType(
+        visitType(node.returnType),
+        visitTypes(node.positionalParameters
+            .take(node.requiredParameterCount)
+            .toList()),
+        visitTypes(node.positionalParameters
+            .skip(node.requiredParameterCount)
+            .toList()),
+        node.namedParameters.map((n) => n.name).toList(),
+        node.namedParameters.map((n) => visitType(n.type)).toList(),
+        typeVariables ?? const <FunctionTypeVariable>[]);
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      currentFunctionTypeParameters.remove(typeParameter);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitInterfaceType(ir.InterfaceType node) {
+    ClassEntity cls = elementMap.getClass(node.classNode);
+    if (cls.name == 'FutureOr' &&
+        cls.library == elementMap.commonElements.asyncLibrary) {
+      return new FutureOrType(visitTypes(node.typeArguments).single);
+    }
+    return new InterfaceType(cls, visitTypes(node.typeArguments));
+  }
+
+  @override
+  DartType visitVoidType(ir.VoidType node) {
+    return const VoidType();
+  }
+
+  @override
+  DartType visitDynamicType(ir.DynamicType node) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitInvalidType(ir.InvalidType node) {
+    // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
+    // cased in the builder, nested invalid types are treated as `dynamic`.
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitBottomType(ir.BottomType node) {
+    return elementMap.commonElements.nullType;
+  }
+}

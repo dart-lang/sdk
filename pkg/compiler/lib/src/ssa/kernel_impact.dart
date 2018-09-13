@@ -812,6 +812,13 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitTypeLiteral(ir.TypeLiteral node) {
     impactBuilder.registerTypeUse(
         new TypeUse.typeLiteral(elementMap.getDartType(node.type)));
+    if (node.type is ir.FunctionType) {
+      ir.FunctionType functionType = node.type;
+      assert(functionType.typedef != null);
+      // TODO(johnniwinther): Can we avoid the typedef type altogether?
+      // We need to ensure that the typedef is live.
+      elementMap.getTypedefType(functionType.typedef);
+    }
   }
 
   @override
