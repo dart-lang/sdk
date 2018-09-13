@@ -7742,15 +7742,10 @@ class C<T> extends B<T> {
     }
     UnlinkedVariable v = serializeVariableText('''
 typedef void F(int g(String s));
-h(F f) => null;
-var v = h((y) {});
+F h() => null;
+var v = h();
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(1));
-    UnlinkedParam y = closure.parameters[0];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'F', expectedKind: ReferenceKind.typedef);
     expect(typeRef.implicitFunctionTypeIndices, isEmpty);
   }
@@ -7827,15 +7822,11 @@ var v = h((y) {});
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
-f(void g(int x, void h())) => null;
-var v = f((x, y) {});
+dynamic f(void g(int x, void h())) => null;
+T extract<T>(dynamic f2(void g2(int x2, T h2)) => null;
+var v = extract(f);
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(2));
-    UnlinkedParam y = closure.parameters[1];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'f',
         expectedKind: ReferenceKind.topLevelFunction);
     expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
@@ -7846,15 +7837,11 @@ var v = f((x, y) {});
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
-f({void g(int x, void h())}) => null;
-var v = f(g: (x, y) {});
+dynamic f({void g(int x, void h())}) => null;
+T extract<T>(dynamic f2({void g(int x2, T h2)})) => null;
+var v = extract(f);
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(2));
-    UnlinkedParam y = closure.parameters[1];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'f',
         expectedKind: ReferenceKind.topLevelFunction);
     expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
