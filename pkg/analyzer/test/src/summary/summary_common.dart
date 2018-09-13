@@ -7358,8 +7358,8 @@ get f => null;''';
     // The dependency on b.dart is implicit, so it should be placed at the end
     // of the dependency list, after a.dart, even though the code that refers
     // to b.dart comes before the code that refers to a.dart.
-    int aDep = checkHasDependency('a.dart', fullyLinked: false);
-    int bDep = checkHasDependency('b.dart', fullyLinked: true);
+    int aDep = checkHasDependency(absUri('/a.dart'), fullyLinked: false);
+    int bDep = checkHasDependency(absUri('/b.dart'), fullyLinked: true);
     expect(aDep, lessThan(bDep));
   }
 

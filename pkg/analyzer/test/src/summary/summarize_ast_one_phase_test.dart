@@ -48,12 +48,6 @@ class SummarizeAstOnePhaseTest extends SummaryBlackBoxTestStrategyOnePhase
 
   @override
   @failingTest
-  test_implicit_dependencies_follow_other_dependencies() {
-    super.test_implicit_dependencies_follow_other_dependencies();
-  }
-
-  @override
-  @failingTest
   test_inferred_type_refers_to_function_typed_param_of_typedef() {
     super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
