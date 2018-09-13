@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-analyze_test: Slow, Pass
+analyses/analyze_test: Slow, Pass
 closure/closure_test: Pass, Slow
 codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
 codegen/list_tracer_length_test: Fail # Issue 33051
