@@ -245,7 +245,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
         removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
         removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
-        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER);
         removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);

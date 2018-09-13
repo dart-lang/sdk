@@ -2724,9 +2724,6 @@ class CompileTimeErrorCode extends ErrorCode {
  * when appropriate, how the problem can be corrected.
  */
 class StaticTypeWarningCode extends ErrorCode {
-  @override
-  final ErrorSeverity errorSeverity;
-
   /**
    * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
    * class implements the built-in class <i>List&lt;E></i> is allocated.
@@ -3374,6 +3371,9 @@ class StaticTypeWarningCode extends ErrorCode {
           'FOR_IN_OF_INVALID_ELEMENT_TYPE',
           "The type '{0}' used in the 'for' loop must implement {1} with a "
           "type argument that can be assigned to '{2}'.");
+
+  @override
+  final ErrorSeverity errorSeverity;
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -4935,14 +4935,6 @@ class StrongModeCode extends ErrorCode {
       const StrongModeCode(ErrorType.HINT, 'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
           "The type of the function literal can't be inferred because the literal has a block as its body.",
           correction: "Try adding an explicit type to the variable.");
-
-  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_PARAMETER =
-      const StrongModeCode(
-          ErrorType.HINT,
-          'TOP_LEVEL_FUNCTION_LITERAL_PARAMETER',
-          "The type of '{0}' can't be inferred because the parameter '{1}' does not have an explicit type.",
-          correction:
-              "Try adding an explicit type to the parameter '{1}', or add an explicit type for '{0}'.");
 
   static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = const StrongModeCode(
       ErrorType.HINT,

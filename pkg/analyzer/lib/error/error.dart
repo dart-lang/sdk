@@ -684,7 +684,6 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.NOT_INSTANTIATED_BOUND,
   StrongModeCode.TOP_LEVEL_CYCLE,
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
-  StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER,
   StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
   StrongModeCode.TOP_LEVEL_INSTANCE_METHOD,
