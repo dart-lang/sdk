@@ -19,10 +19,10 @@ main() {
   Expect.identical(-0.0, v3);
   double v4 = -1;
   Expect.identical(-1.0, v4);
-  double v5 = 9223372036854776000; // 2^63, not valid signed 64-bit integer.
-  Expect.identical(9223372036854776000.0, v5);
-  double v6 = 18446744073709552000; // 2^64.
-  Expect.identical(18446744073709552000.0, v6);
+  double v5 = 9223372036854775808; // 2^63, not valid signed 64-bit integer.
+  Expect.identical(9223372036854775808.0, v5);
+  double v6 = 18446744073709551616; // 2^64.
+  Expect.identical(18446744073709551616.0, v6);
   double v7 = 0x02; // Hex literal.
   Expect.identical(2.0, v7);
   double v8 = -0x02; // Hex literal.
@@ -37,10 +37,10 @@ main() {
   Expect.identical(-0.0, c3);
   const double c4 = -1;
   Expect.identical(-1.0, c4);
-  const double c5 = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, c5);
-  const double c6 = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, c6);
+  const double c5 = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, c5);
+  const double c6 = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, c6);
   const double c7 = 0x02; // Hex literal.
   Expect.identical(2.0, c7);
   const double c8 = -0x02; // Hex literal.
@@ -56,10 +56,10 @@ main() {
   Expect.identical(-0.0, value);
   value = -1;
   Expect.identical(-1.0, value);
-  value = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, value);
-  value = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, value);
+  value = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, value);
+  value = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, value);
   value = 0x02;
   Expect.identical(2.0, value);
   value = -0x02;
@@ -74,10 +74,10 @@ main() {
   Expect.identical(-0.0, lastSetValue);
   setter = -1;
   Expect.identical(-1.0, lastSetValue);
-  setter = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, lastSetValue);
-  setter = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, lastSetValue);
+  setter = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, lastSetValue);
+  setter = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, lastSetValue);
   setter = 0x02;
   Expect.identical(2.0, lastSetValue);
   setter = -0x02;
@@ -88,8 +88,8 @@ main() {
   test(1.0, 1);
   test(-0.0, -0);
   test(-1.0, -1);
-  test(9223372036854776000.0, 9223372036854776000);
-  test(18446744073709552000.0, 18446744073709552000);
+  test(9223372036854775808.0, 9223372036854775808);
+  test(18446744073709551616.0, 18446744073709551616);
   test(2.0, 0x02);
   test(-2.0, -0x02);
 
@@ -103,10 +103,10 @@ main() {
   Expect.identical(-0.0, box[0]);
   box[0] = -1;
   Expect.identical(-1.0, box[0]);
-  box[0] = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, box[0]);
-  box[0] = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, box[0]);
+  box[0] = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, box[0]);
+  box[0] = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, box[0]);
   box[0] = 0x02;
   Expect.identical(2.0, box[0]);
   box[0] = -0x02;
@@ -118,8 +118,8 @@ main() {
   Expect.identical(1.0, oper + 1);
   Expect.identical(-0.0, oper + -0);
   Expect.identical(-1.0, oper + -1);
-  Expect.identical(9223372036854776000.0, oper + 9223372036854776000);
-  Expect.identical(18446744073709552000.0, oper + 18446744073709552000);
+  Expect.identical(9223372036854775808.0, oper + 9223372036854775808);
+  Expect.identical(18446744073709551616.0, oper + 18446744073709551616);
   Expect.identical(2.0, oper + 0x02);
   Expect.identical(-2.0, oper + -0x02);
 
@@ -127,8 +127,8 @@ main() {
   Expect.identical(1.0, oper >> 1);
   Expect.identical(-0.0, oper >> -0);
   Expect.identical(-1.0, oper >> -1);
-  Expect.identical(9223372036854776000.0, oper >> 9223372036854776000);
-  Expect.identical(18446744073709552000.0, oper >> 18446744073709552000);
+  Expect.identical(9223372036854775808.0, oper >> 9223372036854775808);
+  Expect.identical(18446744073709551616.0, oper >> 18446744073709551616);
   Expect.identical(2.0, oper >> 0x02);
   Expect.identical(-2.0, oper >> -0x02);
 
@@ -136,8 +136,8 @@ main() {
   Expect.identical(1.0, oper[1]);
   Expect.identical(-0.0, oper[-0]);
   Expect.identical(-1.0, oper[-1]);
-  Expect.identical(9223372036854776000.0, oper[9223372036854776000]);
-  Expect.identical(18446744073709552000.0, oper[18446744073709552000]);
+  Expect.identical(9223372036854775808.0, oper[9223372036854775808]);
+  Expect.identical(18446744073709551616.0, oper[18446744073709551616]);
   Expect.identical(2.0, oper[0x02]);
   Expect.identical(-2.0, oper[-0x02]);
 
@@ -150,10 +150,10 @@ main() {
   Expect.identical(-0.0, fun3());
   double fun4() => -1;
   Expect.identical(-1.0, fun4());
-  double fun5() => 9223372036854776000;
-  Expect.identical(9223372036854776000.0, fun5());
-  double fun6() => 18446744073709552000;
-  Expect.identical(18446744073709552000.0, fun6());
+  double fun5() => 9223372036854775808;
+  Expect.identical(9223372036854775808.0, fun5());
+  double fun6() => 18446744073709551616;
+  Expect.identical(18446744073709551616.0, fun6());
   double fun7() => 0x02;
   Expect.identical(2.0, fun7());
   double fun4() => -0x02;
@@ -164,8 +164,8 @@ main() {
   testFun(1.0, () => 1);
   testFun(-0.0, () => -0);
   testFun(-1.0, () => -1);
-  testFun(9223372036854776000.0, () => 9223372036854776000);
-  testFun(18446744073709552000.0, () => 18446744073709552000);
+  testFun(9223372036854775808.0, () => 9223372036854775808);
+  testFun(18446744073709551616.0, () => 18446744073709551616);
   testFun(2.0, () => 0x02);
   testFun(-2.0, () => -0x02);
 
@@ -178,10 +178,10 @@ main() {
   Expect.identical(-0.0, deffun3());
   Object deffun4([double v = -1]) => v;
   Expect.identical(-1.0, deffun4());
-  Object deffun5([double v = 9223372036854776000]) => v;
-  Expect.identical(9223372036854776000.0, deffun5());
-  Object deffun6([double v = 18446744073709552000]) => v;
-  Expect.identical(18446744073709552000.0, deffun6());
+  Object deffun5([double v = 9223372036854775808]) => v;
+  Expect.identical(9223372036854775808.0, deffun5());
+  Object deffun6([double v = 18446744073709551616]) => v;
+  Expect.identical(18446744073709551616.0, deffun6());
   Object deffun7([double v = 0x02]) => v;
   Expect.identical(2.0, deffun7());
   Object deffun8([double v = -0x02]) => v;
@@ -196,10 +196,10 @@ main() {
   Expect.identical(-0.0, box[0]);
   box = <double>[-1];
   Expect.identical(-1.0, box[0]);
-  box = <double>[9223372036854776000];
-  Expect.identical(9223372036854776000.0, box[0]);
-  box = <double>[18446744073709552000];
-  Expect.identical(18446744073709552000.0, box[0]);
+  box = <double>[9223372036854775808];
+  Expect.identical(9223372036854775808.0, box[0]);
+  box = <double>[18446744073709551616];
+  Expect.identical(18446744073709551616.0, box[0]);
   box = <double>[0x02];
   Expect.identical(2.0, box[0]);
   box = <double>[-0x02];
@@ -214,10 +214,10 @@ main() {
   Expect.identical(-0.0, box[0]);
   box = [-1];
   Expect.identical(-1.0, box[0]);
-  box = [9223372036854776000];
-  Expect.identical(9223372036854776000.0, box[0]);
-  box = [18446744073709552000];
-  Expect.identical(18446744073709552000.0, box[0]);
+  box = [9223372036854775808];
+  Expect.identical(9223372036854775808.0, box[0]);
+  box = [18446744073709551616];
+  Expect.identical(18446744073709551616.0, box[0]);
   box = [0x02];
   Expect.identical(2.0, box[0]);
   box = [-0x02];
@@ -233,10 +233,10 @@ main() {
   Expect.identical(-0.0, map.keys.first);
   map = <double, Null>{-1: null};
   Expect.identical(-1.0, map.keys.first);
-  map = <double, Null>{9223372036854776000: null};
-  Expect.identical(9223372036854776000.0, map.keys.first);
-  map = <double, Null>{18446744073709552000: null};
-  Expect.identical(18446744073709552000.0, map.keys.first);
+  map = <double, Null>{9223372036854775808: null};
+  Expect.identical(9223372036854775808.0, map.keys.first);
+  map = <double, Null>{18446744073709551616: null};
+  Expect.identical(18446744073709551616.0, map.keys.first);
   map = <double, Null>{0x02: null};
   Expect.identical(2.0, map.keys.first);
   map = <double, Null>{-0x02: null};
@@ -251,10 +251,10 @@ main() {
   Expect.identical(-0.0, map.keys.first);
   map = {-1: null};
   Expect.identical(-1.0, map.keys.first);
-  map = {9223372036854776000: null};
-  Expect.identical(9223372036854776000.0, map.keys.first);
-  map = {18446744073709552000: null};
-  Expect.identical(18446744073709552000.0, map.keys.first);
+  map = {9223372036854775808: null};
+  Expect.identical(9223372036854775808.0, map.keys.first);
+  map = {18446744073709551616: null};
+  Expect.identical(18446744073709551616.0, map.keys.first);
   map = {0x02: null};
   Expect.identical(2.0, map.keys.first);
   map = {-0x02: null};
@@ -269,10 +269,10 @@ main() {
   Expect.identical(-0.0, map.values.first);
   map = <Null, double>{null: -1};
   Expect.identical(-1.0, map.values.first);
-  map = <Null, double>{null: 9223372036854776000};
-  Expect.identical(9223372036854776000.0, map.values.first);
-  map = <Null, double>{null: 18446744073709552000};
-  Expect.identical(18446744073709552000.0, map.values.first);
+  map = <Null, double>{null: 9223372036854775808};
+  Expect.identical(9223372036854775808.0, map.values.first);
+  map = <Null, double>{null: 18446744073709551616};
+  Expect.identical(18446744073709551616.0, map.values.first);
   map = <Null, double>{null: 0x02};
   Expect.identical(2.0, map.values.first);
   map = <Null, double>{null: -0x02};
@@ -287,10 +287,10 @@ main() {
   Expect.identical(-0.0, map.values.first);
   map = {null: -1};
   Expect.identical(-1.0, map.values.first);
-  map = {null: 9223372036854776000};
-  Expect.identical(9223372036854776000.0, map.values.first);
-  map = {null: 18446744073709552000};
-  Expect.identical(18446744073709552000.0, map.values.first);
+  map = {null: 9223372036854775808};
+  Expect.identical(9223372036854775808.0, map.values.first);
+  map = {null: 18446744073709551616};
+  Expect.identical(18446744073709551616.0, map.values.first);
   map = {null: 0x02};
   Expect.identical(2.0, map.values.first);
   map = {null: -0x02};
@@ -301,8 +301,8 @@ main() {
   Expect.identical(1.0, ts2);
   Expect.identical(-0.0, ts3);
   Expect.identical(-1.0, ts4);
-  Expect.identical(9223372036854776000.0, ts5);
-  Expect.identical(18446744073709552000.0, ts6);
+  Expect.identical(9223372036854775808.0, ts5);
+  Expect.identical(18446744073709551616.0, ts6);
   Expect.identical(2.0, ts7);
   Expect.identical(-2.0, ts8);
 
@@ -310,8 +310,8 @@ main() {
   Expect.identical(1.0, tc2);
   Expect.identical(-0.0, tc3);
   Expect.identical(-1.0, tc4);
-  Expect.identical(9223372036854776000.0, tc5);
-  Expect.identical(18446744073709552000.0, tc6);
+  Expect.identical(9223372036854775808.0, tc5);
+  Expect.identical(18446744073709551616.0, tc6);
   Expect.identical(2.0, tc7);
   Expect.identical(-2.0, tc8);
 
@@ -319,8 +319,8 @@ main() {
   Expect.identical(1.0, tg2);
   Expect.identical(-0.0, tg3);
   Expect.identical(-1.0, tg4);
-  Expect.identical(9223372036854776000.0, tg5);
-  Expect.identical(18446744073709552000.0, tg6);
+  Expect.identical(9223372036854775808.0, tg5);
+  Expect.identical(18446744073709551616.0, tg6);
   Expect.identical(2.0, tg7);
   Expect.identical(-2.0, tg8);
 
@@ -330,8 +330,8 @@ main() {
   Expect.identical(1.0, c.v2);
   Expect.identical(-0.0, c.v3);
   Expect.identical(-1.0, c.v4);
-  Expect.identical(9223372036854776000.0, c.v5);
-  Expect.identical(18446744073709552000.0, c.v6);
+  Expect.identical(9223372036854775808.0, c.v5);
+  Expect.identical(18446744073709551616.0, c.v6);
   Expect.identical(2.0, c.v7);
   Expect.identical(-2.0, c.v8);
 
@@ -339,8 +339,8 @@ main() {
   Expect.identical(1.0, C.s2);
   Expect.identical(-0.0, C.s3);
   Expect.identical(-1.0, C.s4);
-  Expect.identical(9223372036854776000.0, C.s5);
-  Expect.identical(18446744073709552000.0, C.s6);
+  Expect.identical(9223372036854775808.0, C.s5);
+  Expect.identical(18446744073709551616.0, C.s6);
   Expect.identical(2.0, C.s7);
   Expect.identical(-2.0, C.s8);
 
@@ -348,8 +348,8 @@ main() {
   Expect.identical(1.0, C.c2);
   Expect.identical(-0.0, C.c3);
   Expect.identical(-1.0, C.c4);
-  Expect.identical(9223372036854776000.0, C.c5);
-  Expect.identical(18446744073709552000.0, C.c6);
+  Expect.identical(9223372036854775808.0, C.c5);
+  Expect.identical(18446744073709551616.0, C.c6);
   Expect.identical(2.0, C.c7);
   Expect.identical(-2.0, C.c8);
 
@@ -357,8 +357,8 @@ main() {
   Expect.identical(1.0, new C.cc2().d);
   Expect.identical(-0.0, new C.cc3().d);
   Expect.identical(-1.0, new C.cc4().d);
-  Expect.identical(9223372036854776000.0, new C.cc5().d);
-  Expect.identical(18446744073709552000.0, new C.cc6().d);
+  Expect.identical(9223372036854775808.0, new C.cc5().d);
+  Expect.identical(18446744073709551616.0, new C.cc6().d);
   Expect.identical(2.0, new C.cc7().d);
   Expect.identical(-2.0, new C.cc8().d);
 
@@ -366,8 +366,8 @@ main() {
   Expect.identical(1.0, const C.cc2().d);
   Expect.identical(-0.0, const C.cc3().d);
   Expect.identical(-1.0, const C.cc4().d);
-  Expect.identical(9223372036854776000.0, const C.cc5().d);
-  Expect.identical(18446744073709552000.0, const C.cc6().d);
+  Expect.identical(9223372036854775808.0, const C.cc5().d);
+  Expect.identical(18446744073709551616.0, const C.cc6().d);
   Expect.identical(2.0, const C.cc7().d);
   Expect.identical(-2.0, const C.cc8().d);
 
@@ -375,8 +375,8 @@ main() {
   Expect.identical(1.0, new C.ci2().d);
   Expect.identical(-0.0, new C.ci3().d);
   Expect.identical(-1.0, new C.ci4().d);
-  Expect.identical(9223372036854776000.0, new C.ci5().d);
-  Expect.identical(18446744073709552000.0, new C.ci6().d);
+  Expect.identical(9223372036854775808.0, new C.ci5().d);
+  Expect.identical(18446744073709551616.0, new C.ci6().d);
   Expect.identical(2.0, new C.ci7().d);
   Expect.identical(-2.0, new C.ci8().d);
 
@@ -384,8 +384,8 @@ main() {
   Expect.identical(1.0, const C.ci2().d);
   Expect.identical(-0.0, const C.ci3().d);
   Expect.identical(-1.0, const C.ci4().d);
-  Expect.identical(9223372036854776000.0, const C.ci5().d);
-  Expect.identical(18446744073709552000.0, const C.ci6().d);
+  Expect.identical(9223372036854775808.0, const C.ci5().d);
+  Expect.identical(18446744073709551616.0, const C.ci6().d);
   Expect.identical(2.0, const C.ci7().d);
   Expect.identical(-2.0, const C.ci8().d);
 
@@ -398,10 +398,10 @@ main() {
   Expect.identical(-0.0, v3);
   v4 = false ? 42.0 : -1;
   Expect.identical(-1.0, v4);
-  v5 = false ? 42.0 : 9223372036854776000;
-  Expect.identical(9223372036854776000.0, v5);
-  v6 = false ? 42.0 : 18446744073709552000;
-  Expect.identical(18446744073709552000.0, v6);
+  v5 = false ? 42.0 : 9223372036854775808;
+  Expect.identical(9223372036854775808.0, v5);
+  v6 = false ? 42.0 : 18446744073709551616;
+  Expect.identical(18446744073709551616.0, v6);
   v7 = false ? 42.0 : 0x02; // Hex literal.
   Expect.identical(2.0, v7);
   v8 = false ? 42.0 : -0x02; // Hex literal.
@@ -417,10 +417,10 @@ main() {
   Expect.identical(-0.0, v3);
   v4 = nl ?? -1;
   Expect.identical(-1.0, v4);
-  v5 = nl ?? 9223372036854776000;
-  Expect.identical(9223372036854776000.0, v5);
-  v6 = nl ?? 18446744073709552000;
-  Expect.identical(18446744073709552000.0, v6);
+  v5 = nl ?? 9223372036854775808;
+  Expect.identical(9223372036854775808.0, v5);
+  v6 = nl ?? 18446744073709551616;
+  Expect.identical(18446744073709551616.0, v6);
   v7 = nl ?? 0x02; // Hex literal.
   Expect.identical(2.0, v7);
   v8 = nl ?? -0x02; // Hex literal.
@@ -437,10 +437,10 @@ main() {
   v4 = -1
     ..toString();
   Expect.identical(-1.0, v4);
-  v5 = 9223372036854776000..toString();
-  Expect.identical(9223372036854776000.0, v5);
-  v6 = 18446744073709552000..toString();
-  Expect.identical(18446744073709552000.0, v6);
+  v5 = 9223372036854775808..toString();
+  Expect.identical(9223372036854775808.0, v5);
+  v6 = 18446744073709551616..toString();
+  Expect.identical(18446744073709551616.0, v6);
   v7 = 0x02..toString(); // Hex literal.
   Expect.identical(2.0, v7);
   v8 = -0x02
@@ -457,10 +457,10 @@ main() {
   Expect.identical(-0.0, value);
   object = value = -1;
   Expect.identical(-1.0, value);
-  object = value = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, value);
-  object = value = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, value);
+  object = value = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, value);
+  object = value = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, value);
   object = value = 0x02;
   Expect.identical(2.0, value);
   object = value = -0x02;
@@ -471,8 +471,8 @@ main() {
   Expect.identical(1.0, value = 1);
   Expect.identical(-0.0, value = -0);
   Expect.identical(-1.0, value = -1);
-  Expect.identical(9223372036854776000.0, value = 9223372036854776000);
-  Expect.identical(18446744073709552000.0, value = 18446744073709552000);
+  Expect.identical(9223372036854775808.0, value = 9223372036854775808);
+  Expect.identical(18446744073709551616.0, value = 18446744073709551616);
   Expect.identical(2.0, value = 0x02);
   Expect.identical(-2.0, value = -0x02);
 
@@ -496,10 +496,10 @@ main() {
   Expect.identical(-0.0, fo3);
   FutureOr<double> fo4 = -1;
   Expect.identical(-1.0, fo4);
-  FutureOr<double> fo5 = 9223372036854776000;
-  Expect.identical(9223372036854776000.0, fo5);
-  FutureOr<double> fo6 = 18446744073709552000;
-  Expect.identical(18446744073709552000.0, fo6);
+  FutureOr<double> fo5 = 9223372036854775808;
+  Expect.identical(9223372036854775808.0, fo5);
+  FutureOr<double> fo6 = 18446744073709551616;
+  Expect.identical(18446744073709551616.0, fo6);
   FutureOr<double> fo7 = 0x02; // Hex literal.
   Expect.identical(2.0, fo7);
   FutureOr<double> fo8 = -0x02; // Hex literal.
@@ -507,19 +507,19 @@ main() {
 
   // Some other FutureOr cases, without being exhaustive.
   {
-    Object func([FutureOr<double> x = 9223372036854776000]) => x;
-    Expect.identical(9223372036854776000.0, func(9223372036854776000));
-    Expect.identical(9223372036854776000.0, func());
-    FutureOr<double> func2() => 9223372036854776000;
-    Expect.identical(9223372036854776000.0, func2());
-    testGeneric<FutureOr<double>>(9223372036854776000.0, 9223372036854776000);
-    List<FutureOr<double>> l = [9223372036854776000];
-    testGeneric<FutureOr<double>>(9223372036854776000.0, l[0]);
-    l.add(9223372036854776000);
-    testGeneric<FutureOr<double>>(9223372036854776000.0, l[1]);
+    Object func([FutureOr<double> x = 9223372036854775808]) => x;
+    Expect.identical(9223372036854775808.0, func(9223372036854775808));
+    Expect.identical(9223372036854775808.0, func());
+    FutureOr<double> func2() => 9223372036854775808;
+    Expect.identical(9223372036854775808.0, func2());
+    testGeneric<FutureOr<double>>(9223372036854775808.0, 9223372036854775808);
+    List<FutureOr<double>> l = [9223372036854775808];
+    testGeneric<FutureOr<double>>(9223372036854775808.0, l[0]);
+    l.add(9223372036854775808);
+    testGeneric<FutureOr<double>>(9223372036854775808.0, l[1]);
     l.add(0.0);
-    l[2] = 9223372036854776000;
-    testGeneric<FutureOr<double>>(9223372036854776000.0, l[2]);
+    l[2] = 9223372036854775808;
+    testGeneric<FutureOr<double>>(9223372036854775808.0, l[2]);
   }
 
   // Type variables statically bound to double also force doubles:
@@ -527,8 +527,8 @@ main() {
   testGeneric<double>(1.0, 1);
   testGeneric<double>(-0.0, -0);
   testGeneric<double>(-1.0, -1);
-  testGeneric<double>(9223372036854776000.0, 9223372036854776000);
-  testGeneric<double>(18446744073709552000.0, 18446744073709552000);
+  testGeneric<double>(9223372036854775808.0, 9223372036854775808);
+  testGeneric<double>(18446744073709551616.0, 18446744073709551616);
   testGeneric<double>(2.0, 0x02);
   testGeneric<double>(-2.0, -0x02);
 
@@ -538,8 +538,8 @@ main() {
   Expect.identical(1.0, sub.method(1));
   Expect.identical(-0.0, sub.method(-0));
   Expect.identical(-1.0, sub.method(-1));
-  Expect.identical(9223372036854776000.0, sub.method(9223372036854776000));
-  Expect.identical(18446744073709552000.0, sub.method(18446744073709552000));
+  Expect.identical(9223372036854775808.0, sub.method(9223372036854775808));
+  Expect.identical(18446744073709551616.0, sub.method(18446744073709551616));
   Expect.identical(2.0, sub.method(0x02));
   Expect.identical(-2.0, sub.method(-0x02));
 
@@ -591,8 +591,8 @@ class C {
   final double v2 = 1;
   final double v3 = -0;
   final double v4 = -1;
-  final double v5 = 9223372036854776000;
-  final double v6 = 18446744073709552000;
+  final double v5 = 9223372036854775808;
+  final double v6 = 18446744073709551616;
   final double v7 = 0x02; // Hex literal.
   final double v8 = -0x02; // Hex literal.
 
@@ -601,8 +601,8 @@ class C {
   static double s2 = 1;
   static double s3 = -0;
   static double s4 = -1;
-  static double s5 = 9223372036854776000;
-  static double s6 = 18446744073709552000;
+  static double s5 = 9223372036854775808;
+  static double s6 = 18446744073709551616;
   static double s7 = 0x02; // Hex literal.
   static double s8 = -0x02; // Hex literal.
 
@@ -611,8 +611,8 @@ class C {
   static const double c2 = 1;
   static const double c3 = -0;
   static const double c4 = -1;
-  static const double c5 = 9223372036854776000;
-  static const double c6 = 18446744073709552000;
+  static const double c5 = 9223372036854775808;
+  static const double c6 = 18446744073709551616;
   static const double c7 = 0x02; // Hex literal.
   static const double c8 = -0x02; // Hex literal.
 
@@ -623,8 +623,8 @@ class C {
   const C.cc2([this.d = 1]);
   const C.cc3([this.d = -0]);
   const C.cc4([this.d = -1]);
-  const C.cc5([this.d = 9223372036854776000]);
-  const C.cc6([this.d = 18446744073709552000]);
+  const C.cc5([this.d = 9223372036854775808]);
+  const C.cc6([this.d = 18446744073709551616]);
   const C.cc7([this.d = 0x02]);
   const C.cc8([this.d = -0x02]);
 
@@ -633,8 +633,8 @@ class C {
   const C.ci2() : this.d = 1;
   const C.ci3() : this.d = -0;
   const C.ci4() : this.d = -1;
-  const C.ci5() : this.d = 9223372036854776000;
-  const C.ci6() : this.d = 18446744073709552000;
+  const C.ci5() : this.d = 9223372036854775808;
+  const C.ci6() : this.d = 18446744073709551616;
   const C.ci7() : this.d = 0x02;
   const C.ci8() : this.d = -0x02;
 }
@@ -644,8 +644,8 @@ double ts1 = 0;
 double ts2 = 1;
 double ts3 = -0;
 double ts4 = -1;
-double ts5 = 9223372036854776000;
-double ts6 = 18446744073709552000;
+double ts5 = 9223372036854775808;
+double ts6 = 18446744073709551616;
 double ts7 = 0x02; // Hex literal.
 double ts8 = -0x02; // Hex literal.
 
@@ -654,8 +654,8 @@ const double tc1 = 0;
 const double tc2 = 1;
 const double tc3 = -0;
 const double tc4 = -1;
-const double tc5 = 9223372036854776000; // 2^63, invalid signed 64-bit integer.
-const double tc6 = 18446744073709552000;
+const double tc5 = 9223372036854775808; // 2^63, invalid signed 64-bit integer.
+const double tc6 = 18446744073709551616;
 const double tc7 = 0x02; // Hex literal.
 const double tc8 = -0x02; // Hex literal.
 
@@ -664,8 +664,8 @@ double get tg1 => 0;
 double get tg2 => 1;
 double get tg3 => -0;
 double get tg4 => -1;
-double get tg5 => 9223372036854776000;
-double get tg6 => 18446744073709552000;
+double get tg5 => 9223372036854775808;
+double get tg6 => 18446744073709551616;
 double get tg7 => 0x02; // Hex literal.
 double get tg8 => -0x02; // Hex literal.
 
