@@ -32,11 +32,9 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or t
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
-const_constructor3_test/02: MissingCompileTimeError # Needs triage, see Issue #34443
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
-const_init2_test/02: MissingCompileTimeError # Needs triage, see Issue #34443
 constructor_reference_test/27: MissingCompileTimeError # Issue https://github.com/dart-lang/sdk/issues/34403
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
