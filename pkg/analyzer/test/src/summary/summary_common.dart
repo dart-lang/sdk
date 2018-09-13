@@ -930,11 +930,13 @@ main() {
     }
     // The synthetic executables for both `x` and `y` have type `() => `Bottom`.
     // Verify that they both use the same reference to `Bottom`.
-    serializeLibraryText('int x = null; int y = null;');
+    serializeLibraryText('var x = throw null; var y = throw null;');
     EntityRef xInitializerReturnType =
         getTypeRefForSlot(findVariable('x').initializer.inferredReturnTypeSlot);
     EntityRef yInitializerReturnType =
         getTypeRefForSlot(findVariable('y').initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(xInitializerReturnType, null, '*bottom*');
+    checkLinkedTypeRef(yInitializerReturnType, null, '*bottom*');
     expect(xInitializerReturnType.reference, yInitializerReturnType.reference);
   }
 

@@ -18,12 +18,6 @@ class LinkedSummarizeAstStrongTest extends SummaryBlackBoxTestStrategyTwoPhase
     with SummaryTestCases {
   @override
   @failingTest
-  test_bottom_reference_shared() {
-    super.test_bottom_reference_shared();
-  }
-
-  @override
-  @failingTest
   test_closure_executable_with_imported_return_type() {
     super.test_closure_executable_with_imported_return_type();
   }
