@@ -163,7 +163,8 @@ class _DirectInvocation extends _Invocation {
       case CallKind.PropertyGet:
         assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
-        return fieldValue.getValue(typeFlowAnalysis);
+        return fieldValue.getValue(
+            typeFlowAnalysis, field.isStatic ? null : args.values[0]);
 
       case CallKind.PropertySet:
         assertx(args.values.length == firstParamIndex + 1);
@@ -176,7 +177,8 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
-        final receiver = fieldValue.getValue(typeFlowAnalysis);
+        final receiver = fieldValue.getValue(
+            typeFlowAnalysis, field.isStatic ? null : args.values[0]);
         if (receiver != const EmptyType()) {
           typeFlowAnalysis.applyCall(/* callSite = */ null,
               DynamicSelector.kCall, new Args.withReceiver(args, receiver),
@@ -185,7 +187,7 @@ class _DirectInvocation extends _Invocation {
         return new Type.nullableAny();
 
       case CallKind.FieldInitializer:
-        assertx(args.values.isEmpty);
+        assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
         Type initializerResult = typeFlowAnalysis
             .getSummary(field)
@@ -685,7 +687,6 @@ class _FieldValue extends _DependencyTracker {
   final Field field;
   final Type staticType;
   Type value;
-  _DirectInvocation _initializerInvocation;
 
   _FieldValue(this.field) : staticType = new Type.fromStatic(field.type) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
@@ -717,22 +718,22 @@ class _FieldValue extends _DependencyTracker {
     });
   }
 
-  void ensureInitialized(TypeFlowAnalysis typeFlowAnalysis) {
+  void ensureInitialized(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
     if (field.initializer != null) {
-      if (_initializerInvocation == null) {
-        _initializerInvocation = typeFlowAnalysis._invocationsCache
-            .getInvocation(
-                new DirectSelector(field, callKind: CallKind.FieldInitializer),
-                new Args<Type>(const <Type>[]));
-      }
+      assertx(field.isStatic == (receiverType == null));
+      final args = !field.isStatic ? <Type>[receiverType] : const <Type>[];
+      final initializerInvocation = typeFlowAnalysis._invocationsCache
+          .getInvocation(
+              new DirectSelector(field, callKind: CallKind.FieldInitializer),
+              new Args<Type>(args));
 
       // It may update the field value.
-      typeFlowAnalysis.workList.processInvocation(_initializerInvocation);
+      typeFlowAnalysis.workList.processInvocation(initializerInvocation);
     }
   }
 
-  Type getValue(TypeFlowAnalysis typeFlowAnalysis) {
-    ensureInitialized(typeFlowAnalysis);
+  Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
+    ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
     return value;
   }

@@ -22,7 +22,7 @@ RESULT: _T {}?
 %y = _Parameter #1 [_T (dart.core::int)+?]
 RESULT: _T {}?
 ------------ #lib::B::bar4 ------------
-
+%this = _Parameter #0 [_T (#lib::B)+]
 RESULT: _T {}?
 ------------ #lib::C:: ------------
 %this = _Parameter #0 [_T (#lib::C)+]

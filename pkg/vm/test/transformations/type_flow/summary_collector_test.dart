@@ -18,11 +18,11 @@ import '../../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 class PrintSummaries extends RecursiveVisitor<Null> {
-  final SummaryCollector _summaryColector;
+  final SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(TypeEnvironment environment, CoreTypes coreTypes)
-      : _summaryColector = new SummaryCollector(
+      : _summaryCollector = new SummaryCollector(
             environment,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(
@@ -38,7 +38,7 @@ class PrintSummaries extends RecursiveVisitor<Null> {
     if (!member.isAbstract &&
         !((member is Field) && (member.initializer == null))) {
       _buf.writeln("------------ $member ------------");
-      _buf.writeln(_summaryColector.createSummary(member));
+      _buf.writeln(_summaryCollector.createSummary(member));
     }
   }
 }
