@@ -1569,6 +1569,7 @@ LayoutTests/fast/dom/shadow/shadow-content-crash_t01: RuntimeError
 LayoutTests/fast/dom/shadow/shadow-disable_t01: RuntimeError
 LayoutTests/fast/dom/shadow/shadow-removechild-and-blur-event_t01: RuntimeError, Pass
 LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError
+LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass
 LayoutTests/fast/dom/shadow/shadowroot-host_t01: RuntimeError
 LayoutTests/fast/dom/shadow/stale-distribution-after-shadow-removal_t01: RuntimeError
 LayoutTests/fast/dynamic/checkbox-selection-crash_t01: RuntimeError
@@ -1598,6 +1599,7 @@ LayoutTests/fast/exclusions/parsing/parsing-wrap-through_t01: RuntimeError
 LayoutTests/fast/files/blob-close-read_t01: RuntimeError
 LayoutTests/fast/files/blob-constructor_t01: RuntimeError
 LayoutTests/fast/files/read-blob-as-array-buffer_t01: RuntimeError
+LayoutTests/fast/filesystem/async-operations_t01: RuntimeError, Pass
 LayoutTests/fast/filesystem/directory-entry-to-uri_t01: RuntimeError
 LayoutTests/fast/filesystem/file-entry-to-uri_t01: RuntimeError
 LayoutTests/fast/filesystem/file-writer-abort-continue_t01: RuntimeError
@@ -1685,6 +1687,7 @@ LayoutTests/fast/speechsynthesis/speech-synthesis-pause-resume_t01: Timeout, Pas
 LayoutTests/fast/speechsynthesis/speech-synthesis-speak_t01: Timeout, Pass
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError
 LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError, Pass
+LayoutTests/fast/table/col-width-span-expand_t01: RuntimeError, Pass
 LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: RuntimeError, Pass
 LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: RuntimeError, Pass
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: RuntimeError
@@ -1977,7 +1980,6 @@ LayoutTests/fast/animation/request-animation-frame-cancel_t01: Timeout, Pass
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError, Pass
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: RuntimeError, Pass
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Timeout, Pass
-LayoutTests/fast/table/col-width-span-expand_t01: RuntimeError, Pass
 LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
@@ -2021,7 +2023,6 @@ LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError, Pass
 LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError, Pass
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError
-LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass
 LayoutTests/fast/dom/vertical-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError, Pass
 LayoutTests/fast/filesystem/async-operations_t01: RuntimeError, Pass
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError
