@@ -103,21 +103,19 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var children = <ComparisonNode>[];
     var visitor = _AnalyzerVisitor(_typeProvider, children);
-    visitor._visitTypeParameters(node.declaredElement.typeParameters);
-    if (node.declaredElement.supertype != null) {
-      children.add(_translateType('Extends: ', node.declaredElement.supertype));
-    }
-    for (int i = 0; i < node.declaredElement.mixins.length; i++) {
-      children
-          .add(_translateType('Mixin $i: ', node.declaredElement.mixins[i]));
-    }
-    for (int i = 0; i < node.declaredElement.interfaces.length; i++) {
-      children.add(_translateType(
-          'Implements $i: ', node.declaredElement.interfaces[i]));
-    }
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
     visitor._visitList(node.members);
     _resultNodes
         .add(ComparisonNode.sorted('Class ${node.name.name}', children));
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    var children = <ComparisonNode>[];
+    var visitor = _AnalyzerVisitor(_typeProvider, children);
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
+    _resultNodes.add(
+        ComparisonNode.sorted('MixinApplication ${node.name.name}', children));
   }
 
   @override
@@ -215,6 +213,20 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
       // Kernel calls both fields and top level variable declarations "fields".
       _resultNodes.add(ComparisonNode.sorted(
           'Field ${variableDeclaration.name.name}', children));
+    }
+  }
+
+  void _handleClassOrClassTypeAlias(ClassElement element) {
+    _visitTypeParameters(element.typeParameters);
+    if (element.supertype != null) {
+      _resultNodes.add(_translateType('Extends: ', element.supertype));
+    }
+    for (int i = 0; i < element.mixins.length; i++) {
+      _resultNodes.add(_translateType('Mixin $i: ', element.mixins[i]));
+    }
+    for (int i = 0; i < element.interfaces.length; i++) {
+      _resultNodes
+          .add(_translateType('Implements $i: ', element.interfaces[i]));
     }
   }
 

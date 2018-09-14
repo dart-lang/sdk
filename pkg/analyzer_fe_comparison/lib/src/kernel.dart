@@ -93,7 +93,9 @@ class _KernelVisitor extends TreeVisitor<void> {
   @override
   void visitClass(Class class_) {
     if (class_.isAnonymousMixin) return null;
-    var kind = class_.isEnum ? 'Enum' : 'Class';
+    var kind = class_.isEnum
+        ? 'Enum'
+        : class_.isMixinApplication ? 'MixinApplication' : 'Class';
     var children = <ComparisonNode>[];
     var visitor = _KernelVisitor(children);
     if (class_.isEnum) {
@@ -108,6 +110,9 @@ class _KernelVisitor extends TreeVisitor<void> {
       if (class_.supertype != null) {
         var declaredSupertype = class_.supertype.asInterfaceType;
         var mixedInTypes = <DartType>[];
+        if (class_.isMixinApplication) {
+          mixedInTypes.add(class_.mixedInType.asInterfaceType);
+        }
         while (declaredSupertype.classNode.isAnonymousMixin) {
           // Since we're walking from the class to its declared supertype, we
           // encounter the mixins in the reverse order that they were declared,
@@ -151,6 +156,7 @@ class _KernelVisitor extends TreeVisitor<void> {
   @override
   void visitField(Field field) {
     if (field.name.name == '_redirecting#') return null;
+    if (field.name.name == '_exports#') return null;
     var children = <ComparisonNode>[];
     children.add(_TypeVisitor.translate('Type: ', field.type));
     // TODO(paulberry): handle more fields from Field
@@ -197,7 +203,9 @@ class _KernelVisitor extends TreeVisitor<void> {
 
   @override
   void visitProcedure(Procedure procedure) {
-    if (procedure.isForwardingStub) return null;
+    if (procedure.isSyntheticForwarder) {
+      return null;
+    }
     // TODO(paulberry): add an annotation to the ComparisonNode when the
     // procedure is a factory.
     var kind = procedure.isFactory
@@ -278,8 +286,8 @@ class _TypeVisitor extends DartTypeVisitor<ComparisonNode> {
           .add(translate('$kind parameter $i: ', node.positionalParameters[i]));
     }
     for (var namedType in node.namedParameters) {
-      children
-          .add(translate('Named parameter ${namedType.name}', namedType.type));
+      children.add(
+          translate('Named parameter ${namedType.name}: ', namedType.type));
     }
     return ComparisonNode.sorted('${_prefix}FunctionType', children);
   }
