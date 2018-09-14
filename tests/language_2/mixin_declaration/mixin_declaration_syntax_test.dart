@@ -382,5 +382,5 @@ void main() {
     }
   }
 
-  Expect equals(CeOwithM().toString(), CwithM().toString());
+  Expect.equals(CeOwithM().toString(), CwithM().toString());
 }
