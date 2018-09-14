@@ -250,7 +250,8 @@ main() {}
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return new StrongModeConstraint(cls);
+      return new StrongModeConstraint(compiler.frontendStrategy.commonElements,
+          compiler.frontendStrategy.nativeBasicData, cls);
     }
 
     for (Impact impact in impacts) {

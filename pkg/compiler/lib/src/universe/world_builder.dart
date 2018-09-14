@@ -192,7 +192,17 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
 class StrongModeConstraint {
   final ClassEntity cls;
 
-  const StrongModeConstraint(this.cls);
+  factory StrongModeConstraint(CommonElements commonElements,
+      NativeBasicData nativeBasicData, ClassEntity cls) {
+    if (nativeBasicData.isJsInteropClass(cls)) {
+      // We can not tell js-interop classes apart, so we just assume the
+      // receiver could be any js-interop class.
+      cls = commonElements.jsJavaScriptObjectClass;
+    }
+    return new StrongModeConstraint.internal(cls);
+  }
+
+  const StrongModeConstraint.internal(this.cls);
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 

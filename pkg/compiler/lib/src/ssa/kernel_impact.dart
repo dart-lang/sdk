@@ -14,6 +14,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
+import '../js_backend/native_data.dart';
 import '../kernel/element_map.dart';
 import '../kernel/runtime_type_analysis.dart';
 import '../options.dart';
@@ -57,6 +58,8 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   CommonElements get commonElements => elementMap.commonElements;
+
+  NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType, TypeUseKind kind) {
@@ -117,7 +120,7 @@ class KernelImpactBuilder extends ir.Visitor {
     if (field.isInstanceMember &&
         elementMap.isNativeClass(field.enclosingClass)) {
       MemberEntity member = elementMap.getMember(field);
-      bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
+      bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForFieldLoad(field, isJsInterop: isJsInterop));
       impactBuilder
@@ -132,7 +135,7 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(constructor.function.body);
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
-      bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
+      bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
     }
@@ -187,7 +190,7 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function);
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
-      bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
+      bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
     }
@@ -493,7 +496,8 @@ class KernelImpactBuilder extends ir.Visitor {
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
     // TODO(johnniwinther): Restrict this to subclasses?
-    Object constraint = new StrongModeConstraint(member.enclosingClass);
+    Object constraint = new StrongModeConstraint(
+        commonElements, _nativeBasicData, member.enclosingClass);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.call(
             member.memberName, elementMap.getCallStructure(node.arguments)),
@@ -606,7 +610,8 @@ class KernelImpactBuilder extends ir.Visitor {
         Object constraint;
         DartType receiverType = elementMap.getStaticType(node.receiver);
         if (receiverType is InterfaceType) {
-          constraint = new StrongModeConstraint(receiverType.element);
+          constraint = new StrongModeConstraint(
+              commonElements, _nativeBasicData, receiverType.element);
         }
 
         if (interfaceTarget is ir.Field ||
@@ -621,7 +626,8 @@ class KernelImpactBuilder extends ir.Visitor {
             DartType receiverType =
                 elementMap.getDartType(interfaceTarget.getterType);
             if (receiverType is InterfaceType) {
-              getterConstraint = new StrongModeConstraint(receiverType.element);
+              getterConstraint = new StrongModeConstraint(
+                  commonElements, _nativeBasicData, receiverType.element);
             }
           }
 
@@ -641,7 +647,8 @@ class KernelImpactBuilder extends ir.Visitor {
     Object constraint;
     DartType receiverType = elementMap.getStaticType(node.receiver);
     if (receiverType is InterfaceType) {
-      constraint = new StrongModeConstraint(receiverType.element);
+      constraint = new StrongModeConstraint(
+          commonElements, _nativeBasicData, receiverType.element);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
@@ -680,7 +687,8 @@ class KernelImpactBuilder extends ir.Visitor {
     Object constraint;
     DartType receiverType = elementMap.getStaticType(node.receiver);
     if (receiverType is InterfaceType) {
-      constraint = new StrongModeConstraint(receiverType.element);
+      constraint = new StrongModeConstraint(
+          commonElements, _nativeBasicData, receiverType.element);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.setter(elementMap.getName(node.name)),
