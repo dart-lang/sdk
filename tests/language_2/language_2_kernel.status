@@ -148,9 +148,9 @@ string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_test: RuntimeError
-type_alias_equality_test/02: RuntimeError
-type_alias_equality_test/03: RuntimeError
-type_alias_equality_test/04: RuntimeError
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 type_error_test: RuntimeError
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError
@@ -424,7 +424,7 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32783
 vm/bool_check_stack_traces_test/01: RuntimeError # No support for line numbers in stacktraces
 vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers in stacktraces
 vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
@@ -452,9 +452,9 @@ vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 vm/bool_check_stack_traces_test/01: RuntimeError # Issue 33584
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 
@@ -2112,9 +2112,9 @@ redirecting_factory_reflection_test: RuntimeError
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
 covariant_subtyping_with_mixin_test: RuntimeError # Issue 34321
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 async_star_test/01: Skip # Timeout
