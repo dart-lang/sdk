@@ -26,8 +26,8 @@ class ContinuationVariables {
 }
 
 void transformLibraries(CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<Library> libraries, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
+    List<Library> libraries, bool syncAsync, bool strongMode) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy, strongMode);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   for (var library in libraries) {
     rewriter.rewriteLibrary(library);
@@ -35,15 +35,15 @@ void transformLibraries(CoreTypes coreTypes, ClassHierarchy hierarchy,
 }
 
 Component transformComponent(CoreTypes coreTypes, ClassHierarchy hierarchy,
-    Component component, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
+    Component component, bool syncAsync, bool strongMode) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy, strongMode);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   return rewriter.rewriteComponent(component);
 }
 
 Procedure transformProcedure(CoreTypes coreTypes, ClassHierarchy hierarchy,
-    Procedure procedure, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
+    Procedure procedure, bool syncAsync, bool strongMode) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy, strongMode);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   return rewriter.visitProcedure(procedure);
 }
@@ -1249,7 +1249,7 @@ class HelperNodes {
       this.env);
 
   factory HelperNodes.fromCoreTypes(
-      CoreTypes coreTypes, ClassHierarchy hierarchy) {
+      CoreTypes coreTypes, ClassHierarchy hierarchy, bool strongMode) {
     return new HelperNodes._(
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.asyncLibrary,
@@ -1294,6 +1294,6 @@ class HelperNodes {
         coreTypes.boolClass,
         coreTypes.boolFromEnvironment,
         coreTypes.unsafeCast,
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: true));
+        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode));
   }
 }

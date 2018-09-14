@@ -115,7 +115,12 @@ class ExpressionLifter extends Transformer {
   // expression [to] would have the same static type by wrapping it into
   // an appropriate unsafeCast.
   Expression assignType(Expression to, Expression from) {
-    final fromType = from.getStaticType(continuationRewriter.helper.env);
+    final env = continuationRewriter.helper.env;
+    if (!env.strongMode) {
+      return to;
+    }
+
+    final fromType = from.getStaticType(env);
     if (fromType == null || fromType == const DynamicType()) {
       return to;
     }

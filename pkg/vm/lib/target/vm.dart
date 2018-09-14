@@ -67,7 +67,7 @@ class VmTarget extends Target {
 
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(
-        coreTypes, hierarchy, libraries, flags.syncAsync);
+        coreTypes, hierarchy, libraries, flags.syncAsync, strongMode);
     logger?.call("Transformed async methods");
 
     callSiteAnnotator.transformLibraries(
@@ -80,7 +80,7 @@ class VmTarget extends Target {
       CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
       {void logger(String msg)}) {
     transformAsync.transformProcedure(
-        coreTypes, hierarchy, procedure, flags.syncAsync);
+        coreTypes, hierarchy, procedure, flags.syncAsync, strongMode);
     logger?.call("Transformed async functions");
   }
 

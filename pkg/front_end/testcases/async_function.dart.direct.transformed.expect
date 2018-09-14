@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static field core::List<core::String> stringList = <dynamic>["bar"];
 static method asyncString() → asy::Future<core::String> /* originally async */ {
@@ -119,7 +118,7 @@ static method asyncStarString() → asy::Stream<core::String> /* originally asyn
           else
             [yield] null;
           [yield] let dynamic #t1 = asy::_awaitHelper(self::asyncString(), :async_op_then, :async_op_error, :async_op) in null;
-          if(:controller.{asy::_AsyncStarStreamController::add}(_in::unsafeCast<core::String>(:result)))
+          if(:controller.{asy::_AsyncStarStreamController::add}(:result))
             return null;
           else
             [yield] null;
@@ -188,7 +187,7 @@ static method main() → dynamic /* originally async */ {
       #L5:
       {
         [yield] let dynamic #t2 = asy::_awaitHelper(self::asyncString(), :async_op_then, :async_op_error, :async_op) in null;
-        core::String str = _in::unsafeCast<core::String>(:result);
+        core::String str = :result;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;

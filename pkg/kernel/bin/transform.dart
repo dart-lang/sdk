@@ -86,8 +86,8 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   final hierarchy = new ClassHierarchy(component);
   switch (options['transformation']) {
     case 'continuation':
-      component =
-          cont.transformComponent(coreTypes, hierarchy, component, syncAsync);
+      component = cont.transformComponent(
+          coreTypes, hierarchy, component, syncAsync, true);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(
