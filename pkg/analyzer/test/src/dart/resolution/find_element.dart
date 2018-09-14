@@ -149,16 +149,36 @@ class FindElement {
     return result;
   }
 
-  MethodElement method(String name, {String className}) {
-    for (var class_ in unitElement.types) {
-      if (className != null && class_.name != className) {
-        continue;
-      }
-      for (var method in class_.methods) {
+  MethodElement method(String name, {String of}) {
+    MethodElement result;
+
+    void findIn(List<MethodElement> methods) {
+      for (var method in methods) {
         if (method.name == name) {
-          return method;
+          if (result != null) {
+            throw new StateError('Method name $name is not unique.');
+          }
+          result = method;
         }
       }
+    }
+
+    for (var class_ in unitElement.types) {
+      if (of != null && class_.name != of) {
+        continue;
+      }
+      findIn(class_.methods);
+    }
+
+    for (var mixin in unitElement.mixins) {
+      if (of != null && mixin.name != of) {
+        continue;
+      }
+      findIn(mixin.methods);
+    }
+
+    if (result != null) {
+      return result;
     }
     fail('Not found class method: $name');
   }

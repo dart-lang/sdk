@@ -78,14 +78,8 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    for (ClassElement classElement in unit.types) {
-      try {
-        _inferClass(classElement);
-      } on _CycleException {
-        // This is a short circuit return to prevent types that inherit from
-        // types containing a circular reference from being inferred.
-      }
-    }
+    _inferClasses(unit.mixins);
+    _inferClasses(unit.types);
   }
 
   /**
@@ -306,6 +300,7 @@ class InstanceMemberInferrer {
         _inferType(classElement.supertype);
         classElement.mixins.forEach(_inferType);
         classElement.interfaces.forEach(_inferType);
+        classElement.superclassConstraints.forEach(_inferType);
         //
         // Then infer the types for the members.
         //
@@ -326,6 +321,17 @@ class InstanceMemberInferrer {
         classElement.hasBeenInferred = true;
       } finally {
         elementsBeingInferred.remove(classElement);
+      }
+    }
+  }
+
+  void _inferClasses(List<ClassElement> elements) {
+    for (ClassElement element in elements) {
+      try {
+        _inferClass(element);
+      } on _CycleException {
+        // This is a short circuit return to prevent types that inherit from
+        // types containing a circular reference from being inferred.
       }
     }
   }

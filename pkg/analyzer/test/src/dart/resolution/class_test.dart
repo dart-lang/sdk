@@ -70,7 +70,10 @@ abstract class B extends A {
 ''');
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    assertElement(findNode.simple('foo(); // ref'), findElement.method('foo'));
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', of: 'A'),
+    );
   }
 
   test_abstractSuperMemberReference_method_reference() async {
@@ -110,7 +113,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo(); // ref'),
-      findElement.method('foo', className: 'M'),
+      findElement.method('foo', of: 'M'),
     );
   }
 
@@ -137,7 +140,7 @@ class C extends A with B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo(); // ref'),
-      findElement.method('foo', className: 'B'),
+      findElement.method('foo', of: 'B'),
     );
   }
 
@@ -161,7 +164,7 @@ class C extends A with B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo(); // ref'),
-      findElement.method('foo', className: 'A'),
+      findElement.method('foo', of: 'A'),
     );
   }
 
@@ -207,7 +210,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo(); // ref'),
-      findElement.method('foo', className: 'A'),
+      findElement.method('foo', of: 'A'),
     );
   }
 

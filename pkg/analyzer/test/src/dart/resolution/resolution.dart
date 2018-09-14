@@ -79,6 +79,10 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(type, expected);
   }
 
+  void assertElementTypeDynamic(DartType type) {
+    expect(type, isDynamicType);
+  }
+
   void assertElementTypes(List<DartType> types, List<DartType> expected,
       {bool ordered = false}) {
     if (ordered) {
@@ -86,6 +90,10 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(types, unorderedEquals(expected));
     }
+  }
+
+  void assertElementTypeString(DartType type, String expected) {
+    expect(type.toString(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {

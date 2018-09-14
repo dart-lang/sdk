@@ -1555,6 +1555,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     for (ClassElementForLink classElement in types) {
       classElement.link(this);
     }
+    for (ClassElementForLink classElement in mixins) {
+      classElement.link(this);
+    }
   }
 
   /// Throw away any information stored in the summary by a previous call to
