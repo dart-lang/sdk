@@ -15,8 +15,15 @@ import 'package:kernel/target/targets.dart';
 /// [ComparisonNode] representing them.
 Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
+  bool errorOccurred = false;
   var component = await kernelForComponent(
-      inputs, _makeCompilerOptions(packagesFileUri, platformUri));
+      inputs,
+      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
+        errorOccurred = true;
+      }));
+  if (errorOccurred) {
+    return ComparisonNode('Error occurred');
+  }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
   for (var library in component.libraries) {
@@ -33,8 +40,15 @@ Future<ComparisonNode> analyzePackage(
 /// Only libraries whose URI passes the [uriFilter] are included in the results.
 Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
     Uri platformUri, bool uriFilter(Uri uri)) async {
+  var errorOccurred = false;
   var component = await kernelForProgram(
-      input, _makeCompilerOptions(packagesFileUri, platformUri));
+      input,
+      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
+        errorOccurred = true;
+      }));
+  if (errorOccurred) {
+    return ComparisonNode('Error occurred');
+  }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
   for (var library in component.libraries) {
@@ -45,7 +59,8 @@ Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
   return ComparisonNode.sorted('Component', libraryNodes);
 }
 
-CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri) {
+CompilerOptions _makeCompilerOptions(
+    Uri packagesFileUri, Uri platformUri, ErrorHandler onError) {
   var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
   var target = NoneTarget(targetFlags);
   var fileSystem = StandardFileSystem.instance;
@@ -57,7 +72,8 @@ CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri) {
     ..strongMode = true
     ..target = target
     ..throwOnErrorsForDebugging = false
-    ..embedSourceText = false;
+    ..embedSourceText = false
+    ..onError = onError;
 }
 
 /// Visitor for serializing a kernel representation of a program into

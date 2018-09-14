@@ -36,6 +36,15 @@ void compareTestPrograms(
       packagesFileUri,
       platformUri,
       (uri) => uri.scheme == 'file');
+  if (kernelNode.text == 'Error occurred') {
+    // TODO(paulberry): really we should verify that the analyzer detects an
+    // error as well.  But that's not easy to do right now because we use the
+    // front end to chase imports so that we know which files to pass to the
+    // analyzer, and we can't rely on the front end import chasing when an error
+    // occurred.
+    print('No differences found (skipped due to front end compilation error)');
+    return;
+  }
   String startingPath;
   var inputs = <String>[];
   for (var library in kernelNode.children) {
@@ -52,7 +61,7 @@ void compareTestPrograms(
   ComparisonNode analyzerNode =
       await analyzer.analyzeFiles(startingPath, inputs);
   var diff = ComparisonNode.diff(kernelNode, analyzerNode);
-  if (diff.children.isEmpty) {
+  if (diff.children.isEmpty && diff.text.startsWith('=')) {
     print('No differences found!');
   } else {
     print('Differences found:');
