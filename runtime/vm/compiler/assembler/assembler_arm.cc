@@ -3068,7 +3068,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
   // Preserve volatile CPU registers and PP.
-  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0);
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
   // Preserve all volatile FPU registers.
@@ -3120,7 +3120,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR));
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,

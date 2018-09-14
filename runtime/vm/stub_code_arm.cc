@@ -121,11 +121,6 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
 
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
-  //
-  // TODO(sjindel): We could skip saving LR (and thus remove one bit from the
-  // stackmap of the callsite), but this would add ARM-specific complexity to
-  // FlowGraphCompiler::RecordSafepoint and
-  // FlowGraphCompiler::SlowPathEnvironmentFor.
   RegisterSet all_registers;
   all_registers.AddAllNonReservedRegisters(save_fpu_registers);
   __ PushRegisters(all_registers);
@@ -506,18 +501,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            DeoptStubKind kind) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-
-  // IP has the potentially live LR value. LR was clobbered by the call with
-  // the return address, so move it into IP to set up the Dart frame.
-  __ eor(IP, IP, Operand(LR));
-  __ eor(LR, IP, Operand(LR));
-  __ eor(IP, IP, Operand(LR));
-
-  // Set up the frame manually with return address now stored in IP.
-  COMPILE_ASSERT(PP < CODE_REG);
-  COMPILE_ASSERT(CODE_REG < FP);
-  COMPILE_ASSERT(FP < IP);
-  __ EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << IP), 0);
+  __ EnterDartFrame(0);
   __ LoadPoolPointer();
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry

@@ -1492,9 +1492,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 
   bool needs_base = false;
   intptr_t kNumTemps = 0;
-  if (ShouldEmitStoreBarrier()) {
-    kNumTemps += 1;  // Block LR for the store barrier.
-  }
   if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
                           false,  // Store.
                           &needs_base)) {
@@ -1560,10 +1557,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     default:
       UNREACHABLE();
       return NULL;
-  }
-
-  if (ShouldEmitStoreBarrier()) {
-    locs->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
   }
 
   return locs;
@@ -2196,8 +2189,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
-      ((IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0)) +
-      (ShouldEmitStoreBarrier() ? 1 : 0);  // Block LR for the store barrier.
+      ((IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0));
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2227,9 +2219,6 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                            ? Location::WritableRegister()
                            : Location::RegisterOrConstant(value()));
 #endif
-  }
-  if (ShouldEmitStoreBarrier()) {
-    summary->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
   }
   return summary;
 }
@@ -2433,8 +2422,7 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      value()->NeedsWriteBarrier() ? 2 : 1;  // Block LR for the store barrier.
+  const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 #if defined(CONCURRENT_MARKING)
@@ -2444,9 +2432,6 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                : Location::RequiresRegister());
 #endif
   locs->set_temp(0, Location::RequiresRegister());
-  if (value()->NeedsWriteBarrier()) {
-    locs->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
-  }
   return locs;
 }
 
@@ -3063,8 +3048,7 @@ class CheckStackOverflowSlowPath
               ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
               : Thread::
                     stack_overflow_shared_without_fpu_regs_entry_point_offset();
-      ASSERT(instruction()->locs()->temp(1).IsRegister() &&
-             instruction()->locs()->temp(1).reg() == LR);
+      ASSERT(kReservedCpuRegisters & (1 << LR));
       __ ldr(LR, Address(THR, entry_point_offset));
       __ blx(LR);
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
