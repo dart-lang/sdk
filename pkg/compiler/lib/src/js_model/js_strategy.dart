@@ -1040,6 +1040,7 @@ class KernelSsaBuilder implements SsaBuilder {
   final Compiler _compiler;
   final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
+  FunctionInlineCache _inlineCache;
 
   KernelSsaBuilder(
       this.task, this._compiler, this._elementMap, this._globalLocalsMap);
@@ -1047,6 +1048,7 @@ class KernelSsaBuilder implements SsaBuilder {
   @override
   HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults results) {
+    _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
     return task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           work.element,
@@ -1060,7 +1062,8 @@ class KernelSsaBuilder implements SsaBuilder {
           work.registry,
           _compiler.backendStrategy.closureDataLookup,
           _compiler.backend.emitter.nativeEmitter,
-          _compiler.backend.sourceInformationStrategy);
+          _compiler.backend.sourceInformationStrategy,
+          _inlineCache);
       return builder.build();
     });
   }

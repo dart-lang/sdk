@@ -126,22 +126,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final FunctionInlineCache inlineCache;
 
   KernelSsaGraphBuilder(
-    this.initialTargetElement,
-    InterfaceType instanceType,
-    this.compiler,
-    this._elementMap,
-    this.globalInferenceResults,
-    this._globalLocalsMap,
-    this.closedWorld,
-    this._worldBuilder,
-    this.registry,
-    this.closureDataLookup,
-    this.nativeEmitter,
-    this._sourceInformationStrategy,
-  )   : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
+      this.initialTargetElement,
+      InterfaceType instanceType,
+      this.compiler,
+      this._elementMap,
+      this.globalInferenceResults,
+      this._globalLocalsMap,
+      this.closedWorld,
+      this._worldBuilder,
+      this.registry,
+      this.closureDataLookup,
+      this.nativeEmitter,
+      this._sourceInformationStrategy,
+      this.inlineCache)
+      : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
-        _allocatorAnalysis = closedWorld.allocatorAnalysis,
-        inlineCache = new FunctionInlineCache(closedWorld.annotationsData) {
+        _allocatorAnalysis = closedWorld.allocatorAnalysis {
     _enterFrame(targetElement, null);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
