@@ -6503,14 +6503,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    if (isStatic) {
-      return const <TypeParameterType>[];
-    }
-    return super.allEnclosingTypeParameterTypes;
-  }
-
-  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -8022,14 +8014,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    if (isStatic) {
-      return const <TypeParameterType>[];
-    }
-    return super.allEnclosingTypeParameterTypes;
-  }
-
-  @override
   PropertyAccessorElement get correspondingGetter {
     if (isGetter || variable == null) {
       return null;
@@ -8663,37 +8647,6 @@ abstract class TypeParameterizedElementMixin
    * directly, or `null` if the list has not been computed yet.
    */
   List<TypeParameterType> _typeParameterTypes;
-
-  /**
-   * A cached list containing all of the type parameter types of this element,
-   * including those declared by this element directly and those declared by any
-   * enclosing elements, or `null` if the list has not been computed yet.
-   */
-  List<TypeParameterType> _allTypeParameterTypes;
-
-  /**
-   * Return all type parameter types of the element that encloses element.
-   * Not `null`, but might be empty for top-level and static class members.
-   */
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    return enclosingTypeParameterContext?.allTypeParameterTypes ??
-        const <TypeParameterType>[];
-  }
-
-  /**
-   * Return all type parameter types of this element.
-   */
-  List<TypeParameterType> get allTypeParameterTypes {
-    if (_allTypeParameterTypes == null) {
-      _allTypeParameterTypes = <TypeParameterType>[];
-      // The most logical order would be (enclosing, this).
-      // But we have to have it like this to be consistent with (inconsistent
-      // by itself) element builder for generic functions.
-      _allTypeParameterTypes.addAll(typeParameterTypes);
-      _allTypeParameterTypes.addAll(allEnclosingTypeParameterTypes);
-    }
-    return _allTypeParameterTypes;
-  }
 
   /**
    * Get the type parameter context enclosing this one, if any.
