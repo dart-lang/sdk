@@ -2,6 +2,7 @@ library test;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method main() → asy::Future<dynamic> /* originally async */ {
   final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
@@ -18,7 +19,7 @@ static method main() → asy::Future<dynamic> /* originally async */ {
       {
         dynamic d;
         [yield] let dynamic #t1 = asy::_awaitHelper(<dynamic>[d], :async_op_then, :async_op_error, :async_op) in null;
-        core::List<core::int> l0 = :result;
+        core::List<core::int> l0 = _in::unsafeCast<core::List<dynamic>>(:result);
         [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::value<dynamic>(<dynamic>[d]), :async_op_then, :async_op_error, :async_op) in null;
         core::List<core::int> l1 = :result;
       }

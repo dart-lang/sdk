@@ -7,7 +7,9 @@ library kernel.transformations.continuation;
 import 'dart:math' as math;
 
 import '../ast.dart';
-import '../core_types.dart';
+import '../class_hierarchy.dart' show ClassHierarchy;
+import '../core_types.dart' show CoreTypes;
+import '../type_environment.dart' show TypeEnvironment;
 import '../visitor.dart';
 
 import 'async.dart';
@@ -23,25 +25,25 @@ class ContinuationVariables {
   static String stackTraceVar(int depth) => ':stack_trace$depth';
 }
 
-void transformLibraries(
-    CoreTypes coreTypes, List<Library> libraries, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+void transformLibraries(CoreTypes coreTypes, ClassHierarchy hierarchy,
+    List<Library> libraries, bool syncAsync) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   for (var library in libraries) {
     rewriter.rewriteLibrary(library);
   }
 }
 
-Component transformComponent(
-    CoreTypes coreTypes, Component component, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+Component transformComponent(CoreTypes coreTypes, ClassHierarchy hierarchy,
+    Component component, bool syncAsync) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   return rewriter.rewriteComponent(component);
 }
 
-Procedure transformProcedure(
-    CoreTypes coreTypes, Procedure procedure, bool syncAsync) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+Procedure transformProcedure(CoreTypes coreTypes, ClassHierarchy hierarchy,
+    Procedure procedure, bool syncAsync) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, hierarchy);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
   return rewriter.visitProcedure(procedure);
 }
@@ -69,7 +71,23 @@ class RecursiveContinuationRewriter extends Transformer {
   }
 
   visitProcedure(Procedure node) {
-    return node.isAbstract ? node : super.visitProcedure(node);
+    try {
+      if (!node.isStatic) {
+        helper.env.thisType = node.enclosingClass?.thisType;
+      }
+      return node.isAbstract ? node : super.visitProcedure(node);
+    } finally {
+      helper.env.thisType = null;
+    }
+  }
+
+  visitConstructor(Constructor node) {
+    try {
+      helper.env.thisType = node.enclosingClass.thisType;
+      return super.visitConstructor(node);
+    } finally {
+      helper.env.thisType = null;
+    }
   }
 
   visitFunctionNode(FunctionNode node) {
@@ -1180,6 +1198,9 @@ class HelperNodes {
   final Member syncIteratorYieldEachIterable;
   final Class boolClass;
   final Member boolFromEnvironment;
+  final Procedure unsafeCast;
+
+  final TypeEnvironment env;
 
   HelperNodes._(
       this.asyncErrorWrapper,
@@ -1223,9 +1244,12 @@ class HelperNodes {
       this.syncIteratorCurrent,
       this.syncIteratorYieldEachIterable,
       this.boolClass,
-      this.boolFromEnvironment);
+      this.boolFromEnvironment,
+      this.unsafeCast,
+      this.env);
 
-  factory HelperNodes.fromCoreTypes(CoreTypes coreTypes) {
+  factory HelperNodes.fromCoreTypes(
+      CoreTypes coreTypes, ClassHierarchy hierarchy) {
     return new HelperNodes._(
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.asyncLibrary,
@@ -1268,6 +1292,8 @@ class HelperNodes {
         coreTypes.syncIteratorCurrent,
         coreTypes.syncIteratorYieldEachIterable,
         coreTypes.boolClass,
-        coreTypes.boolFromEnvironment);
+        coreTypes.boolFromEnvironment,
+        coreTypes.unsafeCast,
+        new TypeEnvironment(coreTypes, hierarchy, strongMode: true));
   }
 }

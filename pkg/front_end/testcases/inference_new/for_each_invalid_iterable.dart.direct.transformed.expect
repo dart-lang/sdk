@@ -2,6 +2,7 @@ library test;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method test() → dynamic /* originally async */ {
   final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
@@ -32,7 +33,7 @@ static method test() → dynamic /* originally async */ {
             while (true) {
               dynamic #t1 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t2 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
-              if(:result) {
+              if(_in::unsafeCast<core::bool>(:result)) {
                 core::int x = :for-iterator.{asy::_StreamIterator::current};
                 {}
               }
@@ -59,7 +60,7 @@ static method test() → dynamic /* originally async */ {
             while (true) {
               dynamic #t5 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t6 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
-              if(:result) {
+              if(_in::unsafeCast<core::bool>(:result)) {
                 final dynamic #t7 = :for-iterator.{asy::_StreamIterator::current};
                 {
                   y = #t7;

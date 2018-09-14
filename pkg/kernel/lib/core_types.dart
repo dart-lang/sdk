@@ -106,6 +106,8 @@ class CoreTypes {
   Field _pragmaName;
   Field _pragmaOptions;
 
+  Procedure _unsafeCast;
+
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
@@ -228,6 +230,11 @@ class CoreTypes {
   Constructor get externalNameDefaultConstructor {
     return _externalNameDefaultConstructor ??=
         index.getMember('dart:_internal', 'ExternalName', '');
+  }
+
+  Procedure get unsafeCast {
+    return _unsafeCast ??=
+        index.getMember('dart:_internal', '::', 'unsafeCast');
   }
 
   Class get functionClass {

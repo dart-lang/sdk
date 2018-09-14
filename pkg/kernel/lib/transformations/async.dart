@@ -111,11 +111,36 @@ class ExpressionLifter extends Transformer {
     return result;
   }
 
+  // If expression [from] has a non-dynamic static type then ensure that
+  // expression [to] would have the same static type by wrapping it into
+  // an appropriate unsafeCast.
+  Expression assignType(Expression to, Expression from) {
+    final fromType = from.getStaticType(continuationRewriter.helper.env);
+    if (fromType == null || fromType == const DynamicType()) {
+      return to;
+    }
+
+    return new StaticInvocation(continuationRewriter.helper.unsafeCast,
+        new Arguments(<Expression>[to], types: <DartType>[fromType]));
+  }
+
+  // Store a value into a temporary variable, dropping unnecessary unsafeCast
+  // if present (because all temporaries are of dynamic type).
+  VariableSet storeTemporary(VariableDeclaration v, Expression value) {
+    assert(v.type == const DynamicType());
+    Expression unwrapped = value;
+    if (value is StaticInvocation &&
+        value.target == continuationRewriter.helper.unsafeCast) {
+      unwrapped = value.arguments.positional.first;
+    }
+    return new VariableSet(v, unwrapped);
+  }
+
   // Name an expression by emitting an assignment to a temporary variable.
-  VariableGet name(Expression expr) {
+  Expression name(Expression expr) {
     VariableDeclaration temp = allocateTemporary(nameIndex);
-    statements.add(new ExpressionStatement(new VariableSet(temp, expr)));
-    return new VariableGet(temp);
+    statements.add(new ExpressionStatement(storeTemporary(temp, expr)));
+    return assignType(new VariableGet(temp), expr);
   }
 
   VariableDeclaration allocateTemporary(int index) {
@@ -153,11 +178,12 @@ class ExpressionLifter extends Transformer {
   // Getting a final or const variable is not an effect so it can be evaluated
   // after an await to its right.
   TreeNode visitVariableGet(VariableGet expr) {
+    Expression result = expr;
     if (seenAwait && !expr.variable.isFinal && !expr.variable.isConst) {
-      expr = name(expr);
+      result = name(expr);
       ++nameIndex;
     }
-    return expr;
+    return result;
   }
 
   // Transform an expression given an action to transform the children.  For
@@ -394,9 +420,9 @@ class ExpressionLifter extends Transformer {
     var thenBody = blockOf(thenStatements);
     var otherwiseBody = blockOf(otherwiseStatements);
     thenBody.addStatement(
-        new ExpressionStatement(new VariableSet(result, expr.then)));
+        new ExpressionStatement(storeTemporary(result, expr.then)));
     otherwiseBody.addStatement(
-        new ExpressionStatement(new VariableSet(result, expr.otherwise)));
+        new ExpressionStatement(storeTemporary(result, expr.otherwise)));
     var branch = new IfStatement(expr.condition, thenBody, otherwiseBody);
     statements.add(branch);
 
@@ -405,14 +431,14 @@ class ExpressionLifter extends Transformer {
 
     ++nameIndex;
     seenAwait = seenAwait || thenAwait || otherwiseAwait;
-    return new VariableGet(result);
+    return assignType(new VariableGet(result), expr);
   }
 
   // Others.
   TreeNode visitAwaitExpression(AwaitExpression expr) {
     final R = continuationRewriter;
     var shouldName = seenAwait;
-    var result = new VariableGet(asyncResult);
+    var result = assignType(new VariableGet(asyncResult), expr);
 
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
