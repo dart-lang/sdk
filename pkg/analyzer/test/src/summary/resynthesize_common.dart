@@ -66,18 +66,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
    */
   bool shouldCompareLibraryElements = true;
 
-  /**
-   * Return `true` if shared front-end is used.
-   */
-  bool get isSharedFrontEnd => false;
-
-  /**
-   * Return `true` if resynthesizing should be done in strong mode.
-   *
-   * Deprecated - remove this getter.
-   */
-  bool get isStrongMode => true;
-
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
@@ -2334,19 +2322,11 @@ class C {
 
   test_class_setter_implicit_return_type() async {
     var library = await checkLibrary('class C { set x(int value) {} }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   void set x(int value) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  dynamic set x(int value) {}
-}
-''');
-    }
   }
 
   test_class_setter_invalid_named_parameter() async {
@@ -2402,21 +2382,12 @@ class C {
   set y(value) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   void set x(int value) {}
   void set y(dynamic value) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  void set x(int value) {}
-  dynamic set y(dynamic value) {}
-}
-''');
-    }
   }
 
   test_class_supertype() async {
@@ -2516,15 +2487,9 @@ dynamic f() {}
     var library = await checkLibrary(r'''
 final f = <U, V>(U x, V y) => y;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 final <U,V>(U, V) → V f;
 ''');
-    } else {
-      checkElementText(library, r'''
-final dynamic f;
-''');
-    }
   }
 
   test_closure_in_variable_declaration_in_part() async {
@@ -2533,8 +2498,7 @@ final dynamic f;
 library lib;
 part "a.dart";
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 library lib;
 part 'a.dart';
 --------------------
@@ -2542,16 +2506,6 @@ unit: a.dart
 
 final (int) → double f;
 ''');
-    } else {
-      checkElementText(library, r'''
-library lib;
-part 'a.dart';
---------------------
-unit: a.dart
-
-final dynamic f;
-''');
-    }
   }
 
   test_codeRange_class() async {
@@ -3111,7 +3065,6 @@ int commentAroundAnnotation2/*codeOffset=365, codeLength=24*/;
   }
 
   test_const_constructor_inferred_args() async {
-    if (!isStrongMode) return;
     var library = await checkLibrary('''
 class C<T> {
   final T t;
@@ -3168,30 +3121,13 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-class C {
-  static const int f = #invalidConst;
-}
-int foo() {}
-''');
-    } else if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static const int f = 1 +
         foo/*location: test.dart;foo*/();
 }
 int foo() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static const dynamic f = 1 +
-        foo/*location: test.dart;foo*/();
-}
-int foo() {}
-''');
-    }
   }
 
   test_const_invalid_field_final() async {
@@ -3202,21 +3138,12 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   final int f;
 }
 int foo() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  final dynamic f;
-}
-int foo() {}
-''');
-    }
   }
 
   test_const_invalid_intLiteral() async {
@@ -3234,24 +3161,11 @@ const int x = 0;
 const v = 1 + foo();
 int foo() => 42;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const int v = #invalidConst;
-int foo() {}
-''');
-    } else if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int v = 1 +
         foo/*location: test.dart;foo*/();
 int foo() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic v = 1 +
-        foo/*location: test.dart;foo*/();
-int foo() {}
-''');
-    }
   }
 
   test_const_invalid_typeMismatch() async {
@@ -3259,18 +3173,11 @@ int foo() {}
 const int a = 0;
 const bool b = a + 5;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const int a = 0;
-const bool b = #invalidConst;
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int a = 0;
 const bool b =
         a/*location: test.dart;a?*/ + 5;
 ''');
-    }
   }
 
   test_const_invokeConstructor_generic_named() async {
@@ -3280,8 +3187,7 @@ class C<K, V> {
 }
 const V = const C<int, String>.named(1, '222');
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -3291,18 +3197,6 @@ const C<int, String> V = const
         String/*location: dart:core;String*/>.
         named/*location: test.dart;C;named*/(1, '222');
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<K, V> {
-  const C.named(K k, V v);
-}
-const dynamic V = const
-        C/*location: test.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: test.dart;C;named*/(1, '222');
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_named_imported() async {
@@ -3315,8 +3209,7 @@ class C<K, V> {
 import 'a.dart';
 const V = const C<int, String>.named(1, '222');
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const C<int, String> V = const
         C/*location: a.dart;C*/<
@@ -3324,16 +3217,6 @@ const C<int, String> V = const
         String/*location: dart:core;String*/>.
         named/*location: a.dart;C;named*/(1, '222');
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: a.dart;C;named*/(1, '222');
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
@@ -3346,8 +3229,7 @@ class C<K, V> {
 import 'a.dart' as p;
 const V = const p.C<int, String>.named(1, '222');
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const C<int, String> V = const
         C/*location: a.dart;C*/<
@@ -3355,16 +3237,6 @@ const C<int, String> V = const
         String/*location: dart:core;String*/>.
         named/*location: a.dart;C;named*/(1, '222');
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: a.dart;C;named*/(1, '222');
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_noTypeArguments() async {
@@ -3374,23 +3246,13 @@ class C<K, V> {
 }
 const V = const C();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<K, V> {
   const C();
 }
 const C<dynamic, dynamic> V = const
         C/*location: test.dart;C*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<K, V> {
-  const C();
-}
-const dynamic V = const
-        C/*location: test.dart;C*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_unnamed() async {
@@ -3400,8 +3262,7 @@ class C<K, V> {
 }
 const V = const C<int, String>();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<K, V> {
   const C();
 }
@@ -3410,17 +3271,6 @@ const C<int, String> V = const
         int/*location: dart:core;int*/,
         String/*location: dart:core;String*/>();
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<K, V> {
-  const C();
-}
-const dynamic V = const
-        C/*location: test.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() async {
@@ -3433,23 +3283,13 @@ class C<K, V> {
 import 'a.dart';
 const V = const C<int, String>();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const C<int, String> V = const
         C/*location: a.dart;C*/<
         int/*location: dart:core;int*/,
         String/*location: dart:core;String*/>();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
-''');
-    }
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
@@ -3462,23 +3302,13 @@ class C<K, V> {
 import 'a.dart' as p;
 const V = const p.C<int, String>();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const C<int, String> V = const
         C/*location: a.dart;C*/<
         int/*location: dart:core;int*/,
         String/*location: dart:core;String*/>();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
-''');
-    }
   }
 
   test_const_invokeConstructor_named() async {
@@ -3488,8 +3318,7 @@ class C {
 }
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   const C.named(bool a, int b, int c, {String d}, {double e});
 }
@@ -3499,18 +3328,6 @@ const C V = const
         d/*location: null*/: 'ccc',
         e/*location: null*/: 3.4);
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  const C.named(bool a, int b, int c, {String d}, {double e});
-}
-const dynamic V = const
-        C/*location: test.dart;C*/.
-        named/*location: test.dart;C;named*/(true, 1, 2,
-        d/*location: null*/: 'ccc',
-        e/*location: null*/: 3.4);
-''');
-    }
   }
 
   test_const_invokeConstructor_named_imported() async {
@@ -3523,21 +3340,12 @@ class C {
 import 'a.dart';
 const V = const C.named();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const C V = const
         C/*location: a.dart;C*/.
         named/*location: a.dart;C;named*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V = const
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() async {
@@ -3550,21 +3358,12 @@ class C {
 import 'a.dart' as p;
 const V = const p.C.named();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const C V = const
         C/*location: a.dart;C*/.
         named/*location: a.dart;C;named*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved() async {
@@ -3649,23 +3448,13 @@ class C {
 }
 const V = const C();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   const C();
 }
 const C V = const
         C/*location: test.dart;C*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  const C();
-}
-const dynamic V = const
-        C/*location: test.dart;C*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed_imported() async {
@@ -3678,19 +3467,11 @@ class C {
 import 'a.dart';
 const V = const C();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const C V = const
         C/*location: a.dart;C*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V = const
-        C/*location: a.dart;C*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
@@ -3703,19 +3484,11 @@ class C {
 import 'a.dart' as p;
 const V = const p.C();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const C V = const
         C/*location: a.dart;C*/();
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        C/*location: a.dart;C*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved() async {
@@ -3798,16 +3571,7 @@ class C {
 import 'a.dart' as p;
 const int v = p.C.F.length;
 ''');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const int v =
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const int v =
         p/*location: test.dart;p*/.
@@ -3815,24 +3579,16 @@ const int v =
         F/*location: a.dart;C;F?*/.
         length/*location: dart:core;String;length?*/;
 ''');
-    }
   }
 
   test_const_length_ofStringLiteral() async {
     var library = await checkLibrary(r'''
 const v = 'abc'.length;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int v = 'abc'.
         length/*location: dart:core;String;length?*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic v = 'abc'.
-        length/*location: dart:core;String;length?*/;
-''');
-    }
   }
 
   test_const_length_ofTopLevelVariable() async {
@@ -3840,21 +3596,12 @@ const dynamic v = 'abc'.
 const String S = 'abc';
 const v = S.length;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const String S = 'abc';
 const int v =
         S/*location: test.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-const String S = 'abc';
-const dynamic v =
-        S/*location: test.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-    }
   }
 
   test_const_length_ofTopLevelVariable_imported() async {
@@ -3865,21 +3612,12 @@ const String S = 'abc';
 import 'a.dart';
 const v = S.length;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const int v =
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic v =
-        S/*location: a.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-    }
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() async {
@@ -3890,32 +3628,13 @@ const String S = 'abc';
 import 'a.dart' as p;
 const v = p.S.length;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const int v =
-        S/*location: a.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const int v =
         p/*location: test.dart;p*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic v =
-        p/*location: test.dart;p*/.
-        S/*location: a.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-    }
   }
 
   test_const_length_staticMethod() async {
@@ -3925,8 +3644,7 @@ class C {
 }
 const v = C.length;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static int length() {}
 }
@@ -3934,20 +3652,9 @@ const () → int v =
         C/*location: test.dart;C*/.
         length/*location: test.dart;C;length*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static int length() {}
-}
-const dynamic v =
-        C/*location: test.dart;C*/.
-        length/*location: test.dart;C;length*/;
-''');
-    }
   }
 
   test_const_list_inferredType() async {
-    if (!isStrongMode) return;
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
@@ -3961,7 +3668,6 @@ const Object x = const <
   }
 
   test_const_map_inferredType() async {
-    if (!isStrongMode) return;
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
@@ -4053,8 +3759,7 @@ class C {
 }
 const V = C.F;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static const int F = 42;
 }
@@ -4062,16 +3767,6 @@ const int V =
         C/*location: test.dart;C*/.
         F/*location: test.dart;C;F?*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static const int F = 42;
-}
-const dynamic V =
-        C/*location: test.dart;C*/.
-        F/*location: test.dart;C;F?*/;
-''');
-    }
   }
 
   test_const_reference_staticField_imported() async {
@@ -4084,21 +3779,12 @@ class C {
 import 'a.dart';
 const V = C.F;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const int V =
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V =
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/;
-''');
-    }
   }
 
   test_const_reference_staticField_imported_withPrefix() async {
@@ -4111,32 +3797,13 @@ class C {
 import 'a.dart' as p;
 const V = p.C.F;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const int V =
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const int V =
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/;
-''');
-    }
   }
 
   test_const_reference_staticMethod() async {
@@ -4146,8 +3813,7 @@ class C {
 }
 const V = C.m;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static int m(int a, String b) {}
 }
@@ -4155,16 +3821,6 @@ const (int, String) → int V =
         C/*location: test.dart;C*/.
         m/*location: test.dart;C;m*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static int m(int a, String b) {}
-}
-const dynamic V =
-        C/*location: test.dart;C*/.
-        m/*location: test.dart;C;m*/;
-''');
-    }
   }
 
   test_const_reference_staticMethod_imported() async {
@@ -4177,21 +3833,12 @@ class C {
 import 'a.dart';
 const V = C.m;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const (int, String) → int V =
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V =
-        C/*location: a.dart;C*/.
-        m/*location: a.dart;C;m*/;
-''');
-    }
   }
 
   test_const_reference_staticMethod_imported_withPrefix() async {
@@ -4204,32 +3851,13 @@ class C {
 import 'a.dart' as p;
 const V = p.C.m;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const (int, String) → int V =
-        C/*location: a.dart;C*/.
-        m/*location: a.dart;C;m*/;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const (int, String) → int V =
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        m/*location: a.dart;C;m*/;
-''');
-    }
   }
 
   test_const_reference_topLevelFunction() async {
@@ -4237,19 +3865,11 @@ const dynamic V =
 foo() {}
 const V = foo;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const () → dynamic V =
         foo/*location: test.dart;foo*/;
 dynamic foo() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V =
-        foo/*location: test.dart;foo*/;
-dynamic foo() {}
-''');
-    }
   }
 
   test_const_reference_topLevelFunction_generic() async {
@@ -4257,19 +3877,11 @@ dynamic foo() {}
 R foo<P, R>(P p) {}
 const V = foo;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const <P,R>(P) → R V =
         foo/*location: test.dart;foo*/;
 R foo<P, R>(P p) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V =
-        foo/*location: test.dart;foo*/;
-R foo<P, R>(P p) {}
-''');
-    }
   }
 
   test_const_reference_topLevelFunction_imported() async {
@@ -4280,19 +3892,11 @@ foo() {}
 import 'a.dart';
 const V = foo;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const () → dynamic V =
         foo/*location: a.dart;foo*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic V =
-        foo/*location: a.dart;foo*/;
-''');
-    }
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() async {
@@ -4303,29 +3907,12 @@ foo() {}
 import 'a.dart' as p;
 const V = p.foo;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const () → dynamic V =
-        foo/*location: a.dart;foo*/;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const () → dynamic V =
         p/*location: test.dart;p*/.
         foo/*location: a.dart;foo*/;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V =
-        p/*location: test.dart;p*/.
-        foo/*location: a.dart;foo*/;
-''');
-    }
   }
 
   test_const_reference_topLevelVariable() async {
@@ -4333,19 +3920,11 @@ const dynamic V =
 const A = 1;
 const B = A + 2;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int A = 1;
 const int B =
         A/*location: test.dart;A?*/ + 2;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic A = 1;
-const dynamic B =
-        A/*location: test.dart;A?*/ + 2;
-''');
-    }
   }
 
   test_const_reference_topLevelVariable_imported() async {
@@ -4356,19 +3935,11 @@ const A = 1;
 import 'a.dart';
 const B = A + 2;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const int B =
         A/*location: a.dart;A?*/ + 2;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic B =
-        A/*location: a.dart;A?*/ + 2;
-''');
-    }
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() async {
@@ -4379,29 +3950,12 @@ const A = 1;
 import 'a.dart' as p;
 const B = p.A + 2;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const int B =
-        A/*location: a.dart;A?*/ + 2;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const int B =
         p/*location: test.dart;p*/.
         A/*location: a.dart;A?*/ + 2;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic B =
-        p/*location: test.dart;p*/.
-        A/*location: a.dart;A?*/ + 2;
-''');
-    }
   }
 
   test_const_reference_type() async {
@@ -4418,8 +3972,7 @@ const vGenericClass = D;
 const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F = dynamic Function(int a, String b);
 enum E {
   synthetic final int index;
@@ -4448,37 +4001,6 @@ const Type vEnum =
 const Type vFunctionTypeAlias =
         F/*location: test.dart;F*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-typedef F = dynamic Function(int a, String b);
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-class C {
-}
-class D<T> {
-}
-const dynamic vDynamic =
-        dynamic/*location: dynamic*/;
-const dynamic vNull =
-        Null/*location: dart:core;Null*/;
-const dynamic vObject =
-        Object/*location: dart:core;Object*/;
-const dynamic vClass =
-        C/*location: test.dart;C*/;
-const dynamic vGenericClass =
-        D/*location: test.dart;D*/;
-const dynamic vEnum =
-        E/*location: test.dart;E*/;
-const dynamic vFunctionTypeAlias =
-        F/*location: test.dart;F*/;
-''');
-    }
   }
 
   test_const_reference_type_functionType() async {
@@ -4488,21 +4010,12 @@ class C {
   final f = <F>[];
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F = dynamic Function();
 class C {
   final List<() → dynamic> f;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-typedef F = dynamic Function();
-class C {
-  final dynamic f;
-}
-''');
-    }
   }
 
   test_const_reference_type_imported() async {
@@ -4517,8 +4030,7 @@ const vClass = C;
 const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const Type vClass =
         C/*location: a.dart;C*/;
@@ -4527,17 +4039,6 @@ const Type vEnum =
 const Type vFunctionTypeAlias =
         F/*location: a.dart;F*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic vClass =
-        C/*location: a.dart;C*/;
-const dynamic vEnum =
-        E/*location: a.dart;E*/;
-const dynamic vFunctionTypeAlias =
-        F/*location: a.dart;F*/;
-''');
-    }
   }
 
   test_const_reference_type_imported_withPrefix() async {
@@ -4552,19 +4053,7 @@ const vClass = p.C;
 const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'a.dart' as p;
-const Type vClass =
-        C/*location: a.dart;C*/;
-const Type vEnum =
-        E/*location: a.dart;E*/;
-const Type vFunctionTypeAlias =
-        F/*location: a.dart;F*/;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const Type vClass =
         p/*location: test.dart;p*/.
@@ -4576,21 +4065,6 @@ const Type vFunctionTypeAlias =
         p/*location: test.dart;p*/.
         F/*location: a.dart;F*/;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic vClass =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/;
-const dynamic vEnum =
-        p/*location: test.dart;p*/.
-        E/*location: a.dart;E*/;
-const dynamic vFunctionTypeAlias =
-        p/*location: test.dart;p*/.
-        F/*location: a.dart;F*/;
-''');
-    }
   }
 
   test_const_reference_type_typeParameter() async {
@@ -4599,19 +4073,11 @@ class C<T> {
   final f = <T>[];
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T> {
   final List<T> f;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  final dynamic f;
-}
-''');
-    }
   }
 
   test_const_reference_unresolved_prefix0() async {
@@ -4673,8 +4139,7 @@ const vGreaterEqual = 1 >= 2;
 const vLess = 1 < 2;
 const vLessEqual = 1 <= 2;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const bool vEqual = 1 == 2;
 const bool vAnd = true && false;
 const bool vOr = false || true;
@@ -4694,73 +4159,33 @@ const bool vGreaterEqual = 1 >= 2;
 const bool vLess = 1 < 2;
 const bool vLessEqual = 1 <= 2;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vEqual = 1 == 2;
-const dynamic vAnd = true && false;
-const dynamic vOr = false || true;
-const dynamic vBitXor = 1 ^ 2;
-const dynamic vBitAnd = 1 & 2;
-const dynamic vBitOr = 1 | 2;
-const dynamic vBitShiftLeft = 1 << 2;
-const dynamic vBitShiftRight = 1 >> 2;
-const dynamic vAdd = 1 + 2;
-const dynamic vSubtract = 1 - 2;
-const dynamic vMiltiply = 1 * 2;
-const dynamic vDivide = 1 / 2;
-const dynamic vFloorDivide = 1 ~/ 2;
-const dynamic vModulo = 1 % 2;
-const dynamic vGreater = 1 > 2;
-const dynamic vGreaterEqual = 1 >= 2;
-const dynamic vLess = 1 < 2;
-const dynamic vLessEqual = 1 <= 2;
-''');
-    }
   }
 
   test_const_topLevel_conditional() async {
     var library = await checkLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int vConditional = 1 == 2 ? 11 : 22;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vConditional = 1 == 2 ? 11 : 22;
-''');
-    }
   }
 
   test_const_topLevel_identical() async {
     var library = await checkLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int vIdentical = 1 == 2 ? 11 : 22;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vIdentical = 1 == 2 ? 11 : 22;
-''');
-    }
   }
 
   test_const_topLevel_ifNull() async {
     var library = await checkLibrary(r'''
 const vIfNull = 1 ?? 2.0;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const num vIfNull = 1 ?? 2.0;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vIfNull = 1 ?? 2.0;
-''');
-    }
   }
 
   test_const_topLevel_literal() async {
@@ -4777,8 +4202,7 @@ const vStringConcat = 'aaa' 'bbb';
 const vStringInterpolation = 'aaa ${true} ${42} bbb';
 const vSymbol = #aaa.bbb.ccc;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const dynamic vNull = null;
 const bool vBoolFalse = false;
 const bool vBoolTrue = true;
@@ -4791,21 +4215,6 @@ const String vStringConcat = 'aaabbb';
 const String vStringInterpolation = 'aaa ${true} ${42} bbb';
 const Symbol vSymbol = #aaa.bbb.ccc;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vNull = null;
-const dynamic vBoolFalse = false;
-const dynamic vBoolTrue = true;
-const dynamic vInt = 1;
-const dynamic vIntLong1 = 9223372036854775807;
-const dynamic vIntLong2 = -1;
-const dynamic vDouble = 2.3;
-const dynamic vString = 'abc';
-const dynamic vStringConcat = 'aaabbb';
-const dynamic vStringInterpolation = 'aaa ${true} ${42} bbb';
-const dynamic vSymbol = #aaa.bbb.ccc;
-''');
-    }
   }
 
   test_const_topLevel_parenthesis() async {
@@ -4829,30 +4238,12 @@ const vNot = !true;
 const vNegate = -1;
 const vComplement = ~1;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-const bool vNotEqual = !(1 == 2);
-const bool vNot = !true;
-const int vNegate = -1;
-const int vComplement = ~1;
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 const bool vNotEqual = 1 != 2;
 const bool vNot = !true;
 const int vNegate = -1;
 const int vComplement = ~1;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-const dynamic vNotEqual = 1 != 2;
-const dynamic vNot = !true;
-const dynamic vNegate = -1;
-const dynamic vComplement = ~1;
-''');
-    }
   }
 
   test_const_topLevel_super() async {
@@ -4880,16 +4271,10 @@ const dynamic vThis = #invalidConst;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic c = #invalidConst;
-''');
-    } else {
-      // This is a bug.
-      checkElementText(library, r'''
+    // This is a bug.
+    checkElementText(library, r'''
 const dynamic c;
 ''');
-    }
   }
 
   test_const_topLevel_typedList() async {
@@ -4901,8 +4286,7 @@ const vInterfaceNoTypeArguments = const <List>[];
 const vInterfaceWithTypeArguments = const <List<String>>[];
 const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const List<Null> vNull = const <
         Null/*location: dart:core;Null*/>[];
 const List<dynamic> vDynamic = const <
@@ -4920,26 +4304,6 @@ const List<Map<int, List<String>>> vInterfaceWithTypeArguments2 = const <
         List/*location: dart:core;List*/<
         String/*location: dart:core;String*/>>>[];
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vNull = const <
-        Null/*location: dart:core;Null*/>[];
-const dynamic vDynamic = const <
-        dynamic/*location: dynamic*/>[1, 2, 3];
-const dynamic vInterfaceNoTypeParameters = const <
-        int/*location: dart:core;int*/>[1, 2, 3];
-const dynamic vInterfaceNoTypeArguments = const <
-        List/*location: dart:core;List*/>[];
-const dynamic vInterfaceWithTypeArguments = const <
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>[];
-const dynamic vInterfaceWithTypeArguments2 = const <
-        Map/*location: dart:core;Map*/<
-        int/*location: dart:core;int*/,
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>>[];
-''');
-    }
   }
 
   test_const_topLevel_typedList_imported() async {
@@ -4948,19 +4312,11 @@ const dynamic vInterfaceWithTypeArguments2 = const <
 import 'a.dart';
 const v = const <C>[];
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 const List<C> v = const <
         C/*location: a.dart;C*/>[];
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-const dynamic v = const <
-        C/*location: a.dart;C*/>[];
-''');
-    }
   }
 
   test_const_topLevel_typedList_importedWithPrefix() async {
@@ -4969,19 +4325,11 @@ const dynamic v = const <
 import 'a.dart' as p;
 const v = const <p.C>[];
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const List<C> v = const <
         C/*location: a.dart;C*/>[];
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic v = const <
-        C/*location: a.dart;C*/>[];
-''');
-    }
   }
 
   test_const_topLevel_typedList_typedefArgument() async {
@@ -4990,19 +4338,11 @@ const dynamic v = const <
 typedef int F(String id);
 const v = const <F>[];
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F = int Function(String id);
 const List<(String) → int> v = const <
         null/*location: test.dart;F;-*/>[];
 ''');
-    } else {
-      checkElementText(library, r'''
-typedef F = int Function(String id);
-const dynamic v = const <
-        null/*location: test.dart;F;-*/>[];
-''');
-    }
   }
 
   test_const_topLevel_typedMap() async {
@@ -5012,8 +4352,7 @@ const vDynamic2 = const <int, dynamic>{};
 const vInterface = const <int, String>{};
 const vInterfaceWithTypeArguments = const <int, List<String>>{};
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const Map<dynamic, int> vDynamic1 = const <
         dynamic/*location: dynamic*/,
         int/*location: dart:core;int*/>{};
@@ -5028,68 +4367,24 @@ const Map<int, List<String>> vInterfaceWithTypeArguments = const <
         List/*location: dart:core;List*/<
         String/*location: dart:core;String*/>>{};
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vDynamic1 = const <
-        dynamic/*location: dynamic*/,
-        int/*location: dart:core;int*/>{};
-const dynamic vDynamic2 = const <
-        int/*location: dart:core;int*/,
-        dynamic/*location: dynamic*/>{};
-const dynamic vInterface = const <
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>{};
-const dynamic vInterfaceWithTypeArguments = const <
-        int/*location: dart:core;int*/,
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>{};
-''');
-    }
   }
 
   test_const_topLevel_untypedList() async {
     var library = await checkLibrary(r'''
 const v = const [1, 2, 3];
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-const List<int> v = const <
-        int/*location: dart:core;int*/>[1, 2, 3];
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 const List<int> v = const [1, 2, 3];
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-const dynamic v = const [1, 2, 3];
-''');
-    }
   }
 
   test_const_topLevel_untypedMap() async {
     var library = await checkLibrary(r'''
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-const Map<int, String> v = const <
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>{0: 'aaa', 1: 'bbb', 2: 'ccc'};
-''');
-      } else {
-        checkElementText(library, r'''
+    checkElementText(library, r'''
 const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-const dynamic v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
-''');
-    }
   }
 
   test_constExpr_pushReference_enum_field() async {
@@ -5099,8 +4394,7 @@ final vValue = E.a;
 final vValues = E.values;
 final vIndex = E.a.index;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -5113,21 +4407,6 @@ final E vValue;
 final List<E> vValues;
 final int vIndex;
 ''');
-    } else {
-      checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-final dynamic vValue;
-final dynamic vValues;
-final dynamic vIndex;
-''');
-    }
   }
 
   test_constExpr_pushReference_enum_method() async {
@@ -5135,8 +4414,7 @@ final dynamic vIndex;
 enum E {a}
 final vToString = E.a.toString();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -5145,17 +4423,6 @@ enum E {
 }
 final String vToString;
 ''');
-    } else {
-      checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  String toString() {}
-}
-final dynamic vToString;
-''');
-    }
   }
 
   test_constExpr_pushReference_field_simpleIdentifier() async {
@@ -5182,8 +4449,7 @@ class C {
   static m() {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static const () → dynamic a =
         C/*location: test.dart;C*/.
@@ -5191,16 +4457,6 @@ class C {
   static dynamic m() {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static const dynamic a =
-        C/*location: test.dart;C*/.
-        m/*location: test.dart;C;m*/;
-  static dynamic m() {}
-}
-''');
-    }
   }
 
   test_constructor_documented() async {
@@ -5274,18 +4530,8 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C() :
-        x/*location: test.dart;C;x*/ = #invalidConst;
-}
-int foo() {}
-''');
-    } else {
-      // It is OK to keep non-constant initializers.
-      checkElementText(library, r'''
+    // It is OK to keep non-constant initializers.
+    checkElementText(library, r'''
 class C {
   final dynamic x;
   const C() :
@@ -5294,7 +4540,6 @@ class C {
 }
 int foo() {}
 ''');
-    }
   }
 
   test_constructor_initializers_field_withParameter() async {
@@ -5893,20 +5138,7 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-class B<T> {
-  const B();
-}
-class C<T> {
-  const C([B<T> b = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/>()]);
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -5915,7 +5147,6 @@ class C<T> {
         B/*location: test.dart;B*/()]);
 }
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
@@ -5928,22 +5159,7 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-abstract class A<T> {
-}
-class B<T> implements A<T> {
-  const B();
-}
-class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/>()]);
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 abstract class A<T> {
 }
 class B<T> implements A<T> {
@@ -5954,7 +5170,6 @@ class C<T> implements A<Iterable<T>> {
         B/*location: test.dart;B*/()]);
 }
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
@@ -5964,25 +5179,13 @@ class B<T> {
 }
 void foo<T>([B<T> b = const B()]) {}
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-class B<T> {
-  const B();
-}
-void foo<T>([B<T> b = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/>()]) {}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class B<T> {
   const B();
 }
 void foo<T>([B<T> b = const
         B/*location: test.dart;B*/()]) {}
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
@@ -5994,20 +5197,7 @@ class C {
   void foo<T>([B<T> b = const B()]) {}
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-class B<T> {
-  const B();
-}
-class C {
-  void foo<T>([B<T> b = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/>()]) {}
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -6016,7 +5206,6 @@ class C {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
@@ -6028,21 +5217,7 @@ class C<E1> {
   void foo<E2>([B<E1, E2> b = const B()]) {}
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-class B<T1, T2> {
-  const B();
-}
-class C<E1> {
-  void foo<E2>([B<E1, E2> b = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/,
-        Null/*location: dart:core;Null*/>()]) {}
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class B<T1, T2> {
   const B();
 }
@@ -6051,7 +5226,6 @@ class C<E1> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
@@ -6063,20 +5237,7 @@ class C<T> {
   void foo([B<T> b = const B()]) {}
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The constant can not depend on a (non-constant) type parameter.
-      checkElementText(library, r'''
-class B<T> {
-  const B();
-}
-class C<T> {
-  void foo([B<T> b = const
-        B/*location: test.dart;B*/<
-        Null/*location: dart:core;Null*/>()]) {}
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -6085,7 +5246,6 @@ class C<T> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
-    }
   }
 
   test_enum_documented() async {
@@ -6482,8 +5642,7 @@ class C {
   test_field_formal_param_inferred_type_implicit() async {
     var library = await checkLibrary('class C extends D { var v; C(this.v); }'
         ' abstract class D { int get v; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   int v;
   C(int this.v);
@@ -6492,17 +5651,6 @@ abstract class D {
   int get v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  dynamic v;
-  C(dynamic this.v);
-}
-abstract class D {
-  int get v;
-}
-''');
-    }
   }
 
   test_field_inferred_type_nonStatic_explicit_initialized() async {
@@ -6516,26 +5664,17 @@ class C {
 
   test_field_inferred_type_nonStatic_implicit_initialized() async {
     var library = await checkLibrary('class C { var v = 0; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   int v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  dynamic v;
-}
-''');
-    }
   }
 
   test_field_inferred_type_nonStatic_implicit_uninitialized() async {
     var library = await checkLibrary(
         'class C extends D { var v; } abstract class D { int get v; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   int v;
 }
@@ -6543,33 +5682,15 @@ abstract class D {
   int get v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  dynamic v;
-}
-abstract class D {
-  int get v;
-}
-''');
-    }
   }
 
   test_field_inferred_type_static_implicit_initialized() async {
     var library = await checkLibrary('class C { static var v = 0; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static int v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static dynamic v;
-}
-''');
-    }
   }
 
   test_field_propagatedType_const_noDep() async {
@@ -6577,19 +5698,11 @@ class C {
 class C {
   static const x = 0;
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static const int x = 0;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static const dynamic x = 0;
-}
-''');
-    }
   }
 
   test_field_propagatedType_final_dep_inLib() async {
@@ -6599,21 +5712,12 @@ import "a.dart";
 class C {
   final b = a / 2;
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 class C {
   final double b;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-class C {
-  final dynamic b;
-}
-''');
-    }
   }
 
   test_field_propagatedType_final_dep_inPart() async {
@@ -6624,8 +5728,7 @@ part "a.dart";
 class C {
   final b = a / 2;
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 library lib;
 part 'a.dart';
 class C {
@@ -6636,19 +5739,6 @@ unit: a.dart
 
 final int a;
 ''');
-    } else {
-      checkElementText(library, r'''
-library lib;
-part 'a.dart';
-class C {
-  final dynamic b;
-}
---------------------
-unit: a.dart
-
-final dynamic a;
-''');
-    }
   }
 
   test_field_propagatedType_final_noDep_instance() async {
@@ -6656,19 +5746,11 @@ final dynamic a;
 class C {
   final x = 0;
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   final int x;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  final dynamic x;
-}
-''');
-    }
   }
 
   test_field_propagatedType_final_noDep_static() async {
@@ -6676,53 +5758,29 @@ class C {
 class C {
   static final x = 0;
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static final int x;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static final dynamic x;
-}
-''');
-    }
   }
 
   test_field_static_final_untyped() async {
     var library = await checkLibrary('class C { static final x = 0; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static final int x;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static final dynamic x;
-}
-''');
-    }
   }
 
   test_field_untyped() async {
     var library = await checkLibrary('class C { var x = 0; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   int x;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  dynamic x;
-}
-''');
-    }
   }
 
   test_function_async() async {
@@ -6921,50 +5979,27 @@ dynamic g() {}
 
   test_futureOr() async {
     var library = await checkLibrary('import "dart:async"; FutureOr<int> x;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 FutureOr<int> x;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-dynamic x;
-''');
-    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
-    if (isStrongMode) {
-      expect(variables[0].type.toString(), 'FutureOr<int>');
-    } else {
-      expect(variables[0].type.toString(), 'dynamic');
-    }
+    expect(variables[0].type.toString(), 'FutureOr<int>');
   }
 
   test_futureOr_const() async {
     var library =
         await checkLibrary('import "dart:async"; const x = FutureOr;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 const Type x =
         FutureOr/*location: dart:async;FutureOr*/;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-const dynamic x =
-        FutureOr/*location: dart:async;FutureOr*/;
-''');
-    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0] as ConstTopLevelVariableElementImpl;
-    if (isStrongMode) {
-      expect(x.type.toString(), 'Type');
-    } else {
-      expect(x.type.toString(), 'dynamic');
-    }
+    expect(x.type.toString(), 'Type');
     expect(x.constantInitializer.toString(), 'FutureOr');
   }
 
@@ -6975,34 +6010,20 @@ FutureOr<int> f() => null;
 var x = f();
 var y = x.then((z) => z.asDouble());
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 FutureOr<int> x;
 dynamic y;
 FutureOr<int> f() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-dynamic x;
-dynamic y;
-dynamic f() {}
-''');
-    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
     var x = variables[0];
     expect(x.name, 'x');
     var y = variables[1];
     expect(y.name, 'y');
-    if (isStrongMode) {
-      expect(x.type.toString(), 'FutureOr<int>');
-      expect(y.type.toString(), 'dynamic');
-    } else {
-      expect(x.type.toString(), 'dynamic');
-      expect(y.type.toString(), 'dynamic');
-    }
+    expect(x.type.toString(), 'FutureOr<int>');
+    expect(y.type.toString(), 'dynamic');
   }
 
   test_generic_gClass_gMethodStatic() async {
@@ -7110,8 +6131,7 @@ external int get x;
   test_getter_inferred_type_nonStatic_implicit_return() async {
     var library = await checkLibrary(
         'class C extends D { get f => null; } abstract class D { int get f; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   int get f {}
 }
@@ -7119,16 +6139,6 @@ abstract class D {
   int get f;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  dynamic get f {}
-}
-abstract class D {
-  int get f;
-}
-''');
-    }
   }
 
   test_getters() async {
@@ -7380,8 +6390,7 @@ class D<T> {}
 D<T> f<T>() => null;
 const x = const C(f);
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 typedef F = D<T> Function<T>();
 class C {
   const C(<T>() → D<T> f);
@@ -7393,20 +6402,6 @@ const C x = const
         f/*location: test.dart;f*/);
 D<T> f<T>() {}
 ''');
-    } else {
-      checkElementText(library, '''
-typedef F = D<T> Function<T>();
-class C {
-  const C(<T>() → D<T> f);
-}
-class D<T> {
-}
-const dynamic x = const
-        C/*location: test.dart;C*/(
-        f/*location: test.dart;f*/);
-D<T> f<T>() {}
-''');
-    }
   }
 
   test_infer_instanceCreation_fromArguments() async {
@@ -7421,8 +6416,7 @@ class S<T extends A> {
 
 var s = new S(new B());
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 class A {
 }
 class B extends A {
@@ -7432,18 +6426,6 @@ class S<T extends A> {
 }
 S<B> s;
 ''');
-    } else {
-      checkElementText(library, '''
-class A {
-}
-class B extends A {
-}
-class S<T extends A> {
-  S(T _);
-}
-dynamic s;
-''');
-    }
   }
 
   test_infer_property_set() async {
@@ -7460,8 +6442,7 @@ class D extends C {}
 var a = new A();
 var x = a.b.c ??= new D();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 class A {
   B b;
 }
@@ -7476,23 +6457,6 @@ class D extends C {
 A a;
 C x;
 ''');
-    } else {
-      checkElementText(library, '''
-class A {
-  B b;
-}
-class B {
-  C get c {}
-  void set c(C value) {}
-}
-class C {
-}
-class D extends C {
-}
-dynamic a;
-dynamic x;
-''');
-    }
   }
 
   test_inference_issue_32394() async {
@@ -7502,19 +6466,11 @@ var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 Iterable<String> x;
 List<int> y;
 List<String> z;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-dynamic y;
-dynamic z;
-''');
-    }
   }
 
   test_inference_map() async {
@@ -7525,23 +6481,13 @@ class C {
 var x = <C>[];
 var y = x.map((c) => c.p);
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 class C {
   int p;
 }
 List<C> x;
 Iterable<int> y;
 ''');
-    } else {
-      checkElementText(library, '''
-class C {
-  int p;
-}
-dynamic x;
-dynamic y;
-''');
-    }
   }
 
   test_inferred_function_type_for_variable_in_generic_function() async {
@@ -7625,15 +6571,6 @@ class C<U, V> {
   }
 
   test_inferred_function_type_in_generic_closure() async {
-    if (!isStrongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
-      return;
-    }
     // In the code below, `<U, V>() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters.
     var library = await checkLibrary('''
@@ -7641,26 +6578,12 @@ f<T>() {
   print(/*<U, V>*/() => () => 0);
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 dynamic f<T>() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-''');
-    }
   }
 
   test_inferred_generic_function_type_in_generic_closure() async {
-    if (!isStrongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
-      return;
-    }
     // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
     // return type of `() => int`, with 7 (unused) type parameters.
     var library = await checkLibrary('''
@@ -7668,22 +6591,16 @@ f<T>() {
   print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 dynamic f<T>() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-''');
-    }
   }
 
   test_inferred_type_is_typedef() async {
     var library = await checkLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'
         ' abstract class D { F get v; }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F = int Function(String s);
 class C extends D {
   (String) → int v;
@@ -7692,17 +6609,6 @@ abstract class D {
   (String) → int get v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-typedef F = int Function(String s);
-class C extends D {
-  dynamic v;
-}
-abstract class D {
-  (String) → int get v;
-}
-''');
-    }
   }
 
   test_inferred_type_refers_to_bound_type_param() async {
@@ -7714,8 +6620,7 @@ abstract class D<U, V> {
   Map<V, U> get v;
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T> extends D<int, T> {
   Map<T, int> v;
 }
@@ -7723,16 +6628,6 @@ abstract class D<U, V> {
   Map<V, U> get v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T> extends D<int, T> {
-  dynamic v;
-}
-abstract class D<U, V> {
-  Map<V, U> get v;
-}
-''');
-    }
   }
 
   test_inferred_type_refers_to_function_typed_param_of_typedef() async {
@@ -7756,8 +6651,7 @@ class C<T, U> extends D<U, int> {
 abstract class D<V, W> {
   void f(int x, W g(V s));
 }''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T, U> extends D<U, int> {
   void f(int x, (U) → int g) {}
 }
@@ -7765,16 +6659,6 @@ abstract class D<V, W> {
   void f(int x, (V) → W g);
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T, U> extends D<U, int> {
-  void f(int x, dynamic g) {}
-}
-abstract class D<V, W> {
-  void f(int x, (V) → W g);
-}
-''');
-    }
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
@@ -7793,28 +6677,18 @@ class C extends D {
   void f(int x, g) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 class C extends D {
   void f(int x, (String) → int g) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-class C extends D {
-  void f(int x, dynamic g) {}
-}
-''');
-    }
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() async {
     var library = await checkLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   void f(int x, (String) → int g) {}
 }
@@ -7822,16 +6696,6 @@ abstract class D {
   void f(int x, (String) → int g);
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  void f(int x, dynamic g) {}
-}
-abstract class D {
-  void f(int x, (String) → int g);
-}
-''');
-    }
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() async {
@@ -7859,8 +6723,7 @@ dynamic f({(int, () → void) → void g}) {}
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
     var library = await checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   void set f((String) → int g) {}
 }
@@ -7868,16 +6731,6 @@ abstract class D {
   void set f((String) → int g);
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  void set f(dynamic g) {}
-}
-abstract class D {
-  void set f((String) → int g);
-}
-''');
-    }
   }
 
   test_inferredType_definedInSdkLibraryPart() async {
@@ -7893,21 +6746,12 @@ class B extends A {
   m(p) {}
 }
   ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 class B extends A {
   dynamic m(Stream<dynamic> p) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-class B extends A {
-  dynamic m(dynamic p) {}
-}
-''');
-    }
     ClassElement b = library.definingCompilationUnit.types[0];
     ParameterElement p = b.methods[0].parameters[0];
     // This test should verify that we correctly record inferred types,
@@ -7929,8 +6773,7 @@ class A {
 var a1 = A();
 var a2 = A.named();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class A {
   A();
   A.named();
@@ -7938,16 +6781,6 @@ class A {
 A a1;
 A a2;
 ''');
-    } else {
-      checkElementText(library, r'''
-class A {
-  A();
-  A.named();
-}
-dynamic a1;
-dynamic a2;
-''');
-    }
   }
 
   test_inferredType_implicitCreation_prefixed() async {
@@ -7963,19 +6796,11 @@ import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'foo.dart' as foo;
 A a1;
 A a2;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'foo.dart' as foo;
-dynamic a1;
-dynamic a2;
-''');
-    }
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
@@ -7987,19 +6812,11 @@ int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 List<((String) → int) → Object> v;
 int f((String) → int x) {}
 String g((String) → int x) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic v;
-int f((String) → int x) {}
-String g((String) → int x) {}
-''');
-    }
   }
 
   test_inheritance_errors() async {
@@ -8035,28 +6852,16 @@ abstract class D extends C {
 
   test_initializer_executable_with_return_type_from_closure() async {
     var library = await checkLibrary('var v = () => 0;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 () → int v;
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic v;
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
     var library = await checkLibrary('var v = (f) async => await f;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 (dynamic) → Future<dynamic> v;
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic v;
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
@@ -8064,25 +6869,11 @@ dynamic v;
 import 'dart:async';
 var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
-    if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
-import 'dart:async';
-(Future<Future<Future<int>>>) → Future<Future<int>> v;
-''');
-      } else {
-        // The analyzer type system over-flattens - see dartbug.com/31887
-        checkElementText(library, r'''
+    // The analyzer type system over-flattens - see dartbug.com/31887
+    checkElementText(library, r'''
 import 'dart:async';
 (Future<Future<Future<int>>>) → Future<int> v;
 ''');
-      }
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-dynamic v;
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_int() async {
@@ -8090,17 +6881,10 @@ dynamic v;
 import 'dart:async';
 var v = (Future<int> f) async => await f;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 (Future<int>) → Future<int> v;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-dynamic v;
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
@@ -8108,17 +6892,10 @@ dynamic v;
 import 'dart:async';
 var v = (Future f) async => await f;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 (Future<dynamic>) → Future<dynamic> v;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
-dynamic v;
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_field() async {
@@ -8127,19 +6904,11 @@ class C {
   var v = () => 0;
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   () → int v;
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  dynamic v;
-}
-''');
-    }
   }
 
   test_initializer_executable_with_return_type_from_closure_local() async {
@@ -8159,19 +6928,11 @@ void f() {}
 class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<S extends num, T extends C<S, T>> {
 }
 C<num, C<num, dynamic>> c;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<S extends num, T extends C<S, T>> {
-}
-C<dynamic, dynamic> c;
-''');
-    }
   }
 
   test_instantiateToBounds_boundRefersToItself() async {
@@ -8183,8 +6944,7 @@ class B {
   var c3 = new C();
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T extends C<T>> {
 }
 class B {
@@ -8193,17 +6953,6 @@ class B {
 C<C<dynamic>> c;
 C<C<dynamic>> c2;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T extends C<T>> {
-}
-class B {
-  dynamic c3;
-}
-C<dynamic> c;
-dynamic c2;
-''');
-    }
   }
 
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
@@ -8211,19 +6960,11 @@ dynamic c2;
 class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T extends C<T, U>, U extends num> {
 }
 C<C<dynamic, num>, num> c;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T extends C<T, U>, U extends num> {
-}
-C<dynamic, dynamic> c;
-''');
-    }
   }
 
   test_instantiateToBounds_functionTypeAlias_reexported() async {
@@ -8240,21 +6981,12 @@ class C {
   F f() => null;
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'b.dart';
 class C {
   (O) → O f() {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'b.dart';
-class C {
-  (dynamic) → dynamic f() {}
-}
-''');
-    }
   }
 
   test_instantiateToBounds_functionTypeAlias_simple() async {
@@ -8262,17 +6994,10 @@ class C {
 typedef F<T extends num>(T p);
 F f;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F<T extends num> = dynamic Function(T p);
 (num) → dynamic f;
 ''');
-    } else {
-      checkElementText(library, r'''
-typedef F<T extends num> = dynamic Function(T p);
-(dynamic) → dynamic f;
-''');
-    }
   }
 
   test_instantiateToBounds_simple() async {
@@ -8280,19 +7005,11 @@ typedef F<T extends num> = dynamic Function(T p);
 class C<T extends num> {}
 C c;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T extends num> {
 }
 C<num> c;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T extends num> {
-}
-C<dynamic> c;
-''');
-    }
   }
 
   test_invalid_annotation_prefixed_constructor() async {
@@ -8422,19 +7139,11 @@ class C {
   set x(this.x) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   void set x(dynamic this.x) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  dynamic set x(dynamic this.x) {}
-}
-''');
-    }
   }
 
   test_invalidUri_part_emptyUri() async {
@@ -9033,21 +7742,12 @@ dynamic get f {}
 
   test_metadata_functionDeclaration_setter() async {
     var library = await checkLibrary('const a = null; @a set f(value) {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const dynamic a = null;
 @
         a/*location: test.dart;a?*/
 void set f(dynamic value) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic a = null;
-@
-        a/*location: test.dart;a?*/
-dynamic set f(dynamic value) {}
-''');
-    }
   }
 
   test_metadata_functionTypeAlias() async {
@@ -9155,8 +7855,7 @@ class C {
   set m(value) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   @
         a/*location: test.dart;a?*/
@@ -9164,16 +7863,6 @@ class C {
 }
 const dynamic a = null;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  dynamic set m(dynamic value) {}
-}
-const dynamic a = null;
-''');
-    }
   }
 
   test_metadata_partDirective() async {
@@ -9198,16 +7887,7 @@ unit: foo.dart
   test_metadata_prefixed_variable() async {
     addLibrarySource('/a.dart', 'const b = null;');
     var library = await checkLibrary('import "a.dart" as a; @a.b class C {}');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-import 'a.dart' as a;
-@
-        b/*location: a.dart;b?*/
-class C {
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as a;
 @
         a/*location: test.dart;a*/.
@@ -9215,7 +7895,6 @@ import 'a.dart' as a;
 class C {
 }
 ''');
-    }
   }
 
   test_metadata_simpleFormalParameter() async {
@@ -9310,8 +7989,7 @@ class C {
   test_method_inferred_type_nonStatic_implicit_param() async {
     var library = await checkLibrary('class C extends D { void f(value) {} }'
         ' abstract class D { void f(int value); }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   void f(int value) {}
 }
@@ -9319,16 +7997,6 @@ abstract class D {
   void f(int value);
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  void f(dynamic value) {}
-}
-abstract class D {
-  void f(int value);
-}
-''');
-    }
   }
 
   test_method_inferred_type_nonStatic_implicit_return() async {
@@ -9340,8 +8008,7 @@ abstract class D {
   int f();
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   int f() {}
 }
@@ -9349,16 +8016,6 @@ abstract class D {
   int f();
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  dynamic f() {}
-}
-abstract class D {
-  int f();
-}
-''');
-    }
   }
 
   test_method_type_parameter() async {
@@ -9402,8 +8059,7 @@ class B {
 }
 var c = new B().a();
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class A {
   double call() {}
 }
@@ -9412,17 +8068,6 @@ class B {
 }
 double c;
 ''');
-    } else {
-      checkElementText(library, r'''
-class A {
-  double call() {}
-}
-class B {
-  A a;
-}
-dynamic c;
-''');
-    }
   }
 
   test_mixin() async {
@@ -9742,8 +8387,7 @@ class B<T> extends A<T> {
   void f(T t) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 library meta;
 class A<T> {
   void f(@
@@ -9754,19 +8398,6 @@ class B<T> extends A<T> {
 }
 const dynamic checked = null;
 ''');
-    } else {
-      checkElementText(library, r'''
-library meta;
-class A<T> {
-  void f(@
-        checked/*location: test.dart;checked?*/ covariant T t) {}
-}
-class B<T> extends A<T> {
-  void f(T t) {}
-}
-const dynamic checked = null;
-''');
-    }
   }
 
   test_parameter_covariant() async {
@@ -9787,8 +8418,7 @@ class B<T> extends A<T> {
   void f(T t) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class A<T> {
   void f(covariant T t) {}
 }
@@ -9796,16 +8426,6 @@ class B<T> extends A<T> {
   void f(covariant T t) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class A<T> {
-  void f(covariant T t) {}
-}
-class B<T> extends A<T> {
-  void f(T t) {}
-}
-''');
-    }
   }
 
   test_parameter_parameters() async {
@@ -10037,8 +8657,7 @@ class D extends C {
     var library =
         await checkLibrary('class C extends D { void set f(value) {} }'
             ' abstract class D { void set f(int value); }');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C extends D {
   void set f(int value) {}
 }
@@ -10046,16 +8665,6 @@ abstract class D {
   void set f(int value);
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
-  void set f(dynamic value) {}
-}
-abstract class D {
-  void set f(int value);
-}
-''');
-    }
   }
 
   test_setter_inferred_type_static_implicit_return() async {
@@ -10064,54 +8673,30 @@ class C {
   static set f(int value) {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   static void set f(int value) {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  static dynamic set f(int value) {}
-}
-''');
-    }
   }
 
   test_setter_inferred_type_top_level_implicit_return() async {
     var library = await checkLibrary('set f(int value) {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 void set f(int value) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic set f(int value) {}
-''');
-    }
   }
 
   test_setters() async {
     var library =
         await checkLibrary('void set x(int value) {} set y(value) {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 void set x(int value) {}
 void set y(dynamic value) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-void set x(int value) {}
-dynamic set y(dynamic value) {}
-''');
-    }
   }
 
   test_syntheticFunctionType_genericClosure() async {
-    if (!isStrongMode) {
-      return;
-    }
     var library = await checkLibrary('''
 final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
@@ -10123,9 +8708,6 @@ bool f() {}
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() async {
-    if (!isStrongMode) {
-      return;
-    }
     var library = await checkLibrary('''
 void f<T, U>(bool b) {
   final v = b ? <V>(T t, U u, V v) => 0 : <V>(T t, U u, V v) => 1;
@@ -10143,21 +8725,12 @@ class C<T, U> {
 }
 bool f() => false;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T, U> {
   (T, U) → int v;
 }
 bool f() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T, U> {
-  dynamic v;
-}
-bool f() {}
-''');
-    }
   }
 
   test_syntheticFunctionType_inGenericFunction() async {
@@ -10176,17 +8749,10 @@ void f<T, U>(bool b) {}
 final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 final () → int v;
 bool f() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-final dynamic v;
-bool f() {}
-''');
-    }
   }
 
   test_syntheticFunctionType_withArguments() async {
@@ -10194,17 +8760,10 @@ bool f() {}
 final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 final (int, String) → int v;
 bool f() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-final dynamic v;
-bool f() {}
-''');
-    }
   }
 
   test_type_arguments_explicit_dynamic_dynamic() async {
@@ -10255,47 +8814,28 @@ dynamic d;
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 import 'a.dart' deferred as a;
 () → Future<dynamic> x;
 ''');
-    } else {
-      checkElementText(library, '''
-import 'a.dart' deferred as a;
-dynamic x;
-''');
-    }
   }
 
   test_type_inference_closure_with_function_typed_parameter() async {
     var library = await checkLibrary('''
 var x = (int f(String x)) => 0;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 ((String) → int) → int x;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-''');
-    }
   }
 
   test_type_inference_closure_with_function_typed_parameter_new() async {
     var library = await checkLibrary('''
 var x = (int Function(String) f) => 0;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 ((String) → int) → int x;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-''');
-    }
   }
 
   test_type_inference_depends_on_exported_variable() async {
@@ -10305,62 +8845,37 @@ dynamic x;
 import 'a.dart';
 var y = x;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 import 'a.dart';
 int y;
 ''');
-    } else {
-      checkElementText(library, '''
-import 'a.dart';
-dynamic y;
-''');
-    }
   }
 
   test_type_inference_nested_function() async {
     var library = await checkLibrary('''
 var x = (t) => (u) => t + u;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 (dynamic) → (dynamic) → dynamic x;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-''');
-    }
   }
 
   test_type_inference_nested_function_with_parameter_types() async {
     var library = await checkLibrary('''
 var x = (int t) => (int u) => t + u;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 (int) → (int) → int x;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-''');
-    }
   }
 
   test_type_inference_of_closure_with_default_value() async {
     var library = await checkLibrary('''
 var x = ([y: 0]) => y;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, '''
+    checkElementText(library, '''
 ([dynamic]) → dynamic x;
 ''');
-    } else {
-      checkElementText(library, '''
-dynamic x;
-''');
-    }
   }
 
   test_type_invalid_topLevelVariableElement_asType() async {
@@ -10806,15 +9321,9 @@ typedef F = dynamic Function(dynamic x, dynamic y);
 
   test_typedef_parameters_named() async {
     var library = await checkLibrary('typedef F({y, z, x});');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-typedef F = dynamic Function({dynamic x}, {dynamic y}, {dynamic z});
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 typedef F = dynamic Function({dynamic y}, {dynamic z}, {dynamic x});
 ''');
-    }
   }
 
   test_typedef_return_type() async {
@@ -11110,23 +9619,13 @@ class C<T> {
 C<int> c;
 var v = c.f;
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T> {
   void f() {}
 }
 C<int> c;
 () → void v;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  void f() {}
-}
-C<int> c;
-dynamic v;
-''');
-    }
   }
 
   test_variable() async {
@@ -11173,15 +9672,9 @@ final int x;
 
   test_variable_final_top_level_untyped() async {
     var library = await checkLibrary('final v = 0;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 final int v;
 ''');
-    } else {
-      checkElementText(library, r'''
-final dynamic v;
-''');
-    }
   }
 
   test_variable_getterInLib_setterInPart() async {
@@ -11254,52 +9747,32 @@ dynamic x;
 
   test_variable_inferred_type_implicit_initialized() async {
     var library = await checkLibrary('var v = 0;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 int v;
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic v;
-''');
-    }
   }
 
   test_variable_propagatedType_const_noDep() async {
     var library = await checkLibrary('const i = 0;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 const int i = 0;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic i = 0;
-''');
-    }
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
     addLibrarySource('/a.dart', 'final a = 1;');
     var library = await checkLibrary('import "a.dart"; final b = a / 2;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 final double b;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-final dynamic b;
-''');
-    }
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
     addSource('/a.dart', 'part of lib; final a = 1;');
     var library =
         await checkLibrary('library lib; part "a.dart"; final b = a / 2;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 library lib;
 part 'a.dart';
 final double b;
@@ -11308,30 +9781,13 @@ unit: a.dart
 
 final int a;
 ''');
-    } else {
-      checkElementText(library, r'''
-library lib;
-part 'a.dart';
-final dynamic b;
---------------------
-unit: a.dart
-
-final dynamic a;
-''');
-    }
   }
 
   test_variable_propagatedType_final_noDep() async {
     var library = await checkLibrary('final i = 0;');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 final int i;
 ''');
-    } else {
-      checkElementText(library, r'''
-final dynamic i;
-''');
-    }
   }
 
   test_variable_propagatedType_implicit_dep() async {
@@ -11339,17 +9795,10 @@ final dynamic i;
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
     var library = await checkLibrary('import "b.dart"; final x = f();');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'b.dart';
 final C x;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'b.dart';
-final dynamic x;
-''');
-    }
   }
 
   test_variable_setterInPart_getterInPart() async {

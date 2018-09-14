@@ -258,13 +258,9 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   AnalysisOptionsImpl createOptions() {
-    if (isStrongMode) {
-      return super.createOptions()
-        ..previewDart2 = true
-        ..isMixinSupportEnabled = true;
-    } else {
-      return super.createOptions()..previewDart2 = false;
-    }
+    return super.createOptions()
+      ..previewDart2 = true
+      ..isMixinSupportEnabled = true;
   }
 
   test_getElement_constructor_named() async {
