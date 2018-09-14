@@ -7,6 +7,9 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/hash.h"
+#endif
 #include "vm/hash_table.h"
 #include "vm/heap/become.h"
 #include "vm/heap/safepoint.h"
@@ -328,7 +331,15 @@ class ClassMapTraits {
   }
 
   static uword Hash(const Object& obj) {
-    return String::HashRawSymbol(Class::Cast(obj).Name());
+    uword class_name_hash = String::HashRawSymbol(Class::Cast(obj).Name());
+    RawLibrary* raw_library = Class::Cast(obj).library();
+    if (raw_library == Library::null()) {
+      return class_name_hash;
+    }
+    return FinalizeHash(
+        CombineHashes(class_name_hash,
+                      String::Hash(Library::Handle(raw_library).private_key())),
+        /* hashbits= */ 30);
   }
 };
 
