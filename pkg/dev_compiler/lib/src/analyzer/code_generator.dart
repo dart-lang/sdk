@@ -4635,10 +4635,12 @@ class CodeGenerator extends Object
 
     if (jsTypeRep.binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == types.stringType && op.type == TokenType.PLUS) {
-      // special cases where we inline the operation
-      // these values are assumed to be non-null (determined by the checker)
-      // TODO(jmesserly): it would be nice to just inline the method from core,
-      // instead of special cases here.
+      // Inline operations on primitive types where possible.
+      // TODO(jmesserly): inline these from dart:core instead of hardcoding
+      // the implementation details here.
+
+      /// Emits an inlined binary operation using the JS [code], adding null
+      /// checks if needed to ensure we throw the appropriate error.
       JS.Expression binary(String code) {
         return js.call(code, [notNull(left), notNull(right)])
           ..sourceInformation = _getLocation(node.operator.offset);
@@ -4646,6 +4648,16 @@ class CodeGenerator extends Object
 
       JS.Expression bitwise(String code) {
         return _coerceBitOperationResultToUnsigned(node, binary(code));
+      }
+
+      /// Similar to [binary] but applies a boolean conversion to the right
+      /// operand, to match the boolean bitwise operators in dart:core.
+      ///
+      /// Short circuiting operators should not be used in [code], because the
+      /// null checks for both operands must happen unconditionally.
+      JS.Expression bitwiseBool(String code) {
+        return js.call(code, [notNull(left), _visitTest(right)])
+          ..sourceInformation = _getLocation(node.operator.offset);
       }
 
       switch (op.type) {
@@ -4662,13 +4674,19 @@ class CodeGenerator extends Object
           return operatorCall();
 
         case TokenType.AMPERSAND:
-          return bitwise('# & #');
+          return jsTypeRep.isBoolean(leftType)
+              ? bitwiseBool('!!(# & #)')
+              : bitwise('# & #');
 
         case TokenType.BAR:
-          return bitwise('# | #');
+          return jsTypeRep.isBoolean(leftType)
+              ? bitwiseBool('!!(# | #)')
+              : bitwise('# | #');
 
         case TokenType.CARET:
-          return bitwise('# ^ #');
+          return jsTypeRep.isBoolean(leftType)
+              ? bitwiseBool('# !== #')
+              : bitwise('# ^ #');
 
         case TokenType.GT_GT:
           int shiftCount = _asIntInRange(right, 0, 31);
