@@ -5045,10 +5045,10 @@ class Code : public Object {
   RawSmi* variables() const { return raw_ptr()->catch_entry_.variables_; }
   void set_variables(const Smi& smi) const;
 #else
-  RawTypedData* catch_entry_state_maps() const {
-    return raw_ptr()->catch_entry_.catch_entry_state_maps_;
+  RawTypedData* catch_entry_moves_maps() const {
+    return raw_ptr()->catch_entry_.catch_entry_moves_maps_;
   }
-  void set_catch_entry_state_maps(const TypedData& maps) const;
+  void set_catch_entry_moves_maps(const TypedData& maps) const;
 #endif
 
   RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }

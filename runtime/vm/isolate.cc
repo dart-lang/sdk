@@ -941,7 +941,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
       handler_info_cache_(),
-      catch_entry_state_cache_(),
+      catch_entry_moves_cache_(),
       embedder_entry_points_(NULL),
       obfuscation_map_(NULL) {
   FlagsCopyFrom(api_flags);

@@ -2752,7 +2752,7 @@ class CheckStackOverflowSlowPath
       __ ldr(LR, Address(THR, entry_point_offset));
       __ blr(LR);
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
-      compiler->EmitCatchEntryState();
+      compiler->RecordCatchEntryMoves();
       compiler->AddDescriptor(
           RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
           instruction()->deopt_id(), instruction()->token_pos(),

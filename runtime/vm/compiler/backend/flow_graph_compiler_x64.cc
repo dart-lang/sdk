@@ -1062,7 +1062,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  EmitCatchEntryState(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
   __ Drop(args_desc.CountWithTypeArgs(), RCX);
 }
 

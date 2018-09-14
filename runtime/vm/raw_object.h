@@ -1391,7 +1391,7 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   union {
-    RawTypedData* catch_entry_state_maps_;
+    RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
   RawArray* stackmaps_;

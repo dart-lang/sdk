@@ -112,18 +112,19 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
   return handlers.raw();
 }
 
-static uint8_t* zone_allocator(uint8_t* ptr,
-                               intptr_t old_size,
-                               intptr_t new_size) {
+static uint8_t* ZoneAllocator(uint8_t* ptr,
+                              intptr_t old_size,
+                              intptr_t new_size) {
   Zone* zone = Thread::Current()->zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
-class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class CatchEntryMovesMapBuilder::TrieNode : public ZoneAllocated {
  public:
-  TrieNode() : pair_(), entry_state_offset_(-1) {}
-  TrieNode(CatchEntryStatePair pair, intptr_t index)
-      : pair_(pair), entry_state_offset_(index) {}
+  TrieNode() : move_(), entry_state_offset_(-1) {}
+  TrieNode(CatchEntryMove move, intptr_t index)
+      : move_(move), entry_state_offset_(index) {}
 
   intptr_t Offset() { return entry_state_offset_; }
 
@@ -132,42 +133,36 @@ class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
     return node;
   }
 
-  TrieNode* Follow(CatchEntryStatePair next) {
+  TrieNode* Follow(CatchEntryMove next) {
     for (intptr_t i = 0; i < children_.length(); i++) {
-      if (children_[i]->pair_ == next) return children_[i];
+      if (children_[i]->move_ == next) return children_[i];
     }
     return NULL;
   }
 
  private:
-  CatchEntryStatePair pair_;
+  CatchEntryMove move_;
   const intptr_t entry_state_offset_;
   GrowableArray<TrieNode*> children_;
 };
 
-CatchEntryStateMapBuilder::CatchEntryStateMapBuilder()
+CatchEntryMovesMapBuilder::CatchEntryMovesMapBuilder()
     : zone_(Thread::Current()->zone()),
       root_(new TrieNode()),
       current_pc_offset_(0),
       buffer_(NULL),
-      stream_(&buffer_, zone_allocator, 64) {}
+      stream_(&buffer_, ZoneAllocator, 64) {}
 
-void CatchEntryStateMapBuilder::AppendMove(intptr_t src_slot,
-                                           intptr_t dest_slot) {
-  moves_.Add(CatchEntryStatePair::FromMove(src_slot, dest_slot));
+void CatchEntryMovesMapBuilder::Append(const CatchEntryMove& move) {
+  moves_.Add(move);
 }
 
-void CatchEntryStateMapBuilder::AppendConstant(intptr_t pool_id,
-                                               intptr_t dest_slot) {
-  moves_.Add(CatchEntryStatePair::FromConstant(pool_id, dest_slot));
-}
-
-void CatchEntryStateMapBuilder::NewMapping(intptr_t pc_offset) {
+void CatchEntryMovesMapBuilder::NewMapping(intptr_t pc_offset) {
   moves_.Clear();
   current_pc_offset_ = pc_offset;
 }
 
-void CatchEntryStateMapBuilder::EndMapping() {
+void CatchEntryMovesMapBuilder::EndMapping() {
   intptr_t suffix_length = 0;
   TrieNode* suffix = root_;
   // Find the largest common suffix, get the last node of the path.
@@ -189,8 +184,7 @@ void CatchEntryStateMapBuilder::EndMapping() {
   // Write the unshared part, adding it to the trie.
   TrieNode* node = suffix;
   for (intptr_t i = length - 1; i >= 0; i--) {
-    Writer::Write(&stream_, moves_[i].src);
-    Writer::Write(&stream_, moves_[i].dest);
+    moves_[i].WriteTo(&stream_);
 
     TrieNode* child = new (zone_) TrieNode(moves_[i], current_offset);
     node->Insert(child);
@@ -198,7 +192,7 @@ void CatchEntryStateMapBuilder::EndMapping() {
   }
 }
 
-RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
+RawTypedData* CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
   TypedData& td = TypedData::Handle(TypedData::New(
       kTypedDataInt8ArrayCid, stream_.bytes_written(), Heap::kOld));
   NoSafepointScope no_safepoint;
@@ -209,6 +203,7 @@ RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
   }
   return td.raw();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition(TokenPosition::kDartCodeProloguePos);
@@ -230,7 +225,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
       buffer_(NULL),
-      stream_(&buffer_, zone_allocator, 64),
+      stream_(&buffer_, ZoneAllocator, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
   buffered_token_pos_stack_.Add(kInitialPosition);

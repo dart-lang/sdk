@@ -166,8 +166,10 @@ class DeoptContext {
   // objects.
   void FillDestFrame();
 
-  // Allocate and prepare exceptions metadata for TrySync
-  intptr_t* CatchEntryState(intptr_t num_vars);
+  // Convert deoptimization instructions to a list of moves that need
+  // to be executed when entering catch entry block from this deoptimization
+  // point.
+  const CatchEntryMoves* ToCatchEntryMoves(intptr_t num_vars);
 
   // Materializes all deferred objects.  Returns the total number of
   // artificial arguments used during deoptimization.
@@ -334,11 +336,10 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
 
-  // Convert DeoptInstr to TrySync metadata entry.
-  virtual CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
-                                                    intptr_t dest_slot) {
+  virtual CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                          intptr_t dest_slot) {
     UNREACHABLE();
-    return CatchEntryStatePair();
+    return CatchEntryMove();
   }
 
   virtual DeoptInstr::Kind kind() const = 0;

@@ -1702,31 +1702,11 @@ void FlowGraph::InsertConversion(Representation from,
   }
 }
 
-void FlowGraph::ConvertEnvironmentUse(Value* use, Representation from_rep) {
-  const Representation to_rep = kTagged;
-  if (from_rep == to_rep) {
-    return;
-  }
-  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/true);
-}
-
 void FlowGraph::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
 
   for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
     ConvertUse(it.Current(), from_rep);
-  }
-
-  if (!graph_entry()->catch_entries().is_empty()) {
-    for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
-      Value* use = it.Current();
-      if (use->instruction()->MayThrow() &&
-          use->instruction()->GetBlock()->InsideTryBlock()) {
-        // Environment uses at calls inside try-blocks must be converted to
-        // tagged representation.
-        ConvertEnvironmentUse(it.Current(), from_rep);
-      }
-    }
   }
 }
 

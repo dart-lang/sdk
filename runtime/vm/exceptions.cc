@@ -141,20 +141,10 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   }
 }
 
-static RawObject** VariableAt(uword fp, int stack_slot) {
-#if defined(TARGET_ARCH_DBC)
-  return reinterpret_cast<RawObject**>(fp + stack_slot * kWordSize);
-#else
-  const intptr_t frame_slot =
-      runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
-  return reinterpret_cast<RawObject**>(fp + frame_slot * kWordSize);
-#endif
-}
-
 class ExceptionHandlerFinder : public StackResource {
  public:
   explicit ExceptionHandlerFinder(Thread* thread)
-      : StackResource(thread), thread_(thread), cache_(NULL), metadata_(NULL) {}
+      : StackResource(thread), thread_(thread) {}
 
   // Iterate through the stack frames and try to find a frame with an
   // exception handler. Once found, set the pc, sp and fp so that execution
@@ -172,7 +162,7 @@ class ExceptionHandlerFinder : public StackResource {
     uword temp_handler_pc = kUwordMax;
     bool is_optimized = false;
     code_ = NULL;
-    cache_ = thread_->isolate()->catch_entry_state_cache();
+    catch_entry_moves_cache_ = thread_->isolate()->catch_entry_moves_cache();
 
     while (!frame->IsEntryFrame()) {
       if (frame->IsDartFrame()) {
@@ -187,13 +177,20 @@ class ExceptionHandlerFinder : public StackResource {
             if (is_optimized) {
               pc_ = frame->pc();
               code_ = &Code::Handle(frame->LookupDartCode());
-              CatchEntryState* state = cache_->Lookup(pc_);
-              if (state != NULL) cached_ = *state;
+              CatchEntryMovesRefPtr* cached_catch_entry_moves =
+                  catch_entry_moves_cache_->Lookup(pc_);
+              if (cached_catch_entry_moves != NULL) {
+                cached_catch_entry_moves_ = *cached_catch_entry_moves;
+              }
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
               intptr_t num_vars = Smi::Value(code_->variables());
-              if (cached_.Empty()) GetMetaDataFromDeopt(num_vars, frame);
+              if (cached_catch_entry_moves_.IsEmpty()) {
+                GetCatchEntryMovesFromDeopt(num_vars, frame);
+              }
 #else
-              if (cached_.Empty()) ReadCompressedMetaData();
+              if (cached_catch_entry_moves_.IsEmpty()) {
+                ReadCompressedCatchEntryMoves();
+              }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
             }
           }
@@ -216,80 +213,121 @@ class ExceptionHandlerFinder : public StackResource {
     return handler_pc_set_;
   }
 
-  void TrySync() {
-    if (code_ == NULL || !code_->is_optimized()) {
+  // When entering catch block in the optimized code we need to execute
+  // catch entry moves that would morph the state of the frame into
+  // what catch entry expects.
+  void PrepareFrameForCatchEntry() {
+    if (code_ == nullptr || !code_->is_optimized()) {
       return;
     }
-    if (!cached_.Empty()) {
-      // Cache hit.
-      TrySyncCached(&cached_);
+
+    if (cached_catch_entry_moves_.IsEmpty()) {
+      catch_entry_moves_cache_->Insert(
+          pc_, CatchEntryMovesRefPtr(catch_entry_moves_));
     } else {
-      // New cache entry.
-      CatchEntryState m(metadata_);
-      TrySyncCached(&m);
-      cache_->Insert(pc_, m);
+      catch_entry_moves_ = &cached_catch_entry_moves_.moves();
     }
+
+    ExecuteCatchEntryMoves(*catch_entry_moves_);
   }
 
-  void TrySyncCached(CatchEntryState* md) {
+  void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
     uword fp = handler_fp;
-    ObjectPool* pool = NULL;
-    intptr_t pairs = md->Pairs();
-    for (int j = 0; j < pairs; j++) {
-      intptr_t src = md->Src(j);
-      intptr_t dest = md->Dest(j);
-      if (md->isMove(j)) {
-        *VariableAt(fp, dest) = *VariableAt(fp, src);
-      } else {
-        if (pool == NULL) {
-          pool = &ObjectPool::Handle(code_->object_pool());
-        }
-        RawObject* obj = pool->ObjectAt(src);
-        *VariableAt(fp, dest) = obj;
+    ObjectPool* pool = nullptr;
+    for (int j = 0; j < moves.count(); j++) {
+      const CatchEntryMove& move = moves.At(j);
+
+      RawObject* value;
+      switch (move.source_kind()) {
+        case CatchEntryMove::SourceKind::kConstant:
+          if (pool == nullptr) {
+            pool = &ObjectPool::Handle(code_->object_pool());
+          }
+          value = pool->ObjectAt(move.src_slot());
+          break;
+
+        case CatchEntryMove::SourceKind::kTaggedSlot:
+          value = *TaggedSlotAt(fp, move.src_slot());
+          break;
+
+        case CatchEntryMove::SourceKind::kDoubleSlot:
+          value = Double::New(*SlotAt<double>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kFloat32x4Slot:
+          value = Float32x4::New(*SlotAt<simd128_value_t>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kFloat64x2Slot:
+          value = Float64x2::New(*SlotAt<simd128_value_t>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kInt32x4Slot:
+          value = Int32x4::New(*SlotAt<simd128_value_t>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kInt64PairSlot:
+          value = Integer::New(
+              Utils::LowHighTo64Bits(*SlotAt<uint32_t>(fp, move.src_lo_slot()),
+                                     *SlotAt<int32_t>(fp, move.src_hi_slot())));
+          break;
+
+        case CatchEntryMove::SourceKind::kInt64Slot:
+          value = Integer::New(*SlotAt<int64_t>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kInt32Slot:
+          value = Integer::New(*SlotAt<int32_t>(fp, move.src_slot()));
+          break;
+
+        case CatchEntryMove::SourceKind::kUint32Slot:
+          value = Integer::New(*SlotAt<uint32_t>(fp, move.src_slot()));
+          break;
       }
+
+      *TaggedSlotAt(fp, move.dest_slot()) = value;
     }
   }
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  void ReadCompressedMetaData() {
+  void ReadCompressedCatchEntryMoves() {
     intptr_t pc_offset = pc_ - code_->PayloadStart();
-    const TypedData& td = TypedData::Handle(code_->catch_entry_state_maps());
+    const TypedData& td = TypedData::Handle(code_->catch_entry_moves_maps());
     NoSafepointScope no_safepoint;
     ReadStream stream(static_cast<uint8_t*>(td.DataAddr(0)), td.Length());
 
-    bool found_metadata = false;
+    intptr_t prefix_length, suffix_length, suffix_offset;
     while (stream.PendingBytes() > 0) {
       intptr_t target_pc_offset = Reader::Read(&stream);
-      intptr_t variables = Reader::Read(&stream);
-      intptr_t suffix_length = Reader::Read(&stream);
-      intptr_t suffix_offset = Reader::Read(&stream);
+      prefix_length = Reader::Read(&stream);
+      suffix_length = Reader::Read(&stream);
+      suffix_offset = Reader::Read(&stream);
       if (pc_offset == target_pc_offset) {
-        metadata_ = new intptr_t[2 * (variables + suffix_length) + 1];
-        metadata_[0] = variables + suffix_length;
-        for (int j = 0; j < variables; j++) {
-          intptr_t src = Reader::Read(&stream);
-          intptr_t dest = Reader::Read(&stream);
-          metadata_[1 + 2 * j] = src;
-          metadata_[2 + 2 * j] = dest;
-        }
-        ReadCompressedSuffix(&stream, suffix_offset, suffix_length, metadata_,
-                             2 * variables + 1);
-        found_metadata = true;
         break;
-      } else {
-        for (intptr_t j = 0; j < 2 * variables; j++) {
-          Reader::Read(&stream);
-        }
+      }
+
+      // Skip the moves.
+      for (intptr_t j = 0; j < prefix_length; j++) {
+        CatchEntryMove::ReadFrom(&stream);
       }
     }
-    ASSERT(found_metadata);
+    ASSERT((stream.PendingBytes() > 0) || (prefix_length == 0));
+
+    CatchEntryMoves* moves =
+        CatchEntryMoves::Allocate(prefix_length + suffix_length);
+    for (int j = 0; j < prefix_length; j++) {
+      moves->At(j) = CatchEntryMove::ReadFrom(&stream);
+    }
+    ReadCompressedCatchEntryMovesSuffix(&stream, suffix_offset, suffix_length,
+                                        moves, prefix_length);
+    catch_entry_moves_ = moves;
   }
 
-  void ReadCompressedSuffix(ReadStream* stream,
-                            intptr_t offset,
-                            intptr_t length,
-                            intptr_t* target,
-                            intptr_t target_offset) {
+  void ReadCompressedCatchEntryMovesSuffix(ReadStream* stream,
+                                           intptr_t offset,
+                                           intptr_t length,
+                                           CatchEntryMoves* moves,
+                                           intptr_t moves_offset) {
     stream->SetPosition(offset);
     Reader::Read(stream);  // skip pc_offset
     Reader::Read(stream);  // skip variables
@@ -297,24 +335,23 @@ class ExceptionHandlerFinder : public StackResource {
     intptr_t suffix_offset = Reader::Read(stream);
     intptr_t to_read = length - suffix_length;
     for (int j = 0; j < to_read; j++) {
-      target[target_offset + 2 * j] = Reader::Read(stream);
-      target[target_offset + 2 * j + 1] = Reader::Read(stream);
+      moves->At(moves_offset + j) = CatchEntryMove::ReadFrom(stream);
     }
     if (suffix_length > 0) {
-      ReadCompressedSuffix(stream, suffix_offset, suffix_length, target,
-                           target_offset + to_read * 2);
+      ReadCompressedCatchEntryMovesSuffix(stream, suffix_offset, suffix_length,
+                                          moves, moves_offset + to_read);
     }
   }
 
 #else
-  void GetMetaDataFromDeopt(intptr_t num_vars, StackFrame* frame) {
+  void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
     Isolate* isolate = thread_->isolate();
     DeoptContext* deopt_context =
         new DeoptContext(frame, *code_, DeoptContext::kDestIsAllocated, NULL,
                          NULL, true, false /* deoptimizing_code */);
     isolate->set_deopt_context(deopt_context);
 
-    metadata_ = deopt_context->CatchEntryState(num_vars);
+    catch_entry_moves_ = deopt_context->ToCatchEntryMoves(num_vars);
 
     isolate->set_deopt_context(NULL);
     delete deopt_context;
@@ -327,15 +364,46 @@ class ExceptionHandlerFinder : public StackResource {
   uword handler_fp;
 
  private:
+  template <typename T>
+  static T* SlotAt(uword fp, int stack_slot) {
+#if defined(TARGET_ARCH_DBC)
+    return reinterpret_cast<T*>(fp + stack_slot * kWordSize);
+#else
+    const intptr_t frame_slot =
+        runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
+    return reinterpret_cast<T*>(fp + frame_slot * kWordSize);
+#endif
+  }
+
+  static RawObject** TaggedSlotAt(uword fp, int stack_slot) {
+    return SlotAt<RawObject*>(fp, stack_slot);
+  }
+
   typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
   Thread* thread_;
-  CatchEntryStateCache* cache_;
   Code* code_;
   bool handler_pc_set_;
-  intptr_t* metadata_;      // MetaData generated from deopt.
-  CatchEntryState cached_;  // Value of per PC MetaData cache.
   intptr_t pc_;             // Current pc in the handler frame.
+
+  const CatchEntryMoves* catch_entry_moves_ = nullptr;
+  CatchEntryMovesCache* catch_entry_moves_cache_ = nullptr;
+  CatchEntryMovesRefPtr cached_catch_entry_moves_;
 };
+
+CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
+  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
+  const intptr_t src = Reader::Read(stream);
+  const intptr_t dest_and_kind = Reader::Read(stream);
+  return CatchEntryMove(src, dest_and_kind);
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void CatchEntryMove::WriteTo(WriteStream* stream) {
+  using Writer = WriteStream::Raw<sizeof(intptr_t), intptr_t>;
+  Writer::Write(stream, src_);
+  Writer::Write(stream, dest_and_kind_);
+}
+#endif
 
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
@@ -619,7 +687,7 @@ static void ThrowExceptionHelper(Thread* thread,
     THR_Print("%s\n", stacktrace.ToCString());
   }
   if (handler_exists) {
-    finder.TrySync();
+    finder.PrepareFrameForCatchEntry();
     // Found a dart handler for the exception, jump to it.
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            exception, stacktrace);

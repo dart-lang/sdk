@@ -130,7 +130,7 @@ class NoReloadScope : public StackResource {
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.
-typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
+typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
@@ -784,8 +784,8 @@ class Isolate : public BaseIsolate {
 
   HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 
-  CatchEntryStateCache* catch_entry_state_cache() {
-    return &catch_entry_state_cache_;
+  CatchEntryMovesCache* catch_entry_moves_cache() {
+    return &catch_entry_moves_cache_;
   }
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
@@ -1017,7 +1017,7 @@ class Isolate : public BaseIsolate {
   intptr_t spawn_count_;
 
   HandlerInfoCache handler_info_cache_;
-  CatchEntryStateCache catch_entry_state_cache_;
+  CatchEntryMovesCache catch_entry_moves_cache_;
 
   Dart_QualifiedFunctionName* embedder_entry_points_;
   const char** obfuscation_map_;

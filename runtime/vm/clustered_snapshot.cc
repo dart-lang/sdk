@@ -1666,7 +1666,7 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-    s->Push(code->ptr()->catch_entry_.catch_entry_state_maps_);
+    s->Push(code->ptr()->catch_entry_.catch_entry_moves_maps_);
 #else
     s->Push(code->ptr()->catch_entry_.variables_);
 #endif
@@ -1727,7 +1727,7 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      s->WriteRef(code->ptr()->catch_entry_.catch_entry_state_maps_);
+      s->WriteRef(code->ptr()->catch_entry_.catch_entry_moves_maps_);
 #else
       s->WriteRef(code->ptr()->catch_entry_.variables_);
 #endif
@@ -1810,7 +1810,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      code->ptr()->catch_entry_.catch_entry_state_maps_ =
+      code->ptr()->catch_entry_.catch_entry_moves_maps_ =
           reinterpret_cast<RawTypedData*>(d->ReadRef());
 #else
       code->ptr()->catch_entry_.variables_ =

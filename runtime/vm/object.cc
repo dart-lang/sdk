@@ -15398,8 +15398,8 @@ void Code::set_variables(const Smi& smi) const {
   StorePointer(&raw_ptr()->catch_entry_.variables_, smi.raw());
 }
 #else
-void Code::set_catch_entry_state_maps(const TypedData& maps) const {
-  StorePointer(&raw_ptr()->catch_entry_.catch_entry_state_maps_, maps.raw());
+void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
+  StorePointer(&raw_ptr()->catch_entry_.catch_entry_moves_maps_, maps.raw());
 }
 #endif
 

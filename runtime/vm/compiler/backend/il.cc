@@ -2824,19 +2824,8 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
 }
 
-static bool HasTryBlockUse(Value* use_list) {
-  for (Value::Iterator it(use_list); !it.Done(); it.Advance()) {
-    Value* use = it.Current();
-    if (use->instruction()->MayThrow() &&
-        use->instruction()->GetBlock()->InsideTryBlock()) {
-      return true;
-    }
-  }
-  return false;
-}
-
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+  if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
   }
@@ -2859,7 +2848,7 @@ bool BoxIntegerInstr::ValueFitsSmi() const {
 }
 
 Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+  if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
   }
