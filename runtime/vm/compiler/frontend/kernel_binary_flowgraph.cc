@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
+#include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
@@ -1242,7 +1243,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
   // entry and make graph entry jump to it instead of normal entry.
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
-  if (flow_graph_builder_->osr_id_ != Compiler::kNoOSRDeoptId) {
+  if (flow_graph_builder_->IsCompiledForOsr()) {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
@@ -1877,7 +1878,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // entry and make graph entry jump to it instead of normal entry.
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
-  if (flow_graph_builder_->osr_id_ != Compiler::kNoOSRDeoptId) {
+  if (flow_graph_builder_->IsCompiledForOsr()) {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
@@ -1906,9 +1907,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   SetOffset(kernel_offset);
 
-  // TODO(regis): Clean up this logic of when to compile.
-  // If the bytecode was previously loaded, we really want to compile.
-  if (FLAG_enable_interpreter && !function.HasBytecode()) {
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
     // TODO(regis): For now, we skip bytecode loading for functions that were
     // synthesized and that do not have bytecode. Since they inherited the
     // kernel offset of a concrete function, the wrong bytecode would be loaded.
@@ -1921,10 +1920,29 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       case RawFunction::kDynamicInvocationForwarder:
       case RawFunction::kImplicitClosureFunction:
         break;
+      case RawFunction::kImplicitStaticFinalGetter:
+        if (!IsFieldInitializer(function, Z)) {
+          break;
+        }
+        // Fallthrough.
       default: {
-        bytecode_metadata_helper_.ReadMetadata(function);
+        // TODO(regis): Clean up this logic of when to compile.
+        // If the bytecode was previously loaded, we really want to compile.
+        if (!function.HasBytecode()) {
+          bytecode_metadata_helper_.ReadMetadata(function);
+        }
         if (function.HasBytecode()) {
-          return NULL;
+          if (FLAG_use_bytecode_compiler) {
+            BytecodeFlowGraphBuilder bytecode_compiler(
+                flow_graph_builder_, parsed_function(),
+                &(flow_graph_builder_->ic_data_array_));
+            FlowGraph* flow_graph = bytecode_compiler.BuildGraph();
+            if (flow_graph != nullptr) {
+              return flow_graph;
+            }
+          } else {
+            return nullptr;
+          }
         }
       }
     }
@@ -2580,7 +2598,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   AlternativeReadingScope alt(&reader_);
 
   TryFinallyBlock* const saved_block = B->try_finally_block_;
-  TryCatchBlock* const saved_try_catch_block = B->try_catch_block_;
+  TryCatchBlock* const saved_try_catch_block = B->CurrentTryCatchBlock();
   const intptr_t saved_depth = B->context_depth_;
   const intptr_t saved_try_depth = B->try_depth_;
 
@@ -2601,7 +2619,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
     bool changed_try_index = false;
     intptr_t target_try_index = B->try_finally_block_->try_index();
     while (B->CurrentTryIndex() != target_try_index) {
-      B->try_catch_block_ = B->try_catch_block_->outer();
+      B->SetCurrentTryCatchBlock(B->CurrentTryCatchBlock()->outer());
       changed_try_index = true;
     }
     if (changed_try_index) {
@@ -2628,7 +2646,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   }
 
   B->try_finally_block_ = saved_block;
-  B->try_catch_block_ = saved_try_catch_block;
+  B->SetCurrentTryCatchBlock(saved_try_catch_block);
   B->context_depth_ = saved_depth;
   B->try_depth_ = saved_try_depth;
 

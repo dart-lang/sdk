@@ -1524,7 +1524,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
                   exit_fp);                                                    \
       }                                                                        \
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
-      return special_[kExceptionSpecialIndex];                                 \
+      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
   } while (0)
@@ -1544,7 +1544,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
       thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
-      return special_[kExceptionSpecialIndex];                                 \
+      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
   } while (0)
@@ -4837,8 +4837,8 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     ASSERT(raw_exception != Object::null());
     thread->set_active_exception(Object::null_object());
     thread->set_active_stacktrace(Object::null_object());
-    special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStackTraceSpecialIndex] = raw_stacktrace;
+    special_[KernelBytecode::kExceptionSpecialIndex] = raw_exception;
+    special_[KernelBytecode::kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
   } else {
     pc_ = pc;

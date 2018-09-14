@@ -4167,8 +4167,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       catch_block->token_pos(), (node->token_pos() == TokenPosition::kNoSource),
       owner()->AllocateBlockId(), catch_handler_index, owner()->graph_entry(),
       catch_block->handler_types(), try_handler_index,
-      catch_block->exception_var(), catch_block->stacktrace_var(),
       catch_block->needs_stacktrace(), owner()->GetNextDeoptId(),
+      &catch_block->exception_var(), &catch_block->stacktrace_var(),
       &catch_block->exception_var(), &catch_block->stacktrace_var());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
@@ -4214,8 +4214,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
         true,  // this is not a catch block from user code.
         owner()->AllocateBlockId(), original_handler_index,
         owner()->graph_entry(), types, catch_handler_index,
-        catch_block->exception_var(), catch_block->stacktrace_var(),
         catch_block->needs_stacktrace(), owner()->GetNextDeoptId(),
+        &catch_block->exception_var(), &catch_block->stacktrace_var(),
         &catch_block->exception_var(), &catch_block->stacktrace_var());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);

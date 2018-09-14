@@ -91,12 +91,6 @@ class Interpreter {
     return intrinsics_[id] != NULL;
   }
 
-  enum SpecialIndex {
-    kExceptionSpecialIndex,
-    kStackTraceSpecialIndex,
-    kSpecialIndexCount
-  };
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
@@ -113,7 +107,7 @@ class Interpreter {
   RawObjectPool* pp_;  // Pool Pointer.
   RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
                        // call instruction and the function entry.
-  RawObject* special_[kSpecialIndexCount];
+  RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
 

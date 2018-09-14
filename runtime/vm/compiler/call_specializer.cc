@@ -998,10 +998,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   // Build an AssertAssignable if necessary.
-  if (I->argument_type_checks()) {
-    const AbstractType& dst_type =
-        AbstractType::ZoneHandle(zone(), field.type());
-
+  const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
+  if (I->argument_type_checks() && !dst_type.IsTopType()) {
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;

@@ -5971,8 +5971,10 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  // Set the code entry_point to InterpretCall stub.
-  SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+  if (!FLAG_use_bytecode_compiler) {
+    // Set the code entry_point to InterpretCall stub.
+    SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+  }
 }
 
 bool Function::HasBytecode() const {
@@ -6002,9 +6004,7 @@ void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  if (FLAG_enable_interpreter) {
-    StorePointer(&raw_ptr()->bytecode_, Code::null());
-  }
+  StorePointer(&raw_ptr()->bytecode_, Code::null());
 
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

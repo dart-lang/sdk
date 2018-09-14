@@ -30,7 +30,7 @@ namespace kernel {
 
 FlowGraphBuilder::FlowGraphBuilder(
     ParsedFunction* parsed_function,
-    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<const ICData*>* ic_data_array,
     ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
     bool optimizing,
@@ -39,6 +39,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool inlining_unchecked_entry)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
+                           osr_id,
                            context_level_array,
                            exit_collector,
                            inlining_unchecked_entry),
@@ -47,8 +48,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       zone_(translation_helper_.zone()),
       parsed_function_(parsed_function),
       optimizing_(optimizing),
-      osr_id_(osr_id),
-      ic_data_array_(ic_data_array),
+      ic_data_array_(*ic_data_array),
       next_function_id_(0),
       try_depth_(0),
       catch_depth_(0),
@@ -57,6 +57,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       scopes_(NULL),
       breakable_block_(NULL),
       switch_block_(NULL),
+      try_catch_block_(NULL),
       try_finally_block_(NULL),
       catch_block_(NULL) {
   const Script& script =
@@ -245,8 +246,8 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       TokenPosition::kNoSource,  // Token position of catch block.
       is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
-      handler_index, *exception_var, *stacktrace_var, needs_stacktrace,
-      GetNextDeoptId(), raw_exception_var, raw_stacktrace_var);
+      handler_index, needs_stacktrace, GetNextDeoptId(), exception_var,
+      stacktrace_var, raw_exception_var, raw_stacktrace_var);
   graph_entry_->AddCatchEntry(entry);
 
   Fragment instructions(entry);
@@ -414,18 +415,6 @@ Fragment FlowGraphBuilder::LoadClassId() {
   LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
   Push(load);
   return Fragment(load);
-}
-
-Fragment FlowGraphBuilder::LoadField(const Field& field) {
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      Pop(), &MayCloneField(field), AbstractType::ZoneHandle(Z, field.type()),
-      TokenPosition::kNoSource, parsed_function_);
-  Push(load);
-  return Fragment(load);
-}
-
-Fragment FlowGraphBuilder::LoadField(intptr_t offset, intptr_t class_id) {
-  return BaseFlowGraphBuilder::LoadField(offset, class_id);
 }
 
 Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
@@ -1379,6 +1368,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
+}
+
+void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
+  try_catch_block_ = try_catch_block;
+  SetCurrentTryIndex(try_catch_block == nullptr
+                         ? CatchClauseNode::kInvalidTryIndex
+                         : try_catch_block->try_index());
 }
 
 }  // namespace kernel

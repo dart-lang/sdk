@@ -2774,7 +2774,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "BuildFlowGraph");
 #endif  // !PRODUCT
         flow_graph =
-            pipeline->BuildFlowGraph(zone, parsed_function(), *ic_data_array,
+            pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
       }
 

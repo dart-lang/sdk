@@ -339,6 +339,26 @@ bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
   return NameAt(index) == other.raw();
 }
 
+RawArray* ArgumentsDescriptor::GetArgumentNames() const {
+  const intptr_t num_named_args = NamedCount();
+  if (num_named_args == 0) {
+    return Array::null();
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  const Array& names =
+      Array::Handle(zone, Array::New(num_named_args, Heap::kOld));
+  String& name = String::Handle(zone);
+  const intptr_t num_pos_args = PositionalCount();
+  for (intptr_t i = 0; i < num_named_args; ++i) {
+    const intptr_t index = PositionAt(i) - num_pos_args;
+    name = NameAt(i);
+    ASSERT(names.At(index) == Object::null());
+    names.SetAt(index, name);
+  }
+  return names.raw();
+}
+
 intptr_t ArgumentsDescriptor::type_args_len_offset() {
   return Array::element_offset(kTypeArgsLenIndex);
 }

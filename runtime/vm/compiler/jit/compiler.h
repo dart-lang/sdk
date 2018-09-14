@@ -38,7 +38,7 @@ class CompilationPipeline : public ZoneAllocated {
   virtual FlowGraph* BuildFlowGraph(
       Zone* zone,
       ParsedFunction* parsed_function,
-      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      ZoneGrowableArray<const ICData*>* ic_data_array,
       intptr_t osr_id,
       bool optimized) = 0;
   virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
@@ -47,32 +47,30 @@ class CompilationPipeline : public ZoneAllocated {
 
 class DartCompilationPipeline : public CompilationPipeline {
  public:
-  virtual void ParseFunction(ParsedFunction* parsed_function);
+  void ParseFunction(ParsedFunction* parsed_function) override;
 
-  virtual FlowGraph* BuildFlowGraph(
-      Zone* zone,
-      ParsedFunction* parsed_function,
-      const ZoneGrowableArray<const ICData*>& ic_data_array,
-      intptr_t osr_id,
-      bool optimized);
+  FlowGraph* BuildFlowGraph(Zone* zone,
+                            ParsedFunction* parsed_function,
+                            ZoneGrowableArray<const ICData*>* ic_data_array,
+                            intptr_t osr_id,
+                            bool optimized) override;
 
-  virtual void FinalizeCompilation(FlowGraph* flow_graph);
+  void FinalizeCompilation(FlowGraph* flow_graph) override;
 };
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
   IrregexpCompilationPipeline() : backtrack_goto_(NULL) {}
 
-  virtual void ParseFunction(ParsedFunction* parsed_function);
+  void ParseFunction(ParsedFunction* parsed_function) override;
 
-  virtual FlowGraph* BuildFlowGraph(
-      Zone* zone,
-      ParsedFunction* parsed_function,
-      const ZoneGrowableArray<const ICData*>& ic_data_array,
-      intptr_t osr_id,
-      bool optimized);
+  FlowGraph* BuildFlowGraph(Zone* zone,
+                            ParsedFunction* parsed_function,
+                            ZoneGrowableArray<const ICData*>* ic_data_array,
+                            intptr_t osr_id,
+                            bool optimized) override;
 
-  virtual void FinalizeCompilation(FlowGraph* flow_graph);
+  void FinalizeCompilation(FlowGraph* flow_graph) override;
 
  private:
   IndirectGotoInstr* backtrack_goto_;

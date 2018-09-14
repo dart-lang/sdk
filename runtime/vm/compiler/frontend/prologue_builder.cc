@@ -34,8 +34,6 @@ bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
                                                 PrologueInfo* prologue_info) {
-  const bool strong = FLAG_strong;
-
   // We always have to build the graph, but we only link it sometimes.
   const bool link = !is_inlining_ && !compiling_for_osr_;
 
@@ -52,14 +50,15 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
     nsm = BuildThrowNoSuchMethod();
   }
   if (check_arguments) {
-    Fragment f = BuildTypeArgumentsLengthCheck(strong, nsm, expect_type_args);
+    Fragment f = BuildTypeArgumentsLengthCheck(nsm, expect_type_args);
     if (link) prologue += f;
   }
   if (load_optional_arguments) {
-    Fragment f = BuildOptionalParameterHandling(strong, nsm);
+    Fragment f = BuildOptionalParameterHandling(
+        nsm, parsed_function_->expression_temp_var());
     if (link) prologue += f;
   } else if (check_arguments) {
-    Fragment f = BuildFixedParameterLengthChecks(strong, nsm);
+    Fragment f = BuildFixedParameterLengthChecks(nsm);
     if (link) prologue += f;
   }
   if (function_.IsClosureFunction()) {
@@ -87,8 +86,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
-                                                        JoinEntryInstr* nsm,
+Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(JoinEntryInstr* nsm,
                                                         bool expect_type_args) {
   Fragment check_type_args;
   JoinEntryInstr* done = BuildJoinEntry();
@@ -130,8 +128,9 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
   return Fragment(check_type_args.entry, done);
 }
 
-Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
-                                                         JoinEntryInstr* nsm) {
+Fragment PrologueBuilder::BuildOptionalParameterHandling(
+    JoinEntryInstr* nsm,
+    LocalVariable* temp_var) {
   Fragment copy_args_prologue;
   const int num_fixed_params = function_.num_fixed_parameters();
   const int num_opt_pos_params = function_.NumOptionalPositionalParameters();
@@ -244,13 +243,12 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
         ArgumentsDescriptor::first_named_entry_offset() - Array::data_offset();
 
     // Start by alphabetically sorting the names of the optional parameters.
-    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
-    int* opt_param_position = new int[num_opt_named_params];
-    SortOptionalNamedParametersInto(opt_param, opt_param_position,
-                                    num_fixed_params, num_params);
+    int* opt_param_position = Z->Alloc<int>(num_opt_named_params);
+    SortOptionalNamedParametersInto(opt_param_position, num_fixed_params,
+                                    num_params);
 
-    LocalVariable* optional_count_vars_processed =
-        parsed_function_->expression_temp_var();
+    ASSERT(temp_var != nullptr);
+    LocalVariable* optional_count_vars_processed = temp_var;
     copy_args_prologue += IntConstant(0);
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, optional_count_vars_processed);
@@ -274,8 +272,10 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       copy_args_prologue += LoadIndexed(/* index_scale = */ kWordSize);
 
       // first name in sorted list of all names
-      ASSERT(opt_param[i]->name().IsSymbol());
-      copy_args_prologue += Constant(opt_param[i]->name());
+      const String& param_name = String::ZoneHandle(
+          Z, function_.ParameterNameAt(opt_param_position[i]));
+      ASSERT(param_name.IsSymbol());
+      copy_args_prologue += Constant(param_name);
 
       // Compare the two names: Note that the ArgumentDescriptor array always
       // terminates with a "null" name (i.e. kNullCid), which will prevent us
@@ -337,9 +337,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       copy_args_prologue += Drop();  // tuple_diff
     }
 
-    delete[] opt_param;
-    delete[] opt_param_position;
-
     // If there are more arguments from the caller we haven't processed, go
     // NSM.
     TargetEntryInstr *done, *unknown_named_arg_passed;
@@ -361,8 +358,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
   return copy_args_prologue;
 }
 
-Fragment PrologueBuilder::BuildFixedParameterLengthChecks(bool strong,
-                                                          JoinEntryInstr* nsm) {
+Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
   Fragment check_args;
   JoinEntryInstr* done = BuildJoinEntry();
 
@@ -448,24 +444,21 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   return handling;
 }
 
-void PrologueBuilder::SortOptionalNamedParametersInto(LocalVariable** opt_param,
-                                                      int* opt_param_position,
+void PrologueBuilder::SortOptionalNamedParametersInto(int* opt_param_position,
                                                       int num_fixed_params,
                                                       int num_params) {
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
+  String& name = String::Handle(Z);
+  String& name_i = String::Handle(Z);
   for (int pos = num_fixed_params; pos < num_params; pos++) {
-    LocalVariable* parameter = scope->VariableAt(pos);
-    const String& opt_param_name = parameter->name();
+    name = function_.ParameterNameAt(pos);
     int i = pos - num_fixed_params;
     while (--i >= 0) {
-      LocalVariable* param_i = opt_param[i];
-      const intptr_t result = opt_param_name.CompareTo(param_i->name());
+      name_i = function_.ParameterNameAt(opt_param_position[i]);
+      const intptr_t result = name.CompareTo(name_i);
       ASSERT(result != 0);
       if (result > 0) break;
-      opt_param[i + 1] = opt_param[i];
       opt_param_position[i + 1] = opt_param_position[i];
     }
-    opt_param[i + 1] = parameter;
     opt_param_position[i + 1] = pos;
   }
 }

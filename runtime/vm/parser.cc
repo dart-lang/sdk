@@ -337,7 +337,8 @@ void ParsedFunction::AllocateVariables() {
   // parameters array, which can be used to access the raw parameters (i.e. not
   // the potentially variables which are in the context)
 
-  for (intptr_t param = 0; param < function().NumParameters(); ++param) {
+  raw_parameters_ = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
+  for (intptr_t param = 0; param < num_params; ++param) {
     LocalVariable* raw_parameter = scope->VariableAt(param);
     if (raw_parameter->is_captured()) {
       String& tmp = String::ZoneHandle(Z);
@@ -366,7 +367,7 @@ void ParsedFunction::AllocateVariables() {
             VariableIndex(function().NumParameters() - param));
       }
     }
-    raw_parameters_.Add(raw_parameter);
+    raw_parameters_->Add(raw_parameter);
   }
   if (function_type_arguments_ != NULL) {
     LocalVariable* raw_type_args_parameter = function_type_arguments_;
@@ -442,6 +443,12 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   first_parameter_index_ = VariableIndex(num_params);
 
   // Frame indices are relative to the frame pointer and are decreasing.
+  num_stack_locals_ = num_stack_locals;
+}
+
+void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
+  ASSERT(!function().IsIrregexpFunction());
+  first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
   num_stack_locals_ = num_stack_locals;
 }
 

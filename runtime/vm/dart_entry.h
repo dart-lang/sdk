@@ -45,6 +45,8 @@ class ArgumentsDescriptor : public ValueObject {
   RawString* NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
+  // Returns array of argument names in the arguments order.
+  RawArray* GetArgumentNames() const;
 
   // Generated code support.
   static intptr_t type_args_len_offset();

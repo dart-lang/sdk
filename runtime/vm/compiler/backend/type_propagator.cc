@@ -938,6 +938,12 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
+  if (FLAG_use_bytecode_compiler &&
+      graph_entry->parsed_function().node_sequence() == nullptr) {
+    // TODO(alexmarkov): Consider adding node_sequence() and scope.
+    return CompileType::Dynamic();
+  }
+
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {

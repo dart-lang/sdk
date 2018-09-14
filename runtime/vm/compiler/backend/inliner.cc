@@ -973,7 +973,7 @@ class CallSiteInliner : public ValueObject {
             entry_kind = instr->entry_kind();
           }
           kernel::FlowGraphBuilder builder(
-              parsed_function, *ic_data_array, /* not building var desc */ NULL,
+              parsed_function, ic_data_array, /* not building var desc */ NULL,
               exit_collector,
               /* optimized = */ true, Compiler::kNoOSRDeoptId,
               caller_graph_->max_block_id() + 1,

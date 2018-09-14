@@ -779,15 +779,19 @@ const NativeFieldDesc* NativeFieldDesc::GetLengthFieldForArrayCid(
   }
 }
 
-const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
-    Zone* zone,
-    const Class& cls) {
+const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsField(Zone* zone,
+                                                              intptr_t offset) {
   // TODO(vegorov) consider caching type arguments fields for specific classes
   // in some sort of a flow-graph specific cache.
-  const intptr_t offset = cls.type_arguments_field_offset();
   ASSERT(offset != Class::kNoTypeArguments);
   return new (zone) NativeFieldDesc(kTypeArguments, offset, kDynamicCid,
                                     /*immutable=*/true);
+}
+
+const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
+    Zone* zone,
+    const Class& cls) {
+  return GetTypeArgumentsField(zone, cls.type_arguments_field_offset());
 }
 
 RawAbstractType* NativeFieldDesc::type() const {
@@ -1233,7 +1237,10 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 }
 
 void Value::AddToList(Value* value, Value** list) {
+  ASSERT(value->next_use() == nullptr);
+  ASSERT(value->previous_use() == nullptr);
   Value* next = *list;
+  ASSERT(value != next);
   *list = value;
   value->set_next_use(next);
   value->set_previous_use(NULL);
@@ -3965,7 +3972,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  if (compiler->is_optimizing() && HasICData()) {
+  if ((compiler->is_optimizing() || FLAG_use_bytecode_compiler) &&
+      HasICData()) {
     ASSERT(HasICData());
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =

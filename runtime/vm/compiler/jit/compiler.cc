@@ -140,6 +140,7 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   const Function& function = parsed_function->function();
   return (function.kernel_offset() > 0) ||
+         (FLAG_use_bytecode_compiler && function.HasBytecode()) ||
          (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
          (function.kind() == RawFunction::kInvokeFieldDispatcher);
 }
@@ -154,7 +155,7 @@ void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
 FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
-    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<const ICData*>* ic_data_array,
     intptr_t osr_id,
     bool optimized) {
   if (UseKernelFrontEndFor(parsed_function)) {
@@ -167,7 +168,7 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
                                parsed_function->function().HasBytecode()));
     return graph;
   }
-  FlowGraphBuilder builder(*parsed_function, ic_data_array,
+  FlowGraphBuilder builder(*parsed_function, *ic_data_array,
                            /* not building var desc */ NULL,
                            /* not inlining */ NULL, osr_id);
 
@@ -207,13 +208,13 @@ void IrregexpCompilationPipeline::ParseFunction(
 FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
-    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<const ICData*>* ic_data_array,
     intptr_t osr_id,
     bool optimized) {
   // Compile to the dart IR.
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
-                              parsed_function, ic_data_array, osr_id);
+                              parsed_function, *ic_data_array, osr_id);
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
@@ -826,7 +827,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "BuildFlowGraph"));
         flow_graph = pipeline->BuildFlowGraph(
-            zone, parsed_function(), *ic_data_array, osr_id(), optimized());
+            zone, parsed_function(), ic_data_array, osr_id(), optimized());
       }
 
       // TODO(regis): Revisit.
@@ -1377,7 +1378,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     } else {
       parsed_function->EnsureKernelScopes();
       kernel::FlowGraphBuilder builder(
-          parsed_function, *ic_data_array, context_level_array,
+          parsed_function, ic_data_array, context_level_array,
           /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
       builder.BuildGraph();
     }

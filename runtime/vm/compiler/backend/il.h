@@ -1708,10 +1708,10 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        GraphEntryInstr* graph_entry,
                        const Array& handler_types,
                        intptr_t catch_try_index,
-                       const LocalVariable& exception_var,
-                       const LocalVariable& stacktrace_var,
                        bool needs_stacktrace,
                        intptr_t deopt_id,
+                       const LocalVariable* exception_var,
+                       const LocalVariable* stacktrace_var,
                        const LocalVariable* raw_exception_var,
                        const LocalVariable* raw_stacktrace_var)
       : BlockEntryInstr(block_id, try_index, deopt_id),
@@ -1739,8 +1739,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  const LocalVariable& exception_var() const { return exception_var_; }
-  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+  const LocalVariable* exception_var() const { return exception_var_; }
+  const LocalVariable* stacktrace_var() const { return stacktrace_var_; }
 
   const LocalVariable* raw_exception_var() const { return raw_exception_var_; }
   const LocalVariable* raw_stacktrace_var() const {
@@ -1775,8 +1775,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
   GrowableArray<Definition*> initial_definitions_;
-  const LocalVariable& exception_var_;
-  const LocalVariable& stacktrace_var_;
+  const LocalVariable* exception_var_;
+  const LocalVariable* stacktrace_var_;
   const LocalVariable* raw_exception_var_;
   const LocalVariable* raw_stacktrace_var_;
   const bool needs_stacktrace_;
@@ -2993,6 +2993,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
+    ASSERT(!dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
@@ -5131,6 +5132,8 @@ class NativeFieldDesc : public ZoneAllocated {
 
   static const NativeFieldDesc* Get(Kind kind);
   static const NativeFieldDesc* GetLengthFieldForArrayCid(intptr_t array_cid);
+  static const NativeFieldDesc* GetTypeArgumentsField(Zone* zone,
+                                                      intptr_t offset);
   static const NativeFieldDesc* GetTypeArgumentsFieldFor(Zone* zone,
                                                          const Class& cls);
 
