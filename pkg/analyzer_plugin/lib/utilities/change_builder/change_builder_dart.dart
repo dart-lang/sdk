@@ -288,6 +288,13 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
       {ExecutableElement methodBeingCopied});
+
+  /**
+   * Write the code for a comma-separated list of [types], optionally prefixed
+   * by a [prefix]. If the list of [types] is `null` or does not contain any
+   * types, then nothing will be written.
+   */
+  void writeTypes(Iterable<DartType> types, {String prefix});
 }
 
 /**

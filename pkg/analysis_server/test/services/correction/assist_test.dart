@@ -746,6 +746,388 @@ void f() {}
     await assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  test_convertClassToMixin_extends_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B extends A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_extends_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extends_superSuper() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {}
+class C extends B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B extends A {}
+mixin C on B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A implements B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {}
+class C extends A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A with B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A, B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on B implements A {
+  c() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D extends A with B implements C {}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+class C {}
+mixin D implements A, B, C {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A, B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A implements B, C {
+  d() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on B implements A, C {
+  d() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_implements() async {
+    await resolveTestUnit('''
+class A {}
+class B implements A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_invalidSelection() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertNoAssistAt(
+      '{}',
+      DartAssistKind.CONVERT_CLASS_TO_MIXIN,
+    );
+  }
+
+  test_convertClassToMixin_noClauses_selectKeyword() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('class', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_selectName() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_with_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B with A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_with_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B with A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
   test_convertDocumentationIntoBlock_BAD_alreadyBlock() async {
     await resolveTestUnit('''
 /**

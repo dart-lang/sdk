@@ -12,6 +12,8 @@ class DartAssistKind {
       'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'dart.assist.assignToVariable', 30, "Assign value to new local variable");
+  static const CONVERT_CLASS_TO_MIXIN = const AssistKind(
+      'dart.assist.convert.classToMixin', 30, "Convert class to a mixin");
   static const CONVERT_DOCUMENTATION_INTO_BLOCK = const AssistKind(
       'dart.assist.convert.blockComment',
       30,

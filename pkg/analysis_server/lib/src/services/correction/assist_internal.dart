@@ -127,6 +127,7 @@ class AssistProcessor {
     await _addProposal_addTypeAnnotation_SimpleFormalParameter();
     await _addProposal_addTypeAnnotation_VariableDeclaration();
     await _addProposal_assignToLocalVariable();
+    await _addProposal_convertClassToMixin();
     await _addProposal_convertIntoFinalField();
     await _addProposal_convertIntoGetter();
     await _addProposal_convertDocumentationIntoBlock();
@@ -429,6 +430,60 @@ class AssistProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
     }
+  }
+
+  Future<void> _addProposal_convertClassToMixin() async {
+    ClassDeclaration classDeclaration =
+        node.getAncestor((n) => n is ClassDeclaration);
+    if (classDeclaration == null) {
+      return;
+    }
+    if (selectionOffset > classDeclaration.name.end ||
+        selectionEnd < classDeclaration.classKeyword.offset) {
+      return;
+    }
+    if (classDeclaration.members
+        .any((member) => member is ConstructorDeclaration)) {
+      return;
+    }
+    _SuperclassReferenceFinder finder = new _SuperclassReferenceFinder();
+    classDeclaration.accept(finder);
+    List<ClassElement> referencedClasses = finder.referencedClasses;
+    List<InterfaceType> superclassConstraints = <InterfaceType>[];
+    List<InterfaceType> interfaces = <InterfaceType>[];
+
+    ClassElement classElement = classDeclaration.declaredElement;
+    for (InterfaceType type in classElement.mixins) {
+      if (referencedClasses.contains(type.element)) {
+        superclassConstraints.add(type);
+      } else {
+        interfaces.add(type);
+      }
+    }
+    ExtendsClause extendsClause = classDeclaration.extendsClause;
+    if (extendsClause != null) {
+      if (referencedClasses.length > superclassConstraints.length) {
+        superclassConstraints.insert(0, classElement.supertype);
+      } else {
+        interfaces.insert(0, classElement.supertype);
+      }
+    }
+    interfaces.addAll(classElement.interfaces);
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(
+          range.startStart(
+              classDeclaration.classKeyword, classDeclaration.leftBracket),
+          (DartEditBuilder builder) {
+        builder.write('mixin ');
+        builder.write(classDeclaration.name.name);
+        builder.writeTypes(superclassConstraints, prefix: ' on ');
+        builder.writeTypes(interfaces, prefix: ' implements ');
+        builder.write(' ');
+      });
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_CLASS_TO_MIXIN);
   }
 
   Future<void> _addProposal_convertDocumentationIntoBlock() async {
@@ -3384,5 +3439,45 @@ class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     visitor(node);
+  }
+}
+
+/**
+ * A visitor used to find all of the classes that define members referenced via
+ * `super`.
+ */
+class _SuperclassReferenceFinder extends RecursiveAstVisitor {
+  final List<ClassElement> referencedClasses = <ClassElement>[];
+
+  _SuperclassReferenceFinder();
+
+  @override
+  visitSuperExpression(SuperExpression node) {
+    AstNode parent = node.parent;
+    if (parent is BinaryExpression) {
+      _addElement(parent.staticElement);
+    } else if (parent is IndexExpression) {
+      _addElement(parent.staticElement);
+    } else if (parent is MethodInvocation) {
+      _addIdentifier(parent.methodName);
+    } else if (parent is PrefixedIdentifier) {
+      _addIdentifier(parent.identifier);
+    } else if (parent is PropertyAccess) {
+      _addIdentifier(parent.propertyName);
+    }
+    return super.visitSuperExpression(node);
+  }
+
+  void _addElement(Element element) {
+    if (element is ExecutableElement) {
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        referencedClasses.add(enclosingElement);
+      }
+    }
+  }
+
+  void _addIdentifier(SimpleIdentifier identifier) {
+    _addElement(identifier.staticElement);
   }
 }
