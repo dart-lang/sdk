@@ -451,7 +451,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode(
       'INVALID_HEX_ESCAPE',
-      "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits.");
+      "An escape sequence starting with '\\x' "
+      "must be followed by 2 hexadecimal digits.");
 
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
       const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
@@ -486,7 +487,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode(
       'INVALID_UNICODE_ESCAPE',
       "An escape sequence starting with '\\u' must be followed by 4 "
-      "hexidecimal digits or from 1 to 6 digits between '{' and '}'.");
+      "hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
 
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
       const ParserErrorCode('LIBRARY_DIRECTIVE_NOT_FIRST',

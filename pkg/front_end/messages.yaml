@@ -897,14 +897,14 @@ InvalidCodePoint:
     - "'\\u{110000}'"
 
 InvalidHexEscape:
-  template: "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits."
+  template: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
   analyzerCode: INVALID_HEX_ESCAPE
   expression:
     - "'\\x0'"
     - "'\\x0y'"
 
 InvalidUnicodeEscape:
-  template: "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'."
+  template: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
   analyzerCode: INVALID_UNICODE_ESCAPE
   expression:
     - "'\\u'"

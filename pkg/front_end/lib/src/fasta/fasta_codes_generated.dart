@@ -4628,7 +4628,7 @@ const MessageCode messageInvalidHexEscape = const MessageCode(
     "InvalidHexEscape",
     analyzerCode: "INVALID_HEX_ESCAPE",
     message:
-        r"""An escape sequence starting with '\x' must be followed by 2 hexidecimal digits.""");
+        r"""An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
@@ -4714,7 +4714,7 @@ const MessageCode messageInvalidUnicodeEscape = const MessageCode(
     "InvalidUnicodeEscape",
     analyzerCode: "INVALID_UNICODE_ESCAPE",
     message:
-        r"""An escape sequence starting with '\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'.""");
+        r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUseOfNullAwareAccess =
