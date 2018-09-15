@@ -51,7 +51,11 @@ namespace kernel {
   M(PopLocal)                                                                  \
   M(Push)                                                                      \
   M(PushConstant)                                                              \
+  M(PushFalse)                                                                 \
+  M(PushInt)                                                                   \
+  M(PushNull)                                                                  \
   M(PushStatic)                                                                \
+  M(PushTrue)                                                                  \
   M(ReturnTOS)                                                                 \
   M(SetFrame)                                                                  \
   M(StoreContextParent)                                                        \

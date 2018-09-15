@@ -2274,6 +2274,30 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(PushNull, 0);
+    *++SP = Object::null();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushTrue, 0);
+    *++SP = Object::bool_true().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushFalse, 0);
+    *++SP = Object::bool_false().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushInt, A_X);
+    *++SP = Smi::New(rD);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Push, A_X);
     *++SP = FP[rD];
     DISPATCH();

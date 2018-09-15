@@ -11,13 +11,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   Drop1
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
-  [2] = Null
 }
 ]  synthetic constructor •() → void
     : super core::Object::•()
@@ -27,25 +26,22 @@ Bytecode {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 1, 0
-  PushConstant         CP#0
+  PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = Null
 }
 ]  method foo<T extends core::Object = dynamic>(self::Base1::foo::T a1, core::int a2) → void {}
 [@vm.bytecode=
 Bytecode {
   Entry                0
   CheckStack
-  PushConstant         CP#0
+  PushInt              42
   ReturnTOS
-  PushConstant         CP#1
+  PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = Int 42
-  [1] = Null
 }
 ]  get bar() → dynamic
     return 42;
@@ -53,11 +49,10 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack
-  PushConstant         CP#0
+  PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = Null
 }
 ]  set bazz(core::int x) → void {}
 }
@@ -70,13 +65,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   Drop1
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base1::', arg-desc CP#0
-  [2] = Null
 }
 ]  synthetic constructor •() → void
     : super self::Base1::•()
@@ -88,20 +82,18 @@ Bytecode {
   PushConstant         CP#0
   Push                 FP[-6]
   PushConstant         CP#1
-  PushConstant         CP#2
-  PushConstant         CP#4
-  IndirectStaticCall   4, CP#3
+  PushInt              2
+  PushConstant         CP#3
+  IndirectStaticCall   4, CP#2
   ReturnTOS
-  PushConstant         CP#5
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgs [dart.core::String]
   [1] = String 'a1'
-  [2] = Int 2
-  [3] = ArgDesc num-args 3, num-type-args 1, names []
-  [4] = StaticICData target '#lib::Base1::foo', arg-desc CP#3
-  [5] = Null
+  [2] = ArgDesc num-args 3, num-type-args 1, names []
+  [3] = StaticICData target '#lib::Base1::foo', arg-desc CP#2
 }
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base1::foo}<core::String>("a1", 2);
@@ -113,13 +105,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   ReturnTOS
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData get target '#lib::Base1::foo', arg-desc CP#0
-  [2] = Null
 }
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base1::foo};
@@ -131,13 +122,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   ReturnTOS
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData get target '#lib::Base1::bar', arg-desc CP#0
-  [2] = Null
 }
 ]  method testSuperGet() → dynamic
     return super.{self::Base1::bar};
@@ -152,7 +142,7 @@ Bytecode {
   PushConstant         CP#3
   InstanceCall         3, CP#5
   ReturnTOS
-  PushConstant         CP#6
+  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -162,7 +152,6 @@ ConstantPool {
   [3] = String 'param'
   [4] = ArgDesc num-args 2, num-type-args 1, names []
   [5] = ICData dynamic target-name 'call', arg-desc CP#4
-  [6] = Null
 }
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base1::bar}.call<core::int>("param");
@@ -171,18 +160,16 @@ Bytecode {
   Entry                1
   CheckStack
   Push                 FP[-5]
-  PushConstant         CP#0
-  PushConstant         CP#2
-  IndirectStaticCall   2, CP#1
+  PushInt              3
+  PushConstant         CP#1
+  IndirectStaticCall   2, CP#0
   Drop1
-  PushConstant         CP#3
+  PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = Int 3
-  [1] = ArgDesc num-args 2, num-type-args 0, names []
-  [2] = StaticICData set target '#lib::Base1::bazz', arg-desc CP#1
-  [3] = Null
+  [0] = ArgDesc num-args 2, num-type-args 0, names []
+  [1] = StaticICData set target '#lib::Base1::bazz', arg-desc CP#0
 }
 ]  method testSuperSet() → dynamic {
     super.{self::Base1::bazz} = 3;
@@ -197,13 +184,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   Drop1
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
-  [2] = Null
 }
 ]  synthetic constructor •() → void
     : super core::Object::•()
@@ -221,13 +207,12 @@ Bytecode {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   Drop1
-  PushConstant         CP#2
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base2::', arg-desc CP#0
-  [2] = Null
 }
 ]  synthetic constructor •() → void
     : super self::Base2::•()
@@ -240,57 +225,49 @@ Bytecode {
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#2
-  PushConstant         CP#3
+  PushInt              5
   CreateArrayTOS
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#4
-  PushConstant         CP#5
+  PushInt              0
+  PushConstant         CP#3
   StoreIndexedTOS
   Push                 r0
-  PushConstant         CP#6
+  PushInt              1
   Push                 FP[-6]
   StoreIndexedTOS
   Push                 r0
+  PushInt              2
+  PushConstant         CP#4
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              3
+  PushConstant         CP#5
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              4
+  PushInt              5
+  StoreIndexedTOS
+  PushTrue
   PushConstant         CP#7
-  PushConstant         CP#8
-  StoreIndexedTOS
-  Push                 r0
+  IndirectStaticCall   4, CP#6
   PushConstant         CP#9
-  PushConstant         CP#10
-  StoreIndexedTOS
-  Push                 r0
-  PushConstant         CP#11
-  PushConstant         CP#3
-  StoreIndexedTOS
-  PushConstant         CP#12
-  PushConstant         CP#14
-  IndirectStaticCall   4, CP#13
-  PushConstant         CP#16
-  IndirectStaticCall   2, CP#15
+  IndirectStaticCall   2, CP#8
   ReturnTOS
-  PushConstant         CP#17
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = String 'foo'
   [1] = ArgDesc num-args 4, num-type-args 1, names []
   [2] = TypeArgs [dynamic]
-  [3] = Int 5
-  [4] = Int 0
-  [5] = TypeArgs [dart.core::double]
-  [6] = Int 1
-  [7] = Int 2
-  [8] = String 'a1'
-  [9] = Int 3
-  [10] = Double 3.14
-  [11] = Int 4
-  [12] = Bool true
-  [13] = ArgDesc num-args 4, num-type-args 0, names []
-  [14] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#13
-  [15] = ArgDesc num-args 2, num-type-args 0, names []
-  [16] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#15
-  [17] = Null
+  [3] = TypeArgs [dart.core::double]
+  [4] = String 'a1'
+  [5] = Double 3.14
+  [6] = ArgDesc num-args 4, num-type-args 0, names []
+  [7] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#6
+  [8] = ArgDesc num-args 2, num-type-args 0, names []
+  [9] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#8
 }
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base2::foo}<core::double>("a1", 3.14, 5);
@@ -302,34 +279,30 @@ Bytecode {
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#2
-  PushConstant         CP#3
+  PushInt              1
   CreateArrayTOS
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#4
+  PushInt              0
   Push                 FP[-5]
   StoreIndexedTOS
-  PushConstant         CP#5
-  PushConstant         CP#7
-  IndirectStaticCall   4, CP#6
-  PushConstant         CP#9
-  IndirectStaticCall   2, CP#8
+  PushTrue
+  PushConstant         CP#4
+  IndirectStaticCall   4, CP#3
+  PushConstant         CP#6
+  IndirectStaticCall   2, CP#5
   ReturnTOS
-  PushConstant         CP#10
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = String 'foo'
   [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = TypeArgs [dynamic]
-  [3] = Int 1
-  [4] = Int 0
-  [5] = Bool true
-  [6] = ArgDesc num-args 4, num-type-args 0, names []
-  [7] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#6
-  [8] = ArgDesc num-args 2, num-type-args 0, names []
-  [9] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#8
-  [10] = Null
+  [3] = ArgDesc num-args 4, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
+  [5] = ArgDesc num-args 2, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#5
 }
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base2::foo};
@@ -341,34 +314,30 @@ Bytecode {
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#2
-  PushConstant         CP#3
+  PushInt              1
   CreateArrayTOS
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#4
+  PushInt              0
   Push                 FP[-5]
   StoreIndexedTOS
-  PushConstant         CP#5
-  PushConstant         CP#7
-  IndirectStaticCall   4, CP#6
-  PushConstant         CP#9
-  IndirectStaticCall   2, CP#8
+  PushTrue
+  PushConstant         CP#4
+  IndirectStaticCall   4, CP#3
+  PushConstant         CP#6
+  IndirectStaticCall   2, CP#5
   ReturnTOS
-  PushConstant         CP#10
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = String 'bar'
   [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = TypeArgs [dynamic]
-  [3] = Int 1
-  [4] = Int 0
-  [5] = Bool true
-  [6] = ArgDesc num-args 4, num-type-args 0, names []
-  [7] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#6
-  [8] = ArgDesc num-args 2, num-type-args 0, names []
-  [9] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#8
-  [10] = Null
+  [3] = ArgDesc num-args 4, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
+  [5] = ArgDesc num-args 2, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#5
 }
 ]  method testSuperGet() → dynamic
     return super.{self::Base2::bar};
@@ -381,22 +350,22 @@ Bytecode {
   PushConstant         CP#1
   PushConstant         CP#2
   PushConstant         CP#3
-  PushConstant         CP#4
+  PushInt              1
   CreateArrayTOS
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#5
+  PushInt              0
   Push                 FP[-5]
   StoreIndexedTOS
-  PushConstant         CP#6
+  PushTrue
+  PushConstant         CP#5
+  IndirectStaticCall   4, CP#4
+  PushConstant         CP#7
+  IndirectStaticCall   2, CP#6
   PushConstant         CP#8
-  IndirectStaticCall   4, CP#7
-  PushConstant         CP#10
-  IndirectStaticCall   2, CP#9
-  PushConstant         CP#11
-  InstanceCall         3, CP#13
+  InstanceCall         3, CP#10
   ReturnTOS
-  PushConstant         CP#14
+  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -404,17 +373,13 @@ ConstantPool {
   [1] = String 'bar'
   [2] = ArgDesc num-args 1, num-type-args 0, names []
   [3] = TypeArgs [dynamic]
-  [4] = Int 1
-  [5] = Int 0
-  [6] = Bool true
-  [7] = ArgDesc num-args 4, num-type-args 0, names []
-  [8] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#7
-  [9] = ArgDesc num-args 2, num-type-args 0, names []
-  [10] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#9
-  [11] = String 'param'
-  [12] = ArgDesc num-args 2, num-type-args 1, names []
-  [13] = ICData dynamic target-name 'call', arg-desc CP#12
-  [14] = Null
+  [4] = ArgDesc num-args 4, num-type-args 0, names []
+  [5] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#4
+  [6] = ArgDesc num-args 2, num-type-args 0, names []
+  [7] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#6
+  [8] = String 'param'
+  [9] = ArgDesc num-args 2, num-type-args 1, names []
+  [10] = ICData dynamic target-name 'call', arg-desc CP#9
 }
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base2::bar}.call<core::int>("param");
@@ -426,39 +391,33 @@ Bytecode {
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#2
-  PushConstant         CP#3
+  PushInt              2
   CreateArrayTOS
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#4
+  PushInt              0
   Push                 FP[-5]
   StoreIndexedTOS
   Push                 r0
-  PushConstant         CP#5
-  PushConstant         CP#6
+  PushInt              1
+  PushInt              3
   StoreIndexedTOS
-  PushConstant         CP#7
-  PushConstant         CP#9
-  IndirectStaticCall   4, CP#8
-  PushConstant         CP#10
+  PushTrue
+  PushConstant         CP#4
+  IndirectStaticCall   4, CP#3
+  PushConstant         CP#5
   IndirectStaticCall   2, CP#1
   Drop1
-  PushConstant         CP#11
+  PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = String 'bazz'
   [1] = ArgDesc num-args 2, num-type-args 0, names []
   [2] = TypeArgs [dynamic]
-  [3] = Int 2
-  [4] = Int 0
-  [5] = Int 1
-  [6] = Int 3
-  [7] = Bool true
-  [8] = ArgDesc num-args 4, num-type-args 0, names []
-  [9] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#8
-  [10] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#1
-  [11] = Null
+  [3] = ArgDesc num-args 4, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
+  [5] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#1
 }
 ]  method testSuperSet() → dynamic {
     super.{self::Base2::bazz} = 3;
@@ -468,10 +427,9 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack
-  PushConstant         CP#0
+  PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = Null
 }
 ]static method main() → dynamic {}

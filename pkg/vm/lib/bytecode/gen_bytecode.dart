@@ -150,7 +150,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         node.function?.body?.accept(this);
         // TODO(alexmarkov): figure out when 'return null' should be generated.
-        _genPushNull();
+        asm.emitPushNull();
       }
       _genReturnTOS();
       end(node);
@@ -296,17 +296,27 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     arguments.named.forEach((NamedExpression ne) => ne.value.accept(this));
   }
 
-  void _genPushNull() {
-    final cpIndex = cp.add(const ConstantNull());
-    asm.emitPushConstant(cpIndex);
+  void _genPushBool(bool value) {
+    if (value) {
+      asm.emitPushTrue();
+    } else {
+      asm.emitPushFalse();
+    }
   }
 
   void _genPushInt(int value) {
-    int cpIndex = cp.add(new ConstantInt(value));
-    asm.emitPushConstant(cpIndex);
+    if (value.bitLength + 1 <= 16) {
+      asm.emitPushInt(value);
+    } else {
+      int cpIndex = cp.add(new ConstantInt(value));
+      asm.emitPushConstant(cpIndex);
+    }
   }
 
   Constant _evaluateConstantExpression(Expression expr) {
+    if (expr is ConstantExpression) {
+      return expr.constant;
+    }
     final constant = constantEvaluator.evaluate(expr);
     if (constant == null) {
       // Compile-time error is already reported. Proceed with compilation
@@ -319,7 +329,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genPushConstExpr(Expression expr) {
     final constant = _evaluateConstantExpression(expr);
-    asm.emitPushConstant(constant.accept(constantEmitter));
+    if (constant is NullConstant) {
+      asm.emitPushNull();
+    } else if (constant is BoolConstant) {
+      _genPushBool(constant.value);
+    } else if (constant is IntConstant) {
+      _genPushInt(constant.value);
+    } else {
+      asm.emitPushConstant(constant.accept(constantEmitter));
+    }
   }
 
   void _genReturnTOS() {
@@ -398,13 +416,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       assert(instantiatorTypeArguments != null);
       _genPushInstantiatorTypeArguments();
     } else {
-      _genPushNull();
+      asm.emitPushNull();
     }
     if (functionTypeParameters != null &&
         types.any((t) => containsTypeVariable(t, functionTypeParameters))) {
       _genPushFunctionTypeArguments();
     } else {
-      _genPushNull();
+      asm.emitPushNull();
     }
   }
 
@@ -421,7 +439,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitLoadTypeArgumentsField(cpIndex);
       }
     } else {
-      _genPushNull();
+      asm.emitPushNull();
     }
   }
 
@@ -499,7 +517,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (locals.hasFunctionTypeArgsVar) {
       asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
     } else {
-      _genPushNull();
+      asm.emitPushNull();
     }
   }
 
@@ -561,7 +579,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genJumpIfFalse(bool negated, Label dest) {
-    asm.emitPushConstant(cp.add(new ConstantBool(true)));
+    asm.emitPushTrue();
     if (negated) {
       asm.emitIfEqStrictTOS(); // if ((!condition) == true) ...
     } else {
@@ -595,7 +613,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genInstanceOf(DartType type) {
     if (typeEnvironment.isTop(type)) {
       asm.emitDrop1();
-      asm.emitPushConstant(cp.add(new ConstantBool(true)));
+      asm.emitPushTrue();
       return;
     }
 
@@ -604,8 +622,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
     } else {
-      _genPushNull(); // Instantiator type arguments.
-      _genPushNull(); // Function type arguments.
+      asm.emitPushNull(); // Instantiator type arguments.
+      asm.emitPushNull(); // Function type arguments.
     }
     asm.emitPushConstant(cp.add(new ConstantType(type)));
     final argDescIndex = cp.add(new ConstantArgDesc(4));
@@ -686,11 +704,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     Label done = new Label();
 
     _genLoadVar(member.function.positionalParameters[0]);
-    _genPushNull();
+    asm.emitPushNull();
     asm.emitIfNeStrictTOS();
     asm.emitJump(done);
 
-    asm.emitPushConstant(cp.add(new ConstantBool(false)));
+    asm.emitPushFalse();
     _genReturnTOS();
 
     asm.bind(done);
@@ -1129,7 +1147,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     function.body.accept(this);
 
     // TODO(alexmarkov): figure out when 'return null' should be generated.
-    _genPushNull();
+    asm.emitPushNull();
     _genReturnTOS();
 
     if (locals.isSyncYieldingFrame) {
@@ -1399,7 +1417,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _createArgumentsArray(temp, typeArgs, args, storeLastArgumentToTemp);
 
     // Argument 3 for _allocateInvocationMirror(): isSuperInvocation flag.
-    asm.emitPushConstant(cp.add(new ConstantBool(true)));
+    asm.emitPushTrue();
 
     _genStaticCall(allocateInvocationMirror, new ConstantArgDesc(4), 4);
 
@@ -1435,14 +1453,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitBoolLiteral(BoolLiteral node) {
-    final cpIndex = cp.add(new ConstantBool.fromLiteral(node));
-    asm.emitPushConstant(cpIndex);
+    _genPushBool(node.value);
   }
 
   @override
   visitIntLiteral(IntLiteral node) {
-    final cpIndex = cp.add(new ConstantInt.fromLiteral(node));
-    asm.emitPushConstant(cpIndex);
+    _genPushInt(node.value);
   }
 
   @override
@@ -1653,7 +1669,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final isOR = (node.operator == '||');
 
     bool negated = _genCondition(node.left);
-    asm.emitPushConstant(cp.add(new ConstantBool(true)));
+    asm.emitPushTrue();
     if (negated != isOR) {
       // OR: if (condition == true)
       // AND: if ((!condition) == true)
@@ -1673,7 +1689,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitJump(done);
 
     asm.bind(shortCircuit);
-    asm.emitPushConstant(cp.add(new ConstantBool(isOR)));
+    _genPushBool(isOR);
     asm.emitPopLocal(temp);
 
     asm.bind(done);
@@ -1847,8 +1863,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitNullLiteral(NullLiteral node) {
-    final cpIndex = cp.add(const ConstantNull());
-    asm.emitPushConstant(cpIndex);
+    asm.emitPushNull();
   }
 
   @override
@@ -1920,7 +1935,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         assert(args.types.isEmpty);
         // VM needs type arguments for every invocation of a factory
         // constructor. TODO(alexmarkov): Clean this up.
-        _genPushNull();
+        asm.emitPushNull();
       }
       args =
           new Arguments(node.arguments.positional, named: node.arguments.named);
@@ -1955,7 +1970,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       node.expressions.single.accept(this);
       _genStaticCall(interpolateSingle, new ConstantArgDesc(1), 1);
     } else {
-      _genPushNull();
+      asm.emitPushNull();
       _genPushInt(node.expressions.length);
       asm.emitCreateArrayTOS();
 
@@ -2050,7 +2065,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genFutureNull() {
-    _genPushNull();
+    asm.emitPushNull();
     _genStaticCall(futureValue, new ConstantArgDesc(1), 1);
   }
 
@@ -2078,7 +2093,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (node.message != null) {
       node.message.accept(this);
     } else {
-      _genPushNull();
+      asm.emitPushNull();
     }
 
     _genStaticCall(throwNewAssertionError, new ConstantArgDesc(3), 3);
@@ -2602,7 +2617,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (node.initializer != null) {
         node.initializer.accept(this);
       } else {
-        _genPushNull();
+        asm.emitPushNull();
       }
       if (isCaptured) {
         asm.emitStoreContextVar(locals.getVarIndexInContext(node));
@@ -2722,8 +2737,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitConstantExpression(ConstantExpression node) {
-    int cpIndex = node.constant.accept(constantEmitter);
-    asm.emitPushConstant(cpIndex);
+    _genPushConstExpr(node);
   }
 }
 

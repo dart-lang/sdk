@@ -626,6 +626,25 @@ void BytecodeFlowGraphBuilder::BuildPushConstant() {
   PushConstant(ConstantAt(DecodeOperandD()));
 }
 
+void BytecodeFlowGraphBuilder::BuildPushNull() {
+  code_ += B->NullConstant();
+}
+
+void BytecodeFlowGraphBuilder::BuildPushTrue() {
+  code_ += B->Constant(Bool::True());
+}
+
+void BytecodeFlowGraphBuilder::BuildPushFalse() {
+  code_ += B->Constant(Bool::False());
+}
+
+void BytecodeFlowGraphBuilder::BuildPushInt() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+  code_ += B->IntConstant(DecodeOperandX().value());
+}
+
 void BytecodeFlowGraphBuilder::BuildStoreLocal() {
   LoadStackSlots(1);
   const Operand local_index = DecodeOperandX();

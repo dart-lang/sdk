@@ -221,6 +221,22 @@ class BytecodeAssembler {
     emitWord(_encodeD(Opcode.kPushConstant, rd));
   }
 
+  void emitPushNull() {
+    emitWord(_encode0(Opcode.kPushNull));
+  }
+
+  void emitPushTrue() {
+    emitWord(_encode0(Opcode.kPushTrue));
+  }
+
+  void emitPushFalse() {
+    emitWord(_encode0(Opcode.kPushFalse));
+  }
+
+  void emitPushInt(int rx) {
+    emitWord(_encodeX(Opcode.kPushInt, rx));
+  }
+
   void emitStoreLocal(int rx) {
     emitWord(_encodeX(Opcode.kStoreLocal, rx));
   }

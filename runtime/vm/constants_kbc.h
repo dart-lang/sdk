@@ -154,6 +154,22 @@ namespace dart {
 //    Load value at index D from constant pool into FP[rA] or push it onto the
 //    stack.
 //
+//  - PushNull
+//
+//    Push `null` onto the stack.
+//
+//  - PushTrue
+//
+//    Push `true` onto the stack.
+//
+//  - PushFalse
+//
+//    Push `false` onto the stack.
+//
+//  - PushInt rX
+//
+//    Push int rX onto the stack.
+//
 //  - StoreLocal rX; PopLocal rX
 //
 //    Store top of the stack into FP[rX] and pop it if needed.
@@ -832,6 +848,10 @@ namespace dart {
   V(LoadClassId,                         A_D, reg, reg, ___)                   \
   V(LoadClassIdTOS,                        0, ___, ___, ___)                   \
   V(PushConstant,                          D, lit, ___, ___)                   \
+  V(PushNull,                              0, ___, ___, ___)                   \
+  V(PushTrue,                              0, ___, ___, ___)                   \
+  V(PushFalse,                             0, ___, ___, ___)                   \
+  V(PushInt,                               X, num, ___, ___)                   \
   V(StoreLocal,                            X, xeg, ___, ___)                   \
   V(PopLocal,                              X, xeg, ___, ___)                   \
   V(IndirectStaticCall,                  A_D, num, num, ___)                   \
