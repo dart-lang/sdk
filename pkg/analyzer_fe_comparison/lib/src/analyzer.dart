@@ -174,6 +174,7 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var name = node.name.name;
     String kind;
     if (node.isGetter) {
       kind = 'Getter';
@@ -181,6 +182,9 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
       kind = 'Setter';
     } else if (node.isOperator) {
       kind = 'Operator';
+      if (name == '-' && node.declaredElement.parameters.isEmpty) {
+        name = 'unary-';
+      }
     } else {
       kind = 'Method';
     }
@@ -190,8 +194,7 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
     visitor._visitParameters(node.parameters);
     children
         .add(_translateType('Return type: ', node.declaredElement.returnType));
-    _resultNodes
-        .add(ComparisonNode.sorted('$kind ${node.name.name}', children));
+    _resultNodes.add(ComparisonNode.sorted('$kind $name', children));
   }
 
   @override
