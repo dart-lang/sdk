@@ -887,6 +887,63 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test(x) {} // in Derived2'));
   }
 
+  Future<void> test_member_ofSuperclassConstraint_getter() async {
+    addTestFile('''
+class A {
+  get test => 0; // in A
+}
+
+mixin M on A {
+  get test => 0; // in M
+}
+''');
+    var items = await _getTypeHierarchy('test => 0; // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test => 0; // in A');
+    _assertMember(inM, 'test => 0; // in M');
+  }
+
+  Future<void> test_member_ofSuperclassConstraint_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+
+mixin M on A {
+  void test() {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test() {} // in A');
+    _assertMember(inM, 'test() {} // in M');
+  }
+
+  Future<void> test_member_ofSuperclassConstraint_setter() async {
+    addTestFile('''
+class A {
+  set test(x) {} // in A
+}
+
+mixin M on A {
+  set test(x) {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test(x) {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test(x) {} // in A');
+    _assertMember(inM, 'test(x) {} // in M');
+  }
+
   Future<void> test_member_operator() async {
     addTestFile('''
 class A {
@@ -1022,6 +1079,10 @@ class D extends C {}
     List<TypeHierarchyItem> items =
         new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
     expect(items, isNull);
+  }
+
+  void _assertMember(TypeHierarchyItem item, String search) {
+    expect(item.memberElement.location.offset, findOffset(search));
   }
 
   Request _createGetTypeHierarchyRequest(String search, {bool superOnly}) {

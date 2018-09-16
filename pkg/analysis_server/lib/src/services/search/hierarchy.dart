@@ -173,6 +173,10 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
         queue.add(superType.element);
       }
     }
+    // append superclass constraints
+    for (InterfaceType interface in current.superclassConstraints) {
+      queue.add(interface.element);
+    }
     // append interfaces
     for (InterfaceType interface in current.interfaces) {
       queue.add(interface.element);

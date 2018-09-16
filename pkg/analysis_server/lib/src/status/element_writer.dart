@@ -54,6 +54,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isProxy'] = element.isProxy;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
+      properties['superclassConstraints'] = element.superclassConstraints;
       properties['supertype'] = element.supertype;
     }
     if (element is ClassMemberElement) {

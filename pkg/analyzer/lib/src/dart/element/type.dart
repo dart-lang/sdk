@@ -1511,6 +1511,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     //
+    // I is listed in the on clause of J.
+    //
+    for (InterfaceType interfaceType in jElement.superclassConstraints) {
+      interfaceType = interfaceType.substitute2(jArgs, jVars);
+      if (interfaceType == i) {
+        return true;
+      }
+    }
+    //
     // I is listed in the implements clause of J.
     //
     for (InterfaceType interfaceType in jElement.interfaces) {
@@ -2209,19 +2218,28 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     int longestPath = 1;
     try {
       visitedTypes.add(classElement);
-      List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
-      if (superinterfaces.length > 0) {
-        // loop through each of the superinterfaces recursively calling this
-        // method and keeping track of the longest path to return
-        for (InterfaceType superinterface in superinterfaces) {
-          pathLength = _computeLongestInheritancePathToObject(
-              superinterface, depth + 1, visitedTypes);
-          if (pathLength > longestPath) {
-            longestPath = pathLength;
-          }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.superclassConstraints) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
         }
       }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.interfaces) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+
       // finally, perform this same check on the super type
       // TODO(brianwilkerson) Does this also need to add in the number of mixin
       // classes?
