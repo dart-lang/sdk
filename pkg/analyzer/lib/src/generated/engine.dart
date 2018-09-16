@@ -1136,7 +1136,7 @@ class AnalysisNotScheduledError implements Exception {}
  */
 abstract class AnalysisOptions {
   /**
-   * The length of the list returned by [encodeCrossContextOptions].
+   * The length of the list returned by [signature].
    */
   static const int signatureLength = 4;
 
@@ -1377,11 +1377,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const List<String> NONNULLABLE_TYPES = const <String>[];
 
   /**
+   * The length of the list returned by [unlinkedSignature].
+   */
+  static const int unlinkedSignatureLength = 4;
+
+  /**
    * A predicate indicating whether analysis is to parse and analyze function
    * bodies.
    */
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
+
+  /**
+   * The cached [unlinkedSignature].
+   */
+  Uint32List _unlinkedSignature;
 
   /**
    * The cached [signature].
@@ -1704,6 +1714,26 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @Deprecated(
       "The strongMode field is deprecated, and shouldn't be assigned to")
   set strongMode(bool value) {}
+
+  /**
+   * Return the opaque signature of the options that affect unlinked data.
+   *
+   * The length of the list is guaranteed to equal [unlinkedSignatureLength].
+   */
+  Uint32List get unlinkedSignature {
+    if (_unlinkedSignature == null) {
+      ApiSignature buffer = new ApiSignature();
+
+      // Append boolean flags.
+      buffer.addBool(enableLazyAssignmentOperators);
+      buffer.addBool(useFastaParser);
+
+      // Hash and convert to Uint32List.
+      List<int> bytes = buffer.toByteList();
+      _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
+    }
+    return _unlinkedSignature;
+  }
 
   @override
   void resetToDefaults() {

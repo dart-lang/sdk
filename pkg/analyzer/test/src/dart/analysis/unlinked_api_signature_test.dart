@@ -72,6 +72,7 @@ class UnitApiSignatureTest extends Object with ResourceProviderMixin {
         resourceProvider,
         sourceFactory,
         new AnalysisOptionsImpl(),
+        new Uint32List(0),
         new Uint32List(0));
   }
 

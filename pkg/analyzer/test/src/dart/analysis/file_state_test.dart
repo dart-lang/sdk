@@ -58,8 +58,15 @@ class FileSystemStateTest {
       new ResourceUriResolver(provider)
     ], null, provider);
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
-    fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
-        provider, sourceFactory, analysisOptions, new Uint32List(0));
+    fileSystemState = new FileSystemState(
+        logger,
+        byteStore,
+        contentOverlay,
+        provider,
+        sourceFactory,
+        analysisOptions,
+        new Uint32List(0),
+        new Uint32List(0));
   }
 
   test_definedClassMemberNames() {

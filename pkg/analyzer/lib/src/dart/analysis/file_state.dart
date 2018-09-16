@@ -356,7 +356,7 @@ class FileState {
   String get transitiveSignature {
     if (_transitiveSignature == null) {
       ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
+      signature.addUint32List(_fsState._linkedSalt);
       signature.addInt(transitiveFiles.length);
       transitiveFiles
           .map((file) => file.apiSignature)
@@ -424,7 +424,7 @@ class FileState {
     String unlinkedKey;
     {
       var signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
+      signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
 
       var signatureHex = signature.toHex();
@@ -707,7 +707,8 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
-  final Uint32List _salt;
+  final Uint32List _unlinkedSalt;
+  final Uint32List _linkedSalt;
 
   /**
    * The optional store with externally provided unlinked and corresponding
@@ -789,7 +790,8 @@ class FileSystemState {
     this._resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
-    this._salt, {
+    this._unlinkedSalt,
+    this._linkedSalt, {
     this.externalSummaries,
     this.parseExceptionHandler,
   }) {

@@ -425,7 +425,7 @@ class BuildMode extends Object with HasContextMixin {
         new FileContentOverlay(),
         null,
         sourceFactory,
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         externalSummaries: summaryDataStore);
     analysisDriver.declaredVariables =
         new DeclaredVariables.fromMap(options.definedVariables);

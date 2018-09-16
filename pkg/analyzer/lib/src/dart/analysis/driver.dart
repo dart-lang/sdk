@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisContext,
         AnalysisEngine,
         AnalysisOptions,
+        AnalysisOptionsImpl,
         PerformanceStatistics;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -92,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 66;
+  static const int DATA_VERSION = 67;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -139,7 +140,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The analysis options to analyze with.
    */
-  AnalysisOptions _analysisOptions;
+  AnalysisOptionsImpl _analysisOptions;
 
   /**
    * The optional SDK bundle, used when the client cannot read SDK files.
@@ -163,9 +164,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final ContextRoot contextRoot;
 
   /**
-   * The salt to mix into all hashes used as keys for serialized data.
+   * The salt to mix into all hashes used as keys for unlinked data.
    */
-  final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
+  final Uint32List _unlinkedSalt =
+      new Uint32List(1 + AnalysisOptionsImpl.unlinkedSignatureLength);
+
+  /**
+   * The salt to mix into all hashes used as keys for linked data.
+   */
+  final Uint32List _linkedSalt =
+      new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -841,7 +849,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     var file = fsState.getFileForPath(path);
     ApiSignature signature = new ApiSignature();
-    signature.addUint32List(_salt);
+    signature.addUint32List(_linkedSalt);
     signature.addString(file.transitiveSignature);
     return signature;
   }
@@ -1338,8 +1346,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _createFileTracker() {
     _fillSalt();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, sourceFactory, analysisOptions, _salt,
+    _fsState = new FileSystemState(
+        _logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        sourceFactory,
+        analysisOptions,
+        _unlinkedSalt,
+        _linkedSalt,
         externalSummaries: _externalSummaries,
         parseExceptionHandler: _storeExceptionContextDuringParsing);
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
@@ -1380,15 +1395,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Fill [_salt] with data.
+   * Fill [_unlinkedSalt] and [_linkedSalt] with data.
    */
   void _fillSalt() {
-    _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions = _analysisOptions.signature;
-    assert(crossContextOptions.length == AnalysisOptions.signatureLength);
-    for (int i = 0; i < crossContextOptions.length; i++) {
-      _salt[i + 1] = crossContextOptions[i];
-    }
+    _unlinkedSalt[0] = DATA_VERSION;
+    _unlinkedSalt.setAll(1, _analysisOptions.unlinkedSignature);
+
+    _linkedSalt[0] = DATA_VERSION;
+    _linkedSalt.setAll(1, _analysisOptions.signature);
   }
 
   /**
@@ -1458,7 +1472,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   String _getResolvedUnitSignature(FileState library, FileState file) {
     ApiSignature signature = new ApiSignature();
-    signature.addUint32List(_salt);
+    signature.addUint32List(_linkedSalt);
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
