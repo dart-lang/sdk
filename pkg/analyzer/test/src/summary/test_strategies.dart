@@ -4,9 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -18,10 +22,13 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
 import '../context/mock_sdk.dart';
+import 'resynthesize_common.dart';
 
 /// Convert the given Posix style file [path] to the corresponding absolute URI.
 String absUri(String path) {
@@ -71,6 +78,164 @@ void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
           expect(reference.dependency, 0,
               reason: 'Nonzero dependency for ${reference.kind}');
       }
+    }
+  }
+}
+
+/// Abstract base class for tests of summary resynthesis.
+///
+/// Test classes should not extend this class directly; they should extend a
+/// class that implements this class with methods that drive summary generation.
+/// The tests themselves can then be provided via mixin, allowing summaries to
+/// be tested in a variety of ways.
+abstract class ResynthesizeTestStrategy {
+  //Future<LibraryElementImpl> checkLibrary(String text,
+  //    {bool allowErrors: false, bool dumpSummaries: false});
+
+  void set allowMissingFiles(bool value);
+
+  AnalysisContextImpl get context;
+
+  MemoryResourceProvider get resourceProvider;
+
+  void set testFile(String value);
+
+  Source get testSource;
+
+  void addLibrary(String uri);
+
+  Source addLibrarySource(String filePath, String contents);
+
+  Source addSource(String path, String contents);
+
+  Source addTestSource(String code, [Uri uri]);
+
+  void checkMinimalResynthesisWork(
+      TestSummaryResynthesizer resynthesizer, LibraryElement library);
+
+  TestSummaryResynthesizer encodeLibrary(Source source);
+
+  void prepareAnalysisContext([AnalysisOptions options]);
+}
+
+/// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
+/// generation using the old two-phase API.
+class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
+    implements ResynthesizeTestStrategy {
+  final Set<Source> serializedSources = new Set<Source>();
+
+  final Map<String, UnlinkedUnitBuilder> uriToUnit =
+      <String, UnlinkedUnitBuilder>{};
+
+  PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+
+  TestSummaryResynthesizer encodeLibrary(Source source) {
+    _serializeLibrary(source);
+
+    PackageBundle bundle =
+        new PackageBundle.fromBuffer(bundleAssembler.assemble().toBuffer());
+
+    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      String uri = bundle.unlinkedUnitUris[i];
+      unlinkedSummaries[uri] = bundle.unlinkedUnits[i];
+    }
+
+    LinkedLibrary getDependency(String absoluteUri) {
+      Map<String, LinkedLibrary> sdkLibraries =
+          SerializedMockSdk.instance.uriToLinkedLibrary;
+      LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
+      if (linkedLibrary == null && !allowMissingFiles) {
+        fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
+            '  Libraries available: ${sdkLibraries.keys}');
+      }
+      return linkedLibrary;
+    }
+
+    UnlinkedUnit getUnit(String absoluteUri) {
+      UnlinkedUnit unit = uriToUnit[absoluteUri] ??
+          SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
+      if (unit == null && !allowMissingFiles) {
+        fail('Linker unexpectedly requested unit for "$absoluteUri".');
+      }
+      return unit;
+    }
+
+    Set<String> nonSdkLibraryUris = serializedSources
+        .where((Source source) =>
+            !source.isInSystemLibrary &&
+            context.computeKindOf(source) == SourceKind.LIBRARY)
+        .map((Source source) => source.uri.toString())
+        .toSet();
+
+    Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
+        getDependency, getUnit, context.declaredVariables.get);
+
+    return new TestSummaryResynthesizer(
+        context,
+        new Map<String, UnlinkedUnit>()
+          ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)
+          ..addAll(unlinkedSummaries),
+        new Map<String, LinkedLibrary>()
+          ..addAll(SerializedMockSdk.instance.uriToLinkedLibrary)
+          ..addAll(linkedSummaries),
+        allowMissingFiles);
+  }
+
+  UnlinkedUnit _getUnlinkedUnit(Source source) {
+    if (source == null) {
+      return new UnlinkedUnitBuilder();
+    }
+
+    String uriStr = source.uri.toString();
+    {
+      UnlinkedUnit unlinkedUnitInSdk =
+          SerializedMockSdk.instance.uriToUnlinkedUnit[uriStr];
+      if (unlinkedUnitInSdk != null) {
+        return unlinkedUnitInSdk;
+      }
+    }
+    return uriToUnit.putIfAbsent(uriStr, () {
+      int modificationTime = context.computeResult(source, MODIFICATION_TIME);
+      if (modificationTime < 0) {
+        // Source does not exist.
+        if (!allowMissingFiles) {
+          fail('Unexpectedly tried to get unlinked summary for $source');
+        }
+        return null;
+      }
+      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+      bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
+      return unlinkedUnit;
+    });
+  }
+
+  void _serializeLibrary(Source librarySource) {
+    if (librarySource == null || librarySource.isInSystemLibrary) {
+      return;
+    }
+    if (!serializedSources.add(librarySource)) {
+      return;
+    }
+
+    UnlinkedUnit getPart(String absoluteUri) {
+      Source source = context.sourceFactory.forUri(absoluteUri);
+      return _getUnlinkedUnit(source);
+    }
+
+    UnlinkedPublicNamespace getImport(String relativeUri) {
+      return getPart(relativeUri)?.publicNamespace;
+    }
+
+    UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
+    if (definingUnit != null) {
+      LinkedLibraryBuilder linkedLibrary = prelink(librarySource.uri.toString(),
+          definingUnit, getPart, getImport, context.declaredVariables.get);
+      linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
+        Source source = context.sourceFactory.forUri(d.uri);
+        _serializeLibrary(source);
+      });
     }
   }
 }
