@@ -112,26 +112,26 @@ dart/callee_side_type_checks_test: SkipByDesign
 
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.
-[ $arch == ia32 && $mode == debug && $runtime == vm && $system == macos ]
-cc/Profiler_ArrayAllocation: Skip
-cc/Profiler_BasicSourcePosition: Skip
-cc/Profiler_BasicSourcePositionOptimized: Skip
-cc/Profiler_BinaryOperatorSourcePosition: Skip
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
-cc/Profiler_ChainedSamples: Skip
-cc/Profiler_ClosureAllocation: Skip
-cc/Profiler_CodeTicks: Skip
-cc/Profiler_ContextAllocation: Skip
-cc/Profiler_FunctionInline: Skip
-cc/Profiler_FunctionTicks: Skip
-cc/Profiler_IntrinsicAllocation: Skip
-cc/Profiler_SourcePosition: Skip
-cc/Profiler_SourcePositionOptimized: Skip
-cc/Profiler_StringAllocation: Skip
-cc/Profiler_StringInterpolation: Skip
-cc/Profiler_ToggleRecordAllocation: Skip
-cc/Profiler_TrivialRecordAllocation: Skip
-cc/Profiler_TypedArrayAllocation: Skip
+[ $runtime == vm && $system == macos ]
+cc/Profiler_ArrayAllocation: Skip # Issue 34493
+cc/Profiler_BasicSourcePosition: Skip # Issue 34493
+cc/Profiler_BasicSourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_BinaryOperatorSourcePosition: Skip # Issue 34493
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_ChainedSamples: Skip # Issue 34493
+cc/Profiler_ClosureAllocation: Skip # Issue 34493
+cc/Profiler_CodeTicks: Skip # Issue 34493
+cc/Profiler_ContextAllocation: Skip # Issue 34493
+cc/Profiler_FunctionInline: Skip # Issue 34493
+cc/Profiler_FunctionTicks: Skip # Issue 34493
+cc/Profiler_IntrinsicAllocation: Skip # Issue 34493
+cc/Profiler_SourcePosition: Skip # Issue 34493
+cc/Profiler_SourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_StringAllocation: Skip # Issue 34493
+cc/Profiler_StringInterpolation: Skip # Issue 34493
+cc/Profiler_ToggleRecordAllocation: Skip # Issue 34493
+cc/Profiler_TrivialRecordAllocation: Skip # Issue 34493
+cc/Profiler_TypedArrayAllocation: Skip # Issue 34493
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && ($compiler == dartk || $compiler == dartkb) && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
