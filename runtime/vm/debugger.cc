@@ -58,6 +58,7 @@ DEFINE_FLAG(bool,
             "the VM service.");
 
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 #ifndef PRODUCT
@@ -1868,6 +1869,9 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
   BackgroundCompiler::Stop(isolate_);
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt for debugger\n");
+  }
   DeoptimizeFunctionsOnStack();
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()

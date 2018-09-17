@@ -53,6 +53,8 @@ DEFINE_FLAG(bool,
             false,
             "Assert that an isolate has reloaded at least once.")
 
+DECLARE_FLAG(bool, trace_deoptimization);
+
 #define I (isolate())
 #define Z (thread->zone())
 
@@ -1951,6 +1953,9 @@ void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
 void IsolateReloadContext::InvalidateWorld() {
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt for reload\n");
+  }
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();
   MarkAllFunctionsForRecompilation();

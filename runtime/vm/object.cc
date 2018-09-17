@@ -3098,8 +3098,12 @@ void Class::RegisterCHACode(const Code& code) {
 void Class::DisableCHAOptimizedCode(const Class& subclass) {
   ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
-  if (FLAG_trace_deoptimization && a.HasCodes() && !subclass.IsNull()) {
-    THR_Print("Adding subclass %s\n", subclass.ToCString());
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    if (subclass.IsNull()) {
+      THR_Print("Deopt for CHA (all)\n");
+    } else {
+      THR_Print("Deopt for CHA (new subclass %s)\n", subclass.ToCString());
+    }
   }
   a.DisableCode();
 }
@@ -9007,6 +9011,9 @@ void Field::DeoptimizeDependentCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
   FieldDependentArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Deopt for field guard (field %s)\n", ToCString());
+  }
   a.DisableCode();
 }
 
@@ -12968,6 +12975,9 @@ void LibraryPrefix::RegisterDependentCode(const Code& code) const {
 
 void LibraryPrefix::InvalidateDependentCode() const {
   PrefixDependentArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Deopt for lazy load (prefix %s)\n", ToCString());
+  }
   a.DisableCode();
   set_is_loaded();
 }
