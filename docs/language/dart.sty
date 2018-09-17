@@ -1,12 +1,6 @@
-\def\keyword#1{\textbf{#1}}
-\def\builtinId#1{\textbf{#1}}
 \def\code#1{\textsf{#1}}
-\def\comment#1{\textit{#1}}
-\def\capt#1{\rmfamily \caption{#1}}
-\def\lt{\ensuremath{<}}
-\def\gt{\ensuremath{>}}
-\def\<{\ensuremath{\langle}}
-\def\>{\ensuremath{\rangle}}
+\def\builtinId#1{\code{\textbf{#1}}}
+\def\keyword#1{\code{\textbf{#1}}}
 \def\metavar#1{\ensuremath{\mathit{#1}}}
 
 \def\ABSTRACT{\builtinId{abstract}}
@@ -34,7 +28,6 @@
 \def\ASYNC{\keyword{async}}
 \def\AWAIT{\keyword{await}}
 \def\BREAK{\keyword{break}}
-\def\CALL{\keyword{call}}
 \def\CASE{\keyword{case}}
 \def\CATCH{\keyword{catch}}
 \def\CLASS{\keyword{class}}
@@ -73,6 +66,18 @@
 \def\WITH{\keyword{with}}
 \def\YIELD{\keyword{yield}}
 
+% `call` has no special lexical status, so we just use \code{}.
+\def\CALL{\code{call}}
+
+% Used in regular text to indicate that #1 consists of non-terminals.
+%% TODO(eernst): Update to use grammar font when we start using that;
+%% at this point we just make it "regular text" using \mbox.
+\newcommand{\NonTerminal}[1]{\mbox{#1}}
+
+% Angle brackets used for operators in grammar context.
+\def\lt{\ensuremath{<}}
+\def\gt{\ensuremath{>}}
+
 % A quoted comma as used in the grammar: needs spacing fix.
 \newcommand{\gcomma}{\mbox{`,\hspace{-0.1em}'}}
 
@@ -87,6 +92,14 @@
 \newenvironment{Q}[1]{{\bf #1}}{}
 \newenvironment{rationale}[1]{{\it #1}}{}
 \newenvironment{commentary}[1]{{\sf #1}}{}
+
+\newcommand{\flatten}[1]{\ensuremath{\mbox{\it flatten}({#1})}}
+
+% Used as a mini-section marker, indicating visibly that a range of
+% text (usually just a couple of paragraphs) are concerned with one
+% specific topic in a list of similar topics (like many forms of
+% expressions of a similar nature).
+\newcommand{\Case}[1]{\textbf{Case }$\langle\hspace{0.1em}${#1}$\hspace{0.1em}\rangle$\textbf{.}}
 
 \newenvironment{dartCode}[1][!ht] {
 %  \begin{verbatim}[#1]
