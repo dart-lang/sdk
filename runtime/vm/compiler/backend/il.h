@@ -2993,7 +2993,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
-    ASSERT(!dst_type.IsDynamicType());
+    ASSERT(!FLAG_strong || !dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
