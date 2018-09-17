@@ -3059,10 +3059,15 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
+  // Convert !(x > y) into (x <= y) for integral x, y.
   if (defn->IsComparison() && defn->HasOnlyUse(value()) &&
       defn->Type()->ToCid() == kBoolCid) {
-    defn->AsComparison()->NegateComparison();
-    return defn;
+    ComparisonInstr* comp = defn->AsComparison();
+    if (comp->left()->Type()->IsNullableInt() &&
+        comp->right()->Type()->IsNullableInt()) {
+      comp->NegateComparison();
+      return defn;
+    }
   }
   return this;
 }
