@@ -198,6 +198,18 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    // At present, kernel doesn't distinguish between mixin and class
+    // declarations.  So treat the mixin as a class.
+    var children = <ComparisonNode>[];
+    var visitor = _AnalyzerVisitor(_typeProvider, children);
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
+    visitor._visitList(node.members);
+    _resultNodes
+        .add(ComparisonNode.sorted('Class ${node.name.name}', children));
+  }
+
+  @override
   Null visitNode(AstNode node) {
     throw new UnimplementedError('AnalyzerVisitor: ${node.runtimeType}');
   }
@@ -221,11 +233,31 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
 
   void _handleClassOrClassTypeAlias(ClassElement element) {
     _visitTypeParameters(element.typeParameters);
-    if (element.supertype != null) {
-      _resultNodes.add(_translateType('Extends: ', element.supertype));
+    InterfaceType supertype;
+    List<InterfaceType> mixins;
+    if (element.isMixin) {
+      // Kernel represents:
+      // - `mixin M` as `class M extends Object`
+      // - `mixin M on A` as `class M extends A`
+      // - `mixin M on A, B` as `class M extends A with B`
+      // - `mixin M on A, B, C` as `class M extends A with B, C`.
+      var superclassConstraints = element.superclassConstraints;
+      if (superclassConstraints.isEmpty) {
+        supertype = _typeProvider.objectType;
+        mixins = [];
+      } else {
+        supertype = superclassConstraints[0];
+        mixins = superclassConstraints.skip(1).toList();
+      }
+    } else {
+      supertype = element.supertype;
+      mixins = element.mixins;
     }
-    for (int i = 0; i < element.mixins.length; i++) {
-      _resultNodes.add(_translateType('Mixin $i: ', element.mixins[i]));
+    if (supertype != null) {
+      _resultNodes.add(_translateType('Extends: ', supertype));
+    }
+    for (int i = 0; i < mixins.length; i++) {
+      _resultNodes.add(_translateType('Mixin $i: ', mixins[i]));
     }
     for (int i = 0; i < element.interfaces.length; i++) {
       _resultNodes
