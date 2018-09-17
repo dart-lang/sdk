@@ -8210,6 +8210,7 @@ int32_t Function::SourceFingerprint() const {
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
     const Array& edge_counters_array) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Compute number of ICData objects to save.
   // Store edge counter array in the first slot.
   intptr_t count = 1;
@@ -8229,11 +8230,15 @@ void Function::SaveICDataMap(
   }
   array.SetAt(0, edge_counters_array);
   set_ic_data_array(array);
+#else   // DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     bool clone_ic_data) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_force_clone_compiler_objects) {
     clone_ic_data = true;
   }
@@ -8267,6 +8272,9 @@ void Function::RestoreICDataMap(
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }
+#else   // DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 void Function::set_ic_data_array(const Array& value) const {
