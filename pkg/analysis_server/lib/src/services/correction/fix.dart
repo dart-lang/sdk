@@ -148,6 +148,8 @@ class DartFixKind {
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES = const FixKind(
       'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
+  static const CREATE_MIXIN =
+      const FixKind('CREATE_MIXIN', 50, "Create mixin '{0}'");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
   static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(

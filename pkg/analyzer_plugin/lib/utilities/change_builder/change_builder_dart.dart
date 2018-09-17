@@ -190,6 +190,19 @@ abstract class DartEditBuilder implements EditBuilder {
       String typeGroupName});
 
   /**
+   * Write the code for a declaration of a mixin with the given [name]. If a
+   * list of [interfaces] is provided, then the mixin will implement those
+   * interfaces. If a [membersWriter] is provided, then it will be invoked to
+   * allow members to be generated. If a [nameGroupName] is provided, then the
+   * name of the class will be included in the linked edit group with that name.
+   */
+  void writeMixinDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      void membersWriter(),
+      String nameGroupName,
+      Iterable<DartType> superclassConstraints});
+
+  /**
    * Append a placeholder for an override of the specified inherited [member].
    * If provided, write a string value suitable for display (e.g., in a
    * completion popup) in the given [displayTextBuffer].

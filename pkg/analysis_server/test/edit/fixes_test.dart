@@ -45,9 +45,10 @@ main() {
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
     List<SourceChange> fixes = errorFixes[0].fixes;
-    expect(fixes, hasLength(2));
+    expect(fixes, hasLength(3));
     expect(fixes[0].message, matches('Import library'));
     expect(fixes[1].message, matches('Create class'));
+    expect(fixes[2].message, matches('Create mixin'));
   }
 
   test_fromPlugins() async {

@@ -150,6 +150,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' extends ');
       writeType(superclass, groupName: superclassGroupName);
     } else if (mixins != null && mixins.isNotEmpty) {
+      // TODO(brianwilkerson) Remove this branch when 2.1 semantics are
+      // supported everywhere.
       write(' extends Object ');
     }
     writeTypes(mixins, prefix: ' with ');
@@ -360,6 +362,29 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       initializerWriter();
     }
     write(';');
+  }
+
+  @override
+  void writeMixinDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      void membersWriter(),
+      String nameGroupName,
+      Iterable<DartType> superclassConstraints}) {
+    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // parameterWriter parameter.
+    write('mixin ');
+    if (nameGroupName == null) {
+      write(name);
+    } else {
+      addSimpleLinkedEdit(nameGroupName, name);
+    }
+    writeTypes(superclassConstraints, prefix: ' on ');
+    writeTypes(interfaces, prefix: ' implements ');
+    writeln(' {');
+    if (membersWriter != null) {
+      membersWriter();
+    }
+    write('}');
   }
 
   @override

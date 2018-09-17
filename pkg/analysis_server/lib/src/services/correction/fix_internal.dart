@@ -438,6 +438,7 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_CLASS) {
       await _addFix_importLibrary_withType();
       await _addFix_createClass();
+      await _addFix_createMixin();
       await _addFix_undefinedClass_useSimilar();
     }
     if (errorCode ==
@@ -461,6 +462,7 @@ class FixProcessor {
       await _addFix_createField();
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
+      await _addFix_createMixin();
       await _addFix_importLibrary_withType();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
@@ -492,6 +494,7 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       await _addFix_importLibrary_withType();
       await _addFix_createClass();
+      await _addFix_createMixin();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
@@ -508,6 +511,7 @@ class FixProcessor {
       // TODO(brianwilkerson) The following were added because fasta produces
       // UNDEFINED_GETTER in places where analyzer produced UNDEFINED_IDENTIFIER
       await _addFix_createClass();
+      await _addFix_createMixin();
       await _addFix_createLocalVariable();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_importLibrary_withType();
@@ -2067,6 +2071,92 @@ class FixProcessor {
       builder.write('}');
     }
     utils.targetExecutableElement = null;
+  }
+
+  Future<void> _addFix_createMixin() async {
+    Element prefixElement = null;
+    String name = null;
+    SimpleIdentifier nameNode;
+    if (node is SimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        if (parent.parent is InstanceCreationExpression) {
+          return;
+        }
+        PrefixedIdentifier prefixedIdentifier = parent;
+        prefixElement = prefixedIdentifier.prefix.staticElement;
+        if (prefixElement == null) {
+          return;
+        }
+        parent = prefixedIdentifier.parent;
+        nameNode = prefixedIdentifier.identifier;
+        name = prefixedIdentifier.identifier.name;
+      } else if (parent is TypeName &&
+          parent.parent is ConstructorName &&
+          parent.parent.parent is InstanceCreationExpression) {
+        return;
+      } else {
+        nameNode = node;
+        name = nameNode.name;
+      }
+      if (!_mayBeTypeIdentifier(nameNode)) {
+        return;
+      }
+    } else {
+      return;
+    }
+    // prepare environment
+    Element targetUnit;
+    String prefix = '';
+    String suffix = '';
+    int offset = -1;
+    String filePath;
+    if (prefixElement == null) {
+      targetUnit = unitElement;
+      CompilationUnitMember enclosingMember = node.getAncestor((node) =>
+          node is CompilationUnitMember && node.parent is CompilationUnit);
+      if (enclosingMember == null) {
+        return;
+      }
+      offset = enclosingMember.end;
+      filePath = file;
+      prefix = '$eol$eol';
+    } else {
+      for (ImportElement import in unitLibraryElement.imports) {
+        if (prefixElement is PrefixElement && import.prefix == prefixElement) {
+          LibraryElement library = import.importedLibrary;
+          if (library != null) {
+            targetUnit = library.definingCompilationUnit;
+            Source targetSource = targetUnit.source;
+            try {
+              offset = targetSource.contents.data.length;
+              filePath = targetSource.fullName;
+              prefix = '$eol';
+              suffix = '$eol';
+            } on FileSystemException {
+              // If we can't read the file to get the offset, then we can't
+              // create a fix.
+            }
+            break;
+          }
+        }
+      }
+    }
+    if (offset < 0) {
+      return;
+    }
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(filePath, (DartFileEditBuilder builder) {
+      builder.addInsertion(offset, (DartEditBuilder builder) {
+        builder.write(prefix);
+        builder.writeMixinDeclaration(name, nameGroupName: 'NAME');
+        builder.write(suffix);
+      });
+      if (prefixElement == null) {
+        builder.addLinkedPosition(range.node(node), 'NAME');
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MIXIN, args: [name]);
   }
 
   Future<void> _addFix_createNoSuchMethod() async {

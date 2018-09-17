@@ -4129,6 +4129,146 @@ class B extends A {
 ''');
   }
 
+  test_createMixin() async {
+    await resolveTestUnit('''
+main() {
+  Test v = null;
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+main() {
+  Test v = null;
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createMixin_BAD_hasUnresolvedPrefix() async {
+    await resolveTestUnit('''
+main() {
+  prefix.Test v = null;
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_BAD_instanceCreation_withNew() async {
+    await resolveTestUnit('''
+main() {
+  new Test();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_BAD_instanceCreation_withoutNew() async {
+    await resolveTestUnit('''
+main() {
+  Test();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_inLibraryOfPrefix() async {
+    String libCode = r'''
+library my.lib;
+
+class A {}
+''';
+    addSource('/project/lib.dart', libCode);
+    await resolveTestUnit('''
+import 'lib.dart' as lib;
+
+main() {
+  lib.A a = null;
+  lib.Test t = null;
+}
+''');
+    AnalysisError error = await _findErrorToFix();
+    fix = await _assertHasFix(DartFixKind.CREATE_MIXIN, error);
+    change = fix.change;
+    // apply to "lib.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/project/lib.dart'));
+    expect(SourceEdit.applySequence(libCode, fileEdit.edits), r'''
+library my.lib;
+
+class A {}
+
+mixin Test {
+}
+''');
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
+  test_createMixin_innerLocalFunction() async {
+    await resolveTestUnit('''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createMixin_itemOfList() async {
+    await resolveTestUnit('''
+main() {
+  var a = [Test];
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+main() {
+  var a = [Test];
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test];', 'Test {']);
+  }
+
+  test_createMixin_itemOfList_inAnnotation() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    await resolveTestUnit('''
+class MyAnnotation {
+  const MyAnnotation(a, b);
+}
+@MyAnnotation(int, const [Test])
+main() {}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+class MyAnnotation {
+  const MyAnnotation(a, b);
+}
+@MyAnnotation(int, const [Test])
+main() {}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
+  }
+
   test_createNoSuchMethod_BAD_classTypeAlias() async {
     await resolveTestUnit('''
 abstract class A {
