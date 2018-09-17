@@ -1333,10 +1333,10 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         } else {
           const Register value = locs()->temp(1).reg();
           __ LoadWordUnaligned(value, address, TMP);
-          __ vmovsr(EvenSRegisterOf(dresult0), value);
+          __ vmovdr(dresult0, 0, value);
           __ AddImmediate(address, address, 4);
           __ LoadWordUnaligned(value, address, TMP);
-          __ vmovsr(OddSRegisterOf(dresult0), value);
+          __ vmovdr(dresult0, 1, value);
         }
         break;
       case kTypedDataFloat64x2ArrayCid:
