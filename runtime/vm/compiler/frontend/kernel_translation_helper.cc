@@ -2696,16 +2696,18 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
-  intptr_t length;
+  const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
   if (simple) {
-    length = 0;
-  } else {
-    length = helper_->ReadListLength();  // read type_arguments list length.
+    // Fast path for non-generic types: retrieve or populate the class's only
+    // canonical type.
+    result_ = H.GetCanonicalType(klass).raw();
+    return;
   }
+
+  intptr_t length =
+      helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-
-  Object& klass = Object::Handle(Z, H.LookupClassByKernelClass(klass_name));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
