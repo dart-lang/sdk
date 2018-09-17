@@ -69,7 +69,6 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = NO_RETRY_EXPECTED(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
-    perror("ioctl(fd, FIONREAD, &available) failed");
     return result;
   }
   ASSERT(available >= 0);
