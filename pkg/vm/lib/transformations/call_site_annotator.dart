@@ -54,13 +54,23 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
     env.thisType = null;
   }
 
+  void annotateWithType(TreeNode node, Expression receiver) {
+    try {
+      _metadata.mapping[node] = new CallSiteAttributesMetadata(
+          receiverType: receiver.getStaticType(env));
+    } catch (e) {
+      // TODO(dartbug.com/34496) Currently getStaticType is unreliable due to
+      // various issues with AST welltypedness. As a workaround we just
+      // swallow the exception.
+    }
+  }
+
   @override
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      _metadata.mapping[node] = new CallSiteAttributesMetadata(
-          receiverType: node.receiver.getStaticType(env));
+      annotateWithType(node, node.receiver);
     }
   }
 
@@ -72,8 +82,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
     // or not it's a statically-checked call.
     if (node.name.name == 'call' ||
         hasGenericCovariantParameters(node.interfaceTarget)) {
-      _metadata.mapping[node] = new CallSiteAttributesMetadata(
-          receiverType: node.receiver.getStaticType(env));
+      annotateWithType(node, node.receiver);
     }
   }
 
