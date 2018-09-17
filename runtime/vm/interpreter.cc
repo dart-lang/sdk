@@ -890,7 +890,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   UNIMPLEMENTED();
 #endif
   ASSERT(Function::HasCode(function));
-  RawCode* code = function->ptr()->code_;
+  RawCode* volatile code = function->ptr()->code_;
   ASSERT(code != StubCode::LazyCompile_entry()->code());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
@@ -902,9 +902,9 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
                                    RawObject * *arg0, Thread * thread);
-  invokestub entrypoint = reinterpret_cast<invokestub>(
+  invokestub volatile entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint());
-  RawObject* result;
+  RawObject* volatile result;
   Exit(thread, *FP, call_top + 1, *pc);
   {
     InterpreterSetjmpBuffer buffer(this);
@@ -969,11 +969,13 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
       RawAbstractType* field_type = field->ptr()->type_;
-      const classid_t cid =
-          field_type->GetClassId() == kTypeCid
-              ? Smi::Value(reinterpret_cast<RawSmi*>(
-                    Type::RawCast(field_type)->ptr()->type_class_id_))
-              : kIllegalCid;  // Not really illegal, but not a Type to skip.
+      classid_t cid;
+      if (field_type->GetClassId() == kTypeCid) {
+        cid = Smi::Value(reinterpret_cast<RawSmi*>(
+            Type::RawCast(field_type)->ptr()->type_class_id_));
+      } else {
+        cid = kIllegalCid;  // Not really illegal, but not a Type to skip.
+      }
       // Perform type test of value if field type is not one of dynamic, object,
       // or void, and if the value is not null.
       RawObject* null_value = Object::null();

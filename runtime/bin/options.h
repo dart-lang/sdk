@@ -119,7 +119,25 @@ class CallbackOptionProcessor : public OptionProcessor {
   static OptionProcessor_##name option_##name;
 
 #define DEFINE_BOOL_OPTION(name, variable)                                     \
-  DEFINE_BOOL_OPTION_CB(name, { variable = true; })
+  class OptionProcessor_##name : public OptionProcessor {                      \
+   public:                                                                     \
+    virtual bool Process(const char* option, CommandLineOptions* vm_options) { \
+      const char* value = OptionProcessor::ProcessOption(option, "--" #name);  \
+      if (value == NULL) {                                                     \
+        return false;                                                          \
+      }                                                                        \
+      if (*value == '=') {                                                     \
+        Log::PrintErr("Non-empty value for option " #name "\n");               \
+        return false;                                                          \
+      }                                                                        \
+      if (*value != '\0') {                                                    \
+        return false;                                                          \
+      }                                                                        \
+      variable = true;                                                         \
+      return true;                                                             \
+    }                                                                          \
+  };                                                                           \
+  static OptionProcessor_##name option_##name;
 
 #define DEFINE_BOOL_OPTION_SHORT(short_name, long_name, variable)              \
   class OptionProcessor_##long_name : public OptionProcessor {                 \

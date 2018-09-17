@@ -1190,6 +1190,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
       first_parameter_offset = ReaderOffset() + data_program_offset_;
     }
   }
+  USE(first_parameter_offset);
   // Current position: About to read list of positionals.
 
   // Should never build a dynamic invocation forwarder for equality

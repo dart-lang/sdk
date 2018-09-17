@@ -1141,7 +1141,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (representation() == kUnboxedFloat64x2)) {
     const VRegister result = locs()->out(0).fpu_reg();
     switch (class_id()) {
-      ASSERT(aligned());
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
         if (aligned()) {

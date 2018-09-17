@@ -283,6 +283,9 @@ class ExceptionHandlerFinder : public StackResource {
         case CatchEntryMove::SourceKind::kUint32Slot:
           value = Integer::New(*SlotAt<uint32_t>(fp, move.src_slot()));
           break;
+
+        default:
+          UNREACHABLE();
       }
 
       *TaggedSlotAt(fp, move.dest_slot()) = value;
@@ -296,7 +299,7 @@ class ExceptionHandlerFinder : public StackResource {
     NoSafepointScope no_safepoint;
     ReadStream stream(static_cast<uint8_t*>(td.DataAddr(0)), td.Length());
 
-    intptr_t prefix_length, suffix_length, suffix_offset;
+    intptr_t prefix_length = 0, suffix_length = 0, suffix_offset = 0;
     while (stream.PendingBytes() > 0) {
       intptr_t target_pc_offset = Reader::Read(&stream);
       prefix_length = Reader::Read(&stream);
