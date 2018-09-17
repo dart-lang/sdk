@@ -2,7 +2,6 @@ library #lib;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 [@vm.bytecode=
 Bytecode {
@@ -263,7 +262,7 @@ Closure CP#0 {
       #L1:
       {
         [yield] let dynamic #t1 = asy::_awaitHelper(x, :async_op_then, :async_op_error, :async_op) in null;
-        _in::unsafeCast<core::int>(:result);
+        :result;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
@@ -735,7 +734,7 @@ L1:
         [yield] let dynamic #t2 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
         :async_temporary_0 = :result;
         [yield] let dynamic #t3 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-        :return_value = _in::unsafeCast<core::int>(:async_temporary_0).{core::num::+}(_in::unsafeCast<core::int>(:result));
+        :return_value = :async_temporary_0.{core::num::+}(:result);
         break #L3;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -1161,7 +1160,7 @@ L1:
             :async_temporary_1 = sum;
             :async_temporary_0 = i.{core::num::+}(j);
             [yield] let dynamic #t4 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
-            sum = _in::unsafeCast<core::int>(:async_temporary_1).{core::num::+}(_in::unsafeCast<core::int>(:async_temporary_0).{core::num::+}(_in::unsafeCast<core::int>(:result)));
+            sum = :async_temporary_1.{core::num::+}(:async_temporary_0.{core::num::+}(:result));
           }
         }
         for (core::int k = 0; k.{core::num::<}(10); k = k.{core::num::+}(1)) {
@@ -1811,7 +1810,7 @@ L1:
           try {
             :async_temporary_0 = x;
             [yield] let dynamic #t5 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-            x = _in::unsafeCast<core::int>(:async_temporary_0).{core::num::+}(_in::unsafeCast<core::int>(:result));
+            x = :async_temporary_0.{core::num::+}(:result);
           }
           on dynamic catch(final dynamic e) {
             if(e is core::Error) {
@@ -1820,14 +1819,14 @@ L1:
             }
             :async_temporary_0 = x;
             [yield] let dynamic #t6 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-            x = _in::unsafeCast<core::int>(:async_temporary_0).{core::num::+}(_in::unsafeCast<core::int>(:result));
+            x = :async_temporary_0.{core::num::+}(:result);
             rethrow;
           }
         finally {
           core::print("fin");
           :async_temporary_0 = x;
           [yield] let dynamic #t7 = asy::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
-          x = _in::unsafeCast<core::int>(:async_temporary_0).{core::num::+}(_in::unsafeCast<core::int>(:result));
+          x = :async_temporary_0.{core::num::+}(:result);
           :return_value = x;
           break #L5;
         }
@@ -2210,7 +2209,7 @@ Closure CP#0 {
           try {
             x = 5;
             [yield] let dynamic #t8 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-            y = _in::unsafeCast<core::int>(:result);
+            y = :result;
             :return_value = x.{core::num::+}(y);
             break #L6;
           }
@@ -2474,7 +2473,7 @@ L1:
       {
         assert {
           [yield] let dynamic #t9 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-          assert(_in::unsafeCast<core::int>(:result).{core::num::==}(42));
+          assert(:result.{core::num::==}(42));
         }
         :return_value = 7;
         break #L7;

@@ -2,7 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 static method id<T extends core::Object = dynamic>(self::id::T x) → self::id::T
   return x;
@@ -21,7 +20,7 @@ static method test() → dynamic /* originally async */ {
       {
         asy::Future<core::String> f;
         [yield] let dynamic #t1 = asy::_awaitHelper(self::id<asy::FutureOr<core::String>>(f), :async_op_then, :async_op_error, :async_op) in null;
-        core::String s = _in::unsafeCast<core::String>(:result);
+        core::String s = :result;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;

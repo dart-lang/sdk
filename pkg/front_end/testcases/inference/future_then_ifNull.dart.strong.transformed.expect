@@ -2,7 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 class MyFuture<T extends core::Object = dynamic> extends core::Object implements asy::Future<self::MyFuture::T> {
   constructor •() → void
@@ -46,7 +45,7 @@ static method test() → void {
           else {
             :async_temporary_0 = #t1;
           }
-          :return_value = _in::unsafeCast<core::int>(:async_temporary_0);
+          :return_value = :async_temporary_0;
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -75,7 +74,7 @@ static method test() → void {
         #L2:
         {
           [yield] let dynamic #t3 = asy::_awaitHelper(x, :async_op_then, :async_op_error, :async_op) in null;
-          :return_value = (let final core::int #t4 = _in::unsafeCast<core::int>(:result) in #t4.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t4) as{TypeError} asy::FutureOr<core::int>;
+          :return_value = (let final core::int #t4 = :result in #t4.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t4) as{TypeError} asy::FutureOr<core::int>;
           break #L2;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
