@@ -134,7 +134,7 @@ as follows:
 
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_diff old.js.info.json new.js.info.json
+$ dart2js_info_diff old.js.info.json new.js.info.json [--summary]
 ```
 
 The tool gives a breakdown of the difference between the two info files.

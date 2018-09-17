@@ -2,17 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/diff.dart';
 import 'package:dart2js_info/src/util.dart';
 
 /// A command-line tool that computes the diff between two info files.
 main(List<String> args) async {
-  if (args.length != 2) {
-    print('usage: dart2js_info_diff old.info.json new.info.json');
+  if (args.length < 2 || args.length > 3) {
+    print('usage: dart2js_info_diff old.info.json new.info.json [--summary]');
     return;
   }
+
   var oldInfo = await infoFromFile(args[0]);
   var newInfo = await infoFromFile(args[1]);
+  var summary = false;
+  if (args.length == 3) {
+    if (args[2] == "--summary") {
+      summary = true;
+    } else {
+      print('Unrecognized argument: ${args[2]}');
+      return;
+    }
+  }
 
   var diffs = diff(oldInfo, newInfo);
 
@@ -45,6 +56,53 @@ main(List<String> args) async {
     }
   }
 
+  if (summary) {
+    reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
+        becameUndeferred);
+  } else {
+    reportFull(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
+        becameUndeferred);
+  }
+}
+
+void reportSummary(
+    AllInfo oldInfo,
+    AllInfo newInfo,
+    List<AddDiff> adds,
+    List<RemoveDiff> removals,
+    List<SizeDiff> sizeChanges,
+    List<DeferredStatusDiff> becameDeferred,
+    List<DeferredStatusDiff> becameUndeferred) {
+  var overallSizeDiff = newInfo.program.size - oldInfo.program.size;
+  print('total_size_difference $overallSizeDiff');
+
+  var noLongerDeferred = 0;
+  for (var diff in becameUndeferred) {
+    noLongerDeferred += diff.info.size;
+  }
+  print('no_longer_deferred $noLongerDeferred');
+
+  var totalAdded = 0;
+  for (var diff in adds) {
+    totalAdded += diff.info.size;
+  }
+  print('total_added $totalAdded');
+
+  var totalRemoved = 0;
+  for (var diff in removals) {
+    totalRemoved += diff.info.size;
+  }
+  print('total_removed $totalRemoved');
+}
+
+void reportFull(
+    AllInfo oldInfo,
+    AllInfo newInfo,
+    List<AddDiff> adds,
+    List<RemoveDiff> removals,
+    List<SizeDiff> sizeChanges,
+    List<DeferredStatusDiff> becameDeferred,
+    List<DeferredStatusDiff> becameUndeferred) {
   // TODO(het): Improve this output. Siggi has good suggestions in
   // https://github.com/dart-lang/dart2js_info/pull/19
   var overallSizeDiff = newInfo.program.size - oldInfo.program.size;

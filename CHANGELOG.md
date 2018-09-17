@@ -1,3 +1,7 @@
+## 0.5.11
+
+* Added `--summary` option to `dart2js_info_diff` tool.
+
 ## 0.5.10
 
 * Set max SDK version to `<3.0.0`, and adjust other dependencies.
