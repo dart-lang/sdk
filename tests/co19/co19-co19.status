@@ -10,6 +10,7 @@
 
 # Tests that produce compile-time errors even in legacy mode.
 [ $runtime == none ]
+Language/Expressions/Bitwise_Expressions/syntax_t01/02: Skip
 Language/Variables/constant_initialization_t03: CompileTimeError # Uppercase constants removed
 Language/Variables/constant_variable_t09: CompileTimeError # Uppercase constants removed
 LibTest/core/double/operator_GE_A01_t03: CompileTimeError # Uppercase constants removed
@@ -42,6 +43,7 @@ LibTest/math/Rectangle/operator_equality_A04_t01: CompileTimeError # Uppercase c
 
 # Tests that fail either at compile-time or at runtime.
 [ $runtime != none ]
+Language/Expressions/Bitwise_Expressions/syntax_t01/02: Skip
 Language/Expressions/Numbers/static_type_of_double_t01: RuntimeError # Uppercase constants removed
 Language/Expressions/Object_Identity/constant_objects_t01: RuntimeError # Uppercase constants removed
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Uppercase constants removed

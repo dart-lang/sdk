@@ -20,6 +20,7 @@
     be unmodifiable incorrectly allowed new methods added in Dart 2 to
     succeed.
 *   Exported `Future` and `Stream` from `dart:core`.
+*   Added operators `&`, `|` and `^` to `bool`.
 
 #### `dart:async`
 

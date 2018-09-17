@@ -330,9 +330,6 @@ ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
-TopLevelOperator/script1: Fail
-TopLevelOperator/script2: Fail
-TopLevelOperator/script3: Fail
 TypeAfterVar/example: Fail
 TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail

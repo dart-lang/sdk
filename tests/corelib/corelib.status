@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+core_runtime_types_test: RuntimeError # Does not expect bool to have operators.
 maps_test: Skip # Maps class no longer exists
 
 [ $compiler == dart2analyzer ]

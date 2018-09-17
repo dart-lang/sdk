@@ -543,7 +543,13 @@ class Expect {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
       if (e is T && (check == null || check(e))) return;
-      _fail("Expect.throws$msg: Unexpected '$e'\n$s");
+      // Throws something unexpected.
+      String type = "";
+      if (T != dynamic && T != Object) {
+        type = "<$T>";
+      }
+      _fail("Expect.throws$type$msg: "
+          "Unexpected '${Error.safeToString(e)}'\n$s");
     }
     _fail('Expect.throws$msg fails: Did not throw');
   }
@@ -602,14 +608,16 @@ class Expect {
   static void type<T>(Object object, [String reason]) {
     if (object is T) return;
     String msg = _getMessage(reason);
-    _fail("Expect.type($object is $T$msg) fails, was ${object.runtimeType}");
+    _fail("Expect.type($object is $T$msg) fails "
+        "on ${Error.safeToString(object)}");
   }
 
   /// Checks that [object] does not have type [T].
   static void notType<T>(Object object, [String reason]) {
     if (object is! T) return;
     String msg = _getMessage(reason);
-    _fail("Expect.type($object is! $T$msg) fails, was ${object.runtimeType}");
+    _fail("Expect.type($object is! $T$msg) fails"
+        "on ${Error.safeToString(object)}");
   }
 
   static String _getMessage(String reason) =>
