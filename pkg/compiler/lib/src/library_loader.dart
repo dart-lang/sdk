@@ -41,6 +41,8 @@ class LibraryLoaderTask extends CompilerTask {
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
+  String get name => 'Library loader';
+
   /// Loads an entire Kernel [Component] from a file on disk.
   Future<LoadedLibraries> loadLibraries(Uri resolvedUri) {
     return measure(() async {

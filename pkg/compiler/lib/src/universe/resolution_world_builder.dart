@@ -851,7 +851,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       memberUsed(usage.entity, useSet);
       return usage;
     });
-    if (!newUsage) {
+    if (!usage.fullyUsed && !newUsage) {
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       if (!usage.hasRead && _hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
@@ -945,8 +945,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
     // that are overridden.
-    _classHierarchyBuilder.registerClass(member.enclosingClass);
-    _classHierarchyBuilder.registerClass(type);
     return _classHierarchyBuilder.isInheritedInSubtypeOf(
         member.enclosingClass, type);
   }
@@ -972,12 +970,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
-    var backendUsage = _backendUsageBuilder.close();
-    backendUsage.helperClassesUsed
-        .forEach(_classHierarchyBuilder.registerClass);
-    _nativeResolutionEnqueuer.liveNativeClasses
-        .forEach(_classHierarchyBuilder.registerClass);
-
+    BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
     assert(
         _classHierarchyBuilder.classHierarchyNodes.length ==
@@ -996,7 +989,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: _backendUsageBuilder.close(),
+        backendUsage: backendUsage,
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,

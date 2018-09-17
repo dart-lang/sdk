@@ -690,7 +690,7 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (_commonElements.isInstantiationClass(cls)) {
+    if (_commonElements.isInstantiationClass(cls) && !onlyForRti) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 

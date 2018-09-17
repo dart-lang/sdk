@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
-import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
+import '../js_backend/backend_usage.dart'
+    show BackendUsage, BackendUsageBuilder;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';

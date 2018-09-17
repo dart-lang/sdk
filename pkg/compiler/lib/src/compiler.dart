@@ -290,6 +290,15 @@ abstract class Compiler {
 
   JClosedWorld computeClosedWorld(LoadedLibraries loadedLibraries) {
     ResolutionEnqueuer resolutionEnqueuer = startResolution();
+    for (LibraryEntity library
+        in frontendStrategy.elementEnvironment.libraries) {
+      frontendStrategy.elementEnvironment.forEachClass(library,
+          (ClassEntity cls) {
+        // Register all classes eagerly to optimize closed world computation in
+        // `ClassWorldBuilder.isInheritedInSubtypeOf`.
+        resolutionEnqueuer.worldBuilder.registerClass(cls);
+      });
+    }
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
     FunctionEntity mainFunction = frontendStrategy.computeMain(mainImpact);
 
