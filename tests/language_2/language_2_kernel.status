@@ -271,6 +271,7 @@ malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/01: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/02: MissingCompileTimeError # Issue 33308
+mixin_declaration/mixin_declaration_inference_valid_classes_test: DartkCrash, Crash # https://github.com/dart-lang/sdk/issues/34165
 mixin_invalid_bound2_test/02: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/03: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/04: MissingCompileTimeError # Issue 33308

@@ -104,6 +104,15 @@ issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
+mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError   # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
 mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
