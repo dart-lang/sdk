@@ -53,7 +53,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "0.1.11",
+  "bazel_worker_tag": "0.1.14",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "fc47eaa1a245d858bae462cd64d4155605b850ea",
   "boringssl_rev" : "189270cd190267f5bd60cfe8f8ce7a61d07ba6f4",
