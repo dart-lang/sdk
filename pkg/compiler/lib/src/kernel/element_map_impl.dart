@@ -74,7 +74,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
-  bool _isStaticTypePrepared = false;
 
   /// Library environment. Used for fast lookup.
   ProgramEnv env = new ProgramEnv();
@@ -711,18 +710,10 @@ abstract class KernelToElementMapBase implements IrToElementMap {
   }
 
   DartType getStaticType(ir.Expression node) {
-    if (!_isStaticTypePrepared) {
-      _isStaticTypePrepared = true;
-      try {
-        _typeEnvironment ??= new ir.TypeEnvironment(
-            new ir.CoreTypes(env.mainComponent),
-            new ir.ClassHierarchy(env.mainComponent));
-      } catch (e) {}
-    }
     if (_typeEnvironment == null) {
-      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
+      _typeEnvironment ??= new ir.TypeEnvironment(
+          new ir.CoreTypes(env.mainComponent),
+          new ir.ClassHierarchy(env.mainComponent));
     }
     ir.TreeNode enclosingClass = node;
     while (enclosingClass != null && enclosingClass is! ir.Class) {

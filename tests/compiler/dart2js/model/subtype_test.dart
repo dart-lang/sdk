@@ -59,7 +59,7 @@ Future testInterfaceSubtype() async {
       main() {
         new C();
       }
-      """).then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -318,7 +318,7 @@ Future testCallableSubtype() async {
         a.m4(null, null);
         a.m5(null, null);
       }
-      """).then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -371,7 +371,8 @@ Future testFunctionSubtyping() async {
   main() {
     ${createUses(functionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
 
@@ -381,7 +382,8 @@ Future testTypedefSubtyping() async {
   main() {
     ${createUses(functionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
 
@@ -463,7 +465,8 @@ Future testFunctionSubtypingOptional() async {
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
 
@@ -473,7 +476,8 @@ Future testTypedefSubtypingOptional() async {
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
 
@@ -543,7 +547,8 @@ Future testFunctionSubtypingNamed() async {
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
 
@@ -553,7 +558,8 @@ Future testTypedefSubtypingNamed() async {
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """))
+  """),
+          expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
 
@@ -601,10 +607,6 @@ Future testTypeVariableSubtype() async {
       class D<T extends int> {}
       class E<T extends S, S extends num> {}
       class F<T extends num, S extends T> {}
-      class G<T extends T> {}
-      class H<T extends S, S extends T> {}
-      class I<T extends S, S extends U, U extends T> {}
-      class J<T extends S, S extends U, U extends S> {}
 
       main() {
         new A();
@@ -613,12 +615,8 @@ Future testTypeVariableSubtype() async {
         new D();
         new E<num, int>();
         new F();
-        new G();
-        new H();
-        new I();
-        new J();
       }
-      """).then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -642,19 +640,6 @@ Future testTypeVariableSubtype() async {
     ClassEntity F = env.getClass('F');
     TypeVariableType F_T = getTypeVariable(F, 0);
     TypeVariableType F_S = getTypeVariable(F, 1);
-    ClassEntity G = env.getClass('G');
-    TypeVariableType G_T = getTypeVariable(G, 0);
-    ClassEntity H = env.getClass('H');
-    TypeVariableType H_T = getTypeVariable(H, 0);
-    TypeVariableType H_S = getTypeVariable(H, 1);
-    ClassEntity I = env.getClass('I');
-    TypeVariableType I_T = getTypeVariable(I, 0);
-    TypeVariableType I_S = getTypeVariable(I, 1);
-    TypeVariableType I_U = getTypeVariable(I, 2);
-    ClassEntity J = env.getClass('J');
-    TypeVariableType J_T = getTypeVariable(J, 0);
-    TypeVariableType J_S = getTypeVariable(J, 1);
-    TypeVariableType J_U = getTypeVariable(J, 2);
 
     DartType Object_ = env['Object'];
     DartType num_ = env['num'];
@@ -735,96 +720,6 @@ Future testTypeVariableSubtype() async {
     expect(true, F_S, F_S);
     expect(true, F_S, F_T);
     expect(false, F_S, A_T);
-
-    // class G<T extends T> {}
-    expect(true, G_T, Object_);
-    expect(false, G_T, num_);
-    expect(false, G_T, int_);
-    expect(false, G_T, String_);
-    expect(true, G_T, dynamic_);
-    expect(true, G_T, G_T);
-    expect(false, G_T, A_T);
-
-    // class H<T extends S, S extends T> {}
-    expect(true, H_T, Object_);
-    expect(false, H_T, num_);
-    expect(false, H_T, int_);
-    expect(false, H_T, String_);
-    expect(true, H_T, dynamic_);
-    expect(true, H_T, H_T);
-    expect(true, H_T, H_S);
-    expect(false, H_T, A_T);
-
-    expect(true, H_S, Object_);
-    expect(false, H_S, num_);
-    expect(false, H_S, int_);
-    expect(false, H_S, String_);
-    expect(true, H_S, dynamic_);
-    expect(true, H_S, H_T);
-    expect(true, H_S, H_S);
-    expect(false, H_S, A_T);
-
-    // class I<T extends S, S extends U, U extends T> {}
-    expect(true, I_T, Object_);
-    expect(false, I_T, num_);
-    expect(false, I_T, int_);
-    expect(false, I_T, String_);
-    expect(true, I_T, dynamic_);
-    expect(true, I_T, I_T);
-    expect(true, I_T, I_S);
-    expect(true, I_T, I_U);
-    expect(false, I_T, A_T);
-
-    expect(true, I_S, Object_);
-    expect(false, I_S, num_);
-    expect(false, I_S, int_);
-    expect(false, I_S, String_);
-    expect(true, I_S, dynamic_);
-    expect(true, I_S, I_T);
-    expect(true, I_S, I_S);
-    expect(true, I_S, I_U);
-    expect(false, I_S, A_T);
-
-    expect(true, I_U, Object_);
-    expect(false, I_U, num_);
-    expect(false, I_U, int_);
-    expect(false, I_U, String_);
-    expect(true, I_U, dynamic_);
-    expect(true, I_U, I_T);
-    expect(true, I_U, I_S);
-    expect(true, I_U, I_U);
-    expect(false, I_U, A_T);
-
-    // class J<T extends S, S extends U, U extends S> {}
-    expect(true, J_T, Object_);
-    expect(false, J_T, num_);
-    expect(false, J_T, int_);
-    expect(false, J_T, String_);
-    expect(true, J_T, dynamic_);
-    expect(true, J_T, J_T);
-    expect(true, J_T, J_S);
-    expect(true, J_T, J_U);
-    expect(false, J_T, A_T);
-
-    expect(true, J_S, Object_);
-    expect(false, J_S, num_);
-    expect(false, J_S, int_);
-    expect(false, J_S, String_);
-    expect(true, J_S, dynamic_);
-    expect(false, J_S, J_T);
-    expect(true, J_S, J_S);
-    expect(true, J_S, J_U);
-    expect(false, J_S, A_T);
-
-    expect(true, J_U, Object_);
-    expect(false, J_U, num_);
-    expect(false, J_U, int_);
-    expect(false, J_U, String_);
-    expect(true, J_U, dynamic_);
-    expect(false, J_U, J_T);
-    expect(true, J_U, J_S);
-    expect(true, J_U, J_U);
-    expect(false, J_U, A_T);
   });
 }
 
@@ -855,7 +750,7 @@ Future testStrongModeSubtyping() async {
         takeVoid(null);
         takeObject(null);
       }
-      """).then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
       if (expectSubtype) {

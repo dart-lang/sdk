@@ -2209,10 +2209,6 @@ WebPlatformTest/webstorage/event_session_key_t01: RuntimeError
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime != chrome && $runtime != ff && $runtime != safari && !$fast_startup ]
-Language/Functions/setter_modifier_t02: Crash
-Language/Functions/setter_modifier_t03: Crash
-Language/Functions/setter_modifier_t05: Crash
-Language/Functions/setter_modifier_t06: Crash
 LayoutTests/fast/animation/request-animation-frame-callback-id_t01: RuntimeError
 LayoutTests/fast/animation/request-animation-frame-cancel_t01: RuntimeError
 LayoutTests/fast/animation/request-animation-frame-timestamps-advance_t01: RuntimeError
@@ -3490,8 +3486,6 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError
 Language/Expressions/Shift/integer_t02: CompileTimeError
 Language/Expressions/Type_Cast/syntax_t01: RuntimeError
 Language/Expressions/Unary_Expressions/variable_negative_t03: RuntimeError
-Language/Functions/setter_modifier_t01: Crash
-Language/Functions/setter_modifier_t04: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: CompileTimeError
 Language/Libraries_and_Scripts/top_level_syntax_t01: CompileTimeError
 Language/Metadata/before_ctor_t02: RuntimeError

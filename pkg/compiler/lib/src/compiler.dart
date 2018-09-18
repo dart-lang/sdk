@@ -267,6 +267,9 @@ abstract class Compiler {
     // Note: libraries may be null because of errors trying to find files or
     // parse-time errors (when using `package:front_end` as a loader).
     if (loadedLibraries == null) return;
+    if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
+      return;
+    }
     _mainLibraryUri = loadedLibraries.rootLibraryUri;
     processLoadedLibraries(loadedLibraries);
     compileLoadedLibraries(loadedLibraries);
