@@ -56,7 +56,7 @@ class LibraryLoaderTask extends CompilerTask {
       } else {
         String targetName =
             _options.compileForServer ? "dart2js_server" : "dart2js";
-        String platform = '${targetName}_platform_strong.dill';
+        String platform = '${targetName}_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             new Dart2jsTarget(targetName, new TargetFlags(strongMode: true)),
