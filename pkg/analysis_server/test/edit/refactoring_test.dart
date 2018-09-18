@@ -25,10 +25,7 @@ main() {
     defineReflectiveTests(InlineLocalTest);
     defineReflectiveTests(InlineMethodTest);
     defineReflectiveTests(MoveFileTest);
-    // TODO(brianwilkerson) Re-enable these tests. They were commented out
-    // because they are non-deterministic under the new driver. I suspect that
-    // there is a future that isn't being waited for.
-//    defineReflectiveTests(RenameTest);
+    defineReflectiveTests(RenameTest);
   });
 }
 
@@ -1355,6 +1352,151 @@ main() {
 ''');
   }
 
+  test_class_fromFactoryRedirectingConstructor() {
+    addTestFile('''
+class A {
+  A() = Test.named;
+}
+class Test {
+  Test.named() {}
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test.named;', 'NewName');
+      },
+      '''
+class A {
+  A() = NewName.named;
+}
+class NewName {
+  NewName.named() {}
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 18);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation() {
+    addTestFile('''
+class Test {
+  Test() {}
+}
+main() {
+  new Test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName() {}
+}
+main() {
+  new NewName();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_namedConstructor() {
+    addTestFile('''
+class Test {
+  Test.named() {}
+}
+main() {
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test.named();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName.named() {}
+}
+main() {
+  new NewName.named();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_onNew() {
+    addTestFile('''
+class Test {
+  Test() {}
+}
+main() {
+  new Test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new Test();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName() {}
+}
+main() {
+  new NewName();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  test_class_fromInstanceCreation_onNew_namedConstructor() {
+    addTestFile('''
+class Test {
+  Test.named() {}
+}
+main() {
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new Test.named();', 'NewName');
+      },
+      '''
+class NewName {
+  NewName.named() {}
+}
+main() {
+  new NewName.named();
+}
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
   test_class_options_fatalError() {
     addTestFile('''
 class Test {}
@@ -1591,18 +1733,18 @@ class A {
 ''');
   }
 
-  test_constructor_fromFactoryRedirectingConstructor_onClassName() {
+  test_constructor_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
-  A() = B;
+  A() = B.test;
 }
 class B {
-  B() {}
+  B.test() {}
 }
 ''');
     return assertSuccessfulRefactoring(
       () {
-        return sendRenameRequest('B;', 'newName');
+        return sendRenameRequest('test;', 'newName');
       },
       '''
 class A {
@@ -1614,8 +1756,8 @@ class B {
 ''',
       feedbackValidator: (feedback) {
         RenameFeedback renameFeedback = feedback;
-        expect(renameFeedback.offset, -1);
-        expect(renameFeedback.length, 0);
+        expect(renameFeedback.offset, 20);
+        expect(renameFeedback.length, 4);
       },
     );
   }
@@ -1645,64 +1787,6 @@ main() {
         RenameFeedback renameFeedback = feedback;
         expect(renameFeedback.offset, 43);
         expect(renameFeedback.length, 4);
-      },
-    );
-  }
-
-  test_constructor_fromInstanceCreation_default_onClassName() {
-    addTestFile('''
-class A {
-  A() {}
-}
-main() {
-  new A();
-}
-''');
-    return assertSuccessfulRefactoring(
-      () {
-        return sendRenameRequest('A();', 'newName');
-      },
-      '''
-class A {
-  A.newName() {}
-}
-main() {
-  new A.newName();
-}
-''',
-      feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
-        expect(renameFeedback.offset, -1);
-        expect(renameFeedback.length, 0);
-      },
-    );
-  }
-
-  test_constructor_fromInstanceCreation_default_onNew() {
-    addTestFile('''
-class A {
-  A() {}
-}
-main() {
-  new A();
-}
-''');
-    return assertSuccessfulRefactoring(
-      () {
-        return sendRenameRequest('new A();', 'newName');
-      },
-      '''
-class A {
-  A.newName() {}
-}
-main() {
-  new A.newName();
-}
-''',
-      feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
-        expect(renameFeedback.offset, -1);
-        expect(renameFeedback.length, 0);
       },
     );
   }
