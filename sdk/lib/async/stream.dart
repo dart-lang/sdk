@@ -2007,6 +2007,21 @@ abstract class StreamTransformer<S, T> {
       void handleDone(EventSink<T> sink)}) = _StreamHandlerTransformer<S, T>;
 
   /**
+   * Creates a [StreamTransformer] based on a [bind] callback.
+   *
+   * The returned stream transformer uses the [bind] argument to implement the
+   * [StreamTransformer.bind] API and can be used when the transformation is
+   * available as a stream-to-stream function.
+   *
+   * ```dart
+   * final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
+   *     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
+   * ```
+   */
+  factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
+      _StreamBindTransformer<S, T>;
+
+  /**
    * Adapts [source] to be a `StreamTransfomer<TS, TT>`.
    *
    * This allows [source] to be used at the new type, but at run-time it

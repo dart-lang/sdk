@@ -282,6 +282,16 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   }
 }
 
+/**
+ * A StreamTransformer that overrides [StreamTransformer.bind] with a callback.
+ */
+class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
+  final Stream<T> Function(Stream<S>) _bind;
+  _StreamBindTransformer(this._bind);
+
+  Stream<T> bind(Stream<S> stream) => _bind(stream);
+}
+
 /// A closure mapping a stream and cancelOnError to a StreamSubscription.
 typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
     Stream<S> stream, bool cancelOnError);
