@@ -141,27 +141,63 @@ The tool gives a breakdown of the difference between the two info files.
 Here's an example output:
 
 ```
-OVERALL SIZE DIFFERENCE
-========================================================================
-3 bytes
+total_size_difference -2688
+total_added 0
+total_removed 2321
+total_size_changed -203
+total_became_deferred 0
+total_no_longer_deferred 0
 
-ADDED
-========================================================================
-
-REMOVED
-========================================================================
-file:///home/het/Code/foo/foo.dart::A.y: 0 bytes
-
-CHANGED SIZE
+ADDED (0 bytes)
 ========================================================================
 
-BECAME DEFERRED
+REMOVED (2321 bytes)
+========================================================================
+dart:_js_helper::getRuntimeTypeString: 488 bytes
+dart:_js_helper::substitute: 479 bytes
+dart:_js_helper::TypeImpl.toString: 421 bytes
+dart:_js_helper::computeSignature: 204 bytes
+dart:_js_helper::getRuntimeTypeArguments: 181 bytes
+dart:_js_helper::extractFunctionTypeObjectFrom: 171 bytes
+dart:_js_helper::getTypeArgumentByIndex: 147 bytes
+dart:_js_helper::runtimeTypeToString: 136 bytes
+dart:_js_helper::setRuntimeTypeInfo: 94 bytes
+dart:core::Object.runtimeType: 0 bytes
+dart:_js_helper::getRawRuntimeType: 0 bytes
+dart:_js_helper::invoke: 0 bytes
+dart:_js_helper::invokeOn: 0 bytes
+dart:_js_helper::getField: 0 bytes
+dart:_js_helper::getClassName: 0 bytes
+dart:_js_helper::getRuntimeType: 0 bytes
+dart:_js_helper::TypeImpl.TypeImpl: 0 bytes
+
+CHANGED SIZE (-203 bytes)
+========================================================================
+dart:_interceptors::JSUnmodifiableArray: -3 bytes
+dart:core::List: -3 bytes
+dart:_interceptors::ArrayIterator: -4 bytes
+dart:_js_helper::TypeImpl._typeName: -10 bytes
+dart:_js_helper::TypeImpl._unmangledName: -15 bytes
+dart:_js_names::: -30 bytes
+dart:_js_names::extractKeys: -30 bytes
+dart:core::StringBuffer: -40 bytes
+dart:core::StringBuffer._writeAll: -40 bytes
+dart:core::: -43 bytes
+dart:_interceptors::JSArray.+: -63 bytes
+dart:_interceptors::JSArray: -66 bytes
+dart:_interceptors::: -73 bytes
+dart:_js_helper::TypeImpl: -481 bytes
+dart:_js_helper::: -2445 bytes
+
+BECAME DEFERRED (0 bytes)
 ========================================================================
 
-NO LONGER DEFERRED
+NO LONGER DEFERRED (0 bytes)
 ========================================================================
 
 ```
+
+You can also pass `--summary` to only show the summary section.
 
 ### Library size split tool
 

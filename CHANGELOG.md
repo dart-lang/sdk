@@ -1,3 +1,8 @@
+## 0.5.12
+
+* Improved output of `dart2js_info_diff` by sorting the diffs by
+  size and outputting the summary in full output mode.
+
 ## 0.5.11
 
 * Added `--summary` option to `dart2js_info_diff` tool.

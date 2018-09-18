@@ -56,12 +56,48 @@ main(List<String> args) async {
     }
   }
 
-  if (summary) {
-    reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
-        becameUndeferred);
-  } else {
+  // Sort the changes by the size of the element that changed.
+  for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
+    diffs.sort((a, b) => b.info.size - a.info.size);
+  }
+
+  // Sort changes in size by size difference.
+  sizeChanges.sort((a, b) => b.sizeDifference - a.sizeDifference);
+
+  var totalSizes = <List<Diff>, int>{};
+  for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
+    var totalSize = 0;
+    for (var diff in diffs) {
+      // Only count diffs from leaf elements so we don't double count
+      // them when we account for class size diff or library size diff.
+      if (diff.info.kind == InfoKind.field ||
+          diff.info.kind == InfoKind.function ||
+          diff.info.kind == InfoKind.closure ||
+          diff.info.kind == InfoKind.typedef) {
+        totalSize += diff.info.size;
+      }
+    }
+    totalSizes[diffs] = totalSize;
+  }
+  var totalSizeChange = 0;
+  for (var sizeChange in sizeChanges) {
+    // Only count diffs from leaf elements so we don't double count
+    // them when we account for class size diff or library size diff.
+    if (sizeChange.info.kind == InfoKind.field ||
+        sizeChange.info.kind == InfoKind.function ||
+        sizeChange.info.kind == InfoKind.closure ||
+        sizeChange.info.kind == InfoKind.typedef) {
+      totalSizeChange += sizeChange.sizeDifference;
+    }
+  }
+  totalSizes[sizeChanges] = totalSizeChange;
+
+  reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
+      becameUndeferred, totalSizes);
+  if (!summary) {
+    print('');
     reportFull(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
-        becameUndeferred);
+        becameUndeferred, totalSizes);
   }
 }
 
@@ -72,27 +108,16 @@ void reportSummary(
     List<RemoveDiff> removals,
     List<SizeDiff> sizeChanges,
     List<DeferredStatusDiff> becameDeferred,
-    List<DeferredStatusDiff> becameUndeferred) {
+    List<DeferredStatusDiff> becameUndeferred,
+    Map<List<Diff>, int> totalSizes) {
   var overallSizeDiff = newInfo.program.size - oldInfo.program.size;
   print('total_size_difference $overallSizeDiff');
 
-  var noLongerDeferred = 0;
-  for (var diff in becameUndeferred) {
-    noLongerDeferred += diff.info.size;
-  }
-  print('no_longer_deferred $noLongerDeferred');
-
-  var totalAdded = 0;
-  for (var diff in adds) {
-    totalAdded += diff.info.size;
-  }
-  print('total_added $totalAdded');
-
-  var totalRemoved = 0;
-  for (var diff in removals) {
-    totalRemoved += diff.info.size;
-  }
-  print('total_removed $totalRemoved');
+  print('total_added ${totalSizes[adds]}');
+  print('total_removed ${totalSizes[removals]}');
+  print('total_size_changed ${totalSizes[sizeChanges]}');
+  print('total_became_deferred ${totalSizes[becameDeferred]}');
+  print('total_no_longer_deferred ${totalSizes[becameUndeferred]}');
 }
 
 void reportFull(
@@ -102,49 +127,46 @@ void reportFull(
     List<RemoveDiff> removals,
     List<SizeDiff> sizeChanges,
     List<DeferredStatusDiff> becameDeferred,
-    List<DeferredStatusDiff> becameUndeferred) {
+    List<DeferredStatusDiff> becameUndeferred,
+    Map<List<Diff>, int> totalSizes) {
   // TODO(het): Improve this output. Siggi has good suggestions in
   // https://github.com/dart-lang/dart2js_info/pull/19
-  var overallSizeDiff = newInfo.program.size - oldInfo.program.size;
-  _section('OVERALL SIZE DIFFERENCE');
-  print('$overallSizeDiff bytes');
-  print('');
 
-  _section('ADDED');
+  _section('ADDED', size: totalSizes[adds]);
   for (var add in adds) {
     print('${longName(add.info, useLibraryUri: true)}: ${add.info.size} bytes');
   }
   print('');
 
-  _section('REMOVED');
+  _section('REMOVED', size: totalSizes[removals]);
   for (var removal in removals) {
     print('${longName(removal.info, useLibraryUri: true)}: '
         '${removal.info.size} bytes');
   }
   print('');
 
-  _section('CHANGED SIZE');
+  _section('CHANGED SIZE', size: totalSizes[sizeChanges]);
   for (var sizeChange in sizeChanges) {
     print('${longName(sizeChange.info, useLibraryUri: true)}: '
         '${sizeChange.sizeDifference} bytes');
   }
   print('');
 
-  _section('BECAME DEFERRED');
+  _section('BECAME DEFERRED', size: totalSizes[becameDeferred]);
   for (var diff in becameDeferred) {
     print('${longName(diff.info, useLibraryUri: true)}: '
         '${diff.info.size} bytes');
   }
   print('');
 
-  _section('NO LONGER DEFERRED');
+  _section('NO LONGER DEFERRED', size: totalSizes[becameUndeferred]);
   for (var diff in becameUndeferred) {
     print('${longName(diff.info, useLibraryUri: true)}: '
         '${diff.info.size} bytes');
   }
 }
 
-void _section(String title) {
-  print(title);
+void _section(String title, {int size}) {
+  print('$title ($size bytes)');
   print('=' * 72);
 }
