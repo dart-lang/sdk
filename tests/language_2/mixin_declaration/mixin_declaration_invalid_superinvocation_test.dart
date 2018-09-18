@@ -41,7 +41,7 @@ mixin M2 on UnaryNum, UnaryInt {
 mixin M3 on UnaryNum, UnaryOptionalNum {
   void bar() {
     super.foo(4.2);
-    super.foo();
+    super.foo();     //# 10: ok
     super.foo(1, 2); //# 08: compile-time error
     super.foo("not num"); //# 09: compile-time error
   }

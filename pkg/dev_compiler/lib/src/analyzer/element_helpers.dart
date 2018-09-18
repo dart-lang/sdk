@@ -139,6 +139,7 @@ List<ClassElement> getSuperclasses(ClassElement cls) {
       if (mixin != null) result.add(mixin);
     }
     var supertype = cls.supertype;
+    // Object or mixin declaration.
     if (supertype == null) break;
 
     cls = supertype.element;

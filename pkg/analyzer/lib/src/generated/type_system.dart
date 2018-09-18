@@ -1582,7 +1582,9 @@ class StrongTypeSystemImpl extends TypeSystem {
     visitedTypes ??= new HashSet<ClassElement>();
     if (!visitedTypes.add(i1Element)) return false;
 
-    if (_isInterfaceSubtypeOf(i1.superclass, i2, visitedTypes)) {
+    InterfaceType superclass = i1.superclass;
+    if (superclass != null &&
+        _isInterfaceSubtypeOf(superclass, i2, visitedTypes)) {
       return true;
     }
 
@@ -1595,6 +1597,14 @@ class StrongTypeSystemImpl extends TypeSystem {
     for (final parent in i1.mixins) {
       if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
         return true;
+      }
+    }
+
+    if (i1Element.isMixin) {
+      for (final parent in i1.superclassConstraints) {
+        if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
+          return true;
+        }
       }
     }
 

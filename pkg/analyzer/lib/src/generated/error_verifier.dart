@@ -1910,7 +1910,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     bool problemReported = false;
-    for (TypeName mixinName in withClause.mixinTypes) {
+    List<TypeName> mixinTypes = withClause.mixinTypes;
+    for (int i = 0; i < mixinTypes.length; i++) {
+      TypeName mixinName = mixinTypes[i];
       DartType mixinType = mixinName.type;
       if (mixinType is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
@@ -1923,7 +1925,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             problemReported = true;
           }
           if (mixinElement.isMixin) {
-            if (_checkForMixinSuperclassConstraints(mixinName)) {
+            if (_checkForMixinSuperclassConstraints(
+                mixinName, mixinTypes.take(i))) {
               problemReported = true;
             }
             if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
@@ -4256,12 +4259,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /// Check that superclass constrains for the mixin type of [mixinName]
-  /// are satisfied by the [_enclosingClass].
-  bool _checkForMixinSuperclassConstraints(TypeName mixinName) {
-    InterfaceType enclosingType = _enclosingClass.type;
+  /// are satisfied by the superclass and/or any previous mixin applications.
+  bool _checkForMixinSuperclassConstraints(
+      TypeName mixinName, Iterable<TypeName> previousMixins) {
+    List<InterfaceType> supertypes = [_enclosingClass.supertype];
+    supertypes.addAll(previousMixins.map((t) => t.type));
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
-      if (!_typeSystem.isSubtypeOf(enclosingType, constraint)) {
+      if (!supertypes.any((s) => _typeSystem.isSubtypeOf(s, constraint))) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
             mixinName.name,

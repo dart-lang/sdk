@@ -620,6 +620,30 @@ class Expect {
         "on ${Error.safeToString(object)}");
   }
 
+  /// Checks that `Sub` is a subtype of `Super` at compile time and run time.
+  static bool subtype<Sub extends Super, Super>() {
+    List<Super> list = <Sub>[];
+    _subtypeAtRuntime<Sub, Super>();
+  }
+
+  /// Checks that `Sub` is a subtype of `Super` at run time.
+  ///
+  /// This is similar to [subtype] but without the `Sub extends Super` generic
+  /// constraint, so a compiler is less likely to optimize away the `is` check
+  /// because the types appear to be unrelated.
+  static bool _subtypeAtRuntime<Sub, Super>() {
+    if (<Sub>[] is! List<Super>) {
+      fail("$Sub is not a subtype of $Super");
+    }
+  }
+
+  /// Checks that `Sub` is not a subtype of `Super` at run time.
+  static bool notSubtype<Sub, Super>() {
+    if (<Sub>[] is List<Super>) {
+      fail("$Sub is a subtype of $Super");
+    }
+  }
+
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 

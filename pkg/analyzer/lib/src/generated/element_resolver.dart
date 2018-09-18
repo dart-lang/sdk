@@ -719,8 +719,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Generate the type name.
       // The error code will never be generated via type propagation
       DartType getSuperType(DartType type) {
-        if (type is InterfaceType && !type.isObject) {
-          return type.superclass;
+        if (type is InterfaceType) {
+          InterfaceType superclass = type.superclass;
+          if (superclass != null) return superclass;
         }
         return type;
       }

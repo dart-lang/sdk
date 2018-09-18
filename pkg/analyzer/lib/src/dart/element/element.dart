@@ -626,8 +626,8 @@ class ClassElementImpl extends AbstractClassElementImpl
       return false;
     }
     if (supertype == null) {
-      // Should never happen, since Object is the only class that has no
-      // supertype, and it should have been caught by the test above.
+      // Should never happen, since Object and mixins are the only classes that
+      // have no supertype, and they should have been caught by the test above.
       assert(false);
       return false;
     }
@@ -647,8 +647,8 @@ class ClassElementImpl extends AbstractClassElementImpl
         }
         classesSeen.add(nearestNonMixinClass);
         if (nearestNonMixinClass.supertype == null) {
-          // Should never happen, since Object is the only class that has no
-          // supertype, and it is not a mixin application.
+          // Should never happen, since Object and mixins are the only classes that
+          // have no supertype, and they are not mixin applications.
           assert(false);
           return false;
         }
@@ -1106,9 +1106,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     // forwarded to this class.
     Iterable<ConstructorElement> constructorsToForward;
     if (supertype == null) {
-      // Shouldn't ever happen, since the only class with no supertype is
-      // Object, and it isn't a mixin application.  But for safety's sake just
-      // assume an empty list.
+      // Shouldn't ever happen, since the only classes with no supertype are
+      // Object and mixins, and they aren't a mixin application. But for
+      // safety's sake just assume an empty list.
       assert(false);
       constructorsToForward = <ConstructorElement>[];
     } else if (!supertype.element.isMixinApplication) {

@@ -283,7 +283,7 @@ class InheritanceManager {
     }
     InterfaceType supertype = classElt.supertype;
     if (supertype == null) {
-      // classElt is Object
+      // classElt is Object or a mixin
       _classLookup[classElt] = resultMap;
       return resultMap;
     }
@@ -380,9 +380,8 @@ class InheritanceManager {
     // functionality in InheritanceManagerTest
     chain.add(currentType);
     ClassElement classElt = currentType.element;
-    InterfaceType supertype = classElt.supertype;
     // Base case- reached Object
-    if (supertype == null) {
+    if (currentType.isObject) {
       // Looked up the chain all the way to Object, return null.
       // This should never happen.
       return;
@@ -411,8 +410,9 @@ class InheritanceManager {
       }
     }
     // Superclass
-    ClassElement superclassElt = supertype.element;
-    if (lookupMember(superclassElt, memberName) != null) {
+    InterfaceType supertype = classElt.supertype;
+    if (supertype != null &&
+        lookupMember(supertype.element, memberName) != null) {
       _computeInheritancePath(chain, supertype, memberName);
       return;
     }

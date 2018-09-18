@@ -104,6 +104,9 @@ issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
+mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_supertype_compatible_test/04: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
@@ -290,6 +293,7 @@ issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
+mixin_declaration/*: Skip # need flag on Kernel Class nodes.
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError

@@ -30,34 +30,22 @@ class GC<T> implements GA<T>, GB<List<T>> {}
 
 class GD<T> = GC<T> with GM<T>;
 
-bool expectSubtype<Sub, Super>() {
-  if (<Sub>[] is! List<Super>) {
-    Expect.fail("$Sub is not a subtype of $Super");
-  }
-}
-
-bool expectNotSubtype<Sub, Super>() {
-  if (<Sub>[] is List<Super>) {
-    Expect.fail("$Sub is a subtype of $Super");
-  }
-}
-
 main() {
-  expectSubtype<M, A>();
-  expectSubtype<M, B>();
-  expectSubtype<M, I>();
-  expectSubtype<M, J>();
-  expectSubtype<D, M>();
-  expectSubtype<D, C>();
-  expectNotSubtype<M, C>();
-  expectNotSubtype<C, M>();
+  Expect.subtype<M, A>();
+  Expect.subtype<M, B>();
+  Expect.subtype<M, I>();
+  Expect.subtype<M, J>();
+  Expect.subtype<D, M>();
+  Expect.subtype<D, C>();
+  Expect.notSubtype<M, C>();
+  Expect.notSubtype<C, M>();
 
-  expectSubtype<GM<int>, GA<int>>();
-  expectSubtype<GM<int>, GB<int>>();
-  expectSubtype<GM<int>, GI<int>>();
-  expectSubtype<GM<int>, GJ<int>>();
-  expectSubtype<GD<int>, GM<int>>();
-  expectSubtype<GD<int>, GC<int>>();
-  expectNotSubtype<GM<int>, GC<int>>();
-  expectNotSubtype<GC<int>, GM<int>>();
+  Expect.subtype<GM<int>, GA<int>>();
+  Expect.subtype<GM<int>, GB<List<int>>>();
+  Expect.subtype<GM<int>, GI<Iterable<int>>>();
+  Expect.subtype<GM<int>, GJ<Set<int>>>();
+  Expect.subtype<GD<int>, GM<int>>();
+  Expect.subtype<GD<int>, GC<int>>();
+  Expect.notSubtype<GM<int>, GC<int>>();
+  Expect.notSubtype<GC<int>, GM<int>>();
 }

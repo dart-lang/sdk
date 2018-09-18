@@ -12,6 +12,8 @@ import 'package:kernel/target/targets.dart';
 class DevCompilerTarget extends Target {
   bool get strongMode => true; // the only correct answer
 
+  bool get enableSuperMixins => true;
+
   String get name => 'dartdevc';
 
   List<String> get extraRequiredLibraries => const [

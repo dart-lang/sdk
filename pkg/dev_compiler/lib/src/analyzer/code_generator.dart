@@ -971,7 +971,9 @@ class CodeGenerator extends Object
     _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(classElem, className, memberMap, body);
     _initExtensionSymbols(classElem);
-    _defineExtensionMembers(className, body);
+    if (!classElem.isMixin) {
+      _defineExtensionMembers(className, body);
+    }
     _emitClassMetadata(classNode.metadata, className, body);
 
     var classDef = JS.Statement.from(body);
@@ -1233,7 +1235,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitMixinDeclaration(MixinDeclaration node) {
-    throw new UnimplementedError();
+    return _emitClassDeclaration(node, node.declaredElement, node.members);
   }
 
   /// Wraps a possibly generic class in its type arguments.
@@ -1275,6 +1277,70 @@ class CodeGenerator extends Object
     return js.statement('# = #;', [className, classExpr]);
   }
 
+  /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
+  /// [classElem].
+  ///
+  /// Mixins work similar to normal classes, but their instance methods close
+  /// over the actual superclass. Given a Dart class like:
+  ///
+  ///     mixin M on C {
+  ///       foo() => super.foo() + 42;
+  ///     }
+  ///
+  /// We generate a JS class like this:
+  ///
+  ///     lib.M = class M extends core.Object {}
+  ///     lib.M[dart.mixinOn] = (C) => class M extends C {
+  ///       foo() {
+  ///         return super.foo() + 42;
+  ///       }
+  ///     };
+  ///
+  /// The special `dart.mixinOn` symbolized property is used by the runtime
+  /// helper `dart.applyMixin`. The helper calls the function with the actual
+  /// base class, and then copies the resulting members to the destination
+  /// class.
+  ///
+  /// In the long run we may be able to improve this so we do not have the
+  /// unnecessary class, but for now, this lets us get the right semantics with
+  /// minimal compiler and runtime changes.
+  void _emitMixinStatement(
+      ClassElement classElem,
+      JS.Expression className,
+      JS.Expression heritage,
+      List<JS.Method> methods,
+      List<JS.Statement> body) {
+    assert(classElem.isMixin);
+
+    var staticMethods = methods.where((m) => m.isStatic).toList();
+    var instanceMethods = methods.where((m) => !m.isStatic).toList();
+    body.add(
+        _emitClassStatement(classElem, className, heritage, staticMethods));
+
+    var superclassId = JS.TemporaryId(
+        classElem.superclassConstraints.map((t) => t.name).join('_'));
+    var classId =
+        className is JS.Identifier ? className : JS.TemporaryId(classElem.name);
+
+    var mixinMemberClass =
+        JS.ClassExpression(classId, superclassId, instanceMethods);
+
+    JS.Node arrowFnBody = mixinMemberClass;
+    var extensionInit = <JS.Statement>[];
+    _defineExtensionMembers(classId, extensionInit);
+    if (extensionInit.isNotEmpty) {
+      extensionInit.insert(0, mixinMemberClass.toStatement());
+      extensionInit.add(classId.toReturn());
+      arrowFnBody = JS.Block(extensionInit);
+    }
+
+    body.add(js.statement('#[#.mixinOn] = #', [
+      className,
+      runtimeModule,
+      JS.ArrowFun([superclassId], arrowFnBody)
+    ]));
+  }
+
   void _defineClass(
       ClassElement classElem,
       JS.Expression className,
@@ -1305,7 +1371,9 @@ class CodeGenerator extends Object
           if (t.typeArguments.any(defer)) return true;
           if (t is InterfaceType) {
             var e = t.element;
-            return e.mixins.any(defer) || defer(e.supertype);
+            if (e.mixins.any(defer)) return true;
+            var supertype = e.supertype;
+            return supertype != null && defer(supertype);
           }
         }
         return false;
@@ -1328,7 +1396,7 @@ class CodeGenerator extends Object
       return base;
     }
 
-    var supertype = classElem.supertype;
+    var supertype = classElem.isMixin ? types.objectType : classElem.supertype;
     var hasUnnamedSuper = _hasUnnamedConstructor(supertype.element);
 
     void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
@@ -1385,7 +1453,7 @@ class CodeGenerator extends Object
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody
-          .add(runtimeStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
+          .add(runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]));
 
       _topLevelClass = savedTopLevel;
 
@@ -1395,8 +1463,8 @@ class CodeGenerator extends Object
         //
         // We do this with the following pattern:
         //
-        //     mixinMembers(C, class C$ extends M { <methods>  });
-        mixinBody.add(runtimeStatement('mixinMembers(#, #)', [
+        //     applyMixin(C, class C$ extends M { <methods>  });
+        mixinBody.add(runtimeStatement('applyMixin(#, #)', [
           classExpr,
           JS.ClassExpression(
               JS.TemporaryId(classElem.name), mixinClass, methods)
@@ -1428,11 +1496,11 @@ class CodeGenerator extends Object
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.element);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(runtimeStatement('mixinMembers(#, #)',
+        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)',
             [getBaseClass(mixinLength - i), emitDeferredType(m)]));
       } else {
         body.add(
-            runtimeStatement('mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
+            runtimeStatement('applyMixin(#, #)', [mixinId, emitClassRef(m)]));
       }
 
       baseClass = mixinId;
@@ -1440,7 +1508,14 @@ class CodeGenerator extends Object
 
     _topLevelClass = savedTopLevel;
 
-    body.add(_emitClassStatement(classElem, className, baseClass, methods));
+    if (classElem.isMixin) {
+      // TODO(jmesserly): we could make this more efficient, as this creates
+      // an extra unnecessary class. But it's the easiest way to handle the
+      // current system.
+      _emitMixinStatement(classElem, className, baseClass, methods, body);
+    } else {
+      body.add(_emitClassStatement(classElem, className, baseClass, methods));
+    }
 
     if (classElem.isMixinApplication) emitMixinConstructors(className);
   }
@@ -2069,9 +2144,13 @@ class CodeGenerator extends Object
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(ClassElement classElem, JS.Expression className,
       Map<Element, Declaration> annotatedMembers, List<JS.Statement> body) {
-    if (classElem.interfaces.isNotEmpty) {
+    if (classElem.interfaces.isNotEmpty ||
+        classElem.superclassConstraints.isNotEmpty) {
+      var interfaces = classElem.interfaces.toList()
+        ..addAll(classElem.superclassConstraints);
+
       body.add(js.statement('#[#.implements] = () => [#];',
-          [className, runtimeModule, classElem.interfaces.map(_emitType)]));
+          [className, runtimeModule, interfaces.map(_emitType)]));
     }
 
     void emitSignature(String name, List<JS.Property> elements) {
@@ -2363,7 +2442,9 @@ class CodeGenerator extends Object
     // Get the supertype's unnamed constructor.
     superCtor ??= element.supertype?.element?.unnamedConstructor;
     if (superCtor == null) {
-      assert(element.type.isObject || options.unsafeForceCompile);
+      assert(element.type.isObject ||
+          element.isMixin ||
+          options.unsafeForceCompile);
       return null;
     }
 
@@ -2384,6 +2465,7 @@ class CodeGenerator extends Object
 
   bool _hasUnnamedSuperConstructor(ClassElement e) {
     var supertype = e.supertype;
+    // Object or mixin declaration.
     if (supertype == null) return false;
     if (_hasUnnamedConstructor(supertype.element)) return true;
     for (var mixin in e.mixins) {

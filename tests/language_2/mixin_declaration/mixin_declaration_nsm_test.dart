@@ -13,11 +13,11 @@ abstract class Foo {
 }
 
 mixin M implements Bar {
-  dynamic noSuchMethod(i) => "M${i.memberName == #foo ? "foo" : "bar"}";
+  dynamic noSuchMethod(i) => "M:${i.memberName == #foo ? "foo" : "bar"}";
 }
 
 abstract class C {
-  dynamic noSuchMethod(i) => "C${i.memberName == #foo ? "foo" : "bar"}";
+  dynamic noSuchMethod(i) => "C:${i.memberName == #foo ? "foo" : "bar"}";
 }
 
 abstract class D {

@@ -1339,7 +1339,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool get isObject => element.supertype == null;
+  bool get isObject => element.supertype == null && !element.isMixin;
 
   @override
   List<MethodElement> get methods {
@@ -1495,10 +1495,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement jElement = j.element;
     InterfaceType supertype = jElement.supertype;
     //
-    // If J has no direct supertype then it is Object, and Object has no direct
-    // supertypes.
+    // If J is Object, then it has no direct supertypes.
     //
-    if (supertype == null) {
+    if (j.isObject) {
       return false;
     }
     //
@@ -2212,7 +2211,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
     ClassElement classElement = type.element;
     // Object case
-    if (classElement.supertype == null || visitedTypes.contains(classElement)) {
+    if (type.isObject || visitedTypes.contains(classElement)) {
       return depth;
     }
     int longestPath = 1;
@@ -2244,10 +2243,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       // TODO(brianwilkerson) Does this also need to add in the number of mixin
       // classes?
       InterfaceType supertype = classElement.supertype;
-      pathLength = _computeLongestInheritancePathToObject(
-          supertype, depth + 1, visitedTypes);
-      if (pathLength > longestPath) {
-        longestPath = pathLength;
+      if (supertype != null) {
+        pathLength = _computeLongestInheritancePathToObject(
+            supertype, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
       }
     } finally {
       visitedTypes.remove(classElement);
