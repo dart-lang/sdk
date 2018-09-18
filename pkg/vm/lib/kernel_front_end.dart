@@ -121,7 +121,8 @@ Future _runGlobalTransformations(
     }
 
     if (useGlobalTypeFlowAnalysis) {
-      globalTypeFlow.transformComponent(coreTypes, component, entryPoints);
+      globalTypeFlow.transformComponent(
+          compilerOptions.target, coreTypes, component, entryPoints);
     } else {
       devirtualization.transformComponent(coreTypes, component);
     }

@@ -194,6 +194,12 @@ abstract class Target {
   Component configureComponent(Component component) => component;
 
   String toString() => 'Target($name)';
+
+  Class concreteListLiteralClass(CoreTypes coreTypes) => null;
+  Class concreteConstListLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
+  Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
 }
 
 class NoneTarget extends Target {

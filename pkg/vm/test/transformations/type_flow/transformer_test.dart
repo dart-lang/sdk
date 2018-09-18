@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -17,7 +18,9 @@ import '../../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 runTestCase(Uri source) async {
-  Component component = await compileTestCaseToKernelProgram(source);
+  final target = new TestingVmTarget(new TargetFlags(strongMode: true));
+  Component component =
+      await compileTestCaseToKernelProgram(source, target: target);
 
   final coreTypes = new CoreTypes(component);
 
@@ -26,7 +29,7 @@ runTestCase(Uri source) async {
     pkgVmDir + '/lib/transformations/type_flow/entry_points_extra.json',
   ];
 
-  component = transformComponent(coreTypes, component, entryPoints,
+  component = transformComponent(target, coreTypes, component, entryPoints,
       new ExpressionPragmaAnnotationParser(coreTypes));
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);

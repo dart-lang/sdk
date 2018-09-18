@@ -7,6 +7,7 @@ library vm.transformations.type_flow.transformer;
 
 import 'dart:core' hide Type;
 
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -31,8 +32,8 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Component transformComponent(
-    CoreTypes coreTypes, Component component, List<String> entryPoints,
+Component transformComponent(Target target, CoreTypes coreTypes,
+    Component component, List<String> entryPoints,
     [PragmaAnnotationParser matcher]) {
   if ((entryPoints == null) || entryPoints.isEmpty) {
     throw 'Error: unable to perform global type flow analysis without entry points.';
@@ -46,7 +47,7 @@ Component transformComponent(
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(types).visitComponent(component);
+    new CreateAllSummariesVisitor(target, types).visitComponent(component);
     Statistics.print("All summaries statistics");
   }
 
@@ -54,7 +55,7 @@ Component transformComponent(
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
-      component, coreTypes, hierarchy, types, libraryIndex,
+      target, component, coreTypes, hierarchy, types, libraryIndex,
       entryPointsJSONFiles: entryPoints, matcher: matcher);
 
   Procedure main = component.mainMethod;

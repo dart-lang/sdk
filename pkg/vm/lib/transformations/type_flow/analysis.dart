@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:core' hide Type;
 import 'dart:math' show max;
 
+import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -1175,6 +1176,7 @@ class _WorkList {
 }
 
 class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
+  final Target target;
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
   final PragmaAnnotationParser annotationMatcher;
@@ -1187,7 +1189,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
 
-  TypeFlowAnalysis(Component component, CoreTypes coreTypes,
+  TypeFlowAnalysis(this.target, Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
       {List<String> entryPointsJSONFiles, PragmaAnnotationParser matcher})
       : annotationMatcher =
@@ -1195,7 +1197,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy);
     summaryCollector =
-        new SummaryCollector(environment, this, nativeCodeOracle);
+        new SummaryCollector(target, environment, this, nativeCodeOracle);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
