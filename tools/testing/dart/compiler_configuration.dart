@@ -247,9 +247,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     } else if (_configuration.hotReloadRollback) {
       args.add('--hot-reload-rollback-test-mode');
     }
-    if (_configuration.useKernelBytecode) {
-      args.add('--enable_interpreter');
-    }
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)

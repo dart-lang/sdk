@@ -407,7 +407,14 @@
         "preview-dart-2": false
       }},
     "app_jitk-linux-(debug|product|release)-x64": { },
-    "dartkb-linux-(debug|release)-x64": { },
+    "dartkb-interpret-linux-(debug|release)-x64": {
+      "options": {
+        "vm-options": ["--enable_interpreter"]
+      }},
+    "dartkb-compile-linux-(debug|release)-x64": {
+      "options": {
+        "vm-options": ["--use_bytecode_compiler"]
+      }},
     "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
       "options": {
         "checked": true,
@@ -516,14 +523,21 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--bytecode",
             "runtime"
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-linux-${mode}-x64",
+            "-ndartkb-interpret-linux-${mode}-x64",
+            "--compiler=dartkb",
+            "language_2"
+          ]
+        },
+        {
+          "name": "vm bytecode compiler tests",
+          "arguments": [
+            "-ndartkb-compile-linux-${mode}-x64",
             "--compiler=dartkb",
             "language_2"
           ]
