@@ -42,6 +42,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
+    errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE ||
     errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
     errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
     errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
@@ -116,6 +117,10 @@ class DartFixKind {
       50,
       "Add super constructor {0} invocation");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
+  static const CHANGE_TO_NEAREST_PRECISE_VALUE = const FixKind(
+      'CHANGE_TO_NEAREST_PRECISE_VALUE',
+      50,
+      'Change to nearest precise int-as-double value: {0}');
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
       'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
   static const CHANGE_TYPE_ANNOTATION = const FixKind(

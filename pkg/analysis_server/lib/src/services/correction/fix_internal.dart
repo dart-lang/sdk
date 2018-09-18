@@ -29,6 +29,7 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
@@ -307,6 +308,10 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
       await _addFix_addAsync();
     }
+    if (errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE) {
+      await _addFix_changeToNearestPreciseValue();
+    }
+
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
         errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
       if (node is Annotation) {
@@ -1017,6 +1022,22 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_NULL_AWARE);
     }
+  }
+
+  Future<void> _addFix_changeToNearestPreciseValue() async {
+    IntegerLiteral integer = node;
+    String lexeme = integer.literal.lexeme;
+    BigInt precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
+    String correction = lexeme.toLowerCase().contains('x')
+        ? '0x${precise.toRadixString(16).toUpperCase()}'
+        : precise.toString();
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(integer), correction);
+    });
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE,
+        args: [correction]);
   }
 
   Future<void> _addFix_changeTypeAnnotation() async {
