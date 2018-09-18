@@ -52,9 +52,9 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $fasta ]
-mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
 mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
-mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
