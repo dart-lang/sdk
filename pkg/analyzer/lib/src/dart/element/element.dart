@@ -6697,6 +6697,14 @@ class MixinElementImpl extends ClassElementImpl {
   }
 
   @override
+  InterfaceType get supertype => null;
+
+  @override
+  void set supertype(InterfaceType supertype) {
+    throw new StateError('Attempt to set a supertype for a mixin declaratio.');
+  }
+
+  @override
   void appendTo(StringBuffer buffer) {
     buffer.write('mixin ');
     String name = displayName;
@@ -8698,23 +8706,6 @@ abstract class TypeParameterizedElementMixin
   List<UnlinkedTypeParam> get unlinkedTypeParams;
 
   /**
-   * Convert the given [index] into a type parameter type.
-   */
-  TypeParameterType getTypeParameterType(int index) {
-    List<TypeParameterType> types = typeParameterTypes;
-    if (index <= types.length) {
-      return types[types.length - index];
-    } else if (enclosingTypeParameterContext != null) {
-      return enclosingTypeParameterContext
-          .getTypeParameterType(index - types.length);
-    } else {
-      // If we get here, it means that a summary contained a type parameter index
-      // that was out of range.
-      throw new RangeError('Invalid type parameter index');
-    }
-  }
-
-  /**
    * Return the given [typeParameter]'s de Bruijn index in this context, or
    * `null` if it's not in scope.
    *
@@ -8731,6 +8722,23 @@ abstract class TypeParameterizedElementMixin
           offset: offset + typeParameters.length);
     } else {
       return null;
+    }
+  }
+
+  /**
+   * Convert the given [index] into a type parameter type.
+   */
+  TypeParameterType getTypeParameterType(int index) {
+    List<TypeParameterType> types = typeParameterTypes;
+    if (index <= types.length) {
+      return types[types.length - index];
+    } else if (enclosingTypeParameterContext != null) {
+      return enclosingTypeParameterContext
+          .getTypeParameterType(index - types.length);
+    } else {
+      // If we get here, it means that a summary contained a type parameter index
+      // that was out of range.
+      throw new RangeError('Invalid type parameter index');
     }
   }
 }

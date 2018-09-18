@@ -1910,9 +1910,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     bool problemReported = false;
-    List<TypeName> mixinTypes = withClause.mixinTypes;
-    for (int i = 0; i < mixinTypes.length; i++) {
-      TypeName mixinName = mixinTypes[i];
+    for (int i = 0; i < withClause.mixinTypes.length; i++) {
+      TypeName mixinName = withClause.mixinTypes[i];
       DartType mixinType = mixinName.type;
       if (mixinType is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
@@ -1925,8 +1924,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             problemReported = true;
           }
           if (mixinElement.isMixin) {
-            if (_checkForMixinSuperclassConstraints(
-                mixinName, mixinTypes.take(i))) {
+            if (_checkForMixinSuperclassConstraints(mixinName, i)) {
               problemReported = true;
             }
             if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
@@ -4258,15 +4256,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /// Check that superclass constrains for the mixin type of [mixinName]
-  /// are satisfied by the superclass and/or any previous mixin applications.
-  bool _checkForMixinSuperclassConstraints(
-      TypeName mixinName, Iterable<TypeName> previousMixins) {
-    List<InterfaceType> supertypes = [_enclosingClass.supertype];
-    supertypes.addAll(previousMixins.map((t) => t.type));
+  /// Check that superclass constrains for the mixin type of [mixinName] at
+  /// the [index] position in the mixins list are satisfied by the
+  /// [_enclosingClass], or a previous mixin.
+  bool _checkForMixinSuperclassConstraints(TypeName mixinName, int index) {
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
-      if (!supertypes.any((s) => _typeSystem.isSubtypeOf(s, constraint))) {
+      bool isSatisfied =
+          _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
+      if (!isSatisfied) {
+        for (int i = 0; i < index && !isSatisfied; i++) {
+          isSatisfied =
+              _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
+        }
+      }
+      if (!isSatisfied) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
             mixinName.name,

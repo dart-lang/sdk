@@ -163,7 +163,12 @@ mixin M {}
     assertElement(mixin, element);
 
     expect(element.typeParameters, isEmpty);
+
+    expect(element.supertype, isNull);
+    expect(element.type.isObject, isFalse);
+
     assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(element.interfaces, []);
   }
 
   test_element_allSupertypes() async {
@@ -929,15 +934,37 @@ abstract class X extends A with M {}
     ]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M1 {
+  void foo() {}
+}
+
+mixin M2 on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_notInvoked() async {
     addTestFile(r'''
-class A {
-  void foo() {}
+abstract class A {
+  void foo();
 }
 
 mixin M on A {}
 
-class X extends A with M {}
+abstract class X extends A with M {}
 ''');
     await resolveTestFile();
     assertNoTestErrors();
@@ -1022,6 +1049,20 @@ mixin M<T> on A<T> {}
 class B<T> implements A<T> {}
 
 class C<T> = B<T> with M<T>;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_previousMixin() async {
+    addTestFile(r'''
+class A {}
+
+mixin M1 implements A {}
+
+mixin M2 on A {}
+
+class X = Object with M1, M2;
 ''');
     await resolveTestFile();
     assertNoTestErrors();
