@@ -14,7 +14,7 @@ class SuperB extends SuperA {
   set setter(int a) => field = a + 1;
 }
 
-class Mixin extends SuperA {
+mixin Mixin on SuperA {
   set setter(int a) => super.setter = a;
 }
 

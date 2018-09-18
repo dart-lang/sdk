@@ -12,7 +12,7 @@ class SuperB extends SuperA {
   method(a) => 'B$a';
 }
 
-class Mixin extends SuperA {
+mixin Mixin on SuperA {
   method(a) => super.method('M$a');
 }
 

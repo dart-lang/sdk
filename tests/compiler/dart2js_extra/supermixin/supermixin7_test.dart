@@ -12,7 +12,7 @@ class SuperB<T> extends SuperA<T> {
   method() => T;
 }
 
-class Mixin<T> extends SuperA<T> {
+mixin Mixin<T> on SuperA<T> {
   method() => super.method();
 }
 

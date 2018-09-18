@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Changes this and other supermixin tests to use the
-// new syntax when supported by CFE.
-
 import 'package:expect/expect.dart';
 
 class SuperA {
@@ -15,7 +12,7 @@ class SuperB extends SuperA {
   method(a) => 'B$a';
 }
 
-class Mixin extends SuperA {
+mixin Mixin on SuperA {
   method(a) => super.method('M$a');
 }
 

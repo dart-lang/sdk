@@ -12,7 +12,7 @@ class SuperB extends SuperA {
   get getter => 'B';
 }
 
-class Mixin extends SuperA {
+mixin Mixin on SuperA {
   get getter => super.getter;
 }
 
