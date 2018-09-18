@@ -48,9 +48,9 @@ abstract class KernelToWorldBuilder implements JsToElementMap {
 class JsKernelToElementMap extends KernelToElementMapBase
     with JsElementCreatorMixin
     implements KernelToWorldBuilder, JsToElementMap {
-  Map<ir.Library, IndexedLibrary> libraryMap = <ir.Library, IndexedLibrary>{};
-  Map<ir.Class, IndexedClass> classMap = <ir.Class, IndexedClass>{};
-  Map<ir.Typedef, IndexedTypedef> typedefMap = <ir.Typedef, IndexedTypedef>{};
+  final Map<ir.Library, IndexedLibrary> libraryMap = {};
+  final Map<ir.Class, IndexedClass> classMap = {};
+  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
 
   /// Map from [ir.TypeParameter] nodes to the corresponding
   /// [TypeVariableEntity].
@@ -59,14 +59,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
   /// parameters on local function (in the frontend) these are _not_ since
   /// their type declaration is neither a class nor a member. In the backend,
   /// these type parameters belong to the call-method and are therefore indexed.
-  Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap =
-      <ir.TypeParameter, TypeVariableEntity>{};
-  Map<ir.Member, IndexedConstructor> constructorMap =
-      <ir.Member, IndexedConstructor>{};
-  Map<ir.Procedure, IndexedFunction> methodMap =
-      <ir.Procedure, IndexedFunction>{};
-  Map<ir.Field, IndexedField> fieldMap = <ir.Field, IndexedField>{};
-  Map<ir.TreeNode, Local> localFunctionMap = <ir.TreeNode, Local>{};
+  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
+  final Map<ir.Member, IndexedConstructor> constructorMap = {};
+  final Map<ir.Procedure, IndexedFunction> methodMap = {};
+  final Map<ir.Field, IndexedField> fieldMap = {};
+  final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   /// Map from members to the call methods created for their nested closures.
   Map<MemberEntity, List<FunctionEntity>> _nestedClosureMap =
@@ -75,11 +72,9 @@ class JsKernelToElementMap extends KernelToElementMapBase
   @override
   NativeBasicData nativeBasicData;
 
-  Map<FunctionEntity, JGeneratorBody> _generatorBodies =
-      <FunctionEntity, JGeneratorBody>{};
+  Map<FunctionEntity, JGeneratorBody> _generatorBodies = {};
 
-  Map<ClassEntity, List<MemberEntity>> _injectedClassMembers =
-      <ClassEntity, List<MemberEntity>>{};
+  Map<ClassEntity, List<MemberEntity>> _injectedClassMembers = {};
 
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
@@ -287,8 +282,10 @@ class JsKernelToElementMap extends KernelToElementMapBase
         }
       }
     }
-    assert(typeVariable != null,
-        "No type variable entity for $node on ${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    assert(
+        typeVariable != null,
+        "No type variable entity for $node on "
+        "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
     return typeVariable;
   }
 

@@ -1079,9 +1079,9 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   EntityDataMap<IndexedTypeVariable, TypeVariableData> get typeVariables;
   EntityDataMap<IndexedTypedef, TypedefData> get typedefs;
 
-  Map<ir.Library, IndexedLibrary> libraryMap = <ir.Library, IndexedLibrary>{};
-  Map<ir.Class, IndexedClass> classMap = <ir.Class, IndexedClass>{};
-  Map<ir.Typedef, IndexedTypedef> typedefMap = <ir.Typedef, IndexedTypedef>{};
+  final Map<ir.Library, IndexedLibrary> libraryMap = {};
+  final Map<ir.Class, IndexedClass> classMap = {};
+  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
 
   /// Map from [ir.TypeParameter] nodes to the corresponding
   /// [TypeVariableEntity].
@@ -1090,14 +1090,11 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   /// parameters on local function (in the frontend) these are _not_ since
   /// their type declaration is neither a class nor a member. In the backend,
   /// these type parameters belong to the call-method and are therefore indexed.
-  Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap =
-      <ir.TypeParameter, TypeVariableEntity>{};
-  Map<ir.Member, IndexedConstructor> constructorMap =
-      <ir.Member, IndexedConstructor>{};
-  Map<ir.Procedure, IndexedFunction> methodMap =
-      <ir.Procedure, IndexedFunction>{};
-  Map<ir.Field, IndexedField> fieldMap = <ir.Field, IndexedField>{};
-  Map<ir.TreeNode, Local> localFunctionMap = <ir.TreeNode, Local>{};
+  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
+  final Map<ir.Member, IndexedConstructor> constructorMap = {};
+  final Map<ir.Procedure, IndexedFunction> methodMap = {};
+  final Map<ir.Field, IndexedField> fieldMap = {};
+  final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   Name getName(ir.Name node);
   FunctionType getFunctionType(ir.FunctionNode node);
@@ -1262,59 +1259,58 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   }
 
   FunctionEntity getMethodInternal(ir.Procedure node) {
-    IndexedFunction function = methodMap[node];
-    if (function == null) {
-      assert(
-          !envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "function for $node.");
-      LibraryEntity library;
-      ClassEntity enclosingClass;
-      if (node.enclosingClass != null) {
-        enclosingClass = getClassInternal(node.enclosingClass);
-        library = enclosingClass.library;
-      } else {
-        library = getLibraryInternal(node.enclosingLibrary);
-      }
-      Name name = getName(node.name);
-      bool isStatic = node.isStatic;
-      bool isExternal = node.isExternal;
-      // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
-      bool isAbstract = node.isAbstract && !node.isExternal;
-      AsyncMarker asyncMarker = getAsyncMarker(node.function);
-      switch (node.kind) {
-        case ir.ProcedureKind.Factory:
-          throw new UnsupportedError("Cannot create method from factory.");
-        case ir.ProcedureKind.Getter:
-          function = createGetter(library, enclosingClass, name, asyncMarker,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Method:
-        case ir.ProcedureKind.Operator:
-          function = createMethod(library, enclosingClass, name,
-              getParameterStructure(node.function), asyncMarker,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Setter:
-          assert(asyncMarker == AsyncMarker.SYNC);
-          function = createSetter(library, enclosingClass, name.setter,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-      }
-      members.register<IndexedFunction, FunctionData>(
-          function,
-          new FunctionDataImpl(node, node.function,
-              new RegularMemberDefinition(function, node)));
-      methodMap[node] = function;
-      for (ir.TypeParameter typeParameter in node.function.typeParameters) {
-        getTypeVariable(typeParameter);
-      }
+    // [_getMethodCreate] inserts the created function in [methodMap] so we
+    // don't need to use ??= here.
+    return methodMap[node] ?? _getMethodCreate(node);
+  }
+
+  FunctionEntity _getMethodCreate(ir.Procedure node) {
+    assert(
+        !envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "function for $node.");
+    FunctionEntity function;
+    LibraryEntity library;
+    ClassEntity enclosingClass;
+    if (node.enclosingClass != null) {
+      enclosingClass = getClassInternal(node.enclosingClass);
+      library = enclosingClass.library;
+    } else {
+      library = getLibraryInternal(node.enclosingLibrary);
+    }
+    Name name = getName(node.name);
+    bool isStatic = node.isStatic;
+    bool isExternal = node.isExternal;
+    // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
+    bool isAbstract = node.isAbstract && !node.isExternal;
+    AsyncMarker asyncMarker = getAsyncMarker(node.function);
+    switch (node.kind) {
+      case ir.ProcedureKind.Factory:
+        throw new UnsupportedError("Cannot create method from factory.");
+      case ir.ProcedureKind.Getter:
+        function = createGetter(library, enclosingClass, name, asyncMarker,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+      case ir.ProcedureKind.Method:
+      case ir.ProcedureKind.Operator:
+        function = createMethod(library, enclosingClass, name,
+            getParameterStructure(node.function), asyncMarker,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+      case ir.ProcedureKind.Setter:
+        assert(asyncMarker == AsyncMarker.SYNC);
+        function = createSetter(library, enclosingClass, name.setter,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+    }
+    members.register<IndexedFunction, FunctionData>(
+        function,
+        new FunctionDataImpl(
+            node, node.function, new RegularMemberDefinition(function, node)));
+    // We need to register the function before creating the type variables.
+    methodMap[node] = function;
+    for (ir.TypeParameter typeParameter in node.function.typeParameters) {
+      getTypeVariable(typeParameter);
     }
     return function;
   }
