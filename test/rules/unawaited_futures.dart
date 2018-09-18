@@ -50,7 +50,34 @@ foo8() {
     ..doSync();
 }
 
+foo9() async {
+  _Foo()
+    ..futureField = fut();
+}
+
+foo10() async {
+  _Foo()
+    ..futureListField[0] = fut();
+}
+
+foo11() async {
+  _Foo()
+    ..bar.futureField = fut();
+}
+
+foo12() async {
+  final x = [fut()];
+  x..[0] = fut();
+}
+
+class _Bar {
+  Future<void> futureField;
+}
+
 class _Foo {
+  Future<void> futureField;
+  List<Future<void>> futureListField;
+  _Bar bar;
   Future<void> doAsync() async {}
   void doSync() => null;
   Future<void> get asyncProperty => doAsync();
