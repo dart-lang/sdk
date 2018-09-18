@@ -5477,6 +5477,7 @@ LayoutTests/fast/dom/MutationObserver/added-out-of-order_t01: RuntimeError
 LayoutTests/fast/dom/MutationObserver/removed-out-of-order_t01: RuntimeError
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError
+LayoutTests/fast/dom/Range/getClientRects-character_t01: RuntimeError
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError
 LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError
 LayoutTests/fast/dom/Range/range-insertNode-assertion_t01: RuntimeError
