@@ -223,6 +223,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       eventListener.add(new TimingPrinter(startTime));
     }
     eventListener.add(new SkippedCompilationsPrinter());
+    if (progressIndicator == Progress.status) {
+      eventListener.add(new TimedProgressPrinter());
+    }
   }
 
   if (firstConf.writeTestOutcomeLog) {

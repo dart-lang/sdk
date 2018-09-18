@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -65,6 +66,33 @@ class ExitCodeSetter extends EventListener {
       exitCode = 1;
     }
   }
+}
+
+class TimedProgressPrinter extends EventListener {
+  static const interval = Duration(minutes: 5);
+  int _numTests = 0;
+  int _numCompleted = 0;
+  bool _allKnown = false;
+  Timer _timer;
+
+  TimedProgressPrinter() {
+    _timer = Timer.periodic(interval, callback);
+  }
+
+  void callback(Timer timer) {
+    if (_allKnown) {
+      print('$_numCompleted out of $_numTests completed');
+    }
+    print("Tests running for ${(interval * timer.tick).inMinutes} minutes");
+  }
+
+  void testAdded() => _numTests++;
+
+  void done(TestCase test) => _numCompleted++;
+
+  void allTestsKnown() => _allKnown = true;
+
+  void allDone() => _timer.cancel();
 }
 
 class IgnoredTestMonitor extends EventListener {
