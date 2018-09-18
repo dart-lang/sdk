@@ -1776,11 +1776,11 @@ OverrideTypeVariablesMismatch:
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
 OverriddenMethodCause:
-  template: "This is the overriden method ('#name')."
+  template: "This is the overridden method ('#name')."
   severity: CONTEXT
 
 OverrideMismatchNamedParameter:
-  template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
+  template: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_NAMED
 
