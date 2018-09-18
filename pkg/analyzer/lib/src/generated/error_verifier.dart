@@ -4281,15 +4281,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /// the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(
       TypeName mixinName, ClassElementImpl mixinElement) {
+    InterfaceTypeImpl enclosingType = _enclosingClass.type;
     for (var name in mixinElement.superInvokedNames) {
-      if (_enclosingClass.lookUpInheritedConcreteMember(
-              name, _currentLibrary) ==
-          null) {
+      var superMember = enclosingType.lookUpInheritedMember(
+          name, _currentLibrary,
+          concrete: true, setter: name.endsWith('='));
+      if (superMember == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
             mixinName.name,
             [name]);
+        return true;
+      }
+
+      var mixinMember =
+          _inheritanceManager.lookupInheritance(mixinElement, name);
+      var superMemberType = superMember.type;
+      var mixinMemberType = mixinMember?.type;
+      if (mixinMemberType != null &&
+          !_typeSystem.isSubtypeOf(superMemberType, mixinMemberType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+            mixinName.name,
+            [name, mixinMemberType.displayName, superMemberType.displayName]);
         return true;
       }
     }

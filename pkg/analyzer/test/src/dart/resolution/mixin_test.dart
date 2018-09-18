@@ -861,6 +861,34 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
+  test_error_mixinApplicationConcreteSuperInvokedMemberType_method() async {
+    addTestFile(r'''
+class I {
+  void foo([int p]) {}
+}
+
+class A {
+  void foo(int p) {}
+}
+
+abstract class B extends A implements I {
+  void foo([int p]);
+}
+
+mixin M on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+abstract class X extends B with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+    ]);
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
     addTestFile(r'''
 abstract class A {

@@ -1623,6 +1623,28 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Check your Dart SDK installation for completeness.");
 
   /**
+   * It's a compile-time error to apply a mixin containing super-invocations to
+   * a class that doesn't have a concrete implementation of the super-invoked
+   * members compatible with the super-constraint interface.
+   *
+   * This ensures that if more than one super-constraint interface declares a
+   * member with the same name, at least one of those members is more specific
+   * than the rest, and this is the unique signature that super-invocations
+   * are allowed to invoke.
+   *
+   * Parameters:
+   * 0: the name of the super-invoked member
+   * 1: the display name of the type of the super-invoked member in the mixin
+   * 2: the display name of the type of the concrete member in the class
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE =
+      const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+          "The super-invoked member '{0}' has the type '{1}', but the "
+          "concrete member in the class has type '{2}'.");
+
+  /**
    * It's a compile-time error to apply a mixin to a class that doesn't
    * implement all the on type requirements of the mixin declaration.
    *

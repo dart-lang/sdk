@@ -11,7 +11,7 @@ abstract class BinaryNumInt {
 }
 
 abstract class BinaryIntNum {
-  num foo(num x, int y);
+  num foo(int x, num y);
 }
 
 abstract class GetterNumNum {
