@@ -39,8 +39,7 @@ class Zone;
   V(Embedder, false)                                                           \
   V(GC, false)                                                                 \
   V(Isolate, false)                                                            \
-  V(VM, false)                                                                 \
-  V(Zone, false)
+  V(VM, false)
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
@@ -315,10 +314,10 @@ class TimelineEvent {
   void PrintJSON(JSONStream* stream) const;
 
   ThreadId thread() const { return thread_; }
+
   void set_thread(ThreadId tid) { thread_ = tid; }
 
   Dart_Port isolate_id() const { return isolate_id_; }
-  void set_isolate_id(Dart_Port id) { isolate_id_ = id; }
 
   const char* label() const { return label_; }
 

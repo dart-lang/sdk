@@ -325,7 +325,7 @@ class Thread : public BaseThread {
   void IncrementMemoryCapacity(uintptr_t value) {
     current_zone_capacity_ += value;
     if (current_zone_capacity_ > zone_high_watermark_) {
-      SetHighWatermark(current_zone_capacity_);
+      zone_high_watermark_ = current_zone_capacity_;
     }
   }
 
@@ -338,9 +338,7 @@ class Thread : public BaseThread {
 
   uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
 
-  void ResetHighWatermark() { SetHighWatermark(current_zone_capacity_); }
-
-  void SetHighWatermark(intptr_t value);
+  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
