@@ -1130,7 +1130,6 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 async_return_types_test/nestedFuture: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
-default_factory2_test/01: Fail
 malbounded_redirecting_factory_test/03: Fail
 malbounded_redirecting_factory_test/04: Fail
 malbounded_type_test_test/03: Fail
@@ -1140,8 +1139,6 @@ mixin_invalid_bound2_test/09: Fail
 mixin_invalid_bound2_test/10: Fail
 mixin_invalid_bound_test/06: Fail
 mixin_invalid_bound_test/07: Fail
-redirecting_factory_infinite_steps_test/01: Fail
-redirecting_factory_malbounded_test/01: Fail
 regress_30339_test: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 

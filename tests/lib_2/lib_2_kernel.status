@@ -106,7 +106,6 @@ mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, 
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
