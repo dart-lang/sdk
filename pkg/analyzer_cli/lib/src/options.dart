@@ -157,6 +157,10 @@ class CommandLineOptions {
   /// Use ANSI color codes for output.
   final bool color;
 
+  /// Whether we should analyze the given source for the purposes of training a
+  /// Dart analyzer snapshot.
+  final bool trainSnapshot;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = cast(args['build-analysis-output']),
@@ -199,6 +203,7 @@ class CommandLineOptions {
         lintsAreFatal = cast(args['fatal-lints']),
         implicitCasts = cast(args[implicitCastsFlag]),
         implicitDynamic = !cast<bool>(args['no-implicit-dynamic']),
+        trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
         color = cast(args['color']);
 
@@ -510,7 +515,12 @@ class CommandLineOptions {
           help: 'Enable the Dart 2.0 preview.',
           defaultsTo: true,
           hide: hide,
-          negatable: true);
+          negatable: true)
+      ..addFlag('train-snapshot',
+          help: "Analyze the given source for the purposes of training a "
+              "dartanalyzer snapshot.",
+          hide: hide,
+          negatable: false);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {

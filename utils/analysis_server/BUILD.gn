@@ -7,7 +7,7 @@ import("../application_snapshot.gni")
 application_snapshot("analysis_server") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   training_args = [
-    "--train-using=" + rebase_path("../../pkg/analyzer_cli"),
-    "--sdk=" + rebase_path("../../sdk/")
+    "--sdk=" + rebase_path("../../sdk/"),
+    "--train-using=" + rebase_path("../../pkg/analyzer_cli")
   ]
 }

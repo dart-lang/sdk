@@ -4,7 +4,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   String command;
   String outFilePath;
   String sdkPath;
