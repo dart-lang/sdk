@@ -94,6 +94,9 @@ class PendingWrite {
     var file = new File.fromUri(uri);
     var parent_directory = file.parent;
     await parent_directory.create(recursive: true);
+    if (await file.exists()) {
+      await file.delete();
+    }
     var result = await file.writeAsBytes(bytes);
     completer.complete(null);
     WriteLimiter._writeCompleted();
@@ -143,6 +146,9 @@ Future writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
   var file = new File.fromUri(path);
   var parent_directory = file.parent;
   await parent_directory.create(recursive: true);
+  if (await file.exists()) {
+    await file.delete();
+  }
   IOSink sink = await file.openWrite();
   await sink.addStream(bytes);
   await sink.close();
