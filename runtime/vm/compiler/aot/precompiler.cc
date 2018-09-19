@@ -93,11 +93,17 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
  public:
   explicit DartPrecompilationPipeline(Zone* zone,
                                       FieldTypeMap* field_map = NULL)
-      : zone_(zone), result_type_(CompileType::None()), field_map_(field_map) {}
+      : zone_(zone),
+        result_type_(CompileType::None()),
+        field_map_(field_map),
+        class_(Class::Handle(zone)),
+        fields_(Array::Handle(zone)),
+        field_(Field::Handle(zone)) {}
 
   virtual void FinalizeCompilation(FlowGraph* flow_graph) {
     if ((field_map_ != NULL) &&
         flow_graph->function().IsGenerativeConstructor()) {
+      const Function& constructor = flow_graph->function();
       for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
            !block_it.Done(); block_it.Advance()) {
         ForwardInstructionIterator it(block_it.Current());
@@ -112,33 +118,31 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
                           store->value()->Type()->ToCString());
               }
 #endif  // !PRODUCT
-              FieldTypePair* entry = field_map_->Lookup(&store->field());
-              if (entry == NULL) {
-                field_map_->Insert(FieldTypePair(
-                    &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
-                    store->value()->Type()->ToCid()));
-#ifndef PRODUCT
-                if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                  THR_Print(" initial type = %s\n",
-                            store->value()->Type()->ToCString());
-                }
-#endif  // !PRODUCT
-                continue;
-              }
-              CompileType type = CompileType::FromCid(entry->cid_);
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print(" old type = %s\n", type.ToCString());
-              }
-#endif  // !PRODUCT
-              type.Union(store->value()->Type());
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print(" new type = %s\n", type.ToCString());
-              }
-#endif  // !PRODUCT
-              entry->cid_ = type.ToCid();
+              RecordFieldStore(constructor, store->field(),
+                               store->value()->Type());
             }
+          }
+        }
+      }
+
+      // Final fields which were not initialized in this constructor are
+      // implicitly initialized with null.
+      class_ = flow_graph->function().Owner();
+      fields_ = class_.fields();
+      for (intptr_t i = 0; i < fields_.Length(); ++i) {
+        field_ ^= fields_.At(i);
+        if (!field_.is_static() && field_.is_final()) {
+          FieldTypePair* entry = field_map_->Lookup(&field_);
+          if ((entry == nullptr) ||
+              (entry->field_info.constructor != constructor.raw())) {
+#ifndef PRODUCT
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                THR_Print("Implicit initialization %s <- null\n",
+                          field_.ToCString());
+              }
+#endif  // !PRODUCT
+              CompileType null_type = CompileType::Null();
+              RecordFieldStore(constructor, field_, &null_type);
           }
         }
       }
@@ -158,12 +162,46 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
     result_type_ = result_type;
   }
 
+  void RecordFieldStore(const Function& constructor,
+                        const Field& field,
+                        CompileType* value_type) {
+    FieldTypePair* entry = field_map_->Lookup(&field);
+    if (entry == NULL) {
+      field_map_->Insert(
+          FieldTypePair(&Field::Handle(zone_, field.raw()),  // Re-wrap.
+                        value_type->ToCid(), constructor.raw()));
+#ifndef PRODUCT
+      if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+        THR_Print(" initial type = %s\n", value_type->ToCString());
+      }
+#endif  // !PRODUCT
+      return;
+    }
+    CompileType type = CompileType::FromCid(entry->field_info.cid);
+#ifndef PRODUCT
+    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+      THR_Print(" old type = %s\n", type.ToCString());
+    }
+#endif  // !PRODUCT
+    type.Union(value_type);
+#ifndef PRODUCT
+    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+      THR_Print(" new type = %s\n", type.ToCString());
+    }
+#endif  // !PRODUCT
+    entry->field_info.cid = type.ToCid();
+    entry->field_info.constructor = constructor.raw();
+  }
+
   CompileType result_type() { return result_type_; }
 
  private:
   Zone* zone_;
   CompileType result_type_;
   FieldTypeMap* field_map_;
+  Class& class_;
+  Array& fields_;
+  Field& field_;
 };
 
 class PrecompileParsedFunctionHelper : public ValueObject {
@@ -481,15 +519,15 @@ void Precompiler::PrecompileConstructors() {
   FieldTypeMap::Iterator it(field_type_map_.GetIterator());
   for (FieldTypePair* current = it.Next(); current != NULL;
        current = it.Next()) {
-    const intptr_t cid = current->cid_;
-    current->field_->set_guarded_cid(cid);
-    current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    const intptr_t cid = current->field_info.cid;
+    current->field->set_guarded_cid(cid);
+    current->field->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
     // TODO(vegorov) we can actually compute the length in the same way we
     // compute cids.
-    current->field_->set_guarded_list_length(Field::kNoFixedLength);
+    current->field->set_guarded_list_length(Field::kNoFixedLength);
     if (FLAG_trace_precompiler) {
       THR_Print(
-          "Field %s <- Type %s\n", current->field_->ToCString(),
+          "Field %s <- Type %s\n", current->field->ToCString(),
           Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
     }
   }
