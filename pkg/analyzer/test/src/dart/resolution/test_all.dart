@@ -15,6 +15,7 @@ import 'instance_member_inference_class_test.dart'
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin_test;
 import 'mixin_test.dart' as mixin_test;
+import 'top_type_inference_test.dart' as top_type_inference_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -27,5 +28,6 @@ main() {
     instance_member_inference_class_test.main();
     instance_member_inference_mixin_test.main();
     mixin_test.main();
+    top_type_inference_test.main();
   }, name: 'resolution');
 }

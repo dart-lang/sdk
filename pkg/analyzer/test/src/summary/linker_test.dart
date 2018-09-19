@@ -527,7 +527,7 @@ var x = new C().f; // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'int');
+        'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
@@ -545,7 +545,7 @@ class D {
 ''');
     LibraryElementForLink library = linker.getLibrary(testDartUri);
     ClassElementForLink_Class classD = library.getContainedName('D');
-    expect(classD.fields[0].inferredType.toString(), 'int');
+    expect(classD.fields[0].inferredType.toString(), 'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {

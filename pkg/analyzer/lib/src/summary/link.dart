@@ -2353,6 +2353,17 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   bool get isStatic => unlinkedVariable.isStatic;
 
   @override
+  DartType get type {
+    if (declaredType != null) {
+      return declaredType;
+    }
+    if (Linker._isPerformingVariableTypeInference && !isStatic) {
+      return DynamicTypeImpl.instance;
+    }
+    return inferredType;
+  }
+
+  @override
   void set type(DartType inferredType) {
     assert(!isStatic);
     assert(_inferredInstanceType == null);
@@ -3584,6 +3595,11 @@ class Linker {
   /// library cycle while doing inference on the right hand sides of static and
   /// instance variables in that same cycle.
   static LibraryCycleForLink _initializerTypeInferenceCycle;
+
+  /// If a top-level or an instance variable type inference is in progress,
+  /// this flag it set to `true`.  It is used to prevent type inference for
+  /// other instance variables (when they don't have declared type).
+  static bool _isPerformingVariableTypeInference = false;
 
   /// Callback to ask the client for a [LinkedLibrary] for a
   /// dependency.
@@ -4952,11 +4968,13 @@ abstract class VariableElementForLink
         assert(Linker._initializerTypeInferenceCycle == null);
         Linker._initializerTypeInferenceCycle =
             compilationUnit.library.libraryCycleForLink;
+        Linker._isPerformingVariableTypeInference = true;
         try {
           new TypeInferenceDependencyWalker().walk(_typeInferenceNode);
           assert(_inferredType != null);
         } finally {
           Linker._initializerTypeInferenceCycle = null;
+          Linker._isPerformingVariableTypeInference = false;
         }
       } else if (compilationUnit.isInBuildUnit) {
         _inferredType = DynamicTypeImpl.instance;
