@@ -610,16 +610,14 @@ class DietListener extends StackListener {
     final StackListener listener = createFunctionListener(builder);
     try {
       Parser parser = new Parser(listener);
-
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        listener.pop();
+        listener.pop(); // Pops metadata constants.
       }
 
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), MemberKind.Factory);
-
-      listener.pop();
+      listener.pop(); // Pops formal parameters.
       listener.checkEmpty(token.next.charOffset);
     } on DebugAbort {
       rethrow;

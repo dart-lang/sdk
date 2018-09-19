@@ -32,14 +32,12 @@ dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative 
 
 [ $compiler == app_jitk ]
 dart/data_uri_import_test/utf16: MissingRuntimeError
-dart/redirection_type_shuffling_test/00: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
-dart/redirection_type_shuffling_test/00: CompileTimeError
 
 [ $compiler == dart2js ]
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
@@ -109,6 +107,9 @@ cc/Service_Profile: Skip
 
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
+
+[ !$checked && !$strong && $runtime == vm ]
+dart/redirection_type_shuffling_test/00: MissingCompileTimeError
 
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.

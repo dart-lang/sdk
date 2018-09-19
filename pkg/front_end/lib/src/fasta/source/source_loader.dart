@@ -776,6 +776,17 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked abstract members");
   }
 
+  void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
+    if (!target.strongMode) return;
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkRedirectingFactories(
+            typeInferenceEngine.typeSchemaEnvironment);
+      }
+    }
+    ticker.logMs("Checked redirecting factories");
+  }
+
   void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 

@@ -22,7 +22,6 @@ const_cast2_test/none: CompileTimeError # failing-by-design: Not a const express
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-default_implementation2_test: CompileTimeError # Issue #34338, however, needs triage (#34337) and blocked (#34336)
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340
 enum_syntax_test/05: Fail # Issue 34341
@@ -124,7 +123,6 @@ super_call4_test/01: MissingCompileTimeError
 super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
 super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
@@ -139,7 +137,6 @@ type_promotion_functions_test/12: CompileTimeError
 type_promotion_functions_test/13: CompileTimeError
 type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
-type_variable_scope_test/none: Fail # Issue 11578
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip

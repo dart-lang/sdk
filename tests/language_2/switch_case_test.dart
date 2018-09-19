@@ -17,19 +17,19 @@ class B implements A {
   operator ==(o) => true; // //# 00: compile-time error
 }
 
-class C implements A {
+class C implements D {
   final int x;
   const C() : x = 0;
   const C.fromD() : x = 1;
 }
 
-class D implements C {
+class D implements A {
   int get x => 0;
   const factory D() = C.fromD;
 }
 
 main() {
-  switch (new B()) { 
+  switch (new B()) {
     case const A.B(): Expect.fail("bad switch"); break; // //# 00: continued
   }
 

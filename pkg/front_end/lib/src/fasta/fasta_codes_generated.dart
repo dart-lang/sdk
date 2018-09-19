@@ -2916,6 +2916,75 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, int count)>
+    templateFactoryRedirecteeHasTooFewPositionalParameters =
+    const Template<Message Function(String name, int count)>(
+        messageTemplate:
+            r"""Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide.""",
+        tipTemplate: r"""Try redirecting to a different constructor.""",
+        withArguments:
+            _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count)>
+    codeFactoryRedirecteeHasTooFewPositionalParameters =
+    const Code<Message Function(String name, int count)>(
+        "FactoryRedirecteeHasTooFewPositionalParameters",
+        templateFactoryRedirecteeHasTooFewPositionalParameters,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
+    String name, int count) {
+  return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
+      message:
+          """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {'name': name, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        DartType
+            _type2)> templateFactoryRedirecteeInvalidReturnType = const Template<
+        Message Function(DartType _type, String name, DartType _type2)>(
+    messageTemplate:
+        r"""The return type '#type' of the constructor '#name' isn't a subtype of '#type2'.""",
+    tipTemplate: r"""Try redirecting to a different constructor.""",
+    withArguments: _withArgumentsFactoryRedirecteeInvalidReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name, DartType _type2)>
+    codeFactoryRedirecteeInvalidReturnType =
+    const Code<Message Function(DartType _type, String name, DartType _type2)>(
+        "FactoryRedirecteeInvalidReturnType",
+        templateFactoryRedirecteeInvalidReturnType,
+        analyzerCode: "REDIRECT_TO_INVALID_RETURN_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryRedirecteeInvalidReturnType(
+    DartType _type, String name, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeFactoryRedirecteeInvalidReturnType,
+      message:
+          """The return type '${type}' of the constructor '${name}' isn't a subtype of '${type2}'.""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {'type': _type, 'name': name, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
     messageFactoryTopLevelDeclaration;
 
@@ -6326,6 +6395,187 @@ const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
     message: r"""Redirecting constructors can't have a body.""",
     tip:
         r"""Try removing the body, or not making this a redirecting constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        DartType
+            _type2)> templateRedirectingFactoryIncompatibleBounds = const Template<
+        Message Function(String name, DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The type variable '#name' has bound '#type' but the context expects a type variable with bound '#type2'.""",
+    tipTemplate: r"""Try redirecting to a different constructor.""",
+    withArguments: _withArgumentsRedirectingFactoryIncompatibleBounds);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeRedirectingFactoryIncompatibleBounds =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "RedirectingFactoryIncompatibleBounds",
+        templateRedirectingFactoryIncompatibleBounds,
+        analyzerCode: "REDIRECT_TO_INVALID_RETURN_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryIncompatibleBounds(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryIncompatibleBounds,
+      message:
+          """The type variable '${name}' has bound '${type}' but the context expects a type variable with bound '${type2}'.""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateRedirectingFactoryInvalidNamedParameterType = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2).""",
+        tipTemplate:
+            r"""Try changing either the type of the parameter or the redirection target.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryInvalidNamedParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeRedirectingFactoryInvalidNamedParameterType =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "RedirectingFactoryInvalidNamedParameterType",
+        templateRedirectingFactoryInvalidNamedParameterType,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryInvalidNamedParameterType,
+      message:
+          """The type of the named parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding named parameter type (${type2}).""",
+      tip: """Try changing either the type of the parameter or the redirection target.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateRedirectingFactoryInvalidPositionalParameterType = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2).""",
+        tipTemplate:
+            r"""Try changing either the type of the parameter or the redirection target.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryInvalidPositionalParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeRedirectingFactoryInvalidPositionalParameterType =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "RedirectingFactoryInvalidPositionalParameterType",
+        templateRedirectingFactoryInvalidPositionalParameterType,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
+      message:
+          """The type of parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding parameter type (${type2}).""",
+      tip: """Try changing either the type of the parameter or the redirection target.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateRedirectingFactoryMissingNamedParameter =
+    const Template<Message Function(String name, String name2)>(
+        messageTemplate:
+            r"""The constructor '#name' does not have a named parameter '#name2'.""",
+        tipTemplate:
+            r"""Try adding '#name2' as a named parameter to '#name'.""",
+        withArguments: _withArgumentsRedirectingFactoryMissingNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeRedirectingFactoryMissingNamedParameter =
+    const Code<Message Function(String name, String name2)>(
+        "RedirectingFactoryMissingNamedParameter",
+        templateRedirectingFactoryMissingNamedParameter,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryMissingNamedParameter(
+    String name, String name2) {
+  return new Message(codeRedirectingFactoryMissingNamedParameter,
+      message:
+          """The constructor '${name}' does not have a named parameter '${name2}'.""",
+      tip: """Try adding '${name2}' as a named parameter to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name, int count, String name2, int count2)>
+    templateRedirectingFactoryProvidesTooFewRequiredParameters = const Template<
+            Message Function(String name, int count, String name2, int count2)>(
+        messageTemplate:
+            r"""Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2').""",
+        tipTemplate: r"""Try redirecting to a different constructor.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count, String name2, int count2)>
+    codeRedirectingFactoryProvidesTooFewRequiredParameters = const Code<
+            Message Function(String name, int count, String name2, int count2)>(
+        "RedirectingFactoryProvidesTooFewRequiredParameters",
+        templateRedirectingFactoryProvidesTooFewRequiredParameters,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
+    String name, int count, String name2, int count2) {
+  return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
+      message:
+          """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {
+        'name': name,
+        'count': count,
+        'name2': name2,
+        'count2': count2
+      });
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;

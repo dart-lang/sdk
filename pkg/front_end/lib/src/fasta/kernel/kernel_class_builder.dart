@@ -31,6 +31,9 @@ import 'package:kernel/ast.dart'
         Arguments,
         VariableDeclaration;
 
+import 'package:kernel/ast.dart'
+    show FunctionType, NamedType, TypeParameterType;
+
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneWithoutBody;
@@ -53,6 +56,8 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
+        templateFactoryRedirecteeHasTooFewPositionalParameters,
+        templateFactoryRedirecteeInvalidReturnType,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateMissingImplementationCause,
@@ -65,6 +70,11 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchParameter,
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
+        templateRedirectingFactoryIncompatibleBounds,
+        templateRedirectingFactoryInvalidNamedParameterType,
+        templateRedirectingFactoryInvalidPositionalParameterType,
+        templateRedirectingFactoryMissingNamedParameter,
+        templateRedirectingFactoryProvidesTooFewRequiredParameters,
         templateRedirectionTargetNotFound,
         templateTypeArgumentMismatch;
 
@@ -80,6 +90,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         KernelLibraryBuilder,
+        KernelFunctionBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
         KernelNamedTypeBuilder,
@@ -1175,5 +1186,303 @@ abstract class KernelClassBuilder
           name, charOffset, uri, accessingLibrary);
     }
     return declaration;
+  }
+
+  // Computes the function type of a given redirection target. Returns [null] if
+  // the type of actual target could not be computed.
+  FunctionType computeRedirecteeType(
+      ConstructorReferenceBuilder redirectionTarget,
+      TypeEnvironment typeEnvironment) {
+    FunctionNode target;
+    bool isConstructor = false;
+    Class targetClass; // Used when the redirection target is a constructor.
+    if (redirectionTarget.target is KernelFunctionBuilder) {
+      KernelFunctionBuilder targetBuilder = redirectionTarget.target;
+      target = targetBuilder.function;
+      isConstructor = targetBuilder.isConstructor;
+      if (isConstructor) {
+        targetClass = targetBuilder.parent.target;
+      }
+    } else if (redirectionTarget.target is DillMemberBuilder &&
+        (redirectionTarget.target.isConstructor ||
+            redirectionTarget.target.isFactory)) {
+      DillMemberBuilder targetBuilder = redirectionTarget.target;
+      // It seems that the [redirectionTarget.target] is an instance of
+      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
+      // e.g.
+      //
+      //   class A {
+      //     factory A() = B;
+      //   }
+      //   class B implements A {}
+      //
+      target = targetBuilder.member.function;
+      isConstructor = targetBuilder.isConstructor;
+      if (isConstructor) {
+        targetClass = targetBuilder.member.enclosingClass;
+      }
+    } else {
+      return null;
+    }
+
+    FunctionType inferredType = target.functionType;
+    if (redirectionTarget.typeArguments != null &&
+        inferredType.typeParameters.length !=
+            redirectionTarget.typeArguments.length) {
+      addProblem(
+          templateTypeArgumentMismatch
+              .withArguments(inferredType.typeParameters.length),
+          redirectionTarget.charOffset,
+          noLength);
+      return null;
+    }
+
+    // Compute the substitution of the target class type parameters if
+    // [redirectionTarget] has any type arguments. Any built type arguments are
+    // stored in [typeArguments] for later use.
+    Substitution substitution;
+    List<DartType> typeArguments;
+    if (redirectionTarget.typeArguments != null &&
+        redirectionTarget.typeArguments.length > 0) {
+      typeArguments = new List<DartType>();
+      for (var i = 0; i < inferredType.typeParameters.length; i++) {
+        var typeParameter = inferredType.typeParameters[i];
+        var typeArgument = redirectionTarget.typeArguments[i].build(library);
+        // Check whether the [typeArgument] respects the bounds of [typeParameter].
+        if (typeArgument is TypeParameterType) {
+          if (!typeEnvironment.isSubtypeOf(
+              typeArgument.bound, typeParameter.bound)) {
+            // TODO(hillerstrom): Use dmitrays' error message once his "bounds
+            // checking" CL has landed.
+            addProblem(
+                templateRedirectingFactoryIncompatibleBounds.withArguments(
+                    typeArgument.parameter.name,
+                    typeArgument.bound,
+                    typeParameter.bound),
+                redirectionTarget.charOffset,
+                noLength);
+            return null;
+          }
+        }
+        typeArguments.add(typeArgument);
+      }
+      substitution =
+          Substitution.fromPairs(inferredType.typeParameters, typeArguments);
+    } else if (redirectionTarget.typeArguments == null &&
+        inferredType.typeParameters.length > 0) {
+      // TODO(hillerstrom): In this case, we need to perform type inference on
+      // the redirectee to obtain actual type arguments which would allow the
+      // following program to type check:
+      //
+      //    class A<T> {
+      //       factory A() = B;
+      //    }
+      //    class B<T> implements A<T> {
+      //       B();
+      //    }
+      //
+      return null;
+    }
+
+    FunctionType redirecteeType;
+    // If the target is a constructor then we need to patch the return type of
+    // the inferred type, because the type inferrer always infers the return
+    // type to be "void", whereas the inferred return type of a factory is its
+    // enclosing class. TODO(hillerstrom): It may be worthwhile to change the
+    // typing of constructors such that the return type is its enclosing class.
+    if (isConstructor) {
+      DartType returnType =
+          new InterfaceType(targetClass, typeArguments ?? const <DartType>[]);
+
+      redirecteeType = new FunctionType(
+          inferredType.positionalParameters, returnType,
+          namedParameters: inferredType.namedParameters,
+          typeParameters: inferredType.typeParameters,
+          requiredParameterCount: inferredType.requiredParameterCount);
+    } else {
+      redirecteeType = inferredType;
+    }
+
+    // Substitute if necessary.
+    redirecteeType = substitution == null
+        ? redirecteeType
+        : (substitution.substituteType(redirecteeType.withoutTypeParameters)
+            as FunctionType);
+
+    return redirecteeType;
+  }
+
+  String computeRedirecteeName(ConstructorReferenceBuilder redirectionTarget) {
+    String targetName = redirectionTarget.fullNameForErrors;
+    if (targetName == "") {
+      return redirectionTarget.target.parent.fullNameForErrors;
+    } else {
+      return targetName;
+    }
+  }
+
+  void checkRedirectingFactory(KernelRedirectingFactoryBuilder factory,
+      TypeEnvironment typeEnvironment) {
+    // The factory type cannot contain any type parameters other than those of
+    // its enclosing class, because constructors cannot specify type parameters
+    // of their own.
+    FunctionType factoryType =
+        factory.procedure.function.functionType.withoutTypeParameters;
+    FunctionType redirecteeType =
+        computeRedirecteeType(factory.redirectionTarget, typeEnvironment);
+
+    // TODO(hillerstrom): It would be preferable to know whether a failure
+    // happened during [_computeRedirecteeType].
+    if (redirecteeType == null) return;
+
+    // Check whether [redirecteeType] <: [factoryType]. In the following let
+    //     [factoryType    = (S_1, ..., S_i, {S_(i+1), ..., S_n}) -> S']
+    //     [redirecteeType = (T_1, ..., T_j, {T_(j+1), ..., T_m}) -> T'].
+
+    // Ensure that any extra parameters that [redirecteeType] might have are
+    // optional.
+    if (redirecteeType.requiredParameterCount >
+        factoryType.requiredParameterCount) {
+      addProblem(
+          templateRedirectingFactoryProvidesTooFewRequiredParameters
+              .withArguments(
+                  factory.fullNameForErrors,
+                  factoryType.requiredParameterCount,
+                  computeRedirecteeName(factory.redirectionTarget),
+                  redirecteeType.requiredParameterCount),
+          factory.charOffset,
+          noLength);
+      return;
+    }
+    if (redirecteeType.positionalParameters.length <
+        factoryType.positionalParameters.length) {
+      String targetName = computeRedirecteeName(factory.redirectionTarget);
+      addProblem(
+          templateFactoryRedirecteeHasTooFewPositionalParameters.withArguments(
+              targetName, redirecteeType.positionalParameters.length),
+          factory.redirectionTarget.charOffset,
+          noLength);
+      return;
+    }
+
+    // For each 0 < k < i check S_k <: T_k.
+    for (int i = 0; i < factoryType.positionalParameters.length; ++i) {
+      var factoryParameterType = factoryType.positionalParameters[i];
+      var redirecteeParameterType = redirecteeType.positionalParameters[i];
+      if (!typeEnvironment.isSubtypeOf(
+          factoryParameterType, redirecteeParameterType)) {
+        final factoryParameter =
+            factory.target.function.positionalParameters[i];
+        addProblem(
+            templateRedirectingFactoryInvalidPositionalParameterType
+                .withArguments(factoryParameter.name, factoryParameterType,
+                    redirecteeParameterType),
+            factoryParameter.fileOffset,
+            factoryParameter.name.length);
+        return;
+      }
+    }
+
+    // For each i < k < n check that the named parameter S_k has a corresponding
+    // named parameter T_l in [redirecteeType] for some j < l < m.
+    int factoryTypeNameIndex = 0; // k.
+    int redirecteeTypeNameIndex = 0; // l.
+
+    // The following code makes use of the invariant that [namedParameters] are
+    // already sorted (i.e. it's a monotonic sequence) to determine in a linear
+    // pass whether [factory.namedParameters] is a subset of
+    // [redirectee.namedParameters]. In the comments below the symbol <= stands
+    // for the usual lexicographic relation on strings.
+    while (factoryTypeNameIndex < factoryType.namedParameters.length) {
+      // If we have gone beyond the bound of redirectee's named parameters, then
+      // signal a missing named parameter error.
+      if (redirecteeTypeNameIndex == redirecteeType.namedParameters.length) {
+        reportRedirectingFactoryMissingNamedParameter(
+            factory, factoryType.namedParameters[factoryTypeNameIndex]);
+        break;
+      }
+
+      int result = redirecteeType.namedParameters[redirecteeTypeNameIndex].name
+          .compareTo(factoryType.namedParameters[factoryTypeNameIndex].name);
+      if (result < 0) {
+        // T_l.name <= S_k.name.
+        redirecteeTypeNameIndex++;
+      } else if (result == 0) {
+        // S_k.name <= T_l.name.
+        NamedType factoryParameterType =
+            factoryType.namedParameters[factoryTypeNameIndex];
+        NamedType redirecteeParameterType =
+            redirecteeType.namedParameters[redirecteeTypeNameIndex];
+        // Check S_k <: T_l.
+        if (!typeEnvironment.isSubtypeOf(
+            factoryParameterType.type, redirecteeParameterType.type)) {
+          var factoryFormal =
+              factory.target.function.namedParameters[redirecteeTypeNameIndex];
+          addProblem(
+              templateRedirectingFactoryInvalidNamedParameterType.withArguments(
+                  factoryParameterType.name,
+                  factoryParameterType.type,
+                  redirecteeParameterType.type),
+              factoryFormal.fileOffset,
+              factoryFormal.name.length);
+          return;
+        }
+        redirecteeTypeNameIndex++;
+        factoryTypeNameIndex++;
+      } else {
+        // S_k.name <= T_l.name. By appealing to the monotinicity of
+        // [namedParameters] and the transivity of <= it follows that for any
+        // l', such that l < l', it must be the case that S_k <= T_l'. Thus the
+        // named parameter is missing from the redirectee's parameter list.
+        reportRedirectingFactoryMissingNamedParameter(
+            factory, factoryType.namedParameters[factoryTypeNameIndex]);
+
+        // Continue with the next factory named parameter.
+        factoryTypeNameIndex++;
+      }
+    }
+
+    // Report any unprocessed factory named parameters as missing.
+    if (factoryTypeNameIndex < factoryType.namedParameters.length) {
+      for (int i = factoryTypeNameIndex;
+          i < factoryType.namedParameters.length;
+          i++) {
+        reportRedirectingFactoryMissingNamedParameter(
+            factory, factoryType.namedParameters[factoryTypeNameIndex]);
+      }
+    }
+
+    // Check that T' <: S'.
+    if (!typeEnvironment.isSubtypeOf(
+        redirecteeType.returnType, factoryType.returnType)) {
+      String targetName = computeRedirecteeName(factory.redirectionTarget);
+      addProblem(
+          templateFactoryRedirecteeInvalidReturnType.withArguments(
+              redirecteeType.returnType, targetName, factoryType.returnType),
+          factory.redirectionTarget.charOffset,
+          noLength);
+      return;
+    }
+  }
+
+  void reportRedirectingFactoryMissingNamedParameter(
+      KernelRedirectingFactoryBuilder factory, NamedType missingParameter) {
+    addProblem(
+        templateRedirectingFactoryMissingNamedParameter.withArguments(
+            computeRedirecteeName(factory.redirectionTarget),
+            missingParameter.name),
+        factory.redirectionTarget.charOffset,
+        noLength);
+  }
+
+  void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
+    Map<String, MemberBuilder> constructors = this.constructors.local;
+    Iterable<String> names = constructors.keys;
+    for (String name in names) {
+      Declaration constructor = constructors[name];
+      if (constructor is KernelRedirectingFactoryBuilder) {
+        checkRedirectingFactory(constructor, typeEnvironment);
+      }
+    }
   }
 }

@@ -233,11 +233,11 @@ class C extends B {
         }),
   ]),
   const TestData('''
-class A<T> implements B {
+class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
 }
-class B<S> implements C {
+class B<S> implements C<Null> {
   const factory B({field1}) = A<B<S>>;
   const factory B.named() = A<S>;
 }

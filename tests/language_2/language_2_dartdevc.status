@@ -39,7 +39,6 @@ constructor_reference_test/27: MissingCompileTimeError # Issue https://github.co
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
 dynamic_prefix_core_test/01: MissingCompileTimeError
@@ -170,7 +169,6 @@ super_operator_index5_test: RuntimeError # 33470
 super_operator_index7_test: RuntimeError # 33470
 super_operator_index8_test: RuntimeError # 33470
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
@@ -191,7 +189,6 @@ type_promotion_functions_test/12: CompileTimeError # Issue 30895
 type_promotion_functions_test/13: CompileTimeError # Issue 30895
 type_promotion_functions_test/14: CompileTimeError # Issue 30895
 type_promotion_functions_test/none: CompileTimeError # Issue 30895
-type_variable_scope_test/none: CompileTimeError
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
@@ -351,8 +348,6 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null_no_such_method_test: CompileTimeError # Issue 31533
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
 regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.

@@ -261,6 +261,7 @@ class KernelTarget extends TargetImplementation {
           loader.checkSupertypes(myClasses);
           loader.checkOverrides(myClasses);
           loader.checkAbstractMembers(myClasses);
+          loader.checkRedirectingFactories(myClasses);
           loader.addNoSuchMethodForwarders(myClasses);
           return component;
         },

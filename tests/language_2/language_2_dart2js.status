@@ -459,8 +459,6 @@ partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,m
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/08: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
@@ -515,8 +513,6 @@ no_such_method_native_test: RuntimeError
 no_such_method_test: RuntimeError
 overridden_no_such_method_test: RuntimeError
 recursive_generic_test: RuntimeError
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605

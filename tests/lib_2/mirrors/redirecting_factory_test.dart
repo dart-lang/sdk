@@ -38,18 +38,20 @@ class Class<T1, T2> {
   factory Class.redirectingFactoryMoreUnnamedOptional(a, [b]) =
       Class<T1, T2>.factoryMoreUnnamedOptional;
 
-  factory Class.redirectingFactoryStringIntTypeParameters(a, b) =
-      Class<String, int>.factoryNoOptional;
+  factory Class.redirectingFactoryStringIntTypeParameters(a, b) = Class //
+      <String, int> //# 03: compile-time error
+      .factoryNoOptional;
 
   factory Class.redirectingFactoryStringTypeParameters(a, b) = Class //
-      <String> //# 02: static type warning
+      <String> //# 02: compile-time error
       .factoryNoOptional;
 
   factory Class.redirectingFactoryTypeParameters(a, b) =
       Class<T1, T2>.factoryNoOptional;
 
-  factory Class.redirectingFactoryReversedTypeParameters(a, b) =
-      Class<T2, T1>.factoryNoOptional;
+  factory Class.redirectingFactoryReversedTypeParameters(a, b) = Class //
+      <T2, T1> //# 04: compile-time error
+      .factoryNoOptional;
 }
 
 main() {
