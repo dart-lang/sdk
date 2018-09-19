@@ -24,7 +24,7 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   training_args = [
     "--dart-sdk=" + rebase_path("../../sdk/"),
     "--train-snapshot",
-    rebase_path("../../pkg/analyzer_cli")
+    rebase_path("../../tests/language/first_test.dart")
   ]
   name = "dartanalyzer"
 }
