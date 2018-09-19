@@ -110,6 +110,16 @@ class MockPubVisitor implements PubspecVisitor {
   }
 
   @override
+  visitPackageDependencyOverrides(PSDependencyList dependencies) {
+    throw new Exception();
+  }
+
+  @override
+  visitPackageDependencyOverride(PSDependency dependency) {
+    throw new Exception();
+  }
+
+  @override
   visitPackageDescription(PSEntry description) {
     throw new Exception();
   }
