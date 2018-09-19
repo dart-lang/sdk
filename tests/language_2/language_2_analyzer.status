@@ -71,6 +71,7 @@ issue31596_super_test/05: CompileTimeError # Issue #31596
 issue31596_super_test/none: CompileTimeError # Issue #31596
 issue31596_tearoff_test: CompileTimeError # Issue #31596
 issue31596_test: CompileTimeError # Issue #31596
+issue34498_test: MissingCompileTimeError # Issue 34500
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552

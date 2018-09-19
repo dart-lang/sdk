@@ -101,6 +101,7 @@ issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
+issue34498_test: MissingCompileTimeError # Issue 34500
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
 mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
