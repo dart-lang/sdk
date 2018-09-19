@@ -395,10 +395,10 @@ class Search {
     final List<SubtypeResult> results = [];
 
     // Note, this is a defensive copy.
-    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+    var files = _driver.fsState.getFilesSubtypingName(name)?.toList();
 
-    for (FileState file in knownFiles) {
-      if (file.subtypedNames.contains(name)) {
+    if (files != null) {
+      for (FileState file in files) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
         if (index != null) {
           for (AnalysisDriverSubtype subtype in index.subtypes) {
