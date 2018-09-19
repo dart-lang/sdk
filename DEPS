@@ -53,7 +53,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "0.1.11",
+  "bazel_worker_tag": "0.1.14",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "fc47eaa1a245d858bae462cd64d4155605b850ea",
   "boringssl_rev" : "189270cd190267f5bd60cfe8f8ce7a61d07ba6f4",
@@ -95,7 +95,7 @@ vars = {
   "intl_tag": "0.15.6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.60",
+  "linter_tag": "0.1.62",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -157,7 +157,7 @@ deps = {
       "packages": [
           {
               "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.0-dev.2.0",
+              "version": "version:2.1.0-dev.4.0",
           },
       ],
       "dep_type": "cipd",

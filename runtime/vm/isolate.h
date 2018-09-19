@@ -39,7 +39,9 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class Interpreter;
+#endif
 class IsolateProfilerData;
 class IsolateReloadContext;
 class IsolateSpawnState;
@@ -128,7 +130,7 @@ class NoReloadScope : public StackResource {
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.
-typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
+typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
@@ -139,10 +141,6 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
   V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
     FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(PRODUCT, reify_generic_functions, ReifyGenericFunctions,                   \
-    reify_generic_functions, FLAG_reify_generic_functions)                     \
-  V(PRODUCT, sync_async, SyncAsync, sync_async, FLAG_sync_async)               \
-  V(PRODUCT, strong, Strong, strong, FLAG_strong)                              \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
@@ -409,8 +407,10 @@ class Isolate : public BaseIsolate {
 
   Random* random() { return &random_; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Interpreter* interpreter() const { return interpreter_; }
   void set_interpreter(Interpreter* value) { interpreter_ = value; }
+#endif
 
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
@@ -701,7 +701,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool can_use_strong_mode_types() const {
-    return strong() && FLAG_use_strong_mode_types &&
+    return FLAG_strong && FLAG_use_strong_mode_types &&
            !unsafe_trust_strong_mode_types();
   }
 
@@ -765,7 +765,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool should_emit_strong_mode_checks() const {
-    return strong() && !unsafe_trust_strong_mode_types();
+    return FLAG_strong && !unsafe_trust_strong_mode_types();
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -784,8 +784,8 @@ class Isolate : public BaseIsolate {
 
   HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 
-  CatchEntryStateCache* catch_entry_state_cache() {
-    return &catch_entry_state_cache_;
+  CatchEntryMovesCache* catch_entry_moves_cache() {
+    return &catch_entry_moves_cache_;
   }
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
@@ -880,9 +880,6 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
-  V(ReifyGenericFunctions)                                                     \
-  V(SyncAsync)                                                                 \
-  V(Strong)                                                                    \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
@@ -973,7 +970,9 @@ class Isolate : public BaseIsolate {
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   Random random_;
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Interpreter* interpreter_;
+#endif
   Simulator* simulator_;
   Mutex* mutex_;          // Protects compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
@@ -1018,7 +1017,7 @@ class Isolate : public BaseIsolate {
   intptr_t spawn_count_;
 
   HandlerInfoCache handler_info_cache_;
-  CatchEntryStateCache catch_entry_state_cache_;
+  CatchEntryMovesCache catch_entry_moves_cache_;
 
   Dart_QualifiedFunctionName* embedder_entry_points_;
   const char** obfuscation_map_;

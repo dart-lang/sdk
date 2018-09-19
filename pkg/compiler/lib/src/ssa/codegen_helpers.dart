@@ -82,18 +82,36 @@ class SsaInstructionSelection extends HBaseVisitor {
     return node;
   }
 
+  /// Returns the single JavaScript comparison (`==` or `===`) if that
+  /// implements `identical(left, right)`, or returns `null` if a more complex
+  /// expression is needed.
   String simpleOp(HInstruction left, HInstruction right) {
-    // Returns the single identity comparison (== or ===) or null if a more
-    // complex expression is required.
     AbstractValue leftType = left.instructionType;
     AbstractValue rightType = right.instructionType;
     if (_abstractValueDomain.canBeNull(leftType) &&
         _abstractValueDomain.canBeNull(rightType)) {
-      if (left.isConstantNull() ||
-          right.isConstantNull() ||
-          (left.isPrimitive(_abstractValueDomain) && leftType == rightType)) {
+      // Can't use `===` on Dart `null` since it is implemented by JavaScript
+      // `null` and `undefined`.
+      if (left.isConstantNull() || right.isConstantNull()) {
         return '==';
       }
+      if (_abstractValueDomain.isNumberOrNull(leftType) &&
+          _abstractValueDomain.isNumberOrNull(rightType)) {
+        return '==';
+      }
+      if (_abstractValueDomain.isStringOrNull(leftType) &&
+          _abstractValueDomain.isStringOrNull(rightType)) {
+        return '==';
+      }
+      if (_abstractValueDomain.isBooleanOrNull(leftType) &&
+          _abstractValueDomain.isBooleanOrNull(rightType)) {
+        return '==';
+      }
+
+      // TODO(34439): There are more cases that can compile to `==` without
+      // triggering a conversion in the JavaScript evaluation. `==` will work
+      // for most Dart objects, but we have to ensure neither side can be a
+      // JavaScript Number, String, Symbol or Boolean.
       return null;
     }
     return '===';

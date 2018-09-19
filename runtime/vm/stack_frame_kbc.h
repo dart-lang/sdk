@@ -46,6 +46,7 @@ static const int kKBCSavedCallerPcSlotFromFp = -2;
 static const int kKBCCallerSpSlotFromFp = -kKBCDartFrameFixedSize - 1;
 static const int kKBCPcMarkerSlotFromFp = -3;
 static const int kKBCFunctionSlotFromFp = -4;
+static const int kKBCParamEndSlotFromFp = 4;
 
 // Entry and exit frame layout.
 static const int kKBCEntrySavedSlots = 3;

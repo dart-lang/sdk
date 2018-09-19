@@ -49,7 +49,6 @@ main() {
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
-    defineReflectiveTests(SubtypeManagerTest);
     defineReflectiveTests(TypeOverrideManagerTest);
     defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
@@ -748,107 +747,6 @@ int f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-  }
-}
-
-@reflectiveTest
-class SubtypeManagerTest {
-  /**
-   * The inheritance manager being tested.
-   */
-  SubtypeManager _subtypeManager;
-
-  /**
-   * The compilation unit element containing all of the types setup in each test.
-   */
-  CompilationUnitElementImpl _definingCompilationUnit;
-
-  void setUp() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
-    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
-    _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
-    _definingCompilationUnit.librarySource =
-        _definingCompilationUnit.source = source;
-    LibraryElementImpl definingLibrary =
-        ElementFactory.library(context, "test");
-    definingLibrary.definingCompilationUnit = _definingCompilationUnit;
-    _subtypeManager = new SubtypeManager();
-  }
-
-  void test_computeAllSubtypes_infiniteLoop() {
-    //
-    // class A extends B
-    // class B extends A
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    classA.supertype = classB.type;
-    _definingCompilationUnit.types = <ClassElement>[classA, classB];
-    HashSet<ClassElement> subtypesOfA =
-        _subtypeManager.computeAllSubtypes(classA);
-    List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    expect(subtypesOfA, hasLength(2));
-    expect(arraySubtypesOfA, unorderedEquals([classA, classB]));
-  }
-
-  void test_computeAllSubtypes_manyRecursiveSubtypes() {
-    //
-    // class A
-    // class B extends A
-    // class C extends B
-    // class D extends B
-    // class E extends B
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
-    _definingCompilationUnit.types = <ClassElement>[
-      classA,
-      classB,
-      classC,
-      classD,
-      classE
-    ];
-    HashSet<ClassElement> subtypesOfA =
-        _subtypeManager.computeAllSubtypes(classA);
-    List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    HashSet<ClassElement> subtypesOfB =
-        _subtypeManager.computeAllSubtypes(classB);
-    List<ClassElement> arraySubtypesOfB = new List.from(subtypesOfB);
-    expect(subtypesOfA, hasLength(4));
-    expect(arraySubtypesOfA, unorderedEquals([classB, classC, classD, classE]));
-    expect(subtypesOfB, hasLength(3));
-    expect(arraySubtypesOfB, unorderedEquals([classC, classD, classE]));
-  }
-
-  void test_computeAllSubtypes_noSubtypes() {
-    //
-    // class A
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _definingCompilationUnit.types = <ClassElement>[classA];
-    HashSet<ClassElement> subtypesOfA =
-        _subtypeManager.computeAllSubtypes(classA);
-    expect(subtypesOfA, hasLength(0));
-  }
-
-  void test_computeAllSubtypes_oneSubtype() {
-    //
-    // class A
-    // class B extends A
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    _definingCompilationUnit.types = <ClassElement>[classA, classB];
-    HashSet<ClassElement> subtypesOfA =
-        _subtypeManager.computeAllSubtypes(classA);
-    List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    expect(subtypesOfA, hasLength(1));
-    expect(arraySubtypesOfA, unorderedEquals([classB]));
   }
 }
 

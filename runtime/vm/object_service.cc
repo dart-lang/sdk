@@ -346,10 +346,6 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
-void NativeEntryData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(Owner());
@@ -458,11 +454,11 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   // Print the line number table
-  if (!source.IsNull()) {
+  const GrowableObjectArray& lineNumberArray =
+      GrowableObjectArray::Handle(GenerateLineNumberArray());
+  if (!lineNumberArray.IsNull()) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
-    const GrowableObjectArray& lineNumberArray =
-        GrowableObjectArray::Handle(GenerateLineNumberArray());
     Object& value = Object::Handle();
     intptr_t pos = 0;
 

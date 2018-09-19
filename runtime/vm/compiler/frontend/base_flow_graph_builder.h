@@ -113,6 +113,7 @@ class BaseFlowGraphBuilder {
   BaseFlowGraphBuilder(
       const ParsedFunction* parsed_function,
       intptr_t last_used_block_id,
+      intptr_t osr_id = DeoptId::kNone,
       ZoneGrowableArray<intptr_t>* context_level_array = nullptr,
       InlineExitCollector* exit_collector = nullptr,
       bool inlining_unchecked_entry = false)
@@ -120,10 +121,11 @@ class BaseFlowGraphBuilder {
         function_(parsed_function_->function()),
         thread_(Thread::Current()),
         zone_(thread_->zone()),
+        osr_id_(osr_id),
         context_level_array_(context_level_array),
         context_depth_(0),
         last_used_block_id_(last_used_block_id),
-        try_catch_block_(NULL),
+        current_try_index_(CatchClauseNode::kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
         pending_argument_count_(0),
@@ -131,6 +133,7 @@ class BaseFlowGraphBuilder {
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
+  Fragment LoadField(const Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
   Fragment LoadNativeField(const NativeFieldDesc* native_field);
   Fragment LoadIndexed(intptr_t index_scale);
@@ -230,6 +233,12 @@ class BaseFlowGraphBuilder {
   }
 
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
+  intptr_t CurrentTryIndex() const { return current_try_index_; }
+  void SetCurrentTryIndex(intptr_t try_index) {
+    current_try_index_ = try_index;
+  }
+
+  bool IsCompiledForOsr() { return osr_id_ != DeoptId::kNone; }
 
   bool IsInlining() const { return exit_collector_ != nullptr; }
 
@@ -263,20 +272,18 @@ class BaseFlowGraphBuilder {
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
-  intptr_t CurrentTryIndex();
 
   const ParsedFunction* parsed_function_;
   const Function& function_;
   Thread* thread_;
   Zone* zone_;
+  intptr_t osr_id_;
   // Contains (deopt_id, context_level) pairs.
   ZoneGrowableArray<intptr_t>* context_level_array_;
   intptr_t context_depth_;
   intptr_t last_used_block_id_;
 
-  // A chained list of try-catch blocks. Chaining and lookup is done by the
-  // [TryCatchBlock] class.
-  TryCatchBlock* try_catch_block_;
+  intptr_t current_try_index_;
   intptr_t next_used_try_index_;
 
   Value* stack_;
@@ -286,34 +293,11 @@ class BaseFlowGraphBuilder {
 
   const bool inlining_unchecked_entry_;
 
-  friend class TryCatchBlock;
   friend class StreamingFlowGraphBuilder;
+  friend class BytecodeFlowGraphBuilder;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);
-};
-
-class TryCatchBlock {
- public:
-  explicit TryCatchBlock(BaseFlowGraphBuilder* builder,
-                         intptr_t try_handler_index = -1)
-      : builder_(builder),
-        outer_(builder->try_catch_block_),
-        try_index_(try_handler_index) {
-    if (try_index_ == -1) try_index_ = builder->AllocateTryIndex();
-    builder->try_catch_block_ = this;
-  }
-  ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
-
-  intptr_t try_index() { return try_index_; }
-  TryCatchBlock* outer() const { return outer_; }
-
- private:
-  BaseFlowGraphBuilder* builder_;
-  TryCatchBlock* outer_;
-  intptr_t try_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(TryCatchBlock);
 };
 
 }  // namespace kernel

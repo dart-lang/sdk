@@ -38,7 +38,7 @@ enum Register {
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
-  R28 = 28,
+  R28 = 28,  // BARRIER_MASK
   R29 = 29,  // FP
   R30 = 30,  // LR
   R31 = 31,  // ZR, CSP
@@ -116,6 +116,7 @@ const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
+const Register BARRIER_MASK = R28;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
@@ -149,11 +150,11 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters = (1 << SPREG) |  // Dart SP
-                                       (1 << FPREG) | (1 << TMP) | (1 << TMP2) |
-                                       (1 << PP) | (1 << THR) | (1 << LR) |
-                                       (1 << R31) |  // C++ SP
-                                       (1 << R18);   // iOS platform register.
+const intptr_t kReservedCpuRegisters =
+    (1 << SPREG) |  // Dart SP
+    (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
+    (1 << LR) | (1 << BARRIER_MASK) | (1 << R31) |  // C++ SP
+    (1 << R18);                                     // iOS platform register.
 // TODO(rmacnak): Only reserve on Mac & iOS.
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =

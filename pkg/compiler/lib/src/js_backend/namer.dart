@@ -1481,6 +1481,27 @@ class Namer {
     return names.join();
   }
 
+  String _getSuffixForInterceptedClasses(Iterable<ClassEntity> classes) {
+    if (classes.isEmpty) {
+      // TODO(johnniwinther,sra): If [classes] is empty it should either have
+      // its own suffix (like here), or always be equated with the set of
+      // classes that contain `Interceptor`. For the latter to work we need to
+      // update `OneShotInterceptorData.registerSpecializedGetInterceptor`,
+      // since it currently would otherwise potentially overwrite the all
+      // intercepted classes case with the empty case.
+      return 'z';
+    } else if (classes.contains(_commonElements.jsInterceptorClass)) {
+      // If the base Interceptor class is in the set of intercepted classes,
+      // this is the most general specialization which uses the generic
+      // getInterceptor method.
+      // TODO(sra): Find a way to get the simple name when Object is not in the
+      // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
+      return '';
+    } else {
+      return suffixForGetInterceptor(classes);
+    }
+  }
+
   /// Property name used for a specialization of `getInterceptor`.
   ///
   /// js_runtime contains a top-level `getInterceptor` method. The
@@ -1490,9 +1511,7 @@ class Namer {
     // If the base Interceptor class is in the set of intercepted classes, we
     // need to go through the generic getInterceptor method (any subclass of the
     // base Interceptor could match), which is encoded as an empty suffix.
-    String suffix = classes.contains(_commonElements.jsInterceptorClass)
-        ? ''
-        : suffixForGetInterceptor(classes);
+    String suffix = _getSuffixForInterceptedClasses(classes);
     return _disambiguateInternalGlobal('getInterceptor\$$suffix');
   }
 
@@ -1505,18 +1524,9 @@ class Namer {
     // other global names.
     jsAst.Name root = invocationName(selector);
 
-    if (classes.contains(_commonElements.jsInterceptorClass)) {
-      // If the base Interceptor class is in the set of intercepted classes,
-      // this is the most general specialization which uses the generic
-      // getInterceptor method.
-      // TODO(sra): Find a way to get the simple name when Object is not in the
-      // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
-      return new CompoundName([root, _literalDollar]);
-    } else {
-      String suffix = suffixForGetInterceptor(classes);
-      return new CompoundName(
-          [root, _literalDollar, new StringBackedName(suffix)]);
-    }
+    String suffix = _getSuffixForInterceptedClasses(classes);
+    return new CompoundName(
+        [root, _literalDollar, new StringBackedName(suffix)]);
   }
 
   /// Returns the runtime name for [element].

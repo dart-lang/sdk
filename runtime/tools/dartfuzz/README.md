@@ -11,17 +11,18 @@ architectures (x86, arm, etc.). Any difference between the outputs
 How to run DartFuzz
 ===================
 
-    dartfuzz.py [--help] [--seed SEED]
+    dart dartfuzz.dart [--help] [--seed SEED] [FILENAME]
 
 where
 
     --help : prints help and exits
     --seed : defines random seed (system-set by default)
 
-DartFuzz sends all output to stdout, and provides
-a runnable main isolate. A typical test run looks as:
+If no FILENAME is given, DartFuzz sends all output to stdout.
+The tool provides a runnable main isolate. A typical single
+test run looks as:
 
-    dartfuzz.py > fuzz.dart
+    dart dartfuzz.dart fuzz.dart
     dart fuzz.dart
 
 How to start DartFuzz testing

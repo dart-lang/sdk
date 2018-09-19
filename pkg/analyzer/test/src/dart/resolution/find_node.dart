@@ -100,6 +100,10 @@ class FindNode {
     return _node(search, (n) => n is PrefixedIdentifier);
   }
 
+  PropertyAccess propertyAccess(String search) {
+    return _node(search, (n) => n is PropertyAccess);
+  }
+
   RethrowExpression rethrow_(String search) {
     return _node(search, (n) => n is RethrowExpression);
   }

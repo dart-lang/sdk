@@ -43,6 +43,8 @@ library vm.bytecode.dbc;
 // 12. JumpIfNotZeroTypeArgs instruction jumps if number of passed
 //     function type arguments is not zero.
 //
+// 13. PushNull, PushTrue, PushFalse, PushInt instructions added.
+//
 
 enum Opcode {
   kTrap,
@@ -65,6 +67,10 @@ enum Opcode {
   kLoadClassId,
   kLoadClassIdTOS,
   kPushConstant,
+  kPushNull,
+  kPushTrue,
+  kPushFalse,
+  kPushInt,
   kStoreLocal,
   kPopLocal,
   kIndirectStaticCall,
@@ -320,6 +326,14 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kPushConstant: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kPushNull: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kPushTrue: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kPushFalse: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kPushInt: const Format(
+      Encoding.kX, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kStoreLocal: const Format(
       Encoding.kX, const [Operand.xeg, Operand.none, Operand.none]),
   Opcode.kPopLocal: const Format(

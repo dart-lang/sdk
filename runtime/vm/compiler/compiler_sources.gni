@@ -78,6 +78,8 @@ compiler_sources = [
   "compiler_state.h",
   "frontend/base_flow_graph_builder.cc",
   "frontend/base_flow_graph_builder.h",
+  "frontend/bytecode_flow_graph_builder.cc",
+  "frontend/bytecode_flow_graph_builder.h",
   "frontend/bytecode_reader.cc",
   "frontend/bytecode_reader.h",
   "frontend/constant_evaluator.cc",

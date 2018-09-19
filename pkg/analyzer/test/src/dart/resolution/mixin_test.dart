@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -139,6 +140,17 @@ mixin M {}
     assertTypeNull(aRef);
   }
 
+  test_conflictingGenericInterfaces() async {
+    addTestFile('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+mixin M on A implements B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
   test_element() async {
     addTestFile(r'''
 mixin M {}
@@ -151,7 +163,400 @@ mixin M {}
     assertElement(mixin, element);
 
     expect(element.typeParameters, isEmpty);
+
+    expect(element.supertype, isNull);
+    expect(element.type.isObject, isFalse);
+
     assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(element.interfaces, []);
+  }
+
+  test_element_allSupertypes() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M1 on A, B {}
+mixin M2 on A implements B, C {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      findElement.mixin('M1').allSupertypes,
+      [a.type, b.type, objectType],
+    );
+    assertElementTypes(
+      findElement.mixin('M2').allSupertypes,
+      [a.type, objectType, b.type, c.type],
+    );
+  }
+
+  test_element_allSupertypes_generic() async {
+    addTestFile(r'''
+class A<T, U> {}
+class B<T> extends A<int, T> {}
+
+mixin M1 on A<int, double> {}
+mixin M2 on B<String> {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    assertElementTypes(
+      findElement.mixin('M1').allSupertypes,
+      [
+        a.type.instantiate([intType, doubleType]),
+        objectType
+      ],
+    );
+    assertElementTypes(
+      findElement.mixin('M2').allSupertypes,
+      [
+        b.type.instantiate([stringType]),
+        a.type.instantiate([intType, stringType]),
+        objectType
+      ],
+    );
+  }
+
+  test_error_builtInIdentifierAsTypeName() async {
+    addTestFile(r'''
+mixin as {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+  }
+
+  test_error_builtInIdentifierAsTypeName_OK_on() async {
+    addTestFile(r'''
+class A {}
+
+mixin on on A {}
+
+mixin M on on {}
+
+mixin M2 implements on {}
+
+class B = A with on;
+class C = B with M;
+class D = Object with M2;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_getter() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_method() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_setter() async {
+    addTestFile(r'''
+mixin M {
+  static int get foo => 0;
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_getter() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_method() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_setter() async {
+    addTestFile(r'''
+mixin M {
+  static void foo() {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_getter() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_method() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_setter() async {
+    addTestFile(r'''
+mixin M {
+  static set foo(_) {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inConstraint_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M on A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inInterface_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+mixin M implements A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingTypeVariableAndClass() async {
@@ -257,11 +662,33 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
+  test_error_duplicateDefinition_getter_method() async {
+    addTestFile(r'''
+mixin M {
+  int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
   test_error_duplicateDefinition_method() async {
     addTestFile(r'''
 mixin M {
   void t() {}
   void t() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method_getter() async {
+    addTestFile(r'''
+mixin M {
+  void foo() {}
+  int get foo => 0;
 }
 ''');
     await resolveTestFile();
@@ -333,17 +760,6 @@ mixin M {
     expect(fpElement.field, same(findElement.field('f')));
   }
 
-  test_error_getterAndMethodWithSameName() async {
-    addTestFile(r'''
-mixin M {
-  void t() {}
-  int get t => 0;
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
-  }
-
   test_error_implementsClause_deferredClass() async {
     addTestFile(r'''
 import 'dart:math' deferred as math;
@@ -390,6 +806,7 @@ mixin M implements void {}
 
     assertTestErrors([
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
     ]);
 
     var element = findElement.mixin('M');
@@ -397,6 +814,16 @@ mixin M implements void {}
 
     var typeRef = findNode.typeName('void {}');
     assertTypeName(typeRef, null, 'void');
+  }
+
+  test_error_implementsRepeated() async {
+    addTestFile(r'''
+class A {}
+mixin M implements A, A {}
+''');
+    await resolveTestFile();
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
+    assertTestErrors([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
   }
 
   test_error_memberWithClassName_getter() async {
@@ -439,15 +866,222 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
-  test_error_methodAndGetterWithSameName() async {
+  test_error_mixinApplicationConcreteSuperInvokedMemberType_method() async {
     addTestFile(r'''
-mixin M {
-  int get t => 0;
-  void t() {}
+class I {
+  void foo([int p]) {}
 }
+
+class A {
+  void foo(int p) {}
+}
+
+abstract class B extends A implements I {
+  void foo([int p]);
+}
+
+mixin M on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+abstract class X extends B with M {}
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int get foo;
+}
+
+mixin M on A {
+  void bar() {
+    super.foo;
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_method() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M1 {
+  void foo() {}
+}
+
+mixin M2 on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_notInvoked() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() async {
+    addTestFile(r'''
+abstract class A {
+  void set foo(_);
+}
+
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+
+abstract class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {}
+
+class X = Object with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_generic() async {
+    addTestFile(r'''
+class A<T> {}
+
+mixin M on A<int> {}
+
+class X = A<double> with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_0() async {
+    addTestFile(r'''
+mixin M {}
+
+class X = Object with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_1() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {}
+
+class X = A with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_generic() async {
+    addTestFile(r'''
+class A<T> {}
+
+mixin M<T> on A<T> {}
+
+class B<T> implements A<T> {}
+
+class C<T> = B<T> with M<T>;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_previousMixin() async {
+    addTestFile(r'''
+class A {}
+
+mixin M1 implements A {}
+
+mixin M2 on A {}
+
+class X = Object with M1, M2;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_oneOfTwo() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M on A, B {}
+
+class X = C with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
   }
 
   test_error_mixinDeclaresConstructor() async {
@@ -479,6 +1113,43 @@ mixin M {
     var aRef = findNode.simple('a; // read');
     assertElement(aRef, aElement);
     assertType(aRef, 'int');
+  }
+
+  test_error_mixinInstantiate_default() async {
+    addTestFile(r'''
+mixin M {}
+
+main() {
+  new M();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+
+    var creation = findNode.instanceCreation('M();');
+    var m = findElement.mixin('M');
+    assertInstanceCreation(creation, m, 'M');
+  }
+
+  test_error_mixinInstantiate_named() async {
+    addTestFile(r'''
+mixin M {
+  M.named() {}
+}
+
+main() {
+  new M.named();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+    ]);
+
+    var creation = findNode.instanceCreation('M.named();');
+    var m = findElement.mixin('M');
+    assertInstanceCreation(creation, m, 'M', constructorName: 'named');
   }
 
   test_error_onClause_deferredClass() async {
@@ -519,14 +1190,14 @@ mixin M on int {}
     assertTypeName(typeRef, intElement, 'int');
   }
 
-  test_error_onClause_nonClass_dynamic() async {
+  test_error_onClause_nonInterface_dynamic() async {
     addTestFile(r'''
 mixin M on dynamic {}
 ''');
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     ]);
 
     var element = findElement.mixin('M');
@@ -536,7 +1207,7 @@ mixin M on dynamic {}
     assertTypeName(typeRef, dynamicElement, 'dynamic');
   }
 
-  test_error_onClause_nonClass_enum() async {
+  test_error_onClause_nonInterface_enum() async {
     addTestFile(r'''
 enum E {E1, E2, E3}
 mixin M on E {}
@@ -544,7 +1215,7 @@ mixin M on E {}
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     ]);
 
     var element = findElement.mixin('M');
@@ -554,14 +1225,15 @@ mixin M on E {}
     assertTypeName(typeRef, findElement.enum_('E'), 'E');
   }
 
-  test_error_onClause_nonClass_void() async {
+  test_error_onClause_nonInterface_void() async {
     addTestFile(r'''
 mixin M on void {}
 ''');
     await resolveTestFile();
 
     assertTestErrors([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS,
+      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
     ]);
 
     var element = findElement.mixin('M');
@@ -569,6 +1241,48 @@ mixin M on void {}
 
     var typeRef = findNode.typeName('void {}');
     assertTypeName(typeRef, null, 'void');
+  }
+
+  test_error_onClause_OK_mixin() async {
+    addTestFile(r'''
+mixin A {}
+mixin B on A {} // ref
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var a = findElement.mixin('A');
+    var b = findElement.mixin('B');
+    assertElementTypes(b.superclassConstraints, [a.type]);
+  }
+
+  test_error_onRepeated() async {
+    addTestFile(r'''
+class A {}
+mixin M on A, A {}
+''');
+    await resolveTestFile();
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
+    assertTestErrors([CompileTimeErrorCode.ON_REPEATED]);
+  }
+
+  test_error_undefinedSuperMethod() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {
+  void bar() {
+    super.foo(42);
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+
+    var invocation = findNode.methodInvocation('foo(42)');
+    assertElementNull(invocation.methodName);
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
   }
 
   test_field() async {
@@ -633,6 +1347,166 @@ mixin M implements A, B {} // M
     assertTypeName(bRef, findElement.class_('B'), 'B');
   }
 
+  test_inconsistentMethodInheritance_implements_parameterType() async {
+    addTestFile(r'''
+abstract class A {
+  x(int i);
+}
+abstract class B {
+  x(String s);
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_implements_requiredParameters() async {
+    addTestFile(r'''
+abstract class A {
+  x();
+}
+abstract class B {
+  x(int y);
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_implements_returnType() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  String x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_parameterType() async {
+    addTestFile(r'''
+abstract class A {
+  x(int i);
+}
+abstract class B {
+  x(String s);
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_requiredParameters() async {
+    addTestFile(r'''
+abstract class A {
+  x();
+}
+abstract class B {
+  x(int y);
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritance_on_returnType() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  String x();
+}
+mixin M on A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_implements_getter_method() async {
+    addTestFile(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_implements_method_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  int get x;
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_on_getter_method() async {
+    addTestFile(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int x();
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
+  test_inconsistentMethodInheritanceGetterAndMethod_on_method_getter() async {
+    addTestFile(r'''
+abstract class A {
+  int x();
+}
+abstract class B {
+  int get x;
+}
+mixin M implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    ]);
+  }
+
   test_metadata() async {
     addTestFile(r'''
 const a = 0;
@@ -677,8 +1551,113 @@ mixin M on A, B {} // M
     var bRef = findNode.typeName('B {} // M');
     assertTypeName(bRef, findElement.class_('B'), 'B');
   }
+
+  test_recursiveInterfaceInheritance_implements() async {
+    addTestFile(r'''
+mixin A implements B {}
+mixin B implements A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance_on() async {
+    addTestFile(r'''
+mixin A on B {}
+mixin B on A {}''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_recursiveInterfaceInheritanceOn() async {
+    addTestFile(r'''
+mixin A on A {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON,
+    ]);
+  }
+
+  test_superInvocation_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void bar() {
+    super.foo;
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var access = findNode.propertyAccess('super.foo;');
+    assertElement(access, findElement.getter('foo'));
+    assertType(access, 'int');
+  }
+
+  test_superInvocation_method() async {
+    addTestFile(r'''
+class A {
+  void foo(int x) {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var invocation = findNode.methodInvocation('foo(42)');
+    assertElement(invocation, findElement.method('foo'));
+    assertInvokeType(invocation, '(int) → void');
+    assertType(invocation, 'void');
+  }
+
+  test_superInvocation_setter() async {
+    addTestFile(r'''
+class A {
+  void set foo(_) {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var access = findNode.propertyAccess('super.foo = 0');
+    assertElement(access, findElement.setter('foo'));
+    // Hm... Does it need any type?
+    assertTypeDynamic(access);
+  }
 }
 
 @reflectiveTest
 class MixinTaskResolutionTest extends TaskResolutionTest
-    with MixinResolutionMixin {}
+    with MixinResolutionMixin {
+  @failingTest
+  test_conflictingGenericInterfaces() {
+    return super.test_conflictingGenericInterfaces();
+  }
+}

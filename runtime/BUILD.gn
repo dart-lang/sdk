@@ -124,17 +124,6 @@ config("dart_arch_config") {
   }
 }
 
-config("dart_interpreter_config") {
-  defines = [ "DART_USE_INTERPRETER" ]
-}
-
-config("dart_maybe_interpreter_config") {
-  defines = []
-  if (dart_use_interpreter) {
-    defines += [ "DART_USE_INTERPRETER" ]
-  }
-}
-
 config("dart_config") {
   defines = []
 
@@ -169,6 +158,7 @@ config("dart_config") {
       "-Wvla",
       "-Wno-conversion-null",
       "-Woverloaded-virtual",
+      "-Wno-comments",  # Conflicts with clang-format.
       "-g3",
       "-ggdb3",
       "-fno-rtti",

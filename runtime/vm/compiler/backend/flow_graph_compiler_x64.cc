@@ -897,6 +897,13 @@ void FlowGraphCompiler::CompileGraph() {
     }
     EmitFrameEntry();
     ASSERT(__ constant_pool_allowed());
+  } else {
+    // For JIT we have multiple entrypoints functionality which moved the frame
+    // setup into the [TargetEntryInstr] (which will set the constant pool
+    // allowed bit to true).  Despite this we still have to set the
+    // constant pool allowed bit to true here as well, because we can generate
+    // code for [CatchEntryInstr]s, which need the pool.
+    __ set_constant_pool_allowed(true);
   }
 
   ASSERT(!block_order().is_empty());
@@ -1055,7 +1062,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  EmitCatchEntryState(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
   __ Drop(args_desc.CountWithTypeArgs(), RCX);
 }
 
@@ -1089,7 +1096,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
-      (isolate()->reify_generic_functions() && function.IsGeneric())) {
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
     __ xorl(R10, R10);  // GC safe smi zero because of stub.

@@ -65,7 +65,8 @@ enum InvocationKind {
 
 type ConstantICData extends ConstantPoolEntry {
   Byte tag = 7;
-  Byte invocationKind; // Index in InvocationKind enum.
+  Byte flags(invocationKindBit0, invocationKindBit1, isDynamic);
+             // Where invocationKind is index into InvocationKind.
   Name targetName;
   ConstantIndex argDesc;
 }
@@ -161,6 +162,12 @@ type ConstantEmptyTypeArguments extends ConstantPoolEntry {
   Byte tag = 24;
 }
 
+type ConstantSymbol extends ConstantPoolEntry {
+  Byte tag = 25;
+  Option<LibraryReference> library;
+  StringReference name;
+}
+
 */
 
 enum ConstantTag {
@@ -189,6 +196,7 @@ enum ConstantTag {
   kSubtypeTestCache,
   kPartialTearOffInstantiation,
   kEmptyTypeArguments,
+  kSymbol,
 }
 
 abstract class ConstantPoolEntry {
@@ -261,6 +269,8 @@ abstract class ConstantPoolEntry {
         return new ConstantPartialTearOffInstantiation.readFromBinary(source);
       case ConstantTag.kEmptyTypeArguments:
         return new ConstantEmptyTypeArguments.readFromBinary(source);
+      case ConstantTag.kSymbol:
+        return new ConstantSymbol.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -485,30 +495,43 @@ String _invocationKindToString(InvocationKind kind) {
 }
 
 class ConstantICData extends ConstantPoolEntry {
-  final InvocationKind invocationKind;
+  static const int invocationKindMask = 3;
+  static const int flagDynamic = 1 << 2;
+
+  final int _flags;
   final Name targetName;
   final int argDescConstantIndex;
 
   ConstantICData(
-      this.invocationKind, this.targetName, this.argDescConstantIndex);
+      InvocationKind invocationKind, this.targetName, this.argDescConstantIndex,
+      {bool isDynamic: false})
+      : assert(invocationKind.index <= invocationKindMask),
+        _flags = invocationKind.index | (isDynamic ? flagDynamic : 0);
+
+  InvocationKind get invocationKind =>
+      InvocationKind.values[_flags & invocationKindMask];
+
+  bool get isDynamic => (_flags & flagDynamic) != 0;
 
   @override
   ConstantTag get tag => ConstantTag.kICData;
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    sink.writeByte(invocationKind.index);
+    sink.writeByte(_flags);
     sink.writeName(targetName);
     sink.writeUInt30(argDescConstantIndex);
   }
 
   ConstantICData.readFromBinary(BinarySource source)
-      : invocationKind = InvocationKind.values[source.readByte()],
+      : _flags = source.readByte(),
         targetName = source.readName(),
         argDescConstantIndex = source.readUInt();
 
   @override
-  String toString() => 'ICData ${_invocationKindToString(invocationKind)}'
+  String toString() => 'ICData '
+      '${isDynamic ? 'dynamic ' : ''}'
+      '${_invocationKindToString(invocationKind)}'
       'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
 
   // ConstantICData entries are created per call site and should not be merged,
@@ -1084,6 +1107,41 @@ class ConstantEmptyTypeArguments extends ConstantPoolEntry {
 
   @override
   bool operator ==(other) => other is ConstantEmptyTypeArguments;
+}
+
+class ConstantSymbol extends ConstantPoolEntry {
+  final Reference _libraryRef;
+  final String value;
+
+  ConstantSymbol(this._libraryRef, this.value);
+
+  @override
+  ConstantTag get tag => ConstantTag.kSymbol;
+
+  Library get library => _libraryRef?.asLibrary;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {
+    sink.writeCanonicalNameReference(library?.canonicalName);
+    sink.writeStringReference(value);
+  }
+
+  ConstantSymbol.readFromBinary(BinarySource source)
+      : _libraryRef = source.readCanonicalNameReference()?.getReference(),
+        value = source.readStringReference();
+
+  @override
+  String toString() => 'Symbol '
+      '${library != null ? '$library::' : ''}\'$value\'';
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantSymbol &&
+      this.value == other.value &&
+      this.library == other.library;
 }
 
 /// Reserved constant pool entry.

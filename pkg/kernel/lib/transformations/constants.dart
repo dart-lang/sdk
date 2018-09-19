@@ -1025,8 +1025,9 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
-    final value = canonicalize(new StringConstant(node.value));
-    return canonicalize(backend.buildSymbolConstant(value));
+    final libraryReference =
+        node.value.startsWith('_') ? libraryOf(node).reference : null;
+    return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
 
   visitInstantiation(Instantiation node) {
@@ -1043,6 +1044,12 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     throw new Exception(
         'Only tear-off constants can be partially instantiated.');
+  }
+
+  @override
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    errorReporter.deferredLibrary(contextChain, node, node.import.name);
+    throw const _AbortCurrentEvaluation();
   }
 
   // Helper methods:
@@ -1187,6 +1194,15 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     return value;
   }
+
+  Library libraryOf(TreeNode node) {
+    // The tree structure of the kernel AST ensures we always have an enclosing
+    // library.
+    while (true) {
+      if (node is Library) return node;
+      node = node.parent;
+    }
+  }
 }
 
 /// Holds the necessary information for a constant object, namely
@@ -1264,8 +1280,6 @@ abstract class ConstantsBackend {
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments);
-  Constant buildSymbolConstant(StringConstant value);
-
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
 }
@@ -1297,6 +1311,7 @@ abstract class ErrorReporter {
   failedAssertion(List<TreeNode> context, TreeNode node, String message);
   nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName);
+  deferredLibrary(List<TreeNode> context, TreeNode node, String importName);
 }
 
 abstract class ErrorReporterBase implements ErrorReporter {
@@ -1406,6 +1421,14 @@ abstract class ErrorReporterBase implements ErrorReporter {
         context,
         'The variable "$variableName" cannot be used inside a constant '
         'expression.',
+        node);
+  }
+
+  deferredLibrary(List<TreeNode> context, TreeNode node, String importName) {
+    report(
+        context,
+        'Deferred "$importName" cannot be used inside a constant '
+        'expression',
         node);
   }
 }

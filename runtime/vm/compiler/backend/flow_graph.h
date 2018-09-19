@@ -128,7 +128,9 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    return EnvIndex(parsed_function().current_context_var());
+    return FLAG_use_bytecode_compiler
+               ? -1
+               : EnvIndex(parsed_function().current_context_var());
   }
 
   intptr_t RawTypeArgumentEnvIndex() const {
@@ -325,6 +327,10 @@ class FlowGraph : public ZoneAllocated {
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
 
+  // Attaches new ICData's to static/instance calls which don't already have
+  // them.
+  void PopulateWithICData(const Function& function);
+
   void SelectRepresentations();
 
   void WidenSmiToInt32();
@@ -434,7 +440,6 @@ class FlowGraph : public ZoneAllocated {
 
   void InsertConversionsFor(Definition* def);
   void ConvertUse(Value* use, Representation from);
-  void ConvertEnvironmentUse(Value* use, Representation from);
   void InsertConversion(Representation from,
                         Representation to,
                         Value* use,

@@ -420,9 +420,6 @@ class Object {
   static RawClass* closure_data_class() { return closure_data_class_; }
   static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
-  static RawClass* native_entry_data_class() {
-    return native_entry_data_class_;
-  }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
@@ -688,7 +685,6 @@ class Object {
   static RawClass* closure_data_class_;    // Class of ClosureData vm obj.
   static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
-  static RawClass* native_entry_data_class_;  // Class of NativeEntryData.
   static RawClass* field_class_;             // Class of the Field vm object.
   static RawClass* literal_token_class_;     // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
@@ -697,7 +693,7 @@ class Object {
   static RawClass* namespace_class_;     // Class of Namespace vm object.
   static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                 // object.
-  static RawClass* code_class_;          // Class of the Code vm object.
+  static RawClass* code_class_;                 // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
@@ -2364,8 +2360,8 @@ class Function : public Object {
   }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
-#if defined(DART_USE_INTERPRETER)
   static bool HasCode(RawFunction* function);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static bool HasBytecode(RawFunction* function);
 #endif
 
@@ -2379,7 +2375,7 @@ class Function : public Object {
     return OFFSET_OF(RawFunction, unchecked_entry_point_);
   }
 
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void AttachBytecode(const Code& bytecode) const;
   RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
   bool HasBytecode() const;
@@ -2537,7 +2533,7 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (I->strong()) {
+    if (FLAG_strong) {
       if (!I->should_emit_strong_mode_checks()) {
         return false;
       }
@@ -3213,39 +3209,6 @@ class RedirectionData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
   friend class Class;
   friend class Function;
-  friend class HeapProfiler;
-};
-
-class NativeEntryData : public Object {
- public:
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawNativeEntryData));
-  }
-
-  MethodRecognizer::Kind kind() const { return raw_ptr()->kind_; }
-  void set_kind(MethodRecognizer::Kind value) const {
-    StoreNonPointer(&raw_ptr()->kind_, value);
-  }
-
-  NativeFunctionWrapper trampoline() const { return raw_ptr()->trampoline_; }
-  void set_trampoline(NativeFunctionWrapper value) const {
-    StoreNonPointer(&raw_ptr()->trampoline_, value);
-  }
-
-  NativeFunction native_function() const { return raw_ptr()->native_function_; }
-  void set_native_function(NativeFunction value) const {
-    StoreNonPointer(&raw_ptr()->native_function_, value);
-  }
-
-  intptr_t argc_tag() const { return raw_ptr()->argc_tag_; }
-  void set_argc_tag(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->argc_tag_, value);
-  }
-
-  static RawNativeEntryData* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(NativeEntryData, Object);
-  friend class Class;
   friend class HeapProfiler;
 };
 
@@ -4093,6 +4056,9 @@ class Library : public Object {
 
   bool IsCoreLibrary() const { return raw() == CoreLibrary(); }
 
+  // Includes 'dart:async', 'dart:typed_data', etc.
+  bool IsAnyCoreLibrary() const;
+
   inline intptr_t UrlHash() const;
 
   RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
@@ -4314,6 +4280,12 @@ class KernelProgramInfo : public Object {
   }
   void set_potential_natives(const GrowableObjectArray& candidates) const;
 
+  RawGrowableObjectArray* potential_pragma_functions() const {
+    return raw_ptr()->potential_pragma_functions_;
+  }
+  void set_potential_pragma_functions(
+      const GrowableObjectArray& candidates) const;
+
   RawScript* ScriptAt(intptr_t index) const;
 
  private:
@@ -4486,11 +4458,11 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 15;
   static const intptr_t kUncheckedEntryOffset = 34;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kCheckedEntryOffset = 8;
-  static const intptr_t kUncheckedEntryOffset = 32;
+  static const intptr_t kCheckedEntryOffset = 0;
+  static const intptr_t kUncheckedEntryOffset = 20;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 40;
+  static const intptr_t kCheckedEntryOffset = 8;
+  static const intptr_t kUncheckedEntryOffset = 28;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
@@ -5073,10 +5045,10 @@ class Code : public Object {
   RawSmi* variables() const { return raw_ptr()->catch_entry_.variables_; }
   void set_variables(const Smi& smi) const;
 #else
-  RawTypedData* catch_entry_state_maps() const {
-    return raw_ptr()->catch_entry_.catch_entry_state_maps_;
+  RawTypedData* catch_entry_moves_maps() const {
+    return raw_ptr()->catch_entry_.catch_entry_moves_maps_;
   }
-  void set_catch_entry_state_maps(const TypedData& maps) const;
+  void set_catch_entry_moves_maps(const TypedData& maps) const;
 #endif
 
   RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
@@ -5263,12 +5235,10 @@ class Code : public Object {
                                Assembler* assembler,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
-#if defined(DART_USE_INTERPRETER)
   static RawCode* FinalizeBytecode(const void* bytecode_data,
                                    intptr_t bytecode_size,
                                    const ObjectPool& object_pool,
                                    CodeStatistics* stats = nullptr);
-#endif
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);

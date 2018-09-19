@@ -19,7 +19,7 @@ main() async {
   var dillPath = path.join(buildPath, 'vm_platform_strong.dill');
   var analyzerLibPath = path.join(sdkRepoPath, 'pkg', 'analyzer', 'lib');
   var packagesFilePath = path.join(sdkRepoPath, '.packages');
-  compare(dillPath, analyzerLibPath, packagesFilePath);
+  comparePackages(dillPath, analyzerLibPath, packagesFilePath);
 }
 
 Future<String> _findBuildDir(String sdkRepoPath, String targetName) async {

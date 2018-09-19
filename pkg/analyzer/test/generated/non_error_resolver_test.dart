@@ -40,90 +40,6 @@ E e() {
     verify([source]);
   }
 
-  test_abstractSuperMemberReference_superHasConcrete_mixinHasAbstract_method() async {
-    Source source = addSource('''
-class A {
-  void method() {}
-}
-
-abstract class B {
-  void method();
-}
-
-class C extends A with B {
-  void method() {
-    super.method();
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_superSuperHasConcrete_getter() async {
-    Source source = addSource('''
-abstract class A {
-  int get m => 0;
-}
-
-abstract class B extends A {
-  int get m;
-}
-
-class C extends B {
-  int get m => super.m;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_superSuperHasConcrete_method() async {
-    Source source = addSource('''
-void main() {
-  print(new C().m());
-}
-
-abstract class A {
-  int m() => 0;
-}
-
-abstract class B extends A {
-  int m();
-}
-
-class C extends B {
-  int m() => super.m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_superSuperHasConcrete_setter() async {
-    Source source = addSource('''
-abstract class A {
-  void set m(int v) {}
-}
-
-abstract class B extends A {
-  void set m(int v);
-}
-
-class C extends B {
-  void set m(int v) {
-    super.m = 0;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_ambiguousExport() async {
     Source source = addSource(r'''
 library L;
@@ -1256,18 +1172,6 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  @failingTest
-  test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
-    Source source = addSource(r'''
-class A {
-  static x() {}
-  static set x(int p) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -2941,6 +2845,66 @@ class A {
     Source source = addSource('int x = 0;');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+  }
+
+  test_intLiteralInDoubleContext() async {
+    Source source = addSource(r'''
+void takeDouble(double x) {}
+void main() {
+  takeDouble(0);
+  takeDouble(-0);
+  takeDouble(0x0);
+  takeDouble(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_intLiteralInDoubleContext_const() async {
+    Source source = addSource(r'''
+class C {
+  const C(double x)
+    : assert((x + 3) / 2 == 1.5)
+    , assert(x == 0.0);
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  @failingTest
+  test_intLiteralInDoubleContext_const_exact() async {
+    // TODO(mfairhurst): get the commented out assertions to pass.
+    Source source = addSource(r'''
+class C {
+  const C(double x)
+    : assert("$x" == "0.0")
+    , assert(identical(x, 0.0));
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   test_invalidAnnotation_constantVariable_field() async {

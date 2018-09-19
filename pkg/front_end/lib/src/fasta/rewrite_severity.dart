@@ -43,18 +43,10 @@ Severity rewriteSeverity(
     // sites.
     switch (path.substring(fastaPath.length + index)) {
       case "command_line.dart":
-      case "command_line_reporting.dart":
       case "deprecated_problems.dart":
       case "entry_points.dart":
       case "kernel/body_builder.dart":
-      case "kernel/expression_generator.dart":
-      case "kernel/kernel_expression_generator.dart":
-      case "kernel/kernel_expression_generator_impl.dart":
-      case "kernel/kernel_type_variable_builder.dart":
       case "source/diet_listener.dart":
-      case "source/source_library_builder.dart":
-      case "source/source_loader.dart":
-      case "source/stack_listener.dart":
         return severity;
     }
   } else if (code == msg.codeMissingExplicitTypeArguments) {

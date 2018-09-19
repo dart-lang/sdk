@@ -77,7 +77,7 @@ class NativeClass {
 }
 
 /*strong.element: testNativeField:
- dynamic=[field],
+ dynamic=[NativeClass.field],
  static=[defineProperty],
  type=[inst:JSBool,param:NativeClass]
 */

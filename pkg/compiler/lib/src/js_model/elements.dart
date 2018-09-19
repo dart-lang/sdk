@@ -6,9 +6,9 @@ library dart2js.js_model.elements;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../kernel/indexed.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
 
 /// Map from 'frontend' to 'backend' elements.

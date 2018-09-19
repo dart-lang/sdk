@@ -7,6 +7,7 @@ library vm.transformations.type_flow.summary_collector;
 
 import 'dart:core' hide Type;
 
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -242,6 +243,7 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
 
 /// Create a type flow summary for a member from the kernel AST.
 class SummaryCollector extends RecursiveVisitor<TypeExpr> {
+  final Target target;
   final TypeEnvironment _environment;
   final EntryPointsListener _entryPointsListener;
   final NativeCodeOracle _nativeCodeOracle;
@@ -255,8 +257,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
 
-  SummaryCollector(
-      this._environment, this._entryPointsListener, this._nativeCodeOracle) {
+  SummaryCollector(this.target, this._environment, this._entryPointsListener,
+      this._nativeCodeOracle) {
     constantAllocationCollector = new ConstantAllocationCollector(this);
   }
 
@@ -268,15 +270,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _returnValue = null;
     _receiver = null;
 
-    if (member is Field) {
-      _summary = new Summary();
+    final hasReceiver = hasReceiverArg(member);
 
+    if (member is Field) {
+      if (hasReceiver) {
+        _summary = new Summary(parameterCount: 1, positionalParameterCount: 1);
+        // TODO(alexmarkov): subclass cone
+        _receiver = _declareParameter(
+            "this", member.enclosingClass.rawType, null,
+            isReceiver: true);
+        _environment.thisType = member.enclosingClass?.thisType;
+      } else {
+        _summary = new Summary();
+      }
       assertx(member.initializer != null);
       _summary.result = _visit(member.initializer);
     } else {
       FunctionNode function = member.function;
 
-      final hasReceiver = hasReceiverArg(member);
       final firstParamIndex = hasReceiver ? 1 : 0;
 
       _summary = new Summary(
@@ -366,8 +377,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final List<Type> args = <Type>[];
     final List<String> names = <String>[];
 
-    if (hasReceiverArg(member) &&
-        (selector.callKind != CallKind.FieldInitializer)) {
+    if (hasReceiverArg(member)) {
       assertx(member.enclosingClass != null);
       Type receiver = new Type.cone(member.enclosingClass.rawType);
       args.add(receiver);
@@ -535,6 +545,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Type get _stringType =>
       _cachedStringType ??= new Type.cone(_environment.stringType);
 
+  Type _cachedSymbolType;
+  Type get _symbolType =>
+      _cachedSymbolType ??= new Type.cone(_environment.symbolType);
+
   Type _cachedNullType;
   Type get _nullType => _cachedNullType ??= new Type.nullable(new Type.empty());
 
@@ -618,17 +632,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final receiver = _visit(node.receiver);
     final args = new Args<TypeExpr>([receiver]);
     final target = node.target;
-    if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      return _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      // TODO(alexmarkov): Consider cleaning up this code as it duplicates
-      // processing in DirectInvocation.
-      // TODO(alexmarkov): capture receiver type
-      _entryPointsListener.addRawCall(new DirectSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(
+        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -678,8 +683,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitListLiteral(ListLiteral node) {
     node.expressions.forEach(_visit);
-    // TODO(alexmarkov): concrete type
-    return _staticType(node);
+    Class concreteClass =
+        target.concreteListLiteralClass(_environment.coreTypes);
+    return concreteClass != null
+        ? _entryPointsListener.addAllocatedClass(concreteClass)
+        : _staticType(node);
   }
 
   @override
@@ -695,8 +703,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       _visit(entry.key);
       _visit(entry.value);
     }
-    // TODO(alexmarkov): concrete type
-    return _staticType(node);
+    Class concreteClass =
+        target.concreteMapLiteralClass(_environment.coreTypes);
+    return concreteClass != null
+        ? _entryPointsListener.addAllocatedClass(concreteClass)
+        : _staticType(node);
   }
 
   @override
@@ -748,15 +759,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return _makeCall(
           node, new DynamicSelector(CallKind.PropertyGet, node.name), args);
     }
-    if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      return _makeCall(node,
-          new InterfaceSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      // TODO(alexmarkov): capture receiver type
-      _entryPointsListener.addRawCall(new InterfaceSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(node,
+        new InterfaceSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -815,17 +819,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (target == null) {
       return new Type.empty();
     } else {
-      if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-        return _makeCall(node,
-            new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-      } else {
-        // Tear-off.
-        // TODO(alexmarkov): Consider cleaning up this code as it duplicates
-        // processing in DirectInvocation.
-        // TODO(alexmarkov): capture receiver type
-        _entryPointsListener.addRawCall(new DirectSelector(target));
-        return _staticType(node);
-      }
+      return _makeCall(node,
+          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
     }
   }
 
@@ -866,14 +861,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitStaticGet(StaticGet node) {
     final args = new Args<TypeExpr>(const <TypeExpr>[]);
     final target = node.target;
-    if ((target is Field) || (target is Procedure) && target.isGetter) {
-      return _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      _entryPointsListener.addRawCall(new DirectSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(
+        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -1203,9 +1192,9 @@ class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
   final TypeEnvironment _environment;
   final SummaryCollector _summaryColector;
 
-  CreateAllSummariesVisitor(this._environment)
-      : _summaryColector = new SummaryCollector(_environment,
-            new EmptyEntryPointsListener(), new NativeCodeOracle(null));
+  CreateAllSummariesVisitor(Target target, this._environment)
+      : _summaryColector = new SummaryCollector(target, _environment,
+            new EmptyEntryPointsListener(), new NativeCodeOracle(null, null));
 
   @override
   defaultMember(Member m) {
@@ -1259,6 +1248,11 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   }
 
   @override
+  visitSymbolConstant(SymbolConstant constant) {
+    return summaryCollector._symbolType;
+  }
+
+  @override
   Type visitMapConstant(MapConstant node) {
     throw 'The kernel2kernel constants transformation desugars const maps!';
   }
@@ -1268,7 +1262,11 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     for (final Constant entry in constant.entries) {
       typeFor(entry);
     }
-    return new Type.cone(constant.getType(summaryCollector._environment));
+    Class concreteClass = summaryCollector.target
+        .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
+    return concreteClass != null
+        ? summaryCollector._entryPointsListener.addAllocatedClass(concreteClass)
+        : new Type.cone(constant.getType(summaryCollector._environment));
   }
 
   @override

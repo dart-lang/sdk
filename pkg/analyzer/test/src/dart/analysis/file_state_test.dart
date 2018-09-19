@@ -58,8 +58,15 @@ class FileSystemStateTest {
       new ResourceUriResolver(provider)
     ], null, provider);
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
-    fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
-        provider, sourceFactory, analysisOptions, new Uint32List(0));
+    fileSystemState = new FileSystemState(
+        logger,
+        byteStore,
+        contentOverlay,
+        provider,
+        sourceFactory,
+        analysisOptions,
+        new Uint32List(0),
+        new Uint32List(0));
   }
 
   test_definedClassMemberNames() {
@@ -351,6 +358,7 @@ class A2 {}
     expect(_excludeSdk(file.importedFiles), isEmpty);
     expect(file.exportedFiles, isEmpty);
     expect(file.partedFiles, isEmpty);
+    expect(file.libraryFiles, [file]);
     expect(_excludeSdk(file.directReferencedFiles), isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
@@ -468,6 +476,8 @@ class A1 {}
     expect(file.partedFiles, hasLength(1));
     expect(file.partedFiles[0].path, a4);
     expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
+
+    expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
 
@@ -649,22 +659,6 @@ class C {
     expect(apiSignatureChanged, isFalse);
 
     expect(file.apiSignature, signature);
-  }
-
-  test_store_zeroLengthUnlinked() {
-    String path = _p('/test.dart');
-    provider.newFile(path, 'class A {}');
-
-    // Get the file, prepare unlinked.
-    FileState file = fileSystemState.getFileForPath(path);
-    expect(file.unlinked, isNotNull);
-
-    // Make the unlinked unit in the byte store zero-length, damaged.
-    byteStore.put(file.test.unlinkedKey, <int>[]);
-
-    // Refresh should not fail, zero bytes in the store are ignored.
-    file.refresh();
-    expect(file.unlinked, isNotNull);
   }
 
   test_subtypedNames() {

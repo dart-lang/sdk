@@ -264,7 +264,7 @@ class ClassPropertyModel {
     // mock methods encodes information about the number of arguments (and type
     // arguments) that D expects.
     var element = type.element;
-    if (!hasNoSuchMethod(element)) return;
+    if (element.isMixin || !hasNoSuchMethod(element)) return;
 
     // Collect all unimplemented members.
     //
@@ -409,7 +409,8 @@ class ClassPropertyModel {
     for (var i in element.interfaces) {
       _collectNativeMembers(i, members);
     }
-    if (!type.isObject) {
+    var supertype = element.supertype;
+    if (supertype != null) {
       _collectNativeMembers(element.supertype, members);
     }
     if (element.isEnum) {

@@ -591,7 +591,6 @@ void Class::CheckReload(const Class& replacement,
   if (is_prefinalized()) {
     if (!CanReloadPreFinalized(replacement, context)) return;
   }
-  ASSERT(is_finalized() == replacement.is_finalized());
   TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n", ToCString(),
             id(), replacement.id());
 }

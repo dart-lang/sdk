@@ -63,9 +63,13 @@ class EnqueueTask extends CompilerTask {
 
   Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
-    return codegenEnqueuerForTesting = compiler.backend.createCodegenEnqueuer(
+    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(
         this, compiler, closedWorld, globalInferenceResults)
       ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
+    if (retainDataForTesting) {
+      codegenEnqueuerForTesting = enqueuer;
+    }
+    return enqueuer;
   }
 }
 

@@ -5,7 +5,7 @@
 part of dart.core;
 
 /**
- * The reserved words [:true:] and [:false:] denote objects that are the only
+ * The reserved words `true` and `false` denote objects that are the only two
  * instances of this class.
  *
  * It is a compile-time error for a class to attempt to extend or implement
@@ -23,21 +23,22 @@ class bool {
    * the result is the [defaultValue].
    *
    * The result is the same as would be returned by:
-   *
-   *     (const String.fromEnvironment(name) == "true")
-   *         ? true
-   *         : (const String.fromEnvironment(name) == "false")
-   *             ? false
-   *             : defaultValue
-   *
+   * ```dart
+   * (const String.fromEnvironment(name) == "true")
+   *     ? true
+   *     : (const String.fromEnvironment(name) == "false")
+   *         ? false
+   *         : defaultValue
+   * ```
    * Example:
-   *
-   *     const loggingFlag = const bool.fromEnvironment("logging");
-   *
+   * ```dart
+   * const loggingFlag = const bool.fromEnvironment("logging");
+   * ```
    * If you want to use a different truth-string than `"true"`, you can use the
    * [String.fromEnvironment] constructor directly:
-   *
-   *     const isLoggingOn = (const String.fromEnvironment("logging") == "on");
+   * ```dart
+   * const isLoggingOn = (const String.fromEnvironment("logging") == "on");
+   * ```
    */
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
@@ -50,9 +51,24 @@ class bool {
 
   external int get hashCode;
 
+  /// The logical conjuncton ("and") of this and [other].
+  ///
+  /// Returns `true` if both this and [other] are `true`, and `false` otherwise.
+  //TODO(lrn): Remove "as bool" in Dart 2.
+  bool operator &(bool other) => (other as bool) && this;
+
+  /// The logical disjunction ("inclusive or") of this and [other].
+  ///
+  /// Returns `true` if either this or [other] is `true`, and `false` otherwise.
+  bool operator |(bool other) => (other as bool) || this;
+
+  /// The logical exclusive disjuction ("exclusive or") of this and [other].
+  ///
+  /// Returns whether this and [other] are neither both `true` nor both `false`.
+  bool operator ^(bool other) => !(other as bool) == this;
+
   /**
-   * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the
-   * receiver is [:false:].
+   * Returns either `"true"` for `true` and `"false"` for `false`.
    */
   String toString() {
     return this ? "true" : "false";

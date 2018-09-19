@@ -42,6 +42,15 @@ class JSBool extends Interceptor implements bool {
   @notNull
   int get hashCode => this ? (2 * 3 * 23 * 3761) : (269 * 811);
 
+  @notNull
+  bool operator &(@nullCheck bool other) => JS('bool', "# && #", other, this);
+
+  @notNull
+  bool operator |(@nullCheck bool other) => JS('bool', "# || #", other, this);
+
+  @notNull
+  bool operator ^(@nullCheck bool other) => !identical(this, other);
+
   Type get runtimeType => bool;
 }
 

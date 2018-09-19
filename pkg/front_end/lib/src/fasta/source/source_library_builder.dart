@@ -34,15 +34,19 @@ import '../builder/builder.dart'
 
 import '../combinator.dart' show Combinator;
 
-import '../deprecated_problems.dart' show deprecated_inputError;
-
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        Message,
         messageConstructorWithWrongName,
         messageExpectedUri,
         messageMemberWithSameNameAsClass,
+        messagePartExport,
+        messagePartExportContext,
+        messagePartInPart,
+        messagePartInPartLibraryContext,
         messagePartOfSelf,
         messagePartOfTwoLibraries,
         messagePartOfTwoLibrariesContext,
@@ -83,6 +87,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<SourceLibraryBuilder<T, R>> parts = <SourceLibraryBuilder<T, R>>[];
 
+  // Can I use library.parts instead? See KernelLibraryBuilder.addPart.
+  final List<int> partOffsets = <int>[];
+
   final List<Import> imports = <Import>[];
 
   final List<Export> exports = <Export>[];
@@ -97,6 +104,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// for this library.
   @override
   final bool disableTypeInference;
+
+  final List<Object> accessors = <Object>[];
 
   String documentationComment;
 
@@ -116,6 +125,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
+  /// Non-null if this library causes an error upon access, that is, there was
+  /// an error reading its source.
+  Message accessProblem;
+
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
             scope ?? new Scope.top());
@@ -133,6 +146,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
+
+  @override
+  bool get isSynthetic => accessProblem != null;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
 
@@ -308,7 +324,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     } else {
       resolvedUri = resolve(this.uri, uri, uriOffset);
-      builder = loader.read(resolvedUri, charOffset, accessor: this);
+      builder = loader.read(resolvedUri, uriOffset, accessor: this);
     }
 
     imports.add(new Import(this, builder, deferred, prefix, combinators,
@@ -323,6 +339,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     newFileUri = resolve(fileUri, uri, charOffset);
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
+    partOffsets.add(charOffset);
   }
 
   void addPartOf(
@@ -580,19 +597,36 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     implementationBuilders.add([name, declaration, charOffset]);
   }
 
-  void validatePart() {
-    if (parts.isNotEmpty) {
-      deprecated_inputError(fileUri, -1,
-          "A file that's a part of a library can't have parts itself.");
+  void validatePart(SourceLibraryBuilder library, Set<Uri> usedParts) {
+    if (library != null && parts.isNotEmpty) {
+      // If [library] is null, we have already reported a problem that this
+      // part is orphaned.
+      List<LocatedMessage> context = <LocatedMessage>[
+        messagePartInPartLibraryContext.withLocation(library.fileUri, 0, 1),
+      ];
+      for (int offset in partOffsets) {
+        addProblem(messagePartInPart, offset, noLength, fileUri,
+            context: context);
+      }
+      for (SourceLibraryBuilder part in parts) {
+        // Mark this part as used so we don't report it as orphaned.
+        usedParts.add(part.uri);
+      }
     }
+    parts.clear();
     if (exporters.isNotEmpty) {
-      Export export = exporters.first;
-      deprecated_inputError(
-          export.fileUri, export.charOffset, "A part can't be exported.");
+      List<LocatedMessage> context = <LocatedMessage>[
+        messagePartExportContext.withLocation(fileUri, 0, 1),
+      ];
+      for (Export export in exporters) {
+        export.exporter.addProblem(
+            messagePartExport, export.charOffset, "export".length, null,
+            context: context);
+      }
     }
   }
 
-  void includeParts() {
+  void includeParts(Set<Uri> usedParts) {
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts) {
       if (part == this) {
@@ -607,7 +641,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          includePart(part);
+          usedParts.add(part.uri);
+          includePart(part, usedParts);
         }
       } else {
         addProblem(templatePartTwice.withArguments(part.fileUri), -1, noLength,
@@ -616,7 +651,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  void includePart(SourceLibraryBuilder<T, R> part) {
+  void includePart(SourceLibraryBuilder<T, R> part, Set<Uri> usedParts) {
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
@@ -656,6 +691,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             noLength, fileUri);
       }
     }
+    part.validatePart(this, usedParts);
     part.forEach((String name, Declaration declaration) {
       if (declaration.next != null) {
         // TODO(ahe): This shouldn't be necessary as setters have been added to
@@ -758,6 +794,33 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Declaration member) {
       member.instrumentTopLevelInference(instrumentation);
     });
+  }
+
+  @override
+  void recordAccess(int charOffset, int length, Uri fileUri) {
+    accessors.add(fileUri);
+    accessors.add(charOffset);
+    accessors.add(length);
+    if (accessProblem != null) {
+      addProblem(accessProblem, charOffset, length, fileUri);
+    }
+  }
+
+  void addProblemAtAccessors(Message message) {
+    if (accessProblem == null) {
+      if (accessors.isEmpty && this == loader.first) {
+        // This is the entry point library, and nobody access it directly. So
+        // we need to report a problem.
+        loader.addProblem(message, -1, 1, null);
+      }
+      for (int i = 0; i < accessors.length; i += 3) {
+        Uri accessor = accessors[i];
+        int charOffset = accessors[i + 1];
+        int length = accessors[i + 2];
+        addProblem(message, charOffset, length, accessor);
+      }
+      accessProblem = message;
+    }
   }
 }
 

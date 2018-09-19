@@ -283,7 +283,7 @@ class InheritanceManager {
     }
     InterfaceType supertype = classElt.supertype;
     if (supertype == null) {
-      // classElt is Object
+      // classElt is Object or a mixin
       _classLookup[classElt] = resultMap;
       return resultMap;
     }
@@ -380,9 +380,8 @@ class InheritanceManager {
     // functionality in InheritanceManagerTest
     chain.add(currentType);
     ClassElement classElt = currentType.element;
-    InterfaceType supertype = classElt.supertype;
     // Base case- reached Object
-    if (supertype == null) {
+    if (currentType.isObject) {
       // Looked up the chain all the way to Object, return null.
       // This should never happen.
       return;
@@ -411,14 +410,23 @@ class InheritanceManager {
       }
     }
     // Superclass
-    ClassElement superclassElt = supertype.element;
-    if (lookupMember(superclassElt, memberName) != null) {
+    InterfaceType supertype = classElt.supertype;
+    if (supertype != null &&
+        lookupMember(supertype.element, memberName) != null) {
       _computeInheritancePath(chain, supertype, memberName);
       return;
     }
+    // Superclass constraints
+    for (InterfaceType interfaceType in classElt.superclassConstraints) {
+      ClassElement interfaceElement = interfaceType.element;
+      if (interfaceElement != null &&
+          lookupMember(interfaceElement, memberName) != null) {
+        _computeInheritancePath(chain, interfaceType, memberName);
+        return;
+      }
+    }
     // Interfaces
-    List<InterfaceType> interfaces = classElt.interfaces;
-    for (InterfaceType interfaceType in interfaces) {
+    for (InterfaceType interfaceType in classElt.interfaces) {
       ClassElement interfaceElement = interfaceType.element;
       if (interfaceElement != null &&
           lookupMember(interfaceElement, memberName) != null) {
@@ -585,110 +593,54 @@ class InheritanceManager {
    */
   List<Map<String, ExecutableElement>> _gatherInterfaceLookupMaps(
       ClassElement classElt, HashSet<ClassElement> visitedInterfaces) {
-    InterfaceType supertype = classElt.supertype;
-    ClassElement superclassElement = supertype?.element;
-    List<InterfaceType> mixins = classElt.mixins;
-    List<InterfaceType> interfaces = classElt.interfaces;
-    // Recursively collect the list of mappings from all of the interface types
     List<Map<String, ExecutableElement>> lookupMaps =
         new List<Map<String, ExecutableElement>>();
-    //
-    // Superclass element
-    //
-    if (superclassElement != null) {
-      if (!visitedInterfaces.contains(superclassElement)) {
-        try {
-          visitedInterfaces.add(superclassElement);
-          //
-          // Recursively compute the map for the super type.
-          //
-          Map<String, ExecutableElement> map =
-              _computeInterfaceLookupMap(superclassElement, visitedInterfaces);
-          map = new Map<String, ExecutableElement>.from(map);
-          //
-          // Substitute the super type down the hierarchy.
-          //
-          _substituteTypeParametersDownHierarchy(supertype, map);
-          //
-          // Add any members from the super type into the map as well.
-          //
-          _recordMapWithClassMembers(map, supertype, true);
-          lookupMaps.add(map);
-        } finally {
-          visitedInterfaces.remove(superclassElement);
-        }
-      } else {
-        return null;
+    bool hasProblem = false;
+
+    void recordInterface(InterfaceType type) {
+      ClassElement element = type.element;
+      if (!visitedInterfaces.add(element)) {
+        hasProblem = true;
+        return;
+      }
+      try {
+        //
+        // Recursively compute the map for the interfaces.
+        //
+        Map<String, ExecutableElement> map =
+            _computeInterfaceLookupMap(element, visitedInterfaces);
+        map = new Map<String, ExecutableElement>.from(map);
+        //
+        // Substitute the supertypes down the hierarchy.
+        //
+        _substituteTypeParametersDownHierarchy(type, map);
+        //
+        // And any members from the interface into the map as well.
+        //
+        _recordMapWithClassMembers(map, type, true);
+        lookupMaps.add(map);
+      } finally {
+        visitedInterfaces.remove(element);
       }
     }
-    //
-    // Mixin elements
-    //
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      InterfaceType mixinType = mixins[i];
-      ClassElement mixinElement = mixinType.element;
-      if (mixinElement != null) {
-        if (!visitedInterfaces.contains(mixinElement)) {
-          try {
-            visitedInterfaces.add(mixinElement);
-            //
-            // Recursively compute the map for the mixin.
-            //
-            Map<String, ExecutableElement> map =
-                _computeInterfaceLookupMap(mixinElement, visitedInterfaces);
-            map = new Map<String, ExecutableElement>.from(map);
-            //
-            // Substitute the mixin type down the hierarchy.
-            //
-            _substituteTypeParametersDownHierarchy(mixinType, map);
-            //
-            // Add any members from the mixin type into the map as well.
-            //
-            _recordMapWithClassMembers(map, mixinType, true);
-            lookupMaps.add(map);
-          } finally {
-            visitedInterfaces.remove(mixinElement);
-          }
-        } else {
-          return null;
-        }
+
+    void recordInterfaces(List<InterfaceType> types) {
+      for (int i = types.length - 1; i >= 0; i--) {
+        InterfaceType type = types[i];
+        recordInterface(type);
       }
     }
-    //
-    // Interface elements
-    //
-    int interfaceLength = interfaces.length;
-    for (int i = 0; i < interfaceLength; i++) {
-      InterfaceType interfaceType = interfaces[i];
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null) {
-        if (!visitedInterfaces.contains(interfaceElement)) {
-          try {
-            visitedInterfaces.add(interfaceElement);
-            //
-            // Recursively compute the map for the interfaces.
-            //
-            Map<String, ExecutableElement> map =
-                _computeInterfaceLookupMap(interfaceElement, visitedInterfaces);
-            map = new Map<String, ExecutableElement>.from(map);
-            //
-            // Substitute the supertypes down the hierarchy
-            //
-            _substituteTypeParametersDownHierarchy(interfaceType, map);
-            //
-            // And add any members from the interface into the map as well.
-            //
-            _recordMapWithClassMembers(map, interfaceType, true);
-            lookupMaps.add(map);
-          } finally {
-            visitedInterfaces.remove(interfaceElement);
-          }
-        } else {
-          return null;
-        }
-      }
+
+    InterfaceType superType = classElt.supertype;
+    if (superType != null) {
+      recordInterface(superType);
     }
-    if (lookupMaps.isEmpty) {
+
+    recordInterfaces(classElt.mixins);
+    recordInterfaces(classElt.superclassConstraints);
+    recordInterfaces(classElt.interfaces);
+
+    if (hasProblem || lookupMaps.isEmpty) {
       return null;
     }
     return lookupMaps;

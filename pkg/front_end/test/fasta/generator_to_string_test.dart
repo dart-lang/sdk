@@ -228,9 +228,7 @@ main() {
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
-    check(
-        "TypeUseGenerator(offset: 4, expression: T,"
-        " plainNameForRead: foo, value: null)",
+    check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
         new KernelTypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new KernelUnresolvedNameGenerator(helper, token, name));

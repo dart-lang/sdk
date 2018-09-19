@@ -1,10 +1,15 @@
 # Dart 2 function return checking
 
-leafp@google.com
+**Owner**: leafp@google.com
+
+**Status**: Implemented.
+
+Status: Ready for implementation
 
 **Note: Also see alternative presentation at the bottom for a dual presentation
 of these rules in terms of which things are errors, rather than which things are
 valid*.*
+
 
 ## Errors for sync and async function return values in Dart 2
 

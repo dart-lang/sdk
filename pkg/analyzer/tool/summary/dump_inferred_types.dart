@@ -40,7 +40,7 @@ class InferredTypeCollector {
 
   InferredTypeCollector(
       GetDependencyCallback getDependency, GetUnitCallback getUnit)
-      : _linker = new Linker({}, getDependency, getUnit);
+      : _linker = new Linker({}, getDependency, getUnit, null);
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the

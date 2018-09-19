@@ -1884,6 +1884,13 @@ table UnlinkedClass {
   superclassConstraints:[EntityRef] (id: 14);
 
   /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  superInvokedNames:[string] (id: 15);
+
+  /**
    * Supertype of the class, or `null` if either (a) the class doesn't
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).

@@ -19,7 +19,7 @@ UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {
   Token token = scanResult.tokens;
 
   // Parse directives.
-  var listener = new DirectiveListener();
+  var listener = new _UnlinkedDirectiveListener();
   new TopLevelParser(listener).parseUnit(token);
 
   // Parse to record function bodies.
@@ -54,7 +54,7 @@ UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {
       imports: listener.imports.map(_toUnlinkedNamespaceDirective).toList(),
       exports: listener.exports.map(_toUnlinkedNamespaceDirective).toList(),
       parts: listener.parts.toList(),
-      hasMixinApplication: parser.hasMixin);
+      hasMixinApplication: listener.hasMixin);
 }
 
 /// Exclude all `native 'xyz';` token sequences.
@@ -107,7 +107,6 @@ class _BodyRange {
 
 /// The [Parser] that skips function bodies and remembers their token ranges.
 class _BodySkippingParser extends Parser {
-  bool hasMixin = false;
   final List<_BodyRange> bodyRanges = [];
 
   _BodySkippingParser() : super(new Listener());
@@ -126,9 +125,20 @@ class _BodySkippingParser extends Parser {
 
   @override
   Token parseInvalidBlock(Token token) => skipBlock(token);
+}
 
-  Token parseMixinApplicationRest(Token token) {
+class _UnlinkedDirectiveListener extends DirectiveListener {
+  bool hasMixin = false;
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
     hasMixin = true;
-    return super.parseMixinApplicationRest(token);
+    super.handleClassWithClause(withKeyword);
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    hasMixin = true;
+    super.handleNamedMixinApplicationWithClause(withKeyword);
   }
 }

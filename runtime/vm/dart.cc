@@ -92,7 +92,7 @@ static void CheckOffsets() {
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 56);
+  CHECK_OFFSET(Thread::object_null_offset(), 64);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
@@ -101,7 +101,7 @@ static void CheckOffsets() {
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
-  CHECK_OFFSET(Thread::object_null_offset(), 104);
+  CHECK_OFFSET(Thread::object_null_offset(), 112);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 56);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
@@ -135,6 +135,30 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     FLAG_verify_gc_contains = true;
   }
 #endif
+
+  if (FLAG_use_bytecode_compiler) {
+    // Interpreter is not able to trigger compilation yet.
+    // TODO(alexmarkov): Revise
+    FLAG_enable_interpreter = false;
+  }
+
+  if (FLAG_enable_interpreter) {
+#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+    return strdup(
+        "--enable-interpreter is not supported when targeting "
+        "a sim* architecture.");
+#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+
+#if defined(TARGET_OS_WINDOWS)
+    // TODO(34393): The interpreter currently relies on computed gotos, which
+    // aren't supported on Windows.
+    return strdup("--enable-interpreter is not supported on Windows.");
+#endif  // defined(TARGET_OS_WINDOWS)
+
+    FLAG_use_field_guards = false;
+    FLAG_optimization_counter_threshold = -1;
+  }
+
   FrameLayout::InitOnce();
 
   set_thread_exit_callback(thread_exit);
@@ -676,7 +700,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   // isolate is always initialized from a vm_snapshot generated in non strong
   // mode.
   if (!is_vm_isolate) {
-    ADD_FLAG(strong, strong, FLAG_strong);
+    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
   }
 
   if (Snapshot::IncludesCode(kind)) {
@@ -688,9 +712,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
              FLAG_error_on_bad_override);
     // sync-async and reify_generic_functions also affect deopt_ids.
-    ADD_FLAG(sync_async, sync_async, FLAG_sync_async);
-    ADD_FLAG(reify_generic_functions, reify_generic_functions,
-             FLAG_reify_generic_functions);
+    buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
+    buffer.AddString(FLAG_reify_generic_functions
+                         ? " reify_generic_functions"
+                         : " no-reify_generic_functions");
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -714,10 +739,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(" x64-win");
 #else
     buffer.AddString(" x64-sysv");
-#endif
-
-#if defined(DART_USE_INTERPRETER)
-    buffer.AddString(" kbc");
 #endif
 
 #elif defined(TARGET_ARCH_DBC)
@@ -766,6 +787,9 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();
+  if (KernelIsolate::IsKernelIsolate(isolate)) {
+    KernelIsolate::SetKernelIsolate(NULL);
+  }
   delete isolate;
 }
 

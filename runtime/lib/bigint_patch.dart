@@ -1091,6 +1091,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
   /// process digit pairs at even indices and returns 2.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int _mulAdd(
       Uint32List xDigits,
       int xIndex,
@@ -1141,6 +1142,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
   /// process digit pairs at even indices and returns 2.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int _sqrAdd(
       Uint32List xDigits, int i, Uint32List acculumatorDigits, int used) {
     int x = xDigits[i];
@@ -1261,6 +1263,7 @@ class _BigIntImpl implements BigInt {
   /// Estimate `args[_quotientDigit.._quotientHighDigit] = digits[i-3..i] ~/
   /// args[_divisorLowTopDigit.._divisorTopDigit]`.
   /// Returns 2.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int _estimateQuotientDigit(Uint32List args, Uint32List digits, int i) {
     // Verify that digit pairs are accessible for 64-bit processing.
     assert(digits.length >= 4);
@@ -2596,6 +2599,7 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   //   args[_muDigit.._muHighDigit] =
   //     args[_rhoDigit.._rhoHighDigit] * digits[i..i+1] mod _digitBase^2.
   //   Returns 2.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int _mulMod(Uint32List args, Uint32List digits, int i) {
     var rhol = args[_rhoDigit] & _BigIntImpl._halfDigitMask;
     var rhoh = args[_rhoDigit] >> _BigIntImpl._halfDigitBits;

@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -86,23 +87,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.abstract = node.isAbstract;
-    element.accessors = holder.accessors;
-    List<ConstructorElement> constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      constructors = _createDefaultConstructors(element);
-    }
-    element.constructors = constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    _currentHolder.addType(element);
     className.staticElement = element;
-    _fieldMap = null;
-    holder.validate();
+    element.abstract = node.isAbstract;
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addType(element);
+
     return null;
   }
 
@@ -591,17 +581,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
     SimpleIdentifier nameNode = node.name;
     MixinElementImpl element = new MixinElementImpl.forNode(nameNode);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.accessors = holder.accessors;
-    element.constructors = holder.constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    _currentHolder.addMixin(element);
     nameNode.staticElement = element;
-    holder.validate();
+    _fillClassElement(node, element, holder);
+
+    _currentHolder.addMixin(element);
+
     return null;
   }
 
@@ -716,6 +700,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       }
     } finally {
       _currentHolder = previousHolder;
+      _fieldMap = null;
     }
     return holder;
   }
@@ -768,6 +753,27 @@ class ApiElementBuilder extends _BaseElementBuilder {
       typeArguments[i] = typeParameterType;
     }
     return typeArguments;
+  }
+
+  void _fillClassElement(
+      AnnotatedNode node, ClassElementImpl element, ElementHolder holder) {
+    _setCodeRange(element, node);
+    setElementDocumentationComment(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+
+    element.accessors = holder.accessors;
+
+    List<ConstructorElement> constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      constructors = _createDefaultConstructors(element);
+    }
+    element.constructors = constructors;
+
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
+
+    holder.validate();
   }
 
   @override
@@ -1063,6 +1069,10 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  * model representing the AST structure.
  */
 class ElementBuilder extends ApiElementBuilder {
+  /// List of names of methods, getters, setters, and operators that are
+  /// super-invoked in the current mixin declaration.
+  Set<String> _mixinSuperInvokedNames;
+
   /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
@@ -1093,6 +1103,18 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    _mixinSuperInvokedNames = new Set<String>();
+    try {
+      return super.visitMixinDeclaration(node);
+    } finally {
+      MixinElementImpl element = node.declaredElement;
+      element.superInvokedNames = _mixinSuperInvokedNames.toList();
+      _mixinSuperInvokedNames = null;
+    }
+  }
+
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElementImpl element = node.declaredElement as VariableElementImpl;
@@ -1100,8 +1122,12 @@ class ElementBuilder extends ApiElementBuilder {
     return null;
   }
 
-  void _buildLocal(AstNode node) {
-    node.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+  void _buildLocal(FunctionBody body) {
+    body.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+    // This is not efficient - we visit AST second time.
+    if (_mixinSuperInvokedNames != null) {
+      body.accept(new MixinSuperInvokedNamesCollector(_mixinSuperInvokedNames));
+    }
   }
 }
 

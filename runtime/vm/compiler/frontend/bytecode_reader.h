@@ -9,7 +9,6 @@
 #include "vm/object.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#if defined(DART_USE_INTERPRETER)
 
 namespace dart {
 namespace kernel {
@@ -33,8 +32,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
                            intptr_t from_index);
   RawCode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Code& bytecode);
-  RawNativeEntryData* NativeEntry(const Function& function,
-                                  const String& external_name);
+  RawTypedData* NativeEntry(const Function& function,
+                            const String& external_name);
 
   TypeTranslator& type_translator_;
   ActiveClass* const active_class_;
@@ -45,6 +44,5 @@ class BytecodeMetadataHelper : public MetadataHelper {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_BYTECODE_READER_H_

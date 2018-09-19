@@ -19,6 +19,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_interpreter);
+
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
@@ -114,7 +116,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Isolate::Current()->strong() && FLAG_precompiled_mode) {
+  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -126,17 +128,24 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
-#if defined(DART_USE_INTERPRETER)
-    // The function is not compiled yet. Interpret it if it has bytecode.
-    // The bytecode is loaded as part as an aborted compilation step.
-    if (!function.HasBytecode()) {
+    // There's no native code. If we're not using the interpreter, then we
+    // compile to native code. If we are using the interpreter, but there's no
+    // native code and no bytecode, then we invoke the compiler to extract the
+    // bytecode.
+    if (!FLAG_enable_interpreter || !function.HasBytecode()) {
       const Object& result =
           Object::Handle(zone, Compiler::CompileFunction(thread, function));
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
     }
+
+    // At this point we should have either native code or bytecode.
+    ASSERT(function.HasCode() || function.HasBytecode());
+
+    // If we have bytecode but no native code then invoke the interpreter.
     if (!function.HasCode() && function.HasBytecode()) {
       ASSERT(thread->no_callback_scope_depth() == 0);
       SuspendLongJumpScope suspend_long_jump_scope(thread);
@@ -144,14 +153,9 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       return Interpreter::Current()->Call(function, arguments_descriptor,
                                           arguments, thread);
     }
-#else
-    const Object& result =
-        Object::Handle(zone, Compiler::CompileFunction(thread, function));
-    if (result.IsError()) {
-      return Error::Cast(result).raw();
-    }
-#endif
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)
   invokestub entrypoint = reinterpret_cast<invokestub>(
@@ -333,6 +337,26 @@ intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
                                         const String& other) const {
   return NameAt(index) == other.raw();
+}
+
+RawArray* ArgumentsDescriptor::GetArgumentNames() const {
+  const intptr_t num_named_args = NamedCount();
+  if (num_named_args == 0) {
+    return Array::null();
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  const Array& names =
+      Array::Handle(zone, Array::New(num_named_args, Heap::kOld));
+  String& name = String::Handle(zone);
+  const intptr_t num_pos_args = PositionalCount();
+  for (intptr_t i = 0; i < num_named_args; ++i) {
+    const intptr_t index = PositionAt(i) - num_pos_args;
+    name = NameAt(i);
+    ASSERT(names.At(index) == Object::null());
+    names.SetAt(index, name);
+  }
+  return names.raw();
 }
 
 intptr_t ArgumentsDescriptor::type_args_len_offset() {

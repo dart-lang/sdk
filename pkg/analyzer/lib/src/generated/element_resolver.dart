@@ -593,8 +593,31 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               _computeCorrespondingParameters(node.argumentList, staticType);
           return null;
         }
-        staticElement = _resolveInvokedElementWithTarget(
-            target, staticType, methodName, isConditional);
+
+        if (target is SuperExpression) {
+          if (staticType is InterfaceTypeImpl) {
+            staticElement = staticType.lookUpInheritedMember(
+                methodName.name, _definingLibrary,
+                concrete: true);
+            // We were not able to find the concrete dispatch target.
+            // But we would like to give the user at least some resolution.
+            // So, we retry without the "concrete" requirement.
+            if (staticElement == null) {
+              staticElement = staticType.lookUpInheritedMember(
+                  methodName.name, _definingLibrary,
+                  concrete: false);
+              if (staticElement != null) {
+                _resolver.errorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                    methodName,
+                    [staticElement.kind.displayName, methodName.name]);
+              }
+            }
+          }
+        } else {
+          staticElement = _resolveInvokedElementWithTarget(
+              target, staticType, methodName, isConditional);
+        }
       }
     }
 
@@ -696,8 +719,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Generate the type name.
       // The error code will never be generated via type propagation
       DartType getSuperType(DartType type) {
-        if (type is InterfaceType && !type.isObject) {
-          return type.superclass;
+        if (type is InterfaceType) {
+          InterfaceType superclass = type.superclass;
+          if (superclass != null) return superclass;
         }
         return type;
       }
@@ -784,7 +808,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element == null) {
         if (identifier.inSetterContext()) {
           _resolver.errorReporter.reportErrorForNode(
-              StaticWarningCode.UNDEFINED_SETTER,
+              StaticTypeWarningCode.UNDEFINED_SETTER,
               identifier,
               [identifier.name, prefixElement.name]);
           return null;
@@ -797,7 +821,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               [identifier.name]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
-              StaticWarningCode.UNDEFINED_GETTER,
+              StaticTypeWarningCode.UNDEFINED_GETTER,
               identifier,
               [identifier.name, prefixElement.name]);
         }
@@ -2064,7 +2088,29 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       staticElement = _resolveElement(typeReference, propertyName);
     } else {
-      staticElement = _resolveProperty(target, staticType, propertyName);
+      if (target is SuperExpression) {
+        if (staticType is InterfaceTypeImpl) {
+          staticElement = staticType.lookUpInheritedMember(
+              propertyName.name, _definingLibrary,
+              setter: propertyName.inSetterContext(), concrete: true);
+          // We were not able to find the concrete dispatch target.
+          // But we would like to give the user at least some resolution.
+          // So, we retry without the "concrete" requirement.
+          if (staticElement == null) {
+            staticElement = staticType.lookUpInheritedMember(
+                propertyName.name, _definingLibrary,
+                setter: propertyName.inSetterContext(), concrete: false);
+            if (staticElement != null) {
+              _resolver.errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                  propertyName,
+                  [staticElement.kind.displayName, propertyName.name]);
+            }
+          }
+        }
+      } else {
+        staticElement = _resolveProperty(target, staticType, propertyName);
+      }
     }
     // May be part of annotation, record property element only if exists.
     // Error was already reported in validateAnnotationElement().
@@ -2103,17 +2149,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode errorCode;
         var arguments = [propertyName.name, staticType.displayName];
         if (target is SuperExpression) {
-          if (isStaticProperty && !staticType.isVoid) {
-            errorCode = StaticWarningCode.UNDEFINED_SUPER_SETTER;
-          } else {
-            errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
-          }
+          errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
         } else {
           if (staticType.isVoid) {
             errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
             arguments = [];
-          } else if (isStaticProperty) {
-            errorCode = StaticWarningCode.UNDEFINED_SETTER;
           } else {
             errorCode = StaticTypeWarningCode.UNDEFINED_SETTER;
           }
@@ -2124,17 +2164,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode errorCode;
         var arguments = [propertyName.name, staticType.displayName];
         if (target is SuperExpression) {
-          if (isStaticProperty && !staticType.isVoid) {
-            errorCode = StaticWarningCode.UNDEFINED_SUPER_GETTER;
-          } else {
-            errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
-          }
+          errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
         } else {
           if (staticType.isVoid) {
             errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
             arguments = [];
-          } else if (isStaticProperty) {
-            errorCode = StaticWarningCode.UNDEFINED_GETTER;
           } else {
             errorCode = StaticTypeWarningCode.UNDEFINED_GETTER;
           }

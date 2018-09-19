@@ -128,7 +128,7 @@ abstract class _StructuredClone {
       // non-native properties or methods from interceptors and such, e.g.
       // an immutability marker. So we  had to stop doing that.
       var slot = findSlot(e);
-      var copy = JS('List|Null', '#', readSlot(slot));
+      var copy = JS('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
       copy = copyList(e, slot);
       return copy;
@@ -237,9 +237,9 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptArray(e)) {
-      var l = JS('List', '#', e);
+      var l = JS('returns:List;creates:;', '#', e);
       var slot = findSlot(l);
-      var copy = JS('List|Null', '#', readSlot(slot));
+      var copy = JS('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
 
       int length = l.length;

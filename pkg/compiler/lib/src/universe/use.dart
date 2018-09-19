@@ -24,6 +24,7 @@ import '../js_model/closure.dart';
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
+import 'world_builder.dart' show StrongModeConstraint;
 
 enum DynamicUseKind {
   INVOKE,
@@ -42,6 +43,15 @@ class DynamicUse {
   /// Short textual representation use for testing.
   String get shortText {
     StringBuffer sb = new StringBuffer();
+    if (receiverConstraint != null) {
+      var constraint = receiverConstraint;
+      if (constraint is StrongModeConstraint) {
+        sb.write(constraint.cls.name);
+      } else {
+        sb.write(constraint);
+      }
+      sb.write('.');
+    }
     sb.write(selector.name);
     if (typeArguments != null && typeArguments.isNotEmpty) {
       sb.write('<');

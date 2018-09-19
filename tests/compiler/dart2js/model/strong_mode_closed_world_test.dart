@@ -7,12 +7,10 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 main() {
-  useStrongModeWorldStrategy = true;
   asyncTest(() async {
     await runTest();
   });
@@ -113,6 +111,18 @@ class Q {
 
 class R extends Q {}
 
+class Class1a {
+  call(a, b, c) {} // Call structure only used in Class1a and Class2b.
+}
+
+class Class1b {
+  call(a, b, c) {}
+}
+
+class Class2 {
+  Class1a c;
+}
+
 main() {
   A a = new A();
   B b = new B();
@@ -134,6 +144,9 @@ main() {
   R r;
   r.method3();
   r = new R(); // Create R after call.
+  new Class1a();
+  new Class1b();
+  new Class2().c(0, 1, 2);
 }
 '''
   });
@@ -151,6 +164,9 @@ main() {
     'N': [],
     'P': ['method1', 'getter', 'setter'],
     'Q': ['method3'],
+    'Class1a': ['call'],
+    'Class1b': [],
+    'Class2': ['c'],
   };
 
   KClosedWorld closedWorld =

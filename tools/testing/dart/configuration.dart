@@ -41,6 +41,7 @@ class TestConfiguration {
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
+      this.writeResults,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -91,6 +92,7 @@ class TestConfiguration {
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
+  final bool writeResults;
   final bool printPassingStdout;
 
   Architecture get architecture => configuration.architecture;
@@ -417,10 +419,9 @@ class TestConfiguration {
     var os = '';
     if (system == System.android) os = "Android";
 
-    var kbc = useKernelBytecode ? 'KBC' : '';
     var arch = architecture.name.toUpperCase();
-    var normal = '$modeName$os$arch$kbc';
-    var cross = '$modeName${os}X$arch$kbc';
+    var normal = '$modeName$os$arch';
+    var cross = '$modeName${os}X$arch';
     var outDir = system.outputDirectory;
     var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
     var crossDir = new Directory(new Path('$outDir$cross').toNativePath());

@@ -12,13 +12,6 @@
 #define USING_DBC false
 #endif
 
-// Don't use USING_KBC outside of this file.
-#if defined(DART_USE_INTERPRETER)
-#define USING_KBC true
-#else
-#define USING_KBC false
-#endif
-
 // Don't use USING_MULTICORE outside of this file.
 #if defined(ARCH_IS_MULTI_CORE)
 #define USING_MULTICORE true
@@ -132,7 +125,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
-  P(optimization_counter_threshold, int, USING_KBC ? -1 : 30000,               \
+  P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \
@@ -163,13 +156,13 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
-  P(reify_generic_functions, bool, false,                                      \
+  P(reify_generic_functions, bool, true,                                       \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
+  P(strong, bool, true, "Enable strong mode.")                                 \
+  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
@@ -192,10 +185,11 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
+  C(use_bytecode_compiler, false, false, bool, false, "Compile from bytecode") \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
-  P(use_field_guards, bool, !USING_DBC && !USING_KBC,                          \
+  P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
@@ -211,9 +205,12 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \
-  P(enable_multiple_entrypoints, bool, true,                                   \
+  P(enable_multiple_entrypoints, bool, false,                                  \
     "Enable multiple entrypoints per-function and related optimizations.")     \
   R(enable_testing_pragmas, false, bool, false,                                \
-    "Enable magical pragmas for testing purposes. Use at your own risk!")
+    "Enable magical pragmas for testing purposes. Use at your own risk!")      \
+  R(eliminate_type_checks, true, bool, true,                                   \
+    "Eliminate type checks when allowed by static type analysis.")             \
+  P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

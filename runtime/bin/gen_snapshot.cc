@@ -1030,10 +1030,8 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
     int64_t entries = ParseEntryPointsManifestLines(file, NULL);
     fclose(file);
 
-    if (entries <= 0) {
-      Log::PrintErr(
-          "Manifest file `%s` specified is invalid or contained no entries\n",
-          path);
+    if (entries < 0) {
+      Log::PrintErr("Manifest file `%s` specified is invalid\n", path);
       return NULL;
     }
 

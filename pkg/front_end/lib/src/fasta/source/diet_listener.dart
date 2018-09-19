@@ -12,7 +12,6 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         LibraryPart,
-        Node,
         TreeNode,
         VariableDeclaration;
 
@@ -34,9 +33,12 @@ import '../deprecated_problems.dart'
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        Code,
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
+
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -51,9 +53,6 @@ import '../parser.dart' show Assert, MemberKind, Parser, optional;
 import '../problems.dart' show DebugAbort, internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
-
-import '../type_inference/type_inference_listener.dart'
-    show KernelTypeInferenceListener, TypeInferenceListener;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -163,8 +162,18 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    debugEvent("MixinApplication");
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    debugEvent("ClassNoWithClause");
   }
 
   @override
@@ -561,16 +570,13 @@ class DietListener extends StackListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope,
-      TypeInferenceListener<int, Node, int> listener]) {
-    listener ??= new KernelTypeInferenceListener();
+      [Scope formalParameterScope]) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(
-            uri, listener, thisType, library);
+        : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
@@ -683,6 +689,12 @@ class DietListener extends StackListener {
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty(beginToken.charOffset);
+  }
+
+  @override
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+    debugEvent("MixinDeclaration");
+    checkEmpty(mixinKeyword.charOffset);
   }
 
   @override
@@ -908,5 +920,11 @@ class DietListener extends StackListener {
       }
     }
     return result;
+  }
+
+  @override
+  bool isIgnoredError(Code code, Token token) {
+    return isIgnoredParserError(code, token) ||
+        super.isIgnoredError(code, token);
   }
 }

@@ -21,6 +21,8 @@ import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
+
+import 'analyzer_to_kernel.dart';
 import 'compiler.dart';
 import 'target.dart';
 
@@ -129,12 +131,13 @@ Future<CompilerResult> _compile(List<String> args,
 
   var options = SharedCompilerOptions.fromArguments(argResults);
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
+  var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
-      options.summaryModules.keys.map(sourcePathToUri),
-      options.summaryModules.values);
-
-  var sdkSummaryPath =
-      argResults['dart-sdk-summary'] as String ?? defaultSdkSummaryPath;
+      summaryPaths.map(sourcePathToUri), options.summaryModules.values);
+  var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
+  var sdkSummaryPath = argResults['dart-sdk-summary'] as String ??
+      (useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath);
+  useAnalyzer = useAnalyzer || !sdkSummaryPath.endsWith('.dill');
 
   var packageFile = argResults['packages'] as String ??
       path.absolute(ddcPath, '..', '..', '.packages');
@@ -156,6 +159,22 @@ Future<CompilerResult> _compile(List<String> args,
       summaryModules.keys.toList(),
       DevCompilerTarget(),
       fileSystem: fileSystem);
+
+  var output = argResults['out'] as String;
+  // TODO(jmesserly): is there a cleaner way to do this?
+  //
+  // Ideally we'd manage our own batch compilation caching rather than rely on
+  // `initializeCompiler`. Also we should be able to pass down Components for
+  // SDK and summaries.
+  //
+  if (useAnalyzer && !identical(oldCompilerState, compilerState)) {
+    var opts = compilerState.processedOpts;
+    var converter = AnalyzerToKernel(sdkSummaryPath, summaryPaths);
+    opts.sdkSummaryComponent = converter.convertSdk();
+    opts.inputSummariesComponents = converter.convertSummaries();
+    converter.dispose();
+  }
+
   fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
   if (result == null || !succeeded) {
     return CompilerResult(compilerState, false);
@@ -166,7 +185,6 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(compilerState, false);
   }
 
-  String output = argResults['out'];
   var file = File(output);
   await file.parent.create(recursive: true);
 
@@ -193,7 +211,6 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.Printer(sink, showExternal: false).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
-
   var compiler = ProgramCompiler(component, options, declaredVariables);
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryModules);
@@ -306,6 +323,12 @@ final defaultSdkSummaryPath = path.join(
     'lib',
     '_internal',
     'ddc_sdk.dill');
+
+final defaultAnalyzerSdkSummaryPath = path.join(
+    path.dirname(path.dirname(Platform.resolvedExecutable)),
+    'lib',
+    '_internal',
+    'ddc_sdk.sum');
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {

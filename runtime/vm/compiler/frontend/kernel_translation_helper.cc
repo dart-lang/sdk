@@ -2696,16 +2696,18 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
-  intptr_t length;
+  const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
   if (simple) {
-    length = 0;
-  } else {
-    length = helper_->ReadListLength();  // read type_arguments list length.
+    // Fast path for non-generic types: retrieve or populate the class's only
+    // canonical type.
+    result_ = H.GetCanonicalType(klass).raw();
+    return;
   }
+
+  intptr_t length =
+      helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-
-  Object& klass = Object::Handle(Z, H.LookupClassByKernelClass(klass_name));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
@@ -2865,7 +2867,7 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (I->reify_generic_functions()) {
+        if (FLAG_reify_generic_functions) {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
@@ -2884,7 +2886,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (I->reify_generic_functions()) {
+      if (FLAG_reify_generic_functions) {
         result_ ^=
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {

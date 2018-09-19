@@ -380,7 +380,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
   Class& interface_cls = Class::Handle(zone);
   intptr_t num_type_args = 0;  // Remains 0 when executing Dart 1.0 code.
   // TODO(regis): Check for strong mode too?
-  if (Isolate::Current()->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     const TypeArguments& function_type_args =
         TypeArguments::Handle(zone, arguments->NativeTypeArgs());
     if (function_type_args.Length() == 1) {

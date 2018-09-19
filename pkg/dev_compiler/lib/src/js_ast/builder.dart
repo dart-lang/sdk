@@ -621,8 +621,15 @@ class MiniJsParser {
   static final ARROW_TOKEN = '=>';
   static final ELLIPSIS_TOKEN = '...';
 
-  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS =
-      ['typeof', 'void', 'delete', 'in', 'instanceof', 'await'].toSet();
+  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS = [
+    'typeof',
+    'void',
+    'delete',
+    'in',
+    'instanceof',
+    'await',
+    'extends'
+  ].toSet();
 
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;

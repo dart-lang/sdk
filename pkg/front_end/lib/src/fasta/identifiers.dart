@@ -134,7 +134,7 @@ String flattenName(Object name, int charOffset, Uri fileUri) {
   } else if (name is Identifier) {
     return name.name;
   } else {
-    unhandled("${name.runtimeType}", "flattenName", charOffset, fileUri);
+    return unhandled("${name.runtimeType}", "flattenName", charOffset, fileUri);
   }
 }
 

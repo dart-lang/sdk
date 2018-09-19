@@ -26,6 +26,8 @@ double maxValue = 1.7976931348623157e+308;
 main() {
   expectDouble(0.0, 0);
   expectDouble(1.0, 1);
+  expectDouble(0.0, 00);
+  expectDouble(1.0, 01);
   expectDouble(p2_8 - 1, 255);
   expectDouble(p2_8, 256);
   expectDouble(p2_8 + 1, 257);
@@ -55,6 +57,8 @@ main() {
 
   expectDouble(-0.0, -0);
   expectDouble(-1.0, -1);
+  expectDouble(-0.0, -00);
+  expectDouble(-1.0, -01);
   expectDouble(-(p2_8 - 1), -255);
   expectDouble(-(p2_8), -256);
   expectDouble(-(p2_8 + 1), -257);
@@ -84,6 +88,8 @@ main() {
 
   expectDouble(0.0, 0x0);
   expectDouble(1.0, 0x1);
+  expectDouble(0.0, 0x00);
+  expectDouble(1.0, 0x01);
   expectDouble(p2_8 - 1, 0xff);
   expectDouble(p2_8, 0x100);
   expectDouble(p2_8 + 1, 0x101);
@@ -113,6 +119,8 @@ main() {
 
   expectDouble(-0.0, -0x0);
   expectDouble(-1.0, -0x1);
+  expectDouble(-0.0, -0x00);
+  expectDouble(-1.0, -0x01);
   expectDouble(-(p2_8 - 1), -0xff);
   expectDouble(-(p2_8), -0x100);
   expectDouble(-(p2_8 + 1), -0x101);

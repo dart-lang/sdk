@@ -1039,7 +1039,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  EmitCatchEntryState(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
   __ Drop(args_desc.CountWithTypeArgs());
 }
 
@@ -1051,12 +1051,21 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   const Code& initial_stub =
       Code::ZoneHandle(StubCode::ICCallThroughFunction_entry()->code());
 
+  auto& op = __ object_pool_wrapper();
+
   __ Comment("SwitchableCall");
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(CODE_REG, initial_stub);
+
+  const intptr_t ic_data_index =
+      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  const intptr_t initial_stub_index =
+      op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
+  ASSERT((ic_data_index + 1) == initial_stub_index);
+
+  __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
+                                  ObjectPool::element_offset(ic_data_index));
   __ ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(
                                          Code::EntryKind::kMonomorphic)));
-  __ LoadUniqueObject(R5, ic_data);
   __ blr(TMP);
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, RawPcDescriptors::kOther,
@@ -1088,7 +1097,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
-      (isolate()->reify_generic_functions() && function.IsGeneric())) {
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
     __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.

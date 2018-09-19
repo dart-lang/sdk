@@ -584,6 +584,7 @@ class Compiler extends NamedEnum {
   static const precompiler = const Compiler._('precompiler');
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
+  static const compareAnalyzerCfe = const Compiler._('compare_analyzer_cfe');
   static const dartdevc = const Compiler._('dartdevc');
   static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
@@ -601,6 +602,7 @@ class Compiler extends NamedEnum {
     precompiler,
     dart2js,
     dart2analyzer,
+    compareAnalyzerCfe,
     dartdevc,
     dartdevk,
     appJit,
@@ -653,6 +655,7 @@ class Compiler extends NamedEnum {
         ];
 
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
         return const [Runtime.none];
       case Compiler.appJit:
       case Compiler.appJitk:
@@ -683,6 +686,7 @@ class Compiler extends NamedEnum {
       case Compiler.dartdevk:
         return Runtime.chrome;
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
         return Runtime.none;
       case Compiler.appJit:
       case Compiler.appJitk:
@@ -705,6 +709,7 @@ class Compiler extends NamedEnum {
   Mode get defaultMode {
     switch (this) {
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
       case Compiler.dart2js:
       case Compiler.dartdevc:
       case Compiler.dartdevk:

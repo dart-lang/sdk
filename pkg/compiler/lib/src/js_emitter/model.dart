@@ -237,6 +237,7 @@ class Class implements FieldContainer {
   final js.Name name;
   final Holder holder;
   Class _superclass;
+  Class _mixinClass;
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
@@ -258,6 +259,8 @@ class Class implements FieldContainer {
   ///
   /// A soft-deferred class is only fully initialized at first instantiation.
   final bool isSoftDeferred;
+
+  final bool isSuperMixinApplication;
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
@@ -292,18 +295,26 @@ class Class implements FieldContainer {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
-      this.isSoftDeferred = false}) {
+      this.isSoftDeferred = false,
+      this.isSuperMixinApplication}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
     assert(isClosureBaseClass != null);
   }
 
-  bool get isMixinApplication => false;
+  bool get isSimpleMixinApplication => false;
+
   Class get superclass => _superclass;
 
   void setSuperclass(Class superclass) {
     _superclass = superclass;
+  }
+
+  Class get mixinClass => _mixinClass;
+
+  void setMixinClass(Class mixinClass) {
+    _mixinClass = mixinClass;
   }
 
   js.Name get superclassName => superclass == null ? null : superclass.name;
@@ -315,8 +326,6 @@ class Class implements FieldContainer {
 }
 
 class MixinApplication extends Class {
-  Class _mixinClass;
-
   MixinApplication(
       ClassEntity element,
       js.Name name,
@@ -346,14 +355,10 @@ class MixinApplication extends Class {
             onlyForRti: onlyForRti,
             isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
-            isClosureBaseClass: false);
+            isClosureBaseClass: false,
+            isSuperMixinApplication: false);
 
-  bool get isMixinApplication => true;
-  Class get mixinClass => _mixinClass;
-
-  void setMixinClass(Class mixinClass) {
-    _mixinClass = mixinClass;
-  }
+  bool get isSimpleMixinApplication => true;
 
   String toString() => 'Mixin(name=${name.key},element=$element)';
 }

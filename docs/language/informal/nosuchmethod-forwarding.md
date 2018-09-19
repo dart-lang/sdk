@@ -2,7 +2,7 @@
 
 Author: eernst@
 
-**Status**: Under implementation.
+**Status**: Implemented.
 
 **Version**: 0.7 (2018-07-10)
 

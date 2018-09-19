@@ -24,7 +24,7 @@ worlds:
     expectedLibraryCount: 2
   - entry: main.dart
     errors: true
-    warnings: false
+    warnings: true
     invalidate:
       - b.dart
     sources:
@@ -37,7 +37,7 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    warnings: false
+    warnings: true
     checkInvalidatedFiles: false
     worldType: updated
     invalidate:
@@ -52,7 +52,7 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    warnings: false
+    warnings: true
     checkInvalidatedFiles: false
     worldType: updated
     invalidate:

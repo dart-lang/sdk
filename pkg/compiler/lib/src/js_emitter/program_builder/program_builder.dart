@@ -211,7 +211,7 @@ class ProgramBuilder {
                 "No Class for has been created for superclass "
                 "${superclass} of $c."));
       }
-      if (c is MixinApplication) {
+      if (c.isSimpleMixinApplication || c.isSuperMixinApplication) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
         c.setMixinClass(_classes[effectiveMixinClass]);
@@ -690,18 +690,32 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (_commonElements.isInstantiationClass(cls)) {
+    if (_commonElements.isInstantiationClass(cls) && !onlyForRti) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
-      List<MemberEntity> members = <MemberEntity>[];
-      _elementEnvironment.forEachLocalClassMember(cls, members.add);
-      _elementEnvironment.forEachInjectedClassMember(cls, members.add);
-      _elementEnvironment.forEachConstructorBody(cls, members.add);
-      _sorter.sortMembers(members).forEach(visitMember);
+    bool isSuperMixinApplication = false;
+    if (!onlyForRti) {
+      if (_elementEnvironment.isSuperMixinApplication(cls)) {
+        List<MemberEntity> members = <MemberEntity>[];
+        _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+          if (member.enclosingClass == cls) {
+            members.add(member);
+            isSuperMixinApplication = true;
+          }
+        });
+        if (members.isNotEmpty) {
+          _sorter.sortMembers(members).forEach(visitMember);
+        }
+      } else if (!_elementEnvironment.isMixinApplication(cls)) {
+        List<MemberEntity> members = <MemberEntity>[];
+        _elementEnvironment.forEachLocalClassMember(cls, members.add);
+        _elementEnvironment.forEachInjectedClassMember(cls, members.add);
+        _elementEnvironment.forEachConstructorBody(cls, members.add);
+        _sorter.sortMembers(members).forEach(visitMember);
+      }
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti
@@ -759,7 +773,9 @@ class ProgramBuilder {
         _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (_elementEnvironment.isMixinApplication(cls) && !onlyForRti) {
+    if (_elementEnvironment.isMixinApplication(cls) &&
+        !onlyForRti &&
+        !isSuperMixinApplication) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
@@ -795,7 +811,8 @@ class ProgramBuilder {
           onlyForRti: onlyForRti,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
-          isSoftDeferred: _isSoftDeferred(cls));
+          isSoftDeferred: _isSoftDeferred(cls),
+          isSuperMixinApplication: isSuperMixinApplication);
     }
     _classes[cls] = result;
     return result;

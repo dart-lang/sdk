@@ -28,7 +28,6 @@ typedef RawObject* RawCompressed;
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
-  V(NativeEntryData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
@@ -309,6 +308,8 @@ class RawObject {
 #endif
   };
 
+  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
   static const intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
@@ -474,18 +475,9 @@ class RawObject {
     ASSERT(!IsRemembered());
     UpdateTagBit<OldAndNotRememberedBit>(false);
   }
-  void SetRememberedBitUnsynchronized() {
-    ASSERT(!IsRemembered());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotRememberedBit::update(false, tags);
-  }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
     UpdateTagBit<OldAndNotRememberedBit>(true);
-  }
-  void ClearRememberedBitUnsynchronized() {
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotRememberedBit::update(true, tags);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -698,11 +690,51 @@ class RawObject {
   template <typename type>
   void StorePointer(type const* addr, type value) {
     *const_cast<type*>(addr) = value;
-    // Filter stores based on source and target.
+
     if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && this->IsOldObject() && !this->IsRemembered()) {
-      this->SetRememberedBit();
-      Thread::Current()->StoreBufferAddObject(this);
+
+    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t target_tags = value->ptr()->tags_;
+    Thread* thread = Thread::Current();
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
+        // Generational barrier: record when a store creates an
+        // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
+        this->SetRememberedBit();
+        thread->StoreBufferAddObject(this);
+      } else {
+        // Incremental barrier: record when a store creates an
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
+        UNREACHABLE();
+      }
+    }
+  }
+
+  template <typename type>
+  void StorePointer(type const* addr, type value, Thread* thread) {
+    *const_cast<type*>(addr) = value;
+
+    if (!value->IsHeapObject()) return;
+
+    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t target_tags = value->ptr()->tags_;
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
+        // Generational barrier: record when a store creates an
+        // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
+        this->SetRememberedBit();
+        thread->StoreBufferAddObject(this);
+      } else {
+        // Incremental barrier: record when a store creates an
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
+        UNREACHABLE();
+      }
     }
   }
 
@@ -983,10 +1015,8 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
-#if defined(DART_USE_INTERPRETER)
-  RawCode* bytecode_;
-#endif
   RawCode* code_;  // Currently active code. Accessed from generated code.
+  NOT_IN_PRECOMPILED(RawCode* bytecode_);
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1076,23 +1106,6 @@ class RawRedirectionData : public RawObject {
   VISIT_TO(RawObject*, target_);
 };
 
-// Forward declarations.
-class NativeArguments;
-typedef void (*NativeFunction)(NativeArguments* arguments);
-typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
-                                      Dart_NativeFunction func);
-
-class RawNativeEntryData : public RawObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(NativeEntryData);
-  VISIT_NOTHING();
-
-  NativeFunctionWrapper trampoline_;
-  NativeFunction native_function_;
-  intptr_t argc_tag_;
-  MethodRecognizer::Kind kind_;
-};
-
 class RawField : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
@@ -1133,11 +1146,11 @@ class RawField : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-#if defined(DART_USE_INTERPRETER)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  VISIT_TO(RawObject*, dependent_code_);
+#else
   RawSubtypeTestCache* type_test_cache_;  // For type test in implicit setter.
   VISIT_TO(RawObject*, type_test_cache_);
-#else
-  VISIT_TO(RawObject*, dependent_code_);
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
@@ -1318,6 +1331,7 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* scripts_;
   RawArray* constants_;
   RawGrowableObjectArray* potential_natives_;
+  RawGrowableObjectArray* potential_pragma_functions_;
   RawExternalTypedData* constants_table_;
   VISIT_TO(RawObject*, constants_table_);
 
@@ -1377,7 +1391,7 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   union {
-    RawTypedData* catch_entry_state_maps_;
+    RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
   RawArray* stackmaps_;
@@ -2304,13 +2318,14 @@ class RawTypedData : public RawInstance {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class Api;
-  friend class Object;
   friend class Instance;
-  friend class SnapshotReader;
+  friend class NativeEntryData;
+  friend class Object;
   friend class ObjectPool;
-  friend class RawObjectPool;
-  friend class ObjectPoolSerializationCluster;
   friend class ObjectPoolDeserializationCluster;
+  friend class ObjectPoolSerializationCluster;
+  friend class RawObjectPool;
+  friend class SnapshotReader;
 };
 
 class RawExternalTypedData : public RawInstance {

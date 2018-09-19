@@ -911,7 +911,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
+#if !defined(DART_PRECOMPILED_RUNTIME)
       interpreter_(NULL),
+#endif
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -939,7 +941,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
       handler_info_cache_(),
-      catch_entry_state_cache_(),
+      catch_entry_moves_cache_(),
       embedder_entry_points_(NULL),
       obfuscation_map_(NULL) {
   FlagsCopyFrom(api_flags);
@@ -988,7 +990,7 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   delete interpreter_;
 #endif
 #if defined(USING_SIMULATOR)
@@ -1081,6 +1083,12 @@ Isolate* Isolate::Init(const char* name_prefix,
   if (!Thread::EnterIsolate(result)) {
     // We failed to enter the isolate, it is possible the VM is shutting down,
     // return back a NULL so that CreateIsolate reports back an error.
+    if (KernelIsolate::IsKernelIsolate(result)) {
+      KernelIsolate::SetKernelIsolate(NULL);
+    }
+    if (ServiceIsolate::IsServiceIsolate(result)) {
+      ServiceIsolate::SetServiceIsolate(NULL);
+    }
     delete result;
     return NULL;
   }
@@ -1980,11 +1988,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (interpreter() != NULL) {
     interpreter()->VisitObjectPointers(visitor);
   }
-#endif  // defined(DART_USE_INTERPRETER)
+#endif
 
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {
@@ -2763,6 +2771,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
 
+    thread->ResetHighWatermark();
+
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
     ASSERT(heap() != NULL);
@@ -2784,8 +2794,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
-
-    thread->ResetHighWatermark();
   }
   return thread;
 }

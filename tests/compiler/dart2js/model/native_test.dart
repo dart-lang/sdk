@@ -8,7 +8,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 enum Kind {
   regular,
@@ -72,6 +72,13 @@ main() {
       '35',
       '36',
       '37',
+      // TODO(34345): Non-external static members should not be allowed.
+      '43',
+      '44',
+      '45',
+      '52',
+      '53',
+      '54',
     ]);
     await runTest('tests/compiler/dart2js_extra/non_jsinterop_test.dart', '', {
       'Class': Kind.regular,
@@ -124,6 +131,13 @@ main() {
       '35',
       '36',
       '37',
+      // TODO(34345): Non-external static members should not be allowed.
+      '43',
+      '44',
+      '45',
+      '52',
+      '53',
+      '54',
     ]);
     // TODO(johnniwinther): Add similar test for native declarations.
   });

@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: global#List:deps=[Class.m,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin,makeListFixedLength],direct,explicit=[List,List.E,List<JSArray.E>,List<String>,List<makeListFixedLength.T>],implicit=[List.E],needsArgs*/
-/*omit.class: global#List:deps=[Class.m,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin],explicit=[List],implicit=[List.E],indirect,needsArgs*/
+/*strong.class: global#List:deps=[Class.m],explicit=[List,List<String>],indirect,needsArgs*/
+/*omit.class: global#List:deps=[Class.m],explicit=[List],indirect,needsArgs*/
 
-/*omit.class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SetMixin,SubListIterable],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*strong.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*omit.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class();

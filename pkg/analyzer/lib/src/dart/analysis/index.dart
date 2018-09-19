@@ -627,6 +627,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    _addSubtypeForMixinDeclaration(node);
+    recordIsAncestorOf(node.declaredElement);
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
   visitOnClause(OnClause node) {
     for (TypeName typeName in node.superclassConstraints) {
       recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
@@ -747,8 +754,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
-  void _addSubtype(String name, TypeName superclass, WithClause withClause,
-      ImplementsClause implementsClause, List<ClassMember> memberNodes) {
+  void _addSubtype(String name,
+      {TypeName superclass,
+      WithClause withClause,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      List<ClassMember> memberNodes}) {
     List<String> supertypes = [];
     List<String> members = [];
 
@@ -770,6 +781,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     addSupertype(superclass);
     withClause?.mixinTypes?.forEach(addSupertype);
+    onClause?.superclassConstraints?.forEach(addSupertype);
     implementsClause?.interfaces?.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
@@ -802,16 +814,32 @@ class _IndexContributor extends GeneralizingAstVisitor {
    * Record the given class as a subclass of its direct superclasses.
    */
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name.name, node.extendsClause?.superclass, node.withClause,
-        node.implementsClause, node.members);
+    _addSubtype(node.name.name,
+        superclass: node.extendsClause?.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+        memberNodes: node.members);
   }
 
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name.name, node.superclass, node.withClause,
-        node.implementsClause, const []);
+    _addSubtype(node.name.name,
+        superclass: node.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+        memberNodes: const []);
+  }
+
+  /**
+   * Record the given mixin as a subclass of its direct superclasses.
+   */
+  void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
+    _addSubtype(node.name.name,
+        onClause: node.onClause,
+        implementsClause: node.implementsClause,
+        memberNodes: node.members);
   }
 
   /**
@@ -870,6 +898,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     for (InterfaceType mixinType in ancestor.mixins) {
       _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
+    }
+    for (InterfaceType type in ancestor.superclassConstraints) {
+      _recordIsAncestorOf(descendant, type.element, true, visitedElements);
     }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(

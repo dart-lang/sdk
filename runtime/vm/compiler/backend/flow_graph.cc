@@ -1048,7 +1048,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      (isolate()->reify_generic_functions() && (inlining_parameters != NULL) &&
+      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
        function().IsGeneric())
           ? 1
           : 0;
@@ -1091,7 +1091,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
     if (!IsCompiledForOsr()) {
       const bool reify_generic_argument =
-          function().IsGeneric() && isolate()->reify_generic_functions();
+          function().IsGeneric() && FLAG_reify_generic_functions;
 
       // Replace the type arguments slot with a special parameter.
       if (reify_generic_argument) {
@@ -1702,31 +1702,11 @@ void FlowGraph::InsertConversion(Representation from,
   }
 }
 
-void FlowGraph::ConvertEnvironmentUse(Value* use, Representation from_rep) {
-  const Representation to_rep = kTagged;
-  if (from_rep == to_rep) {
-    return;
-  }
-  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/true);
-}
-
 void FlowGraph::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
 
   for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
     ConvertUse(it.Current(), from_rep);
-  }
-
-  if (!graph_entry()->catch_entries().is_empty()) {
-    for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
-      Value* use = it.Current();
-      if (use->instruction()->MayThrow() &&
-          use->instruction()->GetBlock()->InsideTryBlock()) {
-        // Environment uses at calls inside try-blocks must be converted to
-        // tagged representation.
-        ConvertEnvironmentUse(it.Current(), from_rep);
-      }
-    }
   }
 }
 
@@ -2130,6 +2110,46 @@ bool FlowGraph::Canonicalize() {
     }
   }
   return changed;
+}
+
+void FlowGraph::PopulateWithICData(const Function& function) {
+  Zone* zone = Thread::Current()->zone();
+
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone,
+              ICData::New(function, call->function_name(), arguments_descriptor,
+                          call->deopt_id(), call->checked_argument_count(),
+                          ICData::kInstance));
+          call->set_ic_data(&ic_data);
+        }
+      } else if (instr->IsStaticCall()) {
+        StaticCallInstr* call = instr->AsStaticCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
+          const Function& target = call->function();
+          int num_args_checked =
+              MethodRecognizer::NumArgsCheckedForStaticCall(target);
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone, ICData::New(function, String::Handle(zone, target.name()),
+                                arguments_descriptor, call->deopt_id(),
+                                num_args_checked, ICData::kStatic));
+          ic_data.AddTarget(target);
+          call->set_ic_data(&ic_data);
+        }
+      }
+    }
+  }
 }
 
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the

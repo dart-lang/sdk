@@ -699,7 +699,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       }
       token = typeInfo.skipType(next);
       next = token.next;
-      if (optional('extends', next) || optional('super', next)) {
+      if (optional('extends', next)) {
         token = computeType(next, true, inDeclaration).skipType(next);
         next = token.next;
       }
@@ -803,7 +803,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       typeStarts = typeStarts.prepend(token);
 
       next = token.next;
-      if (optional('extends', next) || optional('super', next)) {
+      if (optional('extends', next)) {
         TypeInfo typeInfo = computeType(next, true, inDeclaration);
         token = typeInfo.skipType(next);
         next = token.next;
@@ -840,12 +840,12 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       Token extendsOrSuper = null;
       Token next2 = token2.next;
       if (typeInfo != null) {
-        assert(optional('extends', next2) || optional('super', next2));
+        assert(optional('extends', next2));
         extendsOrSuper = next2;
-        token2 = typeInfo.ensureTypeOrVoid(next2, parser);
+        token2 = typeInfo.ensureTypeNotVoid(next2, parser);
         next2 = token2.next;
       } else {
-        assert(!optional('extends', next2) && !optional('super', next2));
+        assert(!optional('extends', next2));
         listener.handleNoType(token2);
       }
       // Type variables are "completed" in reverse order, so capture the last

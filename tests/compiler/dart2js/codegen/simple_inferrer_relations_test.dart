@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 // Test that if (x == y) where we know nothing about x and y will get optimized
 // to if ($.$eq(x, y)) and not

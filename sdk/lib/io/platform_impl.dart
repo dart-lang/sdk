@@ -41,6 +41,7 @@ class _Platform {
   static String packageRoot = null; // TODO(mfairhurst): remove this
   static String packageConfig = _packageConfig();
 
+  @pragma("vm:entry-point")
   static String Function() _localeClosure;
   static String localeName() {
     final result = (_localeClosure == null) ? _localeName() : _localeClosure();

@@ -9,9 +9,11 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart'
     show
+        Code,
         LocatedMessage,
         Message,
-        messageNativeClauseShouldBeAnnotation,
+        codeCatchSyntaxExtraParameters,
+        codeNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
 import '../parser.dart'
@@ -195,13 +197,28 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    debugEvent("MixinOn");
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
     debugEvent("ClassHeader");
   }
 
   @override
+  void handleMixinHeader(Token mixinKeyword) {
+    debugEvent("MixinHeader");
+  }
+
+  @override
   void handleRecoverClassHeader() {
     debugEvent("RecoverClassHeader");
+  }
+
+  @override
+  void handleRecoverMixinHeader() {
+    debugEvent("RecoverMixinHeader");
   }
 
   @override
@@ -339,13 +356,23 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    if (message == messageNativeClauseShouldBeAnnotation) {
-      // TODO(danrubel): Ignore this error until we deprecate `native` support.
-      return;
-    }
     debugEvent("Error: ${message.message}");
+    if (isIgnoredError(message.code, startToken)) return;
     addProblem(message, offsetForToken(startToken),
         lengthOfSpan(startToken, endToken));
+  }
+
+  bool isIgnoredError(Code code, Token token) {
+    if (code == codeNativeClauseShouldBeAnnotation) {
+      // TODO(danrubel): Ignore this error until we deprecate `native`
+      // support.
+      return true;
+    } else if (code == codeCatchSyntaxExtraParameters) {
+      // Ignored. This error is handled by the BodyBuilder.
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override

@@ -10,10 +10,10 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/object_store.h"
 #include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#if defined(DART_USE_INTERPRETER)
 
 #define Z (zone_)
 #define H (translation_helper_)
@@ -52,7 +52,16 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   const intptr_t obj_count = helper_->reader_.ReadListLength();
   const ObjectPool& pool =
       ObjectPool::Handle(helper_->zone_, ObjectPool::New(obj_count));
-  ReadPoolEntries(function, function, pool, 0);
+
+  {
+    // While reading pool entries, deopt_ids are allocated for
+    // ICData objects.
+    //
+    // TODO(alexmarkov): allocate deopt_ids for closures separately
+    DeoptIdScope deopt_id_scope(H.thread(), 0);
+
+    ReadPoolEntries(function, function, pool, 0);
+  }
 
   // Read bytecode and attach to function.
   const Code& bytecode = Code::Handle(helper_->zone_, ReadBytecode(pool));
@@ -124,6 +133,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kSubtypeTestCache,
     kPartialTearOffInstantiation,
     kEmptyTypeArguments,
+    kSymbol,
   };
 
   enum InvocationKind {
@@ -132,13 +142,19 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     setter   // x.foo = ...
   };
 
+  const int kInvocationKindMask = 0x3;
+  const int kFlagDynamic = 1 << 2;
+
   Object& obj = Object::Handle(helper_->zone_);
   Object& elem = Object::Handle(helper_->zone_);
   Array& array = Array::Handle(helper_->zone_);
   Field& field = Field::Handle(helper_->zone_);
   Class& cls = Class::Handle(helper_->zone_);
+  Library& lib = Library::Handle(helper_->zone_);
   String& name = String::Handle(helper_->zone_);
   TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
+  Class* symbol_class = nullptr;
+  Field* symbol_name_field = nullptr;
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
     const intptr_t tag = helper_->ReadTag();
@@ -157,14 +173,16 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         uint32_t low_bits = helper_->ReadUInt32();
         int64_t value = helper_->ReadUInt32();
         value = (value << 32) | low_bits;
-        obj = Integer::New(value);
+        obj = Integer::New(value, Heap::kOld);
+        obj = H.Canonicalize(Integer::Cast(obj));
       } break;
       case ConstantPoolTag::kDouble: {
         uint32_t low_bits = helper_->ReadUInt32();
         uint64_t bits = helper_->ReadUInt32();
         bits = (bits << 32) | low_bits;
         double value = bit_cast<double, uint64_t>(bits);
-        obj = Double::New(value);
+        obj = Double::New(value, Heap::kOld);
+        obj = H.Canonicalize(Double::Cast(obj));
       } break;
       case ConstantPoolTag::kBool:
         if (helper_->ReadUInt() == 1) {
@@ -188,7 +206,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
       } break;
       case ConstantPoolTag::kICData: {
-        InvocationKind kind = static_cast<InvocationKind>(helper_->ReadByte());
+        intptr_t flags = helper_->ReadByte();
+        InvocationKind kind =
+            static_cast<InvocationKind>(flags & kInvocationKindMask);
+        bool isDynamic = (flags & kFlagDynamic) != 0;
         if (kind == InvocationKind::getter) {
           name = helper_->ReadNameAsGetterName().raw();
         } else if (kind == InvocationKind::setter) {
@@ -208,10 +229,22 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           ASSERT(argument_count <= 2);
           checked_argument_count = argument_count;
         }
-        obj = ICData::New(function, name,
-                          array,  // Arguments descriptor.
-                          DeoptId::kNone, checked_argument_count,
-                          ICData::RebindRule::kInstance);
+        // Do not mangle == or call:
+        //   * operator == takes an Object so its either not checked or checked
+        //     at the entry because the parameter is marked covariant, neither
+        //     of those cases require a dynamic invocation forwarder;
+        //   * we assume that all closures are entered in a checked way.
+        if (isDynamic && (kind != InvocationKind::getter) &&
+            !FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
+            (name.raw() != Symbols::EqualOperator().raw()) &&
+            (name.raw() != Symbols::Call().raw())) {
+          name = Function::CreateDynamicInvocationForwarderName(name);
+        }
+        obj =
+            ICData::New(function, name,
+                        array,  // Arguments descriptor.
+                        H.thread()->compiler_state().GetNextDeoptId(),
+                        checked_argument_count, ICData::RebindRule::kInstance);
 #if defined(TAG_IC_DATA)
         ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
 #endif
@@ -254,8 +287,8 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         array ^= pool.ObjectAt(arg_desc_index);
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          DeoptId::kNone, num_args_checked,
-                          ICData::RebindRule::kStatic);
+                          H.thread()->compiler_state().GetNextDeoptId(),
+                          num_args_checked, ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
 #if defined(TAG_IC_DATA)
         ICData::Cast(obj).set_tag(ICData::Tag::kStaticCall);
@@ -402,8 +435,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         closure.SetParameterNameAt(pos, Symbols::ClosureParameter());
         pos++;
 
-        const Library& lib =
-            Library::Handle(helper_->zone_, active_class_->klass->library());
+        lib = active_class_->klass->library();
         for (intptr_t j = 0; j < positional_parameter_count; ++j, ++pos) {
           VariableDeclarationHelper helper(helper_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
@@ -497,6 +529,30 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       case ConstantPoolTag::kEmptyTypeArguments:
         obj = Object::empty_type_arguments().raw();
         break;
+      case ConstantPoolTag::kSymbol: {
+        const NameIndex lib_index = helper_->ReadCanonicalNameReference();
+        lib = Library::null();
+        if (!H.IsRoot(lib_index)) {
+          lib = H.LookupLibraryByKernelLibrary(lib_index);
+        }
+        const String& symbol =
+            H.DartIdentifier(lib, helper_->ReadStringReference());
+        if (symbol_class == nullptr) {
+          elem = Library::InternalLibrary();
+          ASSERT(!elem.IsNull());
+          symbol_class = &Class::Handle(
+              helper_->zone_,
+              Library::Cast(elem).LookupClass(Symbols::Symbol()));
+          ASSERT(!symbol_class->IsNull());
+          symbol_name_field = &Field::Handle(
+              helper_->zone_,
+              symbol_class->LookupInstanceFieldAllowPrivate(Symbols::_name()));
+          ASSERT(!symbol_name_field->IsNull());
+        }
+        obj = Instance::New(*symbol_class, Heap::kOld);
+        Instance::Cast(obj).SetField(*symbol_name_field, symbol);
+        obj = H.Canonicalize(Instance::Cast(obj));
+      } break;
       default:
         UNREACHABLE();
     }
@@ -591,9 +647,8 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
   }
 }
 
-RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
-    const Function& function,
-    const String& external_name) {
+RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
+                                                  const String& external_name) {
   Zone* zone = helper_->zone_;
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   // This list of recognized methods must be kept in sync with the list of
@@ -653,17 +708,10 @@ RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
     }
     argc_tag = NativeArguments::ComputeArgcTag(function);
   }
-  const NativeEntryData& native_entry =
-      NativeEntryData::Handle(zone, NativeEntryData::New());
-  native_entry.set_kind(kind);
-  native_entry.set_trampoline(trampoline);
-  native_entry.set_native_function(native_function);
-  native_entry.set_argc_tag(argc_tag);
-  return native_entry.raw();
+  return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
 }
 
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

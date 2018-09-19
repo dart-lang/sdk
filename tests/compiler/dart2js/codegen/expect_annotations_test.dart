@@ -7,11 +7,10 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
@@ -94,19 +93,17 @@ runTest() async {
     Expect.isNotNull(method);
     Expect.equals(
         expectNoInline,
-        optimizerHints.noInline(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @NoInline on '$method'.");
+        closedWorld.annotationsData.nonInlinableFunctions.contains(method),
+        "Unexpected annotation of @NoInline() on '$method'.");
     Expect.equals(
         expectTrustTypeAnnotations,
-        optimizerHints.trustTypeAnnotations(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
+        closedWorld.annotationsData.trustTypeAnnotationsMembers
+            .contains(method),
+        "Unexpected annotation of @TrustTypeAnnotations() on '$method'.");
     Expect.equals(
         expectAssumeDynamic,
-        optimizerHints.assumeDynamic(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @AssumeDynamic on '$method'.");
+        closedWorld.annotationsData.assumeDynamicMembers.contains(method),
+        "Unexpected annotation of @AssumeDynamic() on '$method'.");
     GlobalTypeInferenceResults results =
         compiler.globalInference.resultsForTesting;
     if (expectTrustTypeAnnotations && expectedParameterType != null) {

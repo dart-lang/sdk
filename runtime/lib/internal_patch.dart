@@ -69,6 +69,7 @@ final bool is64Bit = _inquireIs64Bit();
 bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
 
 @pragma("vm:entry-point")
+@pragma("vm:exact-result-type", bool)
 bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
   return cid >= lowerLimit && cid <= upperLimit;
 }

@@ -1,3 +1,18 @@
+## 2.1.0-dev.5.0
+
+### Core library changes
+
+#### `dart:core`
+
+*   Exported `Future` and `Stream` from `dart:core`.
+*   Added operators `&`, `|` and `^` to `bool`.
+
+#### `dart:async`
+
+*   Fix a bug where calling `stream.take(0).drain(value)` would not correctly
+    forward the `value` through the returned `Future`.
+*   Add a `StreamTransformer.fromBind` constructor.
+
 ## 2.1.0-dev.4.0
 
 ### Core library changes

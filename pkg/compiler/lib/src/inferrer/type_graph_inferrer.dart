@@ -12,8 +12,8 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
+import '../js_model/element_map.dart';
 import '../js_model/locals.dart';
-import '../kernel/element_map.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart';
@@ -56,7 +56,7 @@ class TypeGraphInferrer implements TypesInferrer {
   final JClosedWorld closedWorld;
 
   final Compiler _compiler;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup _closureDataLookup;
   final InferredDataBuilder _inferredDataBuilder;

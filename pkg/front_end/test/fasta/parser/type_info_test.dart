@@ -1390,19 +1390,6 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<S super T>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined T 1',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeVariable > 0 super',
-      'endTypeVariables < >',
-    ]);
     expectComplexTypeParam('<S extends List<T>>', expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
@@ -1514,6 +1501,24 @@ class TypeParamOrArgInfoTest {
       'handleNoType S',
       'endTypeVariable , 0 null',
       'endTypeVariables < >',
+    ]);
+  }
+
+  void test_computeTypeParam_complex_extends_void() {
+    expectComplexTypeParam('<T extends void>', expectedErrors: [
+      error(codeInvalidVoid, 11, 4),
+    ], expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleTypeVariablesDefined void 1',
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments >',
+      'handleType void',
+      'endTypeVariable > 0 extends',
+      'endTypeVariables < >'
     ]);
   }
 

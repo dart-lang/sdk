@@ -21,13 +21,13 @@ class SnapshotWriter;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #if !defined(TARGET_ARCH_DBC)
-#define VM_STUB_CODE_LIST_ARCH_INDEPENDENT(V)                                  \
+#define VM_STUB_CODE_LIST(V)                                                   \
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
-  V(UpdateStoreBuffer)                                                         \
-  V(UpdateStoreBufferWrappers)                                                 \
+  V(WriteBarrier)                                                              \
+  V(WriteBarrierWrappers)                                                      \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
@@ -83,20 +83,9 @@ class SnapshotWriter;
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(StackOverflowSharedWithFPURegs)                                            \
-  V(StackOverflowSharedWithoutFPURegs)
-
-#if defined(TARGET_ARCH_X64)
-#define VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)                                     \
+  V(StackOverflowSharedWithoutFPURegs)                                         \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)
-
-#else
-#define VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)
-#endif
-
-#define VM_STUB_CODE_LIST(V)                                                   \
-  VM_STUB_CODE_LIST_ARCH_INDEPENDENT(V)                                        \
-  VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -116,7 +105,9 @@ class SnapshotWriter;
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
   V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)
+  V(AsynchronousGapMarker)                                                     \
+  V(InvokeDartCodeFromBytecode)                                                \
+  V(InterpretCall)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 

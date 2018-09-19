@@ -83,8 +83,8 @@ class Zone;
 #define CACHED_VM_STUBS_LIST(V)
 #else
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(RawCode*, update_store_buffer_code_,                                       \
-    StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
+  V(RawCode*, write_barrier_code_, StubCode::WriteBarrier_entry()->code(),     \
+    NULL)                                                                      \
   V(RawCode*, fix_callers_target_code_,                                        \
     StubCode::FixCallersTarget_entry()->code(), NULL)                          \
   V(RawCode*, fix_allocation_stub_code_,                                       \
@@ -139,8 +139,8 @@ class Zone;
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
 #else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
-  V(uword, update_store_buffer_entry_point_,                                   \
-    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, write_barrier_entry_point_,                                         \
+    StubCode::WriteBarrier_entry()->EntryPoint(), 0)                           \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
   V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \
@@ -274,8 +274,10 @@ class Thread : public BaseThread {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
   };
 
-  uword stack_overflow_flags_address() const {
-    return reinterpret_cast<uword>(&stack_overflow_flags_);
+  uword write_barrier_mask() const { return write_barrier_mask_; }
+
+  static intptr_t write_barrier_mask_offset() {
+    return OFFSET_OF(Thread, write_barrier_mask_);
   }
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
@@ -323,7 +325,7 @@ class Thread : public BaseThread {
   void IncrementMemoryCapacity(uintptr_t value) {
     current_zone_capacity_ += value;
     if (current_zone_capacity_ > zone_high_watermark_) {
-      SetHighWatermark(current_zone_capacity_);
+      zone_high_watermark_ = current_zone_capacity_;
     }
   }
 
@@ -336,9 +338,7 @@ class Thread : public BaseThread {
 
   uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
 
-  void ResetHighWatermark() { SetHighWatermark(current_zone_capacity_); }
-
-  void SetHighWatermark(intptr_t value);
+  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -522,7 +522,7 @@ class Thread : public BaseThread {
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
-  static intptr_t update_store_buffer_wrappers_offset(Register reg) {
+  static intptr_t write_barrier_wrappers_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
@@ -530,7 +530,7 @@ class Thread : public BaseThread {
       if (i == reg) break;
       ++index;
     }
-    return OFFSET_OF(Thread, update_store_buffer_wrappers_entry_points_) +
+    return OFFSET_OF(Thread, write_barrier_wrappers_entry_points_) +
            index * sizeof(uword);
   }
 #endif
@@ -799,6 +799,7 @@ class Thread : public BaseThread {
   // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
   uword stack_overflow_flags_;
+  uword write_barrier_mask_;
   Isolate* isolate_;
   Heap* heap_;
   uword top_;
@@ -812,7 +813,7 @@ class Thread : public BaseThread {
   // generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
   // could be passed as arguments.
-  int64_t unboxed_int64_runtime_arg_;
+  ALIGN8 int64_t unboxed_int64_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
@@ -830,8 +831,7 @@ class Thread : public BaseThread {
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
-  uword
-      update_store_buffer_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
+  uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
 
   TimelineStream* dart_stream_;

@@ -6,7 +6,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart' as dart2js;
 import 'package:expect/expect.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   runTest() async {

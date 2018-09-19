@@ -12,9 +12,9 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
+import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
@@ -1351,8 +1351,11 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programForTesting =
+    Program program =
         programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
+    if (retainDataForTesting) {
+      programForTesting = program;
+    }
 
     outputStaticNonFinalFieldLists =
         programBuilder.collector.outputStaticNonFinalFieldLists;

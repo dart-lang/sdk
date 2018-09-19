@@ -1706,6 +1706,12 @@ class C2 {
     await assertOpType(typeNames: true);
   }
 
+  test_OnClause() async {
+    // OnClause  MixinDeclaration
+    addTestSource('mixin M on ^\n{}');
+    await assertOpType(typeNames: true);
+  }
+
   test_PropertyAccess_noTarget() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('main() {.^}');

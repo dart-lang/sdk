@@ -593,7 +593,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
 }
 
 bool NeedsDynamicInvocationForwarder(const Function& function) {
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

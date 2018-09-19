@@ -15,6 +15,7 @@
 namespace dart {
 
 // Forward declarations.
+class CatchEntryMovesMapBuilder;
 class Code;
 class DeoptInfoBuilder;
 class FlowGraph;
@@ -592,7 +593,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)
-  void EmitCatchEntryState(
+  void RecordCatchEntryMoves(
       Environment* env = NULL,
       intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
 
@@ -665,7 +666,7 @@ class FlowGraphCompiler : public ValueObject {
   RawArray* CreateDeoptInfo(Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
-  void FinalizeCatchEntryStateMap(const Code& code);
+  void FinalizeCatchEntryMovesMap(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
   void FinalizeCodeSourceMap(const Code& code);
 
@@ -953,7 +954,7 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list_;
   StackMapTableBuilder* stackmap_table_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
-  CatchEntryStateMapBuilder* catch_entry_state_maps_builder_;
+  CatchEntryMovesMapBuilder* catch_entry_moves_maps_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;

@@ -408,6 +408,46 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
   ldr(dst, Address(dst, lower12));
 }
 
+void Assembler::LoadDoubleWordFromPoolOffset(Register lower,
+                                             Register upper,
+                                             uint32_t offset) {
+  // This implementation needs to be kept in sync with
+  // [InstructionPattern::DecodeLoadDoubleWordFromPool].
+  ASSERT(constant_pool_allowed());
+  ASSERT(lower != PP && upper != PP);
+  ASSERT(offset < (1 << 24));
+
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
+  const uint32_t lower12 = offset & 0x00000fff;
+  if (Address::CanHoldOffset(offset, Address::PairOffset)) {
+    ldp(lower, upper, Address(PP, offset, Address::PairOffset));
+  } else if (Operand::CanHold(offset, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    add(TMP, PP, op);
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+                 Operand::Immediate &&
+             Address::CanHoldOffset(lower12, Address::PairOffset)) {
+    add(TMP, PP, op);
+    ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
+  } else {
+    const uint32_t lower12 = offset & 0xfff;
+    const uint32_t higher12 = offset & 0xfff000;
+
+    Operand op_high, op_low;
+    bool ok = Operand::CanHold(higher12, kXRegSizeInBits, &op_high) ==
+                  Operand::Immediate &&
+              Operand::CanHold(lower12, kXRegSizeInBits, &op_low) ==
+                  Operand::Immediate;
+    RELEASE_ASSERT(ok);
+
+    add(TMP, PP, op_high);
+    add(TMP, TMP, op_low);
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  }
+}
+
 intptr_t Assembler::FindImmediate(int64_t imm) {
   return object_pool_wrapper().FindImmediate(imm);
 }
@@ -459,7 +499,7 @@ void Assembler::LoadObjectHelper(Register dst,
     LoadWordFromPoolOffset(dst, offset);
   } else {
     ASSERT(object.IsSmi());
-    LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
+    LoadImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
   }
 }
 
@@ -497,32 +537,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-void Assembler::LoadDecodableImmediate(Register reg, int64_t imm) {
-  if (constant_pool_allowed()) {
-    const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
-    LoadWordFromPoolOffset(reg, offset);
-  } else {
-    // TODO(zra): Since this sequence only needs to be decodable, it can be
-    // of variable length.
-    LoadImmediateFixed(reg, imm);
-  }
-}
-
-void Assembler::LoadImmediateFixed(Register reg, int64_t imm) {
-  const uint32_t w0 = Utils::Low32Bits(imm);
-  const uint32_t w1 = Utils::High32Bits(imm);
-  const uint16_t h0 = Utils::Low16Bits(w0);
-  const uint16_t h1 = Utils::High16Bits(w0);
-  const uint16_t h2 = Utils::Low16Bits(w1);
-  const uint16_t h3 = Utils::High16Bits(w1);
-  movz(reg, Immediate(h0), 0);
-  movk(reg, Immediate(h1), 1);
-  movk(reg, Immediate(h2), 2);
-  movk(reg, Immediate(h3), 3);
-}
-
 void Assembler::LoadImmediate(Register reg, int64_t imm) {
-  Comment("LoadImmediate");
   // Is it 0?
   if (imm == 0) {
     movz(reg, Immediate(0), 0);
@@ -961,15 +976,56 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 CanBeSmi can_be_smi,
                                 bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+
+#if defined(CONCURRENT_MARKING)
+  ASSERT(object != TMP);
+  ASSERT(object != TMP2);
+  ASSERT(value != TMP);
+  ASSERT(value != TMP2);
+
+  str(value, dest);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  ldr(TMP, FieldAddress(object, Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, Object::tags_offset()), kUnsignedByte);
+  and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  tst(TMP, Operand(BARRIER_MASK));
+  b(&done, EQ);
+
+  if (!lr_reserved) Push(LR);
+  mov(TMP2, value);
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
+  blr(LR);
+  if (!lr_reserved) Pop(LR);
+  Bind(&done);
+#else
+  ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+
   str(value, dest);
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   if (!lr_reserved) Push(LR);
-  ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
   blr(LR);
   if (!lr_reserved) Pop(LR);
   Bind(&done);
+#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1269,25 +1325,15 @@ void Assembler::MonomorphicCheckedEntry() {
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
-  Label immediate, have_cid, miss;
+  Label immediate, miss;
   Bind(&miss);
   ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
-  Bind(&immediate);
-  movz(IP0, Immediate(kSmiCid), 0);
-  b(&have_cid);
-
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-  tsti(R0, Immediate(kSmiTagMask));
-  SmiUntag(R5);
-  b(&immediate, EQ);
-
-  LoadClassId(IP0, R0);
-
-  Bind(&have_cid);
-  cmp(IP0, Operand(R5));
+  LoadClassIdMayBeSmi(IP0, R0);
+  cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
@@ -1356,31 +1402,34 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             Register instance_reg,
-                            Register temp_reg) {
+                            Register top_reg,
+                            bool tag_result) {
   ASSERT(failure != NULL);
   const intptr_t instance_size = cls.instance_size();
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    ldr(instance_reg, Address(THR, Thread::top_offset()));
-    // TODO(koda): Protect against unsigned overflow here.
-    AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
+    NOT_IN_PRODUCT(
+        MaybeTraceAllocation(cls.id(), /*temp_reg=*/top_reg, failure));
+
+    const Register kEndReg = TMP;
 
     // instance_reg: potential next object start.
-    ldr(TMP, Address(THR, Thread::end_offset()));
-    CompareRegisters(TMP, instance_reg);
-    // fail if heap end unsigned less than or equal to instance_reg.
-    b(failure, LS);
+    RELEASE_ASSERT((Thread::top_offset() + kWordSize) == Thread::end_offset());
+    ldp(instance_reg, kEndReg,
+        Address(THR, Thread::top_offset(), Address::PairOffset));
+
+    // TODO(koda): Protect against unsigned overflow here.
+    AddImmediate(top_reg, instance_reg, instance_size);
+    cmp(kEndReg, Operand(top_reg));
+    b(failure, LS);  // Unsigned lower or equal.
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(THR, Thread::top_offset()));
+    str(top_reg, Address(THR, Thread::top_offset()));
 
-    ASSERT(instance_size >= kHeapObjectTag);
-    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
     uint32_t tags = 0;
@@ -1391,7 +1440,11 @@ void Assembler::TryAllocate(const Class& cls,
     // Extends the 32 bit tags with zeros, which is the uninitialized
     // hash code.
     LoadImmediate(TMP, tags);
-    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
+    StoreToOffset(TMP, instance_reg, Object::tags_offset());
+
+    if (tag_result) {
+      AddImmediate(instance_reg, kHeapObjectTag);
+    }
   } else {
     b(failure);
   }
@@ -1608,21 +1661,43 @@ void Assembler::PushRegisters(const RegisterSet& regs) {
 
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safe point's stack map.
+  Register prev = kNoRegister;
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (regs.ContainsRegister(reg)) {
-      Push(reg);
+      if (prev != kNoRegister) {
+        PushPair(/*low=*/reg, /*high=*/prev);
+        prev = kNoRegister;
+      } else {
+        prev = reg;
+      }
     }
+  }
+  if (prev != kNoRegister) {
+    Push(prev);
   }
 }
 
 void Assembler::PopRegisters(const RegisterSet& regs) {
+  bool pop_single = (regs.CpuRegisterCount() & 1) == 1;
+  Register prev = kNoRegister;
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     Register reg = static_cast<Register>(i);
     if (regs.ContainsRegister(reg)) {
-      Pop(reg);
+      if (pop_single) {
+        // Emit the leftover pop at the beginning instead of the end to
+        // mirror PushRegisters.
+        Pop(reg);
+        pop_single = false;
+      } else if (prev != kNoRegister) {
+        PopPair(/*low=*/prev, /*high=*/reg);
+        prev = kNoRegister;
+      } else {
+        prev = reg;
+      }
     }
   }
+  ASSERT(prev == kNoRegister);
 
   const intptr_t fpu_regs_count = regs.FpuRegisterCount();
   if (fpu_regs_count > 0) {

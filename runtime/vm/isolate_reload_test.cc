@@ -1633,7 +1633,7 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
         "Tried calling: C.foo()\n"
         "Found: C.foo(dynamic) => dynamic\n"
         "#0      Object.noSuchMethod "
-        "(dart:core/runtime/libobject_patch.dart:48:5)\n"
+        "(dart:core/runtime/libobject_patch.dart:50:5)\n"
         "#1      main (file:///test-lib:8:12)";
   } else {
     error =
@@ -1643,7 +1643,7 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
         "Tried calling: C.foo()\n"
         "Found: C.foo(dynamic) => dynamic\n"
         "#0      Object.noSuchMethod "
-        "(dart:core-patch/dart:core/object_patch.dart:48)\n"
+        "(dart:core-patch/dart:core/object_patch.dart:50)\n"
         "#1      main (test-lib:8:12)";
   }
   EXPECT_ERROR(error_handle, error);

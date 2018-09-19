@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
 /// `true` if ANSI colors are supported by stdout.
@@ -84,6 +84,9 @@ abstract class DataComputer {
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
+  /// Called before testing to setup flags needed for data collection.
+  void onCompilation(Compiler compiler) {}
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
@@ -149,6 +152,7 @@ Future<CompiledData> computeData(Uri entryPoint,
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
   Compiler compiler = result.compiler;
+  dataComputer.onCompilation(compiler);
   dynamic closedWorld = testFrontend
       ? compiler.resolutionWorldBuilder.closedWorldForTesting
       : compiler.backendClosedWorldForTesting;

@@ -490,7 +490,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(dillLoadedData != null && userCode != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder library = userCode.loader.read(libraryUri, -1);
+      LibraryBuilder library =
+          userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
 
       Class kernelClass;
       if (className != null) {
@@ -600,8 +601,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = <Uri>[];
 
     bool isInvalidated(Uri importUri, Uri fileUri) {
-      if (invalidatedUris.contains(importUri) ||
-          (importUri != fileUri && invalidatedUris.contains(fileUri))) {
+      if (invalidatedUris.contains(importUri)) return true;
+      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
       if (hasToCheckPackageUris &&
@@ -609,6 +610,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           uriTranslator.translate(importUri, false) != fileUri) {
         return true;
       }
+      if (builders[importUri]?.isSynthetic == true) return true;
       return false;
     }
 

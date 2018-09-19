@@ -6,7 +6,7 @@
 #define RUNTIME_VM_INTERPRETER_H_
 
 #include "vm/globals.h"
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
@@ -91,12 +91,6 @@ class Interpreter {
     return intrinsics_[id] != NULL;
   }
 
-  enum SpecialIndex {
-    kExceptionSpecialIndex,
-    kStackTraceSpecialIndex,
-    kSpecialIndexCount
-  };
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
@@ -113,7 +107,7 @@ class Interpreter {
   RawObjectPool* pp_;  // Pool Pointer.
   RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
                        // call instruction and the function entry.
-  RawObject* special_[kSpecialIndexCount];
+  RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
 
@@ -221,6 +215,6 @@ class Interpreter {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_INTERPRETER_H_

@@ -101,6 +101,27 @@ class C2 = Object with B;
     assertThat(classElementB)..isAncestorOf('C2 = Object with B');
   }
 
+  test_hasAncestor_MixinDeclaration() async {
+    await _indexTestUnit('''
+class A {}
+class B extends A {}
+
+mixin M1 on A {}
+mixin M2 on B {}
+mixin M3 implements A {}
+mixin M4 implements B {}
+mixin M5 on M2 {}
+''');
+    ClassElement classElementA = findElement('A');
+    assertThat(classElementA)
+      ..isAncestorOf('B extends A')
+      ..isAncestorOf('M1 on A')
+      ..isAncestorOf('M2 on B')
+      ..isAncestorOf('M3 implements A')
+      ..isAncestorOf('M4 implements B')
+      ..isAncestorOf('M5 on M2');
+  }
+
   test_isExtendedBy_ClassDeclaration() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -1056,6 +1077,35 @@ class X extends dynamic {
     AnalysisDriverSubtype X = index.subtypes.singleWhere((t) => t.name == 'X');
     expect(X.supertypes, isEmpty);
     expect(X.members, ['foo']);
+  }
+
+  test_subtypes_mixinDeclaration() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    provider.newFile(_p('$testProject/lib.dart'), '''
+class A {}
+class B {}
+class C {}
+class D {}
+class E {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+mixin X on A implements B, C {}
+mixin Y on A, B implements C;
+''');
+
+    {
+      var X = index.subtypes.singleWhere((t) => t.name == 'X');
+      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
+      expect(X.members, isEmpty);
+    }
+
+    {
+      var Y = index.subtypes.singleWhere((t) => t.name == 'Y');
+      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
+      expect(Y.members, isEmpty);
+    }
   }
 
   test_usedName_inLibraryIdentifier() async {

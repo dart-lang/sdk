@@ -69,7 +69,7 @@ class KernelFunctionTypeAliasBuilder
 
       if (type.formals != null) {
         for (KernelFormalParameterBuilder formal in type.formals) {
-          VariableDeclaration parameter = formal.build(libraryBuilder);
+          VariableDeclaration parameter = formal.build(libraryBuilder, 0);
           parameter.type = freshTypeParameters.substitute(parameter.type);
           if (formal.isNamed) {
             target.namedParameters.add(parameter);

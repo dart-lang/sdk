@@ -293,32 +293,27 @@ def IsCrossBuild(target_os, arch):
           (target_os != GuessOS()))
 
 
-def GetBuildConf(mode, arch, conf_os=None, kbc=False):
-  kbc_suffix = ''
-  if kbc:
-    kbc_suffix = 'KBC'
+def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
-    return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
-                       kbc_suffix)
+    return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
   else:
     # Ask for a cross build if the host and target architectures don't match.
     host_arch = ARCH_GUESS
     cross_build = ''
     if GetArchFamily(host_arch) != GetArchFamily(arch):
       cross_build = 'X'
-    return '%s%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper(),
-                       kbc_suffix)
+    return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
 
 def GetBuildDir(host_os):
   return BUILD_ROOT[host_os]
 
 
-def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, kbc=False):
+def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
   build_root = GetBuildDir(host_os)
   if mode:
     build_root = os.path.join(build_root,
-                              GetBuildConf(mode, arch, target_os, kbc))
+                              GetBuildConf(mode, arch, target_os))
   return build_root
 
 

@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:core' hide Type;
 import 'dart:math' show max;
 
+import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -163,7 +164,8 @@ class _DirectInvocation extends _Invocation {
       case CallKind.PropertyGet:
         assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
-        return fieldValue.getValue(typeFlowAnalysis);
+        return fieldValue.getValue(
+            typeFlowAnalysis, field.isStatic ? null : args.values[0]);
 
       case CallKind.PropertySet:
         assertx(args.values.length == firstParamIndex + 1);
@@ -176,7 +178,8 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
-        final receiver = fieldValue.getValue(typeFlowAnalysis);
+        final receiver = fieldValue.getValue(
+            typeFlowAnalysis, field.isStatic ? null : args.values[0]);
         if (receiver != const EmptyType()) {
           typeFlowAnalysis.applyCall(/* callSite = */ null,
               DynamicSelector.kCall, new Args.withReceiver(args, receiver),
@@ -185,7 +188,7 @@ class _DirectInvocation extends _Invocation {
         return new Type.nullableAny();
 
       case CallKind.FieldInitializer:
-        assertx(args.values.isEmpty);
+        assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
         Type initializerResult = typeFlowAnalysis
             .getSummary(field)
@@ -685,7 +688,6 @@ class _FieldValue extends _DependencyTracker {
   final Field field;
   final Type staticType;
   Type value;
-  _DirectInvocation _initializerInvocation;
 
   _FieldValue(this.field) : staticType = new Type.fromStatic(field.type) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
@@ -717,22 +719,22 @@ class _FieldValue extends _DependencyTracker {
     });
   }
 
-  void ensureInitialized(TypeFlowAnalysis typeFlowAnalysis) {
+  void ensureInitialized(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
     if (field.initializer != null) {
-      if (_initializerInvocation == null) {
-        _initializerInvocation = typeFlowAnalysis._invocationsCache
-            .getInvocation(
-                new DirectSelector(field, callKind: CallKind.FieldInitializer),
-                new Args<Type>(const <Type>[]));
-      }
+      assertx(field.isStatic == (receiverType == null));
+      final args = !field.isStatic ? <Type>[receiverType] : const <Type>[];
+      final initializerInvocation = typeFlowAnalysis._invocationsCache
+          .getInvocation(
+              new DirectSelector(field, callKind: CallKind.FieldInitializer),
+              new Args<Type>(args));
 
       // It may update the field value.
-      typeFlowAnalysis.workList.processInvocation(_initializerInvocation);
+      typeFlowAnalysis.workList.processInvocation(initializerInvocation);
     }
   }
 
-  Type getValue(TypeFlowAnalysis typeFlowAnalysis) {
-    ensureInitialized(typeFlowAnalysis);
+  Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
+    ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
     return value;
   }
@@ -1174,9 +1176,11 @@ class _WorkList {
 }
 
 class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
+  final Target target;
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
-  final NativeCodeOracle nativeCodeOracle;
+  final PragmaAnnotationParser annotationMatcher;
+  NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
   _InvocationsCache _invocationsCache;
@@ -1185,13 +1189,15 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
 
-  TypeFlowAnalysis(Component component, CoreTypes coreTypes,
+  TypeFlowAnalysis(this.target, Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
-      {List<String> entryPointsJSONFiles, EntryPointsAnnotationMatcher matcher})
-      : nativeCodeOracle = new NativeCodeOracle(libraryIndex) {
+      {List<String> entryPointsJSONFiles, PragmaAnnotationParser matcher})
+      : annotationMatcher =
+            matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
+    nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy);
     summaryCollector =
-        new SummaryCollector(environment, this, nativeCodeOracle);
+        new SummaryCollector(target, environment, this, nativeCodeOracle);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
@@ -1199,10 +1205,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       nativeCodeOracle.processEntryPointsJSONFiles(entryPointsJSONFiles, this);
     }
 
-    matcher ??= new ConstantEntryPointsAnnotationMatcher(coreTypes);
-
-    component
-        .accept(new PragmaEntryPointsVisitor(this, nativeCodeOracle, matcher));
+    component.accept(new PragmaEntryPointsVisitor(
+        this, nativeCodeOracle, annotationMatcher));
   }
 
   _Invocation get currentInvocation => workList.callStack.last;

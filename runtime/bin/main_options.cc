@@ -63,12 +63,6 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
-void Options::SetDart2Options(CommandLineOptions* vm_options) {
-  vm_options->AddArgument("--strong");
-  vm_options->AddArgument("--reify-generic-functions");
-  vm_options->AddArgument("--sync-async");
-}
-
 void Options::SetDart1Options(CommandLineOptions* vm_options) {
   vm_options->AddArgument("--no-strong");
   vm_options->AddArgument("--no-reify-generic-functions");
@@ -347,9 +341,6 @@ int Options::ParseArguments(int argc,
                             bool* verbose_debug_seen) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
-
-  // Set Dart 2 as the default option.
-  Options::SetDart2Options(vm_options);
 
   // Store the executable name.
   Platform::SetExecutableName(argv[0]);

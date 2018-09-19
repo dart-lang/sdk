@@ -547,9 +547,6 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
 }
 
 train(String scriptUri, String platformKernelPath) {
-  // TODO(28532): Enable on Windows.
-  if (Platform.isWindows) return;
-
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {

@@ -449,8 +449,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  Isolate* isolate = Isolate::Current();
-  if (isolate->error_on_bad_override() && !isolate->strong()) {
+  if (!FLAG_strong && Isolate::Current()->error_on_bad_override()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -564,7 +563,7 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
          (type.signature() != Function::null()));
 
   // In non-strong mode, replace FutureOr<T> type of async library with dynamic.
-  if (type_class.IsFutureOrClass() && !Isolate::Current()->strong()) {
+  if (type_class.IsFutureOrClass() && !FLAG_strong) {
     Type::Cast(type).set_type_class(Class::Handle(Object::dynamic_class()));
     type.set_arguments(Object::null_type_arguments());
   }
@@ -1226,7 +1225,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // malformed.
     if ((finalization >= kCanonicalize) && !type.IsMalformed() &&
         !type.IsCanonical() && type.IsType()) {
-      if (!Isolate::Current()->strong()) {
+      if (!FLAG_strong) {
         CheckTypeBounds(cls, type);
       }
       return type.Canonicalize();
@@ -1370,7 +1369,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
-  if (is_root_type && !Isolate::Current()->strong()) {
+  if (is_root_type && !FLAG_strong) {
     for (intptr_t i = pending_types->length() - 1; i >= 0; i--) {
       const AbstractType& type = pending_types->At(i);
       if (!type.IsMalformed() && !type.IsCanonical()) {
@@ -1634,7 +1633,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   String& other_name = String::Handle(zone);
   Class& super_class = Class::Handle(zone);
   const intptr_t num_fields = array.Length();
-  const bool track_exactness = isolate->strong() && isolate->use_field_guards();
+  const bool track_exactness = FLAG_strong && isolate->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
@@ -1743,7 +1742,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // If we check for bad overrides, collect interfaces, super interfaces, and
   // super classes of this class.
   GrowableArray<const Class*> interfaces(zone, 4);
-  if (isolate->error_on_bad_override() && !isolate->strong()) {
+  if (isolate->error_on_bad_override() && !FLAG_strong) {
     CollectInterfaces(cls, &interfaces);
     // Include superclasses in list of interfaces and super interfaces.
     super_class = cls.SuperClass();
@@ -1765,7 +1764,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     FinalizeSignature(cls, function);
     name = function.name();
     // Report signature conflicts only.
-    if (isolate->error_on_bad_override() && !isolate->strong() &&
+    if (isolate->error_on_bad_override() && !FLAG_strong &&
         !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.length(); i++) {
@@ -2748,10 +2747,13 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
 }
 
+volatile int ctr = 0;
+
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
   ASSERT(cls.is_type_finalized());
+  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   if (cls.is_finalized()) {
     return;
   }
@@ -2787,7 +2789,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Ensure interfaces are finalized in case we check for bad overrides.
   Isolate* isolate = Isolate::Current();
-  if (isolate->error_on_bad_override() && !isolate->strong()) {
+  if (isolate->error_on_bad_override() && !FLAG_strong) {
     GrowableArray<const Class*> interfaces(4);
     CollectInterfaces(cls, &interfaces);
     for (intptr_t i = 0; i < interfaces.length(); i++) {
@@ -2801,6 +2803,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     ApplyMixinMembers(cls);
   }
   // Mark as parsed and finalized.
+  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   cls.Finalize();
   // Mixin app alias classes may still lack their forwarding constructor.
   if (cls.is_mixin_app_alias() &&

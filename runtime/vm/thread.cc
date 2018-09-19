@@ -60,6 +60,7 @@ Thread::Thread(Isolate* isolate)
     : BaseThread(false),
       stack_limit_(0),
       stack_overflow_flags_(0),
+      write_barrier_mask_(RawObject::kGenerationalBarrierMask),
       isolate_(NULL),
       heap_(NULL),
       top_(0),
@@ -119,7 +120,7 @@ Thread::Thread(Isolate* isolate)
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
-    update_store_buffer_wrappers_entry_points_[i] = 0;
+    write_barrier_wrappers_entry_points_[i] = 0;
   }
 #endif
 
@@ -213,8 +214,8 @@ void Thread::InitVMConstants() {
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
-    update_store_buffer_wrappers_entry_points_[i] =
-        StubCode::UpdateStoreBufferWrappers_entry()->EntryPoint() +
+    write_barrier_wrappers_entry_points_[i] =
+        StubCode::WriteBarrierWrappers_entry()->EntryPoint() +
         i * kStoreBufferWrapperSize;
   }
 #endif
@@ -464,25 +465,6 @@ bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
     current = current->previous();
   }
   return false;
-}
-
-void Thread::SetHighWatermark(intptr_t value) {
-  zone_high_watermark_ = value;
-
-#if !defined(PRODUCT)
-  if ((isolate()->name() != NULL)) {
-    TimelineEvent* event = Timeline::GetZoneStream()->StartEvent();
-    if (event != NULL) {
-      event->Counter(strdup(isolate()->name()));
-      event->set_owns_label(true);
-      // Prevent Catapult from showing "isolateId" as another series.
-      event->set_isolate_id(ILLEGAL_PORT);
-      event->SetNumArguments(1);
-      event->FormatArgument(0, "zoneHighWatermark", "%" Pd, value);
-      event->Complete();
-    }
-  }
-#endif
 }
 
 void Thread::DeferOOBMessageInterrupts() {

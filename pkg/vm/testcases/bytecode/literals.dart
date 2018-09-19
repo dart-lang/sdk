@@ -65,6 +65,7 @@ void test_map_literal<T>(int a, int b, T c) {
 
 void test_symbol() {
   print(#test_symbol);
+  print(#_private_symbol);
 }
 
 void test_type_literal<T>() {

@@ -40,7 +40,7 @@ import 'element_map_impl.dart';
 class KernelFrontEndStrategy extends FrontendStrategyBase {
   CompilerOptions _options;
   CompilerTask _compilerTask;
-  KernelToElementMapForImpactImpl _elementMap;
+  KernelToElementMapImpl _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcesser;
@@ -51,8 +51,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap = new KernelToElementMapForImpactImpl(
-        reporter, environment, this, _options);
+    _elementMap =
+        new KernelToElementMapImpl(reporter, environment, this, _options);
   }
 
   @override
@@ -68,7 +68,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   DartTypes get dartTypes => _elementMap.types;
 
-  KernelToElementMapForImpact get elementMap => _elementMap;
+  KernelToElementMap get elementMap => _elementMap;
 
   @override
   AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
@@ -157,7 +157,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final Map<MemberEntity, ScopeModel> closureModels;
@@ -183,7 +183,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;

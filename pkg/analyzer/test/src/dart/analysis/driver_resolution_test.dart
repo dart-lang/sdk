@@ -927,8 +927,9 @@ main() {
 
   test_binaryExpression_ifNull() async {
     String content = r'''
+int x = 3;
 main() {
-  1.2 ?? 3;
+  1.2 ?? x;
 }
 ''';
     addTestFile(content);

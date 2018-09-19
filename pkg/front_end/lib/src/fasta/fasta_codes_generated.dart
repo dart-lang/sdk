@@ -464,26 +464,6 @@ const MessageCode messageCannotAssignToSuper = const MessageCode(
     message: r"""Can't assign to super.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateCannotReadPackagesFile =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Unable to read '.packages' file:
-  #string.""", withArguments: _withArgumentsCannotReadPackagesFile);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeCannotReadPackagesFile =
-    const Code<Message Function(String string)>(
-  "CannotReadPackagesFile",
-  templateCannotReadPackagesFile,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotReadPackagesFile(String string) {
-  return new Message(codeCannotReadPackagesFile,
-      message: """Unable to read '.packages' file:
-  ${string}.""", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateCannotReadSdkSpecification =
     const Template<Message Function(String string)>(
@@ -580,6 +560,26 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)> templateCantReadFile =
+    const Template<Message Function(Uri uri_, String string)>(
+        messageTemplate: r"""Error when reading '#uri': #string""",
+        withArguments: _withArgumentsCantReadFile);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)> codeCantReadFile =
+    const Code<Message Function(Uri uri_, String string)>(
+        "CantReadFile", templateCantReadFile,
+        analyzerCode: "URI_DOES_NOT_EXIST");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantReadFile(Uri uri_, String string) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeCantReadFile,
+      message: """Error when reading '${uri}': ${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Token
@@ -670,6 +670,19 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
+    analyzerCode: "CATCH_SYNTAX",
+    message:
+        r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
+    tip:
+        r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCatchSyntaxExtraParameters =
+    messageCatchSyntaxExtraParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
+    "CatchSyntaxExtraParameters",
     analyzerCode: "CATCH_SYNTAX",
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
@@ -961,6 +974,35 @@ const Code<Null> codeConstEvalContext = messageConstEvalContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalContext =
     const MessageCode("ConstEvalContext", message: r"""While analyzing:""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateConstEvalDeferredLibrary = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""'#name' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+    tipTemplate:
+        r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+    withArguments: _withArgumentsConstEvalDeferredLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstEvalDeferredLibrary =
+    const Code<Message Function(String name)>(
+        "ConstEvalDeferredLibrary", templateConstEvalDeferredLibrary,
+        analyzerCode: "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalDeferredLibrary(String name) {
+  return new Message(codeConstEvalDeferredLibrary,
+      message:
+          """'${name}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+      tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1505,7 +1547,7 @@ const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueOutsideOfLoop = const MessageCode(
     "ContinueOutsideOfLoop",
-    analyzerCode: "CONTINUE_OUTSIDE_OF_LOOP",
+    index: 2,
     message:
         r"""A continue statement can't be used outside of a loop or switch statement.""",
     tip: r"""Try removing the continue statement.""");
@@ -1583,7 +1625,7 @@ const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAfterVar = const MessageCode(
     "CovariantAfterVar",
-    analyzerCode: "COVARIANT_AFTER_VAR",
+    index: 8,
     message:
         r"""The modifier 'covariant' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -2300,7 +2342,7 @@ const Code<Null> codeEqualityCannotBeEqualityOperand =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
     "EqualityCannotBeEqualityOperand",
-    analyzerCode: "EQUALITY_CANNOT_BE_EQUALITY_OPERAND",
+    index: 1,
     message:
         r"""An equality expression can't be an operand of another equality expression.""",
     tip: r"""Try re-writing the expression.""");
@@ -2566,7 +2608,7 @@ const Code<Null> codeExpectedStatement = messageExpectedStatement;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedStatement = const MessageCode(
     "ExpectedStatement",
-    analyzerCode: "MISSING_STATEMENT",
+    index: 29,
     message: r"""Expected a statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2757,7 +2799,7 @@ const Code<Null> codeExternalClass = messageExternalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalClass = const MessageCode("ExternalClass",
-    analyzerCode: "EXTERNAL_CLASS",
+    index: 3,
     message: r"""Classes can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -2790,7 +2832,7 @@ const Code<Null> codeExternalEnum = messageExternalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalEnum = const MessageCode("ExternalEnum",
-    analyzerCode: "EXTERNAL_ENUM",
+    index: 5,
     message: r"""Enums can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -3560,7 +3602,7 @@ const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
-    analyzerCode: "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE",
+    index: 10,
     message: r"""Import directives must preceed part directives.""",
     tip: r"""Try moving the import directives before the part directives.""");
 
@@ -4241,7 +4283,7 @@ const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
-    analyzerCode: "INVALID_AWAIT_IN_FOR",
+    index: 9,
     message:
         r"""The keyword 'await' isn't allowed for a normal 'for' statement.""",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
@@ -4586,7 +4628,7 @@ const MessageCode messageInvalidHexEscape = const MessageCode(
     "InvalidHexEscape",
     analyzerCode: "INVALID_HEX_ESCAPE",
     message:
-        r"""An escape sequence starting with '\x' must be followed by 2 hexidecimal digits.""");
+        r"""An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
@@ -4605,7 +4647,9 @@ const Code<Null> codeInvalidInlineFunctionType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInlineFunctionType = const MessageCode(
     "InvalidInlineFunctionType",
-    message: r"""Invalid inline function type.""",
+    analyzerCode: "INVALID_INLINE_FUNCTION_TYPE",
+    message:
+        r"""Inline function types cannot be used for parameters in a generic function type.""",
     tip:
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
@@ -4670,7 +4714,7 @@ const MessageCode messageInvalidUnicodeEscape = const MessageCode(
     "InvalidUnicodeEscape",
     analyzerCode: "INVALID_UNICODE_ESCAPE",
     message:
-        r"""An escape sequence starting with '\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'.""");
+        r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUseOfNullAwareAccess =
@@ -4688,7 +4732,7 @@ const Code<Null> codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
-    analyzerCode: "INVALID_USE_OF_VOID",
+    analyzerCode: "EXPECTED_TYPE_NAME",
     message:
         r"""Type 'void' can't be used here because it isn't a return type.""",
     tip:
@@ -5116,7 +5160,7 @@ const Code<Null> codeMissingPrefixInDeferredImport =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     "MissingPrefixInDeferredImport",
-    analyzerCode: "MISSING_PREFIX_IN_DEFERRED_IMPORT",
+    index: 30,
     message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
 
@@ -5179,7 +5223,7 @@ const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleExtends = const MessageCode("MultipleExtends",
-    analyzerCode: "MULTIPLE_EXTENDS_CLAUSES",
+    index: 28,
     message: r"""Each class definition can have at most one extends clause.""",
     tip:
         r"""Try choosing one superclass and define your class to implement (or mix in) the others.""");
@@ -5203,7 +5247,7 @@ const Code<Null> codeMultipleLibraryDirectives =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleLibraryDirectives = const MessageCode(
     "MultipleLibraryDirectives",
-    analyzerCode: "MULTIPLE_LIBRARY_DIRECTIVES",
+    index: 27,
     message: r"""Only one library directive may be declared in a file.""",
     tip: r"""Try removing all but one of the library directives.""");
 
@@ -5213,7 +5257,7 @@ const Code<Null> codeMultipleOnClauses = messageMultipleOnClauses;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleOnClauses = const MessageCode(
     "MultipleOnClauses",
-    analyzerCode: "MULTIPLE_ON_CLAUSES",
+    index: 26,
     message: r"""Each mixin definition can have at most one on clause.""",
     tip: r"""Try combining all of the on clauses into a single clause.""");
 
@@ -5222,7 +5266,7 @@ const Code<Null> codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
-    analyzerCode: "MULTIPLE_WITH_CLAUSES",
+    index: 24,
     message: r"""Each class definition can have at most one with clause.""",
     tip: r"""Try combining all of the with clauses into a single clause.""");
 
@@ -5242,7 +5286,7 @@ const Code<Null> codeNativeClauseShouldBeAnnotation =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
     "NativeClauseShouldBeAnnotation",
-    analyzerCode: "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION",
+    index: 23,
     message: r"""Native clause in this form is deprecated.""",
     tip:
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
@@ -5634,7 +5678,7 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""This is the overriden method ('#name').""",
+        messageTemplate: r"""This is the overridden method ('#name').""",
         withArguments: _withArgumentsOverriddenMethodCause);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5646,7 +5690,7 @@ const Code<Message Function(String name)> codeOverriddenMethodCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverriddenMethodCause(String name) {
   return new Message(codeOverriddenMethodCause,
-      message: """This is the overriden method ('${name}').""",
+      message: """This is the overridden method ('${name}').""",
       arguments: {'name': name});
 }
 
@@ -5715,7 +5759,7 @@ const Template<
             name3)> templateOverrideMismatchNamedParameter = const Template<
         Message Function(String name, String name2, String name3)>(
     messageTemplate:
-        r"""The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'.""",
+        r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
     withArguments: _withArgumentsOverrideMismatchNamedParameter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5732,7 +5776,7 @@ Message _withArgumentsOverrideMismatchNamedParameter(
     String name, String name2, String name3) {
   return new Message(codeOverrideMismatchNamedParameter,
       message:
-          """The method '${name}' doesn't have the named parameter '${name2}' of overriden method '${name3}'.""",
+          """The method '${name}' doesn't have the named parameter '${name2}' of overridden method '${name3}'.""",
       arguments: {'name': name, 'name2': name2, 'name3': name3});
 }
 
@@ -5906,6 +5950,62 @@ Message _withArgumentsPackageNotFound(String name, Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templatePackagesFileFormat =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Problem in packages configuration file: #string""",
+        withArguments: _withArgumentsPackagesFileFormat);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codePackagesFileFormat =
+    const Code<Message Function(String string)>(
+  "PackagesFileFormat",
+  templatePackagesFileFormat,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPackagesFileFormat(String string) {
+  return new Message(codePackagesFileFormat,
+      message: """Problem in packages configuration file: ${string}""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartExport = messagePartExport;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartExport = const MessageCode("PartExport",
+    analyzerCode: "EXPORT_OF_NON_LIBRARY",
+    message:
+        r"""Can't export this file because it contains a 'part of' declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartExportContext = messagePartExportContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartExportContext = const MessageCode(
+    "PartExportContext",
+    severity: Severity.context,
+    message: r"""This is the file that can't be exported.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartInPart = messagePartInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartInPart = const MessageCode("PartInPart",
+    analyzerCode: "NON_PART_OF_DIRECTIVE_IN_PART",
+    message: r"""A file that's a part of a library can't have parts itself.""",
+    tip: r"""Try moving the 'part' declaration to the containing library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartInPartLibraryContext = messagePartInPartLibraryContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartInPartLibraryContext = const MessageCode(
+    "PartInPartLibraryContext",
+    severity: Severity.context,
+    message: r"""This is the containing library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templatePartOfInLibrary = const Template<
         Message Function(Uri uri_)>(
@@ -5975,7 +6075,7 @@ const Code<Null> codePartOfTwice = messagePartOfTwice;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwice = const MessageCode("PartOfTwice",
-    analyzerCode: "MULTIPLE_PART_OF_DIRECTIVES",
+    index: 25,
     message: r"""Only one part-of directive may be declared in a file.""",
     tip: r"""Try removing all but one of the part-of directives.""");
 
@@ -6063,6 +6163,14 @@ Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
       tip: """Try changing the 'part of' declaration to use a relative file name.""",
       arguments: {'uri': uri_, 'uri2': uri2_, 'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartOrphan = messagePartOrphan;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartOrphan = const MessageCode("PartOrphan",
+    message: r"""This part doesn't have a containing library.""",
+    tip: r"""Try removing the 'part of' declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templatePartTwice =
@@ -6193,7 +6301,7 @@ const Code<Null> codePrefixAfterCombinator = messagePrefixAfterCombinator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrefixAfterCombinator = const MessageCode(
     "PrefixAfterCombinator",
-    analyzerCode: "PREFIX_AFTER_COMBINATOR",
+    index: 6,
     message:
         r"""The prefix ('as' clause) should come before any show/hide combinators.""",
     tip: r"""Try moving the prefix before the combinators.""");
@@ -6214,7 +6322,7 @@ const Code<Null> codeRedirectingConstructorWithBody =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
     "RedirectingConstructorWithBody",
-    analyzerCode: "REDIRECTING_CONSTRUCTOR_WITH_BODY",
+    index: 22,
     message: r"""Redirecting constructors can't have a body.""",
     tip:
         r"""Try removing the body, or not making this a redirecting constructor.""");
@@ -6225,7 +6333,7 @@ const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRedirectionInNonFactory = const MessageCode(
     "RedirectionInNonFactory",
-    analyzerCode: "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR",
+    index: 21,
     message: r"""Only factory constructor can specify '=' redirection.""",
     tip:
         r"""Try making this a factory constructor, or remove the redirection.""");
@@ -6512,7 +6620,7 @@ const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterConst = const MessageCode(
     "StaticAfterConst",
-    analyzerCode: "STATIC_AFTER_CONST",
+    index: 20,
     message:
         r"""The modifier 'static' should be before the modifier 'const'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -6523,7 +6631,7 @@ const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterFinal = const MessageCode(
     "StaticAfterFinal",
-    analyzerCode: "STATIC_AFTER_FINAL",
+    index: 19,
     message:
         r"""The modifier 'static' should be before the modifier 'final'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -6533,7 +6641,7 @@ const Code<Null> codeStaticAfterVar = messageStaticAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
-    analyzerCode: "STATIC_AFTER_VAR",
+    index: 18,
     message: r"""The modifier 'static' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
 
@@ -6543,7 +6651,7 @@ const Code<Null> codeStaticConstructor = messageStaticConstructor;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticConstructor = const MessageCode(
     "StaticConstructor",
-    analyzerCode: "STATIC_CONSTRUCTOR",
+    index: 4,
     message: r"""Constructors can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
 
@@ -6552,7 +6660,7 @@ const Code<Null> codeStaticOperator = messageStaticOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
-    analyzerCode: "STATIC_OPERATOR",
+    index: 17,
     message: r"""Operators can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
 
@@ -6816,7 +6924,7 @@ const Code<Null> codeSwitchHasCaseAfterDefault =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
     "SwitchHasCaseAfterDefault",
-    analyzerCode: "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE",
+    index: 16,
     message:
         r"""The default case should be the last case in a switch statement.""",
     tip: r"""Try moving the default case after the other case clauses.""");
@@ -6828,7 +6936,7 @@ const Code<Null> codeSwitchHasMultipleDefaults =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
     "SwitchHasMultipleDefaults",
-    analyzerCode: "SWITCH_HAS_MULTIPLE_DEFAULT_CASES",
+    index: 15,
     message: r"""The 'default' case can only be declared once.""",
     tip: r"""Try removing all but one default case.""");
 
@@ -6954,7 +7062,7 @@ const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTopLevelOperator = const MessageCode(
     "TopLevelOperator",
-    analyzerCode: "TOP_LEVEL_OPERATOR",
+    index: 14,
     message: r"""Operators must be declared within a class.""",
     tip:
         r"""Try removing the operator, moving it to a class, or converting it to be a function.""");
@@ -7001,8 +7109,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
         "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
-        analyzerCode: "TYPE_ARGUMENTS_ON_TYPE_VARIABLE",
-        severity: Severity.errorLegacyWarning);
+        index: 13, severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
@@ -7097,7 +7204,7 @@ const Code<Null> codeTypedefInClass = messageTypedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefInClass = const MessageCode("TypedefInClass",
-    analyzerCode: "TYPEDEF_IN_CLASS",
+    index: 7,
     message: r"""Typedefs can't be declared inside classes.""",
     tip: r"""Try moving the typedef to the top-level.""");
 
@@ -7384,6 +7491,25 @@ const MessageCode messageUnterminatedToken =
     const MessageCode("UnterminatedToken", message: r"""Incomplete token.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)> templateUntranslatableUri =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""Not found: '#uri'""",
+        withArguments: _withArgumentsUntranslatableUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeUntranslatableUri =
+    const Code<Message Function(Uri uri_)>(
+        "UntranslatableUri", templateUntranslatableUri,
+        analyzerCode: "URI_DOES_NOT_EXIST");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUntranslatableUri(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeUntranslatableUri,
+      message: """Not found: '${uri}'""", arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateUseOfDeprecatedIdentifier =
     const Template<Message Function(String name)>(
@@ -7407,7 +7533,7 @@ const Code<Null> codeVarReturnType = messageVarReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
-    analyzerCode: "VAR_RETURN_TYPE",
+    index: 12,
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
@@ -7457,19 +7583,9 @@ const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWithBeforeExtends = const MessageCode(
     "WithBeforeExtends",
-    analyzerCode: "WITH_BEFORE_EXTENDS",
+    index: 11,
     message: r"""The extends clause must be before the with clause.""",
     tip: r"""Try moving the extends clause before the with clause.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeWithWithoutExtends = messageWithWithoutExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWithWithoutExtends = const MessageCode(
-    "WithWithoutExtends",
-    analyzerCode: "WITH_WITHOUT_EXTENDS",
-    message: r"""The with clause can't be used without an extends clause.""",
-    tip: r"""Try adding an extends clause such as 'extends Object'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;

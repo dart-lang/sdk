@@ -83,9 +83,8 @@ class LibraryAnalyzer {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
-    units[_library] = _parse(_library);
-    for (FileState part in _library.partedFiles) {
-      units[part] = _parse(part);
+    for (FileState file in _library.libraryFiles) {
+      units[file] = _parse(file);
     }
 
     // Resolve URIs in directives to corresponding sources.
@@ -567,7 +566,7 @@ class LibraryAnalyzer {
     new DeclarationResolver().resolve(unit, unitElement);
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+        source, _typeProvider, errorListener));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 

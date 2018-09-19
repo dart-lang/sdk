@@ -647,29 +647,29 @@ class G_error extends E implements D {
 typedef dynamic A(dynamic x);
 class B {
   int call(int x) => x;
-  double col(double x) => x;
+  bool col(bool x) => x;
 }
 void main() {
   {
     B f = new B();
     int x;
-    double y;
+    bool y;
     x = f(3);
-    x = /*error:INVALID_ASSIGNMENT*/f.col(3.0);
+    x = /*error:INVALID_ASSIGNMENT*/f.col(true);
     y = /*error:INVALID_ASSIGNMENT*/f(3);
-    y = f.col(3.0);
-    f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3.0);
+    y = f.col(true);
+    f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/true);
     f.col(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
   {
     Function f = new B();
     int x;
-    double y;
+    bool y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
+    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
-    /*info:DYNAMIC_INVOKE*/f(3.0);
+    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
+    /*info:DYNAMIC_INVOKE*/f(true);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
@@ -679,22 +679,22 @@ void main() {
     B b = new B();
     f = /* error:INVALID_ASSIGNMENT*/b;
     int x;
-    double y;
+    bool y;
     x = /*info:DYNAMIC_CAST*/f(3);
     y = /*info:DYNAMIC_CAST*/f(3);
-    f(3.0);
+    f(true);
   }
   {
     dynamic g = new B();
-    /*info:DYNAMIC_INVOKE*/g.call(32.0);
-    /*info:DYNAMIC_INVOKE*/g.col(42.0);
-    /*info:DYNAMIC_INVOKE*/g.foo(42.0);
+    /*info:DYNAMIC_INVOKE*/g.call(true);
+    /*info:DYNAMIC_INVOKE*/g.col(true);
+    /*info:DYNAMIC_INVOKE*/g.foo(true);
     /*info:DYNAMIC_INVOKE*/g.x;
     A f = /* error:INVALID_ASSIGNMENT*/new B();
     B b = new B();
     f = /*error:INVALID_ASSIGNMENT*/b;
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(true);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
   }
 }

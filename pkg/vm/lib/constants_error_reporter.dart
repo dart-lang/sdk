@@ -105,6 +105,12 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     reportIt(context, message, node);
   }
 
+  deferredLibrary(List<TreeNode> context, TreeNode node, String importName) {
+    final message =
+        codes.templateConstEvalDeferredLibrary.withArguments(importName);
+    reportIt(context, message, node);
+  }
+
   reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
     final Uri uri = getFileUri(node);
     final int fileOffset = getFileOffset(node);

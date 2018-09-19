@@ -650,7 +650,7 @@ class C {
 class D extends C {
   const D(d) : super(d);
 }
-const f = const D(0);
+const f = const D('0.0');
 ''');
     await computeAnalysisResult(source);
     assertErrors(

@@ -46,13 +46,16 @@ class CoreRuntimeTypesTest {
     assertListEquals(a, b);
   }
 
-  static assertTypeError(void f()) {
-    Expect.throws(
+  static assertTypeError(void f(), [String message]) {
+    Expect.throws<Error>(
         f,
         (exception) =>
             (exception is TypeError) ||
+            (exception is CastError) ||
+            (exception is AssertionError) ||
             (exception is NoSuchMethodError) ||
-            (exception is ArgumentError));
+            (exception is ArgumentError),
+        message);
   }
 
   static testBooleanOperators() {
@@ -94,46 +97,49 @@ class CoreRuntimeTypesTest {
     for (var i = 0; i < objs.length; i++) {
       for (var j = i + 1; j < objs.length; j++) {
         testBinaryOperatorErrors(objs[i], objs[j]);
-        // Allow "String * int".
-        if (j > 2) testBinaryOperatorErrors(objs[j], objs[i]);
+        testBinaryOperatorErrors(objs[j], objs[i]);
       }
-      if (objs[i] != 1) {
-        testUnaryOperatorErrors(objs[i]);
-      }
+      testUnaryOperatorErrors(objs[i]);
     }
   }
 
   static testBinaryOperatorErrors(x, y) {
     assertTypeError(() {
-      x - y;
-    });
+      x + y;
+    }, "$x+$y");
     assertTypeError(() {
-      x * y;
-    });
+      x - y;
+    }, "$x-$y");
+    // String.* is the only non-same-type binary operator we have.
+    if (x is! String && y is! int) {
+      assertTypeError(() {
+        x * y;
+      }, "$x*$y");
+    }
     assertTypeError(() {
       x / y;
-    });
+    }, "$x/$y");
     assertTypeError(() {
       x | y;
-    });
+    }, "$x|$y");
     assertTypeError(() {
       x ^ y;
-    });
+    }, "$x^$y");
     assertTypeError(() {
       x & y;
-    });
+    }, "$x&$y");
     assertTypeError(() {
       x << y;
-    });
+    }, "$x<<$y");
     assertTypeError(() {
       x >> y;
-    });
+    }, "$x>>$y");
     assertTypeError(() {
       x ~/ y;
-    });
+    }, "$x~/$y");
     assertTypeError(() {
       x % y;
-    });
+    }, "$x%$y");
 
     testComparisonOperatorErrors(x, y);
   }
@@ -143,27 +149,34 @@ class CoreRuntimeTypesTest {
     assertEquals(x != y, true);
     assertTypeError(() {
       x < y;
-    });
+    }, "$x<$y");
     assertTypeError(() {
       x <= y;
-    });
+    }, "$x<=$y");
     assertTypeError(() {
       x > y;
-    });
+    }, "$x>$y");
     assertTypeError(() {
       x >= y;
-    });
+    }, "$x>=$y");
   }
 
   static testUnaryOperatorErrors(x) {
-    // TODO(jimhug): Add guard for 'is num' when 'is' is working
-    assertTypeError(() {
-      ~x;
-    });
-    assertTypeError(() {
-      -x;
-    });
-    // TODO(jimhug): Add check for !x as an error when x is not a bool
+    if (x is! int) {
+      assertTypeError(() {
+        ~x;
+      }, "~$x");
+    }
+    if (x is! num) {
+      assertTypeError(() {
+        -x;
+      }, "-$x");
+    }
+    if (x is! bool) {
+      assertTypeError(() {
+        !x;
+      }, "!$x");
+    }
   }
 
   static testRationalMethods() {

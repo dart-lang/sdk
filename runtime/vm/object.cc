@@ -120,8 +120,6 @@ RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::redirection_data_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::native_entry_data_class_ =
-    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -584,9 +582,6 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<RedirectionData>();
   redirection_data_class_ = cls.raw();
 
-  cls = Class::New<NativeEntryData>();
-  native_entry_data_class_ = cls.raw();
-
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -1027,7 +1022,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(signature_data, SignatureData);
   SET_CLASS_NAME(redirection_data, RedirectionData);
-  SET_CLASS_NAME(native_entry_data, NativeEntryData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
   SET_CLASS_NAME(token_stream, TokenStream);
@@ -3104,8 +3098,12 @@ void Class::RegisterCHACode(const Code& code) {
 void Class::DisableCHAOptimizedCode(const Class& subclass) {
   ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
-  if (FLAG_trace_deoptimization && a.HasCodes() && !subclass.IsNull()) {
-    THR_Print("Adding subclass %s\n", subclass.ToCString());
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    if (subclass.IsNull()) {
+      THR_Print("Deopt for CHA (all)\n");
+    } else {
+      THR_Print("Deopt for CHA (new subclass %s)\n", subclass.ToCString());
+    }
   }
   a.DisableCode();
 }
@@ -3919,8 +3917,6 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::SignatureData().raw();
     case kRedirectionDataCid:
       return Symbols::RedirectionData().raw();
-    case kNativeEntryDataCid:
-      return Symbols::NativeEntryData().raw();
     case kFieldCid:
       return Symbols::Field().raw();
     case kLiteralTokenCid:
@@ -4335,7 +4331,6 @@ bool Class::TypeTestNonRecursive(const Class& cls,
   // instead of recursing, reset it to the super class and loop.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
     // Each occurrence of DynamicType in type T is interpreted as the dynamic
@@ -4351,13 +4346,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Class FutureOr is mapped to dynamic in non-strong mode.
     // Detect snapshots compiled in strong mode and run in non-strong mode.
-    ASSERT(isolate->strong() || !other.IsFutureOrClass());
+    ASSERT(FLAG_strong || !other.IsFutureOrClass());
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
-        this_class.FutureOrTypeTest(zone, type_arguments, other,
-                                    other_type_arguments, bound_error,
-                                    bound_trail, space)) {
+    if (FLAG_strong && this_class.FutureOrTypeTest(
+                           zone, type_arguments, other, other_type_arguments,
+                           bound_error, bound_trail, space)) {
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
@@ -4365,7 +4359,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (this_class.IsDynamicClass()) {
-      return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
+      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
     }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
@@ -4392,14 +4386,14 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
+        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong() && other.IsDartFunctionClass()) {
+    if (!FLAG_strong && other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
           Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
@@ -4459,7 +4453,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         }
       }
       // In Dart 2, implementing Function has no meaning.
-      if (isolate->strong() && interface_class.IsDartFunctionClass()) {
+      if (FLAG_strong && interface_class.IsDartFunctionClass()) {
         continue;
       }
       if (interface_class.TypeTest(test_kind, interface_args, other,
@@ -4505,7 +4499,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
                              Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsFutureOrClass()) {
     if (other_type_arguments.IsNull()) {
       return true;
@@ -5242,7 +5236,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
       name = type.BuildName(name_visibility);
     } else {
       // Show dynamic type argument in strong mode.
-      ASSERT(thread->isolate()->strong());
+      ASSERT(FLAG_strong);
       name = Symbols::Dynamic().raw();
     }
     pieces.Add(name);
@@ -5959,15 +5953,19 @@ void Function::AttachCode(const Code& value) const {
 bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
-#if defined(DART_USE_INTERPRETER)
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
-#else
+#if defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
-#endif
+#else
+  if (FLAG_enable_interpreter) {
+    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+           raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  } else {
+    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Function::AttachBytecode(const Code& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // Finish setting up code before activating it.
@@ -5977,34 +5975,43 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  // Set the code entry_point to InterpretCall stub.
-  SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+  if (!FLAG_use_bytecode_compiler) {
+    // Set the code entry_point to InterpretCall stub.
+    SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+  }
 }
 
 bool Function::HasBytecode() const {
   return raw_ptr()->bytecode_ != Code::null();
 }
 
-bool Function::HasCode(RawFunction* function) {
-  NoSafepointScope no_safepoint;
-  ASSERT(function->ptr()->code_ != Code::null());
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
-}
-
 bool Function::HasBytecode(RawFunction* function) {
   return function->ptr()->bytecode_ != Code::null();
 }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+bool Function::HasCode(RawFunction* function) {
+  NoSafepointScope no_safepoint;
+  ASSERT(function->ptr()->code_ != Code::null());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code();
+#else
+  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 void Function::ClearCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   ASSERT(Thread::Current()->IsMutatorThread());
+
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+  StorePointer(&raw_ptr()->bytecode_, Code::null());
+
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
@@ -7047,7 +7054,7 @@ const char* Function::ToQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
   ASSERT(Isolate::Current()->error_on_bad_override());
-  ASSERT(!Isolate::Current()->strong());
+  ASSERT(!FLAG_strong);
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -7222,7 +7229,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
-  if (Isolate::Current()->strong()) {
+  if (FLAG_strong) {
     const AbstractType& param_type =
         AbstractType::Handle(ParameterTypeAt(parameter_position));
     if (param_type.IsTopType()) {
@@ -7313,8 +7320,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
-  if (isolate->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -7325,7 +7331,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
-  if (isolate->strong()) {
+  if (FLAG_strong) {
     // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
     if (!other_res_type.IsTopType()) {
       const AbstractType& res_type = AbstractType::Handle(zone, result_type());
@@ -7697,7 +7703,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
   // The VM's parser erases covariant types immediately in strong mode.
-  if (thread->isolate()->strong() && !is_static() && kernel_offset() > 0) {
+  if (FLAG_strong && !is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     translation_helper.InitFromScript(function_script);
@@ -7861,7 +7867,7 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (Isolate::Current()->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
@@ -8208,6 +8214,7 @@ int32_t Function::SourceFingerprint() const {
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
     const Array& edge_counters_array) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Compute number of ICData objects to save.
   // Store edge counter array in the first slot.
   intptr_t count = 1;
@@ -8227,11 +8234,15 @@ void Function::SaveICDataMap(
   }
   array.SetAt(0, edge_counters_array);
   set_ic_data_array(array);
+#else   // DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     bool clone_ic_data) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_force_clone_compiler_objects) {
     clone_ic_data = true;
   }
@@ -8265,6 +8276,9 @@ void Function::RestoreICDataMap(
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }
+#else   // DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 void Function::set_ic_data_array(const Array& value) const {
@@ -8494,37 +8508,6 @@ const char* RedirectionData::ToCString() const {
                      redir_type.IsNull() ? "null" : redir_type.ToCString(),
                      ident.IsNull() ? "null" : ident.ToCString(),
                      target_fun.IsNull() ? "null" : target_fun.ToCString());
-}
-
-RawNativeEntryData* NativeEntryData::New() {
-  ASSERT(Object::native_entry_data_class() != Class::null());
-  RawObject* raw = Object::Allocate(
-      NativeEntryData::kClassId, NativeEntryData::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawNativeEntryData*>(raw);
-}
-
-const char* NativeEntryData::ToCString() const {
-#if defined(DART_USE_INTERPRETER)
-  if (IsNull()) {
-    return "NativeEntryData: null";
-  }
-  if (kind() != MethodRecognizer::kUnknown) {
-    return OS::SCreate(Thread::Current()->zone(), "NativeEntryData %s",
-                       MethodRecognizer::KindToCString(kind()));
-  }
-  return OS::SCreate(
-      Thread::Current()->zone(),
-      "NativeEntryData argc: %d, trampoline: %s, function: 0x%" Px,
-      NativeArguments::ArgcBits::decode(argc_tag()),
-      trampoline() == &NativeEntry::BootstrapNativeCallWrapper
-          ? "BootstrapNativeCallWrapper"
-          : trampoline() == &NativeEntry::AutoScopeNativeCallWrapper
-                ? "AutoScopeNativeCallWrapper"
-                : "NoScopeNativeCallWrapper",
-      reinterpret_cast<uword>(native_function()));
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
 }
 
 RawField* Field::CloneFromOriginal() const {
@@ -9028,6 +9011,9 @@ void Field::DeoptimizeDependentCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
   FieldDependentArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Deopt for field guard (field %s)\n", ToCString());
+  }
   a.DisableCode();
 }
 
@@ -11007,6 +10993,13 @@ static void ReportTooManyImports(const Library& lib) {
   UNREACHABLE();
 }
 
+bool Library::IsAnyCoreLibrary() const {
+  String& url_str = Thread::Current()->StringHandle();
+  url_str = url();
+  return url_str.StartsWith(Symbols::DartScheme()) ||
+         url_str.StartsWith(Symbols::DartSchemePrivate());
+}
+
 void Library::set_num_imports(intptr_t value) const {
   if (!Utils::IsUint(16, value)) {
     ReportTooManyImports(*this);
@@ -11286,7 +11279,6 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
 }
 
 RawField* Library::GetMetadataField(const String& metaname) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   Field& entry = Field::Handle();
@@ -12983,6 +12975,9 @@ void LibraryPrefix::RegisterDependentCode(const Code& code) const {
 
 void LibraryPrefix::InvalidateDependentCode() const {
   PrefixDependentArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Deopt for lazy load (prefix %s)\n", ToCString());
+  }
   a.DisableCode();
   set_is_loaded();
 }
@@ -13257,6 +13252,11 @@ void KernelProgramInfo::set_constants_table(
 void KernelProgramInfo::set_potential_natives(
     const GrowableObjectArray& candidates) const {
   StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
+}
+
+void KernelProgramInfo::set_potential_pragma_functions(
+    const GrowableObjectArray& candidates) const {
+  StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
 }
 
 RawError* Library::CompileAll() {
@@ -15416,8 +15416,8 @@ void Code::set_variables(const Smi& smi) const {
   StorePointer(&raw_ptr()->catch_entry_.variables_, smi.raw());
 }
 #else
-void Code::set_catch_entry_state_maps(const TypedData& maps) const {
-  StorePointer(&raw_ptr()->catch_entry_.catch_entry_state_maps_, maps.raw());
+void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
+  StorePointer(&raw_ptr()->catch_entry_.catch_entry_moves_maps_, maps.raw());
 }
 #endif
 
@@ -15814,9 +15814,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", compiler, assembler, optimized, stats);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_USE_INTERPRETER)
 RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                                 intptr_t bytecode_size,
                                 const ObjectPool& object_pool,
@@ -15874,7 +15872,8 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
            code.comments().comments_.Length());
   return code.raw();
 }
-#endif  // defined(DART_USE_INTERPRETER)
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);
@@ -17231,7 +17230,6 @@ bool Instance::IsInstanceOf(
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsTopType() || other.IsDartFunctionType() ||
@@ -17256,7 +17254,7 @@ bool Instance::IsInstanceOf(
         return true;
       }
     }
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
@@ -17306,7 +17304,7 @@ bool Instance::IsInstanceOf(
   other_type_arguments = instantiated_other.arguments();
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   // In strong mode, subtyping rules of callable instances are restricted.
-  if (!isolate->strong() &&
+  if (!FLAG_strong &&
       (other_is_dart_function || instantiated_other.IsFunctionType())) {
     // Check if this instance understands a call() method of a compatible type.
     Function& sig_fun =
@@ -17342,7 +17340,7 @@ bool Instance::IsInstanceOf(
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
     // We already checked other for dynamic and void.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
@@ -17355,7 +17353,7 @@ bool Instance::IsInstanceOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     const AbstractType& other,
                                     Error* bound_error) const {
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -17934,7 +17932,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       } else {
         ASSERT(num_args == 0);  // Type is raw.
         // No need to fill up with "dynamic", unless running in strong mode.
-        if (!thread->isolate()->strong()) {
+        if (!FLAG_strong) {
           num_type_params = 0;
         }
       }
@@ -17955,8 +17953,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
   if ((num_type_params == 0) ||
-      (!thread->isolate()->strong() &&
-       args.IsRaw(first_type_param_index, num_type_params))) {
+      (!FLAG_strong && args.IsRaw(first_type_param_index, num_type_params))) {
     // Do nothing.
   } else {
     const String& args_name = String::Handle(
@@ -18007,7 +18004,27 @@ bool AbstractType::IsTopType() const {
     return false;
   }
   classid_t cid = type_class_id();
-  return (cid == kDynamicCid) || (cid == kInstanceCid);
+  if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
+    return true;
+  }
+  // In strong mode, FutureOr<T> where T is a top type behaves as a top type.
+  if (FLAG_strong) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
+      if (arguments() == TypeArguments::null()) {
+        return true;
+      }
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(zone, arguments());
+      const AbstractType& type_arg =
+          AbstractType::Handle(zone, type_arguments.TypeAt(0));
+      if (type_arg.IsTopType()) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool AbstractType::IsNullType() const {
@@ -18119,7 +18136,6 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -18199,7 +18215,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
@@ -18226,7 +18242,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong()) {
+    if (!FLAG_strong) {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
@@ -18264,7 +18280,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (IsFunctionType()) {
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (isolate->strong() &&
+    if (FLAG_strong &&
         FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
@@ -18283,7 +18299,7 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
                                     Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(Isolate::Current()->strong());
+  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -18764,7 +18780,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (Isolate::Current()->reify_generic_functions()) {
+  if (FLAG_reify_generic_functions) {
     // Compare function type parameters and their bounds.
     // Check the type parameters and bounds of generic functions.
     if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {

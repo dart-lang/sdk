@@ -98,7 +98,12 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addMultiOption('define',
       abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).');
+      help: 'The values for the environment constants (e.g. -Dkey=value).')
+  ..addFlag('embed-source-text',
+      help: 'Includes sources into generated dill file. Having sources'
+          ' allows to effectively use observatory to debug produced'
+          ' application, produces better stack traces on exceptions.',
+      defaultsTo: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -260,6 +265,7 @@ class FrontendCompiler implements CompilerInterface {
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
+      ..embedSourceText = options['embed-source-text']
       ..onProblem =
           (message, Severity severity, List<FormattedMessage> context) {
         bool printMessage;

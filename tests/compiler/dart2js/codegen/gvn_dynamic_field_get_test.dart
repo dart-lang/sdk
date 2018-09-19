@@ -4,15 +4,15 @@
 // Test that dart2js gvns dynamic getters that don't have side
 // effects.
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart' show Selector;
 import 'package:compiler/src/world.dart';
-import '../memory_compiler.dart';
+import 'package:expect/expect.dart';
+import '../helpers/compiler_helper.dart';
+import '../helpers/memory_compiler.dart';
 
 const String TEST = r"""
 class A {

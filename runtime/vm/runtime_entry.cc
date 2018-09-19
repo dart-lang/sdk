@@ -63,6 +63,7 @@ DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
+DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
@@ -391,13 +392,9 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
-#if !defined(DART_USE_INTERPRETER)
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
-  // However, it is non-trivial for the bytecode generator to implement this
-  // optimization, so we do not require it when the interpreter is used.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
-#endif
   if (isolate->type_checks()) {
     Error& bound_error = Error::Handle(zone);
     type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
@@ -462,11 +459,8 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
 // Allocate a new SubtypeTestCache for use in interpreted implicit setters.
 // Return value: newly allocated SubtypeTestCache.
 DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
-#if defined(DART_USE_INTERPRETER)
+  ASSERT(FLAG_enable_interpreter);
   arguments.SetReturn(SubtypeTestCache::Handle(zone, SubtypeTestCache::New()));
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Allocate a new context large enough to hold the given number of variables.
@@ -504,7 +498,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 // Arg1: method.
 // Return value: newly allocated Closure.
 DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
-#if defined(DART_USE_INTERPRETER)
+  ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Function& method = Function::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& instantiator_type_arguments =
@@ -519,9 +513,6 @@ DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
       Closure::New(instantiator_type_arguments, Object::null_type_arguments(),
                    Object::empty_type_arguments(), method, context));
   arguments.SetReturn(closure);
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Result of an invoke may be an unhandled exception, in which case we
@@ -537,7 +528,7 @@ static void CheckResultError(const Object& result) {
 // Arg1: field name.
 // Return value: field value.
 DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
-#if defined(DART_USE_INTERPRETER)
+  ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const String& name = String::CheckedHandle(zone, arguments.ArgAt(1));
   const Class& receiver_class = Class::Handle(zone, receiver.clazz());
@@ -556,16 +547,13 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
       Object::Handle(zone, DartEntry::InvokeFunction(getter, args));
   CheckResultError(result);
   arguments.SetReturn(result);
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Resolve 'call' function of receiver.
 // Arg0: receiver (not a closure).
 // Return value: 'call' function'.
 DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 1) {
-#if defined(DART_USE_INTERPRETER)
+  ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -578,9 +566,6 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 1) {
     cls = cls.SuperClass();
   } while (!cls.IsNull());
   arguments.SetReturn(call_function);
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Helper routine for tracing a type check.
@@ -918,14 +903,14 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   if (should_update_cache) {
     if (cache.IsNull()) {
-#if defined(DART_USE_INTERPRETER)
-      // TODO(regis): Remove this workaround once the interpreter can provide a
-      // non-null cache for the type test in an implicit setter.
-      if (mode == kTypeCheckFromInline) {
-        arguments.SetReturn(src_instance);
-        return;
+      if (FLAG_enable_interpreter) {
+        // TODO(regis): Remove this workaround once the interpreter can provide
+        // a non-null cache for the type test in an implicit setter.
+        if (mode == kTypeCheckFromInline) {
+          arguments.SetReturn(src_instance);
+          return;
+        }
       }
-#endif  // defined(DART_USE_INTERPRETER)
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
       ASSERT(mode == kTypeCheckFromSlowStub);
@@ -1995,9 +1980,13 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      // Ensure that we have unoptimized code.
-      frame->function().EnsureHasCompiledUnoptimizedCode();
-      const int num_vars = frame->NumLocalVariables();
+      if (!frame->is_interpreted()) {
+        // Ensure that we have unoptimized code.
+        frame->function().EnsureHasCompiledUnoptimizedCode();
+      }
+      // TODO(regis): Provide var descriptors in kernel bytecode.
+      const int num_vars =
+          frame->is_interpreted() ? 0 : frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2090,14 +2079,16 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   bool interpreter_stack_overflow = false;
-#if defined(DART_USE_INTERPRETER)
-  // Do not allocate an interpreter, if none is allocated yet.
-  Interpreter* interpreter = Isolate::Current()->interpreter();
-  if (interpreter != NULL) {
-    interpreter_stack_overflow =
-        interpreter->get_sp() >= interpreter->stack_limit();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_interpreter) {
+    // Do not allocate an interpreter, if none is allocated yet.
+    Interpreter* interpreter = Isolate::Current()->interpreter();
+    if (interpreter != NULL) {
+      interpreter_stack_overflow =
+          interpreter->get_sp() >= interpreter->stack_limit();
+    }
   }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
@@ -2731,7 +2722,10 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
                                        intptr_t argc,
                                        RawObject** argv,
                                        Thread* thread) {
-#if defined(DART_USE_INTERPRETER)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  ASSERT(FLAG_enable_interpreter);
   Interpreter* interpreter = Interpreter::Current();
 #if defined(DEBUG)
   uword exit_fp = thread->top_exit_frame_info();
@@ -2754,9 +2748,7 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
     Exceptions::PropagateError(Error::Cast(result));
   }
   return result.raw();
-#else
-  UNREACHABLE();
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

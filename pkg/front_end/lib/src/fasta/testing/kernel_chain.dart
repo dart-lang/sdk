@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// TODO(ahe): Copied from closure_conversion branch of kernel, remove this file
-// when closure_conversion is merged with master.
-
 library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
@@ -33,14 +30,18 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import '../../api_prototype/front_end.dart';
+import '../../api_prototype/compilation_message.dart' show CompilationMessage;
+
+import '../../api_prototype/compiler_options.dart' show CompilerOptions;
+
+import '../../api_prototype/kernel_generator.dart' show kernelForProgram;
 
 import '../../base/processed_options.dart' show ProcessedOptions;
 
 import '../../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import '../compiler_context.dart';
+import '../compiler_context.dart' show CompilerContext;
 
 import '../kernel/verifier.dart' show verifyComponent;
 

@@ -10,6 +10,9 @@ setter4_test: MissingCompileTimeError
 [ $arch == ia32 && $runtime == dart_precompiled ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
+[ $compiler != dart2analyzer && $runtime == dart_precompiled ]
+mixin_mixin2_test: Skip
+
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
 enum_duplicate_test/*: Skip # Uses Enum.toString()
@@ -21,7 +24,6 @@ full_stacktrace1_test: Skip
 full_stacktrace2_test: Skip
 full_stacktrace3_test: Skip
 mixin_generic_test: Skip
-mixin_mixin2_test: Skip
 mixin_mixin3_test: Skip
 mixin_mixin5_test: Skip
 mixin_mixin6_test: Skip

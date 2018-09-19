@@ -83,6 +83,7 @@ num pow(num x, num exponent) {
   return _doublePow(x.toDouble(), exponent.toDouble());
 }
 
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double _doublePow(double base, double exponent) {
   if (exponent == 0.0) {
     return 1.0; // ECMA-262 15.8.2.13
@@ -125,20 +126,28 @@ int _intPow(int base, int exponent) {
 }
 
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double acos(num x) => _acos(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double asin(num x) => _asin(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double atan(num x) => _atan(x.toDouble());
 @patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
 double exp(num x) => _exp(x.toDouble());

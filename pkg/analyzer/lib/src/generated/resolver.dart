@@ -109,18 +109,28 @@ class AstRewriteVisitor extends ScopedVisitor {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
         if (constructorElement != null) {
+          var typeArguments = node.typeArguments;
+          if (typeArguments != null) {
+            errorReporter.reportErrorForNode(
+                StaticTypeWarningCode
+                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                node,
+                [element.name, constructorElement.name]);
+          }
           AstFactory astFactory = new AstFactoryImpl();
-          TypeName typeName = astFactory.typeName(target, node.typeArguments);
+          TypeName typeName = astFactory.typeName(target, typeArguments);
           ConstructorName constructorName =
               astFactory.constructorName(typeName, node.operator, methodName);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(element, node.typeArguments);
+          InterfaceType type = _getType(element, typeArguments);
           constructorElement =
               type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
+          target.staticElement = element;
+          target.staticType = type; // TODO(scheglov) remove this
           typeName.type = type;
           constructorName.staticElement = constructorElement;
           instanceCreationExpression.staticType = type;
@@ -159,23 +169,33 @@ class AstRewriteVisitor extends ScopedVisitor {
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
       Element prefixElement = nameScope.lookup(target.prefix, definingLibrary);
+      target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
         Element element = nameScope.lookup(target, definingLibrary);
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {
+            var typeArguments = node.typeArguments;
+            if (typeArguments != null) {
+              errorReporter.reportErrorForNode(
+                  StaticTypeWarningCode
+                      .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                  node,
+                  [element.name, constructorElement.name]);
+            }
             AstFactory astFactory = new AstFactoryImpl();
-            TypeName typeName = astFactory.typeName(target, node.typeArguments);
+            TypeName typeName = astFactory.typeName(target, typeArguments);
             ConstructorName constructorName =
                 astFactory.constructorName(typeName, node.operator, methodName);
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = _getType(element, node.typeArguments);
+            InterfaceType type = _getType(element, typeArguments);
             constructorElement =
                 type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
             methodName.staticType = type;
+            target.identifier.staticElement = element;
             typeName.type = type;
             constructorName.staticElement = constructorElement;
             instanceCreationExpression.staticType = type;
@@ -464,8 +484,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.methodName);
     _checkForNullAwareHints(node, node.operator);
     DartType staticInvokeType = node.staticInvokeType;
     Element callElement = staticInvokeType?.element;
@@ -490,8 +508,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
     _checkForNullAwareHints(node, node.operator);
     return super.visitPropertyAccess(node);
   }
@@ -583,33 +599,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  void _checkForAbstractSuperMemberReference(
-      Expression target, SimpleIdentifier name) {
-    if (target is SuperExpression &&
-        !_currentLibrary.context.analysisOptions.enableSuperMixins) {
-      Element element = name.staticElement;
-      if (element is ExecutableElement && element.isAbstract) {
-        ExecutableElement concrete = null;
-        if (element.kind == ElementKind.METHOD) {
-          concrete = _enclosingClass.lookUpInheritedConcreteMethod(
-              element.displayName, _currentLibrary);
-        } else if (element.kind == ElementKind.GETTER) {
-          concrete = _enclosingClass.lookUpInheritedConcreteGetter(
-              element.displayName, _currentLibrary);
-        } else if (element.kind == ElementKind.SETTER) {
-          concrete = _enclosingClass.lookUpInheritedConcreteSetter(
-              element.displayName, _currentLibrary);
-        }
-        if (concrete == null) {
-          _errorReporter.reportTypeErrorForNode(
-              HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-              name,
-              [element.kind.displayName, name.name]);
-        }
-      }
-    }
   }
 
   /**
@@ -7861,175 +7850,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 }
 
 /**
- * Instances of this class manage the knowledge of what the set of subtypes are for a given type.
- */
-class SubtypeManager {
-  /**
-   * A map between [ClassElement]s and a set of [ClassElement]s that are subtypes of the
-   * key.
-   */
-  Map<ClassElement, HashSet<ClassElement>> _subtypeMap =
-      new HashMap<ClassElement, HashSet<ClassElement>>();
-
-  /**
-   * The set of all [LibraryElement]s that have been visited by the manager. This is used both
-   * to prevent infinite loops in the recursive methods, and also as a marker for the scope of the
-   * libraries visited by this manager.
-   */
-  HashSet<LibraryElement> _visitedLibraries = new HashSet<LibraryElement>();
-
-  /**
-   * Given some [ClassElement], return the set of all subtypes, and subtypes of subtypes.
-   *
-   * @param classElement the class to recursively return the set of subtypes of
-   */
-  HashSet<ClassElement> computeAllSubtypes(ClassElement classElement) {
-    // Ensure that we have generated the subtype map for the library
-    _computeSubtypesInLibrary(classElement.library);
-    // use the subtypeMap to compute the set of all subtypes and subtype's
-    // subtypes
-    HashSet<ClassElement> allSubtypes = new HashSet<ClassElement>();
-    _safelyComputeAllSubtypes(
-        classElement, new HashSet<ClassElement>(), allSubtypes);
-    return allSubtypes;
-  }
-
-  /**
-   * Given some [LibraryElement], visit all of the types in the library, the passed library,
-   * and any imported libraries, will be in the [visitedLibraries] set.
-   *
-   * @param libraryElement the library to visit, it it hasn't been visited already
-   */
-  void ensureLibraryVisited(LibraryElement libraryElement) {
-    _computeSubtypesInLibrary(libraryElement);
-  }
-
-  /**
-   * Given some [ClassElement], this method adds all of the pairs combinations of itself and
-   * all of its supertypes to the [subtypeMap] map.
-   *
-   * @param classElement the class element
-   */
-  void _computeSubtypesInClass(ClassElement classElement) {
-    InterfaceType supertypeType = classElement.supertype;
-    if (supertypeType != null) {
-      ClassElement supertypeElement = supertypeType.element;
-      if (supertypeElement != null) {
-        _putInSubtypeMap(supertypeElement, classElement);
-      }
-    }
-    List<InterfaceType> interfaceTypes = classElement.interfaces;
-    int interfaceLength = interfaceTypes.length;
-    for (int i = 0; i < interfaceLength; i++) {
-      InterfaceType interfaceType = interfaceTypes[i];
-      ClassElement interfaceElement = interfaceType.element;
-      if (interfaceElement != null) {
-        _putInSubtypeMap(interfaceElement, classElement);
-      }
-    }
-    List<InterfaceType> mixinTypes = classElement.mixins;
-    int mixinLength = mixinTypes.length;
-    for (int i = 0; i < mixinLength; i++) {
-      InterfaceType mixinType = mixinTypes[i];
-      ClassElement mixinElement = mixinType.element;
-      if (mixinElement != null) {
-        _putInSubtypeMap(mixinElement, classElement);
-      }
-    }
-  }
-
-  /**
-   * Given some [CompilationUnitElement], this method calls
-   * [computeAllSubtypes] on all of the [ClassElement]s in the
-   * compilation unit.
-   *
-   * @param unitElement the compilation unit element
-   */
-  void _computeSubtypesInCompilationUnit(CompilationUnitElement unitElement) {
-    List<ClassElement> classElements = unitElement.types;
-    int length = classElements.length;
-    for (int i = 0; i < length; i++) {
-      ClassElement classElement = classElements[i];
-      _computeSubtypesInClass(classElement);
-    }
-  }
-
-  /**
-   * Given some [LibraryElement], this method calls
-   * [computeAllSubtypes] on all of the [ClassElement]s in the
-   * compilation unit, and itself for all imported and exported libraries. All visited libraries are
-   * added to the [visitedLibraries] set.
-   *
-   * @param libraryElement the library element
-   */
-  void _computeSubtypesInLibrary(LibraryElement libraryElement) {
-    if (libraryElement == null || _visitedLibraries.contains(libraryElement)) {
-      return;
-    }
-    _visitedLibraries.add(libraryElement);
-    _computeSubtypesInCompilationUnit(libraryElement.definingCompilationUnit);
-    List<CompilationUnitElement> parts = libraryElement.parts;
-    int partLength = parts.length;
-    for (int i = 0; i < partLength; i++) {
-      CompilationUnitElement part = parts[i];
-      _computeSubtypesInCompilationUnit(part);
-    }
-    List<LibraryElement> imports = libraryElement.importedLibraries;
-    int importLength = imports.length;
-    for (int i = 0; i < importLength; i++) {
-      LibraryElement importElt = imports[i];
-      _computeSubtypesInLibrary(importElt.library);
-    }
-    List<LibraryElement> exports = libraryElement.exportedLibraries;
-    int exportLength = exports.length;
-    for (int i = 0; i < exportLength; i++) {
-      LibraryElement exportElt = exports[i];
-      _computeSubtypesInLibrary(exportElt.library);
-    }
-  }
-
-  /**
-   * Add some key/ value pair into the [subtypeMap] map.
-   *
-   * @param supertypeElement the key for the [subtypeMap] map
-   * @param subtypeElement the value for the [subtypeMap] map
-   */
-  void _putInSubtypeMap(
-      ClassElement supertypeElement, ClassElement subtypeElement) {
-    HashSet<ClassElement> subtypes = _subtypeMap[supertypeElement];
-    if (subtypes == null) {
-      subtypes = new HashSet<ClassElement>();
-      _subtypeMap[supertypeElement] = subtypes;
-    }
-    subtypes.add(subtypeElement);
-  }
-
-  /**
-   * Given some [ClassElement] and a [HashSet<ClassElement>], this method recursively
-   * adds all of the subtypes of the [ClassElement] to the passed array.
-   *
-   * @param classElement the type to compute the set of subtypes of
-   * @param visitedClasses the set of class elements that this method has already recursively seen
-   * @param allSubtypes the computed set of subtypes of the passed class element
-   */
-  void _safelyComputeAllSubtypes(ClassElement classElement,
-      HashSet<ClassElement> visitedClasses, HashSet<ClassElement> allSubtypes) {
-    if (!visitedClasses.add(classElement)) {
-      // if this class has already been called on this class element
-      return;
-    }
-    HashSet<ClassElement> subtypes = _subtypeMap[classElement];
-    if (subtypes == null) {
-      return;
-    }
-    for (ClassElement subtype in subtypes) {
-      _safelyComputeAllSubtypes(subtype, visitedClasses, allSubtypes);
-    }
-    allSubtypes.addAll(subtypes);
-  }
-}
-
-/**
  * Instances of the class `ToDoFinder` find to-do comments in Dart code.
  */
 class ToDoFinder {
@@ -9780,7 +9600,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       ErrorCode errorCode = (withClause == null
           ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-      superclassType = _resolveType(extendsClause.superclass, errorCode);
+      superclassType =
+          _resolveType(extendsClause.superclass, errorCode, asClass: true);
     }
     if (classElement != null) {
       if (superclassType == null) {
@@ -9825,7 +9646,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-    InterfaceType superclassType = _resolveType(node.superclass, errorCode);
+    InterfaceType superclassType =
+        _resolveType(node.superclass, errorCode, asClass: true);
     if (superclassType == null) {
       superclassType = typeProvider.objectType;
     }
@@ -10296,29 +10118,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (classElement != null) {
         classElement.interfaces = interfaceTypes;
       }
-      // TODO(brianwilkerson) Move the following checks to ErrorVerifier.
-      int count = interfaces.length;
-      List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
-      for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
-        detectedRepeatOnIndex[i] = false;
-      }
-      for (int i = 0; i < count; i++) {
-        TypeName typeName = interfaces[i];
-        if (!detectedRepeatOnIndex[i]) {
-          Element element = typeName.name.staticElement;
-          for (int j = i + 1; j < count; j++) {
-            TypeName typeName2 = interfaces[j];
-            Identifier identifier2 = typeName2.name;
-            String name2 = identifier2.name;
-            Element element2 = identifier2.staticElement;
-            if (element != null && element == element2) {
-              detectedRepeatOnIndex[j] = true;
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, [name2]);
-            }
-          }
-        }
-      }
     }
   }
 
@@ -10326,7 +10125,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     List<InterfaceType> types;
     if (clause != null) {
       types = _resolveTypes(clause.superclassConstraints,
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS);
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE);
     }
     if (types == null || types.isEmpty) {
       types = [typeProvider.objectType];
@@ -10335,22 +10134,24 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the type specified by the given name.
+   * Return the [InterfaceType] of the given [typeName].
    *
-   * @param typeName the type name specifying the type to be returned
-   * @param nonTypeError the error to produce if the type name is defined to be something other than
-   *          a type
-   * @param enumTypeError the error to produce if the type name is defined to be an enum
-   * @param dynamicTypeError the error to produce if the type name is "dynamic"
-   * @return the type specified by the type name
+   * If the resulting type is not a valid interface type, return `null`.
+   *
+   * The flag [asClass] specifies if the type will be used as a class, so mixin
+   * declarations are not valid (they declare interfaces and mixins, but not
+   * classes).
    */
-  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode) {
+  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode,
+      {bool asClass: false}) {
     DartType type = typeName.type;
     if (type is InterfaceType) {
       ClassElement element = type.element;
-      if (element != null && element.isEnum) {
-        errorReporter.reportErrorForNode(errorCode, typeName);
-        return null;
+      if (element != null) {
+        if (element.isEnum || element.isMixin && asClass) {
+          errorReporter.reportErrorForNode(errorCode, typeName);
+          return null;
+        }
       }
       return type;
     }

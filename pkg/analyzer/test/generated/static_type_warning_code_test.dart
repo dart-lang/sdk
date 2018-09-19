@@ -533,42 +533,6 @@ class C {
 ''', [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  test_inconsistentMethodInheritance_paramCount() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int x(int y);
-}
-class C implements A, B {
-}''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_paramType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
   test_instanceAccessToStaticMember_method_invocation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1767,81 +1731,6 @@ class T {
 main() {
   T..foo = 42;
 }''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
-  }
-
-  test_undefinedSuperGetter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  get g {
-    return super.g;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
-  }
-
-  test_undefinedSuperMethod() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  m() { return super.m(); }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
-  }
-
-  test_undefinedSuperOperator_binaryExpression() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator +(value) {
-    return super + value;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexBoth() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator [](index) {
-    return super[index]++;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexGetter() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator [](index) {
-    return super[index + 1];
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexSetter() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
-class A {}
-class B extends A {
-  operator []=(index, value) {
-    return super[index] = 0;
-  }
-}''',
-        previewDart2
-            ? [
-                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperSetter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  f() {
-    super.m = 0;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_getter() async {

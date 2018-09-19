@@ -344,8 +344,6 @@ class Precompiler : public ValueObject {
 
   FieldTypeMap* field_type_map() { return &field_type_map_; }
 
-  static void PopulateWithICData(const Function& func, FlowGraph* graph);
-
  private:
   explicit Precompiler(Thread* thread);
 

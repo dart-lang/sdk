@@ -6,8 +6,10 @@ library dart2js.js_model.strategy;
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../backend_strategy.dart';
 import '../closure.dart' show ClosureConversionTask;
 import '../common.dart';
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
@@ -17,6 +19,7 @@ import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
@@ -24,6 +27,7 @@ import '../io/source_information.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../js_emitter/sorter.dart';
 import '../js/js_source_mapping.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -35,24 +39,30 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
-import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
+import '../ordered_typeset.dart';
 import '../options.dart';
+import '../ssa/builder_kernel.dart';
+import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
+import '../ssa/types.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
+import '../universe/world_impact.dart';
 import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
+import 'element_map.dart';
+import 'element_map_impl.dart';
 import 'locals.dart';
 
-class JsBackendStrategy implements KernelBackendStrategy {
+class JsBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
@@ -63,7 +73,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
   JsBackendStrategy(this._compiler);
 
-  KernelToElementMapForBuilding get elementMap {
+  JsToElementMap get elementMap {
     assert(_elementMap != null,
         "JsBackendStrategy.elementMap has not been created yet.");
     return _elementMap;
@@ -379,6 +389,20 @@ class JsClosedWorldBuilder {
     JAllocatorAnalysis allocatorAnalysis =
         JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
 
+    AnnotationsData annotationsData = new AnnotationsDataImpl(
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.nonInlinableFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.tryInlineFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.cannotThrowFunctions),
+        map.toBackendFunctionSet(
+            closedWorld.annotationsData.sideEffectFreeFunctions),
+        map.toBackendMemberSet(
+            closedWorld.annotationsData.trustTypeAnnotationsMembers),
+        map.toBackendMemberSet(
+            closedWorld.annotationsData.assumeDynamicMembers));
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
@@ -402,7 +426,8 @@ class JsClosedWorldBuilder {
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         abstractValueStrategy: _abstractValueStrategy,
-        allocatorAnalysis: allocatorAnalysis);
+        allocatorAnalysis: allocatorAnalysis,
+        annotationsData: annotationsData);
   }
 
   BackendUsage _convertBackendUsage(
@@ -615,11 +640,12 @@ class JsClosedWorldBuilder {
   }
 }
 
-class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
+class JsClosedWorld extends ClosedWorldBase {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
   final JAllocatorAnalysis allocatorAnalysis;
+  final AnnotationsData annotationsData;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -641,7 +667,8 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets,
-      AbstractValueStrategy abstractValueStrategy})
+      AbstractValueStrategy abstractValueStrategy,
+      this.annotationsData})
       : super(
             elementEnvironment,
             dartTypes,
@@ -667,6 +694,71 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   @override
   AbstractValueDomain get abstractValueDomain {
     return _abstractValueDomain;
+  }
+
+  @override
+  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+    while (cls != null) {
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, selector.name,
+          setter: selector.isSetter);
+      if (member != null &&
+          !member.isAbstract &&
+          (!selector.memberName.isPrivate ||
+              member.library == selector.library)) {
+        return member == element;
+      }
+      cls = elementEnvironment.getSuperClass(cls);
+    }
+    return false;
+  }
+
+  @override
+  bool hasConcreteMatch(ClassEntity cls, Selector selector,
+      {ClassEntity stopAtSuperclass}) {
+    assert(classHierarchy.isInstantiated(cls),
+        failedAt(cls, '$cls has not been instantiated.'));
+    MemberEntity element = elementEnvironment
+        .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+    if (element == null) return false;
+
+    if (element.isAbstract) {
+      ClassEntity enclosingClass = element.enclosingClass;
+      return hasConcreteMatch(
+          elementEnvironment.getSuperClass(enclosingClass), selector);
+    }
+    return selector.appliesUntyped(element);
+  }
+
+  @override
+  bool isNamedMixinApplication(ClassEntity cls) {
+    return elementMap.elementEnvironment.isMixinApplication(cls) &&
+        !elementMap.elementEnvironment.isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    return elementMap.getAppliedMixin(cls);
+  }
+
+  @override
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    return elementMap.getInterfaces(cls).map((t) => t.element);
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    return elementMap.getSuperType(cls)?.element;
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return elementMap.getHierarchyDepth(cls);
+  }
+
+  @override
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
+    return elementMap.getOrderedTypeSet(cls);
   }
 }
 
@@ -894,4 +986,264 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
   bool instantiationNeedsTypeArguments(
           DartType functionType, int typeArgumentCount) =>
       rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
+}
+
+class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
+  final JavaScriptBackend _backend;
+  final JClosedWorld _closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
+
+  KernelCodegenWorkItemBuilder(
+      this._backend, this._closedWorld, this._globalInferenceResults);
+
+  CompilerOptions get _options => _backend.compiler.options;
+
+  @override
+  CodegenWorkItem createWorkItem(MemberEntity entity) {
+    if (entity.isAbstract) return null;
+
+    // Codegen inlines field initializers. It only needs to generate
+    // code for checked setters.
+    if (entity.isField && entity.isInstanceMember) {
+      if (!_options.parameterCheckPolicy.isEmitted ||
+          entity.enclosingClass.isClosure) {
+        return null;
+      }
+    }
+
+    return new KernelCodegenWorkItem(
+        _backend, _closedWorld, _globalInferenceResults, entity);
+  }
+}
+
+class KernelCodegenWorkItem extends CodegenWorkItem {
+  final JavaScriptBackend _backend;
+  final JClosedWorld _closedWorld;
+  final MemberEntity element;
+  final CodegenRegistry registry;
+  final GlobalTypeInferenceResults _globalInferenceResults;
+
+  KernelCodegenWorkItem(this._backend, this._closedWorld,
+      this._globalInferenceResults, this.element)
+      : registry =
+            new CodegenRegistry(_closedWorld.elementEnvironment, element);
+
+  @override
+  WorldImpact run() {
+    return _backend.codegen(this, _closedWorld, _globalInferenceResults);
+  }
+}
+
+/// Task for building SSA from kernel IR loaded from .dill.
+class KernelSsaBuilder implements SsaBuilder {
+  final CompilerTask task;
+  final Compiler _compiler;
+  final JsToElementMap _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
+  FunctionInlineCache _inlineCache;
+
+  KernelSsaBuilder(
+      this.task, this._compiler, this._elementMap, this._globalLocalsMap);
+
+  @override
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults results) {
+    _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
+    return task.measure(() {
+      KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
+          work.element,
+          _elementMap.getMemberThisType(work.element),
+          _compiler,
+          _elementMap,
+          results,
+          _globalLocalsMap,
+          closedWorld,
+          _compiler.codegenWorldBuilder,
+          work.registry,
+          _compiler.backendStrategy.closureDataLookup,
+          _compiler.backend.emitter.nativeEmitter,
+          _compiler.backend.sourceInformationStrategy,
+          _inlineCache);
+      return builder.build();
+    });
+  }
+}
+
+class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
+  final GlobalTypeInferenceResults _globalInferenceResults;
+  GlobalTypeInferenceMemberResult _targetResults;
+
+  KernelToTypeInferenceMapImpl(
+      MemberEntity target, this._globalInferenceResults) {
+    _targetResults = _resultOf(target);
+  }
+
+  GlobalTypeInferenceMemberResult _resultOf(MemberEntity e) =>
+      _globalInferenceResults
+          .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
+
+  AbstractValue getReturnTypeOf(FunctionEntity function) {
+    return AbstractValueFactory.inferredReturnTypeForElement(
+        function, _globalInferenceResults);
+  }
+
+  AbstractValue receiverTypeOfInvocation(
+      ir.MethodInvocation node, AbstractValueDomain abstractValueDomain) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  AbstractValue receiverTypeOfGet(ir.PropertyGet node) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  AbstractValue receiverTypeOfSet(
+      ir.PropertySet node, AbstractValueDomain abstractValueDomain) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  AbstractValue typeOfListLiteral(MemberEntity owner,
+      ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain) {
+    return _resultOf(owner).typeOfListLiteral(listLiteral) ??
+        abstractValueDomain.dynamicType;
+  }
+
+  AbstractValue typeOfIterator(ir.ForInStatement node) {
+    return _targetResults.typeOfIterator(node);
+  }
+
+  AbstractValue typeOfIteratorCurrent(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorCurrent(node);
+  }
+
+  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorMoveNext(node);
+  }
+
+  bool isJsIndexableIterator(
+      ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
+    AbstractValue mask = typeOfIterator(node);
+    return abstractValueDomain.isJsIndexableAndIterable(mask);
+  }
+
+  AbstractValue inferredIndexType(ir.ForInStatement node) {
+    return AbstractValueFactory.inferredTypeForSelector(
+        new Selector.index(), typeOfIterator(node), _globalInferenceResults);
+  }
+
+  AbstractValue getInferredTypeOf(MemberEntity member) {
+    return AbstractValueFactory.inferredTypeForMember(
+        member, _globalInferenceResults);
+  }
+
+  AbstractValue getInferredTypeOfParameter(Local parameter) {
+    return AbstractValueFactory.inferredTypeForParameter(
+        parameter, _globalInferenceResults);
+  }
+
+  AbstractValue selectorTypeOf(Selector selector, AbstractValue mask) {
+    return AbstractValueFactory.inferredTypeForSelector(
+        selector, mask, _globalInferenceResults);
+  }
+
+  AbstractValue typeFromNativeBehavior(
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
+    return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
+  }
+}
+
+class KernelSorter implements Sorter {
+  final JsToElementMap elementMap;
+
+  KernelSorter(this.elementMap);
+
+  int _compareLibraries(LibraryEntity a, LibraryEntity b) {
+    return utils.compareLibrariesUris(a.canonicalUri, b.canonicalUri);
+  }
+
+  int _compareSourceSpans(Entity entity1, SourceSpan sourceSpan1,
+      Entity entity2, SourceSpan sourceSpan2) {
+    int r = utils.compareSourceUris(sourceSpan1.uri, sourceSpan2.uri);
+    if (r != 0) return r;
+    return utils.compareEntities(
+        entity1, sourceSpan1.begin, null, entity2, sourceSpan2.begin, null);
+  }
+
+  @override
+  Iterable<LibraryEntity> sortLibraries(Iterable<LibraryEntity> libraries) {
+    return libraries.toList()..sort(_compareLibraries);
+  }
+
+  @override
+  Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members) {
+    return members.toList()..sort(compareMembersByLocation);
+  }
+
+  @override
+  Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
+    List<ClassEntity> regularClasses = <ClassEntity>[];
+    List<ClassEntity> unnamedMixins = <ClassEntity>[];
+    for (ClassEntity cls in classes) {
+      if (elementMap.elementEnvironment.isUnnamedMixinApplication(cls)) {
+        unnamedMixins.add(cls);
+      } else {
+        regularClasses.add(cls);
+      }
+    }
+    List<ClassEntity> sorted = <ClassEntity>[];
+    regularClasses.sort(compareClassesByLocation);
+    sorted.addAll(regularClasses);
+    unnamedMixins.sort((a, b) {
+      int result = _compareLibraries(a.library, b.library);
+      if (result != 0) return result;
+      result = a.name.compareTo(b.name);
+      assert(result != 0,
+          failedAt(a, "Multiple mixins named ${a.name}: $a vs $b."));
+      return result;
+    });
+    sorted.addAll(unnamedMixins);
+    return sorted;
+  }
+
+  @override
+  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs) {
+    // TODO(redemption): Support this.
+    assert(typedefs.isEmpty);
+    return typedefs;
+  }
+
+  @override
+  int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b) {
+    return _compareLibraries(a, b);
+  }
+
+  @override
+  int compareClassesByLocation(ClassEntity a, ClassEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    ClassDefinition definition1 = elementMap.getClassDefinition(a);
+    ClassDefinition definition2 = elementMap.getClassDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
+  }
+
+  @override
+  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b) {
+    // TODO(redemption): Support this.
+    failedAt(a, 'KernelSorter.compareTypedefsByLocation unimplemented');
+    return 0;
+  }
+
+  @override
+  int compareMembersByLocation(MemberEntity a, MemberEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    MemberDefinition definition1 = elementMap.getMemberDefinition(a);
+    MemberDefinition definition2 = elementMap.getMemberDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
+  }
 }

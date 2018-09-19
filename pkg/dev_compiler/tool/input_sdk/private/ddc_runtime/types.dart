@@ -536,7 +536,13 @@ class GenericFunctionType extends AbstractFunctionType {
     return _typeFormals = _typeFormalsFromFunction(_instantiateTypeParts);
   }
 
-  checkBounds(List typeArgs) {
+  /// Checks that [typeArgs] satisfies the upper bounds of the [typeFormals],
+  /// and throws a [TypeError] if they do not.
+  void checkBounds(List typeArgs) {
+    // If we don't have explicit type parameter bounds, the bounds default to
+    // a top type, so there's nothing to check here.
+    if (_instantiateTypeBounds == null) return;
+
     var bounds = instantiateTypeBounds(typeArgs);
     var typeFormals = this.typeFormals;
     for (var i = 0; i < typeArgs.length; i++) {
@@ -554,11 +560,12 @@ class GenericFunctionType extends AbstractFunctionType {
     var boundsFn = _instantiateTypeBounds;
     if (boundsFn == null) {
       // The Dart 1 spec says omitted type parameters have an upper bound of
-      // Object. However strong mode assumes `dynamic` for all purposes
-      // (such as instantiate to bounds) so we use that here.
+      // Object. However Dart 2 uses `dynamic` for the purpose of instantiate to
+      // bounds, so we use that here.
       return List.filled(formalCount, _dynamic);
     }
-    // If bounds are recursive, we need to apply type formals and return them.
+    // Bounds can be recursive or depend on other type parameters, so we need to
+    // apply type arguments and return the resulting bounds.
     return JS('List', '#.apply(null, #)', boundsFn, typeArgs);
   }
 
@@ -738,10 +745,11 @@ getFunctionTypeMirror(AbstractFunctionType type) {
 bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(type, bound, name) {
+  // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, it would
+  // be nice to have similar optimizations for the subtype relation.
   if (JS('!', '#', isSubtype(type, bound))) return;
 
-  throwTypeError('type `$type` does not extend `$bound`'
-      ' of `$name`.');
+  throwTypeError('type `$type` does not extend `$bound` of `$name`.');
 }
 
 String typeName(type) => JS('', '''(() => {

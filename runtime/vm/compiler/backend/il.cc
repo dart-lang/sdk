@@ -45,7 +45,6 @@ DEFINE_FLAG(bool,
             unbox_numeric_fields,
             !USING_DBC,
             "Support unboxed double and float32x4 fields.");
-DECLARE_FLAG(bool, eliminate_type_checks);
 
 class SubclassFinder {
  public:
@@ -780,15 +779,19 @@ const NativeFieldDesc* NativeFieldDesc::GetLengthFieldForArrayCid(
   }
 }
 
-const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
-    Zone* zone,
-    const Class& cls) {
+const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsField(Zone* zone,
+                                                              intptr_t offset) {
   // TODO(vegorov) consider caching type arguments fields for specific classes
   // in some sort of a flow-graph specific cache.
-  const intptr_t offset = cls.type_arguments_field_offset();
   ASSERT(offset != Class::kNoTypeArguments);
   return new (zone) NativeFieldDesc(kTypeArguments, offset, kDynamicCid,
                                     /*immutable=*/true);
+}
+
+const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
+    Zone* zone,
+    const Class& cls) {
+  return GetTypeArgumentsField(zone, cls.type_arguments_field_offset());
 }
 
 RawAbstractType* NativeFieldDesc::type() const {
@@ -1192,11 +1195,19 @@ void FlowGraphVisitor::VisitBlocks() {
   }
 }
 
-bool Value::NeedsStoreBuffer() {
+bool Value::NeedsWriteBarrier() {
   if (Type()->IsNull() || (Type()->ToNullableCid() == kSmiCid) ||
       (Type()->ToNullableCid() == kBoolCid)) {
     return false;
   }
+
+  // Strictly speaking, the incremental barrier can only be skipped for
+  // immediate objects (Smis) or permanent objects (vm-isolate heap or
+  // image pages). Here we choose to skip the barrier for any constant on
+  // the assumption it will remain reachable through the object pool.
+  // TODO(concurrent-marking): Consider ensuring marking is not in progress
+  // when code is disabled or only omitting the barrier if code collection
+  // is disabled.
 
   return !BindsToConstant();
 }
@@ -1226,7 +1237,10 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 }
 
 void Value::AddToList(Value* value, Value** list) {
+  ASSERT(value->next_use() == nullptr);
+  ASSERT(value->previous_use() == nullptr);
   Value* next = *list;
+  ASSERT(value != next);
   *list = value;
   value->set_next_use(next);
   value->set_previous_use(NULL);
@@ -2696,7 +2710,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
     // In strong mode type is already verified either by static analysis
     // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (Isolate::Current()->strong() && !value()->Type()->is_nullable()) {
+    if (FLAG_strong && !value()->Type()->is_nullable()) {
       return value()->definition();
     }
   }
@@ -2817,19 +2831,8 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
 }
 
-static bool HasTryBlockUse(Value* use_list) {
-  for (Value::Iterator it(use_list); !it.Done(); it.Advance()) {
-    Value* use = it.Current();
-    if (use->instruction()->MayThrow() &&
-        use->instruction()->GetBlock()->InsideTryBlock()) {
-      return true;
-    }
-  }
-  return false;
-}
-
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+  if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
   }
@@ -2852,7 +2855,7 @@ bool BoxIntegerInstr::ValueFitsSmi() const {
 }
 
 Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+  if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
   }
@@ -3969,7 +3972,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  if (compiler->is_optimizing() && HasICData()) {
+  if ((compiler->is_optimizing() || FLAG_use_bytecode_compiler) &&
+      HasICData()) {
     ASSERT(HasICData());
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =

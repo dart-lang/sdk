@@ -6,7 +6,6 @@
 [ $compiler == dartdevc ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
 accessor_conflict_import2_test: CompileTimeError # Issue 25626
@@ -33,11 +32,13 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or t
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
+const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
-constructor_reference_test/27: MissingCompileTimeError
+constructor_reference_test/27: MissingCompileTimeError # Issue https://github.com/dart-lang/sdk/issues/34403
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
+covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
@@ -103,7 +104,16 @@ issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
-method_override7_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError   # https://github.com/dart-lang/sdk/issues/34164
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
 mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
@@ -146,25 +156,10 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 regress_32660_test/01: MissingCompileTimeError # Issue #32660.
 regress_32660_test/04: CompileTimeError
-regress_33235_03_test/01: MissingCompileTimeError
-regress_33235_07_test/03: MissingCompileTimeError
-regress_33235_10_test/01: MissingCompileTimeError
-regress_33235_10_test/02: MissingCompileTimeError
-regress_33235_10_test/03: MissingCompileTimeError
-regress_33235_11_test/01: MissingCompileTimeError
-regress_33235_12_test/03: MissingCompileTimeError
-regress_33235_13_test/03: MissingCompileTimeError
-regress_33235_16_test/02: MissingCompileTimeError
-regress_33235_16_test/03: MissingCompileTimeError
-regress_33235_19_test: CompileTimeError
-regress_33235_20_test: CompileTimeError
+regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
-static_setter_conflicts_test/02: MissingCompileTimeError
-static_setter_conflicts_test/11: MissingCompileTimeError
-static_setter_conflicts_test/12: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
@@ -305,6 +300,7 @@ issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
+mixin_declaration/*: Skip # need flag on Kernel Class nodes.
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -458,8 +454,8 @@ generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$Str
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 generic_tearoff_test: CompileTimeError
 guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
 infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented
@@ -493,7 +489,6 @@ number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
 parser_quirks_test: CompileTimeError
-partial_instantiation_eager_bounds_check_test: RuntimeError # Issue 34296
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded

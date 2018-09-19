@@ -88,8 +88,6 @@ abstract class GraphBuilder {
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 
-  FunctionInlineCache get inlineCache => backend.inlineCache;
-
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
   InferredData get inferredData => globalInferenceResults.inferredData;

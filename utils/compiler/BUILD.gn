@@ -60,14 +60,11 @@ dart_action("dart2js_create_snapshot_entry") {
 application_snapshot("dart2js") {
   deps = [
     ":compile_dart2js_platform",
-    ":compile_dart2js_platform_strong",
     ":dart2js_create_snapshot_entry",
   ]
   inputs = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_outline.dill",
-    "$root_out_dir/dart2js_platform_strong.dill",
-    "$root_out_dir/dart2js_outline_strong.dill",
   ]
   vm_args = []
   main_dart = "$target_gen_dir/dart2js.dart"
@@ -91,27 +88,10 @@ compile_platform("compile_dart2js_platform") {
 
   args = [
     "--target=dart2js",
-    "dart:core",
-  ]
-}
-
-compile_platform("compile_dart2js_platform_strong") {
-  single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
-
-  outputs = [
-    "$root_out_dir/dart2js_platform_strong.dill",
-    "$root_out_dir/dart2js_outline_strong.dill",
-  ]
-
-  args = [
-    "--target=dart2js",
     "--strong",
     "dart:core",
   ]
 }
-
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
@@ -120,22 +100,6 @@ compile_platform("compile_dart2js_server_platform") {
   outputs = [
     "$root_out_dir/dart2js_server_platform.dill",
     "$root_out_dir/dart2js_server_outline.dill",
-  ]
-
-  args = [
-    "--target=dart2js_server",
-    "dart:core",
-  ]
-}
-
-compile_platform("compile_dart2js_server_platform_strong") {
-  single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
-
-  outputs = [
-    "$root_out_dir/dart2js_server_platform_strong.dill",
-    "$root_out_dir/dart2js_server_outline_strong.dill",
   ]
 
   args = [

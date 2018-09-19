@@ -26,7 +26,6 @@ analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
-dart_messages/test/dart_messages_test: Skip # Requires a package root.
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
@@ -133,6 +132,7 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 analysis_server/test/integration/analysis/package_root_test: Pass, RuntimeError # Issue 33382
 
 [ $system == windows ]
+analysis_server/test/integration/analysis/get_errors_nonStandard_sdk_test: Skip
 front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
@@ -149,7 +149,6 @@ analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
 analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
 analyzer_cli/*: SkipByDesign # Uses dart:io.
 compiler/tool/*: SkipByDesign # Only meant to run on vm
-dart_messages/test/dart_messages_test: Skip # Uses dart:io.
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 http_server/test/*: Fail, OK # Uses dart:io.
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.

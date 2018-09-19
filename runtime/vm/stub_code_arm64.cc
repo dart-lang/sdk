@@ -28,6 +28,7 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(bool, enable_interpreter);
 
 // Input parameters:
 //   LR : return address.
@@ -111,6 +112,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Restore SP and CSP.
   __ mov(SP, CSP);
   __ mov(CSP, R25);
+
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -301,6 +305,9 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
@@ -402,6 +409,9 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   // Restore SP and CSP.
   __ mov(SP, CSP);
   __ mov(CSP, R25);
+
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -946,6 +956,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
@@ -1051,7 +1063,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 //   R2 : address of first argument.
 //   R3 : current thread.
 void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
-#if defined(DART_USE_INTERPRETER)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter");
+#else
+  if (!FLAG_enable_interpreter) {
+    __ Stop("Not using interpreter");
+    return;
+  }
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
@@ -1081,6 +1099,8 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
@@ -1172,9 +1192,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ LeaveFrame();
   __ RestoreCSP();
   __ ret();
-#else
-  __ Stop("Not using interpreter");
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Called for inline allocation of contexts.
@@ -1291,7 +1309,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
@@ -1300,7 +1318,7 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
     __ Push(LR);
     __ Push(R0);
     __ mov(R0, reg);
-    __ ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    __ ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     __ blr(LR);
     __ Pop(R0);
     __ Pop(LR);
@@ -1313,8 +1331,15 @@ void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   R0: Address being stored
-void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+//   R0: Source object (old)
+//   TMP2: Target object (old or new)
+// If TMP2 is new, add R0 to the store buffer. Otherwise TMP2 is old, mark TMP2
+// and add it to the mark list.
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+#if defined(CONCURRENT_MARKING)
+  Label add_to_mark_stack;
+  __ tbz(&add_to_mark_stack, TMP2, kNewObjectBitPosition);
+#else
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
@@ -1323,6 +1348,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ret();
 
   __ Bind(&add_to_buffer);
+#endif
+
   // Save values being destroyed.
   __ Push(R1);
   __ Push(R2);
@@ -1345,7 +1372,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // StoreBufferBlock and add the address to the pointers_.
   __ LoadFromOffset(R1, THR, Thread::store_buffer_block_offset());
   __ LoadFromOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
-  __ add(R3, R1, Operand(R2, LSL, 3));
+  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
   __ StoreToOffset(R0, R3, StoreBufferBlock::pointers_offset());
 
   // Increment top_ and check for overflow.
@@ -1367,7 +1394,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ Push(CODE_REG);
-  __ ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
+  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
@@ -1375,6 +1402,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LeaveCallRuntimeFrame();
   __ Pop(CODE_REG);
   __ ret();
+
+#if defined(CONCURRENT_MARKING)
+  __ Bind(&add_to_mark_stack);
+  __ Stop("Incremental barrier");
+#endif
 }
 
 // Called for inline allocation of objects.
@@ -1387,6 +1419,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
          (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
+
+  const Register kTypeArgumentsReg = R1;
+  const Register kInstanceReg = R0;
+  const Register kNullReg = R3;
+  const Register kTempReg = R4;
+  const Register kTopReg = R5;
+
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1394,111 +1433,62 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
   if (is_cls_parameterized) {
-    __ ldr(R1, Address(SP));
-    // R1: instantiated type arguments.
+    __ ldr(kTypeArgumentsReg, Address(SP));
   }
   Isolate* isolate = Isolate::Current();
+
+  __ LoadObject(kNullReg, Object::null_object());
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
       !cls.TraceAllocation(isolate)) {
     Label slow_case;
-    // Allocate the object and update top to point to
-    // next object start and initialize the allocated object.
-    // R1: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R2, Address(THR, Thread::top_offset()));
-    __ AddImmediate(R3, R2, instance_size);
-    // Check if the allocation fits into the remaining space.
-    // R2: potential new object start.
-    // R3: potential next object start.
-    __ ldr(TMP, Address(THR, Thread::end_offset()));
-    __ CompareRegisters(R3, TMP);
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ b(&slow_case, CS);  // Unsigned higher or equal.
-    }
-    __ str(R3, Address(THR, Thread::top_offset()));
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
-
-    // R2: new object start.
-    // R3: next object start.
-    // R1: new object type arguments (if is_cls_parameterized).
-    // Set the tags.
-    uint32_t tags = 0;
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.id() != kIllegalCid);
-    tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    tags = RawObject::NewBit::update(true, tags);
-    __ LoadImmediate(R0, tags);
-    // 64 bit store also zeros the hash_field.
-    __ StoreToOffset(R0, R2, Instance::tags_offset());
+    // Allocate the object & initialize header word.
+    __ TryAllocate(cls, &slow_case, kInstanceReg, kTopReg,
+                   /*tag_result=*/false);
 
     // Initialize the remaining words of the object.
-    __ LoadObject(R0, Object::null_object());
-
-    // R0: raw null.
-    // R2: new object start.
-    // R3: next object start.
-    // R1: new object type arguments (if is_cls_parameterized).
-    // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
-      // Check if the object contains any non-header fields.
-      // Small objects are initialized using a consecutive set of writes.
-      for (intptr_t current_offset = Instance::NextFieldOffset();
-           current_offset < instance_size; current_offset += kWordSize) {
-        __ StoreToOffset(R0, R2, current_offset);
+      intptr_t current_offset = Instance::NextFieldOffset();
+      while ((current_offset + kWordSize) < instance_size) {
+        __ stp(kNullReg, kNullReg,
+               Address(kInstanceReg, current_offset, Address::PairOffset));
+        current_offset += 2 * kWordSize;
+      }
+      while (current_offset < instance_size) {
+        __ str(kNullReg, Address(kInstanceReg, current_offset));
+        current_offset += kWordSize;
       }
     } else {
-      __ AddImmediate(R4, R2, Instance::NextFieldOffset());
-      // Loop until the whole object is initialized.
-      // R0: raw null.
-      // R2: new object.
-      // R3: next object start.
-      // R4: next word to be initialized.
-      // R1: new object type arguments (if is_cls_parameterized).
-      Label init_loop;
-      Label done;
+      __ AddImmediate(kTempReg, kInstanceReg, Instance::NextFieldOffset());
+      Label done, init_loop;
       __ Bind(&init_loop);
-      __ CompareRegisters(R4, R3);
+      __ CompareRegisters(kTempReg, kTopReg);
       __ b(&done, CS);
-      __ str(R0, Address(R4));
-      __ AddImmediate(R4, kWordSize);
+      __ str(kNullReg, Address(kTempReg, kWordSize, Address::PostIndex));
       __ b(&init_loop);
+
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // R1: new object type arguments.
-      // Set the type arguments in the new object.
-      __ StoreToOffset(R1, R2, cls.type_arguments_field_offset());
+      __ StoreToOffset(kTypeArgumentsReg, kInstanceReg,
+                       cls.type_arguments_field_offset());
     }
-    // Done allocating and initializing the instance.
-    // R2: new object still missing its heap tag.
-    __ add(R0, R2, Operand(kHeapObjectTag));
-    // R0: new object.
+    __ add(kInstanceReg, kInstanceReg, Operand(kHeapObjectTag));
     __ ret();
 
     __ Bind(&slow_case);
   }
+
   // If is_cls_parameterized:
-  // R1: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
-  __ Push(ZR);          // Result slot.
-  __ PushObject(cls);   // Push class of object to be allocated.
-  if (is_cls_parameterized) {
-    // Push type arguments.
-    __ Push(R1);
-  } else {
-    // Push null type arguments.
-    __ PushObject(Object::null_object());
-  }
+  __ LoadObject(R0, cls);
+  __ PushPair(R0, kNullReg);  // Pushes cls, result slot.
+  __ Push(is_cls_parameterized ? kTypeArgumentsReg : kNullReg);
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ Drop(2);                                      // Pop arguments.
-  __ Pop(R0);  // Pop result (newly allocated object).
-  // R0: new object
-  // Restore the frame pointer.
-  __ LeaveStubFrame();
+  __ ldr(kInstanceReg,
+         Address(SP, 2 * kWordSize));  // Pop result (newly allocated object).
+  __ LeaveStubFrame();                 // Restores correct SP.
   __ ret();
 }
 
@@ -1848,6 +1838,11 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
+void StubCode::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
@@ -1879,6 +1874,11 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
                                     kInlineCacheMissHandlerOneArgRuntimeEntry,
                                     Token::kILLEGAL, true /* optimized */);
+}
+
+void StubCode::GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
 }
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
@@ -1989,7 +1989,13 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 // R4: Arguments descriptor.
 // R0: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
-#if defined(DART_USE_INTERPRETER)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter")
+#else
+  if (!FLAG_enable_interpreter) {
+    __ Stop("Not using interpreter");
+    return;
+  }
 
   __ SetPrologueOffset();
   __ EnterStubFrame();
@@ -2051,6 +2057,9 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
@@ -2060,9 +2069,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ ret();
-#else
-  __ Stop("Not using interpreter");
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // R5: Contains an ICData.
@@ -2540,6 +2547,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(SP, R1);  // Stack pointer.
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(THR, R3);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());

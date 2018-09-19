@@ -200,6 +200,7 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
+  void AllocateBytecodeVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
@@ -229,8 +230,16 @@ class ParsedFunction : public ZoneAllocated {
     return raw_type_arguments_var_;
   }
 
+  void SetRawTypeArgumentsVariable(LocalVariable* raw_type_arguments_var) {
+    raw_type_arguments_var_ = raw_type_arguments_var;
+  }
+
+  void SetRawParameters(ZoneGrowableArray<LocalVariable*>* raw_parameters) {
+    raw_parameters_ = raw_parameters;
+  }
+
   LocalVariable* RawParameterVariable(intptr_t i) const {
-    return raw_parameters_[i];
+    return raw_parameters_->At(i);
   }
 
  private:
@@ -252,7 +261,7 @@ class ParsedFunction : public ZoneAllocated {
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
   LocalVariable* raw_type_arguments_var_;
-  ZoneGrowableArray<LocalVariable*> raw_parameters_;
+  ZoneGrowableArray<LocalVariable*>* raw_parameters_ = nullptr;
 
   VariableIndex first_parameter_index_;
   int num_stack_locals_;

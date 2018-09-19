@@ -169,11 +169,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deopt_env() != NULL);
 
-  // LR may be live. It will be clobbered by BranchLink, so cache it in IP.
-  // It will be restored at the top of the deoptimization stub, specifically in
-  // GenerateDeoptimizationSequence in stub_code_arm.cc.
   __ Push(CODE_REG);
-  __ mov(IP, Operand(LR));
+  ASSERT(kReservedCpuRegisters & (1 << LR));
   __ BranchLink(*StubCode::Deoptimize_entry());
   set_pc_offset(assembler->CodeSize());
 #undef __
@@ -907,6 +904,13 @@ void FlowGraphCompiler::CompileGraph() {
     }
     EmitFrameEntry();
     ASSERT(__ constant_pool_allowed());
+  } else {
+    // For JIT we have multiple entrypoints functionality which moved the frame
+    // setup into the [TargetEntryInstr] (which will set the constant pool
+    // allowed bit to true).  Despite this we still have to set the
+    // constant pool allowed bit to true here as well, because we can generate
+    // code for [CatchEntryInstr]s, which need the pool.
+    __ set_constant_pool_allowed(true);
   }
 
   VisitBlocks();
@@ -1063,7 +1067,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  EmitCatchEntryState(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
   __ Drop(args_desc.CountWithTypeArgs());
 }
 
@@ -1112,7 +1116,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
-      (isolate()->reify_generic_functions() && function.IsGeneric())) {
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
     __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.

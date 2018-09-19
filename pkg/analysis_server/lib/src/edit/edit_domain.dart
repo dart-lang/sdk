@@ -1017,19 +1017,13 @@ class _RefactoringManager {
           }
         }
 
-        // Canonicalize to ConstructorName.
-        var constructorName = _canonicalizeToConstructorName(node);
-        if (constructorName != null) {
-          node = constructorName;
-          element = constructorName.staticElement;
-          // Use the constructor name offset/length.
-          if (constructorName.name != null) {
-            feedbackOffset = constructorName.name.offset;
-            feedbackLength = constructorName.name.length;
-          } else {
-            feedbackOffset = -1;
-            feedbackLength = 0;
-          }
+        // Rename the class when on `new` in an instance creation.
+        if (node is InstanceCreationExpression) {
+          InstanceCreationExpression creation = node;
+          var typeIdentifier = creation.constructorName.type.name;
+          element = typeIdentifier.staticElement;
+          feedbackOffset = typeIdentifier.offset;
+          feedbackLength = typeIdentifier.length;
         }
 
         // do create the refactoring
@@ -1176,32 +1170,6 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
-  }
-
-  /**
-   * If the [node] is a constructor reference, return the corresponding
-   * [ConstructorName], or `null` otherwise.
-   */
-  static ConstructorName _canonicalizeToConstructorName(AstNode node) {
-    var parent = node.parent;
-    var parent2 = parent?.parent;
-
-    // "named" in "Class.named".
-    if (parent is ConstructorName) {
-      return parent;
-    }
-
-    // "Class" in "Class.named".
-    if (parent is TypeName && parent2 is ConstructorName) {
-      return parent2;
-    }
-
-    // Canonicalize "new Class.named()" to "Class.named".
-    if (node is InstanceCreationExpression) {
-      return node.constructorName;
-    }
-
-    return null;
   }
 }
 

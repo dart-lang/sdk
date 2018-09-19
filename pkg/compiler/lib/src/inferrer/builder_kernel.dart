@@ -13,6 +13,7 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
+import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart';
@@ -45,7 +46,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final TypeSystem _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
   final bool _inGenerativeConstructor;

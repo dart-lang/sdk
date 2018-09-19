@@ -20,6 +20,11 @@ import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 class VmTarget extends Target {
   final TargetFlags flags;
 
+  Class _growableList;
+  Class _immutableList;
+  Class _internalLinkedHashMap;
+  Class _immutableMap;
+
   VmTarget(this.flags);
 
   @override
@@ -291,5 +296,29 @@ class VmTarget extends Target {
   Component configureComponent(Component component) {
     callSiteAnnotator.addRepositoryTo(component);
     return super.configureComponent(component);
+  }
+
+  @override
+  Class concreteListLiteralClass(CoreTypes coreTypes) {
+    return _growableList ??=
+        coreTypes.index.getClass('dart:core', '_GrowableList');
+  }
+
+  @override
+  Class concreteConstListLiteralClass(CoreTypes coreTypes) {
+    return _immutableList ??=
+        coreTypes.index.getClass('dart:core', '_ImmutableList');
+  }
+
+  @override
+  Class concreteMapLiteralClass(CoreTypes coreTypes) {
+    return _internalLinkedHashMap ??=
+        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashMap');
+  }
+
+  @override
+  Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
+    return _immutableMap ??=
+        coreTypes.index.getClass('dart:core', '_ImmutableMap');
   }
 }

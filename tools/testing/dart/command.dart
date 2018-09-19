@@ -51,6 +51,12 @@ class Command {
     return new AnalysisCommand._(executable, arguments, environmentOverrides);
   }
 
+  static Command compareAnalyzerCfe(String executable, List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    return new CompareAnalyzerCfeCommand._(
+        executable, arguments, environmentOverrides);
+  }
+
   static Command specParse(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
     return new SpecParseCommand._(executable, arguments, environmentOverrides);
@@ -427,6 +433,13 @@ class AnalysisCommand extends ProcessCommand {
   AnalysisCommand._(String executable, List<String> arguments,
       Map<String, String> environmentOverrides)
       : super._('dart2analyzer', executable, arguments, environmentOverrides);
+}
+
+class CompareAnalyzerCfeCommand extends ProcessCommand {
+  CompareAnalyzerCfeCommand._(String executable, List<String> arguments,
+      Map<String, String> environmentOverrides)
+      : super._('compare_analyzer_cfe', executable, arguments,
+            environmentOverrides);
 }
 
 class SpecParseCommand extends ProcessCommand {

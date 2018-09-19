@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "vm/globals.h"
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)
 
 #include "vm/interpreter.h"
 
@@ -193,7 +193,8 @@ class InterpreterHelpers {
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2]);
+      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
+                          thread);
       return true;
     }
     return false;
@@ -228,7 +229,8 @@ class InterpreterHelpers {
         static_cast<RawGrowableObjectArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
       RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2]);
+      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
+                         thread);
       return true;
     }
     return false;
@@ -888,7 +890,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   UNIMPLEMENTED();
 #endif
   ASSERT(Function::HasCode(function));
-  RawCode* code = function->ptr()->code_;
+  RawCode* volatile code = function->ptr()->code_;
   ASSERT(code != StubCode::LazyCompile_entry()->code());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
@@ -900,9 +902,9 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
                                    RawObject * *arg0, Thread * thread);
-  invokestub entrypoint = reinterpret_cast<invokestub>(
+  invokestub volatile entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint());
-  RawObject* result;
+  RawObject* volatile result;
   Exit(thread, *FP, call_top + 1, *pc);
   {
     InterpreterSetjmpBuffer buffer(this);
@@ -967,11 +969,13 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
       RawAbstractType* field_type = field->ptr()->type_;
-      const classid_t cid =
-          field_type->GetClassId() == kTypeCid
-              ? Smi::Value(reinterpret_cast<RawSmi*>(
-                    Type::RawCast(field_type)->ptr()->type_class_id_))
-              : kIllegalCid;  // Not really illegal, but not a Type to skip.
+      classid_t cid;
+      if (field_type->GetClassId() == kTypeCid) {
+        cid = Smi::Value(reinterpret_cast<RawSmi*>(
+            Type::RawCast(field_type)->ptr()->type_class_id_));
+      } else {
+        cid = kIllegalCid;  // Not really illegal, but not a Type to skip.
+      }
       // Perform type test of value if field type is not one of dynamic, object,
       // or void, and if the value is not null.
       RawObject* null_value = Object::null();
@@ -1042,7 +1046,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       }
       instance->StorePointer(
           reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-          value);
+          value, thread);
       *SP = call_base;
       **SP = null_value;
       *invoked = true;
@@ -1158,6 +1162,9 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       break;  // Compile and invoke the function.
     }
     case RawFunction::kNoSuchMethodDispatcher:
+      // TODO(regis): Implement. For now, use jitted version.
+      break;
+    case RawFunction::kDynamicInvocationForwarder:
       // TODO(regis): Implement. For now, use jitted version.
       break;
     default:
@@ -1519,7 +1526,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
                   exit_fp);                                                    \
       }                                                                        \
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
-      return special_[kExceptionSpecialIndex];                                 \
+      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
   } while (0)
@@ -1539,7 +1546,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
       thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
-      return special_[kExceptionSpecialIndex];                                 \
+      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
   } while (0)
@@ -2269,6 +2276,30 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(PushNull, 0);
+    *++SP = Object::null();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushTrue, 0);
+    *++SP = Object::bool_true().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushFalse, 0);
+    *++SP = Object::bool_false().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushInt, A_X);
+    *++SP = Smi::New(rD);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Push, A_X);
     *++SP = FP[rD];
     DISPATCH();
@@ -2484,9 +2515,8 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(NativeCall, __D);
-    RawNativeEntryData* native_entry =
-        static_cast<RawNativeEntryData*>(LOAD_CONSTANT(rD));
-    MethodRecognizer::Kind kind = native_entry->ptr()->kind_;
+    RawTypedData* data = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
+    MethodRecognizer::Kind kind = NativeEntryData::GetKind(data);
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
         SP[-1] = SP[-1] == SP[0] ? Bool::True().raw() : Bool::False().raw();
@@ -2625,9 +2655,9 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline = native_entry->ptr()->trampoline_;
-        NativeFunction function = native_entry->ptr()->native_function_;
-        intptr_t argc_tag = native_entry->ptr()->argc_tag_;
+        NativeFunctionWrapper trampoline = NativeEntryData::GetTrampoline(data);
+        NativeFunction function = NativeEntryData::GetNativeFunction(data);
+        intptr_t argc_tag = NativeEntryData::GetArgcTag(data);
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
 
@@ -3470,7 +3500,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     BYTECODE(StoreStaticTOS, A_D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    field->StorePointer(&field->ptr()->value_.static_value_, value);
+    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
     DISPATCH();
   }
 
@@ -3494,8 +3524,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     ASSERT(!thread->isolate()->use_field_guards());
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -3509,8 +3539,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     UNREACHABLE();  // TODO(regis): unused, remove.
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -3526,8 +3556,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     ASSERT(!thread->isolate()->use_field_guards());
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -3542,7 +3572,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
     instance->StorePointer(
         reinterpret_cast<RawContext**>(instance->ptr()) + offset_in_words,
-        value);
+        value, thread);
 
     DISPATCH();
   }
@@ -3556,8 +3586,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     SP -= 2;  // Drop instance and value.
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -4487,7 +4517,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
@@ -4497,7 +4528,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
@@ -4831,8 +4863,8 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     ASSERT(raw_exception != Object::null());
     thread->set_active_exception(Object::null_object());
     thread->set_active_stacktrace(Object::null_object());
-    special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStackTraceSpecialIndex] = raw_stacktrace;
+    special_[KernelBytecode::kExceptionSpecialIndex] = raw_exception;
+    special_[KernelBytecode::kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
   } else {
     pc_ = pc;
@@ -4849,4 +4881,4 @@ void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)

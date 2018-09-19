@@ -5,6 +5,9 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,39 +16,76 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceKind;
 import 'package:analyzer_fe_comparison/src/comparison_node.dart';
 
-/// Analyzes the project located at [libPath] using the analyzer, and returns a
+/// Analyzes the files in [filePaths] using the analyzer, and returns a
+/// [ComparisonNode] representing them.
+Future<ComparisonNode> analyzeFiles(
+    String startingPath, List<String> filePaths) async {
+  var driver = await _AnalyzerDriver.create(startingPath);
+  return driver.analyzeFiles(filePaths);
+}
+
+/// Analyzes the package located at [libPath] using the analyzer, and returns a
 /// [ComparisonNode] representing it.
-Future<ComparisonNode> driveAnalyzer(String libPath) async {
-  var contextCollection = AnalysisContextCollection(includedPaths: [libPath]);
-  var contexts = contextCollection.contexts;
-  if (contexts.length != 1) {
-    throw new StateError('Expected exactly one context');
-  }
-  var context = contexts[0];
-  var session = context.currentSession;
-  var typeProvider = await session.typeProvider;
-  var uriConverter = session.uriConverter;
-  var contextRoot = context.contextRoot;
-  var libraryNodes = <ComparisonNode>[];
-  for (var filePath in contextRoot.analyzedFiles()) {
-    var kind = await session.getSourceKind(filePath);
-    if (kind == SourceKind.LIBRARY) {
-      var importUri = uriConverter.pathToUri(filePath);
-      var libraryElement = await session.getLibraryByUri(importUri.toString());
-      var childNodes = <ComparisonNode>[];
-      if (libraryElement.name.isNotEmpty) {
-        childNodes.add(ComparisonNode('name=${libraryElement.name}'));
+Future<ComparisonNode> analyzePackage(String libPath) async {
+  var driver = await _AnalyzerDriver.create(libPath);
+  return driver.analyzePackage();
+}
+
+class _AnalyzerDriver {
+  final AnalysisSession _session;
+
+  final TypeProvider _typeProvider;
+
+  final UriConverter _uriConverter;
+
+  final ContextRoot _contextRoot;
+
+  _AnalyzerDriver._(
+      this._session, this._typeProvider, this._uriConverter, this._contextRoot);
+
+  Future<ComparisonNode> analyzeFiles(Iterable<String> filePaths) async {
+    var libraryNodes = <ComparisonNode>[];
+    for (var filePath in filePaths) {
+      var kind = await _session.getSourceKind(filePath);
+      if (kind == SourceKind.LIBRARY) {
+        var importUri = _uriConverter.pathToUri(filePath);
+        var libraryElement =
+            await _session.getLibraryByUri(importUri.toString());
+        var childNodes = <ComparisonNode>[];
+        if (libraryElement.name.isNotEmpty) {
+          childNodes.add(ComparisonNode('name=${libraryElement.name}'));
+        }
+        for (var compilationUnit in libraryElement.units) {
+          var unitResult =
+              await _session.getResolvedAst(compilationUnit.source.fullName);
+          _AnalyzerVisitor(_typeProvider, childNodes)
+              ._visitList(unitResult.unit.declarations);
+        }
+        libraryNodes
+            .add(ComparisonNode.sorted(importUri.toString(), childNodes));
       }
-      for (var compilationUnit in libraryElement.units) {
-        var unitResult =
-            await session.getResolvedAst(compilationUnit.source.fullName);
-        _AnalyzerVisitor(typeProvider, childNodes)
-            ._visitList(unitResult.unit.declarations);
-      }
-      libraryNodes.add(ComparisonNode.sorted(importUri.toString(), childNodes));
     }
+    return ComparisonNode.sorted('Component', libraryNodes);
   }
-  return ComparisonNode.sorted('Component', libraryNodes);
+
+  Future<ComparisonNode> analyzePackage() async {
+    return analyzeFiles(_contextRoot.analyzedFiles());
+  }
+
+  static Future<_AnalyzerDriver> create(String startingPath) async {
+    var contextCollection =
+        AnalysisContextCollection(includedPaths: [startingPath]);
+    var contexts = contextCollection.contexts;
+    if (contexts.length != 1) {
+      throw new StateError('Expected exactly one context');
+    }
+    var context = contexts[0];
+    var session = context.currentSession;
+    var typeProvider = await session.typeProvider;
+    var uriConverter = session.uriConverter;
+    var contextRoot = context.contextRoot;
+    return _AnalyzerDriver._(session, typeProvider, uriConverter, contextRoot);
+  }
 }
 
 /// Visitor for serializing the contents of an analyzer AST into
@@ -63,21 +103,19 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var children = <ComparisonNode>[];
     var visitor = _AnalyzerVisitor(_typeProvider, children);
-    visitor._visitTypeParameters(node.declaredElement.typeParameters);
-    if (node.declaredElement.supertype != null) {
-      children.add(_translateType('Extends: ', node.declaredElement.supertype));
-    }
-    for (int i = 0; i < node.declaredElement.mixins.length; i++) {
-      children
-          .add(_translateType('Mixin $i: ', node.declaredElement.mixins[i]));
-    }
-    for (int i = 0; i < node.declaredElement.interfaces.length; i++) {
-      children.add(_translateType(
-          'Implements $i: ', node.declaredElement.interfaces[i]));
-    }
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
     visitor._visitList(node.members);
     _resultNodes
         .add(ComparisonNode.sorted('Class ${node.name.name}', children));
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    var children = <ComparisonNode>[];
+    var visitor = _AnalyzerVisitor(_typeProvider, children);
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
+    _resultNodes.add(
+        ComparisonNode.sorted('MixinApplication ${node.name.name}', children));
   }
 
   @override
@@ -136,6 +174,7 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var name = node.name.name;
     String kind;
     if (node.isGetter) {
       kind = 'Getter';
@@ -143,6 +182,9 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
       kind = 'Setter';
     } else if (node.isOperator) {
       kind = 'Operator';
+      if (name == '-' && node.declaredElement.parameters.isEmpty) {
+        name = 'unary-';
+      }
     } else {
       kind = 'Method';
     }
@@ -152,8 +194,19 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
     visitor._visitParameters(node.parameters);
     children
         .add(_translateType('Return type: ', node.declaredElement.returnType));
+    _resultNodes.add(ComparisonNode.sorted('$kind $name', children));
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    // At present, kernel doesn't distinguish between mixin and class
+    // declarations.  So treat the mixin as a class.
+    var children = <ComparisonNode>[];
+    var visitor = _AnalyzerVisitor(_typeProvider, children);
+    visitor._handleClassOrClassTypeAlias(node.declaredElement);
+    visitor._visitList(node.members);
     _resultNodes
-        .add(ComparisonNode.sorted('$kind ${node.name.name}', children));
+        .add(ComparisonNode.sorted('Class ${node.name.name}', children));
   }
 
   @override
@@ -175,6 +228,40 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
       // Kernel calls both fields and top level variable declarations "fields".
       _resultNodes.add(ComparisonNode.sorted(
           'Field ${variableDeclaration.name.name}', children));
+    }
+  }
+
+  void _handleClassOrClassTypeAlias(ClassElement element) {
+    _visitTypeParameters(element.typeParameters);
+    InterfaceType supertype;
+    List<InterfaceType> mixins;
+    if (element.isMixin) {
+      // Kernel represents:
+      // - `mixin M` as `class M extends Object`
+      // - `mixin M on A` as `class M extends A`
+      // - `mixin M on A, B` as `class M extends A with B`
+      // - `mixin M on A, B, C` as `class M extends A with B, C`.
+      var superclassConstraints = element.superclassConstraints;
+      if (superclassConstraints.isEmpty) {
+        supertype = _typeProvider.objectType;
+        mixins = [];
+      } else {
+        supertype = superclassConstraints[0];
+        mixins = superclassConstraints.skip(1).toList();
+      }
+    } else {
+      supertype = element.supertype;
+      mixins = element.mixins;
+    }
+    if (supertype != null) {
+      _resultNodes.add(_translateType('Extends: ', supertype));
+    }
+    for (int i = 0; i < mixins.length; i++) {
+      _resultNodes.add(_translateType('Mixin $i: ', mixins[i]));
+    }
+    for (int i = 0; i < element.interfaces.length; i++) {
+      _resultNodes
+          .add(_translateType('Implements $i: ', element.interfaces[i]));
     }
   }
 

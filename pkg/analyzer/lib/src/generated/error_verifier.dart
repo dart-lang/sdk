@@ -506,8 +506,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
-      _checkForDuplicateDefinitionInheritance();
-      _checkForConflictingInstanceMethodSetter(node);
       _checkForBadFunctionUse(node);
       return super.visitClassDeclaration(node);
     } finally {
@@ -570,7 +568,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
-      _checkForConflictingConstructorNameAndMember(node, constructorElement);
       _checkForAllFinalInitializedErrorCodes(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMixinDeclaresConstructor(node);
@@ -905,6 +902,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (type is InterfaceType) {
         _checkForConstOrNewWithAbstractClass(node, typeName, type);
         _checkForConstOrNewWithEnum(node, typeName, type);
+        _checkForConstOrNewWithMixin(node, typeName, type);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -987,14 +985,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
-      if (node.isGetter) {
-        _checkForConflictingStaticGetterAndInstanceSetter(node);
-      } else if (node.isSetter) {
+      if (node.isSetter) {
         _checkForInvalidModifierOnBody(
             node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);
-        _checkForConflictingStaticSetterAndInstanceMember(node);
       } else if (node.isOperator) {
         _checkForOptionalParameterInOperator(node);
         _checkForWrongNumberOfParametersForOperator(node);
@@ -1031,17 +1026,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMixinDeclaration(MixinDeclaration node) {
     // TODO(scheglov) Verify for all mixin errors.
-//    ClassElementImpl outerClass = _enclosingClass;
+    ClassElementImpl outerClass = _enclosingClass;
     try {
-//      _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
 
       List<ClassMember> members = node.members;
       _checkDuplicateClassMembers(members);
-//      _checkForBuiltInIdentifierAsName(
-//          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      _checkForBuiltInIdentifierAsName(
+          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
-//      _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
@@ -1054,14 +1047,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
-//      _checkForDuplicateDefinitionInheritance();
-//      _checkForConflictingInstanceMethodSetter(node);
 //      _checkForBadFunctionUse(node);
       return super.visitMixinDeclaration(node);
     } finally {
-//      _isInNativeClass = false;
       _initialFieldElementsMap = null;
-//      _enclosingClass = outerClass;
+      _enclosingClass = outerClass;
     }
   }
 
@@ -1353,15 +1343,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // isn't an error code such as "Cannot extend double" already on the
     // class.
     if (!_checkForExtendsDisallowedClass(superclass) &&
-        !_checkForImplementsDisallowedClass(implementsClause) &&
+        !_checkForImplementsClauseErrorCodes(implementsClause) &&
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForImplementsDeferredClass(implementsClause);
       _checkForNonAbstractClassInheritsAbstractMember(node.name);
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
-      _checkForConflictingGetterAndMethod();
+      _checkForConflictingClassMembers();
+      _checkForRepeatedType(implementsClause?.interfaces,
+          CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
       _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
@@ -1395,26 +1386,94 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateClassMembers(List<ClassMember> members) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    Set<String> visitedFields = new HashSet<String>();
+    Set<String> constructorNames = new HashSet<String>();
+    Map<String, Element> instanceGetters = new HashMap<String, Element>();
+    Map<String, Element> instanceSetters = new HashMap<String, Element>();
+    Map<String, Element> staticGetters = new HashMap<String, Element>();
+    Map<String, Element> staticSetters = new HashMap<String, Element>();
+
     for (ClassMember member in members) {
-      // We ignore constructors because they are checked in the method
-      // _checkForConflictingConstructorNameAndMember.
-      if (member is FieldDeclaration) {
+      if (member is ConstructorDeclaration) {
+        var name = member.name?.name ?? '';
+        if (!constructorNames.add(name)) {
+          if (name.isEmpty) {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
+          } else {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                member,
+                [name]);
+          }
+        }
+      } else if (member is FieldDeclaration) {
         for (VariableDeclaration field in member.fields.variables) {
           SimpleIdentifier identifier = field.name;
-          _checkDuplicateIdentifier(definedNames, identifier);
-          String name = identifier.name;
-          if (!field.isFinal &&
-              !field.isConst &&
-              !visitedFields.contains(name)) {
-            _checkDuplicateIdentifier(definedNames, identifier,
-                implicitSetter: true);
-          }
-          visitedFields.add(name);
+          _checkDuplicateIdentifier(
+            member.isStatic ? staticGetters : instanceGetters,
+            identifier,
+            setterScope: member.isStatic ? staticSetters : instanceSetters,
+          );
         }
       } else if (member is MethodDeclaration) {
-        _checkDuplicateIdentifier(definedNames, member.name);
+        _checkDuplicateIdentifier(
+          member.isStatic ? staticGetters : instanceGetters,
+          member.name,
+          setterScope: member.isStatic ? staticSetters : instanceSetters,
+        );
+      }
+    }
+
+    // Check for local static members conflicting with local instance members.
+    for (ClassMember member in members) {
+      if (member is ConstructorDeclaration) {
+        if (member.name != null) {
+          String name = member.name.name;
+          var staticMember = staticGetters[name] ?? staticSetters[name];
+          if (staticMember != null) {
+            if (staticMember is PropertyAccessorElement) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+                member.name,
+                [name],
+              );
+            } else {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+                member.name,
+                [name],
+              );
+            }
+          }
+        }
+      } else if (member is FieldDeclaration) {
+        if (member.isStatic) {
+          for (VariableDeclaration field in member.fields.variables) {
+            SimpleIdentifier identifier = field.name;
+            String name = identifier.name;
+            if (instanceGetters.containsKey(name) ||
+                instanceSetters.containsKey(name)) {
+              String className = _enclosingClass.displayName;
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                  identifier,
+                  [className, name, className]);
+            }
+          }
+        }
+      } else if (member is MethodDeclaration) {
+        if (member.isStatic) {
+          SimpleIdentifier identifier = member.name;
+          String name = identifier.name;
+          if (instanceGetters.containsKey(name) ||
+              instanceSetters.containsKey(name)) {
+            String className = identifier.staticElement.enclosingElement.name;
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                identifier,
+                [className, name, className]);
+          }
+        }
       }
     }
   }
@@ -1482,58 +1541,101 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateEnumMembers(EnumDeclaration node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
     ClassElement element = node.declaredElement;
+
+    Map<String, Element> instanceGetters = new HashMap<String, Element>();
+    Map<String, Element> staticGetters = new HashMap<String, Element>();
+
     String indexName = 'index';
     String valuesName = 'values';
-    definedNames[indexName] = element.getField(indexName);
-    definedNames[valuesName] = element.getField(valuesName);
+    instanceGetters[indexName] = element.getGetter(indexName);
+    staticGetters[valuesName] = element.getGetter(valuesName);
+
     for (EnumConstantDeclaration constant in node.constants) {
-      _checkDuplicateIdentifier(definedNames, constant.name);
+      _checkDuplicateIdentifier(staticGetters, constant.name);
+    }
+
+    for (EnumConstantDeclaration constant in node.constants) {
+      SimpleIdentifier identifier = constant.name;
+      String name = identifier.name;
+      if (instanceGetters.containsKey(name)) {
+        String enumName = element.displayName;
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            identifier,
+            [enumName, name, enumName]);
+      }
     }
   }
 
   /**
-   * Check whether the given [identifier] is already in the set of
-   * [definedNames], and produce an error if it is. If [implicitSetter] is
-   * `true`, then the identifier represents the definition of a setter.
+   * Check whether the given [element] defined by the [identifier] is already
+   * in one of the scopes - [getterScope] or [setterScope], and produce an
+   * error if it is.
    */
   void _checkDuplicateIdentifier(
-      Map<String, Element> definedNames, SimpleIdentifier identifier,
-      {bool implicitSetter: false}) {
+      Map<String, Element> getterScope, SimpleIdentifier identifier,
+      {Element element, Map<String, Element> setterScope}) {
+    element ??= identifier.staticElement;
+
+    // Fields define getters and setters, so check them separately.
+    if (element is PropertyInducingElement) {
+      _checkDuplicateIdentifier(getterScope, identifier,
+          element: element.getter, setterScope: setterScope);
+      if (!element.isConst && !element.isFinal) {
+        _checkDuplicateIdentifier(getterScope, identifier,
+            element: element.setter, setterScope: setterScope);
+      }
+      return;
+    }
+
     ErrorCode getError(Element previous, Element current) {
-      if (previous is MethodElement && current is PropertyAccessorElement) {
-        if (current.isGetter) {
-          return CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME;
-        }
-      } else if (previous is PropertyAccessorElement &&
-          current is MethodElement) {
-        if (previous.isGetter) {
-          return CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME;
-        }
-      } else if (previous is PrefixElement) {
+      if (previous is PrefixElement) {
         return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }
 
-    Element current = identifier.staticElement;
+    bool isGetterSetterPair(Element a, Element b) {
+      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
+        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
+      }
+      return false;
+    }
+
     String name = identifier.name;
-    if (current is PropertyAccessorElement && current.isSetter) {
-      name += '=';
-    } else if (current is MethodElement && current.isOperator && name == '-') {
-      if (current.parameters.length == 0) {
+    if (element is MethodElement && element.isOperator && name == '-') {
+      if (element.parameters.length == 0) {
         name = 'unary-';
       }
-    } else if (implicitSetter) {
-      name += '=';
     }
-    Element previous = definedNames[name];
+
+    Element previous = getterScope[name];
     if (previous != null) {
-      _errorReporter
-          .reportErrorForNode(getError(previous, current), identifier, [name]);
+      if (isGetterSetterPair(element, previous)) {
+        // OK
+      } else {
+        _errorReporter.reportErrorForNode(
+          getError(previous, element),
+          identifier,
+          [name],
+        );
+      }
     } else {
-      definedNames[name] = identifier.staticElement;
+      getterScope[name] = element;
+    }
+
+    if (element is PropertyAccessorElement && element.isSetter) {
+      previous = setterScope[name];
+      if (previous != null) {
+        _errorReporter.reportErrorForNode(
+          getError(previous, element),
+          identifier,
+          [name],
+        );
+      } else {
+        setterScope[name] = element;
+      }
     }
   }
 
@@ -1541,39 +1643,41 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateUnitMembers(CompilationUnit node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedGetters = new HashMap<String, Element>();
+    Map<String, Element> definedSetters = new HashMap<String, Element>();
+
     void addWithoutChecking(CompilationUnitElement element) {
       for (PropertyAccessorElement accessor in element.accessors) {
         String name = accessor.name;
         if (accessor.isSetter) {
           name += '=';
         }
-        definedNames[name] = accessor;
+        definedGetters[name] = accessor;
       }
       for (ClassElement type in element.enums) {
-        definedNames[type.name] = type;
+        definedGetters[type.name] = type;
       }
       for (FunctionElement function in element.functions) {
-        definedNames[function.name] = function;
+        definedGetters[function.name] = function;
       }
       for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
-        definedNames[alias.name] = alias;
+        definedGetters[alias.name] = alias;
       }
       for (TopLevelVariableElement variable in element.topLevelVariables) {
-        definedNames[variable.name] = variable;
+        definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
-          definedNames[variable.name + '='] = variable;
+          definedGetters[variable.name + '='] = variable;
         }
       }
       for (ClassElement type in element.types) {
-        definedNames[type.name] = type;
+        definedGetters[type.name] = type;
       }
     }
 
     for (ImportElement importElement in _currentLibrary.imports) {
       PrefixElement prefix = importElement.prefix;
       if (prefix != null) {
-        definedNames[prefix.name] = prefix;
+        definedGetters[prefix.name] = prefix;
       }
     }
     CompilationUnitElement element = node.declaredElement;
@@ -1588,14 +1692,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     for (CompilationUnitMember member in node.declarations) {
       if (member is NamedCompilationUnitMember) {
-        _checkDuplicateIdentifier(definedNames, member.name);
+        _checkDuplicateIdentifier(definedGetters, member.name,
+            setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
-          _checkDuplicateIdentifier(definedNames, variable.name);
-          if (!variable.isFinal && !variable.isConst) {
-            _checkDuplicateIdentifier(definedNames, variable.name,
-                implicitSetter: true);
-          }
+          _checkDuplicateIdentifier(definedGetters, variable.name,
+              setterScope: definedSetters);
         }
       }
     }
@@ -1808,7 +1910,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     bool problemReported = false;
-    for (TypeName mixinName in withClause.mixinTypes) {
+    for (int i = 0; i < withClause.mixinTypes.length; i++) {
+      TypeName mixinName = withClause.mixinTypes[i];
       DartType mixinType = mixinName.type;
       if (mixinType is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
@@ -1820,15 +1923,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (_checkForMixinClassDeclaresConstructor(mixinName, mixinElement)) {
-            problemReported = true;
-          }
-          if (!enableSuperMixins &&
-              _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-            problemReported = true;
-          }
-          if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
-            problemReported = true;
+          if (mixinElement.isMixin) {
+            if (_checkForMixinSuperclassConstraints(mixinName, i)) {
+              problemReported = true;
+            }
+            if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
+              problemReported = true;
+            }
+          } else {
+            if (_checkForMixinClassDeclaresConstructor(
+                mixinName, mixinElement)) {
+              problemReported = true;
+            }
+            if (!enableSuperMixins &&
+                _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+              problemReported = true;
+            }
+            if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
+              problemReported = true;
+            }
           }
         }
       }
@@ -2353,56 +2466,69 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify all possible conflicts of the given [constructor]'s name with other
-   * constructors and members of the same class. The [constructorElement] is the
-   * constructor's element.
+   * Verify that the [_enclosingClass] does not have a method and getter pair
+   * with the same name on, via inheritance.
    *
-   * See [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT],
-   * [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME],
-   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD], and
-   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD].
+   * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
+   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
+   * [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
    */
-  void _checkForConflictingConstructorNameAndMember(
-      ConstructorDeclaration constructor,
-      ConstructorElement constructorElement) {
-    SimpleIdentifier constructorName = constructor.name;
-    String name = constructorElement.name;
-    ClassElement classElement = constructorElement.enclosingElement;
-    // constructors
-    List<ConstructorElement> constructors = classElement.constructors;
-    for (ConstructorElement otherConstructor in constructors) {
-      if (identical(otherConstructor, constructorElement)) {
-        continue;
-      }
-      if (name == otherConstructor.name) {
-        if (name == null || name.length == 0) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, constructor);
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-              constructor,
-              [name]);
-        }
-        return;
+  void _checkForConflictingClassMembers() {
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    // method declared in the enclosing class vs. inherited getter/setter
+    for (MethodElement method in _enclosingClass.methods) {
+      String name = method.name;
+
+      // find inherited property accessor
+      ExecutableElement inherited =
+          _inheritanceManager.lookupInheritance(_enclosingClass, name);
+      inherited ??=
+          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+
+      if (method.isStatic && inherited != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName,
+        ]);
+      } else if (inherited is PropertyAccessorElement) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
+          _enclosingClass.displayName,
+          inherited.enclosingElement.displayName,
+          name
+        ]);
       }
     }
-    // conflict with class member
-    if (constructorName != null &&
-        constructorElement != null &&
-        !constructorName.isSynthetic) {
-      FieldElement field = classElement.getField(name);
-      if (field != null && field.getter != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
-            constructor,
-            [name]);
-      } else if (classElement.getMethod(name) != null) {
-        // methods
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
-            constructor,
-            [name]);
+
+    // getter declared in the enclosing class vs. inherited method
+    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
+      String name = accessor.displayName;
+
+      // find inherited method or property accessor
+      ExecutableElement inherited =
+          _inheritanceManager.lookupInheritance(_enclosingClass, name);
+      inherited ??=
+          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+
+      if (accessor.isStatic && inherited != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, accessor, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName,
+        ]);
+      } else if (inherited is MethodElement) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName
+        ]);
       }
     }
   }
@@ -2428,240 +2554,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       visit(type.superclass);
       type.mixins.forEach(visit);
+      type.superclassConstraints.forEach(visit);
       type.interfaces.forEach(visit);
       visitedClasses.removeLast();
     }
 
     visit(_enclosingClass.type);
-  }
-
-  /**
-   * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name on, via inheritance.
-   *
-   * See [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD], and
-   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER].
-   */
-  void _checkForConflictingGetterAndMethod() {
-    if (_enclosingClass == null) {
-      return;
-    }
-
-    // method declared in the enclosing class vs. inherited getter
-    for (MethodElement method in _enclosingClass.methods) {
-      String name = method.name;
-      // find inherited property accessor (and can be only getter)
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      if (inherited is! PropertyAccessorElement) {
-        continue;
-      }
-
-      _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, method, [
-        _enclosingClass.displayName,
-        inherited.enclosingElement.displayName,
-        name
-      ]);
-    }
-    // getter declared in the enclosing class vs. inherited method
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (!accessor.isGetter) {
-        continue;
-      }
-      String name = accessor.name;
-      // find inherited method
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      if (inherited is! MethodElement) {
-        continue;
-      }
-
-      _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, accessor, [
-        _enclosingClass.displayName,
-        inherited.enclosingElement.displayName,
-        name
-      ]);
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have a setter with the same name
-   * as the given instance method declaration.
-   *
-   * TODO(jwren) add other "conflicting" error codes into algorithm/ data
-   * structure.
-   *
-   * See [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER].
-   */
-  void _checkForConflictingInstanceMethodSetter(ClassDeclaration declaration) {
-    // Reference all of the class members in this class.
-    NodeList<ClassMember> classMembers = declaration.members;
-    if (classMembers.isEmpty) {
-      return;
-    }
-    // Create a HashMap to track conflicting members, and then loop through
-    // members in the class to construct the HashMap, at the same time,
-    // look for violations.  Don't add members if they are part of a conflict,
-    // this prevents multiple warnings for one issue.
-    Map<String, ClassMember> memberHashMap = new HashMap<String, ClassMember>();
-    for (ClassMember member in classMembers) {
-      if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          continue;
-        }
-        // prepare name
-        SimpleIdentifier name = member.name;
-        if (name == null) {
-          continue;
-        }
-        bool addThisMemberToTheMap = true;
-        bool isGetter = member.isGetter;
-        bool isSetter = member.isSetter;
-        bool isOperator = member.isOperator;
-        bool isMethod = !isGetter && !isSetter && !isOperator;
-        // Do lookups in the enclosing class (and the inherited member) if the
-        // member is a method or a setter for
-        // StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER warning.
-        if (isMethod) {
-          String setterName = "${name.name}=";
-          Element enclosingElementOfSetter = null;
-          ClassMember conflictingSetter = memberHashMap[setterName];
-          if (conflictingSetter != null) {
-            enclosingElementOfSetter = resolutionMap
-                .elementDeclaredByDeclaration(conflictingSetter)
-                .enclosingElement;
-          } else {
-            ExecutableElement elementFromInheritance = _inheritanceManager
-                .lookupInheritance(_enclosingClass, setterName);
-            if (elementFromInheritance != null) {
-              enclosingElementOfSetter =
-                  elementFromInheritance.enclosingElement;
-            }
-          }
-          if (enclosingElementOfSetter != null) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER, name, [
-              _enclosingClass.displayName,
-              name.name,
-              enclosingElementOfSetter.displayName
-            ]);
-            addThisMemberToTheMap = false;
-          }
-        } else if (isSetter) {
-          String methodName = name.name;
-          ClassMember conflictingMethod = memberHashMap[methodName];
-          if (conflictingMethod != null &&
-              conflictingMethod is MethodDeclaration &&
-              !conflictingMethod.isGetter) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2,
-                name,
-                [_enclosingClass.displayName, name.name]);
-            addThisMemberToTheMap = false;
-          }
-        }
-        // Finally, add this member into the HashMap.
-        if (addThisMemberToTheMap) {
-          if (member.isSetter) {
-            memberHashMap["${name.name}="] = member;
-          } else {
-            memberHashMap[name.name] = member;
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * same name as the given static [method] declaration.
-   *
-   * See [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER].
-   */
-  void _checkForConflictingStaticGetterAndInstanceSetter(
-      MethodDeclaration method) {
-    if (!method.isStatic) {
-      return;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = method.name;
-    if (nameNode == null) {
-      return;
-    }
-    String name = nameNode.name;
-    // prepare enclosing type
-    if (_enclosingClass == null) {
-      return;
-    }
-    InterfaceType enclosingType = _enclosingClass.type;
-    // try to find setter
-    ExecutableElement setter =
-        enclosingType.lookUpSetter(name, _currentLibrary);
-    if (setter == null) {
-      return;
-    }
-    // OK, also static
-    if (setter.isStatic) {
-      return;
-    }
-    // prepare "setter" type to report its name
-    ClassElement setterClass = setter.enclosingElement as ClassElement;
-    InterfaceType setterType = setterClass.type;
-
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER,
-        nameNode,
-        [setterType.displayName]);
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * same name as the given static [method] declaration.
-   *
-   * See [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER].
-   */
-  void _checkForConflictingStaticSetterAndInstanceMember(
-      MethodDeclaration method) {
-    if (!method.isStatic) {
-      return;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = method.name;
-    if (nameNode == null) {
-      return;
-    }
-    String name = nameNode.name;
-    // prepare enclosing type
-    if (_enclosingClass == null) {
-      return;
-    }
-    InterfaceType enclosingType = _enclosingClass.type;
-    // try to find member
-    ExecutableElement member;
-    member = enclosingType.lookUpMethod(name, _currentLibrary);
-    if (member == null) {
-      member = enclosingType.lookUpGetter(name, _currentLibrary);
-    }
-    if (member == null) {
-      member = enclosingType.lookUpSetter(name, _currentLibrary);
-    }
-    if (member == null) {
-      return;
-    }
-    // OK, also static
-    if (member.isStatic) {
-      return;
-    }
-    // prepare "member" type to report its name
-    ClassElement memberClass = member.enclosingElement as ClassElement;
-    InterfaceType memberType = memberClass.type;
-
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER,
-        nameNode,
-        [memberType.displayName]);
   }
 
   /**
@@ -2872,6 +2770,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Verify that the given [expression] is not a mixin instantiation.
+   */
+  void _checkForConstOrNewWithMixin(InstanceCreationExpression expression,
+      TypeName typeName, InterfaceType type) {
+    if (type.element.isMixin) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INSTANTIATE, typeName);
+    }
+  }
+
+  /**
    * Verify that the given 'const' instance creation [expression] is not being
    * invoked on a constructor that is not 'const'.
    *
@@ -3006,67 +2915,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkDeferredPrefixCollision(imports);
       }
     }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * given name of the static member.
-   *
-   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
-   */
-  void _checkForDuplicateDefinitionInheritance() {
-    if (_enclosingClass == null) {
-      return;
-    }
-
-    for (ExecutableElement member in _enclosingClass.methods) {
-      if (member.isStatic) {
-        _checkForDuplicateDefinitionOfMember(member);
-      }
-    }
-    for (ExecutableElement member in _enclosingClass.accessors) {
-      if (member.isStatic) {
-        _checkForDuplicateDefinitionOfMember(member);
-      }
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * given name of the [staticMember].
-   *
-   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
-   */
-  void _checkForDuplicateDefinitionOfMember(ExecutableElement staticMember) {
-    // prepare name
-    String name = staticMember.name;
-    if (name == null) {
-      return;
-    }
-    // try to find member
-    ExecutableElement inheritedMember =
-        _inheritanceManager.lookupInheritance(_enclosingClass, name);
-    if (inheritedMember == null) {
-      return;
-    }
-    // OK, also static
-    if (inheritedMember.isStatic) {
-      return;
-    }
-    // determine the display name, use the extended display name if the
-    // enclosing class of the inherited member is in a different source
-    String displayName;
-    Element enclosingElement = inheritedMember.enclosingElement;
-    if (enclosingElement.source == _enclosingClass.source) {
-      displayName = enclosingElement.displayName;
-    } else {
-      displayName = enclosingElement.getExtendedDisplayName(null);
-    }
-
-    _errorReporter.reportErrorForElement(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
-        staticMember,
-        [name, displayName]);
   }
 
   /**
@@ -3214,7 +3062,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [_checkForExtendsDisallowedClass],
    * [_checkForExtendsDisallowedClassInTypeAlias],
-   * [_checkForImplementsDisallowedClass],
+   * [_checkForImplementsClauseErrorCodes],
    * [_checkForAllMixinErrorCodes],
    * [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS],
    * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS], and
@@ -3498,28 +3346,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given implements [clause] does not implement classes that
-   * are deferred.
-   *
-   * See [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
-   */
-  void _checkForImplementsDeferredClass(ImplementsClause clause) {
-    if (clause == null) {
-      return;
-    }
-    for (TypeName type in clause.interfaces) {
-      _checkForExtendsOrImplementsDeferredClass(
-          type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS);
-    }
-  }
-
-  /**
    * Verify that the given implements [clause] does not implement classes such
    * as 'num' or 'String'.
    *
-   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS].
+   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS],
+   * [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
    */
-  bool _checkForImplementsDisallowedClass(ImplementsClause clause) {
+  bool _checkForImplementsClauseErrorCodes(ImplementsClause clause) {
     if (clause == null) {
       return false;
     }
@@ -3527,6 +3360,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (TypeName type in clause.interfaces) {
       if (_checkForExtendsOrImplementsDisallowedClass(
           type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS)) {
+        foundError = true;
+      } else if (_checkForExtendsOrImplementsDeferredClass(
+          type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS)) {
         foundError = true;
       }
     }
@@ -4420,6 +4256,66 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
+  /// Check that superclass constrains for the mixin type of [mixinName] at
+  /// the [index] position in the mixins list are satisfied by the
+  /// [_enclosingClass], or a previous mixin.
+  bool _checkForMixinSuperclassConstraints(TypeName mixinName, int index) {
+    InterfaceType mixinType = mixinName.type;
+    for (var constraint in mixinType.superclassConstraints) {
+      bool isSatisfied =
+          _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
+      if (!isSatisfied) {
+        for (int i = 0; i < index && !isSatisfied; i++) {
+          isSatisfied =
+              _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
+        }
+      }
+      if (!isSatisfied) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+            mixinName.name,
+            [constraint.displayName]);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Check that the [_enclosingClass] has concrete implementations of all
+  /// the super-invoked members of the [mixinElement].
+  bool _checkForMixinSuperInvokedMembers(
+      TypeName mixinName, ClassElementImpl mixinElement) {
+    InterfaceTypeImpl enclosingType = _enclosingClass.type;
+    for (var name in mixinElement.superInvokedNames) {
+      var superMember = enclosingType.lookUpInheritedMember(
+          name, _currentLibrary,
+          concrete: true, setter: name.endsWith('='));
+      if (superMember == null) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+            mixinName.name,
+            [name]);
+        return true;
+      }
+
+      var mixinMember =
+          _inheritanceManager.lookupInheritance(mixinElement, name);
+      var superMemberType = superMember.type;
+      var mixinMemberType = mixinMember?.type;
+      if (mixinMemberType != null &&
+          !_typeSystem.isSubtypeOf(superMemberType, mixinMemberType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+            mixinName.name,
+            [name, mixinMemberType.displayName, superMemberType.displayName]);
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Check for the declaration of a mixin from a library other than the current
    * library that defines a private member that conflicts with a private name
@@ -4846,9 +4742,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
-   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
-   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   * See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
+   * [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
    */
   bool _checkForOnClauseErrorCodes(OnClause onClause) {
     if (onClause == null) {
@@ -4899,17 +4794,52 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  /**
+   * Via informal specification: dart-lang/language/issues/4
+   *
+   * If e is an integer literal which is not the operand of a unary minus
+   * operator, then:
+   *   - If the context type is double, it is a compile-time error if the
+   *   numerical value of e is not precisely representable by a double.
+   *   Otherwise the static type of e is double and the result of evaluating e
+   *   is a double instance representing that value.
+   *   - Otherwise (the current behavior of e, with a static type of int).
+   *
+   * and
+   *
+   * If e is -n and n is an integer literal, then
+   *   - If the context type is double, it is a compile-time error if the
+   *   numerical value of n is not precisley representable by a double.
+   *   Otherwise the static type of e is double and the result of evaluating e
+   *   is the result of calling the unary minus operator on a double instance
+   *   representing the numerical value of n.
+   *   - Otherwise (the current behavior of -n)
+   */
   void _checkForOutOfRange(IntegerLiteral node) {
     String lexeme = node.literal.lexeme;
-    AstNode parent = node.parent;
-    bool isNegated =
-        parent is PrefixExpression && parent.operator.type == TokenType.MINUS;
-    if (!IntegerLiteralImpl.isValidLiteral(lexeme, isNegated)) {
-      if (isNegated) {
-        lexeme = '-$lexeme';
+    final bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
+    final List<Object> extraErrorArgs = [];
+
+    final bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
+    final bool valid = treatedAsDouble
+        ? IntegerLiteralImpl.isValidAsDouble(lexeme)
+        : IntegerLiteralImpl.isValidAsInteger(lexeme, isNegated);
+
+    if (!valid) {
+      extraErrorArgs.add(isNegated ? '-$lexeme' : lexeme);
+
+      if (treatedAsDouble) {
+        // Suggest the nearest valid double (as a BigInt for printing reasons).
+        extraErrorArgs
+            .add(BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme)));
       }
+
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, node, [lexeme]);
+          treatedAsDouble
+              ? CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE
+              : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+          node,
+          extraErrorArgs);
     }
   }
 
@@ -4988,18 +4918,83 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check that the class [element] is not a superinterface to itself.
+   * Check that [_enclosingClass] is not a superinterface to itself.
+   *  The [path] is a list containing the potentially cyclic implements path.
    *
    * See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS], and
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS].
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
    */
-  void _checkForRecursiveInterfaceInheritance(ClassElement element) {
-    if (element == null) {
-      return;
+  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
+      [List<ClassElement> path]) {
+    path ??= <ClassElement>[];
+
+    // Detect error condition.
+    int size = path.length;
+    // If this is not the base case (size > 0), and the enclosing class is the
+    // given class element then an error an error.
+    if (size > 0 && _enclosingClass == element) {
+      String enclosingClassName = _enclosingClass.displayName;
+      if (size > 1) {
+        // Construct a string showing the cyclic implements path:
+        // "A, B, C, D, A"
+        String separator = ", ";
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < size; i++) {
+          buffer.write(path[i].displayName);
+          buffer.write(separator);
+        }
+        buffer.write(element.displayName);
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            _enclosingClass,
+            [enclosingClassName, buffer.toString()]);
+        return true;
+      } else {
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
+        // RECURSIVE_INTERFACE_INHERITANCE_ON or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
+        _errorReporter.reportErrorForElement(_getBaseCaseErrorCode(element),
+            _enclosingClass, [enclosingClassName]);
+        return true;
+      }
     }
 
-    _safeCheckForRecursiveInterfaceInheritance(element, <ClassElement>[]);
+    if (path.indexOf(element) > 0) {
+      return false;
+    }
+    path.add(element);
+
+    // n-case
+    InterfaceType supertype = element.supertype;
+    if (supertype != null &&
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
+      return true;
+    }
+
+    for (InterfaceType type in element.mixins) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.interfaces) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    path.removeAt(path.length - 1);
+    return false;
   }
 
   /**
@@ -5126,6 +5121,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
           node,
           [node.name]);
+    }
+  }
+
+  void _checkForRepeatedType(List<TypeName> typeNames, ErrorCode errorCode) {
+    if (typeNames == null) {
+      return;
+    }
+
+    int count = typeNames.length;
+    List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
+    for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
+      detectedRepeatOnIndex[i] = false;
+    }
+    for (int i = 0; i < count; i++) {
+      if (!detectedRepeatOnIndex[i]) {
+        Element element = typeNames[i].name.staticElement;
+        for (int j = i + 1; j < count; j++) {
+          TypeName typeName = typeNames[j];
+          if (typeName.name.staticElement == element) {
+            detectedRepeatOnIndex[j] = true;
+            _errorReporter
+                .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
+          }
+        }
+      }
     }
   }
 
@@ -5852,25 +5872,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkMixinInheritance(MixinDeclaration node, OnClause onClause,
       ImplementsClause implementsClause) {
-    // TODO(scheglov) Verify for all mixin errors.
     // Only check for all of the inheritance logic around clauses if there
     // isn't an error code such as "Cannot implement double" already.
     if (!_checkForOnClauseErrorCodes(onClause) &&
-        !_checkForImplementsDisallowedClass(implementsClause)) {
+        !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-//      _checkForExtendsDeferredClass(superclass);
-      _checkForImplementsDeferredClass(implementsClause);
-//      _checkForNonAbstractClassInheritsAbstractMember(node.name);
-//      _checkForInconsistentMethodInheritance();
-//      _checkForRecursiveInterfaceInheritance(_enclosingClass);
-//      _checkForConflictingGetterAndMethod();
-//      _checkImplementsSuperClass(implementsClause);
-//      _checkForMixinHasNoConstructors(node);
-//      _checkMixinInference(node, onClause);
-//      _checkForMixinWithConflictingPrivateMember(onClause, superclass);
-//      if (!disableConflictingGenericsCheck) {
-//        _checkForConflictingGenerics(node);
-//      }
+      _checkForInconsistentMethodInheritance();
+      _checkForRecursiveInterfaceInheritance(_enclosingClass);
+      _checkForConflictingClassMembers();
+      _checkForRepeatedType(
+        onClause?.superclassConstraints,
+        CompileTimeErrorCode.ON_REPEATED,
+      );
+      _checkForRepeatedType(
+        implementsClause?.interfaces,
+        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+      );
+      if (!disableConflictingGenericsCheck) {
+        _checkForConflictingGenerics(node);
+      }
     }
   }
 
@@ -6023,20 +6043,23 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * references itself directly.
    */
   ErrorCode _getBaseCaseErrorCode(ClassElement element) {
-    InterfaceType supertype = element.supertype;
-    if (supertype != null && _enclosingClass == supertype.element) {
-      return CompileTimeErrorCode
-          .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS;
+    if (element.supertype?.element == _enclosingClass) {
+      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
-    List<InterfaceType> mixins = element.mixins;
-    for (int i = 0; i < mixins.length; i++) {
-      if (_enclosingClass == mixins[i].element) {
-        return CompileTimeErrorCode
-            .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH;
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (type.element == _enclosingClass) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
       }
     }
-    return CompileTimeErrorCode
-        .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+
+    for (InterfaceType type in element.mixins) {
+      if (type.element == _enclosingClass) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
+      }
+    }
+
+    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS;
   }
 
   /**
@@ -6288,74 +6311,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (parent is SuperConstructorInvocation) {
       return identical(parent.constructorName, identifier);
     }
-    return false;
-  }
-
-  /**
-   * Check that the given class [element] is not a superinterface to itself. The
-   * [path] is a list containing the potentially cyclic implements path.
-   *
-   * See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS],
-   * and [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH].
-   */
-  bool _safeCheckForRecursiveInterfaceInheritance(
-      ClassElement element, List<ClassElement> path) {
-    // Detect error condition.
-    int size = path.length;
-    // If this is not the base case (size > 0), and the enclosing class is the
-    // given class element then an error an error.
-    if (size > 0 && _enclosingClass == element) {
-      String enclosingClassName = _enclosingClass.displayName;
-      if (size > 1) {
-        // Construct a string showing the cyclic implements path:
-        // "A, B, C, D, A"
-        String separator = ", ";
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < size; i++) {
-          buffer.write(path[i].displayName);
-          buffer.write(separator);
-        }
-        buffer.write(element.displayName);
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-            _enclosingClass,
-            [enclosingClassName, buffer.toString()]);
-        return true;
-      } else {
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        _errorReporter.reportErrorForElement(_getBaseCaseErrorCode(element),
-            _enclosingClass, [enclosingClassName]);
-        return true;
-      }
-    }
-    if (path.indexOf(element) > 0) {
-      return false;
-    }
-    path.add(element);
-    // n-case
-    InterfaceType supertype = element.supertype;
-    if (supertype != null &&
-        _safeCheckForRecursiveInterfaceInheritance(supertype.element, path)) {
-      return true;
-    }
-    List<InterfaceType> interfaceTypes = element.interfaces;
-    for (InterfaceType interfaceType in interfaceTypes) {
-      if (_safeCheckForRecursiveInterfaceInheritance(
-          interfaceType.element, path)) {
-        return true;
-      }
-    }
-    List<InterfaceType> mixinTypes = element.mixins;
-    for (InterfaceType mixinType in mixinTypes) {
-      if (_safeCheckForRecursiveInterfaceInheritance(mixinType.element, path)) {
-        return true;
-      }
-    }
-    path.removeAt(path.length - 1);
     return false;
   }
 

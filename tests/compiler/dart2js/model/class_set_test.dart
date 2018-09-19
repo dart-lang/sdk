@@ -13,7 +13,7 @@ import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/world.dart';
 import 'package:front_end/src/fasta/util/link.dart' show Link;
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
@@ -36,8 +36,8 @@ testIterators() async {
       ///    D   E F G
       ///
       class A {}
-      class B extends A {}
       class C extends A {}
+      class B extends A {}
       class D extends B {}
       class E extends C {}
       class F extends C {}
@@ -361,8 +361,8 @@ testForEach() async {
       ///         H I
       ///
       class A implements X {}
-      class B extends A {}
       class C extends A {}
+      class B extends A {}
       class D extends B {}
       class E extends C {}
       class F extends C implements B {}

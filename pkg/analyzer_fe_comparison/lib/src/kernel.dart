@@ -13,22 +13,17 @@ import 'package:kernel/target/targets.dart';
 
 /// Compiles the given [inputs] to kernel using the front_end, and returns a
 /// [ComparisonNode] representing them.
-Future<ComparisonNode> driveKernel(
+Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
-  var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
-  var target = NoneTarget(targetFlags);
-  var fileSystem = StandardFileSystem.instance;
-
-  var compilerOptions = CompilerOptions()
-    ..fileSystem = fileSystem
-    ..packagesFileUri = packagesFileUri
-    ..sdkSummary = platformUri
-    ..strongMode = true
-    ..target = target
-    ..throwOnErrorsForDebugging = true
-    ..embedSourceText = false;
-
-  var component = await kernelForComponent(inputs, compilerOptions);
+  bool errorOccurred = false;
+  var component = await kernelForComponent(
+      inputs,
+      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
+        errorOccurred = true;
+      }));
+  if (errorOccurred) {
+    return ComparisonNode('Error occurred');
+  }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
   for (var library in component.libraries) {
@@ -37,6 +32,48 @@ Future<ComparisonNode> driveKernel(
     }
   }
   return ComparisonNode.sorted('Component', libraryNodes);
+}
+
+/// Compiles the given [input] to kernel using the front_end, and returns a
+/// [ComparisonNode] representing it.
+///
+/// Only libraries whose URI passes the [uriFilter] are included in the results.
+Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
+    Uri platformUri, bool uriFilter(Uri uri)) async {
+  var errorOccurred = false;
+  var component = await kernelForProgram(
+      input,
+      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
+        errorOccurred = true;
+      }));
+  if (errorOccurred) {
+    return ComparisonNode('Error occurred');
+  }
+  var libraryNodes = <ComparisonNode>[];
+  var visitor = _KernelVisitor(libraryNodes);
+  for (var library in component.libraries) {
+    if (uriFilter(library.importUri)) {
+      library.accept(visitor);
+    }
+  }
+  return ComparisonNode.sorted('Component', libraryNodes);
+}
+
+CompilerOptions _makeCompilerOptions(
+    Uri packagesFileUri, Uri platformUri, ErrorHandler onError) {
+  var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
+  var target = NoneTarget(targetFlags);
+  var fileSystem = StandardFileSystem.instance;
+
+  return CompilerOptions()
+    ..fileSystem = fileSystem
+    ..packagesFileUri = packagesFileUri
+    ..sdkSummary = platformUri
+    ..strongMode = true
+    ..target = target
+    ..throwOnErrorsForDebugging = false
+    ..embedSourceText = false
+    ..onError = onError;
 }
 
 /// Visitor for serializing a kernel representation of a program into
@@ -56,7 +93,9 @@ class _KernelVisitor extends TreeVisitor<void> {
   @override
   void visitClass(Class class_) {
     if (class_.isAnonymousMixin) return null;
-    var kind = class_.isEnum ? 'Enum' : 'Class';
+    var kind = class_.isEnum
+        ? 'Enum'
+        : class_.isMixinApplication ? 'MixinApplication' : 'Class';
     var children = <ComparisonNode>[];
     var visitor = _KernelVisitor(children);
     if (class_.isEnum) {
@@ -71,6 +110,9 @@ class _KernelVisitor extends TreeVisitor<void> {
       if (class_.supertype != null) {
         var declaredSupertype = class_.supertype.asInterfaceType;
         var mixedInTypes = <DartType>[];
+        if (class_.isMixinApplication) {
+          mixedInTypes.add(class_.mixedInType.asInterfaceType);
+        }
         while (declaredSupertype.classNode.isAnonymousMixin) {
           // Since we're walking from the class to its declared supertype, we
           // encounter the mixins in the reverse order that they were declared,
@@ -114,6 +156,7 @@ class _KernelVisitor extends TreeVisitor<void> {
   @override
   void visitField(Field field) {
     if (field.name.name == '_redirecting#') return null;
+    if (field.name.name == '_exports#') return null;
     var children = <ComparisonNode>[];
     children.add(_TypeVisitor.translate('Type: ', field.type));
     // TODO(paulberry): handle more fields from Field
@@ -160,7 +203,14 @@ class _KernelVisitor extends TreeVisitor<void> {
 
   @override
   void visitProcedure(Procedure procedure) {
-    if (procedure.isForwardingStub) return null;
+    if (procedure.isSyntheticForwarder) {
+      return null;
+    }
+    if (procedure.name.name.startsWith('__loadLibrary_')) {
+      // Sometimes the front end generates procedures with this name that don't
+      // correspond to anything in the source file.  Ignore them.
+      return null;
+    }
     // TODO(paulberry): add an annotation to the ComparisonNode when the
     // procedure is a factory.
     var kind = procedure.isFactory
@@ -241,8 +291,8 @@ class _TypeVisitor extends DartTypeVisitor<ComparisonNode> {
           .add(translate('$kind parameter $i: ', node.positionalParameters[i]));
     }
     for (var namedType in node.namedParameters) {
-      children
-          .add(translate('Named parameter ${namedType.name}', namedType.type));
+      children.add(
+          translate('Named parameter ${namedType.name}: ', namedType.type));
     }
     return ComparisonNode.sorted('${_prefix}FunctionType', children);
   }

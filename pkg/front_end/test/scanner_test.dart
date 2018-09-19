@@ -302,11 +302,11 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.HASH, "#");
   }
 
-  void test_hexidecimal() {
+  void test_hexadecimal() {
     _assertToken(TokenType.HEXADECIMAL, "0x1A2B3C");
   }
 
-  void test_hexidecimal_missingDigit() {
+  void test_hexadecimal_missingDigit() {
     _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 1, "0x");
   }
 

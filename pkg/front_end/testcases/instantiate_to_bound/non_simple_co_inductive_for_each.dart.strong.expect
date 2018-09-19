@@ -14,7 +14,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Hest<TypeX extends self::Hest<dynamic, dynamic> = dynamic, TypeY extends self::Hest<dynamic, dynamic> = dynamic> extends core::Object {
+class Hest<TypeX extends core::Object = dynamic, TypeY extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

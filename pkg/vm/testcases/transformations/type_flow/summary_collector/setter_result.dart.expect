@@ -7,7 +7,7 @@ RESULT: _T {}?
 t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::A::foo ------------
-
+%this = _Parameter #0 [_T (#lib::A)+]
 RESULT: _T {}?
 ------------ #lib::B:: ------------
 %this = _Parameter #0 [_T (#lib::B)+]

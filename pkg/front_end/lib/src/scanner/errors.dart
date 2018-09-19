@@ -30,7 +30,7 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected.");
 
   static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
-      'MISSING_HEX_DIGIT', "Hexidecimal digit expected.");
+      'MISSING_HEX_DIGIT', "Hexadecimal digit expected.");
 
   static const ScannerErrorCode MISSING_IDENTIFIER =
       const ScannerErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");

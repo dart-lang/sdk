@@ -11,9 +11,11 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/selector.dart';
@@ -28,7 +30,6 @@ main(List<String> args) {
 }
 
 runTests(List<String> args, [int shardIndex]) {
-  cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
@@ -233,11 +234,6 @@ class RtiNeedDataComputer extends DataComputer {
   const RtiNeedDataComputer();
 
   @override
-  void setup() {
-    cacheRtiDataForTesting = true;
-  }
-
-  @override
   bool get computesClassData => true;
 
   /// Compute RTI need data for [member] from the new frontend.
@@ -247,8 +243,8 @@ class RtiNeedDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
             member, compiler, backendStrategy.closureDataLookup)
@@ -262,8 +258,8 @@ class RtiNeedDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsToElementMap elementMap = backendStrategy.elementMap;
     new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
@@ -306,12 +302,11 @@ abstract class IrMixin implements ComputeValueMixin {
 
   @override
   Local getFrontendClosure(MemberEntity member) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
     ir.Node node = backendStrategy.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMapForImpact frontendElementMap =
-          frontendStrategy.elementMap;
+      KernelToElementMap frontendElementMap = frontendStrategy.elementMap;
       return frontendElementMap.getLocalFunction(node);
     }
     return null;
@@ -321,7 +316,7 @@ abstract class IrMixin implements ComputeValueMixin {
 class RtiClassNeedIrComputer extends DataRegistry
     with ComputeValueMixin, IrMixin {
   final Compiler compiler;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final Map<Id, ActualData> actualMap;
 
   RtiClassNeedIrComputer(this.compiler, this._elementMap, this.actualMap);
@@ -339,7 +334,7 @@ class RtiClassNeedIrComputer extends DataRegistry
 /// AST visitor for computing inference data for a member.
 class RtiMemberNeedIrComputer extends IrDataExtractor
     with ComputeValueMixin, IrMixin {
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final ClosureDataLookup _closureDataLookup;
   final Compiler compiler;
 

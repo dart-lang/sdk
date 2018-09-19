@@ -22,7 +22,6 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Instantiation,
         InterfaceType,
-        InvalidType,
         InvocationExpression,
         Let,
         ListLiteral,
@@ -30,7 +29,6 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
-        Node,
         NullLiteral,
         Procedure,
         ProcedureKind,
@@ -46,7 +44,6 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         TypeParameterType,
-        Typedef,
         VariableDeclaration,
         VariableGet,
         VoidType;
@@ -64,10 +61,6 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-
-import '../../scanner/token.dart' show Token;
-
-import '../builder/builder.dart' show PrefixBuilder;
 
 import '../fasta_codes.dart'
     show
@@ -108,9 +101,6 @@ import '../kernel/kernel_shadow_ast.dart'
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
 
-import '../kernel/kernel_type_variable_builder.dart'
-    show KernelTypeVariableBuilder;
-
 import '../names.dart' show callName;
 
 import '../problems.dart' show unexpected, unhandled;
@@ -127,9 +117,6 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
-
-import 'type_inference_listener.dart'
-    show TypeInferenceListener, TypeInferenceTokensSaver;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -252,46 +239,64 @@ class ClosureContext {
 
   bool checkValidReturn(TypeInferrerImpl inferrer, DartType returnType,
       ReturnStatement statement, DartType expressionType) {
+    // The rules for valid returns for functions with return type T and possibly
+    // a return expression with static type S.
+    var flattenedReturnType = isAsync
+        ? inferrer.typeSchemaEnvironment.unfutureType(returnType)
+        : returnType;
     if (statement.expression == null) {
-      if (isAsync) {
-        returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
+      // Sync: return; is a valid return if T is void, dynamic, or Null.
+      // Async: return; is a valid return if flatten(T) is void, dynamic, or
+      // Null.
+      if (flattenedReturnType is VoidType ||
+          flattenedReturnType is DynamicType ||
+          flattenedReturnType == inferrer.coreTypes.nullClass.rawType) {
+        return true;
       }
-      if (returnType is! VoidType &&
-          returnType is! DynamicType &&
-          returnType != inferrer.coreTypes.nullClass.rawType) {
-        statement.expression = inferrer.helper.wrapInProblem(
-            new NullLiteral()..fileOffset = statement.fileOffset,
-            messageReturnWithoutExpression,
-            noLength)
-          ..parent = statement;
-        return false;
-      }
-    } else {
-      if (isAsync) {
-        returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
-        expressionType =
-            inferrer.typeSchemaEnvironment.unfutureType(expressionType);
-      }
-      if (!isArrow && returnType is VoidType) {
-        if (expressionType is! VoidType &&
-            expressionType is! DynamicType &&
-            expressionType != inferrer.coreTypes.nullClass.rawType) {
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression, messageReturnFromVoidFunction, noLength)
-            ..parent = statement;
-          return false;
-        }
-      } else if (expressionType is VoidType) {
-        if (returnType is! VoidType &&
-            returnType is! DynamicType &&
-            returnType != inferrer.coreTypes.nullClass.rawType) {
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression, messageVoidExpression, noLength)
-            ..parent = statement;
-          return false;
-        }
-      }
+      statement.expression = inferrer.helper.wrapInProblem(
+          new NullLiteral()..fileOffset = statement.fileOffset,
+          messageReturnWithoutExpression,
+          noLength)
+        ..parent = statement;
+      return false;
     }
+
+    // Arrow functions are valid if:
+    // Sync: T is void or return exp; is a valid for a block-bodied function.
+    // Async: flatten(T) is void or return exp; is valid for a block-bodied
+    // function.
+    if (isArrow && flattenedReturnType is VoidType) return true;
+
+    // Sync: invalid if T is void and S is not void, dynamic, or Null
+    // Async: invalid if T is void and flatten(S) is not void, dynamic, or Null.
+    var flattenedExpressionType = isAsync
+        ? inferrer.typeSchemaEnvironment.unfutureType(expressionType)
+        : expressionType;
+    if (returnType is VoidType &&
+        flattenedExpressionType is! VoidType &&
+        flattenedExpressionType is! DynamicType &&
+        flattenedExpressionType != inferrer.coreTypes.nullClass.rawType) {
+      statement.expression = inferrer.helper.wrapInProblem(
+          statement.expression, messageReturnFromVoidFunction, noLength)
+        ..parent = statement;
+      return false;
+    }
+
+    // Sync: invalid if S is void and T is not void, dynamic, or Null.
+    // Async: invalid if flatten(S) is void and flatten(T) is not void, dynamic,
+    // or Null.
+    if (flattenedExpressionType is VoidType &&
+        flattenedReturnType is! VoidType &&
+        flattenedReturnType is! DynamicType &&
+        flattenedReturnType != inferrer.coreTypes.nullClass.rawType) {
+      statement.expression = inferrer.helper
+          .wrapInProblem(statement.expression, messageVoidExpression, noLength)
+            ..parent = statement;
+      return false;
+    }
+
+    // The caller will check that the return expression is assignable to the
+    // return type.
     return true;
   }
 
@@ -444,13 +449,6 @@ abstract class TypeInferrer {
   /// performed--this is used for testing.
   Uri get uri;
 
-  Object binderForTypeVariable(
-      KernelTypeVariableBuilder builder, int fileOffset, String name);
-
-  void functionType(int offset, DartType type);
-
-  void functionTypedFormalParameter(int offset, DartType type);
-
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
@@ -483,22 +481,6 @@ abstract class TypeInferrer {
       InferenceHelper helper,
       kernel.Expression initializer,
       DartType declaredType);
-
-  void storePrefix(Token token, PrefixBuilder prefix);
-
-  void storeUnresolved(Token token);
-
-  void storeTypeReference(int offset, bool forSyntheticToken,
-      TreeNode reference, Object binder, DartType type);
-
-  void storeTypeUse(int offset, Node node);
-
-  void typeVariableDeclaration(
-      int offset, Object binder, TypeParameter typeParameter);
-
-  void voidType(int offset, Token token, DartType type);
-
-  TypeInferenceTokensSaver get tokensSaver;
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -516,14 +498,6 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   Uri get uri => null;
-
-  @override
-  void binderForTypeVariable(
-      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
-
-  void functionType(int offset, DartType type) {}
-
-  void functionTypedFormalParameter(int offset, DartType type) {}
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
@@ -555,28 +529,6 @@ class TypeInferrerDisabled extends TypeInferrer {
       InferenceHelper helper,
       kernel.Expression initializer,
       DartType declaredType) {}
-
-  @override
-  void storePrefix(Token token, PrefixBuilder prefix) {}
-
-  @override
-  void storeUnresolved(Token token) {}
-
-  @override
-  void storeTypeReference(int offset, bool forSyntheticToken,
-      TreeNode reference, Object binder, DartType type) {}
-
-  @override
-  void storeTypeUse(int offset, Node node) {}
-
-  @override
-  void typeVariableDeclaration(
-      int offset, Object binder, TypeParameter typeParameter) {}
-
-  @override
-  void voidType(int offset, Token token, DartType type) {}
-
-  TypeInferenceTokensSaver get tokensSaver => null;
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -610,8 +562,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
-  final TypeInferenceListener<int, Node, int> listener;
-
   final InterfaceType thisType;
 
   final SourceLibraryBuilder library;
@@ -630,8 +580,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
-      this.thisType, this.library)
+  TypeInferrerImpl(
+      this.engine, this.uri, bool topLevel, this.thisType, this.library)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -642,20 +592,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
-
-  @override
-  Object binderForTypeVariable(
-      KernelTypeVariableBuilder builder, int fileOffset, String name) {
-    return listener.binderForTypeVariable(builder, fileOffset, name);
-  }
-
-  void functionType(int offset, DartType type) {
-    listener.functionType(offset, type);
-  }
-
-  void functionTypedFormalParameter(int offset, DartType type) {
-    listener.functionTypedFormalParameter(offset, type);
-  }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
     return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
@@ -1437,7 +1373,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
-          parameter.initializer = new NullJudgment(null)..parent = parameter;
+          parameter.initializer = new NullJudgment()..parent = parameter;
         }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, false);
@@ -1446,7 +1382,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
-          parameter.initializer = new NullJudgment(null)..parent = parameter;
+          parameter.initializer = new NullJudgment()..parent = parameter;
         }
         inferExpression(parameter.initializer, parameter.type, false);
       }
@@ -1650,19 +1586,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
-    int resultOffset = arguments.fileOffset != -1
-        ? arguments.fileOffset
-        : expression.fileOffset;
-    if (identical(interfaceMember, 'call')) {
-      listener.methodInvocationCall(
-          expression,
-          resultOffset,
-          arguments.types,
-          isImplicitCall,
-          lastCalleeType,
-          lastInferredSubstitution,
-          inferredType);
-    } else {
+    if (!identical(interfaceMember, 'call')) {
       if (strongMode &&
           isImplicitCall &&
           interfaceMember != null &&
@@ -1677,15 +1601,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             noLength);
         parent?.replaceChild(expression, errorNode);
       }
-      listener.methodInvocation(
-          expression,
-          resultOffset,
-          arguments.types,
-          isImplicitCall,
-          getRealTarget(interfaceMember),
-          lastCalleeType,
-          lastInferredSubstitution,
-          inferredType);
     }
     return new ExpressionInferenceResult(null, inferredType);
   }
@@ -1749,12 +1664,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember.kind == ProcedureKind.Method)) {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
-    }
-    if (identical(interfaceMember, 'call')) {
-      listener.propertyGetCall(expression, expression.fileOffset, inferredType);
-    } else {
-      listener.propertyGet(expression, expression.fileOffset, forSyntheticToken,
-          interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }
@@ -1891,53 +1800,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
-  @override
-  void storePrefix(Token token, PrefixBuilder prefix) {
-    listener.storePrefixInfo(token.offset, prefix?.importIndex);
-  }
-
-  @override
-  void storeUnresolved(Token token) {
-    listener.storeUnresolved(token.offset);
-  }
-
-  @override
-  void storeTypeReference(int offset, bool forSyntheticToken,
-      TreeNode reference, Object binder, DartType type) {
-    listener.typeReference(
-        offset, forSyntheticToken, null, null, null, reference, binder, type);
-  }
-
-  @override
-  void storeTypeUse(int offset, Node node) {
-    if (node is Class) {
-      listener.storeClassReference(offset, node, node.rawType);
-    } else if (node is TypeParameter) {
-      // TODO(paulberry): handle this case.
-    } else if (node is FunctionType) {
-      // TODO(paulberry): handle this case.
-    } else if (node is Typedef) {
-      // TODO(paulberry): handle this case.
-    } else if (node is InvalidType) {
-      // TODO(paulberry): handle this case.
-      listener.storeClassReference(offset, null, const DynamicType());
-    } else {
-      // TODO(paulberry): handle this case.
-      return unhandled("${node.runtimeType}", "storeTypeUse", offset, uri);
-    }
-  }
-
-  @override
-  void typeVariableDeclaration(
-      int offset, Object binder, TypeParameter typeParameter) {
-    return listener.typeVariableDeclaration(offset, binder, typeParameter);
-  }
-
-  @override
-  void voidType(int offset, Token token, DartType type) {
-    listener.voidType(offset, token, type);
-  }
-
   DartType wrapFutureOrType(DartType type) {
     if (type is InterfaceType &&
         identical(type.classNode, coreTypes.futureOrClass)) {
@@ -2043,9 +1905,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     return false;
   }
-
-  TypeInferenceTokensSaver get tokensSaver =>
-      listener?.typeInferenceTokensSaver;
 }
 
 class LegacyModeMixinInferrer implements MixinInferrer {

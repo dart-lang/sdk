@@ -76,9 +76,9 @@ class Class {
   instanceMethod() {}
 
   static var staticField;
-  get staticGetter => null;
-  set staticSetter(_) {}
-  staticMethod() {}
+  static get staticGetter => null;
+  static set staticSetter(_) {}
+  static staticMethod() {}
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 14: compile-time error
   var instanceJsInteropField; //# 14: continued
@@ -96,13 +96,13 @@ class Class {
   static var staticJsInteropField; //# 18: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 19: compile-time error
-  get staticJsInteropGetter => null; //# 19: continued
+  static get staticJsInteropGetter => null; //# 19: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 20: compile-time error
-  set staticJsInteropSetter(_) {} //# 20: continued
+  static set staticJsInteropSetter(_) {} //# 20: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 21: compile-time error
-  staticJsInteropMethod() {} //# 21: continued
+  static staticJsInteropMethod() {} //# 21: continued
 
   // NON_NATIVE_EXTERNAL               //# 22: compile-time error
   external get externalInstanceGetter; //# 22: continued
@@ -114,13 +114,13 @@ class Class {
   external externalInstanceMethod(); //# 24: continued
 
   // NON_NATIVE_EXTERNAL             //# 25: compile-time error
-  external get externalStaticGetter; //# 25: continued
+  external static get externalStaticGetter; //# 25: continued
 
   // NON_NATIVE_EXTERNAL                //# 26: compile-time error
-  external set externalStaticSetter(_); //# 26: continued
+  external static set externalStaticSetter(_); //# 26: continued
 
   // NON_NATIVE_EXTERNAL           //# 27: compile-time error
-  external externalStaticMethod(); //# 27: continued
+  external static externalStaticMethod(); //# 27: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 28: compile-time error
   external get externalInstanceJsInteropGetter; //# 28: continued
@@ -132,13 +132,13 @@ class Class {
   external externalInstanceJsInteropMethod(); //# 30: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 31: compile-time error
-  external get externalStaticJsInteropGetter; //# 31: continued
+  external static get externalStaticJsInteropGetter; //# 31: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 32: compile-time error
-  external set externalStaticJsInteropSetter(_); //# 32: continued
+  external static set externalStaticJsInteropSetter(_); //# 32: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 33: compile-time error
-  external externalStaticJsInteropMethod(); //# 33: continued
+  external static externalStaticJsInteropMethod(); //# 33: continued
 }
 
 @JS('d')
@@ -180,13 +180,13 @@ class JsInteropClass {
   static var staticField; //# 42: continued
 
   // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 43: compile-time error
-  get staticGetter => null; //# 43: continued
+  static get staticGetter => null; //# 43: continued
 
   // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 44: compile-time error
-  set staticSetter(_) {} //# 44: continued
+  static set staticSetter(_) {} //# 44: continued
 
   // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 45: compile-time error
-  staticMethod() {} //# 45: continued
+  static staticMethod() {} //# 45: continued
 
   @JS('a') // IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED //# 46: compile-time error
   var instanceJsInteropField; //# 46: continued
@@ -204,21 +204,21 @@ class JsInteropClass {
   static var staticJsInteropField; //# 51: continued
 
   @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 52: compile-time error
-  get staticJsInteropGetter => null; //# 52: continued
+  static get staticJsInteropGetter => null; //# 52: continued
 
   @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 53: compile-time error
-  set staticJsInteropSetter(_) {} //# 53: continued
+  static set staticJsInteropSetter(_) {} //# 53: continued
 
   @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 54: compile-time error
-  staticJsInteropMethod() {} //# 54: continued
+  static staticJsInteropMethod() {} //# 54: continued
 
   external get externalInstanceGetter;
   external set externalInstanceSetter(_);
   external externalInstanceMethod();
 
-  external get externalStaticGetter;
-  external set externalStaticSetter(_);
-  external externalStaticMethod();
+  external static get externalStaticGetter;
+  external static set externalStaticSetter(_);
+  external static externalStaticMethod();
 
   @JS('a')
   external get externalInstanceJsInteropGetter;
@@ -230,13 +230,41 @@ class JsInteropClass {
   external externalInstanceJsInteropMethod();
 
   @JS('a')
-  external get externalStaticJsInteropGetter;
+  external static get externalStaticJsInteropGetter;
 
   @JS('a')
-  external set externalStaticJsInteropSetter(_);
+  external static set externalStaticJsInteropSetter(_);
 
   @JS('a')
-  external externalStaticJsInteropMethod();
+  external static externalStaticJsInteropMethod();
 }
 
-main() {}
+main() {
+  if (false) {
+    topLevelSetter = topLevelField = topLevelGetter;
+    topLevelFunction();
+    externalTopLevelSetter = externalTopLevelGetter;
+    externalTopLevelFunction();
+    externalTopLevelJsInteropSetter = externalTopLevelJsInteropGetter;
+    externalTopLevelJsInteropFunction();
+    Class c1 = new Class.generative();
+    new Class.fact();
+    c1.instanceSetter = c1.instanceField = c1.instanceGetter;
+    c1.instanceMethod();
+    Class.staticSetter = Class.staticField = Class.staticGetter;
+    Class.staticMethod();
+    JsInteropClass c2 = new JsInteropClass.externalGenerative();
+    new JsInteropClass.externalFact();
+    new JsInteropClass.externalJsInteropGenerative();
+    new JsInteropClass.externalJsInteropFact();
+    c2.externalInstanceSetter = c2.externalInstanceGetter;
+    c2.externalInstanceMethod();
+    c2.externalInstanceJsInteropSetter = c2.externalInstanceJsInteropGetter;
+    c2.externalInstanceJsInteropMethod();
+    JsInteropClass.externalStaticSetter = JsInteropClass.externalStaticGetter;
+    JsInteropClass.externalStaticMethod();
+    JsInteropClass.externalStaticJsInteropSetter =
+        JsInteropClass.externalStaticJsInteropGetter;
+    JsInteropClass.externalStaticJsInteropMethod();
+  }
+}

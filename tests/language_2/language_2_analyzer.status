@@ -7,7 +7,6 @@
 [ $compiler == dart2analyzer ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
 accessor_conflict_import2_test: CompileTimeError # Issue 25626
@@ -15,40 +14,39 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-built_in_identifier_prefix_test: CompileTimeError
-cascaded_forwarding_stubs_test: CompileTimeError
-config_import_corelib_test: CompileTimeError
-config_import_corelib_test: StaticWarning, OK
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
-const_cast2_test/01: CompileTimeError
-const_cast2_test/none: CompileTimeError
-constructor_reference_test/27: MissingCompileTimeError # Issue 34270
-default_implementation2_test: CompileTimeError # Issue 30855
-dynamic_prefix_core_test/01: MissingCompileTimeError
-emit_const_fields_test: CompileTimeError
-enum_syntax_test/05: Fail # Issue 21649
-enum_syntax_test/06: Fail # Issue 21649
-forwarding_stub_tearoff_test: CompileTimeError
+cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
+config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)
+const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
+const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
+const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
+constructor_reference_test/27: MissingCompileTimeError # Issue 34403
+covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
+default_implementation2_test: CompileTimeError # Issue #34338, however, needs triage (#34337) and blocked (#34336)
+dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
+emit_const_fields_test: CompileTimeError # failing-by-design: #34340
+enum_syntax_test/05: Fail # Issue 34341
+enum_syntax_test/06: Fail # Issue 34341
+forwarding_stub_tearoff_test: CompileTimeError # Issue 34329
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
-generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: CompileTimeError
+generic_no_such_method_dispatcher_simple_test: Skip # failing-by-design: This test is just for kernel
+generic_no_such_method_dispatcher_test: CompileTimeError # failing-by-design: This test needs to be updated for Dart 2, see Issue #34366
+generic_tearoff_test: CompileTimeError # failing-by-design: Analysis of generic function typed parameters is not yet supported
 getter_setter_in_lib_test: Fail # Issue 23286
-getters_setters2_test/01: CompileTimeError
-getters_setters_type_test/01: CompileTimeError
-hidden_import_test/01: MissingStaticWarning # Issue #34302
-hidden_import_test/02: MissingStaticWarning # Issue #34302
-implements_futureor_test/01: MissingCompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-index_assign_operator_infer_return_type_test: CompileTimeError
-initializing_formal_final_test: MissingCompileTimeError
-interceptor6_test: CompileTimeError
-interface_test/00: MissingCompileTimeError
+getters_setters2_test/01: CompileTimeError # failing-by-design: Test needs refactoring, see Issue #34365
+getters_setters_type_test/01: CompileTimeError # failing-by-design: Test needs refactoring, see Issue #34365
+hidden_import_test/01: MissingStaticWarning # failing-by-design: invalid test, see Issue #34302
+hidden_import_test/02: MissingStaticWarning # failing-by-design: invalid test, see Issue #34302
+implements_futureor_test/01: MissingCompileTimeError # Issue #33745
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError # Issue #34367
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue #34367
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError # Issue #34367
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue #34367
+index_assign_operator_infer_return_type_test: CompileTimeError # failing-by-design: outdated against the spec, see Issue #34368
+initializing_formal_final_test: MissingCompileTimeError # Issue #34369
+interface_test/00: MissingCompileTimeError # Issue #34370
 invalid_returns/async_invalid_return_00_test/none: CompileTimeError # issue #34319
 invalid_returns/async_invalid_return_01_test/none: CompileTimeError # issue #34319
 invalid_returns/async_invalid_return_02_test/none: CompileTimeError # issue #34319
@@ -61,28 +59,28 @@ invalid_returns/sync_invalid_return_03_test/none: CompileTimeError # issue #3431
 invalid_returns/sync_invalid_return_04_test/none: CompileTimeError # issue #34319
 invalid_returns/sync_invalid_return_05_test/none: CompileTimeError # issue #34319
 issue13673_test: StaticWarning # Issue 31925
-issue31596_implement_covariant_test: CompileTimeError
-issue31596_override_test/01: CompileTimeError
-issue31596_override_test/02: CompileTimeError
-issue31596_override_test/03: CompileTimeError
-issue31596_override_test/04: CompileTimeError
-issue31596_override_test/none: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
-issue31596_super_test/05: CompileTimeError
-issue31596_super_test/none: CompileTimeError
-issue31596_tearoff_test: CompileTimeError
-issue31596_test: CompileTimeError
-malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
-method_override7_test/03: Fail # Issue 11497
-mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
+issue31596_implement_covariant_test: CompileTimeError # Issue #31596
+issue31596_override_test/01: CompileTimeError # Issue #31596
+issue31596_override_test/02: CompileTimeError # Issue #31596
+issue31596_override_test/03: CompileTimeError # Issue #31596
+issue31596_override_test/04: CompileTimeError # Issue #31596
+issue31596_override_test/none: CompileTimeError # Issue #31596
+issue31596_super_test/01: CompileTimeError # Issue #31596
+issue31596_super_test/03: CompileTimeError # Issue #31596
+issue31596_super_test/05: CompileTimeError # Issue #31596
+issue31596_super_test/none: CompileTimeError # Issue #31596
+issue31596_tearoff_test: CompileTimeError # Issue #31596
+issue31596_test: CompileTimeError # Issue #31596
+malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
+mixin_forwarding_constructor4_test/01: CompileTimeError # See issue #34375
+mixin_forwarding_constructor4_test/02: CompileTimeError # See issue #34375
+mixin_forwarding_constructor4_test/03: CompileTimeError # See issue #34375
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
-mixin_super_constructor_named_test/01: CompileTimeError # See issue 15101
-mixin_super_constructor_positionals_test/01: CompileTimeError # See issue 15101
+mixin_super_constructor_named_test/01: CompileTimeError # See issue #34375
+mixin_super_constructor_positionals_test/01: CompileTimeError # See issue #34375
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
@@ -92,15 +90,12 @@ mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass_test/02: MissingCompileTimeError
-mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass_test/05: MissingCompileTimeError
-mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
-mock_writable_final_private_field_test: CompileTimeError # Issue 30848
+mixin_supertype_subclass_test/02: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
+mixin_supertype_subclass_test/05: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
+mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
-nested_generic_closure_test: CompileTimeError
-no_main_test/01: Fail # Issue 20030
-no_main_test/01: MissingStaticWarning # Issue 28823
+nested_generic_closure_test: CompileTimeError # Issue #28515
+no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning
 override_inheritance_field_test/42: CompileTimeError
 parser_quirks_test: CompileTimeError
@@ -119,24 +114,9 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 regress_32660_test/01: MissingCompileTimeError # Issue #32660.
 regress_32660_test/04: CompileTimeError
-regress_33235_03_test/01: MissingCompileTimeError
-regress_33235_07_test/03: MissingCompileTimeError
-regress_33235_10_test/01: MissingCompileTimeError
-regress_33235_10_test/02: MissingCompileTimeError
-regress_33235_10_test/03: MissingCompileTimeError
-regress_33235_11_test/01: MissingCompileTimeError
-regress_33235_12_test/03: MissingCompileTimeError
-regress_33235_13_test/03: MissingCompileTimeError
-regress_33235_16_test/02: MissingCompileTimeError
-regress_33235_16_test/03: MissingCompileTimeError
-regress_33235_19_test: CompileTimeError
-regress_33235_20_test: CompileTimeError
+regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-setter_override2_test/02: MissingCompileTimeError # Issue 14736
-static_setter_conflicts_test/02: MissingCompileTimeError
-static_setter_conflicts_test/11: MissingCompileTimeError
-static_setter_conflicts_test/12: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError

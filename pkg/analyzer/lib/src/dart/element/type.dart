@@ -403,13 +403,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     for (int i = 0; i < formalCount; i++) {
       var typeParamElement = originalFormals[i];
 
-      // We don't know in which context the fresh function type will be used.
-      // So, we can only compute De Bruijn index for type parameters.
-      int negativeDeBruijnIndex = -(formalCount - i);
-
-      var freshElement = new TypeParameterElementImpl.synthetic(
-          typeParamElement.name,
-          nestingLevel: negativeDeBruijnIndex);
+      var freshElement =
+          new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
       freshElement.type = freshTypeVar;
 
@@ -1344,7 +1339,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool get isObject => element.supertype == null;
+  bool get isObject => element.supertype == null && !element.isMixin;
 
   @override
   List<MethodElement> get methods {
@@ -1362,19 +1357,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get mixins {
-    ClassElement classElement = element;
-    List<InterfaceType> mixins = classElement.mixins;
-    List<TypeParameterElement> typeParameters = classElement.typeParameters;
-    List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.length == 0) {
-      return mixins;
-    }
-    int count = mixins.length;
-    List<InterfaceType> typedMixins = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedMixins[i] = mixins[i].substitute2(typeArguments, parameterTypes);
-    }
-    return typedMixins;
+    List<InterfaceType> mixins = element.mixins;
+    return _instantiateSuperTypes(mixins);
   }
 
   @override
@@ -1390,6 +1374,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return supertype;
     }
     return supertype.substitute2(typeArguments, typeParameters);
+  }
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    List<InterfaceType> constraints = element.superclassConstraints;
+    return _instantiateSuperTypes(constraints);
   }
 
   @override
@@ -1505,10 +1495,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement jElement = j.element;
     InterfaceType supertype = jElement.supertype;
     //
-    // If J has no direct supertype then it is Object, and Object has no direct
-    // supertypes.
+    // If J is Object, then it has no direct supertypes.
     //
-    if (supertype == null) {
+    if (j.isObject) {
       return false;
     }
     //
@@ -1519,6 +1508,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     supertype = supertype.substitute2(jArgs, jVars);
     if (supertype == i) {
       return true;
+    }
+    //
+    // I is listed in the on clause of J.
+    //
+    for (InterfaceType interfaceType in jElement.superclassConstraints) {
+      interfaceType = interfaceType.substitute2(jArgs, jVars);
+      if (interfaceType == i) {
+        return true;
+      }
     }
     //
     // I is listed in the implements clause of J.
@@ -1702,6 +1700,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1756,6 +1760,69 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
   }
 
+  ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
+      {bool concrete: false, bool setter: false}) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+
+    ExecutableElement lookUpImpl(InterfaceTypeImpl type,
+        {bool acceptAbstract: false, bool includeType: true}) {
+      if (type == null || !visitedClasses.add(type.element)) {
+        return null;
+      }
+
+      if (includeType) {
+        ExecutableElement result;
+        if (setter) {
+          result = type.getSetter(name);
+        } else {
+          result = type.getMethod(name);
+          result ??= type.getGetter(name);
+        }
+        if (result != null && result.isAccessibleIn(library)) {
+          if (!concrete || acceptAbstract || !result.isAbstract) {
+            return result;
+          }
+          ClassElementImpl elementImpl = type.element;
+          if (elementImpl.hasNoSuchMethod) {
+            return result;
+          }
+        }
+      }
+
+      for (InterfaceType mixin in type.mixins.reversed) {
+        var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+        if (result != null) {
+          return result;
+        }
+      }
+
+      // We were not able to find the concrete dispatch target.
+      // It is OK to look into interfaces, we need just some resolution now.
+      if (!concrete) {
+        for (InterfaceType mixin in type.interfaces) {
+          var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+
+      return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+    }
+
+    if (element.isMixin) {
+      for (InterfaceType constraint in superclassConstraints) {
+        var result = lookUpImpl(constraint, acceptAbstract: true);
+        if (result != null) {
+          return result;
+        }
+      }
+      return null;
+    } else {
+      return lookUpImpl(this, includeType: false);
+    }
+  }
+
   @override
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType: true}) {
@@ -1806,6 +1873,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      MethodElement element = constraint.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1842,6 +1915,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       String setterName, LibraryElement library) {
     for (InterfaceType mixin in mixins.reversed) {
       PropertyAccessorElement element = mixin.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
@@ -1928,6 +2007,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       _versionOfCachedMembers = currentVersion;
     }
+  }
+
+  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
+    List<TypeParameterElement> typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) {
+      return defined;
+    }
+    List<DartType> instantiated = element.type.typeArguments;
+    int count = defined.length;
+    List<InterfaceType> typedConstraints = new List<InterfaceType>(count);
+    for (int i = 0; i < count; i++) {
+      typedConstraints[i] = defined[i].substitute2(typeArguments, instantiated);
+    }
+    return typedConstraints;
   }
 
   /**
@@ -2118,33 +2211,44 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
     ClassElement classElement = type.element;
     // Object case
-    if (classElement.supertype == null || visitedTypes.contains(classElement)) {
+    if (type.isObject || visitedTypes.contains(classElement)) {
       return depth;
     }
     int longestPath = 1;
     try {
       visitedTypes.add(classElement);
-      List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
-      if (superinterfaces.length > 0) {
-        // loop through each of the superinterfaces recursively calling this
-        // method and keeping track of the longest path to return
-        for (InterfaceType superinterface in superinterfaces) {
-          pathLength = _computeLongestInheritancePathToObject(
-              superinterface, depth + 1, visitedTypes);
-          if (pathLength > longestPath) {
-            longestPath = pathLength;
-          }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.superclassConstraints) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
         }
       }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.interfaces) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+
       // finally, perform this same check on the super type
       // TODO(brianwilkerson) Does this also need to add in the number of mixin
       // classes?
       InterfaceType supertype = classElement.supertype;
-      pathLength = _computeLongestInheritancePathToObject(
-          supertype, depth + 1, visitedTypes);
-      if (pathLength > longestPath) {
-        longestPath = pathLength;
+      if (supertype != null) {
+        pathLength = _computeLongestInheritancePathToObject(
+            supertype, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
       }
     } finally {
       visitedTypes.remove(classElement);

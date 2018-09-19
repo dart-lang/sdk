@@ -46,8 +46,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier,
-        templateExpectedType;
+        templateExpectedIdentifier;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
@@ -331,11 +330,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     Expression expression = pop();
-    if (expression is SuperExpression) {
-      // This error is also reported by the body builder.
-      handleRecoverableError(messageMissingAssignableSelector,
-          expression.beginToken, expression.endToken);
-    }
+    reportErrorIfSuper(expression);
     if (expression is SimpleIdentifier &&
         expression.token?.keyword?.isBuiltInOrPseudo == false) {
       // This error is also reported by the body builder.
@@ -352,6 +347,14 @@ class AstBuilder extends StackListener {
       }
     }
     push(ast.expressionStatement(expression, semicolon));
+  }
+
+  void reportErrorIfSuper(Expression expression) {
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
+    }
   }
 
   @override
@@ -474,6 +477,7 @@ class AstBuilder extends StackListener {
     } else {
       Expression right = pop();
       Expression left = pop();
+      reportErrorIfSuper(right);
       push(ast.binaryExpression(left, operatorToken, right));
     }
   }
@@ -945,17 +949,6 @@ class AstBuilder extends StackListener {
     debugEvent("AsOperator");
 
     TypeAnnotation type = pop();
-    if (type is TypeName) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        if (name.name == 'void') {
-          Token token = name.beginToken;
-          // TODO(danrubel): This needs to be reported during fasta resolution.
-          handleRecoverableError(
-              templateExpectedType.withArguments(token), token, token);
-        }
-      }
-    }
     Expression expression = pop();
     push(ast.asExpression(expression, asOperator, type));
   }
@@ -988,17 +981,6 @@ class AstBuilder extends StackListener {
     debugEvent("IsOperator");
 
     TypeAnnotation type = pop();
-    if (type is TypeName) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        if (name.name == 'void') {
-          Token token = name.beginToken;
-          // TODO(danrubel): This needs to be reported during fasta resolution.
-          handleRecoverableError(
-              templateExpectedType.withArguments(token), token, token);
-        }
-      }
-    }
     Expression expression = pop();
     push(ast.isExpression(expression, isOperator, not, type));
   }
@@ -1011,6 +993,8 @@ class AstBuilder extends StackListener {
     Expression elseExpression = pop();
     Expression thenExpression = pop();
     Expression condition = pop();
+    reportErrorIfSuper(elseExpression);
+    reportErrorIfSuper(thenExpression);
     push(ast.conditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
   }
@@ -1768,22 +1752,24 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('extends', extendsKeyword));
     debugEvent("ClassExtends");
 
-    ExtendsClause extendsClause;
-    WithClause withClause;
-    var supertype = pop();
-    if (supertype == null) {
-      // No extends clause
-    } else if (supertype is TypeName) {
-      extendsClause = ast.extendsClause(extendsKeyword, supertype);
-    } else if (supertype is _MixinApplication) {
-      extendsClause = ast.extendsClause(extendsKeyword, supertype.supertype);
-      withClause = ast.withClause(supertype.withKeyword, supertype.mixinTypes);
+    TypeName supertype = pop();
+    if (supertype != null) {
+      push(ast.extendsClause(extendsKeyword, supertype));
     } else {
-      unhandled("${supertype.runtimeType}", "supertype",
-          extendsKeyword.charOffset, uri);
+      push(NullValue.ExtendsClause);
     }
-    push(extendsClause ?? NullValue.ExtendsClause);
-    push(withClause ?? NullValue.WithClause);
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    assert(optional('with', withKeyword));
+    List<TypeName> mixinTypes = pop();
+    push(ast.withClause(withKeyword, mixinTypes));
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    push(NullValue.WithClause);
   }
 
   @override
@@ -1947,7 +1933,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinDeclaration(Token token) {
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     debugEvent("MixinDeclaration");
     mixinDeclaration = null;
   }
@@ -1959,13 +1945,10 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
-    debugEvent("MixinApplication");
-
     List<TypeName> mixinTypes = pop();
-    TypeName supertype = pop();
-    push(new _MixinApplication(supertype, withKeyword, mixinTypes));
+    push(ast.withClause(withKeyword, mixinTypes));
   }
 
   @override
@@ -1982,10 +1965,8 @@ class AstBuilder extends StackListener {
       List<TypeName> interfaces = pop();
       implementsClause = ast.implementsClause(implementsKeyword, interfaces);
     }
-    _MixinApplication mixinApplication = pop();
-    var superclass = mixinApplication.supertype;
-    var withClause = ast.withClause(
-        mixinApplication.withKeyword, mixinApplication.mixinTypes);
+    WithClause withClause = pop(NullValue.WithClause);
+    TypeName superclass = pop();
     _Modifiers modifiers = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
@@ -2833,22 +2814,6 @@ class AstBuilder extends StackListener {
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
   }
-}
-
-/// Data structure placed on the stack to represent a mixin application (a
-/// structure of the form "A with B, C").
-///
-/// This is needed because analyzer has no separate AST representation of a
-/// mixin application; it simply stores all of the relevant data in the
-/// [ClassDeclaration] or [ClassTypeAlias] object.
-class _MixinApplication {
-  final TypeName supertype;
-
-  final Token withKeyword;
-
-  final List<TypeName> mixinTypes;
-
-  _MixinApplication(this.supertype, this.withKeyword, this.mixinTypes);
 }
 
 /// Data structure placed on the stack to represent the default parameter

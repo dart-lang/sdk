@@ -223,6 +223,24 @@ abstract class String implements Comparable<String>, Pattern {
   bool operator ==(Object other);
 
   /**
+   * Compares this string to [other].
+   *
+   * Returns a negative value if `this` is ordered before `other`,
+   * a positive value if `this` is ordered after `other`,
+   * or zero if `this` and `other` are equivalent.
+   *
+   * The ordering is the same as the ordering of the code points at the first
+   * position where the two strings differ.
+   * If one string is a prefix of the other,
+   * then the shorter string is ordered before the longer string.
+   * If the strings have exactly the same content, they are equivalent with
+   * regard to the ordering.
+   * Ordering does not check for Unicode equivalence.
+   * The comparison is case sensitive.
+   */
+  int compareTo(String other);
+
+  /**
    * Returns true if this string ends with [other]. For example:
    *
    *     'Dart'.endsWith('t'); // true

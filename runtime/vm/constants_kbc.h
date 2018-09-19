@@ -154,6 +154,22 @@ namespace dart {
 //    Load value at index D from constant pool into FP[rA] or push it onto the
 //    stack.
 //
+//  - PushNull
+//
+//    Push `null` onto the stack.
+//
+//  - PushTrue
+//
+//    Push `true` onto the stack.
+//
+//  - PushFalse
+//
+//    Push `false` onto the stack.
+//
+//  - PushInt rX
+//
+//    Push int rX onto the stack.
+//
 //  - StoreLocal rX; PopLocal rX
 //
 //    Store top of the stack into FP[rX] and pop it if needed.
@@ -588,7 +604,7 @@ namespace dart {
 //    If B is not 0 then EntryOptional bytecode is followed by B LoadConstant
 //    bytecodes specifying default values for optional arguments.
 //
-//    If C is not 0 then EntryOptional is followed by 2 * B LoadConstant
+//    If C is not 0 then EntryOptional is followed by 2 * C LoadConstant
 //    bytecodes.
 //    Bytecode at 2 * i specifies name of the i-th named argument and at
 //    2 * i + 1 default value. rA part of the LoadConstant bytecode specifies
@@ -597,7 +613,8 @@ namespace dart {
 //    prologues are implemented on other architectures.
 //
 //    Note: Unlike Entry bytecode EntryOptional does not setup the frame for
-//    local variables this is done by a separate bytecode Frame.
+//    local variables this is done by a separate bytecode Frame, which should
+//    follow EntryOptional and its LoadConstant instructions.
 //
 //  - EntryOptimized rD
 //
@@ -831,6 +848,10 @@ namespace dart {
   V(LoadClassId,                         A_D, reg, reg, ___)                   \
   V(LoadClassIdTOS,                        0, ___, ___, ___)                   \
   V(PushConstant,                          D, lit, ___, ___)                   \
+  V(PushNull,                              0, ___, ___, ___)                   \
+  V(PushTrue,                              0, ___, ___, ___)                   \
+  V(PushFalse,                             0, ___, ___, ___)                   \
+  V(PushInt,                               X, num, ___, ___)                   \
   V(StoreLocal,                            X, xeg, ___, ___)                   \
   V(PopLocal,                              X, xeg, ___, ___)                   \
   V(IndirectStaticCall,                  A_D, num, num, ___)                   \
@@ -1037,6 +1058,12 @@ class KernelBytecode {
     return names[DecodeOpcode(instr)];
   }
 
+  enum SpecialIndex {
+    kExceptionSpecialIndex,
+    kStackTraceSpecialIndex,
+    kSpecialIndexCount
+  };
+
   static const intptr_t kOpShift = 0;
   static const intptr_t kAShift = 8;
   static const intptr_t kAMask = 0xFF;
@@ -1048,6 +1075,7 @@ class KernelBytecode {
   static const intptr_t kDMask = 0xFFFF;
   static const intptr_t kYShift = 24;
   static const intptr_t kYMask = 0xFF;
+  static const intptr_t kTShift = 8;
 
   static KBCInstr Encode(Opcode op, uintptr_t a, uintptr_t b, uintptr_t c) {
     ASSERT((a & kAMask) == a);
@@ -1083,8 +1111,20 @@ class KernelBytecode {
     return (bc >> kBShift) & kBMask;
   }
 
+  DART_FORCE_INLINE static uint8_t DecodeC(KBCInstr bc) {
+    return (bc >> kCShift) & kCMask;
+  }
+
   DART_FORCE_INLINE static uint16_t DecodeD(KBCInstr bc) {
     return (bc >> kDShift) & kDMask;
+  }
+
+  DART_FORCE_INLINE static int16_t DecodeX(KBCInstr bc) {
+    return static_cast<int16_t>((bc >> kDShift) & kDMask);
+  }
+
+  DART_FORCE_INLINE static int32_t DecodeT(KBCInstr bc) {
+    return static_cast<int32_t>(bc) >> kTShift;
   }
 
   DART_FORCE_INLINE static Opcode DecodeOpcode(KBCInstr bc) {

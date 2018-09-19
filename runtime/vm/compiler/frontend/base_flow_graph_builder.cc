@@ -302,6 +302,14 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
   }
 }
 
+Fragment BaseFlowGraphBuilder::LoadField(const Field& field) {
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), &MayCloneField(field), AbstractType::ZoneHandle(Z, field.type()),
+      TokenPosition::kNoSource, parsed_function_);
+  Push(load);
+  return Fragment(load);
+}
+
 Fragment BaseFlowGraphBuilder::LoadField(intptr_t offset, intptr_t class_id) {
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       Pop(), offset, AbstractType::ZoneHandle(Z), TokenPosition::kNoSource);
@@ -493,14 +501,6 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   stack_->definition()->set_ssa_temp_index(0);
 
   return variable;
-}
-
-intptr_t BaseFlowGraphBuilder::CurrentTryIndex() {
-  if (try_catch_block_ == NULL) {
-    return CatchClauseNode::kInvalidTryIndex;
-  } else {
-    return try_catch_block_->try_index();
-  }
 }
 
 void BaseFlowGraphBuilder::SetTempIndex(Definition* definition) {

@@ -19,9 +19,8 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 class TestData {
   final String name;
@@ -668,7 +667,7 @@ Future testData(TestData data) async {
   if (!skipStrongList.contains(data.name)) {
     await runTest((Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMap elementMap = frontendStrategy.elementMap;
+      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,
           constantRequired: field.isConst);
     });

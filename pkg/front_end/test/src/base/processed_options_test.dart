@@ -320,7 +320,7 @@ class ProcessedOptionsTest {
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.asMap(), isEmpty);
     expect(errors.single.message,
-        startsWith(_stringPrefixOf(templateCannotReadPackagesFile)));
+        startsWith(_stringPrefixOf(templateCantReadFile)));
   }
 
   test_validateOptions_noInputs() async {
@@ -344,9 +344,8 @@ class ProcessedOptionsTest {
       ..onError = (e) => errors.add(e);
     var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
-    expect(errors.single.message,
-        startsWith(_stringPrefixOf(templateInputFileNotFound)));
-    expect(result, isFalse);
+    expect(errors, isEmpty);
+    expect(result, isTrue);
   }
 
   test_validateOptions_root_exists() async {

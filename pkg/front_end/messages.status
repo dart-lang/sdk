@@ -57,6 +57,7 @@ ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't 
 ConstConstructorWithNonConstSuper/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
+ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
@@ -210,7 +211,6 @@ InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
 InvalidInitializer/example: Fail
-InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidUseOfNullAwareAccess/example: Fail
@@ -271,9 +271,11 @@ OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
+PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
+PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
@@ -328,18 +330,15 @@ ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
-TopLevelOperator/script1: Fail
-TopLevelOperator/script2: Fail
-TopLevelOperator/script3: Fail
 TypeAfterVar/example: Fail
 TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
-TypeVariableInConstantContext/declaration1: Fail
-TypeVariableInConstantContext/declaration2: Fail
-TypeVariableInConstantContext/declaration3: Fail
-TypeVariableInStaticContext/example: Fail
+TypeVariableInStaticContext/declaration1: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration2: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration3: Fail # Unfortunate message from outline phase.
+TypeVariableInStaticContext/declaration4: Fail # Unfortunate message from outline phase.
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/script1: Fail

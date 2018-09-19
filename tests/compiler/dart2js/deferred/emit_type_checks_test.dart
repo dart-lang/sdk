@@ -10,8 +10,8 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
-import '../output_collector.dart';
+import '../helpers/memory_compiler.dart';
+import '../helpers/output_collector.dart';
 
 void main() {
   runTest() async {

@@ -390,7 +390,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   bool get isClosed => _closed;
 
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapImpl _elementMap;
 
   ResolutionWorldBuilderImpl(
       this._options,
@@ -851,7 +851,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       memberUsed(usage.entity, useSet);
       return usage;
     });
-    if (!newUsage) {
+    if (!usage.fullyUsed && !newUsage) {
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       if (!usage.hasRead && _hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
@@ -945,8 +945,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
     // that are overridden.
-    _classHierarchyBuilder.registerClass(member.enclosingClass);
-    _classHierarchyBuilder.registerClass(type);
     return _classHierarchyBuilder.isInheritedInSubtypeOf(
         member.enclosingClass, type);
   }
@@ -968,16 +966,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  KClosedWorld closeWorld() {
+  KClosedWorld closeWorld(DiagnosticReporter reporter) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
-    var backendUsage = _backendUsageBuilder.close();
-    backendUsage.helperClassesUsed
-        .forEach(_classHierarchyBuilder.registerClass);
-    _nativeResolutionEnqueuer.liveNativeClasses
-        .forEach(_classHierarchyBuilder.registerClass);
-
+    BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
     assert(
         _classHierarchyBuilder.classHierarchyNodes.length ==
@@ -985,14 +978,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "${_classHierarchyBuilder.classHierarchyNodes} vs "
         "${_classHierarchyBuilder.classSets}");
-    return _closedWorldCache = new KClosedWorldImpl(_elementMap,
+
+    AnnotationsData annotationsData = processAnnotations(
+        reporter, _commonElements, _elementEnvironment, _processedMembers);
+
+    KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: _backendUsageBuilder.close(),
+        backendUsage: backendUsage,
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
@@ -1005,7 +1002,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: _classHierarchyBuilder.classHierarchyNodes,
-        classSets: _classHierarchyBuilder.classSets);
+        classSets: _classHierarchyBuilder.classSets,
+        annotationsData: annotationsData);
+    if (retainDataForTesting) {
+      _closedWorldCache = closedWorld;
+    }
+    return closedWorld;
   }
 
   @override

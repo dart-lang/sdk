@@ -11,10 +11,11 @@ class D extends C {
   const D(var d) : super(d);
 }
 
+const intValue = 0;
 const c = const C(0.0); //# 01: ok
-const d = const C(0); //# 02: compile-time error
+const d = const C(intValue); //# 02: compile-time error
 const e = const D(0.0); //# 03: ok
-const f = const D(0); //# 04: compile-time error
+const f = const D(intValue); //# 04: compile-time error
 
 main() {
   print(c); //# 01: continued

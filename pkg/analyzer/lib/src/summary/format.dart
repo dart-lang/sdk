@@ -5446,6 +5446,7 @@ class UnlinkedClassBuilder extends Object
   String _name;
   int _nameOffset;
   List<EntityRefBuilder> _superclassConstraints;
+  List<String> _superInvokedNames;
   EntityRefBuilder _supertype;
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
@@ -5590,6 +5591,18 @@ class UnlinkedClassBuilder extends Object
   }
 
   @override
+  List<String> get superInvokedNames => _superInvokedNames ??= <String>[];
+
+  /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  void set superInvokedNames(List<String> value) {
+    this._superInvokedNames = value;
+  }
+
+  @override
   EntityRefBuilder get supertype => _supertype;
 
   /**
@@ -5626,6 +5639,7 @@ class UnlinkedClassBuilder extends Object
       String name,
       int nameOffset,
       List<EntityRefBuilder> superclassConstraints,
+      List<String> superInvokedNames,
       EntityRefBuilder supertype,
       List<UnlinkedTypeParamBuilder> typeParameters})
       : _annotations = annotations,
@@ -5641,6 +5655,7 @@ class UnlinkedClassBuilder extends Object
         _name = name,
         _nameOffset = nameOffset,
         _superclassConstraints = superclassConstraints,
+        _superInvokedNames = superInvokedNames,
         _supertype = supertype,
         _typeParameters = typeParameters;
 
@@ -5727,6 +5742,14 @@ class UnlinkedClassBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    if (this._superInvokedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._superInvokedNames.length);
+      for (var x in this._superInvokedNames) {
+        signature.addString(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5739,6 +5762,7 @@ class UnlinkedClassBuilder extends Object
     fb.Offset offset_mixins;
     fb.Offset offset_name;
     fb.Offset offset_superclassConstraints;
+    fb.Offset offset_superInvokedNames;
     fb.Offset offset_supertype;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -5773,6 +5797,10 @@ class UnlinkedClassBuilder extends Object
     if (!(_superclassConstraints == null || _superclassConstraints.isEmpty)) {
       offset_superclassConstraints = fbBuilder.writeList(
           _superclassConstraints.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_superInvokedNames == null || _superInvokedNames.isEmpty)) {
+      offset_superInvokedNames = fbBuilder.writeList(
+          _superInvokedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_supertype != null) {
       offset_supertype = _supertype.finish(fbBuilder);
@@ -5821,6 +5849,9 @@ class UnlinkedClassBuilder extends Object
     if (offset_superclassConstraints != null) {
       fbBuilder.addOffset(14, offset_superclassConstraints);
     }
+    if (offset_superInvokedNames != null) {
+      fbBuilder.addOffset(15, offset_superInvokedNames);
+    }
     if (offset_supertype != null) {
       fbBuilder.addOffset(3, offset_supertype);
     }
@@ -5860,6 +5891,7 @@ class _UnlinkedClassImpl extends Object
   String _name;
   int _nameOffset;
   List<idl.EntityRef> _superclassConstraints;
+  List<String> _superInvokedNames;
   idl.EntityRef _supertype;
   List<idl.UnlinkedTypeParam> _typeParameters;
 
@@ -5955,6 +5987,13 @@ class _UnlinkedClassImpl extends Object
   }
 
   @override
+  List<String> get superInvokedNames {
+    _superInvokedNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 15, const <String>[]);
+    return _superInvokedNames;
+  }
+
+  @override
   idl.EntityRef get supertype {
     _supertype ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _supertype;
@@ -5998,6 +6037,8 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
     if (superclassConstraints.isNotEmpty)
       _result["superclassConstraints"] =
           superclassConstraints.map((_value) => _value.toJson()).toList();
+    if (superInvokedNames.isNotEmpty)
+      _result["superInvokedNames"] = superInvokedNames;
     if (supertype != null) _result["supertype"] = supertype.toJson();
     if (typeParameters.isNotEmpty)
       _result["typeParameters"] =
@@ -6020,6 +6061,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
         "name": name,
         "nameOffset": nameOffset,
         "superclassConstraints": superclassConstraints,
+        "superInvokedNames": superInvokedNames,
         "supertype": supertype,
         "typeParameters": typeParameters,
       };

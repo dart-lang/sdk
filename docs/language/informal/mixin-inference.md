@@ -1,8 +1,11 @@
 # Dart 2.X super mixin inference proposal
 
-leafp@google.com
+**Owner**: leafp@google.com
 
-Status: Draft
+**Status**: This is now background material.
+
+The current version of this document now resides
+[here](https://github.com/dart-lang/language/blob/master/working/0006.%20Super-invocations%20in%20mixins/0007.%20Mixin%20declarations/mixin-inference.md).
 
 This is intended to define a prototype approach to supporting inference of type
 arguments in super-mixin applications.  This is not an official part of Dart

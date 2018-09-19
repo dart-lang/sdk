@@ -753,7 +753,7 @@ const AbstractType* CompileType::ToAbstractType() {
     Isolate* I = Isolate::Current();
     const Class& type_class = Class::Handle(I->class_table()->At(cid_));
     if (type_class.NumTypeArguments() > 0) {
-      if (I->strong()) {
+      if (FLAG_strong) {
         type_ = &AbstractType::ZoneHandle(type_class.RareType());
       } else {
         type_ = &Object::dynamic_type();
@@ -935,6 +935,12 @@ CompileType ParameterInstr::ComputeType() const {
         UNREACHABLE();
     }
     UNREACHABLE();
+    return CompileType::Dynamic();
+  }
+
+  if (FLAG_use_bytecode_compiler &&
+      graph_entry->parsed_function().node_sequence() == nullptr) {
+    // TODO(alexmarkov): Consider adding node_sequence() and scope.
     return CompileType::Dynamic();
   }
 
@@ -1189,7 +1195,7 @@ CompileType StaticCallInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  if ((isolate->can_use_strong_mode_types()) || isolate->type_checks()) {
+  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
     // TODO(dartbug.com/30480): instantiate generic result_type if possible.

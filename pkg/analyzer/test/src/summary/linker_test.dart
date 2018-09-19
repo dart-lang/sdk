@@ -893,36 +893,36 @@ class D extends C {
     expect(x.variable.isStatic, true);
   }
 
-  void test_typeParameter_isTypeParameterInScope_direct() {
+  void test_typeParameter_computeDeBruijnIndex_direct() {
     createLinker('class C<T, U> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     TypeParameterElementImpl t = c.typeParameters[0];
     TypeParameterElementImpl u = c.typeParameters[1];
-    expect(c.isTypeParameterInScope(t), true);
-    expect(c.isTypeParameterInScope(u), true);
+    expect(c.computeDeBruijnIndex(t), 2);
+    expect(c.computeDeBruijnIndex(u), 1);
   }
 
-  void test_typeParameter_isTypeParameterInScope_indirect() {
+  void test_typeParameter_computeDeBruijnIndex_indirect() {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
     TypeParameterElementImpl t = c.typeParameters[0];
     TypeParameterElementImpl u = c.typeParameters[1];
-    expect(f.isTypeParameterInScope(t), true);
-    expect(f.isTypeParameterInScope(u), true);
+    expect(f.computeDeBruijnIndex(t), 4);
+    expect(f.computeDeBruijnIndex(u), 3);
   }
 
-  void test_typeParameter_isTypeParameterInScope_reversed() {
+  void test_typeParameter_computeDeBruijnIndex_reversed() {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
     TypeParameterElementImpl v = f.typeParameters[0];
     TypeParameterElementImpl w = f.typeParameters[1];
-    expect(c.isTypeParameterInScope(v), false);
-    expect(c.isTypeParameterInScope(w), false);
+    expect(c.computeDeBruijnIndex(v), isNull);
+    expect(c.computeDeBruijnIndex(w), isNull);
   }
 
-  void test_typeParameter_isTypeParameterInScope_unrelated() {
+  void test_typeParameter_computeDeBruijnIndex_unrelated() {
     createLinker('class C<T, U> {} class D<V, W> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     ClassElementForLink_Class d = testLibrary.getContainedName('D');
@@ -930,10 +930,10 @@ class D extends C {
     TypeParameterElementImpl u = c.typeParameters[1];
     TypeParameterElementImpl v = d.typeParameters[0];
     TypeParameterElementImpl w = d.typeParameters[1];
-    expect(c.isTypeParameterInScope(v), false);
-    expect(c.isTypeParameterInScope(w), false);
-    expect(d.isTypeParameterInScope(t), false);
-    expect(d.isTypeParameterInScope(u), false);
+    expect(c.computeDeBruijnIndex(v), isNull);
+    expect(c.computeDeBruijnIndex(w), isNull);
+    expect(d.computeDeBruijnIndex(t), isNull);
+    expect(d.computeDeBruijnIndex(u), isNull);
   }
 
   void test_variable_initializer_presence() {

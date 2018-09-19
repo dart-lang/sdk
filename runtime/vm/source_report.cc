@@ -383,6 +383,11 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+    code = func.Bytecode();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (code.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
@@ -398,6 +403,11 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
         return;
       }
       code = func.unoptimized_code();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+        code = func.Bytecode();
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);

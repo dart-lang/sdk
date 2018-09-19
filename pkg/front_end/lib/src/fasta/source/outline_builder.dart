@@ -6,16 +6,17 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../../scanner/token.dart' show Token;
-
 import '../builder/builder.dart';
 
 import '../builder/metadata_builder.dart' show ExpressionMetadataBuilder;
 
 import '../combinator.dart' show Combinator;
 
+import '../configuration.dart' show Configuration;
+
 import '../fasta_codes.dart'
     show
+        Code,
         LocatedMessage,
         Message,
         messageConstConstructorWithBody,
@@ -35,6 +36,16 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch0,
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
+
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
+
+// TODO(ahe): The outline isn't supposed to import kernel-specific builders.
+import '../kernel/kernel_builder.dart'
+    show
+        KernelFormalParameterBuilder,
+        KernelMixinApplicationBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder;
 
 import '../modifier.dart'
     show
@@ -72,17 +83,11 @@ import '../problems.dart' show unhandled;
 
 import '../quote.dart' show unescapeString;
 
+import '../scanner.dart' show Token;
+
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart' show NullValue, StackListener;
-
-import '../configuration.dart' show Configuration;
-
-import '../kernel/kernel_builder.dart'
-    show
-        KernelFormalParameterBuilder,
-        KernelNamedTypeBuilder,
-        KernelTypeBuilder;
 
 enum MethodBody {
   Abstract,
@@ -416,6 +421,17 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    debugEvent("beginMixinDeclaration");
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name.lexeme
+      ..charOffset = name.charOffset
+      ..typeVariables = typeVariables;
+  }
+
+  @override
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
@@ -448,9 +464,26 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    debugEvent("handleRecoverMixinHeader");
+    pop(NullValue.TypeBuilderList); // Interfaces.
+    pop(NullValue.TypeBuilderList); // Supertype constraints.
+  }
+
+  @override
   void handleClassExtends(Token extendsKeyword) {
     debugEvent("handleClassExtends");
     push(extendsKeyword?.charOffset ?? -1);
+  }
+
+  @override
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    debugEvent("handleMixinOn");
+    var supertypeConstraints = new List<KernelNamedTypeBuilder>.filled(
+        typeCount, null,
+        growable: true);
+    popList(typeCount, supertypeConstraints);
+    push(supertypeConstraints);
   }
 
   @override
@@ -485,6 +518,43 @@ class OutlineBuilder extends StackListener {
         endToken.charOffset,
         supertypeOffset);
     checkEmpty(beginToken.charOffset);
+  }
+
+  @override
+  void endMixinDeclaration(Token mixinToken, Token endToken) {
+    debugEvent("endMixinDeclaration");
+    String documentationComment = getDocumentationComment(mixinToken);
+    List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
+    List<KernelTypeBuilder> supertypeConstraints = pop();
+    List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
+    int nameOffset = pop();
+    String name = pop();
+    List<MetadataBuilder> metadata = pop(NullValue.Metadata);
+    int startOffset =
+        metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
+
+    TypeBuilder supertype;
+    if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
+      if (supertypeConstraints.length == 1) {
+        supertype = supertypeConstraints.first;
+      } else {
+        supertype = new KernelMixinApplicationBuilder(
+            supertypeConstraints.first, supertypeConstraints.skip(1).toList());
+      }
+    }
+    library.addClass(
+        documentationComment,
+        metadata,
+        abstractMask,
+        name,
+        typeVariables,
+        supertype,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endToken.charOffset,
+        -1);
+    checkEmpty(mixinToken.charOffset);
   }
 
   ProcedureKind computeProcedureKind(Token token) {
@@ -765,8 +835,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    debugEvent("MixinApplication");
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
     List<TypeBuilder> mixins = pop();
     TypeBuilder supertype = pop();
     push(
@@ -888,10 +958,10 @@ class OutlineBuilder extends StackListener {
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
-    var parameters = new List<KernelFormalParameterBuilder>.filled(count, null,
-        growable: true);
+    List<KernelFormalParameterBuilder> parameters =
+        new List<KernelFormalParameterBuilder>(count);
     popList(count, parameters);
-    for (FormalParameterBuilder parameter in parameters) {
+    for (KernelFormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
     push(parameters);
@@ -1328,8 +1398,32 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
+
+    List<TypeBuilder> mixins = pop();
+    int extendsOffset = pop();
+    TypeBuilder supertype = pop();
+
+    push(
+        library.addMixinApplication(supertype, mixins, withKeyword.charOffset));
+    push(extendsOffset);
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    debugEvent("ClassNoWithClause");
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
     debugEvent("ClassHeader");
+    nativeMethodName = null;
+  }
+
+  @override
+  void handleMixinHeader(Token mixinKeyword) {
+    debugEvent("handleMixinHeader");
     nativeMethodName = null;
   }
 
@@ -1347,6 +1441,12 @@ class OutlineBuilder extends StackListener {
       {bool wasHandled: false, List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
+  }
+
+  @override
+  bool isIgnoredError(Code code, Token token) {
+    return isIgnoredParserError(code, token) ||
+        super.isIgnoredError(code, token);
   }
 
   /// Return the documentation comment for the entity that starts at the

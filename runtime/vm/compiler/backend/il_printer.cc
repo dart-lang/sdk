@@ -707,7 +707,7 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
   function_type_arguments()->PrintTo(f);
-  f->Print(")");
+  f->Print("), instantiator_class(%s)", instantiator_class().ToCString());
 }
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {

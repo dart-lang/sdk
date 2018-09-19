@@ -118,9 +118,7 @@ class InterfaceSelector extends Selector {
   final Member member;
 
   InterfaceSelector(this.member, {CallKind callKind = CallKind.Method})
-      : super(callKind) {
-    assertx(memberAgreesToCallKind(member));
-  }
+      : super(callKind);
 
   @override
   int get hashCode => (super.hashCode ^ member.hashCode + 31) & kHashMask;

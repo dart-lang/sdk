@@ -14,10 +14,10 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart' as optimizerHints;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
+import '../js_model/element_map.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../native/behavior.dart' as native;
@@ -251,8 +251,6 @@ abstract class InferrerEngine {
 }
 
 class InferrerEngineImpl extends InferrerEngine {
-  static bool retainDataForTesting = false;
-
   final Map<Local, TypeInformation> defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
@@ -291,7 +289,7 @@ class InferrerEngineImpl extends InferrerEngine {
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
   final Sorter sorter;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup _closureDataLookup;
 
@@ -1262,19 +1260,18 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   bool trustTypeAnnotations(MemberEntity member) {
-    return optimizerHints.trustTypeAnnotations(
-        closedWorld.elementEnvironment, commonElements, member);
+    return closedWorld.annotationsData.trustTypeAnnotationsMembers
+        .contains(member);
   }
 
   @override
   bool assumeDynamic(MemberEntity member) {
-    return optimizerHints.assumeDynamic(
-        closedWorld.elementEnvironment, commonElements, member);
+    return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
   }
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
-  KernelToElementMapForBuilding _elementMap;
+  JsToElementMap _elementMap;
   GlobalLocalsMap _globalLocalsMap;
   ClosureDataLookup _closureDataLookup;
 

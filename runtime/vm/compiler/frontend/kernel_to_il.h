@@ -22,13 +22,13 @@ class InlineExitCollector;
 
 namespace kernel {
 
-class BaseFlowGraphBuilder;
 class StreamingFlowGraphBuilder;
 struct InferredTypeMetadata;
 class BreakableBlock;
 class CatchBlock;
 class FlowGraphBuilder;
 class SwitchBlock;
+class TryCatchBlock;
 class TryFinallyBlock;
 
 struct YieldContinuation {
@@ -45,7 +45,7 @@ struct YieldContinuation {
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(ParsedFunction* parsed_function,
-                   const ZoneGrowableArray<const ICData*>& ic_data_array,
+                   ZoneGrowableArray<const ICData*>* ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
                    bool optimizing,
@@ -114,8 +114,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
-  Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
-  Fragment LoadField(const Field& field);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
@@ -172,16 +170,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
-  bool IsCompiledForOsr() { return osr_id_ != DeoptId::kNone; }
-
   TranslationHelper translation_helper_;
   Thread* thread_;
   Zone* zone_;
 
   ParsedFunction* parsed_function_;
   const bool optimizing_;
-  intptr_t osr_id_;
-  const ZoneGrowableArray<const ICData*>& ic_data_array_;
+  ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }
@@ -212,6 +207,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
     return scopes_->catch_context_variables[try_depth_];
   }
 
+  TryCatchBlock* CurrentTryCatchBlock() const { return try_catch_block_; }
+
+  void SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block);
+
   // A chained list of breakable blocks. Chaining and lookup is done by the
   // [BreakableBlock] class.
   BreakableBlock* breakable_block_;
@@ -219,6 +218,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // A chained list of switch blocks. Chaining and lookup is done by the
   // [SwitchBlock] class.
   SwitchBlock* switch_block_;
+
+  // A chained list of try-catch blocks. Chaining and lookup is done by the
+  // [TryCatchBlock] class.
+  TryCatchBlock* try_catch_block_;
 
   // A chained list of try-finally blocks. Chaining and lookup is done by the
   // [TryFinallyBlock] class.
@@ -235,6 +238,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class ConstantEvaluator;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;
+  friend class TryCatchBlock;
   friend class TryFinallyBlock;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphBuilder);
@@ -319,6 +323,30 @@ class SwitchBlock {
   intptr_t depth_;
   intptr_t context_depth_;
   intptr_t try_index_;
+};
+
+class TryCatchBlock {
+ public:
+  explicit TryCatchBlock(FlowGraphBuilder* builder,
+                         intptr_t try_handler_index = -1)
+      : builder_(builder),
+        outer_(builder->CurrentTryCatchBlock()),
+        try_index_(try_handler_index == -1 ? builder->AllocateTryIndex()
+                                           : try_handler_index) {
+    builder->SetCurrentTryCatchBlock(this);
+  }
+
+  ~TryCatchBlock() { builder_->SetCurrentTryCatchBlock(outer_); }
+
+  intptr_t try_index() { return try_index_; }
+  TryCatchBlock* outer() const { return outer_; }
+
+ private:
+  FlowGraphBuilder* const builder_;
+  TryCatchBlock* const outer_;
+  intptr_t const try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TryCatchBlock);
 };
 
 class TryFinallyBlock {

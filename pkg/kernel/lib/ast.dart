@@ -5073,6 +5073,34 @@ class StringConstant extends PrimitiveConstant<String> {
   DartType getType(TypeEnvironment types) => types.stringType;
 }
 
+class SymbolConstant extends Constant {
+  final String name;
+  final Reference libraryReference;
+
+  SymbolConstant(this.name, this.libraryReference);
+
+  visitChildren(Visitor v) {}
+
+  accept(ConstantVisitor v) => v.visitSymbolConstant(this);
+  acceptReference(Visitor v) => v.visitSymbolConstantReference(this);
+
+  String toString() {
+    return libraryReference != null
+        ? '#${libraryReference.asLibrary.importUri}::$name'
+        : '#$name';
+  }
+
+  int get hashCode => name.hashCode ^ libraryReference.hashCode;
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SymbolConstant &&
+          other.name == name &&
+          other.libraryReference == libraryReference);
+
+  DartType getType(TypeEnvironment types) => types.symbolType;
+}
+
 class MapConstant extends Constant {
   final DartType keyType;
   final DartType valueType;

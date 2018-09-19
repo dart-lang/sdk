@@ -259,9 +259,6 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
-  // TODO(danrubel): remove this once mixin support is enabled by default.
-  bool isMixinSupportEnabled = false;
-
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by
   /// external clients, for example, to parse an expression outside a function.
@@ -580,12 +577,6 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
-        // TODO(danrubel): Remove this once mixin support is enabled by default.
-        if (!isMixinSupportEnabled && identical(value, 'mixin')) {
-          directiveState?.checkDeclaration();
-          return parseTopLevelMemberImpl(start);
-        }
-
         parseTopLevelKeywordModifiers(start, keyword);
         if (identical(value, 'mixin')) {
           directiveState?.checkDeclaration();
@@ -1103,6 +1094,7 @@ class Parser {
   Token parseMixinApplicationRest(Token token) {
     Token withKeyword = token.next;
     if (!optional('with', withKeyword)) {
+      // Recovery: Report an error and insert synthetic `with` clause.
       reportRecoverableError(
           withKeyword, fasta.templateExpectedButGot.withArguments('with'));
       withKeyword =
@@ -1112,10 +1104,19 @@ class Parser {
         rewriter.insertSyntheticIdentifier(withKeyword);
       }
     }
-    listener.beginMixinApplication(withKeyword);
-    assert(optional('with', withKeyword));
     token = parseTypeList(withKeyword);
-    listener.endMixinApplication(withKeyword);
+    listener.handleNamedMixinApplicationWithClause(withKeyword);
+    return token;
+  }
+
+  Token parseWithClauseOpt(Token token) {
+    Token withKeyword = token.next;
+    if (optional('with', withKeyword)) {
+      token = parseTypeList(withKeyword);
+      listener.handleClassWithClause(withKeyword);
+    } else {
+      listener.handleClassNoWithClause();
+    }
     return token;
   }
 
@@ -1712,6 +1713,7 @@ class Parser {
 
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
+    token = parseWithClauseOpt(token);
     token = parseClassOrMixinImplementsOpt(token);
     Token nativeToken;
     if (optional('native', token.next)) {
@@ -1733,7 +1735,7 @@ class Parser {
     token = parseClassHeaderOpt(token, begin, classKeyword);
     bool hasExtends = recoveryListener.extendsKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
-    Token withKeyword = recoveryListener.withKeyword;
+    bool hasWith = recoveryListener.withKeyword != null;
 
     // Update the recovery listener to forward subsequent events
     // to the primary listener.
@@ -1751,42 +1753,29 @@ class Parser {
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseClassHeader method above.
       recoveryListener.clear();
-      Token next = token.next;
-      if (optional('with', next)) {
-        // If there is a `with` clause without a preceding `extends` clause
-        // then insert a synthetic `extends` clause and parse both clauses.
-        Token extendsKeyword =
-            new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
-        Token superclassToken = new SyntheticStringToken(
-            TokenType.IDENTIFIER, 'Object', next.offset, 0);
-        rewriter.insertTokenAfter(token, extendsKeyword);
-        rewriter.insertTokenAfter(extendsKeyword, superclassToken);
-        token = computeType(extendsKeyword, true)
-            .ensureTypeNotVoid(extendsKeyword, this);
-        token = parseMixinApplicationRest(token);
-        listener.handleClassExtends(extendsKeyword);
-      } else {
-        token = parseClassExtendsOpt(token);
 
-        if (recoveryListener.extendsKeyword != null) {
-          if (hasExtends) {
-            reportRecoverableError(
-                recoveryListener.extendsKeyword, fasta.messageMultipleExtends);
-          } else {
-            if (withKeyword != null) {
-              reportRecoverableError(recoveryListener.extendsKeyword,
-                  fasta.messageWithBeforeExtends);
-            } else if (hasImplements) {
-              reportRecoverableError(recoveryListener.extendsKeyword,
-                  fasta.messageImplementsBeforeExtends);
-            }
-            hasExtends = true;
+      token = parseClassExtendsOpt(token);
+
+      if (recoveryListener.extendsKeyword != null) {
+        if (hasExtends) {
+          reportRecoverableError(
+              recoveryListener.extendsKeyword, fasta.messageMultipleExtends);
+        } else {
+          if (hasWith) {
+            reportRecoverableError(recoveryListener.extendsKeyword,
+                fasta.messageWithBeforeExtends);
+          } else if (hasImplements) {
+            reportRecoverableError(recoveryListener.extendsKeyword,
+                fasta.messageImplementsBeforeExtends);
           }
+          hasExtends = true;
         }
       }
 
+      token = parseWithClauseOpt(token);
+
       if (recoveryListener.withKeyword != null) {
-        if (withKeyword != null) {
+        if (hasWith) {
           reportRecoverableError(
               recoveryListener.withKeyword, fasta.messageMultipleWith);
         } else {
@@ -1794,7 +1783,7 @@ class Parser {
             reportRecoverableError(recoveryListener.withKeyword,
                 fasta.messageImplementsBeforeWith);
           }
-          withKeyword = recoveryListener.withKeyword;
+          hasWith = true;
         }
       }
 
@@ -1814,10 +1803,6 @@ class Parser {
       // Exit if a class body is detected, or if no progress has been made
     } while (!optional('{', token.next) && start != token);
 
-    if (withKeyword != null && !hasExtends) {
-      reportRecoverableError(withKeyword, fasta.messageWithWithoutExtends);
-    }
-
     listener = primaryListener;
     return token;
   }
@@ -1827,11 +1812,6 @@ class Parser {
     if (optional('extends', next)) {
       Token extendsKeyword = next;
       token = computeType(next, true).ensureTypeNotVoid(next, this);
-      if (optional('with', token.next)) {
-        token = parseMixinApplicationRest(token);
-      } else {
-        token = token;
-      }
       listener.handleClassExtends(extendsKeyword);
     } else {
       listener.handleNoType(token);
@@ -1870,6 +1850,7 @@ class Parser {
   /// ```
   Token parseMixin(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
+    listener.beginClassOrNamedMixinApplication(mixinKeyword);
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinDeclaration);
     Token headerStart =
@@ -1882,7 +1863,7 @@ class Parser {
       ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
     token = parseClassOrMixinBody(token);
-    listener.endMixinDeclaration(token);
+    listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
 
@@ -3875,10 +3856,18 @@ class Parser {
         next = token.next;
         mayParseFunctionExpressions = old;
         if (!optional(']', next)) {
-          Message message = fasta.templateExpectedButGot.withArguments(']');
-          Token newToken = new SyntheticToken(
-              TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          next = rewriteAndRecover(token, message, newToken).next;
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(']'));
+          // Scanner ensures a closing ']'
+          Token endGroup = openSquareBracket.endGroup;
+          if (endGroup.isSynthetic) {
+            // Scanner inserted closing ']' in the wrong place, so move it.
+            next = rewriter.moveSynthetic(token, endGroup);
+          } else {
+            // Skip over unexpected tokens to where the user placed the `]`.
+            next = endGroup;
+          }
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
@@ -5378,7 +5367,8 @@ class Parser {
             if (!optional(")", traceName.next)) {
               // Recovery
               if (!traceName.isSynthetic) {
-                reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+                reportRecoverableError(
+                    traceName.next, fasta.messageCatchSyntaxExtraParameters);
               }
               if (openParens.endGroup.isSynthetic) {
                 // The scanner did not place the synthetic ')' correctly.

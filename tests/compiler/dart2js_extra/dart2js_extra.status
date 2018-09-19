@@ -23,8 +23,14 @@ jsinterop_test/36: MissingCompileTimeError # Issue 33834
 jsinterop_test/37: MissingCompileTimeError # Issue 33834
 jsinterop_test/38: MissingCompileTimeError # Issue 34174
 jsinterop_test/42: MissingCompileTimeError # Issue 34174
+jsinterop_test/43: MissingCompileTimeError # Issue 34345
+jsinterop_test/44: MissingCompileTimeError # Issue 34345
+jsinterop_test/45: MissingCompileTimeError # Issue 34345
 jsinterop_test/46: MissingCompileTimeError # Issue 34174
 jsinterop_test/51: MissingCompileTimeError # Issue 34174
+jsinterop_test/52: MissingCompileTimeError # Issue 34345
+jsinterop_test/53: MissingCompileTimeError # Issue 34345
+jsinterop_test/54: MissingCompileTimeError # Issue 34345
 many_instantiations_test/01: Crash # Issue 33819
 no_such_method_test: Fail # Wrong Invocation.memberName.
 non_jsinterop_test/01: MissingCompileTimeError # Issue 34174
@@ -37,8 +43,14 @@ non_jsinterop_test/36: MissingCompileTimeError # Issue 33834
 non_jsinterop_test/37: MissingCompileTimeError # Issue 33834
 non_jsinterop_test/38: MissingCompileTimeError # Issue 34174
 non_jsinterop_test/42: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/43: MissingCompileTimeError # Issue 34345
+non_jsinterop_test/44: MissingCompileTimeError # Issue 34345
+non_jsinterop_test/45: MissingCompileTimeError # Issue 34345
 non_jsinterop_test/46: MissingCompileTimeError # Issue 34174
 non_jsinterop_test/51: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/52: MissingCompileTimeError # Issue 34345
+non_jsinterop_test/53: MissingCompileTimeError # Issue 34345
+non_jsinterop_test/54: MissingCompileTimeError # Issue 34345
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError

@@ -566,6 +566,49 @@ class AnalysisCommandOutput extends CommandOutput {
   }
 }
 
+class CompareAnalyzerCfeCommandOutput extends CommandOutput {
+  CompareAnalyzerCfeCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, 0);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    if (exitCode != 0) return Expectation.fail;
+    for (var line in decodeUtf8(this.stdout).split('\n')) {
+      if (line.indexOf('No differences found') != -1) return Expectation.pass;
+      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    }
+    return Expectation.fail;
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    if (exitCode != 0) return Expectation.fail;
+    for (var line in decodeUtf8(this.stdout).split('\n')) {
+      if (line.indexOf('No differences found') != -1) return Expectation.pass;
+      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    }
+    return Expectation.fail;
+  }
+}
+
 class SpecParseCommandOutput extends CommandOutput {
   SpecParseCommandOutput(
       Command command,
@@ -983,6 +1026,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     [int pid = 0]) {
   if (command is AnalysisCommand) {
     return new AnalysisCommandOutput(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  } else if (command is CompareAnalyzerCfeCommand) {
+    return new CompareAnalyzerCfeCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is SpecParseCommand) {
     return new SpecParseCommandOutput(

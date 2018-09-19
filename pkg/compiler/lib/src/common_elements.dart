@@ -1098,9 +1098,10 @@ class CommonElements {
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');
 
-  FunctionEntity _extractTypeArguments;
-  FunctionEntity get extractTypeArguments => _extractTypeArguments ??=
-      _findLibraryMember(internalLibrary, 'extractTypeArguments');
+  bool isExtractTypeArguments(FunctionEntity member) {
+    return member.name == 'extractTypeArguments' &&
+        member.library == internalLibrary;
+  }
 
   FunctionEntity get toStringForNativeObject =>
       _findHelperFunction('toStringForNativeObject');
@@ -1479,6 +1480,10 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is an unnamed mixin application.
   bool isUnnamedMixinApplication(ClassEntity cls);
+
+  /// Returns `true` if [cls] is a mixin application that mixes in methods with
+  /// super calls.
+  bool isSuperMixinApplication(ClassEntity cls);
 
   /// Returns the 'effective' mixin class if [cls] is a mixin application, and
   /// `null` otherwise.

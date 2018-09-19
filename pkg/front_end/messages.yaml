@@ -32,6 +32,14 @@
 #
 # Long term, the analyzer and front-end need to share the same error codes. So
 # eventually all error codes should have an `analyzerCode` field.
+# Any error code with an `index` field and an `analyzerCode` field
+# will be auto generated as an Analyzer error code.
+# `index` field values should be unique, consecutive whole numbers starting with 1.
+# If `index` is defined, then `analyzerCode` should be the fully formed
+# name of the corresponding public Analyzer error const
+# (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
+# which will be used when generating code in Analyzer for translating
+# fasta error codes to Analyzer error codes.
 #
 # In some cases a mesage is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.
@@ -120,6 +128,15 @@ ConstEvalNonConstantVariableGet:
   template: "The variable '#string' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
 
+ConstEvalDeferredLibrary:
+  template: >
+    '#name' can't be used in a constant expression because it's marked as
+    'deferred' which means it isn't available until loaded.
+  tip: >
+    Try moving the constant from the deferred library, or removing 'deferred'
+    from the import.
+  analyzerCode: NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
@@ -186,8 +203,9 @@ ExpectedBody:
   script: "main();"
 
 ExpectedStatement:
+  index: 29
   template: "Expected a statement."
-  analyzerCode: MISSING_STATEMENT
+  analyzerCode: ParserErrorCode.MISSING_STATEMENT
   statement: "void;"
 
 ExpectedButGot:
@@ -227,33 +245,31 @@ ExpectedAfterButGot:
     - "main() { return true }"
 
 MultipleLibraryDirectives:
+  index: 27
   template: "Only one library directive may be declared in a file."
   tip: "Try removing all but one of the library directives."
-  analyzerCode: MULTIPLE_LIBRARY_DIRECTIVES
+  analyzerCode: ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES
 
 MultipleExtends:
+  index: 28
   template: "Each class definition can have at most one extends clause."
   tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
-  analyzerCode: MULTIPLE_EXTENDS_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES
   script: "class A extends B extends C {}"
 
 MultipleWith:
+  index: 24
   template: "Each class definition can have at most one with clause."
   tip: "Try combining all of the with clauses into a single clause."
-  analyzerCode: MULTIPLE_WITH_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_WITH_CLAUSES
   script: "class A extends B with C, D with E {}"
 
-WithWithoutExtends:
-  template: "The with clause can't be used without an extends clause."
-  tip: "Try adding an extends clause such as 'extends Object'."
-  analyzerCode: WITH_WITHOUT_EXTENDS
-  script: "class A with B, C {}"
-
 WithBeforeExtends:
+  index: 11
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."
-  analyzerCode: WITH_BEFORE_EXTENDS
-  script: "class A with B extends C {}"
+  analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
+  script: "class B {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   template: "The extends clause must be before the implements clause."
@@ -299,9 +315,10 @@ MultipleImplements:
   script: "class A implements B implements C, D {}"
 
 MultipleOnClauses:
+  index: 26
   template: "Each mixin definition can have at most one on clause."
   tip: "Try combining all of the on clauses into a single clause."
-  analyzerCode: MULTIPLE_ON_CLAUSES
+  analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
 ImplementsFutureOr:
@@ -344,9 +361,10 @@ ExpectedIdentifier:
   script: "do() {} main() {}"
 
 EqualityCannotBeEqualityOperand:
+  index: 1
   template: "An equality expression can't be an operand of another equality expression."
   tip: "Try re-writing the expression."
-  analyzerCode: EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  analyzerCode: ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
   script:
     - "main() { var b = a < b < c; }"
     - "main() { var b = a == b != c; }"
@@ -416,9 +434,10 @@ EnumInClass:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
 TypedefInClass:
+  index: 7
   template: "Typedefs can't be declared inside classes."
   tip: "Try moving the typedef to the top-level."
-  analyzerCode: TYPEDEF_IN_CLASS
+  analyzerCode: ParserErrorCode.TYPEDEF_IN_CLASS
   script:
     - "abstract class C { typedef int F(int x); }"
 
@@ -431,9 +450,10 @@ CovariantMember:
     - "covariant int m() => 0;"
 
 VarReturnType:
+  index: 12
   template: "The return type can't be 'var'."
   tip: "Try removing the keyword 'var', or replacing it with the name of the return type."
-  analyzerCode: VAR_RETURN_TYPE
+  analyzerCode: ParserErrorCode.VAR_RETURN_TYPE
   script:
     - "class C { var m() {} }"
     - "class C { var C() {} }"
@@ -527,9 +547,10 @@ CovariantAfterFinal:
     - "final covariant f;"
 
 CovariantAfterVar:
+  index: 8
   template: "The modifier 'covariant' should be before the modifier 'var'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: COVARIANT_AFTER_VAR
+  analyzerCode: ParserErrorCode.COVARIANT_AFTER_VAR
   script:
     - "var covariant f;"
 
@@ -682,38 +703,43 @@ FinalAndVar:
     - "class C { var final x = 5; }"
 
 StaticAfterConst:
+  index: 20
   template: "The modifier 'static' should be before the modifier 'const'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_CONST
+  analyzerCode: ParserErrorCode.STATIC_AFTER_CONST
   script:
     - "class C { const static int f; }"
 
 StaticAfterFinal:
+  index: 19
   template: "The modifier 'static' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_FINAL
+  analyzerCode: ParserErrorCode.STATIC_AFTER_FINAL
   script:
     - "class C { final static int f = 5; }"
 
 StaticAfterVar:
+  index: 18
   template: "The modifier 'static' should be before the modifier 'var'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: STATIC_AFTER_VAR
+  analyzerCode: ParserErrorCode.STATIC_AFTER_VAR
   script:
     - "class C { var static f; }"
 
 StaticConstructor:
+  index: 4
   template: "Constructors can't be static."
   tip: "Try removing the keyword 'static'."
-  analyzerCode: STATIC_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.STATIC_CONSTRUCTOR
   script:
     - "class C { static C() {} }"
     - "class C { static C.m() {} }"
 
 StaticOperator:
+  index: 17
   template: "Operators can't be static."
   tip: "Try removing the keyword 'static'."
-  analyzerCode: STATIC_OPERATOR
+  analyzerCode: ParserErrorCode.STATIC_OPERATOR
   script:
     - "class C { static operator +(int x) => x + 1; }"
 
@@ -732,9 +758,10 @@ BreakTargetOutsideFunction:
   analyzerCode: LABEL_IN_OUTER_SCOPE
 
 ContinueOutsideOfLoop:
+  index: 2
   template: "A continue statement can't be used outside of a loop or switch statement."
   tip: "Try removing the continue statement."
-  analyzerCode: CONTINUE_OUTSIDE_OF_LOOP
+  analyzerCode: ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
   script:
     - "main() { continue; }"
 
@@ -778,9 +805,10 @@ InitializedVariableInForEach:
     - "for (int a = 0 in <int>[10]) {}"
 
 InvalidAwaitFor:
+  index: 9
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
   tip: "Try removing the keyword, or use a for-each statement."
-  analyzerCode: INVALID_AWAIT_IN_FOR
+  analyzerCode: ParserErrorCode.INVALID_AWAIT_IN_FOR
   script:
     - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
@@ -793,7 +821,7 @@ InvalidSyncModifier:
 InvalidVoid:
   template: "Type 'void' can't be used here because it isn't a return type."
   tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
-  analyzerCode: INVALID_USE_OF_VOID
+  analyzerCode: EXPECTED_TYPE_NAME
   script:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
@@ -869,14 +897,14 @@ InvalidCodePoint:
     - "'\\u{110000}'"
 
 InvalidHexEscape:
-  template: "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits."
+  template: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
   analyzerCode: INVALID_HEX_ESCAPE
   expression:
     - "'\\x0'"
     - "'\\x0y'"
 
 InvalidUnicodeEscape:
-  template: "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'."
+  template: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
   analyzerCode: INVALID_UNICODE_ESCAPE
   expression:
     - "'\\u'"
@@ -1032,8 +1060,9 @@ GeneratorReturnsValue:
   analyzerCode: RETURN_IN_GENERATOR
 
 InvalidInlineFunctionType:
-  template: "Invalid inline function type."
+  template: "Inline function types cannot be used for parameters in a generic function type."
   tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
+  analyzerCode: INVALID_INLINE_FUNCTION_TYPE
   declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:
@@ -1104,6 +1133,13 @@ CatchSyntax:
     - "try {} catch {}"
     - "try {} catch () {}"
     - "try {} catch (e,) {}"
+
+CatchSyntaxExtraParameters:
+  template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
+  tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: CATCH_SYNTAX
+  statement:
+    - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
   template: "'super' can't be null."
@@ -1394,9 +1430,10 @@ NamedFunctionExpression:
   analyzerCode: NAMED_FUNCTION_EXPRESSION
 
 NativeClauseShouldBeAnnotation:
+  index: 23
   template: "Native clause in this form is deprecated."
   tip: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
-  analyzerCode: NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
+  analyzerCode: ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
 
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
@@ -1502,9 +1539,10 @@ ImportHidesImport:
   severity: IGNORED
 
 MissingPrefixInDeferredImport:
+  index: 30
   template: "Deferred imports should have a prefix."
   tip: "Try adding a prefix to the import."
-  analyzerCode: MISSING_PREFIX_IN_DEFERRED_IMPORT
+  analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
 
 DeferredAfterPrefix:
   template: "The deferred keyword should come immediately before the prefix ('as' clause)."
@@ -1528,9 +1566,10 @@ DuplicatePrefix:
   analyzerCode: DUPLICATE_PREFIX
 
 PrefixAfterCombinator:
+  index: 6
   template: "The prefix ('as' clause) should come before any show/hide combinators."
   tip: "Try moving the prefix before the combinators."
-  analyzerCode: PREFIX_AFTER_COMBINATOR
+  analyzerCode: ParserErrorCode.PREFIX_AFTER_COMBINATOR
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
@@ -1737,11 +1776,11 @@ OverrideTypeVariablesMismatch:
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
 OverriddenMethodCause:
-  template: "This is the overriden method ('#name')."
+  template: "This is the overridden method ('#name')."
   severity: CONTEXT
 
 OverrideMismatchNamedParameter:
-  template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
+  template: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_NAMED
 
@@ -1802,16 +1841,18 @@ EnumDeclarationEmpty:
     - "enum E {}"
 
 ExternalClass:
+  index: 3
   template: "Classes can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CLASS
+  analyzerCode: ParserErrorCode.EXTERNAL_CLASS
   script:
     - "external class C {}"
 
 ExternalEnum:
+  index: 5
   template: "Enums can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_ENUM
+  analyzerCode: ParserErrorCode.EXTERNAL_ENUM
   script:
     - "external enum E {ONE}"
 
@@ -1852,9 +1893,10 @@ LibraryDirectiveNotFirst:
     - "part 'a.dart'; library l;"
 
 ImportAfterPart:
+  index: 10
   template: "Import directives must preceed part directives."
   tip: "Try moving the import directives before the part directives."
-  analyzerCode: IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
     - "part 'foo.dart'; import 'bar.dart';"
 
@@ -1881,11 +1923,18 @@ NonPartOfDirectiveInPart:
     - "part of l; part 'f.dart';"
 
 PartOfTwice:
+  index: 25
   template: "Only one part-of directive may be declared in a file."
   tip: "Try removing all but one of the part-of directives."
-  analyzerCode: MULTIPLE_PART_OF_DIRECTIVES
+  analyzerCode: ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES
   script:
-    - "part of l; part of m;"
+    main.dart: |
+      part "part.dart";
+      main() {}
+    other.dart: ""
+    part.dart: |
+      part of "other.dart";
+      part of "main.dart";
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
@@ -1915,16 +1964,18 @@ FactoryTopLevelDeclaration:
     - "factory class C {}"
 
 RedirectionInNonFactory:
+  index: 21
   template: "Only factory constructor can specify '=' redirection."
   tip: "Try making this a factory constructor, or remove the redirection."
-  analyzerCode: REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
   script:
     - "class C { C() = D; }"
 
 TopLevelOperator:
+  index: 14
   template: "Operators must be declared within a class."
   tip: "Try removing the operator, moving it to a class, or converting it to be a function."
-  analyzerCode: TOP_LEVEL_OPERATOR
+  analyzerCode: ParserErrorCode.TOP_LEVEL_OPERATOR
   script:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"
@@ -1963,8 +2014,60 @@ PartOfInLibrary:
   tip: "Try removing the 'part of' declaration, or using '#uri' as a part."
   analyzerCode: IMPORT_OF_NON_LIBRARY
   script:
-    part.dart: "part of mainlib;"
-    main.dart: "library mainlib; import 'part.dart';"
+    main.dart: |
+      import "part.dart";
+      import "lib.dart";
+      main() {}
+
+    part.dart: |
+      part of "lib.dart";
+
+    lib.dart: |
+      part "part.dart";
+
+PartInPart:
+  template: "A file that's a part of a library can't have parts itself."
+  tip: "Try moving the 'part' declaration to the containing library."
+  analyzerCode: NON_PART_OF_DIRECTIVE_IN_PART
+  script:
+    main.dart: |
+      part "part.dart";
+      main() {}
+
+    part.dart: |
+      part of "main.dart";
+      part "part_part.dart";
+
+    part_part.dart: |
+      part of "part.dart";
+
+PartInPartLibraryContext:
+  template: "This is the containing library."
+  severity: CONTEXT
+
+PartOrphan:
+  template: "This part doesn't have a containing library."
+  tip: "Try removing the 'part of' declaration."
+  script: "part of none; main() {}"
+
+PartExport:
+  template: "Can't export this file because it contains a 'part of' declaration."
+  analyzerCode: EXPORT_OF_NON_LIBRARY
+  script:
+    main.dart: |
+      export "part.dart";
+      import "lib.dart";
+      main() {}
+
+    part.dart: |
+      part of "lib.dart";
+
+    lib.dart: |
+      part "part.dart";
+
+PartExportContext:
+  template: "This is the file that can't be exported."
+  severity: CONTEXT
 
 SupertypeIsFunction:
   template: "Can't use a function type as supertype."
@@ -1978,10 +2081,11 @@ DeferredPrefixDuplicatedCause:
   severity: CONTEXT
 
 TypeArgumentsOnTypeVariable:
+  index: 13
   template: "Can't use type arguments with type variable '#name'."
   tip: "Try removing the type arguments."
   severity: ERROR_LEGACY_WARNING
-  analyzerCode: TYPE_ARGUMENTS_ON_TYPE_VARIABLE
+  analyzerCode: ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE
   script:
     - "dynamic<T>(x) => 0"
 
@@ -2137,16 +2241,18 @@ SwitchExpressionNotAssignableCause:
   severity: CONTEXT
 
 SwitchHasCaseAfterDefault:
+  index: 16
   template: "The default case should be the last case in a switch statement."
   tip: "Try moving the default case after the other case clauses."
-  analyzerCode: SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
+  analyzerCode: ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
 
 SwitchHasMultipleDefaults:
+  index: 15
   template: "The 'default' case can only be declared once."
   tip: "Try removing all but one default case."
-  analyzerCode: SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+  analyzerCode: ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
 
@@ -2168,6 +2274,37 @@ TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  declaration:
+    - |
+      class C<T> {
+        static List<T> staticMethod() {}
+      }
+    - |
+      class C<T> {
+        static T staticMethod() {}
+      }
+    - |
+      class C<T> {
+        static staticMethod(List<T> argument) {}
+      }
+    - |
+      class C<T> {
+        static staticMethod(T argument) {}
+      }
+    - |
+      class C<T> {
+        static staticMethod() {
+          List<T> t = null;
+          return t;
+        }
+      }
+    - |
+      class C<T> {
+        static staticMethod() {
+          T t = null;
+          return t;
+        }
+      }
 
 TypeVariableInConstantContext:
   template: "Type variables can't be used as constants."
@@ -2256,9 +2393,10 @@ MissingAssignmentInInitializer:
     - "class C { C() : x(3) {} }"
 
 RedirectingConstructorWithBody:
+  index: 22
   template: "Redirecting constructors can't have a body."
   tip: "Try removing the body, or not making this a redirecting constructor."
-  analyzerCode: REDIRECTING_CONSTRUCTOR_WITH_BODY
+  analyzerCode: ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY
   script:
     - "class C { C() : this.x() {} }"
 
@@ -2286,9 +2424,6 @@ MissingAssignableSelector:
   analyzerCode: MISSING_ASSIGNABLE_SELECTOR
   script:
     - "main(){ ++f(); }"
-
-CannotReadPackagesFile:
-  template: "Unable to read '.packages' file:\n  #string."
 
 CannotReadSdkSpecification:
   template: "Unable to read the 'libraries.json' specification file:\n  #string."
@@ -2698,3 +2833,26 @@ DefaultValueInRedirectingFactoryConstructor:
         factory A.f({int x = 42}) = A.g;
         A.g() {}
       }
+
+UntranslatableUri:
+  template: "Not found: '#uri'"
+  analyzerCode: URI_DOES_NOT_EXIST
+  script: |
+    import "dart:non_existing_library";
+
+    main() {
+    }
+
+CantReadFile:
+  template: "Error when reading '#uri': #string"
+  analyzerCode: URI_DOES_NOT_EXIST
+  external: test/packages_format_error_test.dart
+  script: |
+    import "non_existing_file.dart";
+
+    main() {
+    }
+
+PackagesFileFormat:
+  template: "Problem in packages configuration file: #string"
+  external: test/packages_format_error_test.dart

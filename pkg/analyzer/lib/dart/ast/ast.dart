@@ -1184,7 +1184,7 @@ abstract class CatchClause extends AstNode {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ClassDeclaration extends NamedCompilationUnitMember {
+abstract class ClassDeclaration extends ClassOrMixinDeclaration {
   /**
    * Return the 'abstract' keyword, or `null` if the keyword was absent.
    */
@@ -1205,9 +1205,6 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
    */
   void set classKeyword(Token token);
 
-  @override
-  ClassElement get declaredElement;
-
   @deprecated
   @override
   ClassElement get element;
@@ -1224,12 +1221,6 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
   void set extendsClause(ExtendsClause extendsClause);
 
   /**
-   * Return the implements clause for the class, or `null` if the class does not
-   * implement any interfaces.
-   */
-  ImplementsClause get implementsClause;
-
-  /**
    * Set the implements clause for the class to the given [implementsClause].
    */
   void set implementsClause(ImplementsClause implementsClause);
@@ -1240,19 +1231,9 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
   bool get isAbstract;
 
   /**
-   * Return the left curly bracket.
-   */
-  Token get leftBracket;
-
-  /**
    * Set the left curly bracket to the given [token].
    */
   void set leftBracket(Token token);
-
-  /**
-   * Return the members defined by the class.
-   */
-  NodeList<ClassMember> get members;
 
   /**
    * Return the native clause for this class, or `null` if the class does not
@@ -1266,20 +1247,9 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
   void set nativeClause(NativeClause nativeClause);
 
   /**
-   * Return the right curly bracket.
-   */
-  Token get rightBracket;
-
-  /**
    * Set the right curly bracket to the given [token].
    */
   void set rightBracket(Token token);
-
-  /**
-   * Return the type parameters for the class, or `null` if the class does not
-   * have any type parameters.
-   */
-  TypeParameterList get typeParameters;
 
   /**
    * Set the type parameters for the class to the given list of [typeParameters].
@@ -1303,18 +1273,6 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
    * default constructor will be searched for.
    */
   ConstructorDeclaration getConstructor(String name);
-
-  /**
-   * Return the field declared in the class with the given [name], or `null` if
-   * there is no such field.
-   */
-  VariableDeclaration getField(String name);
-
-  /**
-   * Return the method declared in the class with the given [name], or `null` if
-   * there is no such method.
-   */
-  MethodDeclaration getMethod(String name);
 }
 
 /**
@@ -1323,6 +1281,53 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class ClassMember extends Declaration {}
+
+/**
+ * The declaration of a class or mixin.
+ */
+abstract class ClassOrMixinDeclaration extends NamedCompilationUnitMember {
+  @override
+  ClassElement get declaredElement;
+
+  /**
+   * Returns the implements clause for the class/mixin, or `null` if the
+   * class/mixin does not implement any interfaces.
+   */
+  ImplementsClause get implementsClause;
+
+  /**
+   * Returns the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Returns the members defined by the class/mixin.
+   */
+  NodeList<ClassMember> get members;
+
+  /**
+   * Returns the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Returns the type parameters for the class/mixin, or `null` if the
+   * class/mixin does not have any type parameters.
+   */
+  TypeParameterList get typeParameters;
+
+  /**
+   * Returns the field declared in the class/mixin with the given [name], or
+   * `null` if there is no such field.
+   */
+  VariableDeclaration getField(String name);
+
+  /**
+   * Returns the method declared in the class/mixin with the given [name], or
+   * `null` if there is no such method.
+   */
+  MethodDeclaration getMethod(String name);
+}
 
 /**
  * A class type alias.
@@ -5184,26 +5189,7 @@ abstract class MethodReferenceExpression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MixinDeclaration extends NamedCompilationUnitMember {
-  @override
-  ClassElement get declaredElement;
-
-  /**
-   * Return the implements clause for the mixin, or `null` if the mixin does not
-   * implement any interfaces.
-   */
-  ImplementsClause get implementsClause;
-
-  /**
-   * Return the left curly bracket.
-   */
-  Token get leftBracket;
-
-  /**
-   * Return the members defined by the mixin.
-   */
-  NodeList<ClassMember> get members;
-
+abstract class MixinDeclaration extends ClassOrMixinDeclaration {
   /**
    * Return the token representing the 'mixin' keyword.
    */
@@ -5214,29 +5200,6 @@ abstract class MixinDeclaration extends NamedCompilationUnitMember {
    * any superclass constraints.
    */
   OnClause get onClause;
-
-  /**
-   * Return the right curly bracket.
-   */
-  Token get rightBracket;
-
-  /**
-   * Return the type parameters for the mixin, or `null` if the mixin does not
-   * have any type parameters.
-   */
-  TypeParameterList get typeParameters;
-
-  /**
-   * Return the field declared in the mixin with the given [name], or `null` if
-   * there is no such field.
-   */
-  VariableDeclaration getField(String name);
-
-  /**
-   * Return the method declared in the mixin with the given [name], or `null` if
-   * there is no such method.
-   */
-  MethodDeclaration getMethod(String name);
 }
 
 /**

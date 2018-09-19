@@ -4129,6 +4129,146 @@ class B extends A {
 ''');
   }
 
+  test_createMixin() async {
+    await resolveTestUnit('''
+main() {
+  Test v = null;
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+main() {
+  Test v = null;
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createMixin_BAD_hasUnresolvedPrefix() async {
+    await resolveTestUnit('''
+main() {
+  prefix.Test v = null;
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_BAD_instanceCreation_withNew() async {
+    await resolveTestUnit('''
+main() {
+  new Test();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_BAD_instanceCreation_withoutNew() async {
+    await resolveTestUnit('''
+main() {
+  Test();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_MIXIN);
+  }
+
+  test_createMixin_inLibraryOfPrefix() async {
+    String libCode = r'''
+library my.lib;
+
+class A {}
+''';
+    addSource('/project/lib.dart', libCode);
+    await resolveTestUnit('''
+import 'lib.dart' as lib;
+
+main() {
+  lib.A a = null;
+  lib.Test t = null;
+}
+''');
+    AnalysisError error = await _findErrorToFix();
+    fix = await _assertHasFix(DartFixKind.CREATE_MIXIN, error);
+    change = fix.change;
+    // apply to "lib.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/project/lib.dart'));
+    expect(SourceEdit.applySequence(libCode, fileEdit.edits), r'''
+library my.lib;
+
+class A {}
+
+mixin Test {
+}
+''');
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
+  test_createMixin_innerLocalFunction() async {
+    await resolveTestUnit('''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createMixin_itemOfList() async {
+    await resolveTestUnit('''
+main() {
+  var a = [Test];
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+main() {
+  var a = [Test];
+}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test];', 'Test {']);
+  }
+
+  test_createMixin_itemOfList_inAnnotation() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    await resolveTestUnit('''
+class MyAnnotation {
+  const MyAnnotation(a, b);
+}
+@MyAnnotation(int, const [Test])
+main() {}
+''');
+    await assertHasFix(DartFixKind.CREATE_MIXIN, '''
+class MyAnnotation {
+  const MyAnnotation(a, b);
+}
+@MyAnnotation(int, const [Test])
+main() {}
+
+mixin Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
+  }
+
   test_createNoSuchMethod_BAD_classTypeAlias() async {
     await resolveTestUnit('''
 abstract class A {
@@ -5185,6 +5325,51 @@ main() {
   Stream s = null;
   Future f = null;
 }
+''');
+  }
+
+  test_impreciseIntAsDouble() async {
+    await resolveTestUnit('''
+double x = 1000000000000000000000000;
+''');
+    await assertHasFix(DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE, '''
+double x = 999999999999999983222784;
+''');
+  }
+
+  test_impreciseIntAsDouble_asCapitalHex() async {
+    await resolveTestUnit('''
+double x = 0X1000000000000000000000001;
+''');
+    await assertHasFix(DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE, '''
+double x = 0x1000000000000000000000000;
+''');
+  }
+
+  test_impreciseIntAsDouble_asHex() async {
+    await resolveTestUnit('''
+double x = 0x1000000000000000000000001;
+''');
+    await assertHasFix(DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE, '''
+double x = 0x1000000000000000000000000;
+''');
+  }
+
+  test_impreciseIntAsDouble_maxValue() async {
+    await resolveTestUnit('''
+double x = 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+''');
+    await assertHasFix(DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE, '''
+double x = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368;
+''');
+  }
+
+  test_impreciseIntAsDouble_maxValue_asHex() async {
+    await resolveTestUnit('''
+double x = 0x100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+''');
+    await assertHasFix(DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE, '''
+double x = 0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
 ''');
   }
 

@@ -213,17 +213,19 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       ExpressionGeneratorHelper helper, Token token, this.member, this.message)
       : super(helper, token, null);
 
+  String get plainNameForRead => token.lexeme;
+
   String get debugName => "IncompleteErrorGenerator";
 
   @override
-  Expression buildError(Arguments arguments,
+  SyntheticExpressionJudgment buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     int length = noLength;
     if (offset == null) {
       offset = offsetForToken(token);
       length = lengthForToken(token);
     }
-    return helper.buildProblem(message, offset, length).desugared;
+    return helper.buildProblem(message, offset, length);
   }
 
   @override
@@ -231,8 +233,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
 
   @override
   Expression buildSimpleRead() {
-    var error = buildError(forest.argumentsEmpty(token), isGetter: true);
-    return new InvalidPropertyGetJudgment(error, member)
+    return buildError(forest.argumentsEmpty(token), isGetter: true)
       ..fileOffset = offsetForToken(token);
   }
 

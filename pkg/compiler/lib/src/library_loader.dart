@@ -41,6 +41,8 @@ class LibraryLoaderTask extends CompilerTask {
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
+  String get name => 'Library loader';
+
   /// Loads an entire Kernel [Component] from a file on disk.
   Future<LoadedLibraries> loadLibraries(Uri resolvedUri) {
     return measure(() async {
@@ -54,7 +56,7 @@ class LibraryLoaderTask extends CompilerTask {
       } else {
         String targetName =
             _options.compileForServer ? "dart2js_server" : "dart2js";
-        String platform = '${targetName}_platform_strong.dill';
+        String platform = '${targetName}_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             new Dart2jsTarget(targetName, new TargetFlags(strongMode: true)),

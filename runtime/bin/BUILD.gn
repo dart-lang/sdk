@@ -247,7 +247,6 @@ template("build_libdart_builtin") {
   static_library(target_name) {
     configs += [
                  "..:dart_arch_config",
-                 "..:dart_maybe_interpreter_config",
                  "..:dart_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -408,7 +407,6 @@ template("build_gen_snapshot") {
 
 build_gen_snapshot("gen_snapshot") {
   extra_configs = [
-    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
     "..:dart_os_config",
   ]
@@ -421,7 +419,6 @@ build_gen_snapshot("gen_snapshot") {
 
 build_gen_snapshot("gen_snapshot_product") {
   extra_configs = [
-    "..:dart_maybe_interpreter_config",
     "..:dart_product_config",
     "..:dart_os_config",
   ]
@@ -434,7 +431,6 @@ build_gen_snapshot("gen_snapshot_product") {
 
 build_gen_snapshot("gen_snapshot_fuchsia") {
   extra_configs = [
-    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
     "..:dart_os_fuchsia_config",
   ]
@@ -447,7 +443,6 @@ build_gen_snapshot("gen_snapshot_fuchsia") {
 
 build_gen_snapshot("gen_snapshot_product_fuchsia") {
   extra_configs = [
-    "..:dart_maybe_interpreter_config",
     "..:dart_product_config",
     "..:dart_os_fuchsia_config",
   ]
@@ -456,60 +451,6 @@ build_gen_snapshot("gen_snapshot_product_fuchsia") {
     ":libdart_builtin_product_fuchsia",
     "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
   ]
-}
-
-if (!is_win) {
-  build_gen_snapshot("gen_snapshot_interpreter") {
-    extra_configs = [
-      "..:dart_interpreter_config",
-      "..:dart_maybe_product_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = [
-      ":gen_snapshot_dart_io",
-      ":libdart_builtin",
-      "..:libdart_nosnapshot_with_precompiler_interpreter",
-    ]
-  }
-
-  build_gen_snapshot("gen_snapshot_product_interpreter") {
-    extra_configs = [
-      "..:dart_interpreter_config",
-      "..:dart_product_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = [
-      ":gen_snapshot_dart_io",
-      ":libdart_builtin",
-      "..:libdart_nosnapshot_with_precompiler_interpreter",
-    ]
-  }
-
-  build_gen_snapshot("gen_snapshot_interpreter_fuchsia") {
-    extra_configs = [
-      "..:dart_interpreter_config",
-      "..:dart_maybe_product_config",
-      "..:dart_os_fuchsia_config",
-    ]
-    extra_deps = [
-      ":gen_snapshot_dart_io_fuchsia",
-      ":libdart_builtin_fuchsia",
-      "..:libdart_nosnapshot_with_precompiler_interpreter_fuchsia",
-    ]
-  }
-
-  build_gen_snapshot("gen_snapshot_product_interpreter_fuchsia") {
-    extra_configs = [
-      "..:dart_interpreter_config",
-      "..:dart_product_config",
-      "..:dart_os_fuchsia_config",
-    ]
-    extra_deps = [
-      ":gen_snapshot_dart_io_product_fuchsia",
-      ":libdart_builtin_product_fuchsia",
-      "..:libdart_nosnapshot_with_precompiler_product_interpreter_fuchsia",
-    ]
-  }
 }
 
 # A source set for the implementation of 'dart:io' library
@@ -523,7 +464,6 @@ template("build_gen_snapshot_dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     deps = []
@@ -611,7 +551,6 @@ template("dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_maybe_interpreter_config",
                  "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -722,6 +661,13 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
   args = [
     "--deterministic",
+
+    # TODO(asiva) remove these flags once the core snapshot is switched to
+    # dart 2.
+    "--no-strong",
+    "--no-sync-async",
+    "--reify-generic-functions",
+
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
     "--vm_snapshot_instructions=" +
@@ -940,7 +886,6 @@ template("dart_executable") {
                  "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_os_config",
-                 "..:dart_maybe_interpreter_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -1186,7 +1131,6 @@ executable("run_vm_tests") {
     "..:dart_arch_config",
     "..:dart_config",
     "..:dart_os_config",
-    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
   ]
   if (is_fuchsia) {

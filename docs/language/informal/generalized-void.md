@@ -4,7 +4,7 @@
 
 **Version**: 0.10 (2018-07-10)
 
-**Status**: Under implementation.
+**Status**: Implemented.
 
 **This document** is a feature specification of the generalized support
 in Dart 2 for the type `void`.

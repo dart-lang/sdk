@@ -96,6 +96,7 @@ none:          Do not compile the Dart code.
 precompiler:   Compile into AOT snapshot before running the test.
 dart2js:       Compile to JavaScript using dart2js.
 dart2analyzer: Perform static analysis on Dart code using the analyzer.
+compareAnalyzerCfe: Compare analyzer and common front end representations.
 app_jit:       Compile the Dart code into an app snapshot.
 app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
 dartk:         Compile the Dart code into Kernel before running test.
@@ -259,6 +260,11 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool(
         'write_result_log',
         'Write test results to a "${TestUtils.resultLogFileName}" json file '
+        'located at the debug_output_directory.',
+        hide: true),
+    new _Option.bool(
+        'write_results',
+        'Write results to a "${TestUtils.resultsFileName}" json file '
         'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
@@ -669,6 +675,7 @@ compiler.''',
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
+                writeResults: data["write_results"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,

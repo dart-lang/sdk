@@ -4,7 +4,7 @@ Author: eernst@.
 
 Version: 0.3 (2018-04-05)
 
-Status: Under discussion.
+Status: Under implementation.
 
 **This document** is a Dart 2 feature specification of _generic function
 instantiation_, which is the feature that implicitly coerces a reference to

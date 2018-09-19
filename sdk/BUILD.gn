@@ -516,14 +516,10 @@ copy("copy_dart2js_dill_files") {
     ":copy_libraries",
     "../utils/compiler:compile_dart2js_platform",
     "../utils/compiler:compile_dart2js_server_platform",
-    "../utils/compiler:compile_dart2js_platform_strong",
-    "../utils/compiler:compile_dart2js_server_platform_strong",
   ]
   sources = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_server_platform.dill",
-    "$root_out_dir/dart2js_platform_strong.dill",
-    "$root_out_dir/dart2js_server_platform_strong.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",

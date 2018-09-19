@@ -21,6 +21,27 @@ class FindElement {
     fail('Not found class: $name');
   }
 
+  ConstructorElement constructor(String name, {String className}) {
+    assert(name != '');
+    ConstructorElement result;
+    for (var class_ in unitElement.types) {
+      if (className == null || class_.name == className) {
+        for (var constructor in class_.constructors) {
+          if (constructor.name == name) {
+            if (result != null) {
+              throw new StateError('Not constructor name: $name');
+            }
+            result = constructor;
+          }
+        }
+      }
+    }
+    if (result != null) {
+      return result;
+    }
+    fail('Not found constructor: $name');
+  }
+
   ClassElement enum_(String name) {
     for (var enum_ in unitElement.enums) {
       if (enum_.name == name) {
@@ -74,8 +95,11 @@ class FindElement {
     fail('Not found top-level function: $name');
   }
 
-  PropertyAccessorElement getter(String name) {
+  PropertyAccessorElement getter(String name, {String className}) {
     for (var class_ in unitElement.types) {
+      if (className != null && class_.name != className) {
+        continue;
+      }
       for (var accessor in class_.accessors) {
         if (accessor.isGetter && accessor.displayName == name) {
           return accessor;
@@ -125,13 +149,36 @@ class FindElement {
     return result;
   }
 
-  MethodElement method(String name) {
-    for (var type in unitElement.types) {
-      for (var method in type.methods) {
+  MethodElement method(String name, {String of}) {
+    MethodElement result;
+
+    void findIn(List<MethodElement> methods) {
+      for (var method in methods) {
         if (method.name == name) {
-          return method;
+          if (result != null) {
+            throw new StateError('Method name $name is not unique.');
+          }
+          result = method;
         }
       }
+    }
+
+    for (var class_ in unitElement.types) {
+      if (of != null && class_.name != of) {
+        continue;
+      }
+      findIn(class_.methods);
+    }
+
+    for (var mixin in unitElement.mixins) {
+      if (of != null && mixin.name != of) {
+        continue;
+      }
+      findIn(mixin.methods);
+    }
+
+    if (result != null) {
+      return result;
     }
     fail('Not found class method: $name');
   }
@@ -189,10 +236,10 @@ class FindElement {
     fail('Prefix not found: $name');
   }
 
-  PropertyAccessorElement setter(String name, {String inClass}) {
+  PropertyAccessorElement setter(String name, {String className}) {
     PropertyAccessorElement result;
     for (var class_ in unitElement.types) {
-      if (inClass != null && class_.name != inClass) {
+      if (className != null && class_.name != className) {
         continue;
       }
       for (var accessor in class_.accessors) {

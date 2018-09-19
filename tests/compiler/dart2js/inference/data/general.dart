@@ -424,7 +424,7 @@ testSwitch2() {
   return a;
 }
 
-/*element: testSwitch3:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*element: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -461,7 +461,7 @@ testSwitch5() {
   }
 }
 
-/*element: testContinue1:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*element: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;

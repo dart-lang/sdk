@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;

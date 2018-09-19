@@ -47,6 +47,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get objectType => typeProvider.objectType;
 
+  InterfaceType get stringType => typeProvider.stringType;
+
   TypeProvider get typeProvider =>
       result.unit.declaredElement.context.typeProvider;
 
@@ -77,11 +79,21 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(type, expected);
   }
 
-  void assertElementTypes(List<DartType> types, List<DartType> expected) {
-    expect(types, hasLength(expected.length));
-    for (var i = 0; i < types.length; ++i) {
-      assertElementType(types[i], expected[i]);
+  void assertElementTypeDynamic(DartType type) {
+    expect(type, isDynamicType);
+  }
+
+  void assertElementTypes(List<DartType> types, List<DartType> expected,
+      {bool ordered = false}) {
+    if (ordered) {
+      expect(types, expected);
+    } else {
+      expect(types, unorderedEquals(expected));
     }
+  }
+
+  void assertElementTypeString(DartType type, String expected) {
+    expect(type.toString(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
@@ -129,6 +141,50 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
+  void assertInstanceCreation(InstanceCreationExpression creation,
+      ClassElement expectedClassElement, String expectedType,
+      {String constructorName, PrefixElement expectedPrefix}) {
+    String expectedClassName = expectedClassElement.name;
+
+    ConstructorElement expectedConstructorElement;
+    if (constructorName != null) {
+      expectedConstructorElement =
+          expectedClassElement.getNamedConstructor(constructorName);
+      if (expectedConstructorElement == null) {
+        fail("No constructor '$constructorName' in class"
+            " '$expectedClassName'.");
+      }
+    } else {
+      expectedConstructorElement = expectedClassElement.unnamedConstructor;
+      if (expectedConstructorElement == null) {
+        fail("No unnamed constructor in class '$expectedClassName'.");
+      }
+    }
+
+    var actualConstructorElement = getNodeElement(creation);
+    if (actualConstructorElement is ConstructorMember) {
+      assertMember(creation, expectedType, expectedConstructorElement);
+    } else {
+      assertElement(creation, actualConstructorElement);
+    }
+
+    assertType(creation, expectedType);
+
+    var typeName = creation.constructorName.type;
+    assertTypeName(typeName, expectedClassElement, expectedType,
+        expectedPrefix: expectedPrefix);
+  }
+
+  void assertInvokeType(InvocationExpression node, String expected) {
+    DartType actual = node.staticInvokeType;
+    expect(actual?.toString(), expected);
+  }
+
+  void assertInvokeTypeDynamic(InvocationExpression node) {
+    DartType actual = node.staticInvokeType;
+    expect(actual, isDynamicType);
+  }
+
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
@@ -137,7 +193,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertNoTestErrors() {
-    expect(result.errors, isEmpty);
+    assertTestErrors(const <ErrorCode>[]);
   }
 
   void assertTestErrors(List<ErrorCode> expected) {
@@ -176,6 +232,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     if (expectedPrefix == null) {
       var name = node.name as SimpleIdentifier;
       assertElement(name, expectedElement);
+      // TODO(scheglov) Should this be null?
       assertType(name, expectedType);
     } else {
       var name = node.name as PrefixedIdentifier;
@@ -207,10 +264,14 @@ abstract class ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
       return node.staticElement;
+    } else if (node is MethodInvocation) {
+      return node.methodName.staticElement;
     } else if (node is PostfixExpression) {
       return node.staticElement;
     } else if (node is PrefixExpression) {
       return node.staticElement;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
@@ -224,6 +285,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     findNode = new FindNode(result.content, result.unit);
     findElement = new FindElement(result.unit);
   }
+
+  void setAnalysisOptions({bool enableSuperMixins});
 }
 
 class TestAnalysisResult {

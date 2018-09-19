@@ -97,7 +97,12 @@ abstract class SummaryTestCases implements SummaryBlackBoxTestStrategy {
       List<double> doubles: const <double>[],
       List<String> strings: const <String>[],
       List<_EntityRefValidator> referenceValidators:
-          const <_EntityRefValidator>[]}) {
+          const <_EntityRefValidator>[],
+      bool forTypeInferenceOnly: false}) {
+    if (forTypeInferenceOnly && !containsNonConstExprs) {
+      expect(constExpr, isNull);
+      return;
+    }
     expect(constExpr, isNotNull);
     expect(constExpr.isValidConst, isValidConst);
     expect(constExpr.operations, operators);
@@ -925,11 +930,13 @@ main() {
     }
     // The synthetic executables for both `x` and `y` have type `() => `Bottom`.
     // Verify that they both use the same reference to `Bottom`.
-    serializeLibraryText('int x = null; int y = null;');
+    serializeLibraryText('var x = throw null; var y = throw null;');
     EntityRef xInitializerReturnType =
         getTypeRefForSlot(findVariable('x').initializer.inferredReturnTypeSlot);
     EntityRef yInitializerReturnType =
         getTypeRefForSlot(findVariable('y').initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(xInitializerReturnType, null, '*bottom*');
+    checkLinkedTypeRef(yInitializerReturnType, null, '*bottom*');
     expect(xInitializerReturnType.reference, yInitializerReturnType.reference);
   }
 
@@ -1803,7 +1810,7 @@ class C<T> {
   test_constExpr_functionExpression() {
     UnlinkedVariable variable = serializeVariableText('''
 import 'dart:async';
-const v = (f) async => await f;
+var v = (f) async => await f;
 ''');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
@@ -1811,10 +1818,9 @@ const v = (f) async => await f;
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.await
         ],
-        strings: [
-          'f'
-        ],
-        ints: []);
+        strings: ['f'],
+        ints: [],
+        forTypeInferenceOnly: true);
   }
 
   test_constExpr_functionExpression_asArgument() {
@@ -2553,65 +2559,71 @@ const int v = p.a.length;
   test_constExpr_makeTypedList_functionType() {
     UnlinkedVariable variable =
         serializeVariableText('final v = <void Function(int)>[];');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.makeTypedList
-    ], ints: [
-      0 // Size of the list
-    ], referenceValidators: [
-      (EntityRef reference) {
-        expect(reference, new TypeMatcher<EntityRef>());
-        expect(reference.entityKind, EntityRefKind.genericFunctionType);
-        expect(reference.syntheticParams, hasLength(1));
-        {
-          final param = reference.syntheticParams[0];
-          expect(param.name, ''); // no name for generic type parameters
-          checkTypeRef(param.type, 'dart:core', 'int',
-              expectedKind: ReferenceKind.classOrEnum);
-        }
-        expect(reference.paramReference, 0);
-        expect(reference.typeParameters, hasLength(0));
-        // TODO(mfairhurst) check this references void
-        expect(reference.syntheticReturnType, isNotNull);
-      }
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedList],
+        ints: [
+          0 // Size of the list
+        ],
+        referenceValidators: [
+          (EntityRef reference) {
+            expect(reference, new TypeMatcher<EntityRef>());
+            expect(reference.entityKind, EntityRefKind.genericFunctionType);
+            expect(reference.syntheticParams, hasLength(1));
+            {
+              final param = reference.syntheticParams[0];
+              expect(param.name, ''); // no name for generic type parameters
+              checkTypeRef(param.type, 'dart:core', 'int',
+                  expectedKind: ReferenceKind.classOrEnum);
+            }
+            expect(reference.paramReference, 0);
+            expect(reference.typeParameters, hasLength(0));
+            // TODO(mfairhurst) check this references void
+            expect(reference.syntheticReturnType, isNotNull);
+          }
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_constExpr_makeTypedList_functionType_withTypeParameters() {
     UnlinkedVariable variable = serializeVariableText(
         'final v = <void Function<T>(Function<Q>(T, Q))>[];');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.makeTypedList
-    ], ints: [
-      0 // Size of the list
-    ], referenceValidators: [
-      (EntityRef reference) {
-        expect(reference, new TypeMatcher<EntityRef>());
-        expect(reference.entityKind, EntityRefKind.genericFunctionType);
-        expect(reference.syntheticParams, hasLength(1));
-        {
-          final param = reference.syntheticParams[0];
-          expect(param.type, new TypeMatcher<EntityRef>());
-          expect(param.type.entityKind, EntityRefKind.genericFunctionType);
-          expect(param.type.syntheticParams, hasLength(2));
-          {
-            final subparam = param.type.syntheticParams[0];
-            expect(subparam.name, ''); // no name for generic type parameters
-            expect(subparam.type, new TypeMatcher<EntityRef>());
-            expect(subparam.type.paramReference, 2);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedList],
+        ints: [
+          0 // Size of the list
+        ],
+        referenceValidators: [
+          (EntityRef reference) {
+            expect(reference, new TypeMatcher<EntityRef>());
+            expect(reference.entityKind, EntityRefKind.genericFunctionType);
+            expect(reference.syntheticParams, hasLength(1));
+            {
+              final param = reference.syntheticParams[0];
+              expect(param.type, new TypeMatcher<EntityRef>());
+              expect(param.type.entityKind, EntityRefKind.genericFunctionType);
+              expect(param.type.syntheticParams, hasLength(2));
+              {
+                final subparam = param.type.syntheticParams[0];
+                expect(
+                    subparam.name, ''); // no name for generic type parameters
+                expect(subparam.type, new TypeMatcher<EntityRef>());
+                expect(subparam.type.paramReference, 2);
+              }
+              {
+                final subparam = param.type.syntheticParams[1];
+                expect(
+                    subparam.name, ''); // no name for generic type parameters
+                expect(subparam.type, new TypeMatcher<EntityRef>());
+                expect(subparam.type.paramReference, 1);
+              }
+            }
+            expect(reference.paramReference, 0);
+            expect(reference.typeParameters, hasLength(1));
+            // TODO(mfairhurst) check this references void
+            expect(reference.syntheticReturnType, isNotNull);
           }
-          {
-            final subparam = param.type.syntheticParams[1];
-            expect(subparam.name, ''); // no name for generic type parameters
-            expect(subparam.type, new TypeMatcher<EntityRef>());
-            expect(subparam.type.paramReference, 1);
-          }
-        }
-        expect(reference.paramReference, 0);
-        expect(reference.typeParameters, hasLength(1));
-        // TODO(mfairhurst) check this references void
-        expect(reference.syntheticReturnType, isNotNull);
-      }
-    ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_constExpr_makeTypedMap() {
@@ -6101,13 +6113,8 @@ final v = (a.b.c.f[1] = 5);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToIndex,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
-        ints: [
-          5,
-          1
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
+        ints: [5, 1],
         strings: [],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'f',
@@ -6118,7 +6125,8 @@ final v = (a.b.c.f[1] = 5);
                     new _PrefixExpectation(
                         ReferenceKind.topLevelPropertyAccessor, 'a')
                   ])
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToIndex_ofIndexExpression() {
@@ -6153,19 +6161,14 @@ final v = (a.b[1].c[2].f[3] = 5);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToIndex,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           5,
           1,
           2,
           3,
         ],
-        strings: [
-          'c',
-          'f'
-        ],
+        strings: ['c', 'f'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'b',
                   expectedKind: ReferenceKind.unresolved,
@@ -6173,7 +6176,8 @@ final v = (a.b[1].c[2].f[3] = 5);
                     new _PrefixExpectation(
                         ReferenceKind.topLevelPropertyAccessor, 'a')
                   ])
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToIndex_ofTopLevelVariable() {
@@ -6189,9 +6193,7 @@ final v = (a[1] = 5);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToIndex,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           5,
           1,
@@ -6200,7 +6202,8 @@ final v = (a[1] = 5);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToProperty_ofInstanceCreation() {
@@ -6217,21 +6220,18 @@ final v = (new C().f = 5);
           UnlinkedExprOperation.invokeConstructor,
           UnlinkedExprOperation.assignToProperty,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           5,
           0,
           0,
         ],
-        strings: [
-          'f'
-        ],
+        strings: ['f'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToRef_classStaticField() {
@@ -6247,9 +6247,7 @@ final v = (C.f = 1);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToRef,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           1,
         ],
@@ -6260,7 +6258,8 @@ final v = (C.f = 1);
                   prefixExpectations: [
                     new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
                   ])
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToRef_fieldSequence() {
@@ -6283,9 +6282,7 @@ final v = (a.b.c.f = 1);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToRef,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           1,
         ],
@@ -6299,7 +6296,8 @@ final v = (a.b.c.f = 1);
                     new _PrefixExpectation(
                         ReferenceKind.topLevelPropertyAccessor, 'a')
                   ])
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToRef_postfixDecrement() {
@@ -6333,9 +6331,7 @@ final v = (a = 1);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToRef,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           1,
         ],
@@ -6343,7 +6339,8 @@ final v = (a = 1);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToRef_topLevelVariable_imported() {
@@ -6360,9 +6357,7 @@ final v = (a = 1);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToRef,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           1,
         ],
@@ -6370,7 +6365,8 @@ final v = (a = 1);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_assignToRef_topLevelVariable_imported_withPrefix() {
@@ -6387,9 +6383,7 @@ final v = (p.a = 1);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.assignToRef,
         ],
-        assignmentOperators: [
-          (UnlinkedExprAssignOperator.assign)
-        ],
+        assignmentOperators: [(UnlinkedExprAssignOperator.assign)],
         ints: [
           1,
         ],
@@ -6400,7 +6394,8 @@ final v = (p.a = 1);
                 expectedKind: ReferenceKind.topLevelPropertyAccessor,
                 expectedPrefix: 'p');
           }
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_cascadeSection_assignToIndex() {
@@ -6426,7 +6421,8 @@ final v = c.items..[1] = 2;
                     new _PrefixExpectation(
                         ReferenceKind.topLevelPropertyAccessor, 'c'),
                   ])
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_cascadeSection_assignToProperty() {
@@ -6443,15 +6439,13 @@ final v = new C()..f1 = 1..f2 += 2;
           UnlinkedExprOperation.invokeConstructor,
         ],
         assignmentOperators: [],
-        ints: [
-          0,
-          0
-        ],
+        ints: [0, 0],
         strings: [],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_cascadeSection_embedded() {
@@ -6483,7 +6477,8 @@ final v = new A()
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'A',
               expectedKind: ReferenceKind.classOrEnum),
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_cascadeSection_invokeMethod() {
@@ -6504,7 +6499,8 @@ final v = a..m(5).abs()..m(6);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor),
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_extractIndex_ofClassField() {
@@ -6522,18 +6518,13 @@ final v = new C().items[5];
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.extractIndex,
         ],
-        ints: [
-          0,
-          0,
-          5
-        ],
-        strings: [
-          'items'
-        ],
+        ints: [0, 0, 5],
+        strings: ['items'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_extractProperty_ofInvokeConstructor() {
@@ -6549,17 +6540,13 @@ final v = new C().f;
           UnlinkedExprOperation.invokeConstructor,
           UnlinkedExprOperation.extractProperty,
         ],
-        ints: [
-          0,
-          0
-        ],
-        strings: [
-          'f'
-        ],
+        ints: [0, 0],
+        strings: ['f'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpression_asArgument() {
@@ -6574,18 +6561,12 @@ foo(a, b) {}
           UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
-        ints: [
-          5,
-          0,
-          0,
-          0,
-          2,
-          0
-        ],
+        ints: [5, 0, 0, 0, 2, 0],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'foo',
               expectedKind: ReferenceKind.topLevelFunction)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpression_asArgument_multiple() {
@@ -6601,20 +6582,12 @@ foo(a, b, c) {}
           UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
-        ints: [
-          5,
-          0,
-          0,
-          0,
-          1,
-          0,
-          3,
-          0
-        ],
+        ints: [5, 0, 0, 0, 1, 0, 3, 0],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'foo',
               expectedKind: ReferenceKind.topLevelFunction)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpression_withBlockBody() {
@@ -6624,7 +6597,8 @@ final v = () { return 42; };
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [UnlinkedExprOperation.pushLocalFunctionReference],
-        ints: [0, 0]);
+        ints: [0, 0],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpression_withExpressionBody() {
@@ -6634,7 +6608,8 @@ final v = () => 42;
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [UnlinkedExprOperation.pushLocalFunctionReference],
-        ints: [0, 0]);
+        ints: [0, 0],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpressionInvocation_withBlockBody() {
@@ -6642,7 +6617,9 @@ final v = () => 42;
 final v = ((a, b) {return 42;})(1, 2);
 ''');
     assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false, operators: [UnlinkedExprOperation.pushNull]);
+        isValidConst: false,
+        operators: [UnlinkedExprOperation.pushNull],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_functionExpressionInvocation_withExpressionBody() {
@@ -6650,13 +6627,17 @@ final v = ((a, b) {return 42;})(1, 2);
 final v = ((a, b) => 42)(1, 2);
 ''');
     assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false, operators: [UnlinkedExprOperation.pushNull]);
+        isValidConst: false,
+        operators: [UnlinkedExprOperation.pushNull],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure() {
     UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt],
+        ints: [1],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_noTypeInferenceNeeded() {
@@ -6672,13 +6653,16 @@ final v = ((a, b) => 42)(1, 2);
     assertUnlinkedConst(
         variable.initializer.localFunctions[0].localFunctions[0].bodyExpr,
         operators: [UnlinkedExprOperation.pushParameter],
-        strings: ['x']);
+        strings: ['x'],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam() {
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        operators: [UnlinkedExprOperation.pushParameter], strings: ['x']);
+        operators: [UnlinkedExprOperation.pushParameter],
+        strings: ['x'],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_methodCall() {
@@ -6688,15 +6672,9 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.invokeMethod
         ],
-        strings: [
-          'x',
-          'f'
-        ],
-        ints: [
-          0,
-          0,
-          0
-        ]);
+        strings: ['x', 'f'],
+        ints: [0, 0, 0],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_methodCall_prefixed() {
@@ -6708,16 +6686,9 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.extractProperty,
           UnlinkedExprOperation.invokeMethod
         ],
-        strings: [
-          'x',
-          'y',
-          'f'
-        ],
-        ints: [
-          0,
-          0,
-          0
-        ]);
+        strings: ['x', 'y', 'f'],
+        ints: [0, 0, 0],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_outOfScope() {
@@ -6731,17 +6702,13 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.pushReference,
           UnlinkedExprOperation.conditional,
         ],
-        strings: [
-          'b'
-        ],
-        ints: [
-          0,
-          0
-        ],
+        strings: ['b'],
+        ints: [0, 0],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'x',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier() {
@@ -6751,10 +6718,8 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.extractProperty
         ],
-        strings: [
-          'x',
-          'y'
-        ]);
+        strings: ['x', 'y'],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier_assign() {
@@ -6767,13 +6732,9 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.assignToProperty
         ],
-        strings: [
-          'x',
-          'y'
-        ],
-        assignmentOperators: [
-          UnlinkedExprAssignOperator.assign
-        ]);
+        strings: ['x', 'y'],
+        assignmentOperators: [UnlinkedExprAssignOperator.assign],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier() {
@@ -6784,11 +6745,8 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.extractProperty,
           UnlinkedExprOperation.extractProperty
         ],
-        strings: [
-          'x',
-          'y',
-          'z'
-        ]);
+        strings: ['x', 'y', 'z'],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier_assign() {
@@ -6802,14 +6760,9 @@ final v = ((a, b) => 42)(1, 2);
           UnlinkedExprOperation.extractProperty,
           UnlinkedExprOperation.assignToProperty
         ],
-        strings: [
-          'x',
-          'y',
-          'z'
-        ],
-        assignmentOperators: [
-          UnlinkedExprAssignOperator.assign
-        ]);
+        strings: ['x', 'y', 'z'],
+        assignmentOperators: [UnlinkedExprAssignOperator.assign],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invalid_typeParameter_asPrefix() {
@@ -6838,25 +6791,13 @@ final v = new C().m(1, b: 2, c: 3);
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethod,
         ],
-        ints: [
-          0,
-          0,
-          1,
-          2,
-          3,
-          2,
-          1,
-          0
-        ],
-        strings: [
-          'b',
-          'c',
-          'm'
-        ],
+        ints: [0, 0, 1, 2, 3, 2, 1, 0],
+        strings: ['b', 'c', 'm'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invokeMethod_withTypeParameters() {
@@ -6872,21 +6813,14 @@ final v = new C().f<int, String>();
           UnlinkedExprOperation.invokeConstructor,
           UnlinkedExprOperation.invokeMethod
         ],
-        ints: [
-          0,
-          0,
-          0,
-          0,
-          2
-        ],
-        strings: [
-          'f'
-        ],
+        ints: [0, 0, 0, 0, 2],
+        strings: ['f'],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'C'),
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invokeMethodRef_instance() {
@@ -6903,26 +6837,25 @@ class C {
 A a = new A();
 final v = a.b.c.m(10, 20);
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.invokeMethodRef,
-    ], ints: [
-      10,
-      20,
-      0,
-      2,
-      0
-    ], strings: [], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, 'm',
-              expectedKind: ReferenceKind.unresolved,
-              prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.unresolved, 'c'),
-                new _PrefixExpectation(ReferenceKind.unresolved, 'b'),
-                new _PrefixExpectation(
-                    ReferenceKind.topLevelPropertyAccessor, 'a')
-              ])
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethodRef,
+        ],
+        ints: [10, 20, 0, 2, 0],
+        strings: [],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'm',
+                  expectedKind: ReferenceKind.unresolved,
+                  prefixExpectations: [
+                    new _PrefixExpectation(ReferenceKind.unresolved, 'c'),
+                    new _PrefixExpectation(ReferenceKind.unresolved, 'b'),
+                    new _PrefixExpectation(
+                        ReferenceKind.topLevelPropertyAccessor, 'a')
+                  ])
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invokeMethodRef_static_importedWithPrefix() {
@@ -6935,21 +6868,22 @@ class C {
 import 'a.dart' as p;
 final v = p.C.m();
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.invokeMethodRef,
-    ], ints: [
-      0,
-      0,
-      0
-    ], strings: [], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, 'm',
-              expectedKind: ReferenceKind.method,
-              prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
-                    absoluteUri: absUri('/a.dart')),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p')
-              ])
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.invokeMethodRef,
+        ],
+        ints: [0, 0, 0],
+        strings: [],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'm',
+                  expectedKind: ReferenceKind.method,
+                  prefixExpectations: [
+                    new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                        absoluteUri: absUri('/a.dart')),
+                    new _PrefixExpectation(ReferenceKind.prefix, 'p')
+                  ])
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invokeMethodRef_with_reference_arg() {
@@ -6958,19 +6892,19 @@ f(x) => null;
 final u = null;
 final v = f(u);
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushReference,
-      UnlinkedExprOperation.invokeMethodRef
-    ], ints: [
-      0,
-      1,
-      0
-    ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, 'u',
-          expectedKind: ReferenceKind.topLevelPropertyAccessor),
-      (EntityRef r) => checkTypeRef(r, null, 'f',
-          expectedKind: ReferenceKind.topLevelFunction)
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.invokeMethodRef
+        ],
+        ints: [0, 1, 0],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'u',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'f',
+              expectedKind: ReferenceKind.topLevelFunction)
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_invokeMethodRef_withTypeParameters() {
@@ -6978,102 +6912,98 @@ final v = f(u);
 f<T, U>() => null;
 final v = f<int, String>();
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.invokeMethodRef
-    ], ints: [
-      0,
-      0,
-      2
-    ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, 'f',
-          expectedKind: ReferenceKind.topLevelFunction, numTypeParameters: 2),
-      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
-      (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.invokeMethodRef],
+        ints: [0, 0, 2],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'f',
+              expectedKind: ReferenceKind.topLevelFunction,
+              numTypeParameters: 2),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_makeTypedList() {
     UnlinkedVariable variable =
         serializeVariableText('var v = <int>[11, 22, 33];');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.makeTypedList
-    ], ints: [
-      0
-    ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
-          expectedKind: ReferenceKind.classOrEnum)
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedList],
+        ints: [0],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_makeTypedMap() {
     UnlinkedVariable variable = serializeVariableText(
         'var v = <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.makeTypedMap
-    ], ints: [
-      0
-    ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
-          expectedKind: ReferenceKind.classOrEnum),
-      (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
-          expectedKind: ReferenceKind.classOrEnum)
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedMap],
+        ints: [0],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+              expectedKind: ReferenceKind.classOrEnum)
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_makeUntypedList() {
     UnlinkedVariable variable = serializeVariableText('var v = [11, 22, 33];');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.makeUntypedList
-    ], ints: [
-      11,
-      22,
-      33,
-      3
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [11, 22, 33, 3],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_makeUntypedMap() {
     UnlinkedVariable variable =
         serializeVariableText('var v = {11: "aaa", 22: "bbb", 33: "ccc"};');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushString,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushString,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushString,
-      UnlinkedExprOperation.makeUntypedMap
-    ], ints: [
-      11,
-      22,
-      33,
-      3
-    ], strings: [
-      'aaa',
-      'bbb',
-      'ccc'
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushString,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushString,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushString,
+          UnlinkedExprOperation.makeUntypedMap
+        ],
+        ints: [11, 22, 33, 3],
+        strings: ['aaa', 'bbb', 'ccc'],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_super() {
     UnlinkedVariable variable = serializeVariableText('''
 final v = super;
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushSuper,
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushSuper,
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_this() {
     UnlinkedVariable variable = serializeVariableText('''
 final v = this;
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushThis,
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushThis,
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_throwException() {
@@ -7088,10 +7018,8 @@ final v = throw 1 + 2;
           UnlinkedExprOperation.add,
           UnlinkedExprOperation.throwException,
         ],
-        ints: [
-          1,
-          2
-        ]);
+        ints: [1, 2],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_typeCast() {
@@ -7104,13 +7032,12 @@ final v = 42 as num;
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.typeCast,
         ],
-        ints: [
-          42
-        ],
+        ints: [42],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'num',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_expr_typeCheck() {
@@ -7123,13 +7050,12 @@ final v = 42 is num;
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.typeCheck,
         ],
-        ints: [
-          42
-        ],
+        ints: [42],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'num',
               expectedKind: ReferenceKind.classOrEnum)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   test_field() {
@@ -7317,14 +7243,22 @@ class C<T> {
   test_field_static_final_untyped() {
     UnlinkedVariable variable =
         serializeClassText('class C { static final x = 0; }').fields[0];
-    expect(variable.initializer.bodyExpr, isNotNull);
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
     expect(variable.inheritsCovariantSlot, 0);
   }
 
   test_field_untyped() {
     UnlinkedVariable variable =
         serializeClassText('class C { var x = 0; }').fields[0];
-    expect(variable.initializer.bodyExpr, isNotNull);
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
     expect(variable.inheritsCovariantSlot, isNot(0));
   }
 
@@ -7426,8 +7360,8 @@ get f => null;''';
     // The dependency on b.dart is implicit, so it should be placed at the end
     // of the dependency list, after a.dart, even though the code that refers
     // to b.dart comes before the code that refers to a.dart.
-    int aDep = checkHasDependency('a.dart', fullyLinked: false);
-    int bDep = checkHasDependency('b.dart', fullyLinked: true);
+    int aDep = checkHasDependency(absUri('/a.dart'), fullyLinked: false);
+    int bDep = checkHasDependency(absUri('/b.dart'), fullyLinked: true);
     expect(aDep, lessThan(bDep));
   }
 
@@ -7808,15 +7742,10 @@ class C<T> extends B<T> {
     }
     UnlinkedVariable v = serializeVariableText('''
 typedef void F(int g(String s));
-h(F f) => null;
-var v = h((y) {});
+F h() => null;
+var v = h();
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(1));
-    UnlinkedParam y = closure.parameters[0];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'F', expectedKind: ReferenceKind.typedef);
     expect(typeRef.implicitFunctionTypeIndices, isEmpty);
   }
@@ -7893,15 +7822,11 @@ var v = h((y) {});
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
-f(void g(int x, void h())) => null;
-var v = f((x, y) {});
+dynamic f(void g(int x, void h())) => null;
+T extract<T>(dynamic f2(void g2(int x2, T h2)) => null;
+var v = extract(f);
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(2));
-    UnlinkedParam y = closure.parameters[1];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'f',
         expectedKind: ReferenceKind.topLevelFunction);
     expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
@@ -7912,15 +7837,11 @@ var v = f((x, y) {});
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
-f({void g(int x, void h())}) => null;
-var v = f(g: (x, y) {});
+dynamic f({void g(int x, void h())}) => null;
+T extract<T>(dynamic f2({void g(int x2, T h2)})) => null;
+var v = extract(f);
 ''');
-    expect(v.initializer.localFunctions, hasLength(1));
-    UnlinkedExecutable closure = v.initializer.localFunctions[0];
-    expect(closure.parameters, hasLength(2));
-    UnlinkedParam y = closure.parameters[1];
-    expect(y.name, 'y');
-    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    EntityRef typeRef = getTypeRefForSlot(v.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'f',
         expectedKind: ReferenceKind.topLevelFunction);
     expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
@@ -7978,6 +7899,17 @@ var v = f(g: (x, y) {});
     // Check that x has inferred type `List<dynamic>`.
     checkLinkedTypeRef(type, 'dart:core', 'List',
         numTypeParameters: 1, numTypeArguments: 1);
+  }
+
+  test_inferred_type_undefined() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('var v = <Undefined>[];');
+    var typeRef = getTypeRefForSlot(v.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'List',
+        numTypeArguments: 1, numTypeParameters: 1);
+    checkLinkedDynamicTypeRef(typeRef.typeArguments[0]);
   }
 
   test_initializer_executable_with_bottom_return_type() {
@@ -8857,6 +8789,117 @@ mixin M on A, B implements C, D {}
     expect(mixin.interfaces, hasLength(2));
     checkTypeRef(mixin.interfaces[0], null, 'C');
     checkTypeRef(mixin.interfaces[1], null, 'D');
+  }
+
+  test_mixin_superInvokedNames_methodInvocation() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a();
+    super.b().c();
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a', 'b']));
+  }
+
+  test_mixin_superInvokedNames_operator_binary() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super + 1;
+    super - 2;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['+', '-']));
+  }
+
+  test_mixin_superInvokedNames_operator_index() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0];
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]']));
+  }
+
+  test_mixin_superInvokedNames_operator_index_indexEq() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0] += 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]', '[]=']));
+  }
+
+  test_mixin_superInvokedNames_operator_indexEq() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super[0] = 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['[]=']));
+  }
+
+  test_mixin_superInvokedNames_operator_prefix() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    ~super;
+    -super;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['~', 'unary-']));
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_get() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a;
+    super.b.c;
+
+    ~super.e;
+    -super.d;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a', 'b', 'd', 'e']));
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_get_set() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a++;
+    --super.b;
+    super.c += 1;
+  }
+}
+''');
+    expect(
+      mixin.superInvokedNames,
+      unorderedEquals(['a', 'b', 'c', 'a=', 'b=', 'c=']),
+    );
+  }
+
+  test_mixin_superInvokedNames_propertyAccess_set() {
+    UnlinkedClass mixin = serializeMixinText('''
+mixin M {
+  void x() {
+    super.a = 1;
+  }
+}
+''');
+    expect(mixin.superInvokedNames, unorderedEquals(['a=']));
   }
 
   test_mixin_typeParameters() {
@@ -9778,8 +9821,10 @@ var v;''';
   }
 
   test_variable_final_top_level_untyped() {
+    if (skipFullyLinkedData) return;
     UnlinkedVariable variable = serializeVariableText('final v = 0;');
-    expect(variable.initializer.bodyExpr, isNotNull);
+    var typeRef = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'int');
   }
 
   test_variable_implicit_dynamic() {
@@ -9923,19 +9968,14 @@ final v = $expr;
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.add,
         ],
-        assignmentOperators: [
-          expectedAssignOperator
-        ],
-        ints: [
-          1,
-          2,
-          3
-        ],
+        assignmentOperators: [expectedAssignOperator],
+        ints: [1, 2, 3],
         strings: [],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 
   void _assertCodeRange(CodeRange codeRange, int offset, int length) {
@@ -9975,17 +10015,14 @@ final v = $expr;
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.add,
         ],
-        assignmentOperators: [
-          expectedAssignmentOperator
-        ],
-        ints: [
-          2
-        ],
+        assignmentOperators: [expectedAssignmentOperator],
+        ints: [2],
         strings: [],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
-        ]);
+        ],
+        forTypeInferenceOnly: true);
   }
 }
 

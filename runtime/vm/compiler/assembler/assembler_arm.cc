@@ -1587,13 +1587,45 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 CanBeSmi can_be_smi,
                                 bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+
+#if defined(CONCURRENT_MARKING)
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+
+  str(value, dest);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  if (!lr_reserved) Push(LR);
+  ldrb(TMP, FieldAddress(object, Object::tags_offset()));
+  ldrb(LR, FieldAddress(value, Object::tags_offset()));
+  and_(TMP, LR, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  ldr(LR, Address(THR, Thread::write_barrier_mask_offset()));
+  tst(TMP, Operand(LR));
+  mov(TMP, Operand(value), NE);
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
+  blx(LR, NE);
+  if (!lr_reserved) Pop(LR);
+  Bind(&done);
+#else
   str(value, dest);
   // A store buffer update is required.
   if (lr_reserved) {
     StoreIntoObjectFilter(object, value, nullptr, can_be_smi, kNoJump);
-    ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)),
-        NE);
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
     blx(LR, NE);
   } else {
     Label done;
@@ -1607,11 +1639,12 @@ void Assembler::StoreIntoObject(Register object,
     if (object != R0) {
       mov(R0, Operand(object));
     }
-    ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     blx(LR);
     PopList(regs);
     Bind(&done);
   }
+#endif
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
@@ -2456,8 +2489,11 @@ void Assembler::Branch(const StubEntry& stub_entry,
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
-  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
-  bx(IP, cond);
+  Branch(FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
+}
+
+void Assembler::Branch(const Address& address, Condition cond) {
+  ldr(PC, address, cond);
 }
 
 void Assembler::BranchLink(const Code& target,
@@ -3032,7 +3068,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
   // Preserve volatile CPU registers and PP.
-  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0);
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
   // Preserve all volatile FPU registers.
@@ -3084,7 +3120,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR));
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
@@ -3160,17 +3196,11 @@ void Assembler::MonomorphicCheckedEntry() {
   set_use_far_branches(false);
 #endif
 
-  Label miss;
-  Bind(&miss);
-  ldr(IP, Address(THR, Thread::monomorphic_miss_entry_offset()));
-  bx(IP);
-
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
   LoadClassIdMayBeSmi(IP, R0);
-  SmiUntag(R9);
-  cmp(IP, Operand(R9));
-  b(&miss, NE);
+  cmp(R9, Operand(IP, LSL, 1));
+  Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);

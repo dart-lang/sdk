@@ -19,6 +19,7 @@ cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
+dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
 
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
@@ -54,13 +55,13 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
-[ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
-dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
-
 [ ($compiler == dartk || $compiler == dartkb) ]
 cc/DartAPI_New: Fail # Issue #33041
 dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
+
+[ $runtime != vm && $runtime != dart_precompiled ]
+dart/catch_entry_state: SkipByDesign
 
 [ $compiler != dartk && $compiler != dartkb ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
@@ -111,26 +112,26 @@ dart/callee_side_type_checks_test: SkipByDesign
 
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.
-[ $arch == ia32 && $mode == debug && $runtime == vm && $system == macos ]
-cc/Profiler_ArrayAllocation: Skip
-cc/Profiler_BasicSourcePosition: Skip
-cc/Profiler_BasicSourcePositionOptimized: Skip
-cc/Profiler_BinaryOperatorSourcePosition: Skip
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
-cc/Profiler_ChainedSamples: Skip
-cc/Profiler_ClosureAllocation: Skip
-cc/Profiler_CodeTicks: Skip
-cc/Profiler_ContextAllocation: Skip
-cc/Profiler_FunctionInline: Skip
-cc/Profiler_FunctionTicks: Skip
-cc/Profiler_IntrinsicAllocation: Skip
-cc/Profiler_SourcePosition: Skip
-cc/Profiler_SourcePositionOptimized: Skip
-cc/Profiler_StringAllocation: Skip
-cc/Profiler_StringInterpolation: Skip
-cc/Profiler_ToggleRecordAllocation: Skip
-cc/Profiler_TrivialRecordAllocation: Skip
-cc/Profiler_TypedArrayAllocation: Skip
+[ $runtime == vm && $system == macos ]
+cc/Profiler_ArrayAllocation: Skip # Issue 34493
+cc/Profiler_BasicSourcePosition: Skip # Issue 34493
+cc/Profiler_BasicSourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_BinaryOperatorSourcePosition: Skip # Issue 34493
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_ChainedSamples: Skip # Issue 34493
+cc/Profiler_ClosureAllocation: Skip # Issue 34493
+cc/Profiler_CodeTicks: Skip # Issue 34493
+cc/Profiler_ContextAllocation: Skip # Issue 34493
+cc/Profiler_FunctionInline: Skip # Issue 34493
+cc/Profiler_FunctionTicks: Skip # Issue 34493
+cc/Profiler_IntrinsicAllocation: Skip # Issue 34493
+cc/Profiler_SourcePosition: Skip # Issue 34493
+cc/Profiler_SourcePositionOptimized: Skip # Issue 34493
+cc/Profiler_StringAllocation: Skip # Issue 34493
+cc/Profiler_StringInterpolation: Skip # Issue 34493
+cc/Profiler_ToggleRecordAllocation: Skip # Issue 34493
+cc/Profiler_TrivialRecordAllocation: Skip # Issue 34493
+cc/Profiler_TypedArrayAllocation: Skip # Issue 34493
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && ($compiler == dartk || $compiler == dartkb) && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
@@ -363,3 +364,6 @@ dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-g
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
+
+[ $arch == simdbc64 && $mode == debug && $no_preview_dart_2 ]
+cc/CustomIsolates: Crash  # http://dartbug.com/34424

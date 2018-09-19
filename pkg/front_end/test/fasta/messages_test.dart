@@ -183,6 +183,10 @@ class MessageTestSuite extends ChainContext {
             externalTest = node.value;
             break;
 
+          case "index":
+            // index is validated during generation
+            break;
+
           default:
             unknownKeys.add(key);
         }

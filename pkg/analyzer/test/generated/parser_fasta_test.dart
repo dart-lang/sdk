@@ -337,7 +337,6 @@ class FastaParserTestCase extends Object
     fasta.Parser parser = new fasta.Parser(null);
     AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
     parser.listener = astBuilder;
-    parser.isMixinSupportEnabled = true;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
     parser.parseUnit(_fastaTokens);
@@ -843,6 +842,21 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  void test_invalidTypeParameters_super() {
+    parseCompilationUnit('class C<X super Y> {}', errors: [
+      // TODO(danrubel): Improve recovery.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 5),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
+    ]);
+  }
+
   @override
   void test_equalityExpression_precedence_relational_right() {
     parseExpression("== is", codes: [
@@ -966,7 +980,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_empty() {
     createParser('mixin A {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -984,7 +997,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_implements() {
     createParser('mixin A implements B {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1007,7 +1019,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_implements2() {
     createParser('mixin A implements B<T>, C {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1032,7 +1043,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_metadata() {
     createParser('@Z mixin A {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1052,7 +1062,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_on() {
     createParser('mixin A on B {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1075,7 +1084,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_on2() {
     createParser('mixin A on B, C<T> {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1100,7 +1108,6 @@ class A native 'something' {
 
   void test_parseMixinDeclaration_onAndImplements() {
     createParser('mixin A on B implements C {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1134,7 +1141,6 @@ mixin A {
   set s(int v) {f = v;}
   int add(int v) => f = f + v;
 }''');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1152,7 +1158,6 @@ mixin A {
 
   void test_parseMixinDeclaration_withDocumentationComment() {
     createParser('/// Doc\nmixin M {}');
-    _parserProxy.fastaParser.isMixinSupportEnabled = true;
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
   }

@@ -182,6 +182,7 @@ KernelLoader::KernelLoader(Program* program)
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
+      potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
@@ -345,6 +346,7 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
+      potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
@@ -379,6 +381,27 @@ const Array& KernelLoader::ReadConstantTable() {
   ConstantHelper helper(Z, &helper_, &type_translator_, &active_class_,
                         skip_vmservice_library_);
   return helper.ReadConstantTable();
+}
+
+void KernelLoader::EvaluateDelayedPragmas() {
+  if (potential_pragma_functions_.IsNull()) return;
+  Thread* thread = Thread::Current();
+  NoOOBMessageScope no_msg_scope(thread);
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
+
+  Function& function = Function::Handle();
+  Library& library = Library::Handle();
+  Class& klass = Class::Handle();
+  for (int i = 0; i < potential_pragma_functions_.Length(); ++i) {
+    function ^= potential_pragma_functions_.At(i);
+    klass = function.Owner();
+    library = klass.library();
+    library.GetMetadata(function);
+  }
+
+  potential_pragma_functions_ = GrowableObjectArray::null();
+  kernel_program_info_.set_potential_pragma_functions(
+      GrowableObjectArray::Handle(Z));
 }
 
 void KernelLoader::AnnotateNativeProcedures(const Array& constant_table_array) {
@@ -602,6 +625,8 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     ASSERT(kernel_program_info_.constants() == Array::null());
     kernel_program_info_.set_constants(constants);
     kernel_program_info_.set_constants_table(ExternalTypedData::Handle(Z));
+
+    EvaluateDelayedPragmas();
 
     NameIndex main = program_->main_method();
     if (main == -1) {
@@ -1526,6 +1551,7 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         uint8_t tag = helper_.ReadTag();
         if (tag == kInstanceConstant) {
           *has_pragma_annotation =
+              *has_pragma_annotation ||
               IsClassName(helper_.ReadCanonicalNameReference(),
                           Symbols::DartCore(), Symbols::Pragma());
         }
@@ -1679,6 +1705,18 @@ void KernelLoader::LoadProcedure(const Library& library,
   if (annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                 procedure_offset);
+  }
+
+  if (has_pragma_annotation) {
+    if (kernel_program_info_.constants() == Array::null()) {
+      EnsurePotentialPragmaFunctions();
+      potential_pragma_functions_.Add(function);
+    } else {
+      Thread* thread = Thread::Current();
+      NoOOBMessageScope no_msg_scope(thread);
+      NoReloadScope no_reload_scope(thread->isolate(), thread);
+      library.GetMetadata(function);
+    }
   }
 }
 

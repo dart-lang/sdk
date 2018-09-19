@@ -219,6 +219,16 @@ abstract class AbstractClassElementImpl extends ElementImpl
               getter.isAccessibleIn(library) &&
               getter.enclosingElement != this));
 
+  ExecutableElement lookUpInheritedConcreteMember(
+      String name, LibraryElement library) {
+    if (name.endsWith('=')) {
+      return lookUpInheritedConcreteSetter(name, library);
+    } else {
+      return lookUpInheritedConcreteMethod(name, library) ??
+          lookUpInheritedConcreteGetter(name, library);
+    }
+  }
+
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
@@ -616,8 +626,8 @@ class ClassElementImpl extends AbstractClassElementImpl
       return false;
     }
     if (supertype == null) {
-      // Should never happen, since Object is the only class that has no
-      // supertype, and it should have been caught by the test above.
+      // Should never happen, since Object and mixins are the only classes that
+      // have no supertype, and they should have been caught by the test above.
       assert(false);
       return false;
     }
@@ -637,8 +647,8 @@ class ClassElementImpl extends AbstractClassElementImpl
         }
         classesSeen.add(nearestNonMixinClass);
         if (nearestNonMixinClass.supertype == null) {
-          // Should never happen, since Object is the only class that has no
-          // supertype, and it is not a mixin application.
+          // Should never happen, since Object and mixins are the only classes that
+          // have no supertype, and they are not mixin applications.
           assert(false);
           return false;
         }
@@ -756,7 +766,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _interfaces = _unlinkedClass.interfaces
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isClassInterfaceType)
+            .where(_isInterfaceTypeInterface)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -863,7 +873,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
         _mixins = _unlinkedClass.mixins
             .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isClassInterfaceType)
+            .where(_isInterfaceTypeInterface)
             .cast<InterfaceType>()
             .toList(growable: false);
       }
@@ -898,6 +908,13 @@ class ClassElementImpl extends AbstractClassElementImpl
     return offset;
   }
 
+  /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  List<String> get superInvokedNames => const <String>[];
+
   @override
   InterfaceType get supertype {
     if (_supertype == null) {
@@ -905,7 +922,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (_unlinkedClass.supertype != null) {
           DartType type = enclosingUnit.resynthesizerContext
               .resolveTypeRef(this, _unlinkedClass.supertype);
-          if (_isClassInterfaceType(type)) {
+          if (_isInterfaceTypeClass(type)) {
             _supertype = type;
           } else {
             _supertype = context.typeProvider.objectType;
@@ -1089,9 +1106,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     // forwarded to this class.
     Iterable<ConstructorElement> constructorsToForward;
     if (supertype == null) {
-      // Shouldn't ever happen, since the only class with no supertype is
-      // Object, and it isn't a mixin application.  But for safety's sake just
-      // assume an empty list.
+      // Shouldn't ever happen, since the only classes with no supertype are
+      // Object and mixins, and they aren't a mixin application. But for
+      // safety's sake just assume an empty list.
       assert(false);
       constructorsToForward = <ConstructorElement>[];
     } else if (!supertype.element.isMixinApplication) {
@@ -1172,9 +1189,22 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   /**
-   * Return `true` if the given [type] is a class [InterfaceType].
+   * Return `true` if the given [type] is an [InterfaceType] that can be used
+   * as a class.
    */
-  bool _isClassInterfaceType(DartType type) {
+  bool _isInterfaceTypeClass(DartType type) {
+    if (type is InterfaceType) {
+      var element = type.element;
+      return !element.isEnum && !element.isMixin;
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [type] is an [InterfaceType] that can be used
+   * as an interface or a mixin.
+   */
+  bool _isInterfaceTypeInterface(DartType type) {
     return type is InterfaceType && !type.element.isEnum;
   }
 
@@ -1284,6 +1314,9 @@ class ClassElementImpl extends AbstractClassElementImpl
         InterfaceType supertype = currentType.superclass;
         if (supertype != null) {
           typesToVisit.add(supertype);
+        }
+        for (InterfaceType type in currentType.superclassConstraints) {
+          typesToVisit.add(type);
         }
         for (InterfaceType type in currentType.interfaces) {
           typesToVisit.add(type);
@@ -3242,11 +3275,7 @@ abstract class ElementImpl implements Element {
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    Element ancestor = _enclosingElement;
-    while (ancestor != null && !predicate(ancestor)) {
-      ancestor = ancestor.enclosingElement;
-    }
-    return ancestor as E;
+    return getAncestorStatic<E>(_enclosingElement, predicate);
   }
 
   /**
@@ -3390,6 +3419,15 @@ abstract class ElementImpl implements Element {
       }
     }
     throw new StateError('Unable to find $item in $items');
+  }
+
+  static E getAncestorStatic<E extends Element>(
+      Element startingPoint, Predicate<Element> predicate) {
+    Element ancestor = startingPoint;
+    while (ancestor != null && !predicate(ancestor)) {
+      ancestor = ancestor.enclosingElement;
+    }
+    return ancestor as E;
   }
 }
 
@@ -6465,14 +6503,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    if (isStatic) {
-      return const <TypeParameterType>[];
-    }
-    return super.allEnclosingTypeParameterTypes;
-  }
-
-  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -6590,6 +6620,13 @@ class MixinElementImpl extends ClassElementImpl {
   List<InterfaceType> _superclassConstraints;
 
   /**
+   * Names of methods, getters, setters, and operators that this mixin
+   * declaration super-invokes.  For setters this includes the trailing "=".
+   * The list will be empty if this class is not a mixin declaration.
+   */
+  List<String> _superInvokedNames;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -6619,7 +6656,7 @@ class MixinElementImpl extends ClassElementImpl {
           ResynthesizerContext context = enclosingUnit.resynthesizerContext;
           constraints = _unlinkedClass.superclassConstraints
               .map((EntityRef t) => context.resolveTypeRef(this, t))
-              .where(_isClassInterfaceType)
+              .where(_isInterfaceTypeInterface)
               .cast<InterfaceType>()
               .toList(growable: false);
         }
@@ -6639,6 +6676,62 @@ class MixinElementImpl extends ClassElementImpl {
     // only store superclass constraints if we are using the old task model.
     if (_unlinkedClass == null) {
       _superclassConstraints = superclassConstraints;
+    }
+  }
+
+  @override
+  List<String> get superInvokedNames {
+    if (_superInvokedNames == null) {
+      if (_unlinkedClass != null) {
+        _superInvokedNames = _unlinkedClass.superInvokedNames;
+      }
+    }
+    return _superInvokedNames ?? const <String>[];
+  }
+
+  void set superInvokedNames(List<String> superInvokedNames) {
+    _assertNotResynthesized(_unlinkedClass);
+    if (_unlinkedClass == null) {
+      _superInvokedNames = superInvokedNames;
+    }
+  }
+
+  @override
+  InterfaceType get supertype => null;
+
+  @override
+  void set supertype(InterfaceType supertype) {
+    throw new StateError('Attempt to set a supertype for a mixin declaratio.');
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('mixin ');
+    String name = displayName;
+    if (name == null) {
+      // TODO(brianwilkerson) Can this happen (for either classes or mixins)?
+      buffer.write("{unnamed mixin}");
+    } else {
+      buffer.write(name);
+    }
+    int variableCount = typeParameters.length;
+    if (variableCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    if (superclassConstraints.isNotEmpty) {
+      buffer.write(' on ');
+      buffer.write(superclassConstraints.map((t) => t.displayName).join(', '));
+    }
+    if (interfaces.isNotEmpty) {
+      buffer.write(' implements ');
+      buffer.write(interfaces.map((t) => t.displayName).join(', '));
     }
   }
 }
@@ -7929,14 +8022,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    if (isStatic) {
-      return const <TypeParameterType>[];
-    }
-    return super.allEnclosingTypeParameterTypes;
-  }
-
-  @override
   PropertyAccessorElement get correspondingGetter {
     if (isGetter || variable == null) {
       return null;
@@ -8419,16 +8504,6 @@ class TypeParameterElementImpl extends ElementImpl
   final UnlinkedTypeParam _unlinkedTypeParam;
 
   /**
-   * The number of type parameters whose scope overlaps this one, and which are
-   * declared earlier in the file.
-   *
-   * If the value is negative, then it represents negated De Bruijn index.
-   *
-   * TODO(scheglov) make private?
-   */
-  final int nestingLevel;
-
-  /**
    * The type defined by this type parameter.
    */
   TypeParameterType _type;
@@ -8445,7 +8520,6 @@ class TypeParameterElementImpl extends ElementImpl
    */
   TypeParameterElementImpl(String name, int offset)
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         super(name, offset);
 
   /**
@@ -8453,21 +8527,20 @@ class TypeParameterElementImpl extends ElementImpl
    */
   TypeParameterElementImpl.forNode(Identifier name)
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  TypeParameterElementImpl.forSerialized(this._unlinkedTypeParam,
-      TypeParameterizedElementMixin enclosingElement, this.nestingLevel)
+  TypeParameterElementImpl.forSerialized(
+      this._unlinkedTypeParam, TypeParameterizedElementMixin enclosingElement)
       : super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
-  TypeParameterElementImpl.synthetic(String name, {this.nestingLevel})
+  TypeParameterElementImpl.synthetic(String name)
       : _unlinkedTypeParam = null,
         super(name, -1) {
     isSynthetic = true;
@@ -8571,12 +8644,6 @@ class TypeParameterElementImpl extends ElementImpl
 abstract class TypeParameterizedElementMixin
     implements TypeParameterizedElement, ElementImpl {
   /**
-   * The cached number of type parameters that are in scope in this context, or
-   * `null` if the number has not yet been computed.
-   */
-  int _nestingLevel;
-
-  /**
    * A cached list containing the type parameters declared by this element
    * directly, or `null` if the elements have not been created yet. This does
    * not include type parameters that are declared by any enclosing elements.
@@ -8588,37 +8655,6 @@ abstract class TypeParameterizedElementMixin
    * directly, or `null` if the list has not been computed yet.
    */
   List<TypeParameterType> _typeParameterTypes;
-
-  /**
-   * A cached list containing all of the type parameter types of this element,
-   * including those declared by this element directly and those declared by any
-   * enclosing elements, or `null` if the list has not been computed yet.
-   */
-  List<TypeParameterType> _allTypeParameterTypes;
-
-  /**
-   * Return all type parameter types of the element that encloses element.
-   * Not `null`, but might be empty for top-level and static class members.
-   */
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
-    return enclosingTypeParameterContext?.allTypeParameterTypes ??
-        const <TypeParameterType>[];
-  }
-
-  /**
-   * Return all type parameter types of this element.
-   */
-  List<TypeParameterType> get allTypeParameterTypes {
-    if (_allTypeParameterTypes == null) {
-      _allTypeParameterTypes = <TypeParameterType>[];
-      // The most logical order would be (enclosing, this).
-      // But we have to have it like this to be consistent with (inconsistent
-      // by itself) element builder for generic functions.
-      _allTypeParameterTypes.addAll(typeParameterTypes);
-      _allTypeParameterTypes.addAll(allEnclosingTypeParameterTypes);
-    }
-    return _allTypeParameterTypes;
-  }
 
   /**
    * Get the type parameter context enclosing this one, if any.
@@ -8633,27 +8669,18 @@ abstract class TypeParameterizedElementMixin
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
-  /**
-   * Find out how many type parameters are in scope in this context.
-   */
-  int get typeParameterNestingLevel =>
-      _nestingLevel ??= (unlinkedTypeParams?.length ?? 0) +
-          (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
-
   @override
   List<TypeParameterElement> get typeParameters {
     if (_typeParameterElements == null) {
       List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
       if (unlinkedParams != null) {
-        int enclosingNestingLevel =
-            enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
         int numTypeParameters = unlinkedParams.length;
         _typeParameterElements =
             new List<TypeParameterElement>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {
           _typeParameterElements[i] =
               new TypeParameterElementImpl.forSerialized(
-                  unlinkedParams[i], this, enclosingNestingLevel + i);
+                  unlinkedParams[i], this);
         }
       }
     }
@@ -8679,6 +8706,26 @@ abstract class TypeParameterizedElementMixin
   List<UnlinkedTypeParam> get unlinkedTypeParams;
 
   /**
+   * Return the given [typeParameter]'s de Bruijn index in this context, or
+   * `null` if it's not in scope.
+   *
+   * If an [offset] is provided, then it is added to the computed index.
+   */
+  int computeDeBruijnIndex(TypeParameterElement typeParameter,
+      {int offset = 0}) {
+    if (typeParameter.enclosingElement == this) {
+      var index = typeParameters.indexOf(typeParameter);
+      assert(index >= 0);
+      return typeParameters.length - index + offset;
+    } else if (enclosingTypeParameterContext != null) {
+      return enclosingTypeParameterContext.computeDeBruijnIndex(typeParameter,
+          offset: offset + typeParameters.length);
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Convert the given [index] into a type parameter type.
    */
   TypeParameterType getTypeParameterType(int index) {
@@ -8692,20 +8739,6 @@ abstract class TypeParameterizedElementMixin
       // If we get here, it means that a summary contained a type parameter index
       // that was out of range.
       throw new RangeError('Invalid type parameter index');
-    }
-  }
-
-  /**
-   * Find out if the given [typeParameter] is in scope in this context.
-   */
-  bool isTypeParameterInScope(TypeParameterElement typeParameter) {
-    if (typeParameter.enclosingElement == this) {
-      return true;
-    } else if (enclosingTypeParameterContext != null) {
-      return enclosingTypeParameterContext
-          .isTypeParameterInScope(typeParameter);
-    } else {
-      return false;
     }
   }
 }

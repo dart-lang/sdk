@@ -2,71 +2,72 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This library is capable of producing linked summaries from unlinked
- * ones (or prelinked ones).  It functions by building a miniature
- * element model to represent the contents of the summaries, and then
- * scanning the element model to gather linked information and adding
- * it to the summary data structures.
- *
- * The reason we use a miniature element model to do the linking
- * (rather than resynthesizing the full element model from the
- * summaries) is that it is expected that we will only need to
- * traverse a small subset of the element properties in order to link.
- * Resynthesizing only those properties that we need should save
- * substantial CPU time.
- *
- * The element model implements the same interfaces as the full
- * element model, so we can re-use code elsewhere in the analysis
- * engine to do the linking.  However, only a small subset of the
- * methods and getters defined in the full element model are
- * implemented here.  To avoid static warnings, each element model
- * class contains an implementation of `noSuchMethod`.
- *
- * The miniature element model follows the following design
- * principles:
- *
- * - With few exceptions, resynthesis is done incrementally on demand,
- *   so that we don't pay the cost of resynthesizing elements (or
- *   properties of elements) that aren't referenced from a part of the
- *   element model that is relevant to linking.
- *
- * - Computation of values in the miniature element model is similar
- *   to the task model, but much lighter weight.  Instead of declaring
- *   tasks and their relationships using classes, each task is simply
- *   a method (frequently a getter) that computes a value.  Instead of
- *   using a general purpose cache, values are cached by the methods
- *   themselves in private fields (with `null` typically representing
- *   "not yet cached").
- *
- * - No attempt is made to detect cyclic dependencies due to bugs in
- *   the analyzer.  This saves time because dependency evaluation
- *   doesn't have to be a separate step from evaluating a value; we
- *   can simply call the getter.
- *
- * - However, for cases where cyclic dependencies may occur in the
- *   absence of analyzer bugs (e.g. because of errors in the code
- *   being analyzed, or cycles between top level and static variables
- *   undergoing type inference), we do precompute dependencies, and we
- *   use Tarjan's strongly connected components algorithm to detect
- *   cycles.
- *
- * - As much as possible, bookkeeping data is pointed to directly by
- *   the element objects, rather than being stored in maps.
- *
- * - Where possible, we favor method dispatch instead of "is" and "as"
- *   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
- */
+/// This library is capable of producing linked summaries from unlinked
+/// ones (or prelinked ones).  It functions by building a miniature
+/// element model to represent the contents of the summaries, and then
+/// scanning the element model to gather linked information and adding
+/// it to the summary data structures.
+///
+/// The reason we use a miniature element model to do the linking
+/// (rather than resynthesizing the full element model from the
+/// summaries) is that it is expected that we will only need to
+/// traverse a small subset of the element properties in order to link.
+/// Resynthesizing only those properties that we need should save
+/// substantial CPU time.
+///
+/// The element model implements the same interfaces as the full
+/// element model, so we can re-use code elsewhere in the analysis
+/// engine to do the linking.  However, only a small subset of the
+/// methods and getters defined in the full element model are
+/// implemented here.  To avoid static warnings, each element model
+/// class contains an implementation of `noSuchMethod`.
+///
+/// The miniature element model follows the following design
+/// principles:
+///
+/// - With few exceptions, resynthesis is done incrementally on demand,
+///   so that we don't pay the cost of resynthesizing elements (or
+///   properties of elements) that aren't referenced from a part of the
+///   element model that is relevant to linking.
+///
+/// - Computation of values in the miniature element model is similar
+///   to the task model, but much lighter weight.  Instead of declaring
+///   tasks and their relationships using classes, each task is simply
+///   a method (frequently a getter) that computes a value.  Instead of
+///   using a general purpose cache, values are cached by the methods
+///   themselves in private fields (with `null` typically representing
+///   "not yet cached").
+///
+/// - No attempt is made to detect cyclic dependencies due to bugs in
+///   the analyzer.  This saves time because dependency evaluation
+///   doesn't have to be a separate step from evaluating a value; we
+///   can simply call the getter.
+///
+/// - However, for cases where cyclic dependencies may occur in the
+///   absence of analyzer bugs (e.g. because of errors in the code
+///   being analyzed, or cycles between top level and static variables
+///   undergoing type inference), we do precompute dependencies, and we
+///   use Tarjan's strongly connected components algorithm to detect
+///   cycles.
+///
+/// - As much as possible, bookkeeping data is pointed to directly by
+///   the element objects, rather than being stored in maps.
+///
+/// - Where possible, we favor method dispatch instead of "is" and "as"
+///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -93,41 +94,41 @@ bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
   }
 }
 
-/**
- * Link together the build unit consisting of [libraryUris], using
- * [getDependency] to fetch the [LinkedLibrary] objects from other
- * build units, and [getUnit] to fetch the [UnlinkedUnit] objects from
- * both this build unit and other build units.
- *
- * The [strong] flag controls whether type inference is performed in strong
- * mode or spec mode.  Note that in spec mode, the only types that are inferred
- * are the types of initializing formals, which are inferred from the types of
- * the corresponding fields.
- *
- * A map is returned whose keys are the URIs of the libraries in this
- * build unit, and whose values are the corresponding
- * [LinkedLibraryBuilder]s.
- */
+/// Link together the build unit consisting of [libraryUris], using
+/// [getDependency] to fetch the [LinkedLibrary] objects from other
+/// build units, and [getUnit] to fetch the [UnlinkedUnit] objects from
+/// both this build unit and other build units.
+///
+/// The [strong] flag controls whether type inference is performed in strong
+/// mode or spec mode.  Note that in spec mode, the only types that are inferred
+/// are the types of initializing formals, which are inferred from the types of
+/// the corresponding fields.
+///
+/// If [getAst] is provided, it is used to obtain ASTs of source files in this
+/// build unit, and these ASTs are used for type inference.
+///
+/// A map is returned whose keys are the URIs of the libraries in this
+/// build unit, and whose values are the corresponding
+/// [LinkedLibraryBuilder]s.
 Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable) {
+    GetDeclaredVariable getDeclaredVariable,
+    [GetAstCallback getAst]) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  _relink(linkedLibraries, getDependency, getUnit);
+  _relink(linkedLibraries, getDependency, getUnit, getAst);
   return linkedLibraries;
 }
 
-/**
- * Prepare to link together the build unit consisting of [libraryUris], using
- * [getUnit] to fetch the [UnlinkedUnit] objects from both this build unit and
- * other build units.
- *
- * The libraries are prelinked, and a map is returned whose keys are the URIs of
- * the libraries in this build unit, and whose values are the corresponding
- * [LinkedLibraryBuilder]s.
- */
+/// Prepare to link together the build unit consisting of [libraryUris], using
+/// [getUnit] to fetch the [UnlinkedUnit] objects from both this build unit and
+/// other build units.
+///
+/// The libraries are prelinked, and a map is returned whose keys are the URIs
+/// of the libraries in this build unit, and whose values are the corresponding
+/// [LinkedLibraryBuilder]s.
 Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
     GetUnitCallback getUnit, GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
@@ -143,12 +144,10 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
   return linkedLibraries;
 }
 
-/**
- * Create an [EntityRefBuilder] representing the given [type], in a form
- * suitable for inclusion in [LinkedUnit.types].  [compilationUnit] is the
- * compilation unit in which the type will be used.  If [slot] is provided, it
- * is stored in [EntityRefBuilder.slot].
- */
+/// Create an [EntityRefBuilder] representing the given [type], in a form
+/// suitable for inclusion in [LinkedUnit.types].  [compilationUnit] is the
+/// compilation unit in which the type will be used.  If [slot] is provided, it
+/// is stored in [EntityRefBuilder.slot].
 EntityRefBuilder _createLinkedType(
     DartType type,
     CompilationUnitElementInBuildUnit compilationUnit,
@@ -161,7 +160,7 @@ EntityRefBuilder _createLinkedType(
     _storeTypeArguments(
         type.typeArguments, result, compilationUnit, typeParameterContext);
     return result;
-  } else if (type is DynamicTypeImpl) {
+  } else if (type.isDynamic) {
     result.reference = compilationUnit.addRawReference('dynamic');
     return result;
   } else if (type is VoidTypeImpl) {
@@ -172,15 +171,9 @@ EntityRefBuilder _createLinkedType(
     return result;
   } else if (type is TypeParameterType) {
     TypeParameterElementImpl element = type.element;
-    if (typeParameterContext != null &&
-        typeParameterContext.isTypeParameterInScope(element)) {
-      var nestingLevel = element.nestingLevel;
-      if (nestingLevel < 0) {
-        result.paramReference = -nestingLevel;
-      } else {
-        result.paramReference =
-            typeParameterContext.typeParameterNestingLevel - nestingLevel;
-      }
+    var deBruijnIndex = typeParameterContext?.computeDeBruijnIndex(element);
+    if (deBruijnIndex != null) {
+      result.paramReference = deBruijnIndex;
     } else {
       throw new StateError('The type parameter $type (in ${element?.location}) '
           'is out of scope on ${typeParameterContext?.location}.');
@@ -257,30 +250,32 @@ DartType _dynamicIfNull(DartType type) {
   return type;
 }
 
-/**
- * Given [libraries] (a map from URI to [LinkedLibraryBuilder]
- * containing correct prelinked information), rebuild linked
- * information, using [getDependency] to fetch the [LinkedLibrary]
- * objects from other build units, and [getUnit] to fetch the
- * [UnlinkedUnit] objects from both this build unit and other build
- * units.
- *
- * The [strong] flag controls whether type inference is performed in strong
- * mode or spec mode.  Note that in spec mode, the only types that are inferred
- * are the types of initializing formals, which are inferred from the types of
- * the corresponding fields.
- */
-void _relink(Map<String, LinkedLibraryBuilder> libraries,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
-  new Linker(libraries, getDependency, getUnit).link();
+/// Given [libraries] (a map from URI to [LinkedLibraryBuilder]
+/// containing correct prelinked information), rebuild linked
+/// information, using [getDependency] to fetch the [LinkedLibrary]
+/// objects from other build units, and [getUnit] to fetch the
+/// [UnlinkedUnit] objects from both this build unit and other build
+/// units.
+///
+/// If a non-null [getAst] is provided, it is used to obtain ASTs of source
+/// files in this build unit, and these ASTs are used for type inference.
+///
+/// The [strong] flag controls whether type inference is performed in strong
+/// mode or spec mode.  Note that in spec mode, the only types that are inferred
+/// are the types of initializing formals, which are inferred from the types of
+/// the corresponding fields.
+void _relink(
+    Map<String, LinkedLibraryBuilder> libraries,
+    GetDependencyCallback getDependency,
+    GetUnitCallback getUnit,
+    GetAstCallback getAst) {
+  new Linker(libraries, getDependency, getUnit, getAst).link();
 }
 
-/**
- * Create an [UnlinkedParam] representing the given [parameter], which should be
- * a parameter of a synthetic function type (e.g. one produced during type
- * inference as a result of computing the least upper bound of two function
- * types).
- */
+/// Create an [UnlinkedParam] representing the given [parameter], which should
+/// be a parameter of a synthetic function type (e.g. one produced during type
+/// inference as a result of computing the least upper bound of two function
+/// types).
 UnlinkedParamBuilder _serializeSyntheticParam(
     ParameterElement parameter,
     CompilationUnitElementInBuildUnit compilationUnit,
@@ -311,12 +306,10 @@ UnlinkedParamBuilder _serializeSyntheticParam(
   return b;
 }
 
-/**
- * Create an [UnlinkedTypeParamBuilder] representing the given [typeParameter],
- * which should be a type parameter of a synthetic function type (e.g. one
- * produced during type inference as a result of computing the least upper
- * bound of two function types).
- */
+/// Create an [UnlinkedTypeParamBuilder] representing the given [typeParameter],
+/// which should be a type parameter of a synthetic function type (e.g. one
+/// produced during type inference as a result of computing the least upper
+/// bound of two function types).
 UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
     TypeParameterElement typeParameter,
     CompilationUnitElementInBuildUnit compilationUnit,
@@ -335,9 +328,7 @@ UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
       codeRange: codeRangeBuilder);
 }
 
-/**
- * Store the given function [element] into the [entity] by value.
- */
+/// Store the given function [element] into the [entity] by value.
 void _storeFunctionElementByValue(
     EntityRefBuilder entity,
     FunctionElement element,
@@ -360,10 +351,8 @@ void _storeFunctionElementByValue(
   }
 }
 
-/**
- * Store the given [typeArguments] in [encodedType], using [compilationUnit] and
- * [typeParameterContext] to serialize them.
- */
+/// Store the given [typeArguments] in [encodedType], using [compilationUnit]
+/// and [typeParameterContext] to serialize them.
 void _storeTypeArguments(
     List<DartType> typeArguments,
     EntityRefBuilder encodedType,
@@ -379,28 +368,34 @@ void _storeTypeArguments(
   encodedType.typeArguments = encodedTypeArguments;
 }
 
-/**
- * Type of the callback used by [link] and [relink] to request
- * [LinkedLibrary] objects from other build units.
- */
+/// Type of the callback used by [link] to request [CompilationUnit] objects.
+typedef CompilationUnit GetAstCallback(String absoluteUri);
+
+/// Type of the callback used by [link] and [relink] to request
+/// [LinkedLibrary] objects from other build units.
 typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 
-/**
- * Type of the callback used by [link] and [relink] to request
- * [UnlinkedUnit] objects.
- */
+/// Type of the callback used by [link] and [relink] to request
+/// [UnlinkedUnit] objects.
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
 
-/**
- * Stub implementation of [AnalysisOptions] used during linking.
- */
-class AnalysisOptionsForLink implements AnalysisOptions {
+/// Stub implementation of [AnalysisOptions] used during linking.
+class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   final Linker _linker;
 
   AnalysisOptionsForLink(this._linker);
 
   @override
+  bool get declarationCasts => true;
+
+  @override
   bool get hint => false;
+
+  @override
+  bool get implicitCasts => true;
+
+  @override
+  List<String> get nonnullableTypes => AnalysisOptionsImpl.NONNULLABLE_TYPES;
 
   @override
   bool get previewDart2 => true;
@@ -409,13 +404,14 @@ class AnalysisOptionsForLink implements AnalysisOptions {
   bool get strongMode => true;
 
   @override
+  bool get strongModeHints => false;
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing a class or enum resynthesized from a summary
- * during linking.
- */
+/// Element representing a class or enum resynthesized from a summary
+/// during linking.
 abstract class ClassElementForLink extends Object
     with ReferenceableElementForLink
     implements AbstractClassElementImpl {
@@ -455,9 +451,7 @@ abstract class ClassElementForLink extends Object
   @override
   List<FieldElementForLink> get fields;
 
-  /**
-   * Indicates whether this is the core class `Object`.
-   */
+  /// Indicates whether this is the core class `Object`.
   bool get isObject;
 
   @override
@@ -524,10 +518,8 @@ abstract class ClassElementForLink extends Object
     return null;
   }
 
-  /**
-   * Perform type inference and cycle detection on this class and
-   * store the resulting information in [compilationUnit].
-   */
+  /// Perform type inference and cycle detection on this class and
+  /// store the resulting information in [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit);
 
   @override
@@ -540,20 +532,20 @@ abstract class ClassElementForLink extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing a class resynthesized from a summary during
- * linking.
- */
+/// Element representing a class resynthesized from a summary during
+/// linking.
 class ClassElementForLink_Class extends ClassElementForLink
     with TypeParameterizedElementMixin
     implements ClassElementImpl {
-  /**
-   * The unlinked representation of the class in the summary.
-   */
+  /// The unlinked representation of the class in the summary.
   final UnlinkedClass _unlinkedClass;
 
   @override
   final bool isMixin;
+
+  /// If non-null, the AST for the class or mixin declaration; this is used to
+  /// obtain initializer expressions for type inference.
+  final ClassOrMixinDeclaration _astForInference;
 
   List<ConstructorElementForLink> _constructors;
   ConstructorElementForLink _unnamedConstructor;
@@ -564,10 +556,11 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<MethodElementForLink> _methods;
   List<InterfaceType> _mixins;
   List<InterfaceType> _interfaces;
+  List<InterfaceType> _superclassConstraints;
   List<PropertyAccessorElementForLink> _accessors;
 
   ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
-      this._unlinkedClass, this.isMixin)
+      this._unlinkedClass, this.isMixin, this._astForInference)
       : super(enclosingElement);
 
   @override
@@ -641,8 +634,27 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<FieldElementForLink_ClassField> get fields {
     if (_fields == null) {
       _fields = <FieldElementForLink_ClassField>[];
-      for (UnlinkedVariable field in _unlinkedClass.fields) {
-        _fields.add(new FieldElementForLink_ClassField(this, field));
+      List<Expression> initializerExpressionsForInference;
+      if (_astForInference != null) {
+        initializerExpressionsForInference = [];
+        for (var member in _astForInference.members) {
+          if (member is FieldDeclaration) {
+            for (var variable in member.fields.variables) {
+              initializerExpressionsForInference.add(variable.initializer);
+            }
+          }
+        }
+        assert(initializerExpressionsForInference.length ==
+            _unlinkedClass.fields.length);
+      }
+      for (int i = 0; i < _unlinkedClass.fields.length; i++) {
+        var field = _unlinkedClass.fields[i];
+        _fields.add(new FieldElementForLink_ClassField(
+            this,
+            field,
+            initializerExpressionsForInference == null
+                ? null
+                : initializerExpressionsForInference[i]));
       }
     }
     return _fields;
@@ -756,6 +768,10 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
+  List<InterfaceType> get superclassConstraints => _superclassConstraints ??=
+      _unlinkedClass.superclassConstraints.map(_computeInterfaceType).toList();
+
+  @override
   InterfaceType get supertype {
     if (isObject) {
       return null;
@@ -838,9 +854,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   @override
   String toString() => '$enclosingElement.$name';
 
-  /**
-   * Convert [typeRef] into an [InterfaceType].
-   */
+  /// Convert [typeRef] into an [InterfaceType].
   InterfaceType _computeInterfaceType(EntityRef typeRef) {
     if (typeRef != null) {
       DartType type = enclosingElement.resolveTypeRef(this, typeRef);
@@ -878,15 +892,11 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 }
 
-/**
- * Element representing an enum resynthesized from a summary during
- * linking.
- */
+/// Element representing an enum resynthesized from a summary during
+/// linking.
 class ClassElementForLink_Enum extends ClassElementForLink
     implements EnumElementImpl {
-  /**
-   * The unlinked representation of the enum in the summary.
-   */
+  /// The unlinked representation of the enum in the summary.
   final UnlinkedEnum _unlinkedEnum;
 
   InterfaceType _type;
@@ -935,6 +945,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
   bool get isEnum => true;
 
   @override
+  bool get isMixin => false;
+
+  @override
   bool get isObject => false;
 
   @override
@@ -945,6 +958,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   String get name => _unlinkedEnum.name;
+
+  @override
+  List<InterfaceType> get superclassConstraints => const [];
 
   @override
   InterfaceType get supertype => library._linker.typeProvider.objectType;
@@ -958,9 +974,7 @@ class ClassElementForLink_Enum extends ClassElementForLink
   @override
   ConstructorElementForLink get unnamedConstructor => null;
 
-  /**
-   * Get the type of the enum's static member `values`.
-   */
+  /// Get the type of the enum's static member `values`.
   DartType get valuesType =>
       _valuesType ??= library._linker.typeProvider.listType.instantiate([type]);
 
@@ -979,29 +993,21 @@ class ClassElementForLink_Enum extends ClassElementForLink
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Element representing a compilation unit resynthesized from a
- * summary during linking.
- */
+/// Element representing a compilation unit resynthesized from a
+/// summary during linking.
 abstract class CompilationUnitElementForLink
     implements CompilationUnitElementImpl, ResynthesizerContext {
   final _UnitResynthesizer _unitResynthesizer;
 
-  /**
-   * The unlinked representation of the compilation unit in the
-   * summary.
-   */
+  /// The unlinked representation of the compilation unit in the
+  /// summary.
   final UnlinkedUnit _unlinkedUnit;
 
-  /**
-   * For each entry in [UnlinkedUnit.references], the element referred
-   * to by the reference, or `null` if it hasn't been located yet.
-   */
+  /// For each entry in [UnlinkedUnit.references], the element referred
+  /// to by the reference, or `null` if it hasn't been located yet.
   final List<_ReferenceInfo> _references;
 
-  /**
-   * The absolute URI of this compilation unit.
-   */
+  /// The absolute URI of this compilation unit.
   final String _absoluteUri;
 
   List<ClassElementForLink_Class> _mixins;
@@ -1013,16 +1019,18 @@ abstract class CompilationUnitElementForLink
   List<PropertyAccessorElementForLink> _accessors;
   List<FunctionTypeAliasElementForLink> _functionTypeAliases;
 
-  /**
-   * Index of this unit in the list of units in the enclosing library.
-   */
+  /// Index of this unit in the list of units in the enclosing library.
   final int unitNum;
 
   @override
   final Source source;
 
+  /// If non-null, the AST for the compilation unit; this is used to obtain
+  /// initializer expressions for type inference.
+  final CompilationUnit _astForInference;
+
   CompilationUnitElementForLink(UnlinkedUnit unlinkedUnit, this.unitNum,
-      int numReferences, this._absoluteUri)
+      int numReferences, this._absoluteUri, this._astForInference)
       : _references = new List<_ReferenceInfo>(numReferences),
         _unlinkedUnit = unlinkedUnit,
         source = new InSummarySource(Uri.parse(_absoluteUri), null),
@@ -1112,15 +1120,11 @@ abstract class CompilationUnitElementForLink
   @override
   String get identifier => _absoluteUri;
 
-  /**
-   * Indicates whether this compilation element is part of the build unit
-   * currently being linked.
-   */
+  /// Indicates whether this compilation element is part of the build unit
+  /// currently being linked.
   bool get isInBuildUnit;
 
-  /**
-   * Determine whether type inference is complete in this compilation unit.
-   */
+  /// Determine whether type inference is complete in this compilation unit.
   bool get isTypeInferenceComplete {
     LibraryCycleForLink libraryCycleForLink = library.libraryCycleForLink;
     if (libraryCycleForLink == null) {
@@ -1136,9 +1140,26 @@ abstract class CompilationUnitElementForLink
   @override
   List<ClassElementForLink_Class> get mixins {
     if (_mixins == null) {
+      List<MixinDeclaration> declarationsForInference;
+      if (_astForInference != null) {
+        declarationsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is MixinDeclaration) {
+            declarationsForInference.add(declaration);
+          }
+        }
+        assert(declarationsForInference.length == _unlinkedUnit.mixins.length);
+      }
       _mixins = <ClassElementForLink_Class>[];
-      for (UnlinkedClass unlinkedClass in _unlinkedUnit.mixins) {
-        _mixins.add(new ClassElementForLink_Class(this, unlinkedClass, true));
+      for (int i = 0; i < _unlinkedUnit.mixins.length; i++) {
+        var unlinkedClass = _unlinkedUnit.mixins[i];
+        _mixins.add(new ClassElementForLink_Class(
+            this,
+            unlinkedClass,
+            true,
+            declarationsForInference == null
+                ? null
+                : declarationsForInference[i]));
       }
     }
     return _mixins;
@@ -1150,10 +1171,28 @@ abstract class CompilationUnitElementForLink
   @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
     if (_topLevelVariables == null) {
+      List<Expression> initializerExpressionsForInference;
+      if (_astForInference != null) {
+        initializerExpressionsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is TopLevelVariableDeclaration) {
+            for (var variable in declaration.variables.variables) {
+              initializerExpressionsForInference.add(variable.initializer);
+            }
+          }
+        }
+        assert(initializerExpressionsForInference.length ==
+            _unlinkedUnit.variables.length);
+      }
       _topLevelVariables = <TopLevelVariableElementForLink>[];
-      for (UnlinkedVariable unlinkedVariable in _unlinkedUnit.variables) {
-        _topLevelVariables
-            .add(new TopLevelVariableElementForLink(this, unlinkedVariable));
+      for (int i = 0; i < _unlinkedUnit.variables.length; i++) {
+        var unlinkedVariable = _unlinkedUnit.variables[i];
+        _topLevelVariables.add(new TopLevelVariableElementForLink(
+            this,
+            unlinkedVariable,
+            initializerExpressionsForInference == null
+                ? null
+                : initializerExpressionsForInference[i]));
       }
     }
     return _topLevelVariables;
@@ -1162,24 +1201,39 @@ abstract class CompilationUnitElementForLink
   @override
   List<ClassElementForLink_Class> get types {
     if (_types == null) {
+      List<ClassDeclaration> declarationsForInference;
+      if (_astForInference != null) {
+        declarationsForInference = [];
+        for (var declaration in _astForInference.declarations) {
+          if (declaration is ClassDeclaration) {
+            declarationsForInference.add(declaration);
+          } else if (declaration is ClassTypeAlias) {
+            declarationsForInference.add(null);
+          }
+        }
+        assert(declarationsForInference.length == _unlinkedUnit.classes.length);
+      }
       _types = <ClassElementForLink_Class>[];
-      for (UnlinkedClass unlinkedClass in _unlinkedUnit.classes) {
-        _types.add(new ClassElementForLink_Class(this, unlinkedClass, false));
+      for (int i = 0; i < _unlinkedUnit.classes.length; i++) {
+        var unlinkedClass = _unlinkedUnit.classes[i];
+        _types.add(new ClassElementForLink_Class(
+            this,
+            unlinkedClass,
+            false,
+            declarationsForInference == null
+                ? null
+                : declarationsForInference[i]));
       }
     }
     return _types;
   }
 
-  /**
-   * The linked representation of the compilation unit in the summary.
-   */
+  /// The linked representation of the compilation unit in the summary.
   LinkedUnit get _linkedUnit;
 
-  /**
-   * Search the unit for a top level element with the given [name].
-   * If no name is found, return the singleton instance of
-   * [UndefinedElementForLink].
-   */
+  /// Search the unit for a top level element with the given [name].
+  /// If no name is found, return the singleton instance of
+  /// [UndefinedElementForLink].
   ReferenceableElementForLink getContainedName(name) {
     if (_containedNames == null) {
       _containedNames = <String, ReferenceableElementForLink>{};
@@ -1207,11 +1261,9 @@ abstract class CompilationUnitElementForLink
         name, () => UndefinedElementForLink.instance);
   }
 
-  /**
-   * Compute the type referred to by the given linked type [slot] (interpreted
-   * in [context]).  If there is no inferred type in the
-   * given slot, `dynamic` is returned.
-   */
+  /// Compute the type referred to by the given linked type [slot] (interpreted
+  /// in [context]).  If there is no inferred type in the
+  /// given slot, `dynamic` is returned.
   DartType getLinkedType(ElementImpl context, int slot);
 
   @override
@@ -1221,11 +1273,9 @@ abstract class CompilationUnitElementForLink
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  /**
-   * Return the class element for the constructor referred to by the given
-   * [index] in [UnlinkedUnit.references].  If the reference is unresolved,
-   * return [UndefinedElementForLink.instance].
-   */
+  /// Return the class element for the constructor referred to by the given
+  /// [index] in [UnlinkedUnit.references].  If the reference is unresolved,
+  /// return [UndefinedElementForLink.instance].
   ReferenceableElementForLink resolveConstructorClassRef(int index) {
     LinkedReference linkedReference = _linkedUnit.references[index];
     if (linkedReference.kind == ReferenceKind.classOrEnum) {
@@ -1238,11 +1288,9 @@ abstract class CompilationUnitElementForLink
     return UndefinedElementForLink.instance;
   }
 
-  /**
-   * Return the element referred to by the given [index] in
-   * [UnlinkedUnit.references].  If the reference is unresolved,
-   * return [UndefinedElementForLink.instance].
-   */
+  /// Return the element referred to by the given [index] in
+  /// [UnlinkedUnit.references].  If the reference is unresolved,
+  /// return [UndefinedElementForLink.instance].
   ReferenceableElementForLink resolveRef(int index) =>
       resolveRefToInfo(index).element;
 
@@ -1348,10 +1396,8 @@ abstract class CompilationUnitElementForLink
   String toString() => enclosingElement.toString();
 }
 
-/**
- * Element representing a compilation unit which is part of the build
- * unit being linked.
- */
+/// Element representing a compilation unit which is part of the build
+/// unit being linked.
 class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   @override
   final LinkedUnitBuilder _linkedUnit;
@@ -1364,9 +1410,10 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       UnlinkedUnit unlinkedUnit,
       this._linkedUnit,
       int unitNum,
-      String absoluteUri)
-      : super(
-            unlinkedUnit, unitNum, unlinkedUnit.references.length, absoluteUri);
+      String absoluteUri,
+      CompilationUnit astForInference)
+      : super(unlinkedUnit, unitNum, unlinkedUnit.references.length,
+            absoluteUri, astForInference);
 
   @override
   bool get isInBuildUnit => true;
@@ -1374,12 +1421,10 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   @override
   LibraryElementInBuildUnit get library => enclosingElement;
 
-  /**
-   * If this compilation unit already has a reference in its references table
-   * matching [dependency], [name], [numTypeParameters], [unitNum],
-   * [containingReference], and [kind], return its index.  Otherwise add a new reference to
-   * the table and return its index.
-   */
+  /// If this compilation unit already has a reference in its references table
+  /// matching [dependency], [name], [numTypeParameters], [unitNum],
+  /// [containingReference], and [kind], return its index.  Otherwise add a new
+  /// reference to the table and return its index.
   int addRawReference(String name,
       {int dependency: 0,
       int numTypeParameters: 0,
@@ -1423,11 +1468,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     return result;
   }
 
-  /**
-   * If this compilation unit already has a reference in its references table
-   * to [element], return its index.  Otherwise add a new reference to the table
-   * and return its index.
-   */
+  /// If this compilation unit already has a reference in its references table
+  /// to [element], return its index.  Otherwise add a new reference to the
+  /// table and return its index.
   int addReference(Element element) {
     if (element is ClassElementForLink) {
       return addRawReference(element.name,
@@ -1501,10 +1544,8 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
         'Linker tried to access linked type from current build unit');
   }
 
-  /**
-   * Perform type inference and const cycle detection on this
-   * compilation unit.
-   */
+  /// Perform type inference and const cycle detection on this
+  /// compilation unit.
   void link() {
     new InstanceMemberInferrer(
             enclosingElement._linker.typeProvider,
@@ -1517,12 +1558,13 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     for (ClassElementForLink classElement in types) {
       classElement.link(this);
     }
+    for (ClassElementForLink classElement in mixins) {
+      classElement.link(this);
+    }
   }
 
-  /**
-   * Throw away any information stored in the summary by a previous call to
-   * [link].
-   */
+  /// Throw away any information stored in the summary by a previous call to
+  /// [link].
   void unlink() {
     _linkedUnit.constCycles.clear();
     _linkedUnit.parametersInheritingCovariant.clear();
@@ -1530,26 +1572,20 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     _linkedUnit.types.clear();
   }
 
-  /**
-   * Store the fact that the given [slot] represents a constant constructor
-   * that is part of a cycle.
-   */
+  /// Store the fact that the given [slot] represents a constant constructor
+  /// that is part of a cycle.
   void _storeConstCycle(int slot) {
     _linkedUnit.constCycles.add(slot);
   }
 
-  /**
-   * Store the fact that the given [slot] represents a parameter that inherits
-   * `@covariant` behavior.
-   */
+  /// Store the fact that the given [slot] represents a parameter that inherits
+  /// `@covariant` behavior.
   void _storeInheritsCovariant(int slot) {
     _linkedUnit.parametersInheritingCovariant.add(slot);
   }
 
-  /**
-   * Store the given [linkedType] in the given [slot] of the this compilation
-   * unit's linked type list.
-   */
+  /// Store the given [linkedType] in the given [slot] of the this compilation
+  /// unit's linked type list.
   void _storeLinkedType(int slot, DartType linkedType,
       TypeParameterizedElementMixin typeParameterContext) {
     if (slot != 0) {
@@ -1561,9 +1597,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     }
   }
 
-  /**
-   * Store the given error [error] in the given [slot].
-   */
+  /// Store the given error [error] in the given [slot].
   void _storeLinkedTypeError(int slot, TopLevelInferenceErrorBuilder error) {
     if (slot != 0) {
       if (error != null) {
@@ -1574,20 +1608,16 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   }
 }
 
-/**
- * Element representing a compilation unit which is depended upon
- * (either directly or indirectly) by the build unit being linked.
- *
- * TODO(paulberry): ensure that inferred types in dependencies are properly
- * resynthesized.
- */
+/// Element representing a compilation unit which is depended upon
+/// (either directly or indirectly) by the build unit being linked.
+///
+/// TODO(paulberry): ensure that inferred types in dependencies are properly
+/// resynthesized.
 class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   final LinkedUnit _linkedUnit;
 
-  /**
-   * Set of slot ids corresponding to parameters that inherit `covariant`.
-   */
+  /// Set of slot ids corresponding to parameters that inherit `covariant`.
   Set<int> parametersInheritingCovariant;
 
   List<EntityRef> _linkedTypeRefs;
@@ -1602,8 +1632,8 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
       int unitNum,
       String absoluteUri)
       : _linkedUnit = linkedUnit,
-        super(
-            unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri) {
+        super(unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri,
+            null) {
     parametersInheritingCovariant =
         _linkedUnit.parametersInheritingCovariant.toSet();
     // Make one pass through the linked types to determine the lengths for
@@ -1635,19 +1665,13 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   }
 }
 
-/**
- * Instance of [ConstNode] representing a constant constructor.
- */
+/// Instance of [ConstNode] representing a constant constructor.
 class ConstConstructorNode extends ConstNode {
-  /**
-   * The [ConstructorElement] to which this node refers.
-   */
+  /// The [ConstructorElement] to which this node refers.
   final ConstructorElementForLink constructorElement;
 
-  /**
-   * Once this node has been evaluated, indicates whether the
-   * constructor is free of constant evaluation cycles.
-   */
+  /// Once this node has been evaluated, indicates whether the
+  /// constructor is free of constant evaluation cycles.
   bool isCycleFree = false;
 
   ConstConstructorNode(this.constructorElement);
@@ -1735,10 +1759,8 @@ class ConstConstructorNode extends ConstNode {
     return dependencies;
   }
 
-  /**
-   * If [constructorElement] redirects to another constructor via a factory
-   * redirect, return the constructor it redirects to.
-   */
+  /// If [constructorElement] redirects to another constructor via a factory
+  /// redirect, return the constructor it redirects to.
   ConstructorElementForLink _getFactoryRedirectedConstructor() {
     EntityRef redirectedConstructor =
         constructorElement.serializedExecutable.redirectedConstructor;
@@ -1752,10 +1774,8 @@ class ConstConstructorNode extends ConstNode {
   }
 }
 
-/**
- * Specialization of [DependencyWalker] for detecting constant
- * evaluation cycles.
- */
+/// Specialization of [DependencyWalker] for detecting constant
+/// evaluation cycles.
 class ConstDependencyWalker extends DependencyWalker<ConstNode> {
   @override
   void evaluate(ConstNode v) {
@@ -1776,19 +1796,15 @@ class ConstDependencyWalker extends DependencyWalker<ConstNode> {
   }
 }
 
-/**
- * Specialization of [Node] used to construct the constant evaluation
- * dependency graph.
- */
+/// Specialization of [Node] used to construct the constant evaluation
+/// dependency graph.
 abstract class ConstNode extends Node<ConstNode> {
   @override
   bool isEvaluated = false;
 
-  /**
-   * Collect the dependencies in [unlinkedConst] (which should be
-   * interpreted relative to [compilationUnit]) and store them in
-   * [dependencies].
-   */
+  /// Collect the dependencies in [unlinkedConst] (which should be
+  /// interpreted relative to [compilationUnit]) and store them in
+  /// [dependencies].
   void collectDependencies(
       List<ConstNode> dependencies,
       UnlinkedExpr unlinkedConst,
@@ -1874,14 +1890,10 @@ abstract class ConstNode extends Node<ConstNode> {
   }
 }
 
-/**
- * Instance of [ConstNode] representing a parameter with a default
- * value.
- */
+/// Instance of [ConstNode] representing a parameter with a default
+/// value.
 class ConstParameterNode extends ConstNode {
-  /**
-   * The [ParameterElement] to which this node refers.
-   */
+  /// The [ParameterElement] to which this node refers.
   final ParameterElementForLink parameterElement;
 
   ConstParameterNode(this.parameterElement);
@@ -1897,18 +1909,14 @@ class ConstParameterNode extends ConstNode {
   }
 }
 
-/**
- * Element representing a constructor resynthesized from a summary
- * during linking.
- */
+/// Element representing a constructor resynthesized from a summary
+/// during linking.
 class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements ConstructorElementImpl {
-  /**
-   * If this is a `const` constructor and the enclosing library is
-   * part of the build unit being linked, the constructor's node in
-   * the constant evaluation dependency graph.  Otherwise `null`.
-   */
+  /// If this is a `const` constructor and the enclosing library is
+  /// part of the build unit being linked, the constructor's node in
+  /// the constant evaluation dependency graph.  Otherwise `null`.
   ConstConstructorNode _constNode;
 
   ConstructorElementForLink(ClassElementForLink_Class enclosingClass,
@@ -1948,9 +1956,7 @@ class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
   @override
   List<TypeParameterElement> get typeParameters => const [];
 
-  /**
-   * Perform const cycle detection on this constructor.
-   */
+  /// Perform const cycle detection on this constructor.
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (_constNode != null && !isCycleFree) {
       compilationUnit._storeConstCycle(serializedExecutable.constCycleSlot);
@@ -1962,9 +1968,7 @@ class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * A synthetic constructor.
- */
+/// A synthetic constructor.
 class ConstructorElementForLink_Synthetic extends ConstructorElementForLink {
   ConstructorElementForLink_Synthetic(
       ClassElementForLink_Class enclosingElement)
@@ -1977,15 +1981,11 @@ class ConstructorElementForLink_Synthetic extends ConstructorElementForLink {
   List<ParameterElement> get parameters => const <ParameterElement>[];
 }
 
-/**
- * Instance of [ConstNode] representing a constant field or constant
- * top level variable.
- */
+/// Instance of [ConstNode] representing a constant field or constant
+/// top level variable.
 class ConstVariableNode extends ConstNode {
-  /**
-   * The [FieldElement] or [TopLevelVariableElement] to which this
-   * node refers.
-   */
+  /// The [FieldElement] or [TopLevelVariableElement] to which this
+  /// node refers.
   final VariableElementForLink variableElement;
 
   ConstVariableNode(this.variableElement);
@@ -2001,10 +2001,8 @@ class ConstVariableNode extends ConstNode {
   }
 }
 
-/**
- * Stub implementation of [AnalysisContext] which provides just those methods
- * needed during linking.
- */
+/// Stub implementation of [AnalysisContext] which provides just those methods
+/// needed during linking.
 class ContextForLink implements AnalysisContext {
   final Linker _linker;
 
@@ -2014,22 +2012,21 @@ class ContextForLink implements AnalysisContext {
   AnalysisOptionsForLink get analysisOptions => _linker.analysisOptions;
 
   @override
+  TypeProvider get typeProvider => _linker.typeProvider;
+
+  @override
   TypeSystem get typeSystem => _linker.typeSystem;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Base class for executable elements resynthesized from a summary during
- * linking.
- */
+/// Base class for executable elements resynthesized from a summary during
+/// linking.
 abstract class ExecutableElementForLink extends Object
     with TypeParameterizedElementMixin, ParameterParentElementForLink
     implements ExecutableElementImpl {
-  /**
-   * The unlinked representation of the method in the summary.
-   */
+  /// The unlinked representation of the method in the summary.
   final UnlinkedExecutable serializedExecutable;
 
   DartType _declaredReturnType;
@@ -2045,10 +2042,8 @@ abstract class ExecutableElementForLink extends Object
   @override
   ContextForLink get context => compilationUnit.context;
 
-  /**
-   * If the executable element had an explicitly declared return type, return
-   * it.  Otherwise return `null`.
-   */
+  /// If the executable element had an explicitly declared return type, return
+  /// it.  Otherwise return `null`.
   DartType get declaredReturnType {
     if (serializedExecutable.returnType == null) {
       return null;
@@ -2072,10 +2067,8 @@ abstract class ExecutableElementForLink extends Object
   @override
   CompilationUnitElementImpl get enclosingUnit => compilationUnit;
 
-  /**
-   * Return a list containing all of the functions defined within this
-   * executable element.
-   */
+  /// Return a list containing all of the functions defined within this
+  /// executable element.
   List<FunctionElement> get functions {
     return [];
   }
@@ -2086,10 +2079,8 @@ abstract class ExecutableElementForLink extends Object
   @override
   List<int> get implicitFunctionTypeIndices => const <int>[];
 
-  /**
-   * Return the inferred return type of the executable element.  Should only be
-   * called if no return type was explicitly declared.
-   */
+  /// Return the inferred return type of the executable element.  Should only be
+  /// called if no return type was explicitly declared.
   DartType get inferredReturnType {
     // We should only try to infer a return type when none is explicitly
     // declared.
@@ -2163,11 +2154,9 @@ abstract class ExecutableElementForLink extends Object
   bool isAccessibleIn(LibraryElement library) =>
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
-  /**
-   * Compute the default return type for this type of executable element (if no
-   * return type is declared and strong mode type inference cannot infer a
-   * better return type).
-   */
+  /// Compute the default return type for this type of executable element (if no
+  /// return type is declared and strong mode type inference cannot infer a
+  /// better return type).
   DartType _computeDefaultReturnType() {
     var kind = serializedExecutable.kind;
     var isMethod = kind == UnlinkedExecutableKind.functionOrMethod;
@@ -2182,16 +2171,12 @@ abstract class ExecutableElementForLink extends Object
   }
 }
 
-/**
- * Base class for executable elements that are resynthesized from a summary
- * during linking and are not local functions.
- */
+/// Base class for executable elements that are resynthesized from a summary
+/// during linking and are not local functions.
 abstract class ExecutableElementForLink_NonLocal
     extends ExecutableElementForLink {
-  /**
-   * Return the class in which this executable appears, maybe `null` for a
-   * top-level function.
-   */
+  /// Return the class in which this executable appears, maybe `null` for a
+  /// top-level function.
   final ClassElementForLink_Class enclosingClass;
 
   ExecutableElementForLink_NonLocal(
@@ -2207,9 +2192,7 @@ abstract class ExecutableElementForLink_NonLocal
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       enclosingClass;
 
-  /**
-   * Store the results of type inference for this method in [compilationUnit].
-   */
+  /// Store the results of type inference for this method in [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (serializedExecutable.returnType == null) {
       compilationUnit._storeLinkedType(
@@ -2230,7 +2213,19 @@ class ExprTypeComputer {
 
   final ResolverVisitor _resolverVisitor;
 
+  final TypeResolverVisitor _typeResolverVisitor;
+
+  final VariableResolverVisitor _variableResolverVisitor;
+
+  final PartialResolverVisitor _partialResolverVisitor;
+
+  final Linker _linker;
+
+  FunctionElementForLink_Local _functionElement;
+
   factory ExprTypeComputer(FunctionElementForLink_Local functionElement) {
+    ClassElement enclosingClass =
+        functionElement.getAncestor((e) => e is ClassElement);
     CompilationUnitElementForLink unit = functionElement.compilationUnit;
     LibraryElementForLink library = unit.enclosingElement;
     Linker linker = library._linker;
@@ -2238,17 +2233,36 @@ class ExprTypeComputer {
     var unlinkedExecutable = functionElement.serializedExecutable;
     UnlinkedExpr unlinkedConst = unlinkedExecutable.bodyExpr;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
+    var source = unit.source;
     var astRewriteVisitor = new AstRewriteVisitor(
-        linker.typeSystem, library, unit.source, typeProvider, errorListener);
-    // TODO(paulberry): Do we need to pass a nameScope to
-    // resolverVisitor to get type variables to resolve properly?
+        linker.typeSystem, library, source, typeProvider, errorListener);
+    EnclosedScope nameScope = new LibraryScope(library);
+    if (enclosingClass != null) {
+      nameScope = new ClassScope(
+          new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
+    }
     var resolverVisitor = new ResolverVisitor(
-        library, unit.source, typeProvider, errorListener,
-        propagateTypes: false, reportConstEvaluationErrors: false);
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope,
+        propagateTypes: false,
+        reportConstEvaluationErrors: false);
+    var typeResolverVisitor = new TypeResolverVisitor(
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope);
+    var variableResolverVisitor = new VariableResolverVisitor(
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope);
+    var partialResolverVisitor = new PartialResolverVisitor(
+        library, source, typeProvider, errorListener,
+        nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
         astRewriteVisitor,
         resolverVisitor,
+        typeResolverVisitor,
+        variableResolverVisitor,
+        partialResolverVisitor,
+        linker,
         errorListener,
         functionElement,
         unlinkedConst,
@@ -2259,11 +2273,16 @@ class ExprTypeComputer {
       UnitResynthesizer unitResynthesizer,
       this._astRewriteVisitor,
       this._resolverVisitor,
+      this._typeResolverVisitor,
+      this._variableResolverVisitor,
+      this._partialResolverVisitor,
+      this._linker,
       AnalysisErrorListener _errorListener,
-      ElementImpl context,
+      this._functionElement,
       UnlinkedExpr unlinkedConst,
       List<UnlinkedExecutable> localFunctions)
-      : _builder = new ExprBuilder(unitResynthesizer, context, unlinkedConst,
+      : _builder = new ExprBuilder(
+            unitResynthesizer, _functionElement, unlinkedConst,
             requireValidConst: false, localFunctions: localFunctions);
 
   TopLevelInferenceErrorKind get errorKind {
@@ -2273,29 +2292,37 @@ class ExprTypeComputer {
   }
 
   DartType compute() {
-    if (_builder.uc == null) {
+    Expression expression;
+    if (_linker.getAst != null) {
+      var expressionForInference = _functionElement._expressionForInference;
+      if (expressionForInference != null) {
+        expression = AstCloner().cloneNode(expressionForInference);
+        expression.accept(LocalElementBuilder(ElementHolder(), null));
+      }
+    } else if (_builder.uc != null && _builder.uc.operations.isNotEmpty) {
+      expression = _builder.build();
+    }
+    if (expression == null) {
       // No function body was stored for this function, so we can't infer its
       // return type.  Assume `dynamic`.
       return DynamicTypeImpl.instance;
     }
-    // If no operations, we cannot compute the type.  Assume `dynamic`.
-    if (_builder.uc.operations.isEmpty) {
-      return DynamicTypeImpl.instance;
-    }
-    var expression = _builder.build();
     var container =
         astFactory.expressionFunctionBody(null, null, expression, null);
     expression.accept(_astRewriteVisitor);
     expression = container.expression;
+    if (_linker.getAst != null) {
+      expression.accept(_typeResolverVisitor);
+      expression.accept(_variableResolverVisitor);
+      expression.accept(_partialResolverVisitor);
+    }
     expression.accept(_resolverVisitor);
     return expression.staticType;
   }
 }
 
-/**
- * Element representing a field resynthesized from a summary during
- * linking.
- */
+/// Element representing a field resynthesized from a summary during
+/// linking.
 abstract class FieldElementForLink implements FieldElement {
   @override
   PropertyAccessorElementForLink get getter;
@@ -2304,26 +2331,23 @@ abstract class FieldElementForLink implements FieldElement {
   PropertyAccessorElementForLink get setter;
 }
 
-/**
- * Specialization of [FieldElementForLink] for class fields.
- */
+/// Specialization of [FieldElementForLink] for class fields.
 class FieldElementForLink_ClassField extends VariableElementForLink
     implements FieldElementForLink {
   @override
   final ClassElementForLink_Class enclosingElement;
 
-  /**
-   * If this is an instance field, the type that was computed by
-   * [InstanceMemberInferrer] (if any).  Otherwise `null`.
-   */
+  /// If this is an instance field, the type that was computed by
+  /// [InstanceMemberInferrer] (if any).  Otherwise `null`.
   DartType _inferredInstanceType;
 
   TopLevelInferenceErrorBuilder _inferenceError;
 
   FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
-      UnlinkedVariable unlinkedVariable)
+      UnlinkedVariable unlinkedVariable, Expression initializerForInference)
       : enclosingElement = enclosingElement,
-        super(unlinkedVariable, enclosingElement.enclosingElement);
+        super(unlinkedVariable, enclosingElement.enclosingElement,
+            initializerForInference);
 
   @override
   bool get isStatic => unlinkedVariable.isStatic;
@@ -2338,10 +2362,8 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   @override
   TypeParameterizedElementMixin get _typeParameterContext => enclosingElement;
 
-  /**
-   * Store the results of type inference for this field in
-   * [compilationUnit].
-   */
+  /// Store the results of type inference for this field in
+  /// [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (hasImplicitType) {
       compilationUnit._storeLinkedType(
@@ -2367,9 +2389,7 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Specialization of [FieldElementForLink] for enum fields.
- */
+/// Specialization of [FieldElementForLink] for enum fields.
 class FieldElementForLink_EnumField extends FieldElementForLink
     implements FieldElement {
   PropertyAccessorElementForLink_EnumField _getter;
@@ -2393,9 +2413,7 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Specialization of [FieldElementForLink] for the 'index' enum field.
- */
+/// Specialization of [FieldElementForLink] for the 'index' enum field.
 class FieldElementForLink_EnumField_index
     extends FieldElementForLink_EnumField {
   FieldElementForLink_EnumField_index(ClassElementForLink_Enum enclosingElement)
@@ -2412,14 +2430,10 @@ class FieldElementForLink_EnumField_index
       enclosingElement.enclosingElement.library._linker.typeProvider.intType;
 }
 
-/**
- * Specialization of [FieldElementForLink] for enum fields.
- */
+/// Specialization of [FieldElementForLink] for enum fields.
 class FieldElementForLink_EnumField_value
     extends FieldElementForLink_EnumField {
-  /**
-   * The unlinked representation of the field in the summary.
-   */
+  /// The unlinked representation of the field in the summary.
   final UnlinkedEnumValue unlinkedEnumValue;
 
   FieldElementForLink_EnumField_value(
@@ -2436,9 +2450,7 @@ class FieldElementForLink_EnumField_value
   DartType get type => enclosingElement.type;
 }
 
-/**
- * Specialization of [FieldElementForLink] for the 'values' enum field.
- */
+/// Specialization of [FieldElementForLink] for the 'values' enum field.
 class FieldElementForLink_EnumField_values
     extends FieldElementForLink_EnumField {
   FieldElementForLink_EnumField_values(
@@ -2495,10 +2507,8 @@ class FieldFormalParameterElementForLink extends ParameterElementForLink
   }
 }
 
-/**
- * Element representing a function-typed parameter resynthesied from a summary
- * during linking.
- */
+/// Element representing a function-typed parameter resynthesied from a summary
+/// during linking.
 class FunctionElementForLink_FunctionTypedParam extends Object
     with ParameterParentElementForLink
     implements FunctionElement {
@@ -2551,28 +2561,26 @@ class FunctionElementForLink_FunctionTypedParam extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing the initializer expression of a variable.
- */
+/// Element representing the initializer expression of a variable.
 class FunctionElementForLink_Initializer extends Object
     with ReferenceableElementForLink, TypeParameterizedElementMixin
     implements FunctionElementForLink_Local {
-  /**
-   * The variable for which this element is the initializer.
-   */
+  /// The variable for which this element is the initializer.
   final VariableElementForLink _variable;
 
-  /**
-   * The type inference node for this function, or `null` if it hasn't been
-   * computed yet.
-   */
+  @override
+  final Expression _expressionForInference;
+
+  /// The type inference node for this function, or `null` if it hasn't been
+  /// computed yet.
   TypeInferenceNode _typeInferenceNode;
 
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
   DartType _inferredReturnType;
   TopLevelInferenceErrorBuilder _inferenceError;
 
-  FunctionElementForLink_Initializer(this._variable);
+  FunctionElementForLink_Initializer(
+      this._variable, this._expressionForInference);
 
   @override
   TypeInferenceNode get asTypeInferenceNode =>
@@ -2595,11 +2603,7 @@ class FunctionElementForLink_Initializer extends Object
 
   @override
   List<FunctionElementForLink_Local_NonSynthetic> get functions =>
-      _functions ??= _variable.unlinkedVariable.initializer.localFunctions
-          .map((UnlinkedExecutable ex) =>
-              new FunctionElementForLink_Local_NonSynthetic(
-                  _variable.compilationUnit, this, ex))
-          .toList();
+      _functions ??= _computeFunctions();
 
   @override
   String get identifier => '';
@@ -2642,15 +2646,18 @@ class FunctionElementForLink_Initializer extends Object
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
 
   @override
+  E getAncestor<E extends Element>(Predicate<Element> predicate) {
+    return ElementImpl.getAncestorStatic(enclosingElement, predicate);
+  }
+
+  @override
   FunctionElementForLink_Local getLocalFunction(int index) {
     List<FunctionElementForLink_Local_NonSynthetic> functions = this.functions;
     return index < functions.length ? functions[index] : null;
   }
 
-  /**
-   * Store the results of type inference for this initializer in
-   * [compilationUnit].
-   */
+  /// Store the results of type inference for this initializer in
+  /// [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
         serializedExecutable.inferredReturnTypeSlot,
@@ -2667,6 +2674,21 @@ class FunctionElementForLink_Initializer extends Object
   @override
   String toString() => _variable.toString();
 
+  List<FunctionElementForLink_Local_NonSynthetic> _computeFunctions() {
+    var localFunctionsFromSummary =
+        _variable.unlinkedVariable.initializer.localFunctions;
+    var count = localFunctionsFromSummary.length;
+    var result = List<FunctionElementForLink_Local_NonSynthetic>(count);
+    for (int i = 0; i < count; i++) {
+      result[i] = FunctionElementForLink_Local_NonSynthetic(
+          _variable.compilationUnit,
+          this,
+          localFunctionsFromSummary[i],
+          i == 0 ? _expressionForInference : null);
+    }
+    return result;
+  }
+
   @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {
     assert(!_hasTypeBeenInferred);
@@ -2681,54 +2703,51 @@ class FunctionElementForLink_Initializer extends Object
   }
 }
 
-/**
- * Element representing a local function (possibly a closure).
- */
+/// Element representing a local function (possibly a closure).
 abstract class FunctionElementForLink_Local
     implements
         ExecutableElementForLink,
         FunctionElementImpl,
         ReferenceableElementForLink {
-  /**
-   * Indicates whether type inference has completed for this function.
-   */
+  /// If this function element represents the initializer of a field or a
+  /// top-level variable, returns the AST for the initializer expression; this
+  /// is used for inferring the expression type.
+  Expression get _expressionForInference;
+
+  /// Indicates whether type inference has completed for this function.
   bool get _hasTypeBeenInferred;
 
-  /**
-   * Stores the given [error] as the type inference error for this function.
-   * Should only be called if [_hasTypeBeenInferred] is `false`.
-   */
+  /// Stores the given [error] as the type inference error for this function.
+  /// Should only be called if [_hasTypeBeenInferred] is `false`.
   void _setInferenceError(TopLevelInferenceErrorBuilder error);
 
-  /**
-   * Stores the given [type] as the inferred return type for this function.
-   * Should only be called if [_hasTypeBeenInferred] is `false`.
-   */
+  /// Stores the given [type] as the inferred return type for this function.
+  /// Should only be called if [_hasTypeBeenInferred] is `false`.
   void _setInferredType(DartType type);
 }
 
-/**
- * Element representing a local function (possibly a closure) inside another
- * executable.
- */
+/// Element representing a local function (possibly a closure) inside another
+/// executable.
 class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
     with ReferenceableElementForLink
     implements FunctionElementForLink_Local {
   @override
   final ExecutableElementForLink enclosingElement;
 
+  @override
+  final Expression _expressionForInference;
+
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
 
-  /**
-   * The type inference node for this function, or `null` if it hasn't been
-   * computed yet.
-   */
+  /// The type inference node for this function, or `null` if it hasn't been
+  /// computed yet.
   TypeInferenceNode _typeInferenceNode;
 
   FunctionElementForLink_Local_NonSynthetic(
       CompilationUnitElementForLink compilationUnit,
       this.enclosingElement,
-      UnlinkedExecutable unlinkedExecutable)
+      UnlinkedExecutable unlinkedExecutable,
+      this._expressionForInference)
       : super(compilationUnit, unlinkedExecutable);
 
   @override
@@ -2744,7 +2763,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
       _functions ??= serializedExecutable.localFunctions
           .map((UnlinkedExecutable ex) =>
               new FunctionElementForLink_Local_NonSynthetic(
-                  compilationUnit, this, ex))
+                  compilationUnit, this, ex, null))
           .toList();
 
   @override
@@ -2773,14 +2792,18 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   }
 
   @override
+  E getAncestor<E extends Element>(Predicate<Element> predicate) {
+    return ElementImpl.getAncestorStatic(enclosingElement, predicate);
+  }
+
+  @override
   FunctionElementForLink_Local getLocalFunction(int index) {
     List<FunctionElementForLink_Local_NonSynthetic> functions = this.functions;
     return index < functions.length ? functions[index] : null;
   }
 
-  /**
-   * Store the results of type inference for this function in [compilationUnit].
-   */
+  /// Store the results of type inference for this function in
+  /// [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (serializedExecutable.returnType == null) {
       compilationUnit._storeLinkedType(
@@ -2810,9 +2833,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   }
 }
 
-/**
-  * Synthetic function element which is created for local functions.
-  */
+/// Synthetic function element which is created for local functions.
 class FunctionElementForLink_Synthetic extends ExecutableElementForLink
     with ReferenceableElementForLink
     implements FunctionElementForLink_Local {
@@ -2851,9 +2872,7 @@ class FunctionElementForLink_Synthetic extends ExecutableElementForLink
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing a typedef resynthesized from a summary during linking.
- */
+/// Element representing a typedef resynthesized from a summary during linking.
 class FunctionTypeAliasElementForLink extends Object
     with
         TypeParameterizedElementMixin,
@@ -2863,9 +2882,7 @@ class FunctionTypeAliasElementForLink extends Object
   @override
   final CompilationUnitElementForLink enclosingElement;
 
-  /**
-   * The unlinked representation of the typedef in the summary.
-   */
+  /// The unlinked representation of the typedef in the summary.
   final UnlinkedTypedef _unlinkedTypedef;
 
   FunctionTypeImpl _type;
@@ -2942,10 +2959,8 @@ class FunctionTypeAliasElementForLink extends Object
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Element representing a generic function resynthesized from a summary during
- * linking.
- */
+/// Element representing a generic function resynthesized from a summary during
+/// linking.
 class GenericFunctionTypeElementForLink extends Object
     with
         TypeParameterizedElementMixin,
@@ -2958,9 +2973,7 @@ class GenericFunctionTypeElementForLink extends Object
   @override
   final ElementImpl enclosingElement;
 
-  /**
-   * The linked representation of the generic function in the summary.
-   */
+  /// The linked representation of the generic function in the summary.
   final EntityRef _entity;
 
   DartType _returnType;
@@ -3022,10 +3035,8 @@ class GenericFunctionTypeElementForLink extends Object
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Element representing a generic typedef resynthesized from a summary during
- * linking.
- */
+/// Element representing a generic typedef resynthesized from a summary during
+/// linking.
 class GenericTypeAliasElementForLink extends Object
     with
         TypeParameterizedElementMixin,
@@ -3035,9 +3046,7 @@ class GenericTypeAliasElementForLink extends Object
   @override
   final CompilationUnitElementForLink enclosingElement;
 
-  /**
-   * The unlinked representation of the typedef in the summary.
-   */
+  /// The unlinked representation of the typedef in the summary.
   final UnlinkedTypedef _unlinkedTypedef;
 
   GenericTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
@@ -3115,9 +3124,7 @@ class GenericTypeAliasElementForLink extends Object
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Specialization of [DependencyWalker] for linking library cycles.
- */
+/// Specialization of [DependencyWalker] for linking library cycles.
 class LibraryCycleDependencyWalker extends DependencyWalker<LibraryCycleNode> {
   @override
   void evaluate(LibraryCycleNode v) {
@@ -3131,25 +3138,17 @@ class LibraryCycleDependencyWalker extends DependencyWalker<LibraryCycleNode> {
   }
 }
 
-/**
- * An instance of [LibraryCycleForLink] represents a single library cycle
- * discovered during linking; it consists of one or more libraries in the build
- * unit being linked.
- */
+/// An instance of [LibraryCycleForLink] represents a single library cycle
+/// discovered during linking; it consists of one or more libraries in the build
+/// unit being linked.
 class LibraryCycleForLink {
-  /**
-   * The libraries in the cycle.
-   */
+  /// The libraries in the cycle.
   final List<LibraryElementInBuildUnit> libraries;
 
-  /**
-   * The library cycles which this library depends on.
-   */
+  /// The library cycles which this library depends on.
   final List<LibraryCycleForLink> dependencies;
 
-  /**
-   * The [LibraryCycleNode] for this library cycle.
-   */
+  /// The [LibraryCycleNode] for this library cycle.
   LibraryCycleNode _node;
 
   LibraryCycleForLink(this.libraries, this.dependencies) {
@@ -3158,10 +3157,8 @@ class LibraryCycleForLink {
 
   LibraryCycleNode get node => _node;
 
-  /**
-   * Link this library cycle and any library cycles it depends on.  Does
-   * nothing if this library cycle has already been linked.
-   */
+  /// Link this library cycle and any library cycles it depends on.  Does
+  /// nothing if this library cycle has already been linked.
   void ensureLinked() {
     if (!node.isEvaluated) {
       new LibraryCycleDependencyWalker().walk(node);
@@ -3169,19 +3166,13 @@ class LibraryCycleForLink {
   }
 }
 
-/**
- * Specialization of [Node] used to link library cycles in proper dependency
- * order.
- */
+/// Specialization of [Node] used to link library cycles in proper dependency
+/// order.
 class LibraryCycleNode extends Node<LibraryCycleNode> {
-  /**
-   * The library cycle this [Node] represents.
-   */
+  /// The library cycle this [Node] represents.
   final LibraryCycleForLink libraryCycle;
 
-  /**
-   * Indicates whether this library cycle has been linked yet.
-   */
+  /// Indicates whether this library cycle has been linked yet.
   bool _isLinked = false;
 
   LibraryCycleNode(this.libraryCycle);
@@ -3194,9 +3185,7 @@ class LibraryCycleNode extends Node<LibraryCycleNode> {
       .map((LibraryCycleForLink cycle) => cycle.node)
       .toList();
 
-  /**
-   * Link this library cycle.
-   */
+  /// Link this library cycle.
   void link() {
     for (LibraryElementInBuildUnit library in libraryCycle.libraries) {
       library.link();
@@ -3205,9 +3194,7 @@ class LibraryCycleNode extends Node<LibraryCycleNode> {
   }
 }
 
-/**
- * Specialization of [DependencyWalker] for computing library cycles.
- */
+/// Specialization of [DependencyWalker] for computing library cycles.
 class LibraryDependencyWalker extends DependencyWalker<LibraryNode> {
   @override
   void evaluate(LibraryNode v) => evaluateScc(<LibraryNode>[v]);
@@ -3231,24 +3218,18 @@ class LibraryDependencyWalker extends DependencyWalker<LibraryNode> {
   }
 }
 
-/**
- * Element representing a library resynthesied from a summary during
- * linking.  The type parameter, [UnitElement], represents the type
- * that will be used for the compilation unit elements.
- */
+/// Element representing a library resynthesied from a summary during
+/// linking.  The type parameter, [UnitElement], represents the type
+/// that will be used for the compilation unit elements.
 abstract class LibraryElementForLink<
         UnitElement extends CompilationUnitElementForLink>
     extends LibraryResynthesizerContextMixin implements LibraryElementImpl {
   final _LibraryResynthesizer resynthesizer;
 
-  /**
-   * Pointer back to the linker.
-   */
+  /// Pointer back to the linker.
   final Linker _linker;
 
-  /**
-   * The absolute URI of this library.
-   */
+  /// The absolute URI of this library.
   final Uri _absoluteUri;
 
   List<UnitElement> _units;
@@ -3313,10 +3294,8 @@ abstract class LibraryElementForLink<
   @override
   bool get isSynthetic => _linkedLibrary == null;
 
-  /**
-   * If this library is part of the build unit being linked, return the library
-   * cycle it is part of.  Otherwise return `null`.
-   */
+  /// If this library is part of the build unit being linked, return the library
+  /// cycle it is part of.  Otherwise return `null`.
   LibraryCycleForLink get libraryCycleForLink;
 
   @override
@@ -3380,14 +3359,10 @@ abstract class LibraryElementForLink<
   List<LinkedExportName> get _linkedExportNames =>
       _linkedLibrary == null ? [] : _linkedLibrary.exportNames;
 
-  /**
-   * The linked representation of the library in the summary.
-   */
+  /// The linked representation of the library in the summary.
   LinkedLibrary get _linkedLibrary;
 
-  /**
-   * Return the [LibraryElement] corresponding to the given dependency [index].
-   */
+  /// Return the [LibraryElement] corresponding to the given dependency [index].
   LibraryElementForLink buildImportedLibrary(int index) {
     LibraryElementForLink result = _dependencies[index];
     if (result == null) {
@@ -3409,11 +3384,9 @@ abstract class LibraryElementForLink<
     return result;
   }
 
-  /**
-   * Search all the units for a top level element with the given
-   * [name].  If no name is found, return the singleton instance of
-   * [UndefinedElementForLink].
-   */
+  /// Search all the units for a top level element with the given
+  /// [name].  If no name is found, return the singleton instance of
+  /// [UndefinedElementForLink].
   ReferenceableElementForLink getContainedName(String name) =>
       _containedNames.putIfAbsent(name, () {
         for (UnitElement unit in units) {
@@ -3440,27 +3413,21 @@ abstract class LibraryElementForLink<
   @override
   String toString() => _absoluteUri.toString();
 
-  /**
-   * Create a [UnitElement] for one of the library's compilation
-   * units.
-   */
+  /// Create a [UnitElement] for one of the library's compilation
+  /// units.
   UnitElement _makeUnitElement(
       UnlinkedUnit unlinkedUnit, int i, String absoluteUri);
 }
 
-/**
- * Element representing a library which is part of the build unit
- * being linked.
- */
+/// Element representing a library which is part of the build unit
+/// being linked.
 class LibraryElementInBuildUnit
     extends LibraryElementForLink<CompilationUnitElementInBuildUnit> {
   @override
   final LinkedLibraryBuilder _linkedLibrary;
 
-  /**
-   * The [LibraryNode] representing this library in the library dependency
-   * graph.
-   */
+  /// The [LibraryNode] representing this library in the library dependency
+  /// graph.
   LibraryNode _libraryNode;
 
   InheritanceManager _inheritanceManager;
@@ -3479,9 +3446,7 @@ class LibraryElementInBuildUnit
       _imports ??= LibraryElementImpl.buildImportsFromSummary(this,
           _unlinkedDefiningUnit.imports, _linkedLibrary.importDependencies);
 
-  /**
-   * Get the inheritance manager for this library (creating it if necessary).
-   */
+  /// Get the inheritance manager for this library (creating it if necessary).
   InheritanceManager get inheritanceManager =>
       _inheritanceManager ??= new InheritanceManager(this, ignoreErrors: true);
 
@@ -3497,11 +3462,9 @@ class LibraryElementInBuildUnit
   List<PrefixElement> get prefixes =>
       _prefixes ??= LibraryElementImpl.buildPrefixesFromImports(imports);
 
-  /**
-   * If this library already has a dependency in its dependencies table matching
-   * [library], return its index.  Otherwise add a new dependency to table and
-   * return its index.
-   */
+  /// If this library already has a dependency in its dependencies table
+  /// matching [library], return its index.  Otherwise add a new dependency to
+  /// table and return its index.
   int addDependency(LibraryElementForLink library) {
     for (int i = 0; i < _linkedLibrary.dependencies.length; i++) {
       if (identical(buildImportedLibrary(i), library)) {
@@ -3522,19 +3485,15 @@ class LibraryElementInBuildUnit
     return result;
   }
 
-  /**
-   * Perform type inference and const cycle detection on this library.
-   */
+  /// Perform type inference and const cycle detection on this library.
   void link() {
     for (CompilationUnitElementInBuildUnit unit in units) {
       unit.link();
     }
   }
 
-  /**
-   * Throw away any information stored in the summary by a previous call to
-   * [link].
-   */
+  /// Throw away any information stored in the summary by a previous call to
+  /// [link].
   void unlink() {
     _linkedLibrary.dependencies.length =
         _linkedLibrary.numPrelinkedDependencies;
@@ -3545,15 +3504,16 @@ class LibraryElementInBuildUnit
 
   @override
   CompilationUnitElementInBuildUnit _makeUnitElement(
-          UnlinkedUnit unlinkedUnit, int i, String absoluteUri) =>
-      new CompilationUnitElementInBuildUnit(
-          this, unlinkedUnit, _linkedLibrary.units[i], i, absoluteUri);
+      UnlinkedUnit unlinkedUnit, int i, String absoluteUri) {
+    var astNodeForInference =
+        _linker.getAst == null ? null : _linker.getAst(absoluteUri);
+    return new CompilationUnitElementInBuildUnit(this, unlinkedUnit,
+        _linkedLibrary.units[i], i, absoluteUri, astNodeForInference);
+  }
 }
 
-/**
- * Element representing a library which is depended upon (either
- * directly or indirectly) by the build unit being linked.
- */
+/// Element representing a library which is depended upon (either
+/// directly or indirectly) by the build unit being linked.
 class LibraryElementInDependency
     extends LibraryElementForLink<CompilationUnitElementInDependency> {
   @override
@@ -3579,19 +3539,13 @@ class LibraryElementInDependency
           absoluteUri);
 }
 
-/**
- * Specialization of [Node] used to construct the library dependency graph.
- */
+/// Specialization of [Node] used to construct the library dependency graph.
 class LibraryNode extends Node<LibraryNode> {
-  /**
-   * The library this [Node] represents.
-   */
+  /// The library this [Node] represents.
   final LibraryElementInBuildUnit library;
 
-  /**
-   * The library cycle to which [library] belongs, if it has been computed.
-   * Otherwise `null`.
-   */
+  /// The library cycle to which [library] belongs, if it has been computed.
+  /// Otherwise `null`.
   LibraryCycleForLink _libraryCycle;
 
   LibraryNode(this.library);
@@ -3619,45 +3573,36 @@ class LibraryNode extends Node<LibraryNode> {
   }
 }
 
-/**
- * Instances of [Linker] contain the necessary information to link
- * together a single build unit.
- */
+/// Instances of [Linker] contain the necessary information to link
+/// together a single build unit.
 class Linker {
-  /**
-   * During linking, if type inference is currently being performed on the
-   * initializer of a static or instance variable, the library cycle in
-   * which inference is being performed.  Otherwise, `null`.
-   *
-   * This allows us to suppress instance member type inference results from a
-   * library cycle while doing inference on the right hand sides of static and
-   * instance variables in that same cycle.
-   */
+  /// During linking, if type inference is currently being performed on the
+  /// initializer of a static or instance variable, the library cycle in
+  /// which inference is being performed.  Otherwise, `null`.
+  ///
+  /// This allows us to suppress instance member type inference results from a
+  /// library cycle while doing inference on the right hand sides of static and
+  /// instance variables in that same cycle.
   static LibraryCycleForLink _initializerTypeInferenceCycle;
 
-  /**
-   * Callback to ask the client for a [LinkedLibrary] for a
-   * dependency.
-   */
+  /// Callback to ask the client for a [LinkedLibrary] for a
+  /// dependency.
   final GetDependencyCallback getDependency;
 
-  /**
-   * Callback to ask the client for an [UnlinkedUnit].
-   */
+  /// Callback to ask the client for an [UnlinkedUnit].
   final GetUnitCallback getUnit;
 
-  /**
-   * Map containing all library elements accessed during linking,
-   * whether they are part of the build unit being linked or whether
-   * they are dependencies.
-   */
+  /// Callback to ask the client for a [CompilationUnit].
+  final GetAstCallback getAst;
+
+  /// Map containing all library elements accessed during linking,
+  /// whether they are part of the build unit being linked or whether
+  /// they are dependencies.
   final Map<Uri, LibraryElementForLink> _libraries =
       <Uri, LibraryElementForLink>{};
 
-  /**
-   * List of library elements for the libraries in the build unit
-   * being linked.
-   */
+  /// List of library elements for the libraries in the build unit
+  /// being linked.
   final List<LibraryElementInBuildUnit> _librariesInBuildUnit =
       <LibraryElementInBuildUnit>[];
 
@@ -3672,7 +3617,7 @@ class Linker {
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit) {
+      this.getUnit, this.getAst) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries
@@ -3683,78 +3628,54 @@ class Linker {
     });
   }
 
-  /**
-   * Get an instance of [AnalysisOptions] for use during linking.
-   */
+  /// Get an instance of [AnalysisOptions] for use during linking.
   AnalysisOptionsForLink get analysisOptions =>
       _analysisOptions ??= new AnalysisOptionsForLink(this);
 
-  /**
-   * Get the library element for `dart:async`.
-   */
+  /// Get the library element for `dart:async`.
   LibraryElementForLink get asyncLibrary =>
       _asyncLibrary ??= getLibrary(Uri.parse('dart:async'));
 
-  /**
-   * Get the element representing the "bottom" type.
-   */
+  /// Get the element representing the "bottom" type.
   SpecialTypeElementForLink get bottomElement => _bottomElement ??=
       new SpecialTypeElementForLink(this, BottomTypeImpl.instance);
 
-  /**
-   * Get a stub implementation of [AnalysisContext] which can be used during
-   * linking.
-   */
+  /// Get a stub implementation of [AnalysisContext] which can be used during
+  /// linking.
   get context => _context ??= new ContextForLink(this);
 
-  /**
-   * Get the library element for `dart:core`.
-   */
+  /// Get the library element for `dart:core`.
   LibraryElementForLink get coreLibrary =>
       _coreLibrary ??= getLibrary(Uri.parse('dart:core'));
 
-  /**
-   * Get the element representing `dynamic`.
-   */
+  /// Get the element representing `dynamic`.
   SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
-  /**
-   * Indicates whether type inference should use strong mode rules.
-   */
+  /// Indicates whether type inference should use strong mode rules.
   @deprecated
   bool get strongMode => true;
 
-  /**
-   * Get an instance of [TypeProvider] for use during linking.
-   */
+  /// Get an instance of [TypeProvider] for use during linking.
   TypeProviderForLink get typeProvider =>
       _typeProvider ??= new TypeProviderForLink(this);
 
-  /**
-   * Get an instance of [TypeSystem] for use during linking.
-   */
+  /// Get an instance of [TypeSystem] for use during linking.
   TypeSystem get typeSystem =>
       _typeSystem ??= new StrongTypeSystemImpl(typeProvider);
 
-  /**
-   * Get the element representing `void`.
-   */
+  /// Get the element representing `void`.
   SpecialTypeElementForLink get voidElement => _voidElement ??=
       new SpecialTypeElementForLink(this, VoidTypeImpl.instance);
 
-  /**
-   * Get the library element for the library having the given [uri].
-   */
+  /// Get the library element for the library having the given [uri].
   LibraryElementForLink getLibrary(Uri uri) => _libraries.putIfAbsent(
       uri,
       () => new LibraryElementInDependency(
           this, uri, getDependency(uri.toString())));
 
-  /**
-   * Perform type inference and const cycle detection on all libraries
-   * in the build unit being linked.
-   */
+  /// Perform type inference and const cycle detection on all libraries
+  /// in the build unit being linked.
   void link() {
     // Link library cycles in appropriate dependency order.
     for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
@@ -3763,10 +3684,8 @@ class Linker {
     // TODO(paulberry): set dependencies.
   }
 
-  /**
-   * Throw away any information stored in the summary by a previous call to
-   * [link].
-   */
+  /// Throw away any information stored in the summary by a previous call to
+  /// [link].
   void unlink() {
     for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
       library.unlink();
@@ -3774,9 +3693,7 @@ class Linker {
   }
 }
 
-/**
- * Element representing a method resynthesized from a summary during linking.
- */
+/// Element representing a method resynthesized from a summary during linking.
 class MethodElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements MethodElementImpl {
@@ -3810,42 +3727,30 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Element used for references that result from trying to access a non-static
- * member of an element that is not a container (e.g. accessing the "length"
- * property of a constant).
- *
- * Accesses to a chain of non-static members separated by '.' are handled by
- * creating a [NonstaticMemberElementForLink] that points to another
- * [NonstaticMemberElementForLink], to whatever nesting level is necessary.
- */
+/// Element used for references that result from trying to access a non-static
+/// member of an element that is not a container (e.g. accessing the "length"
+/// property of a constant).
+///
+/// Accesses to a chain of non-static members separated by '.' are handled by
+/// creating a [NonstaticMemberElementForLink] that points to another
+/// [NonstaticMemberElementForLink], to whatever nesting level is necessary.
 class NonstaticMemberElementForLink extends Object
     with ReferenceableElementForLink {
-  /**
-   * The [ReferenceableElementForLink] which is the target of the non-static
-   * reference.
-   */
+  /// The [ReferenceableElementForLink] which is the target of the non-static
+  /// reference.
   final ReferenceableElementForLink _target;
 
-  /**
-   * The name of the non-static members that is being accessed.
-   */
+  /// The name of the non-static members that is being accessed.
   final String _name;
 
-  /**
-   * The library in which the access occurs.  This determines whether private
-   * names are accessible.
-   */
+  /// The library in which the access occurs.  This determines whether private
+  /// names are accessible.
   final LibraryElementForLink _library;
 
-  /**
-   * Whether the [_element] was computed (even if to `null`).
-   */
+  /// Whether the [_element] was computed (even if to `null`).
   bool _elementReady = false;
 
-  /**
-   * The cached [ExecutableElement] represented by this element.
-   */
+  /// The cached [ExecutableElement] represented by this element.
   ExecutableElement _element;
 
   NonstaticMemberElementForLink(this._library, this._target, this._name);
@@ -3853,9 +3758,7 @@ class NonstaticMemberElementForLink extends Object
   @override
   ConstVariableNode get asConstVariable => _target.asConstVariable;
 
-  /**
-   * Return the [ExecutableElement] represented by this element.
-   */
+  /// Return the [ExecutableElement] represented by this element.
   ExecutableElement get asExecutableElement {
     if (!_elementReady) {
       _elementReady = true;
@@ -3902,36 +3805,24 @@ class NonstaticMemberElementForLink extends Object
   String toString() => '$_target.(dynamic)$_name';
 }
 
-/**
- * Element representing a function or method parameter resynthesized
- * from a summary during linking.
- */
+/// Element representing a function or method parameter resynthesized
+/// from a summary during linking.
 class ParameterElementForLink implements ParameterElementImpl {
-  /**
-   * The unlinked representation of the parameter in the summary.
-   */
+  /// The unlinked representation of the parameter in the summary.
   final UnlinkedParam unlinkedParam;
 
-  /**
-   * The innermost enclosing element that can declare type parameters.
-   */
+  /// The innermost enclosing element that can declare type parameters.
   final TypeParameterizedElementMixin _typeParameterContext;
 
-  /**
-   * If this parameter has a default value and the enclosing library
-   * is part of the build unit being linked, the parameter's node in
-   * the constant evaluation dependency graph.  Otherwise `null`.
-   */
+  /// If this parameter has a default value and the enclosing library
+  /// is part of the build unit being linked, the parameter's node in
+  /// the constant evaluation dependency graph.  Otherwise `null`.
   ConstNode _constNode;
 
-  /**
-   * The compilation unit in which this parameter appears.
-   */
+  /// The compilation unit in which this parameter appears.
   final CompilationUnitElementForLink compilationUnit;
 
-  /**
-   * The index of this parameter within [enclosingElement]'s parameter list.
-   */
+  /// The index of this parameter within [enclosingElement]'s parameter list.
   final int _parameterIndex;
 
   @override
@@ -4098,10 +3989,8 @@ class ParameterElementForLink implements ParameterElementImpl {
     return _typeParameterContext;
   }
 
-  /**
-   * Store the results of type inference for this parameter in
-   * [compilationUnit].
-   */
+  /// Store the results of type inference for this parameter in
+  /// [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
         unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
@@ -4122,10 +4011,8 @@ class ParameterElementForLink implements ParameterElementImpl {
   }
 }
 
-/**
- * Element representing the parameter of a synthetic setter for a variable
- * resynthesized during linking.
- */
+/// Element representing the parameter of a synthetic setter for a variable
+/// resynthesized during linking.
 class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   @override
   final PropertyAccessorElementForLink_Variable enclosingElement;
@@ -4178,24 +4065,18 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Mixin used by elements that can have parameters.
- */
+/// Mixin used by elements that can have parameters.
 abstract class ParameterParentElementForLink implements Element {
   List<ParameterElement> _parameters;
 
-  /**
-   * Get the appropriate integer list to store in
-   * [EntityRef.implicitFunctionTypeIndices] to refer to this element.  For an
-   * element representing a function-typed parameter, this should return a
-   * non-empty list.  For an element representing an executable, this should
-   * return the empty list.
-   */
+  /// Get the appropriate integer list to store in
+  /// [EntityRef.implicitFunctionTypeIndices] to refer to this element.  For an
+  /// element representing a function-typed parameter, this should return a
+  /// non-empty list.  For an element representing an executable, this should
+  /// return the empty list.
   List<int> get implicitFunctionTypeIndices;
 
-  /**
-   * Get all the parameters of this element.
-   */
+  /// Get all the parameters of this element.
   List<ParameterElement> get parameters {
     if (_parameters == null) {
       List<UnlinkedParam> unlinkedParameters = this.unlinkedParameters;
@@ -4215,32 +4096,24 @@ abstract class ParameterParentElementForLink implements Element {
     return _parameters;
   }
 
-  /**
-   * Get the innermost enclosing element that can declare type parameters (which
-   * may be [this], or may be a parent when there are function-typed
-   * parameters).
-   */
+  /// Get the innermost enclosing element that can declare type parameters
+  /// (which may be [this], or may be a parent when there are function-typed
+  /// parameters).
   TypeParameterizedElementMixin get typeParameterContext;
 
-  /**
-   * Get the list of unlinked parameters of this element.
-   */
+  /// Get the list of unlinked parameters of this element.
   List<UnlinkedParam> get unlinkedParameters;
 }
 
-/**
- * Element representing a getter or setter resynthesized from a summary during
- * linking.
- */
+/// Element representing a getter or setter resynthesized from a summary during
+/// linking.
 abstract class PropertyAccessorElementForLink
     implements PropertyAccessorElementImpl, ReferenceableElementForLink {
   void link(CompilationUnitElementInBuildUnit compilationUnit);
 }
 
-/**
- * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
- * implied by the synthetic fields of an enum declaration.
- */
+/// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
+/// implied by the synthetic fields of an enum declaration.
 class PropertyAccessorElementForLink_EnumField extends Object
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
@@ -4317,10 +4190,8 @@ class PropertyAccessorElementForLink_EnumField extends Object
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Specialization of [PropertyAccessorElementForLink] for non-synthetic
- * accessors explicitly declared in the source code.
- */
+/// Specialization of [PropertyAccessorElementForLink] for non-synthetic
+/// accessors explicitly declared in the source code.
 class PropertyAccessorElementForLink_Executable
     extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
@@ -4378,10 +4249,8 @@ class PropertyAccessorElementForLink_Executable
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
- * implied by a field or variable declaration.
- */
+/// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
+/// implied by a field or variable declaration.
 class PropertyAccessorElementForLink_Variable extends Object
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
@@ -4494,83 +4363,63 @@ class PropertyAccessorElementForLink_Variable extends Object
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Base class representing an element which can be the target of a reference.
- * When used as a mixin, implements the default behavior shared by most
- * elements.
- */
+/// Base class representing an element which can be the target of a reference.
+/// When used as a mixin, implements the default behavior shared by most
+/// elements.
 abstract class ReferenceableElementForLink implements Element {
-  /**
-   * If this element is a class reference, return it. Otherwise return `null`.
-   */
+  /// If this element is a class reference, return it. Otherwise return `null`.
   ClassElementForLink get asClass => null;
 
-  /**
-   * If this element can be used in a constructor invocation context,
-   * return the associated constructor (which may be `this` or some
-   * other element).  Otherwise return `null`.
-   */
+  /// If this element can be used in a constructor invocation context,
+  /// return the associated constructor (which may be `this` or some
+  /// other element).  Otherwise return `null`.
   ConstructorElementForLink get asConstructor => null;
 
-  /**
-   * If this element can be used in a getter context to refer to a
-   * constant variable, return the [ConstVariableNode] for the
-   * constant value.  Otherwise return `null`.
-   */
+  /// If this element can be used in a getter context to refer to a
+  /// constant variable, return the [ConstVariableNode] for the
+  /// constant value.  Otherwise return `null`.
   ConstVariableNode get asConstVariable => null;
 
-  /**
-   * Return the static type (possibly inferred) of the entity referred to by
-   * this element.
-   */
+  /// Return the static type (possibly inferred) of the entity referred to by
+  /// this element.
   DartType get asStaticType => DynamicTypeImpl.instance;
 
-  /**
-   * If this element can be used in a getter context as a type inference
-   * dependency, return the [TypeInferenceNode] for the inferred type.
-   * Otherwise return `null`.
-   */
+  /// If this element can be used in a getter context as a type inference
+  /// dependency, return the [TypeInferenceNode] for the inferred type.
+  /// Otherwise return `null`.
   TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   ElementLocation get location => new ElementLocationImpl.con1(this);
 
-  /**
-   * Return the type indicated by this element when it is used in a
-   * type instantiation context.  If this element can't legally be
-   * instantiated as a type, return the dynamic type.
-   *
-   * If the type is parameterized, [getTypeArgument] will be called to retrieve
-   * the type parameters.  It should return `null` for unspecified type
-   * parameters.
-   */
+  /// Return the type indicated by this element when it is used in a
+  /// type instantiation context.  If this element can't legally be
+  /// instantiated as a type, return the dynamic type.
+  ///
+  /// If the type is parameterized, [getTypeArgument] will be called to retrieve
+  /// the type parameters.  It should return `null` for unspecified type
+  /// parameters.
   DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
       DynamicTypeImpl.instance;
 
-  /**
-   * If this element contains other named elements, return the
-   * contained element having the given [name].  If this element can't
-   * contain other named elements, or it doesn't contain an element
-   * with the given name, return the singleton of
-   * [UndefinedElementForLink].
-   */
+  /// If this element contains other named elements, return the
+  /// contained element having the given [name].  If this element can't
+  /// contain other named elements, or it doesn't contain an element
+  /// with the given name, return the singleton of
+  /// [UndefinedElementForLink].
   ReferenceableElementForLink getContainedName(String name) {
     // TODO(paulberry): handle references to `call` for function types.
     return UndefinedElementForLink.instance;
   }
 
-  /**
-   * If this element contains local functions, return the contained local
-   * function having the given [index].  If this element doesn't contain local
-   * functions, or the index is out of range, return `null`.
-   */
+  /// If this element contains local functions, return the contained local
+  /// function having the given [index].  If this element doesn't contain local
+  /// functions, or the index is out of range, return `null`.
   FunctionElementForLink_Local getLocalFunction(int index) => null;
 }
 
-/**
- * Element used for references to special types such as `void`.
- */
+/// Element used for references to special types such as `void`.
 class SpecialTypeElementForLink extends Object
     with ReferenceableElementForLink {
   final Linker linker;
@@ -4594,10 +4443,8 @@ class SpecialTypeElementForLink extends Object
   String toString() => type.toString();
 }
 
-/**
- * Element representing a synthetic variable resynthesized from a summary during
- * linking.
- */
+/// Element representing a synthetic variable resynthesized from a summary
+/// during linking.
 class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
   PropertyAccessorElementForLink_Executable _getter;
   PropertyAccessorElementForLink_Executable _setter;
@@ -4621,9 +4468,7 @@ class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing a top-level function.
- */
+/// Element representing a top-level function.
 class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements FunctionElementImpl {
@@ -4658,15 +4503,13 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
   String toString() => '$enclosingElement.$name';
 }
 
-/**
- * Element representing a top level variable resynthesized from a
- * summary during linking.
- */
+/// Element representing a top level variable resynthesized from a
+/// summary during linking.
 class TopLevelVariableElementForLink extends VariableElementForLink
     implements TopLevelVariableElement {
   TopLevelVariableElementForLink(CompilationUnitElementForLink enclosingElement,
-      UnlinkedVariable unlinkedVariable)
-      : super(unlinkedVariable, enclosingElement);
+      UnlinkedVariable unlinkedVariable, Expression initializerForInference)
+      : super(unlinkedVariable, enclosingElement, initializerForInference);
 
   @override
   CompilationUnitElementForLink get enclosingElement => compilationUnit;
@@ -4680,10 +4523,8 @@ class TopLevelVariableElementForLink extends VariableElementForLink
   @override
   TypeParameterizedElementMixin get _typeParameterContext => null;
 
-  /**
-   * Store the results of type inference for this variable in
-   * [compilationUnit].
-   */
+  /// Store the results of type inference for this variable in
+  /// [compilationUnit].
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (hasImplicitType) {
       TypeInferenceNode typeInferenceNode = this._typeInferenceNode;
@@ -4698,10 +4539,8 @@ class TopLevelVariableElementForLink extends VariableElementForLink
   }
 }
 
-/**
- * Specialization of [DependencyWalker] for performing type inference on static
- * and top level variables.
- */
+/// Specialization of [DependencyWalker] for performing type inference on static
+/// and top level variables.
 class TypeInferenceDependencyWalker
     extends DependencyWalker<TypeInferenceNode> {
   @override
@@ -4717,14 +4556,10 @@ class TypeInferenceDependencyWalker
   }
 }
 
-/**
- * Specialization of [Node] used to construct the type inference dependency
- * graph.
- */
+/// Specialization of [Node] used to construct the type inference dependency
+/// graph.
 class TypeInferenceNode extends Node<TypeInferenceNode> {
-  /**
-   * The [FunctionElementForLink_Local] to which this node refers.
-   */
+  /// The [FunctionElementForLink_Local] to which this node refers.
   final FunctionElementForLink_Local functionElement;
 
   TypeInferenceNode(this.functionElement);
@@ -4732,11 +4567,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   @override
   bool get isEvaluated => functionElement._hasTypeBeenInferred;
 
-  /**
-   * Collect the type inference dependencies in [unlinkedExecutable] (which
-   * should be interpreted relative to [compilationUnit]) and store them in
-   * [dependencies].
-   */
+  /// Collect the type inference dependencies in [unlinkedExecutable] (which
+  /// should be interpreted relative to [compilationUnit]) and store them in
+  /// [dependencies].
   void collectDependencies(
       List<TypeInferenceNode> dependencies,
       UnlinkedExecutable unlinkedExecutable,
@@ -5031,9 +4864,7 @@ class TypeProviderForLink extends TypeProviderBase {
   }
 }
 
-/**
- * Singleton element used for unresolved references.
- */
+/// Singleton element used for unresolved references.
 class UndefinedElementForLink extends Object with ReferenceableElementForLink {
   static final UndefinedElementForLink instance =
       new UndefinedElementForLink._();
@@ -5044,29 +4875,25 @@ class UndefinedElementForLink extends Object with ReferenceableElementForLink {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * Element representing a top level variable resynthesized from a
- * summary during linking.
- */
+/// Element representing a top level variable resynthesized from a
+/// summary during linking.
 abstract class VariableElementForLink
     implements NonParameterVariableElementImpl, PropertyInducingElement {
-  /**
-   * The unlinked representation of the variable in the summary.
-   */
+  /// The unlinked representation of the variable in the summary.
   final UnlinkedVariable unlinkedVariable;
 
-  /**
-   * If this variable is declared `const` and the enclosing library is
-   * part of the build unit being linked, the variable's node in the
-   * constant evaluation dependency graph.  Otherwise `null`.
-   */
+  /// If non-null, the AST for the initializer expression; this is used for
+  /// inferring the expression type.
+  final Expression _initializerForInference;
+
+  /// If this variable is declared `const` and the enclosing library is
+  /// part of the build unit being linked, the variable's node in the
+  /// constant evaluation dependency graph.  Otherwise `null`.
   ConstNode _constNode;
 
-  /**
-   * If this variable has an initializer and an implicit type, and the enclosing
-   * library is part of the build unit being linked, the variable's node in the
-   * type inference dependency graph.  Otherwise `null`.
-   */
+  /// If this variable has an initializer and an implicit type, and the
+  /// enclosing library is part of the build unit being linked, the variable's
+  /// node in the type inference dependency graph.  Otherwise `null`.
   TypeInferenceNode _typeInferenceNode;
 
   FunctionElementForLink_Initializer _initializer;
@@ -5075,25 +4902,24 @@ abstract class VariableElementForLink
   PropertyAccessorElementForLink_Variable _getter;
   PropertyAccessorElementForLink_Variable _setter;
 
-  /**
-   * The compilation unit in which this variable appears.
-   */
+  /// The compilation unit in which this variable appears.
   final CompilationUnitElementForLink compilationUnit;
 
-  VariableElementForLink(this.unlinkedVariable, this.compilationUnit) {
-    if (compilationUnit.isInBuildUnit &&
-        unlinkedVariable.initializer?.bodyExpr != null) {
+  VariableElementForLink(this.unlinkedVariable, this.compilationUnit,
+      this._initializerForInference) {
+    if (!compilationUnit.isInBuildUnit) return;
+    if (unlinkedVariable.initializer?.bodyExpr == null) {
+      if (_initializerForInference == null) return;
+    } else {
       _constNode = new ConstVariableNode(this);
-      if (unlinkedVariable.type == null) {
-        _typeInferenceNode = initializer.asTypeInferenceNode;
-      }
+    }
+    if (unlinkedVariable.type == null) {
+      _typeInferenceNode = initializer.asTypeInferenceNode;
     }
   }
 
-  /**
-   * If the variable has an explicitly declared return type, return it.
-   * Otherwise return `null`.
-   */
+  /// If the variable has an explicitly declared return type, return it.
+  /// Otherwise return `null`.
   DartType get declaredType {
     if (unlinkedVariable.type == null) {
       return null;
@@ -5116,10 +4942,8 @@ abstract class VariableElementForLink
   @override
   String get identifier => unlinkedVariable.name;
 
-  /**
-   * Return the inferred type of the variable element.  Should only be called if
-   * no type was explicitly declared.
-   */
+  /// Return the inferred type of the variable element.  Should only be called
+  /// if no type was explicitly declared.
   DartType get inferredType {
     // We should only try to infer a type when none is explicitly declared.
     assert(unlinkedVariable.type == null);
@@ -5149,17 +4973,16 @@ abstract class VariableElementForLink
     if (unlinkedVariable.initializer == null) {
       return null;
     } else {
-      return _initializer ??= new FunctionElementForLink_Initializer(this);
+      return _initializer ??= new FunctionElementForLink_Initializer(
+          this, _initializerForInference);
     }
   }
 
   @override
   bool get isConst => unlinkedVariable.isConst;
 
-  /**
-   * Return `true` if this variable is a field that was explicitly marked as
-   * being covariant (in the setter's parameter).
-   */
+  /// Return `true` if this variable is a field that was explicitly marked as
+  /// being covariant (in the setter's parameter).
   bool get isCovariant => unlinkedVariable.isCovariant;
 
   @override
@@ -5202,10 +5025,8 @@ abstract class VariableElementForLink
     return _typeParameterContext;
   }
 
-  /**
-   * The context in which type parameters should be interpreted, or `null` if
-   * there are no type parameters in scope.
-   */
+  /// The context in which type parameters should be interpreted, or `null` if
+  /// there are no type parameters in scope.
   TypeParameterizedElementMixin get _typeParameterContext;
 
   @override

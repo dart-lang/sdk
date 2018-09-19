@@ -51,6 +51,9 @@ abstract class CompilerConfiguration {
       case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(configuration);
 
+      case Compiler.compareAnalyzerCfe:
+        return new CompareAnalyzerCfeCompilerConfiguration(configuration);
+
       case Compiler.dart2js:
         return new Dart2jsCompilerConfiguration(configuration);
 
@@ -244,7 +247,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     } else if (_configuration.hotReloadRollback) {
       args.add('--hot-reload-rollback-test-mode');
     }
-
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
@@ -492,7 +494,11 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    var sdkSummaryFile = useKernel ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+    // TODO(jmesserly): restore testing on this once we have everyone migrated
+    // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
+    // summaries to Kernel IL.
+    final useDillFormat = false;
+    var sdkSummaryFile = useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
     var sdkSummary = new Path(_configuration.buildDirectory)
         .append("/gen/utils/dartdevc/$sdkSummaryFile")
         .absolute
@@ -529,8 +535,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var pkgDir = useKernel ? 'pkg_kernel' : 'pkg';
-    var pkgExtension = useKernel ? 'dill' : 'sum';
+    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
+    var pkgExtension = useDillFormat ? 'dill' : 'sum';
     for (var package in testPackages) {
       args.add("-s");
 
@@ -946,6 +952,46 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
       Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
+    ], null, null);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
+  }
+}
+
+/// Configuration for compareAnalyzerCfe.
+class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
+  CompareAnalyzerCfeCompilerConfiguration(TestConfiguration configuration)
+      : super._subclass(configuration);
+
+  int get timeoutMultiplier => 4;
+
+  String computeCompilerPath() {
+    String suffix = executableScriptSuffix;
+    if (_useSdk) {
+      throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
+    }
+    return 'pkg/analyzer_fe_comparison/bin/compare_sdk_tests$suffix';
+  }
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+    if (!previewDart2) {
+      throw new ArgumentError('--no-preview-dart-2 not supported');
+    }
+
+    // Since this is not a real compilation, no artifacts are produced.
+    return new CommandArtifact([
+      Command.compareAnalyzerCfe(
+          computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 

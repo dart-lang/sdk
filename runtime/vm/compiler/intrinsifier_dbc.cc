@@ -26,10 +26,11 @@ intptr_t Intrinsifier::ParameterSlotFromSp() {
 }
 
 #define DEFINE_FUNCTION(class_name, test_function_name, enum_name, type, fp)   \
-  void Intrinsifier::enum_name(Assembler* assembler) {                         \
+  void Intrinsifier::enum_name(Assembler* assembler, Label* normal_ir_body) {  \
     if (Simulator::IsSupportedIntrinsic(Simulator::k##enum_name##Intrinsic)) { \
       assembler->Intrinsic(Simulator::k##enum_name##Intrinsic);                \
     }                                                                          \
+    assembler->Bind(normal_ir_body);                                           \
   }
 
 ALL_INTRINSICS_LIST(DEFINE_FUNCTION)

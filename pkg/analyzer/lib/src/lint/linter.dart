@@ -288,9 +288,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     Source source = createSource(node.span.sourceUrl);
 
     // Cache error and location info for creating AnalysisErrorInfos
-    // Note that error columns are 1-based
     AnalysisError error = new AnalysisError(
-        source, node.span.start.column + 1, node.span.length, lintCode);
+        source, node.span.start.offset, node.span.length, lintCode);
     LineInfo lineInfo = new LineInfo.fromContent(source.contents.data);
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], lineInfo));

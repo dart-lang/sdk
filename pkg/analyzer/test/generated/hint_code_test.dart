@@ -96,87 +96,6 @@ class _VisibleForTemplate {
     ]);
   }
 
-  test_abstractSuperMemberReference_getter() async {
-    Source source = addSource(r'''
-abstract class A {
-  int get test;
-}
-class B extends A {
-  int get test {
-    super.test;
-    return 0;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_method_invocation() async {
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test();
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_method_reference() async {
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_setter() async {
-    Source source = addSource(r'''
-abstract class A {
-  void set test(int v);
-}
-class B extends A {
-  void set test(int v){
-    super.test = 0;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    Source source = addSource('''
-abstract class A {
-  int m();
-  noSuchMethod(_) => 42;
-}
-
-class B extends A {
-  int m() => super.m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
   test_argumentTypeNotAssignable_functionType() async {
     Source source = addSource(r'''
 m() {
@@ -3987,14 +3906,6 @@ f(var a) {
     }
   }
 
-  test_undefinedGetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_GETTER.message,
-        StaticTypeWarningCode.UNDEFINED_GETTER.message);
-  }
-
   test_undefinedIdentifier_exportHide() async {
     Source source = addSource(r'''
 library L;
@@ -4179,14 +4090,6 @@ f(var a) {
     } else {
       assertErrors(source, [HintCode.UNDEFINED_SETTER]);
     }
-  }
-
-  test_undefinedSetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_SETTER.message,
-        StaticTypeWarningCode.UNDEFINED_SETTER.message);
   }
 
   test_unnecessaryCast_type_supertype() async {

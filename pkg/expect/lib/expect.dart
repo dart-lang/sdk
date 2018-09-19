@@ -543,7 +543,13 @@ class Expect {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
       if (e is T && (check == null || check(e))) return;
-      _fail("Expect.throws$msg: Unexpected '$e'\n$s");
+      // Throws something unexpected.
+      String type = "";
+      if (T != dynamic && T != Object) {
+        type = "<$T>";
+      }
+      _fail("Expect.throws$type$msg: "
+          "Unexpected '${Error.safeToString(e)}'\n$s");
     }
     _fail('Expect.throws$msg fails: Did not throw');
   }
@@ -602,14 +608,40 @@ class Expect {
   static void type<T>(Object object, [String reason]) {
     if (object is T) return;
     String msg = _getMessage(reason);
-    _fail("Expect.type($object is $T$msg) fails, was ${object.runtimeType}");
+    _fail("Expect.type($object is $T$msg) fails "
+        "on ${Error.safeToString(object)}");
   }
 
   /// Checks that [object] does not have type [T].
   static void notType<T>(Object object, [String reason]) {
     if (object is! T) return;
     String msg = _getMessage(reason);
-    _fail("Expect.type($object is! $T$msg) fails, was ${object.runtimeType}");
+    _fail("Expect.type($object is! $T$msg) fails"
+        "on ${Error.safeToString(object)}");
+  }
+
+  /// Checks that `Sub` is a subtype of `Super` at compile time and run time.
+  static bool subtype<Sub extends Super, Super>() {
+    List<Super> list = <Sub>[];
+    _subtypeAtRuntime<Sub, Super>();
+  }
+
+  /// Checks that `Sub` is a subtype of `Super` at run time.
+  ///
+  /// This is similar to [subtype] but without the `Sub extends Super` generic
+  /// constraint, so a compiler is less likely to optimize away the `is` check
+  /// because the types appear to be unrelated.
+  static bool _subtypeAtRuntime<Sub, Super>() {
+    if (<Sub>[] is! List<Super>) {
+      fail("$Sub is not a subtype of $Super");
+    }
+  }
+
+  /// Checks that `Sub` is not a subtype of `Super` at run time.
+  static bool notSubtype<Sub, Super>() {
+    if (<Sub>[] is List<Super>) {
+      fail("$Sub is a subtype of $Super");
+    }
   }
 
   static String _getMessage(String reason) =>

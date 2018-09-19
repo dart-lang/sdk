@@ -4,7 +4,7 @@
 
 **Version**: 0.2 (2018-09-04)
 
-**Status**: Under discussion.
+**Status**: Under implementation.
 
 **This document** is a Dart 2 feature specification of the static typing
 of instance members of a receiver whose static type is `dynamic`.

@@ -11,6 +11,8 @@ import 'package:analyzer/error/error.dart';
 
 export 'package:front_end/src/scanner/errors.dart' show ScannerErrorCode;
 
+part 'syntactic_errors.g.dart';
+
 /**
  * The error codes used for errors detected by the parser. The convention for
  * this class is for the name of the error code to indicate the problem that
@@ -132,10 +134,8 @@ class ParserErrorCode extends ErrorCode {
           "Constructors can't have a return type.",
           correction: "Try removing the return type.");
 
-  static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
-      'CONTINUE_OUTSIDE_OF_LOOP',
-      "A continue statement can't be used outside of a loop or switch statement.",
-      correction: "Try removing the continue statement.");
+  static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
+      _CONTINUE_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
       'CONTINUE_WITHOUT_LABEL_IN_CASE',
@@ -148,10 +148,7 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'covariant' should be before the modifier 'final'.",
       correction: "Try re-ordering the modifiers.");
 
-  static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
-      'COVARIANT_AFTER_VAR',
-      "The modifier 'covariant' should be before the modifier 'final'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode COVARIANT_AFTER_VAR = _COVARIANT_AFTER_VAR;
 
   static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
       'COVARIANT_AND_STATIC',
@@ -225,9 +222,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try moving the enum to the top-level.");
 
   static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND =
-      const ParserErrorCode('EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
-          "An equality expression can't be an operand of another equality expression.",
-          correction: "Try re-writing the expression.");
+      _EQUALITY_CANNOT_BE_EQUALITY_OPERAND;
 
   static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = const ParserErrorCode(
       'EXPECTED_CASE_OR_DEFAULT', "Expected 'case' or 'default'.",
@@ -282,9 +277,7 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'external' should be before the modifier 'static'.",
       correction: "Try re-ordering the modifiers.");
 
-  static const ParserErrorCode EXTERNAL_CLASS = const ParserErrorCode(
-      'EXTERNAL_CLASS', "Classes can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode('EXTERNAL_CONSTRUCTOR_WITH_BODY',
@@ -292,9 +285,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the body of the constructor, or "
               "removing the keyword 'external'.");
 
-  static const ParserErrorCode EXTERNAL_ENUM = const ParserErrorCode(
-      'EXTERNAL_ENUM', "Enums can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
 
   static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode(
       'EXTERNAL_FIELD', "Fields can't be declared to be 'external'.",
@@ -424,10 +415,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try moving the with clause before the implements clause.");
 
   static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
-      const ParserErrorCode('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-          "Import directives must preceed part directives.",
-          correction:
-              "Try moving the import directives before the part directives.");
+      _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
   static const ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH =
       const ParserErrorCode('INITIALIZED_VARIABLE_IN_FOR_EACH',
@@ -435,10 +423,7 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try removing the initializer, or using a different kind of loop.");
 
-  static const ParserErrorCode INVALID_AWAIT_IN_FOR = const ParserErrorCode(
-      'INVALID_AWAIT_IN_FOR',
-      "The keyword 'await' isn't allowed for a normal 'for' statement.",
-      correction: "Try removing the keyword, or use a for-each statement.");
+  static const ParserErrorCode INVALID_AWAIT_IN_FOR = _INVALID_AWAIT_IN_FOR;
 
   /**
    * Parameters:
@@ -466,7 +451,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode(
       'INVALID_HEX_ESCAPE',
-      "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits.");
+      "An escape sequence starting with '\\x' "
+      "must be followed by 2 hexadecimal digits.");
 
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
       const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
@@ -501,7 +487,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode(
       'INVALID_UNICODE_ESCAPE',
       "An escape sequence starting with '\\u' must be followed by 4 "
-      "hexidecimal digits or from 1 to 6 digits between '{' and '}'.");
+      "hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
 
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
       const ParserErrorCode('LIBRARY_DIRECTIVE_NOT_FIRST',
@@ -617,17 +603,14 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try adding a library name after the 'of'.");
 
   static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT =
-      const ParserErrorCode('MISSING_PREFIX_IN_DEFERRED_IMPORT',
-          "Deferred imports should have a prefix.",
-          correction: "Try adding a prefix to the import.");
+      _MISSING_PREFIX_IN_DEFERRED_IMPORT;
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = const ParserErrorCode(
       'MISSING_STAR_AFTER_SYNC',
       "The modifier 'sync' must be followed by a star ('*').",
       correction: "Try removing the modifier, or add a star.");
 
-  static const ParserErrorCode MISSING_STATEMENT =
-      const ParserErrorCode('MISSING_STATEMENT', "Expected a statement.");
+  static const ParserErrorCode MISSING_STATEMENT = _MISSING_STATEMENT;
 
   /**
    * Parameters:
@@ -653,11 +636,8 @@ class ParserErrorCode extends ErrorCode {
       "Can't have both positional and named parameters in a single parameter list.",
       correction: "Try choosing a single style of optional parameters.");
 
-  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_EXTENDS_CLAUSES',
-      "Each class definition can have at most one extends clause.",
-      correction:
-          "Try choosing one superclass and define your class to implement (or mix in) the others.");
+  static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES =
+      _MULTIPLE_EXTENDS_CLAUSES;
 
   static const ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = const ParserErrorCode(
       'MULTIPLE_IMPLEMENTS_CLAUSES',
@@ -666,24 +646,17 @@ class ParserErrorCode extends ErrorCode {
           "Try combining all of the implements clauses into a single clause.");
 
   static const ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES =
-      const ParserErrorCode('MULTIPLE_LIBRARY_DIRECTIVES',
-          "Only one library directive may be declared in a file.",
-          correction: "Try removing all but one of the library directives.");
+      _MULTIPLE_LIBRARY_DIRECTIVES;
 
   static const ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS =
       const ParserErrorCode('MULTIPLE_NAMED_PARAMETER_GROUPS',
           "Can't have multiple groups of named parameters in a single parameter list.",
           correction: "Try combining all of the groups into a single group.");
 
-  static const ParserErrorCode MULTIPLE_ON_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_ON_CLAUSES',
-      "Each mixin definition can have at most one on clause.",
-      correction: "Try combining all of the on clauses into a single clause.");
+  static const ParserErrorCode MULTIPLE_ON_CLAUSES = _MULTIPLE_ON_CLAUSES;
 
   static const ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES =
-      const ParserErrorCode('MULTIPLE_PART_OF_DIRECTIVES',
-          "Only one part-of directive may be declared in a file.",
-          correction: "Try removing all but one of the part-of directives.");
+      _MULTIPLE_PART_OF_DIRECTIVES;
 
   static const ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS =
       const ParserErrorCode('MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
@@ -702,11 +675,7 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all but one of the declarations inside the loop body.");
 
-  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = const ParserErrorCode(
-      'MULTIPLE_WITH_CLAUSES',
-      "Each class definition can have at most one with clause.",
-      correction:
-          "Try combining all of the with clauses into a single clause.");
+  static const ParserErrorCode MULTIPLE_WITH_CLAUSES = _MULTIPLE_WITH_CLAUSES;
 
   static const ParserErrorCode NAMED_FUNCTION_EXPRESSION = const ParserErrorCode(
       'NAMED_FUNCTION_EXPRESSION', "Function expressions can't be named.",
@@ -737,10 +706,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the word 'native'.");
 
   static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
-      const ParserErrorCode('NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
-          "Native clause in this form is deprecated.",
-          correction: "Try removing this native clause and adding @native()"
-              " or @native('native-name') before the declaration.");
+      _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION;
 
   static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode(
       'NON_CONSTRUCTOR_FACTORY',
@@ -809,22 +775,14 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try surrounding the positional parameters in square brackets.");
 
-  static const ParserErrorCode PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
-      'PREFIX_AFTER_COMBINATOR',
-      "The prefix ('as' clause) should come before any show/hide combinators.",
-      correction: "Try moving the prefix before the combinators.");
+  static const ParserErrorCode PREFIX_AFTER_COMBINATOR =
+      _PREFIX_AFTER_COMBINATOR;
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
-          "Redirecting constructors can't have a body.",
-          correction: "Try removing the body, or "
-              "not making this a redirecting constructor.");
+      _REDIRECTING_CONSTRUCTOR_WITH_BODY;
 
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
-      const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
-          "Only factory constructor can specify '=' redirection.",
-          correction: "Try making this a factory constructor, or "
-              "not making this a redirecting constructor.");
+      _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR;
 
   static const ParserErrorCode SETTER_IN_FUNCTION = const ParserErrorCode(
       'SETTER_IN_FUNCTION',
@@ -836,33 +794,20 @@ class ParserErrorCode extends ErrorCode {
       "The file has too many nested expressions or statements.",
       correction: "Try simplifying the code.");
 
-  static const ParserErrorCode STATIC_AFTER_CONST = const ParserErrorCode(
-      'STATIC_AFTER_CONST',
-      "The modifier 'static' should be before the modifier 'const'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode STATIC_AFTER_CONST = _STATIC_AFTER_CONST;
 
-  static const ParserErrorCode STATIC_AFTER_FINAL = const ParserErrorCode(
-      'STATIC_AFTER_FINAL',
-      "The modifier 'static' should be before the modifier 'final'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode STATIC_AFTER_FINAL = _STATIC_AFTER_FINAL;
 
-  static const ParserErrorCode STATIC_AFTER_VAR = const ParserErrorCode(
-      'STATIC_AFTER_VAR',
-      "The modifier 'static' should be before the modifier 'var'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode STATIC_AFTER_VAR = _STATIC_AFTER_VAR;
 
-  static const ParserErrorCode STATIC_CONSTRUCTOR = const ParserErrorCode(
-      'STATIC_CONSTRUCTOR', "Constructors can't be static.",
-      correction: "Try removing the keyword 'static'.");
+  static const ParserErrorCode STATIC_CONSTRUCTOR = _STATIC_CONSTRUCTOR;
 
   static const ParserErrorCode STATIC_GETTER_WITHOUT_BODY = const ParserErrorCode(
       'STATIC_GETTER_WITHOUT_BODY', "A 'static' getter must have a body.",
       correction:
           "Try adding a body to the getter, or removing the keyword 'static'.");
 
-  static const ParserErrorCode STATIC_OPERATOR = const ParserErrorCode(
-      'STATIC_OPERATOR', "Operators can't be static.",
-      correction: "Try removing the keyword 'static'.");
+  static const ParserErrorCode STATIC_OPERATOR = _STATIC_OPERATOR;
 
   static const ParserErrorCode STATIC_SETTER_WITHOUT_BODY = const ParserErrorCode(
       'STATIC_SETTER_WITHOUT_BODY', "A 'static' setter must have a body.",
@@ -875,30 +820,17 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'static'.");
 
   static const ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE =
-      const ParserErrorCode('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
-          "The default case should be the last case in a switch statement.",
-          correction:
-              "Try moving the default case after the other case clauses.");
+      _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE;
 
   static const ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES =
-      const ParserErrorCode('SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
-          "The 'default' case can only be declared once.",
-          correction: "Try removing all but one default case.");
+      _SWITCH_HAS_MULTIPLE_DEFAULT_CASES;
 
-  static const ParserErrorCode TOP_LEVEL_OPERATOR = const ParserErrorCode(
-      'TOP_LEVEL_OPERATOR', "Operators must be declared within a class.",
-      correction: "Try removing the operator, "
-          "moving it to a class, or "
-          "converting it to be a function.");
+  static const ParserErrorCode TOP_LEVEL_OPERATOR = _TOP_LEVEL_OPERATOR;
 
   static const ParserErrorCode TYPE_ARGUMENTS_ON_TYPE_VARIABLE =
-      const ParserErrorCode('TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
-          "Can't use type arguments with type variable '{0}'.",
-          correction: "Try removing the type arguments.");
+      _TYPE_ARGUMENTS_ON_TYPE_VARIABLE;
 
-  static const ParserErrorCode TYPEDEF_IN_CLASS = const ParserErrorCode(
-      'TYPEDEF_IN_CLASS', "Typedefs can't be declared inside classes.",
-      correction: "Try moving the typedef to the top-level.");
+  static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
   /**
    * Parameters:
@@ -917,15 +849,7 @@ class ParserErrorCode extends ErrorCode {
       'UNEXPECTED_TOKEN', "Unexpected text '{0}'.",
       correction: "Try removing the text.");
 
-  static const ParserErrorCode WITH_BEFORE_EXTENDS = const ParserErrorCode(
-      'WITH_BEFORE_EXTENDS',
-      "The extends clause must be before the with clause.",
-      correction: "Try moving the extends clause before the with clause.");
-
-  static const ParserErrorCode WITH_WITHOUT_EXTENDS = const ParserErrorCode(
-      'WITH_WITHOUT_EXTENDS',
-      "The with clause can't be used without an extends clause.",
-      correction: "Try adding an extends clause such as 'extends Object'.");
+  static const ParserErrorCode WITH_BEFORE_EXTENDS = _WITH_BEFORE_EXTENDS;
 
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
       const ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
@@ -959,10 +883,7 @@ class ParserErrorCode extends ErrorCode {
       'VAR_ENUM', "Enums can't be declared to be 'var'.",
       correction: "Try removing the keyword 'var'.");
 
-  static const ParserErrorCode VAR_RETURN_TYPE = const ParserErrorCode(
-      'VAR_RETURN_TYPE', "The return type can't be 'var'.",
-      correction: "Try removing the keyword 'var', or "
-          "replacing it with the name of the return type.");
+  static const ParserErrorCode VAR_RETURN_TYPE = _VAR_RETURN_TYPE;
 
   static const ParserErrorCode VAR_TYPEDEF = const ParserErrorCode(
       'VAR_TYPEDEF', "Typedefs can't be declared to be 'var'.",

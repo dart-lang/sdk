@@ -45,6 +45,10 @@ Future<String> generateMessagesFile() async {
 part of fasta.codes;
 """);
 
+  bool hasError = false;
+  int largestIndex = 0;
+  final indexNameMap = new Map<int, String>();
+
   List<String> keys = yaml.keys.cast<String>().toList()..sort();
   for (String name in keys) {
     var description = yaml[name];
@@ -55,8 +59,51 @@ part of fasta.codes;
     if (map == null) {
       throw "No 'template:' in key $name.";
     }
-    sb.writeln(compileTemplate(name, map['template'], map['tip'],
+    var index = map['index'];
+    if (index != null) {
+      if (index is! int || index < 1) {
+        print('Error: Expected positive int for "index:" field in $name,'
+            ' but found $index');
+        hasError = true;
+        index = -1;
+        // Continue looking for other problems.
+      } else {
+        String otherName = indexNameMap[index];
+        if (otherName != null) {
+          print('Error: The "index:" field must be unique, '
+              'but is the same for $otherName and $name');
+          hasError = true;
+          // Continue looking for other problems.
+        } else {
+          indexNameMap[index] = name;
+          if (largestIndex < index) {
+            largestIndex = index;
+          }
+        }
+      }
+    }
+    sb.writeln(compileTemplate(name, index, map['template'], map['tip'],
         map['analyzerCode'], map['severity']));
+  }
+  if (largestIndex > indexNameMap.length) {
+    print('Error: The "index:" field values should be unique, consecutive'
+        ' whole numbers starting with 1.');
+    hasError = true;
+    // Fall through to print more information.
+  }
+  if (hasError) {
+    exitCode = 1;
+    print('The largest index is $largestIndex');
+    final sortedIndices = indexNameMap.keys.toList()..sort();
+    int nextAvailableIndex = largestIndex + 1;
+    for (int index = 1; index <= sortedIndices.length; ++index) {
+      if (sortedIndices[index - 1] != index) {
+        nextAvailableIndex = index;
+        break;
+      }
+    }
+    print('The next available index is ${nextAvailableIndex}');
+    return '';
   }
 
   return new DartFormatter().format("$sb");
@@ -65,7 +112,7 @@ part of fasta.codes;
 final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
-String compileTemplate(String name, String template, String tip,
+String compileTemplate(String name, int index, String template, String tip,
     String analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
@@ -262,7 +309,11 @@ String constant = '$buffer';
   }
 
   List<String> codeArguments = <String>[];
-  if (analyzerCode != null) {
+  if (index != null) {
+    codeArguments.add('index: $index');
+  } else if (analyzerCode != null) {
+    // If "index:" is defined, then "analyzerCode:" should not be generated
+    // in the front end. See comment in messages.yaml
     codeArguments.add('analyzerCode: "$analyzerCode"');
   }
   if (severity != null) {

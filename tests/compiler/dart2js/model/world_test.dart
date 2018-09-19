@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 void main() {
   runTests() async {

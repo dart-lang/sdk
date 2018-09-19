@@ -540,6 +540,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
+      optype.typeNameSuggestionsFilter = _nonMixinClasses;
     }
   }
 
@@ -810,6 +811,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitOnClause(OnClause node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
@@ -1030,5 +1036,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       }
     }
     return false;
+  }
+
+  /**
+   * A filter used to disable everything except classes (such as functions and
+   * mixins).
+   */
+  int _nonMixinClasses(DartType type, int relevance) {
+    if (type is InterfaceType) {
+      if (type.element.isMixin) {
+        return null;
+      }
+      return relevance;
+    }
+    return null;
   }
 }

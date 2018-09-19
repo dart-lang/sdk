@@ -973,7 +973,7 @@ class CallSiteInliner : public ValueObject {
             entry_kind = instr->entry_kind();
           }
           kernel::FlowGraphBuilder builder(
-              parsed_function, *ic_data_array, /* not building var desc */ NULL,
+              parsed_function, ic_data_array, /* not building var desc */ NULL,
               exit_collector,
               /* optimized = */ true, Compiler::kNoOSRDeoptId,
               caller_graph_->max_block_id() + 1,
@@ -999,8 +999,14 @@ class CallSiteInliner : public ValueObject {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
         if (FLAG_precompiled_mode) {
-          Precompiler::PopulateWithICData(parsed_function->function(),
-                                          callee_graph);
+          callee_graph->PopulateWithICData(parsed_function->function());
+        }
+#else
+        // If we inline a function which is intrinsified without a fall-through
+        // to IR code, we will not have any ICData attached, so we do it
+        // manually here.
+        if (function.is_intrinsic()) {
+          callee_graph->PopulateWithICData(parsed_function->function());
         }
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
     // !defined(TARGET_ARCH_IA32)
@@ -1011,8 +1017,7 @@ class CallSiteInliner : public ValueObject {
         // TODO(zerny): Put more information in the stubs, eg, type information.
         const intptr_t first_actual_param_index = call_data->first_arg_index;
         const intptr_t inlined_type_args_param =
-            (isolate->reify_generic_functions() && function.IsGeneric()) ? 1
-                                                                         : 0;
+            (FLAG_reify_generic_functions && function.IsGeneric()) ? 1 : 0;
         const intptr_t num_inlined_params =
             inlined_type_args_param + function.NumParameters();
         ZoneGrowableArray<Definition*>* param_stubs =

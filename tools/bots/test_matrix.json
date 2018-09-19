@@ -364,7 +364,7 @@
         "use-blobs": true
     }},
     "dartkp-linux-(product|release)-x64": { },
-    "dartkp-obsufcate-linux-release-x64": {
+    "dartkp-obfuscate-linux-release-x64": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": ["--obfuscate"]
@@ -407,7 +407,14 @@
         "preview-dart-2": false
       }},
     "app_jitk-linux-(debug|product|release)-x64": { },
-    "dartkb-linux-(debug|release)-x64": { },
+    "dartkb-interpret-linux-(debug|release)-x64": {
+      "options": {
+        "vm-options": ["--enable_interpreter"]
+      }},
+    "dartkb-compile-linux-(debug|release)-x64": {
+      "options": {
+        "vm-options": ["--use_bytecode_compiler"]
+      }},
     "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
       "options": {
         "checked": true,
@@ -516,16 +523,22 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--bytecode",
             "runtime"
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-linux-${mode}-x64",
+            "-ndartkb-interpret-linux-${mode}-x64",
             "--compiler=dartkb",
-            "vm",
+            "language_2"
+          ]
+        },
+        {
+          "name": "vm bytecode compiler tests",
+          "arguments": [
+            "-ndartkb-compile-linux-${mode}-x64",
+            "--compiler=dartkb",
             "language_2"
           ]
         }
@@ -669,7 +682,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-${system}-${mode}-${arch}"
+            "-ndartkp-${system}-${mode}-${arch}",
+            "-v"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -695,7 +709,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-obfuscate-${system}-${mode}-${arch}"
+            "-ndartkp-obfuscate-${system}-${mode}-${arch}",
+            "-v"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1749,11 +1764,6 @@
           "name": "analyze pkg/dart_internal",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/dart_internal"]
-        },
-        {
-          "name": "analyze pkg/dart_messages",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "pkg/dart_messages"]
         },
         {
           "name": "analyze pkg/dev_compiler",

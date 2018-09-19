@@ -704,42 +704,6 @@ f(var a) {
     verify([source]);
   }
 
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_field() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-  A.x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_getter() async {
-    Source source = addSource(r'''
-class A {
-  int get x => 42;
-  A.x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  @failingTest // See an update on override checks in issue #33235.
-  test_conflictingConstructorNameAndMember_method() async {
-    Source source = addSource(r'''
-class A {
-  const A.x();
-  void x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_conflictingGenericInterfaces_hierarchyLoop() async {
     // There is no interface conflict here, but there is a loop in the class
     // hierarchy leading to a finite set of implemented types; this loop
@@ -764,82 +728,6 @@ class C extends A implements B {}
     ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-  }
-
-  @failingTest // Does not work with old task model
-  test_conflictingGenericInterfaces_simple() async {
-    Source source = addSource('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A implements B {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_conflictingGenericInterfaces_viaMixin() async {
-    Source source = addSource('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A with B {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
-  test_conflictingGetterAndMethod_field_method() async {
-    Source source = addSource(r'''
-class A {
-  final int m = 0;
-}
-class B extends A {
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_getter_method() async {
-    Source source = addSource(r'''
-class A {
-  get m => 0;
-}
-class B extends A {
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_method_field() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  int m;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_method_getter() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  get m => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
-    verify([source]);
   }
 
   test_conflictingTypeVariableAndClass() async {
@@ -1828,34 +1716,6 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
-  test_duplicateConstructorName_named() async {
-    Source source = addSource(r'''
-class A {
-  A.a() {}
-  A.a() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME
-    ]);
-    verify([source]);
-  }
-
-  test_duplicateConstructorName_unnamed() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-  A() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
-      CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT
-    ]);
-    verify([source]);
-  }
-
   test_duplicateDefinition_acrossLibraries() async {
     Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
@@ -1882,39 +1742,6 @@ class A {}''');
     Source source = addSource(r'''
 main() {
   try {} catch (e, e) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinition_classMembers_fields() async {
-    Source source = addSource(r'''
-class A {
-  int a;
-  int a;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinition_classMembers_fields_oneStatic() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-  static int x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinition_classMembers_methods() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-  m() {}
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
@@ -2044,90 +1871,6 @@ class A<T, T> {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceGetter_staticGetter() async {
-    Source source = addSource(r'''
-class A {
-  int get x => 0;
-}
-class B extends A {
-  static int get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() async {
-    Source source = addSource(r'''
-abstract class A {
-  int get x;
-}
-class B extends A {
-  static int get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceMethod_staticMethod() async {
-    Source source = addSource(r'''
-class A {
-  x() {}
-}
-class B extends A {
-  static x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() async {
-    Source source = addSource(r'''
-abstract class A {
-  x();
-}
-abstract class B extends A {
-  static x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceSetter_staticSetter() async {
-    Source source = addSource(r'''
-class A {
-  set x(value) {}
-}
-class B extends A {
-  static set x(value) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() async {
-    Source source = addSource(r'''
-abstract class A {
-  set x(value);
-}
-class B extends A {
-  static set x(value) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
@@ -2317,31 +2060,6 @@ class M {}
 class C = String with M;''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_dynamic() async {
-    Source source = addSource("class B extends dynamic {}");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_enum() async {
-    Source source = addSource(r'''
-enum E { ONE }
-class A extends E {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_variable() async {
-    Source source = addSource(r'''
-int A;
-class B extends A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
     verify([source]);
   }
 
@@ -2836,18 +2554,6 @@ typedef T foo<T extends S Function<S>(S)>(T t);
     verify([source]);
   }
 
-  test_getterAndMethodWithSameName() async {
-    Source source = addSource(r'''
-class A {
-  x(y) {}
-  get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
-    verify([source]);
-  }
-
   test_implementsDeferredClass() async {
     await resolveWithErrors(<String>[
       r'''
@@ -3036,28 +2742,6 @@ int B;
 class C = A with M implements B;''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
-    verify([source]);
-  }
-
-  test_implementsRepeated() async {
-    Source source = addSource(r'''
-class A {}
-class B implements A, A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
-    verify([source]);
-  }
-
-  test_implementsRepeated_3times() async {
-    Source source = addSource(r'''
-class A {} class C{}
-class B implements A, A, A, A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-      CompileTimeErrorCode.IMPLEMENTS_REPEATED
-    ]);
     verify([source]);
   }
 
@@ -3455,6 +3139,38 @@ E e(String name) {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
     verify([source]);
+  }
+
+  test_integerLiteralAsDoubleOutOfRange_excessiveExponent() async {
+    Source source = addSource(
+        'double x = 0xfffffffffffff80000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000;');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE]);
+    AnalysisError error = analysisResults[source].errors[0];
+
+    // Check that we suggest the max double instead.
+    expect(
+        true,
+        error.correction.contains(
+            '179769313486231570814527423731704356798070567525844996598917476803'
+            '157260780028538760589558632766878171540458953514382464234321326889'
+            '464182768467546703537516986049910576551282076245490090389328944075'
+            '868508455133942304583236903222948165808559332123348274797826204144'
+            '723168738177180919299881250404026184124858368'));
+  }
+
+  test_integerLiteralAsDoubleOutOfRange_excessiveMantissa() async {
+    Source source = addSource('double x = 9223372036854775809;');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE]);
+    AnalysisError error = analysisResults[source].errors[0];
+    // Check that we suggest a valid double instead.
+    expect(true, error.correction.contains('9223372036854775808'));
   }
 
   test_integerLiteralOutOfRange_negative() async {
@@ -4043,18 +3759,6 @@ class A {
     // no test because indistinguishable from constructor
   }
 
-  test_methodAndGetterWithSameName() async {
-    Source source = addSource(r'''
-class A {
-  get x => 0;
-  x(y) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
-    verify([source]);
-  }
-
   test_mixinClassDeclaresConstructor_classDeclaration() async {
     Source source = addSource(r'''
 class A {
@@ -4199,56 +3903,6 @@ class C extends B with M {
     verify([source]);
   }
 
-  @failingTest // Does not work with old task model
-  test_mixinInference_conflictingSubstitution() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<Map<int, String>> with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-class A extends Object with B<String>, C {}
-class B<T> {}
-class C<T> extends B<T> {}
-''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    var mixins = analysisResult.unit.declaredElement.getType('A').mixins;
-    expect(mixins[1].toString(), 'C<String>');
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_impossibleSubstitution() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<List<int>> with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4291,24 +3945,6 @@ class C extends Object with M {}
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
-  }
-
-  @failingTest // Does not work with old task model
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableSuperMixins = true;
-    resetWith(options: options);
-    Source source = addSource('''
-abstract class A<T> {}
-class B {}
-class M<T> extends A<T> {}
-class C extends Object with M implements A<B> {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
   }
 
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
@@ -6194,163 +5830,6 @@ class C implements A, B {
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_extends() async {
-    Source source = addSource(r'''
-class A extends B {}
-class B extends A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_extends_implements() async {
-    Source source = addSource(r'''
-class A extends B {}
-class B implements A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_implements() async {
-    Source source = addSource(r'''
-class A implements B {}
-class B implements A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_mixin() async {
-    Source source = addSource(r'''
-class M1 = Object with M2;
-class M2 = Object with M1;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_mixin_superclass() async {
-    // Make sure we don't get CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS in
-    // addition--that would just be confusing.
-    Source source = addSource('''
-class C = D with M;
-class D = C with M;
-class M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_tail() async {
-    Source source = addSource(r'''
-abstract class A implements A {}
-class B implements A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_tail2() async {
-    Source source = addSource(r'''
-abstract class A implements B {}
-abstract class B implements A {}
-class C implements A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritance_tail3() async {
-    Source source = addSource(r'''
-abstract class A implements B {}
-abstract class B implements C {}
-abstract class C implements A {}
-class D implements A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritanceBaseCaseExtends() async {
-    Source source = addSource("class A extends A {}");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritanceBaseCaseExtends_abstract() async {
-    Source source = addSource(r'''
-class C extends C {
-  var bar = 0;
-  m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
-      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritanceBaseCaseImplements() async {
-    Source source = addSource("class A implements A {}");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritanceBaseCaseImplements_typeAlias() async {
-    Source source = addSource(r'''
-class A {}
-class M {}
-class B = A with M implements B;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
-    ]);
-    verify([source]);
-  }
-
-  test_recursiveInterfaceInheritanceBaseCaseWith() async {
-    Source source = addSource("class M = Object with M;");
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH]);
     verify([source]);
   }
 

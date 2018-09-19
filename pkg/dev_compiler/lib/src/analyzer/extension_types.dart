@@ -103,7 +103,8 @@ class ExtensionTypeSet {
     }
     element.interfaces.forEach(_addExtensionType);
     element.mixins.forEach(_addExtensionType);
-    _addExtensionType(element.supertype);
+    var supertype = element.supertype;
+    if (supertype != null) _addExtensionType(element.supertype);
   }
 
   void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {

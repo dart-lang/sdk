@@ -183,7 +183,6 @@ class ObjectPointerVisitor;
   V(ClosureData, "ClosureData")                                                \
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
-  V(NativeEntryData, "NativeEntryData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \
@@ -463,6 +462,7 @@ class ObjectPointerVisitor;
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
   V(vm_entry_point, "vm:entry-point")                                          \
+  V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(Get, "get")                                                                \
   V(Set, "set")                                                                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \

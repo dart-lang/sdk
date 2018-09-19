@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         Class,
         ConstructorInvocation,
         DartType,
+        DynamicType,
         Expression,
         Field,
         Library,
@@ -162,14 +163,12 @@ class KernelLibraryBuilder
 
   Uri get uri => library.importUri;
 
-  void becomeCoreLibrary(dynamicType) {
-    if (scope.local["dynamic"] == null) {
-      addBuilder(
-          "dynamic",
-          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-              dynamicType, this, -1),
-          -1);
-    }
+  void addSyntheticDeclarationOfDynamic() {
+    addBuilder(
+        "dynamic",
+        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+            const DynamicType(), this, -1),
+        -1);
   }
 
   KernelTypeBuilder addNamedType(
@@ -335,7 +334,7 @@ class KernelLibraryBuilder
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      KernelTypeBuilder supertype = type.supertype;
+      KernelTypeBuilder supertype = type.supertype ?? loader.target.objectType;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -1155,7 +1154,8 @@ class KernelLibraryBuilder
       if (declaration is KernelClassBuilder) {
         {
           List<Object> issues = strongMode
-              ? getNonSimplicityIssuesForDeclaration(declaration)
+              ? getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true)
               : const <Object>[];
           reportIssues(issues);
           // In case of issues, use non-strong mode for error recovery.
@@ -1175,7 +1175,8 @@ class KernelLibraryBuilder
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
         List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForDeclaration(declaration)
+            ? getNonSimplicityIssuesForDeclaration(declaration,
+                performErrorRecovery: true)
             : const <Object>[];
         reportIssues(issues);
         // In case of issues, use non-strong mode for error recovery.
@@ -1196,8 +1197,8 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part) {
-    super.includePart(part);
+  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
+    super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
   }

@@ -908,6 +908,25 @@ Function(int, String) v;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_get_static_namedAsClass() {
+    createParser('static int get C => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new TypeMatcher<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_get_type() {
     createParser('int get() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -938,44 +957,6 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_get_static_namedAsClass() {
-    createParser('static int get C => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_set_static_namedAsClass() {
-    createParser('static void set C(_) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
@@ -1195,6 +1176,25 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_set_static_namedAsClass() {
+    createParser('static void set C(_) {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new TypeMatcher<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_set_type() {
     createParser('int set() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -1251,8 +1251,8 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseClassMember_method_static_mixin() {
+    if (!usingFastaParser) return;
     var unit = parseCompilationUnit('mixin C { static void m() {} }');
-
     MixinDeclaration c = unit.declarations[0];
     MethodDeclaration method = c.members[0];
     expect(method.documentationComment, isNull);
@@ -3948,6 +3948,18 @@ class Wrong<T> {
     expectNotNullIfNoErrors(literal);
   }
 
+  void test_invalidInlineFunctionType() {
+    parseCompilationUnit(
+      'typedef F = int Function(int a());',
+      errors: usingFastaParser
+          ? [
+              expectedError(
+                  CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 30, 1)
+            ]
+          : [],
+    );
+  }
+
   void test_invalidInterpolationIdentifier_startWithDigit() {
     StringLiteral literal = parseExpression("'\$1'", errors: [
       usingFastaParser
@@ -5680,8 +5692,7 @@ void main() {
     createParser('class A with B, C {}');
     ClassDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.WITH_WITHOUT_EXTENDS, 8, 4)]);
+    listener.assertNoErrors();
   }
 
   void test_wrongSeparatorForPositionalParameter() {
@@ -9405,10 +9416,6 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    if (parser is ParserAdapter) {
-      (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
-          isMixinSupportEnabled;
-    }
     parser.currentToken = token;
   }
 
@@ -9555,9 +9562,6 @@ class ParserTestCase extends EngineTestCase
 
     Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    if (parser is ParserAdapter) {
-      parser.fastaParser.isMixinSupportEnabled = isMixinSupportEnabled;
-    }
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {
@@ -10470,6 +10474,18 @@ class B = Object with A {}''',
     expect(conditionalExpression.thenExpression.isSynthetic, isTrue);
   }
 
+  void test_conditionalExpression_super() {
+    parseExpression('x ? super : z', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 4, 5)
+    ]);
+  }
+
+  void test_conditionalExpression_super2() {
+    parseExpression('x ? z : super', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 8, 5)
+    ]);
+  }
+
   void test_declarationBeforeDirective() {
     CompilationUnit unit = parseCompilationUnit(
         "class foo { } import 'bar.dart';",
@@ -10548,6 +10564,12 @@ class B = Object with A {}''',
     ]);
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
+  }
+
+  void test_equalityExpression_superRHS() {
+    parseExpression("1 == super", errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 5, 5)
+    ]);
   }
 
   void test_expressionList_multiple_end() {
@@ -16181,6 +16203,20 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(declaration.typeParameters, isNotNull);
     expect(declaration.typeParameters.typeParameters, hasLength(1));
     _assertIsDeclarationName(declaration.typeParameters.typeParameters[0].name);
+  }
+
+  void test_parseClassDeclaration_typeParameters_extends_void() {
+    parseCompilationUnit('class C<T extends void>{}',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 4),
+                expectedError(ParserErrorCode.MISSING_CLASS_BODY, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),
+              ]);
   }
 
   void test_parseClassDeclaration_withDocumentationComment() {

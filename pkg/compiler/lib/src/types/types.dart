@@ -5,7 +5,7 @@
 library types;
 
 import 'package:kernel/ast.dart' as ir;
-import '../common.dart' show failedAt;
+import '../common.dart' show failedAt, retainDataForTesting;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -149,7 +149,9 @@ class GlobalTypeInferenceTask extends CompilerTask {
         results = typesInferrerInternal.analyzeMain(mainElement);
       }
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
-      resultsForTesting = results;
+      if (retainDataForTesting) {
+        resultsForTesting = results;
+      }
       return results;
     });
   }

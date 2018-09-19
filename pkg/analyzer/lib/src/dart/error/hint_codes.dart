@@ -13,18 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
  */
 class HintCode extends ErrorCode {
   /**
-   * When an abstract supertype member is referenced with `super` as its target,
-   * it cannot be overridden, so it is always a runtime error.
-   *
-   * Parameters:
-   * 0: the display name for the kind of the referenced element
-   * 1: the name of the referenced element
-   */
-  static const HintCode ABSTRACT_SUPER_MEMBER_REFERENCE = const HintCode(
-      'ABSTRACT_SUPER_MEMBER_REFERENCE',
-      "The {0} '{1}' is always abstract in the supertype.");
-
-  /**
    * This hint is generated anywhere where the
    * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
    * if we used propagated information for the warnings.

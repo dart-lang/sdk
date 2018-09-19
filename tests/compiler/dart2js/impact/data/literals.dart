@@ -99,7 +99,7 @@ testSymbol() => #main;
 testConstSymbol() => const Symbol('main');
 
 /*strong.element: complexSymbolField1:
- dynamic=[==,length],
+ dynamic=[String.length,int.==],
  type=[inst:JSBool,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,param:bool]
 */
 const complexSymbolField1 = "true".length == 4;
@@ -107,7 +107,47 @@ const complexSymbolField1 = "true".length == 4;
 /*strong.element: complexSymbolField2:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]*/
 const complexSymbolField2 = "true" "false" "${true}${null}";
 
-/*strong.element: complexSymbolField3:dynamic=[+,unary-],static=[GenericClass.generative(0),String.fromEnvironment(1),Symbol.,assertIsSubtype,bool.fromEnvironment(1,defaultValue),checkSubtype,getRuntimeTypeArgument,getRuntimeTypeArgumentIntercepted,getRuntimeTypeInfo,getTypeArgumentByIndex,identical(2),int.fromEnvironment(1,defaultValue),override,setRuntimeTypeInfo,testComplexConstSymbol,throwTypeError],type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSArray<dynamic>,inst:JSBool,inst:JSDouble,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSInt,inst:JSMutableArray<dynamic>,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,inst:JSUnmodifiableArray<dynamic>,inst:List<int>,inst:Symbol,param:Map<Object,Object>]*/
+/*strong.element: complexSymbolField3:
+  dynamic=[int.+,int.unary-],
+  static=[
+   GenericClass.generative(0),
+   String.fromEnvironment(1),
+   Symbol.,
+   assertIsSubtype,
+   bool.fromEnvironment(1,defaultValue),
+   checkSubtype,
+   getRuntimeTypeArgument,
+   getRuntimeTypeArgumentIntercepted,
+   getRuntimeTypeInfo,
+   getTypeArgumentByIndex,
+   identical(2),
+   int.fromEnvironment(1,defaultValue),
+   override,
+   setRuntimeTypeInfo,
+   testComplexConstSymbol,
+   throwTypeError],
+  type=[
+   inst:ConstantMap<dynamic,dynamic>,
+   inst:ConstantProtoMap<dynamic,dynamic>,
+   inst:ConstantStringMap<dynamic,dynamic>,
+   inst:GeneralConstantMap<dynamic,dynamic>,
+   inst:JSArray<dynamic>,
+   inst:JSBool,
+   inst:JSDouble,
+   inst:JSExtendableArray<dynamic>,
+   inst:JSFixedArray<dynamic>,
+   inst:JSInt,
+   inst:JSMutableArray<dynamic>,
+   inst:JSNumber,
+   inst:JSPositiveInt,
+   inst:JSString,
+   inst:JSUInt31,
+   inst:JSUInt32,
+   inst:JSUnmodifiableArray<dynamic>,
+   inst:List<int>,
+   inst:Symbol,
+   param:Map<Object,Object>]
+*/
 const complexSymbolField3 = const {
   0: const bool.fromEnvironment('a', defaultValue: true),
   false: const int.fromEnvironment('b', defaultValue: 42),

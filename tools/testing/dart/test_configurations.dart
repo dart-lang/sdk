@@ -53,7 +53,9 @@ final TEST_SUITE_DIRECTORIES = [
 final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
 Future testConfigurations(List<TestConfiguration> configurations) async {
-  var startTime = new DateTime.now();
+  var startTime = DateTime.now();
+  var startStopwatch = Stopwatch()..start();
+
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   var maxProcesses = firstConf.taskCount;
@@ -221,6 +223,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       eventListener.add(new TimingPrinter(startTime));
     }
     eventListener.add(new SkippedCompilationsPrinter());
+    if (progressIndicator == Progress.status) {
+      eventListener.add(new TimedProgressPrinter());
+    }
   }
 
   if (firstConf.writeTestOutcomeLog) {
@@ -229,6 +234,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   if (firstConf.writeResultLog) {
     eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
+  }
+
+  if (firstConf.writeResults) {
+    eventListener.add(new ResultWriter(firstConf, startTime, startStopwatch));
   }
 
   if (firstConf.copyCoreDumps) {

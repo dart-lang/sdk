@@ -85,6 +85,17 @@ local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/04: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_syntax_test: CompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -136,9 +147,9 @@ string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_test: RuntimeError
-type_alias_equality_test/02: RuntimeError
-type_alias_equality_test/03: RuntimeError
-type_alias_equality_test/04: RuntimeError
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 type_error_test: RuntimeError
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError
@@ -198,6 +209,17 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/04: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_syntax_test: CompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -212,7 +234,7 @@ const_constructor_mixin3_test: CompileTimeError # Issue 33644.
 const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_types_test/34: MissingCompileTimeError # Issue 31590
 const_types_test/39: MissingCompileTimeError # Issue 31590
-constructor_reference_test/27: MissingCompileTimeError # Issue 32972 (parsed as method call)
+constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 default_factory2_test/01: MissingCompileTimeError # Issue 31590
 default_factory_test/01: MissingCompileTimeError # Issue 31590
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -227,6 +249,12 @@ generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
+issue34488_test/01: MissingCompileTimeError # Issue 34488
+issue34488_test/02: MissingCompileTimeError # Issue 34488
+issue34488_test/03: MissingCompileTimeError # Issue 34488
+issue34488_test/04: MissingCompileTimeError # Issue 34488
+issue34488_test/05: MissingCompileTimeError # Issue 34488
+issue34488_test/06: MissingCompileTimeError # Issue 34488
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33308
@@ -243,6 +271,7 @@ malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/01: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/02: MissingCompileTimeError # Issue 33308
+mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError, DartkCrash, Crash # https://github.com/dart-lang/sdk/issues/34165
 mixin_invalid_bound2_test/02: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/03: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/04: MissingCompileTimeError # Issue 33308
@@ -402,7 +431,7 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32783
 vm/bool_check_stack_traces_test/01: RuntimeError # No support for line numbers in stacktraces
 vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers in stacktraces
 vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
@@ -430,9 +459,9 @@ vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 vm/bool_check_stack_traces_test/01: RuntimeError # Issue 33584
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 
@@ -2089,9 +2118,10 @@ redirecting_factory_reflection_test: RuntimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
+covariant_subtyping_with_mixin_test: RuntimeError # Issue 34321
+type_alias_equality_test/02: RuntimeError # Issue 32783
+type_alias_equality_test/03: RuntimeError # Issue 32783
+type_alias_equality_test/04: RuntimeError # Issue 32783
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 async_star_test/01: Skip # Timeout
@@ -2104,3 +2134,14 @@ async_star_test/none: Skip # Timeout
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/04: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_syntax_test: CompileTimeError

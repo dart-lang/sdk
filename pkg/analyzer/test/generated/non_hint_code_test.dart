@@ -6,7 +6,6 @@ library analyzer.test.generated.non_hint_code_test;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1461,26 +1460,6 @@ g() {
   var a = f();
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_withSuperMixin() async {
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    // TODO(brianwilkerson) It isn't clear what the right semantics are in Dart
-    // 2 (https://github.com/dart-lang/sdk/issues/33951). This test should be
-    // updated when that issue is closed.
     assertNoErrors(source);
     verify([source]);
   }

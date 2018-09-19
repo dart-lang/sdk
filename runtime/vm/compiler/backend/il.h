@@ -296,9 +296,9 @@ class Value : public ZoneAllocated {
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
-  // Compile time constants, Bool, Smi and Nulls do not need to update
-  // the store buffer.
-  bool NeedsStoreBuffer();
+  // Return true if storing the value into a heap object requires applying the
+  // write barrier.
+  bool NeedsWriteBarrier();
 
   bool Equals(Value* other) const;
 
@@ -1708,10 +1708,10 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        GraphEntryInstr* graph_entry,
                        const Array& handler_types,
                        intptr_t catch_try_index,
-                       const LocalVariable& exception_var,
-                       const LocalVariable& stacktrace_var,
                        bool needs_stacktrace,
                        intptr_t deopt_id,
+                       const LocalVariable* exception_var,
+                       const LocalVariable* stacktrace_var,
                        const LocalVariable* raw_exception_var,
                        const LocalVariable* raw_stacktrace_var)
       : BlockEntryInstr(block_id, try_index, deopt_id),
@@ -1739,8 +1739,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  const LocalVariable& exception_var() const { return exception_var_; }
-  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+  const LocalVariable* exception_var() const { return exception_var_; }
+  const LocalVariable* stacktrace_var() const { return stacktrace_var_; }
 
   const LocalVariable* raw_exception_var() const { return raw_exception_var_; }
   const LocalVariable* raw_stacktrace_var() const {
@@ -1775,8 +1775,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
   GrowableArray<Definition*> initial_definitions_;
-  const LocalVariable& exception_var_;
-  const LocalVariable& stacktrace_var_;
+  const LocalVariable* exception_var_;
+  const LocalVariable* stacktrace_var_;
   const LocalVariable* raw_exception_var_;
   const LocalVariable* raw_stacktrace_var_;
   const bool needs_stacktrace_;
@@ -2993,6 +2993,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
+    ASSERT(!FLAG_strong || !dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
@@ -4216,7 +4217,13 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() &&
+    if (instance()->definition() == value()->definition()) {
+      // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
+      // reference.
+      return false;
+    }
+
+    return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
@@ -4251,7 +4258,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
 
   Assembler::CanBeSmi CanValueBeSmi() const {
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !isolate->strong()) {
+    if (isolate->type_checks() && !FLAG_strong) {
       // Dart 1 sometimes places a store into a context before a parameter
       // type check.
       return Assembler::kValueCanBeSmi;
@@ -4424,7 +4431,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !isolate->strong()) {
+    if (isolate->type_checks() && !FLAG_strong) {
       // Dart 1 sometimes places a store into a context before a parameter
       // type check.
       return Assembler::kValueCanBeSmi;
@@ -4667,7 +4674,13 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() &&
+    if (array()->definition() == value()->definition()) {
+      // `x[slot] = x` cannot create an old->new or old&marked->old&unmarked
+      // reference.
+      return false;
+    }
+
+    return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
@@ -4688,6 +4701,10 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
+  Assembler::CanBeSmi CanValueBeSmi() const {
+    return Assembler::kValueCanBeSmi;
+  }
+
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
@@ -5115,6 +5132,8 @@ class NativeFieldDesc : public ZoneAllocated {
 
   static const NativeFieldDesc* Get(Kind kind);
   static const NativeFieldDesc* GetLengthFieldForArrayCid(intptr_t array_cid);
+  static const NativeFieldDesc* GetTypeArgumentsField(Zone* zone,
+                                                      intptr_t offset);
   static const NativeFieldDesc* GetTypeArgumentsFieldFor(Zone* zone,
                                                          const Class& cls);
 

@@ -11,8 +11,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/one_phase_summaries_selector.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -125,7 +127,6 @@ class FileState {
   Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
   Set<String> _subtypedNames;
-  String _unlinkedKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
@@ -133,6 +134,7 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<FileState> _libraryFiles;
   List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles = new Set<FileState>();
@@ -246,6 +248,12 @@ class FileState {
   }
 
   /**
+   * The list of files files that this library consists of, i.e. this library
+   * file itself and its [partedFiles].
+   */
+  List<FileState> get libraryFiles => _libraryFiles;
+
+  /**
    * Return information about line in the file.
    */
   LineInfo get lineInfo => _lineInfo;
@@ -348,7 +356,7 @@ class FileState {
   String get transitiveSignature {
     if (_transitiveSignature == null) {
       ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
+      signature.addUint32List(_fsState._linkedSalt);
       signature.addInt(transitiveFiles.length);
       transitiveFiles
           .map((file) => file.apiSignature)
@@ -379,7 +387,8 @@ class FileState {
    *
    * If an exception happens during parsing, an empty unit is returned.
    */
-  CompilationUnit parse(AnalysisErrorListener errorListener) {
+  CompilationUnit parse([AnalysisErrorListener errorListener]) {
+    errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return PerformanceStatistics.parse.makeCurrentWhile(() {
         return _parse(errorListener);
@@ -410,26 +419,38 @@ class FileState {
       _contentHash = rawFileState.contentHash;
     }
 
-    // Prepare the unlinked bundle key.
+    // Prepare keys of unlinked data.
+    String apiSignatureKey;
+    String unlinkedKey;
     {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._salt);
+      var signature = new ApiSignature();
+      signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
-      _unlinkedKey = '${signature.toHex()}.unlinked';
+
+      var signatureHex = signature.toHex();
+      apiSignatureKey = '$signatureHex.api_signature';
+      unlinkedKey = '$signatureHex.unlinked';
     }
 
-    // Prepare bytes of the unlinked bundle - existing or new.
-    List<int> bytes;
-    {
-      bytes = _fsState._byteStore.get(_unlinkedKey);
-      if (bytes == null || bytes.isEmpty) {
-        CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
-        _fsState._logger.run('Create unlinked for $path', () {
-          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          DefinedNames definedNames = computeDefinedNames(unit);
-          List<String> referencedNames = computeReferencedNames(unit).toList();
-          List<String> subtypedNames = computeSubtypedNames(unit).toList();
-          bytes = new AnalysisDriverUnlinkedUnitBuilder(
+    // Try to get bytes of unlinked data.
+    var apiSignatureBytes = _fsState._byteStore.get(apiSignatureKey);
+    var unlinkedUnitBytes = _fsState._byteStore.get(unlinkedKey);
+
+    // Compute unlinked data that we are missing.
+    if (apiSignatureBytes == null || unlinkedUnitBytes == null) {
+      CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
+      _fsState._logger.run('Create unlinked for $path', () {
+        if (apiSignatureBytes == null) {
+          apiSignatureBytes = computeUnlinkedApiSignature(unit);
+          _fsState._byteStore.put(apiSignatureKey, apiSignatureBytes);
+        }
+        if (unlinkedUnitBytes == null) {
+          var unlinkedUnit = serializeAstUnlinked(unit,
+              serializeInferrableFields: !enableOnePhaseSummaries);
+          var definedNames = computeDefinedNames(unit);
+          var referencedNames = computeReferencedNames(unit).toList();
+          var subtypedNames = computeSubtypedNames(unit).toList();
+          unlinkedUnitBytes = new AnalysisDriverUnlinkedUnitBuilder(
                   unit: unlinkedUnit,
                   definedTopLevelNames: definedNames.topLevelNames.toList(),
                   definedClassMemberNames:
@@ -437,13 +458,14 @@ class FileState {
                   referencedNames: referencedNames,
                   subtypedNames: subtypedNames)
               .toBuffer();
-          _fsState._byteStore.put(_unlinkedKey, bytes);
-        });
-      }
+          _fsState._byteStore.put(unlinkedKey, unlinkedUnitBytes);
+        }
+      });
     }
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
+    _driverUnlinkedUnit =
+        new AnalysisDriverUnlinkedUnit.fromBuffer(unlinkedUnitBytes);
     _unlinked = _driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
 
@@ -455,10 +477,9 @@ class FileState {
     _topLevelDeclarations = null;
 
     // Prepare API signature.
-    List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
-        !_equalByteLists(_apiSignature, newApiSignature);
-    _apiSignature = newApiSignature;
+        !_equalByteLists(_apiSignature, apiSignatureBytes);
+    _apiSignature = apiSignatureBytes;
 
     // The API signature changed.
     //   Flush transitive signatures of affected files.
@@ -505,6 +526,7 @@ class FileState {
           .putIfAbsent(file, () => <FileState>[])
           .add(this);
     }
+    _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
     Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
@@ -583,9 +605,8 @@ class FileState {
     _exportDeclarationsId = 0;
 
     // Append the library declarations.
-    declarations.addAll(topLevelDeclarations);
-    for (FileState part in partedFiles) {
-      declarations.addAll(part.topLevelDeclarations);
+    for (FileState file in libraryFiles) {
+      declarations.addAll(file.topLevelDeclarations);
     }
 
     // Record the declarations only if it is the full result.
@@ -674,8 +695,6 @@ class FileStateTestView {
   final FileState file;
 
   FileStateTestView(this.file);
-
-  String get unlinkedKey => file._unlinkedKey;
 }
 
 /**
@@ -688,7 +707,8 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
-  final Uint32List _salt;
+  final Uint32List _unlinkedSalt;
+  final Uint32List _linkedSalt;
 
   /**
    * The optional store with externally provided unlinked and corresponding
@@ -770,7 +790,8 @@ class FileSystemState {
     this._resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
-    this._salt, {
+    this._unlinkedSalt,
+    this._linkedSalt, {
     this.externalSummaries,
     this.parseExceptionHandler,
   }) {
@@ -921,18 +942,6 @@ class FileSystemState {
     _partToLibraries.clear();
   }
 
-  void _addFileWithPath(String path, FileState file) {
-    var files = _pathToFiles[path];
-    if (files == null) {
-      knownFilePaths.add(path);
-      knownFiles.add(file);
-      files = <FileState>[];
-      _pathToFiles[path] = files;
-      fileStamp++;
-    }
-    files.add(file);
-  }
-
   /**
    * A specialized version of package:path context.toUri(). This assumes the
    * path is absolute as does a performant conversion to a file: uri.
@@ -943,6 +952,18 @@ class FileSystemState {
     } else {
       return new Uri(scheme: 'file', path: path);
     }
+  }
+
+  void _addFileWithPath(String path, FileState file) {
+    var files = _pathToFiles[path];
+    if (files == null) {
+      knownFilePaths.add(path);
+      knownFiles.add(file);
+      files = <FileState>[];
+      _pathToFiles[path] = files;
+      fileStamp++;
+    }
+    files.add(file);
   }
 }
 

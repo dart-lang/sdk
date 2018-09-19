@@ -301,7 +301,7 @@ abstract class KernelClassBuilder
               declaration.setRedirectingFactoryBody(
                   targetBuilder.member, typeArguments);
             } else {
-              var message = templateRedirectionTargetNotFound
+              Message message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);
               if (declaration.isConst) {
                 addProblem(message, declaration.charOffset, noLength);
@@ -794,7 +794,8 @@ abstract class KernelClassBuilder
           ]);
     } else if (library.loader.target.backendTarget.strongMode &&
         declaredFunction?.typeParameters != null) {
-      var substitutionMap = <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> substitutionMap =
+          <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         substitutionMap[interfaceFunction.typeParameters[i]] =
             new TypeParameterType(declaredFunction.typeParameters[i]);
@@ -862,7 +863,9 @@ abstract class KernelClassBuilder
       // a type which is a subtype of the parameter it overrides.
     } else {
       // Report an error.
-      var declaredMemberName = '$name::${declaredMember.name.name}';
+      // TODO(ahe): The double-colon notation shouldn't be used in error
+      // messages.
+      String declaredMemberName = '$name::${declaredMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {

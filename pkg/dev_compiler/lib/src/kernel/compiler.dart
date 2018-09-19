@@ -559,7 +559,9 @@ class ProgramCompiler extends Object
     _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
-    _defineExtensionMembers(className, body);
+    if (!isMixinDeclaration(c)) {
+      _defineExtensionMembers(className, body);
+    }
     _emitClassMetadata(c.annotations, className, body);
 
     var classDef = JS.Statement.from(body);
@@ -617,6 +619,67 @@ class ProgramCompiler extends Object
     var classExpr = JS.ClassExpression(
         JS.TemporaryId(getLocalClassName(c)), heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
+  }
+
+  /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
+  /// [c].
+  ///
+  /// Mixins work similar to normal classes, but their instance methods close
+  /// over the actual superclass. Given a Dart class like:
+  ///
+  ///     mixin M on C {
+  ///       foo() => super.foo() + 42;
+  ///     }
+  ///
+  /// We generate a JS class like this:
+  ///
+  ///     lib.M = class M extends core.Object {}
+  ///     lib.M[dart.mixinOn] = (C) => class M extends C {
+  ///       foo() {
+  ///         return super.foo() + 42;
+  ///       }
+  ///     };
+  ///
+  /// The special `dart.mixinOn` symbolized property is used by the runtime
+  /// helper `dart.applyMixin`. The helper calls the function with the actual
+  /// base class, and then copies the resulting members to the destination
+  /// class.
+  ///
+  /// In the long run we may be able to improve this so we do not have the
+  /// unnecessary class, but for now, this lets us get the right semantics with
+  /// minimal compiler and runtime changes.
+  void _emitMixinStatement(
+      Class c,
+      JS.Expression className,
+      JS.Expression heritage,
+      List<JS.Method> methods,
+      List<JS.Statement> body) {
+    var staticMethods = methods.where((m) => m.isStatic).toList();
+    var instanceMethods = methods.where((m) => !m.isStatic).toList();
+
+    body.add(_emitClassStatement(c, className, heritage, staticMethods));
+    var superclassId = JS.TemporaryId(getLocalClassName(c.superclass));
+    var classId = className is JS.Identifier
+        ? className
+        : JS.TemporaryId(getLocalClassName(c));
+
+    var mixinMemberClass =
+        JS.ClassExpression(classId, superclassId, instanceMethods);
+
+    JS.Node arrowFnBody = mixinMemberClass;
+    var extensionInit = <JS.Statement>[];
+    _defineExtensionMembers(classId, extensionInit);
+    if (extensionInit.isNotEmpty) {
+      extensionInit.insert(0, mixinMemberClass.toStatement());
+      extensionInit.add(classId.toReturn());
+      arrowFnBody = JS.Block(extensionInit);
+    }
+
+    body.add(js.statement('#[#.mixinOn] = #', [
+      className,
+      runtimeModule,
+      JS.ArrowFun([superclassId], arrowFnBody)
+    ]));
   }
 
   void _defineClass(Class c, JS.Expression className, List<JS.Method> methods,
@@ -746,7 +809,7 @@ class ProgramCompiler extends Object
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody
-          .add(runtimeStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
+          .add(runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]));
 
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
@@ -754,8 +817,8 @@ class ProgramCompiler extends Object
         //
         // We do this with the following pattern:
         //
-        //     mixinMembers(C, class C$ extends M { <methods>  });
-        mixinBody.add(runtimeStatement('mixinMembers(#, #)', [
+        //     applyMixin(C, class C$ extends M { <methods>  });
+        mixinBody.add(runtimeStatement('applyMixin(#, #)', [
           classExpr,
           JS.ClassExpression(
               JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
@@ -790,17 +853,22 @@ class ProgramCompiler extends Object
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(runtimeStatement('mixinMembers(#, #)',
+        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)',
             [getBaseClass(mixins.length - i), emitDeferredType(m)]));
       } else {
         body.add(
-            runtimeStatement('mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
+            runtimeStatement('applyMixin(#, #)', [mixinId, emitClassRef(m)]));
       }
 
       baseClass = mixinId;
     }
 
-    body.add(_emitClassStatement(c, className, baseClass, methods));
+    if (isMixinDeclaration(c)) {
+      _emitMixinStatement(c, className, baseClass, methods, body);
+    } else {
+      body.add(_emitClassStatement(c, className, baseClass, methods));
+    }
+
     _classEmittingExtends = savedTopLevelClass;
   }
 
@@ -1582,7 +1650,14 @@ class ProgramCompiler extends Object
 
     var savedUri = _currentUri;
     for (var m in c.procedures) {
-      _currentUri = m.fileUri ?? savedUri;
+      // For the Dart SDK, we use the member URI because it may be different
+      // from the class (because of patch files). User code does not need this.
+      //
+      // TODO(jmesserly): CFE has a bug(?) where nSM forwarders sometimes have a
+      // bogus file URI, that is mismatched compared to the offsets. This causes
+      // a crash when we look up the location. So for those forwarders, we just
+      // suppress source spans.
+      _currentUri = m.isNoSuchMethodForwarder ? null : (m.fileUri ?? savedUri);
       if (_isForwardingStub(m)) {
         // TODO(jmesserly): is there any other kind of forwarding stub?
         jsMethods.addAll(_emitCovarianceCheckStub(m));
@@ -4036,16 +4111,27 @@ class ProgramCompiler extends Object
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
           leftType == types.stringType && op == '+') {
-        // special cases where we inline the operation
-        // these values are assumed to be non-null (determined by the checker)
-        // TODO(jmesserly): it would be nice to just inline the method from core,
-        // instead of special cases here.
+        // Inline operations on primitive types where possible.
+        // TODO(jmesserly): inline these from dart:core instead of hardcoding
+        // the implementation details here.
+
+        /// Emits an inlined binary operation using the JS [code], adding null
+        /// checks if needed to ensure we throw the appropriate error.
         JS.Expression binary(String code) {
           return js.call(code, [notNull(left), notNull(right)]);
         }
 
         JS.Expression bitwise(String code) {
           return _coerceBitOperationResultToUnsigned(node, binary(code));
+        }
+
+        /// Similar to [binary] but applies a boolean conversion to the right
+        /// operand, to match the boolean bitwise operators in dart:core.
+        ///
+        /// Short circuiting operators should not be used in [code], because the
+        /// null checks for both operands must happen unconditionally.
+        JS.Expression bitwiseBool(String code) {
+          return js.call(code, [notNull(left), _visitTest(right)]);
         }
 
         switch (op) {
@@ -4063,13 +4149,19 @@ class ProgramCompiler extends Object
             return _emitOperatorCall(left, target, op, [right]);
 
           case '&':
-            return bitwise('# & #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('!!(# & #)')
+                : bitwise('# & #');
 
           case '|':
-            return bitwise('# | #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('!!(# | #)')
+                : bitwise('# | #');
 
           case '^':
-            return bitwise('# ^ #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('# !== #')
+                : bitwise('# ^ #');
 
           case '>>':
             int shiftCount = _asIntInRange(right, 0, 31);
@@ -4974,6 +5066,8 @@ class ProgramCompiler extends Object
   // are emitted via their normal expression nodes.
   @override
   defaultConstant(Constant node) => _emitInvalidNode(node);
+  @override
+  visitSymbolConstant(node) => defaultConstant(node);
   @override
   visitMapConstant(node) => defaultConstant(node);
   @override

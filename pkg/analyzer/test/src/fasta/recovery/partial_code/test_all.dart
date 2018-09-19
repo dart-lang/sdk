@@ -19,6 +19,7 @@ import 'forEach_statement_test.dart' as forEach_statement;
 import 'for_statement_test.dart' as for_statement;
 import 'if_statement_test.dart' as if_statement;
 import 'import_directive_test.dart' as import_directive;
+import 'index_statement_test.dart' as index_statement;
 import 'instance_creation_test.dart' as instance_creation;
 import 'library_directive_test.dart' as library_directive;
 import 'local_variable_test.dart' as local_variable;
@@ -50,6 +51,7 @@ main() {
     forEach_statement.main();
     if_statement.main();
     import_directive.main();
+    index_statement.main();
     instance_creation.main();
     library_directive.main();
     local_variable.main();

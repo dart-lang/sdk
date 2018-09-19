@@ -1,3 +1,7 @@
+## 0.33.0-alpha.0
+* Switch to using the parser from front_end.
+* Start implementing the new mixin syntax.
+
 ## 0.32.4
 * Updated SDK constraint to <3.0.0.
 * Updated to be compatible with Dart 2 void usage semantics.

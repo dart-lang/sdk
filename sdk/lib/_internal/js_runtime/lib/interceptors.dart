@@ -16,6 +16,7 @@ import 'dart:_js_helper'
         JSSyntaxRegExp,
         Primitives,
         argumentErrorValue,
+        checkBool,
         checkInt,
         checkNull,
         checkNum,
@@ -363,6 +364,12 @@ class JSBool extends Interceptor implements bool {
 
   // Note: if you change this, also change the function [S].
   String toString() => JS('String', r'String(#)', this);
+
+  bool operator &(bool other) => JS('bool', "# && #", checkBool(other), this);
+
+  bool operator |(bool other) => JS('bool', "# || #", checkBool(other), this);
+
+  bool operator ^(bool other) => !identical(this, checkBool(other));
 
   // The values here are SMIs, co-prime and differ about half of the bit
   // positions, including the low bit, so they are different mod 2^k.

@@ -13,9 +13,7 @@
 part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-///
-/// The mixin must be non-generic; generic mixins are handled by [genericMixin].
-void mixinMembers(to, from) {
+void applyMixin(to, from) {
   JS('', '#[#] = #', to, _mixin, from);
   var toProto = JS('', '#.prototype', to);
   var fromProto = JS('', '#.prototype', from);
@@ -24,6 +22,11 @@ void mixinMembers(to, from) {
   _mixinSignature(to, from, _fieldSig);
   _mixinSignature(to, from, _getterSig);
   _mixinSignature(to, from, _setterSig);
+  var mixinOnFn = JS('', '#[#]', from, mixinOn);
+  if (mixinOnFn != null) {
+    var proto = JS('', '#(#.__proto__).prototype', mixinOnFn, to);
+    _copyMembers(toProto, proto);
+  }
 }
 
 void _copyMembers(to, from) {
@@ -97,16 +100,18 @@ final _mixin = JS('', 'Symbol("mixin")');
 getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz, _mixin, clazz, _mixin);
 
+final mixinOn = JS('', 'Symbol("mixinOn")');
+
 @JSExportName('implements')
-final _implements = JS('', 'Symbol("implements")');
+final implements_ = JS('', 'Symbol("implements")');
 
 List Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
-    _implements,
+    implements_,
     clazz,
-    _implements);
+    implements_);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');

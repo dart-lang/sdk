@@ -44,7 +44,7 @@ class JsInteropClass {
 }
 
 /*strong.element: testJsInteropClass:
- dynamic=[method(0)],
+ dynamic=[JavaScriptObject.method(0)],
  static=[JsInteropClass.(0)]
 */
 testJsInteropClass() => new JsInteropClass().method();
@@ -76,7 +76,7 @@ class GenericClass<T> {
 }
 
 /*strong.element: testOptionalGenericFunctionTypeArgument:
- dynamic=[method(0)],
+ dynamic=[JavaScriptObject.method(0)],
  static=[GenericClass.(0)]
 */
 testOptionalGenericFunctionTypeArgument() => new GenericClass().method();

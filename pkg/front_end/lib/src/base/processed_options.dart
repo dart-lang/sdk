@@ -44,16 +44,14 @@ import '../fasta/fasta_codes.dart'
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
-        templateCannotReadPackagesFile,
         templateCannotReadSdkSpecification,
+        templateCantReadFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
+        templatePackagesFileFormat,
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
-
-// TODO(ahe): Remove this import.
-import '../fasta/fasta_codes.dart' show templateUnspecified;
 
 import '../fasta/messages.dart' show getLocation;
 
@@ -257,21 +255,6 @@ class ProcessedOptions {
       return false;
     }
 
-    for (var source in inputs) {
-      // Note: we don't translate Uris at this point because some of the
-      // validation further below must be done before we even construct an
-      // UriTranslator
-      // TODO(sigmund): consider validating dart/packages uri right after we
-      // build the uri translator.
-      if (source.scheme != 'dart' &&
-          source.scheme != 'package' &&
-          !await fileSystem.entityForUri(source).exists()) {
-        reportWithoutLocation(
-            templateInputFileNotFound.withArguments(source), Severity.error);
-        return false;
-      }
-    }
-
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
       reportWithoutLocation(
@@ -294,6 +277,8 @@ class ProcessedOptions {
     }
 
     for (Uri source in _raw.linkedDependencies) {
+      // TODO(ahe): Remove this check, the compiler itself should handle and
+      // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
@@ -359,6 +344,13 @@ class ProcessedOptions {
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
     return _inputSummariesComponents;
+  }
+
+  void set inputSummariesComponents(List<Component> components) {
+    if (_inputSummariesComponents != null) {
+      throw new StateError("inputSummariesComponents already loaded.");
+    }
+    _inputSummariesComponents = components;
   }
 
   /// Load each of the [CompilerOptions.linkedDependencies] components.
@@ -475,20 +467,32 @@ class ProcessedOptions {
 
   /// Create a [Packages] given the Uri to a `.packages` file.
   Future<Packages> createPackagesFromFile(Uri file) async {
+    List<int> contents;
     try {
-      List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
-      Map<String, Uri> map = package_config.parse(contents, file);
-      _packagesUri = file;
-      return new MapPackages(map);
-    } catch (e) {
-      _packagesUri = null;
-      report(
-          templateCannotReadPackagesFile
-              .withArguments("$e")
-              .withLocation(file, -1, noLength),
-          Severity.error);
-      return Packages.noPackages;
+      // TODO(ahe): We need to compute line endings for this file.
+      contents = await fileSystem.entityForUri(file).readAsBytes();
+    } on FileSystemException catch (e) {
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(file, e.message), Severity.error);
     }
+    if (contents != null) {
+      _packagesUri = file;
+      try {
+        Map<String, Uri> map = package_config.parse(contents, file);
+        return new MapPackages(map);
+      } on FormatException catch (e) {
+        report(
+            templatePackagesFileFormat
+                .withArguments(e.message)
+                .withLocation(file, e.offset, noLength),
+            Severity.error);
+      } catch (e) {
+        reportWithoutLocation(
+            templateCantReadFile.withArguments(file, "$e"), Severity.error);
+      }
+    }
+    _packagesUri = null;
+    return Packages.noPackages;
   }
 
   /// Finds a package resolution strategy using a [FileSystem].
@@ -638,11 +642,8 @@ class ProcessedOptions {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
       report(
-          // TODO(ahe): Change to templateCantReadFile.withArguments(error.uri,
-          // error.message) when CL 63144 has landed.
-          templateUnspecified
-              .withArguments(
-                  "Error when reading '${error.uri}': ${error.message}")
+          templateCantReadFile
+              .withArguments(error.uri, error.message)
               .withoutLocation(),
           Severity.error);
       return new Uint8List(0);

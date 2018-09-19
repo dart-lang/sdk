@@ -29,6 +29,7 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
@@ -307,6 +308,10 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
       await _addFix_addAsync();
     }
+    if (errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE) {
+      await _addFix_changeToNearestPreciseValue();
+    }
+
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
         errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
       if (node is Annotation) {
@@ -438,6 +443,7 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_CLASS) {
       await _addFix_importLibrary_withType();
       await _addFix_createClass();
+      await _addFix_createMixin();
       await _addFix_undefinedClass_useSimilar();
     }
     if (errorCode ==
@@ -461,6 +467,7 @@ class FixProcessor {
       await _addFix_createField();
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
+      await _addFix_createMixin();
       await _addFix_importLibrary_withType();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
@@ -492,6 +499,7 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       await _addFix_importLibrary_withType();
       await _addFix_createClass();
+      await _addFix_createMixin();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
@@ -508,6 +516,7 @@ class FixProcessor {
       // TODO(brianwilkerson) The following were added because fasta produces
       // UNDEFINED_GETTER in places where analyzer produced UNDEFINED_IDENTIFIER
       await _addFix_createClass();
+      await _addFix_createMixin();
       await _addFix_createLocalVariable();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_importLibrary_withType();
@@ -1013,6 +1022,22 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_NULL_AWARE);
     }
+  }
+
+  Future<void> _addFix_changeToNearestPreciseValue() async {
+    IntegerLiteral integer = node;
+    String lexeme = integer.literal.lexeme;
+    BigInt precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
+    String correction = lexeme.toLowerCase().contains('x')
+        ? '0x${precise.toRadixString(16).toUpperCase()}'
+        : precise.toString();
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(integer), correction);
+    });
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE,
+        args: [correction]);
   }
 
   Future<void> _addFix_changeTypeAnnotation() async {
@@ -1797,7 +1822,7 @@ class FixProcessor {
       if (target is Identifier) {
         Identifier targetIdentifier = target;
         Element targetElement = targetIdentifier.staticElement;
-        staticModifier = targetElement.kind == ElementKind.CLASS;
+        staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
       targetClassElement = getEnclosingClassElement(node);
@@ -2067,6 +2092,92 @@ class FixProcessor {
       builder.write('}');
     }
     utils.targetExecutableElement = null;
+  }
+
+  Future<void> _addFix_createMixin() async {
+    Element prefixElement = null;
+    String name = null;
+    SimpleIdentifier nameNode;
+    if (node is SimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        if (parent.parent is InstanceCreationExpression) {
+          return;
+        }
+        PrefixedIdentifier prefixedIdentifier = parent;
+        prefixElement = prefixedIdentifier.prefix.staticElement;
+        if (prefixElement == null) {
+          return;
+        }
+        parent = prefixedIdentifier.parent;
+        nameNode = prefixedIdentifier.identifier;
+        name = prefixedIdentifier.identifier.name;
+      } else if (parent is TypeName &&
+          parent.parent is ConstructorName &&
+          parent.parent.parent is InstanceCreationExpression) {
+        return;
+      } else {
+        nameNode = node;
+        name = nameNode.name;
+      }
+      if (!_mayBeTypeIdentifier(nameNode)) {
+        return;
+      }
+    } else {
+      return;
+    }
+    // prepare environment
+    Element targetUnit;
+    String prefix = '';
+    String suffix = '';
+    int offset = -1;
+    String filePath;
+    if (prefixElement == null) {
+      targetUnit = unitElement;
+      CompilationUnitMember enclosingMember = node.getAncestor((node) =>
+          node is CompilationUnitMember && node.parent is CompilationUnit);
+      if (enclosingMember == null) {
+        return;
+      }
+      offset = enclosingMember.end;
+      filePath = file;
+      prefix = '$eol$eol';
+    } else {
+      for (ImportElement import in unitLibraryElement.imports) {
+        if (prefixElement is PrefixElement && import.prefix == prefixElement) {
+          LibraryElement library = import.importedLibrary;
+          if (library != null) {
+            targetUnit = library.definingCompilationUnit;
+            Source targetSource = targetUnit.source;
+            try {
+              offset = targetSource.contents.data.length;
+              filePath = targetSource.fullName;
+              prefix = '$eol';
+              suffix = '$eol';
+            } on FileSystemException {
+              // If we can't read the file to get the offset, then we can't
+              // create a fix.
+            }
+            break;
+          }
+        }
+      }
+    }
+    if (offset < 0) {
+      return;
+    }
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(filePath, (DartFileEditBuilder builder) {
+      builder.addInsertion(offset, (DartEditBuilder builder) {
+        builder.write(prefix);
+        builder.writeMixinDeclaration(name, nameGroupName: 'NAME');
+        builder.write(suffix);
+      });
+      if (prefixElement == null) {
+        builder.addLinkedPosition(range.node(node), 'NAME');
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MIXIN, args: [name]);
   }
 
   Future<void> _addFix_createNoSuchMethod() async {
