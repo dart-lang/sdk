@@ -25,6 +25,7 @@ class TestConfiguration {
       {this.configuration,
       this.progress,
       this.selectors,
+      this.testList,
       this.appendLogs,
       this.batch,
       this.batchDart2JS,
@@ -127,6 +128,7 @@ class TestConfiguration {
   final String dartPath;
   final String dartPrecompiledPath;
   final String flutterPath;
+  final List<String> testList;
 
   final int taskCount;
   final int shardCount;

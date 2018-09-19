@@ -295,6 +295,7 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
+    new _Option('test_list', 'File containing a list of tests to be executed'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -478,6 +479,12 @@ compiler.''',
       }
     }
 
+    // Fetch list of tests to run, if option is present.
+    if (configuration['test_list'] is String) {
+      configuration['test_list_contents'] =
+          File(configuration['test_list'] as String).readAsLinesSync();
+    }
+
     return _createConfigurations(configuration);
   }
 
@@ -659,6 +666,7 @@ compiler.''',
                 configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),
                 selectors: selectors,
+                testList: data["test_list_contents"] as List<String>,
                 appendLogs: data["append_logs"] as bool,
                 batch: !(data["noBatch"] as bool),
                 batchDart2JS: data["dart2js_batch"] as bool,
@@ -725,8 +733,13 @@ compiler.''',
 
     if (selectors == null) {
       if (configuration['suite_dir'] != null) {
-        var suitePath = new Path(configuration['suite_dir'] as String);
+        var suitePath = Path(configuration['suite_dir'] as String);
         selectors = [suitePath.filename];
+      } else if (configuration['test_list_contents'] != null) {
+        selectors = (configuration['test_list_contents'] as List<String>)
+            .map((t) => t.split('/').first)
+            .toSet()
+            .toList();
       } else {
         selectors = _defaultTestSelectors.toList();
       }

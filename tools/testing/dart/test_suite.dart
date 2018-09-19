@@ -297,6 +297,10 @@ abstract class TestSuite {
     if (!pattern.hasMatch(displayName)) {
       return;
     }
+    if (configuration.testList != null &&
+        !configuration.testList.contains(displayName)) {
+      return;
+    }
 
     if (configuration.hotReload || configuration.hotReloadRollback) {
       // Handle reload special cases.
@@ -541,10 +545,10 @@ class StandardTestSuite extends TestSuite {
   ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
-  Predicate<String> isTestFilePredicate;
   final bool listRecursively;
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
+  Set<String> _testListPossibleFilenames;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
   static final Uri legacyCo19SuiteLocation =
@@ -552,7 +556,7 @@ class StandardTestSuite extends TestSuite {
 
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
-      {this.isTestFilePredicate, bool recursive: false})
+      {bool recursive: false})
       : dartDir = Repository.dir,
         listRecursively = recursive,
         suiteDir = Repository.dir.join(suiteDirectory),
@@ -566,6 +570,22 @@ class StandardTestSuite extends TestSuite {
             .resolveUri(new Uri.directory(buildDir))
             .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
+    }
+    if (configuration.testList != null) {
+      _testListPossibleFilenames = Set<String>();
+      for (String s in configuration.testList) {
+        if (s.startsWith("$suiteName/")) {
+          s = s.substring(s.indexOf('/') + 1);
+          _testListPossibleFilenames
+              .add(suiteDir.append('$s.dart').toNativePath());
+          // If the test is a multitest, the filename doesn't include the label.
+          if (s.lastIndexOf('/') != -1) {
+            s = s.substring(0, s.lastIndexOf('/'));
+            _testListPossibleFilenames
+                .add(suiteDir.append('$s.dart').toNativePath());
+          }
+        }
+      }
     }
   }
 
@@ -614,21 +634,14 @@ class StandardTestSuite extends TestSuite {
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
-        isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
 
   List<Uri> get dart2JsBootstrapDependencies => _dart2JsBootstrapDependencies;
 
-  /**
-   * The default implementation assumes a file is a test if
-   * it ends in "Test.dart".
-   */
-  bool isTestFile(String filename) {
-    // Use the specified predicate, if provided.
-    if (isTestFilePredicate != null) return isTestFilePredicate(filename);
-    return filename.endsWith("Test.dart");
-  }
+  /// The default implementation assumes a file is a test if
+  /// it ends in "_test.dart".
+  bool isTestFile(String filename) => filename.endsWith("_test.dart");
 
   List<String> additionalOptions(Path filePath) => [];
 
@@ -692,6 +705,10 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueFile(String filename, FutureGroup group) {
+    // This is an optimization to avoid scanning and generating extra tests.
+    // The definitive check against configuration.testList is performed in
+    // TestSuite.enqueueNewTestCase().
+    if (_testListPossibleFilenames?.contains(filename) == false) return;
     bool match = false;
     for (var regex in configuration.selectors.values) {
       String pattern = regex.pattern;
@@ -1500,7 +1517,6 @@ class PKGTestSuite extends StandardTestSuite {
   PKGTestSuite(TestConfiguration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
-            isTestFilePredicate: (f) => f.endsWith('_test.dart'),
             recursive: true);
 
   void _enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
