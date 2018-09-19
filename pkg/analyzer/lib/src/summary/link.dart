@@ -945,6 +945,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
   bool get isEnum => true;
 
   @override
+  bool get isMixin => false;
+
+  @override
   bool get isObject => false;
 
   @override

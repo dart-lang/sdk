@@ -26,6 +26,20 @@ enum E {
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
+
+  test_inference_listLiteral() async {
+    addTestFile(r'''
+enum E1 {a, b}
+enum E2 {a, b}
+
+var v = [E1.a, E2.b];
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var v = findElement.topVar('v');
+    assertElementTypeString(v.type, 'List<Object>');
+  }
 }
 
 @reflectiveTest
