@@ -18004,7 +18004,27 @@ bool AbstractType::IsTopType() const {
     return false;
   }
   classid_t cid = type_class_id();
-  return (cid == kDynamicCid) || (cid == kInstanceCid);
+  if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
+    return true;
+  }
+  // In strong mode, FutureOr<T> where T is a top type behaves as a top type.
+  if (FLAG_strong) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
+      if (arguments() == TypeArguments::null()) {
+        return true;
+      }
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(zone, arguments());
+      const AbstractType& type_arg =
+          AbstractType::Handle(zone, type_arguments.TypeAt(0));
+      if (type_arg.IsTopType()) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool AbstractType::IsNullType() const {
