@@ -3057,12 +3057,25 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+// Tests for a FP comparison that cannot be negated
+// (to preserve NaN semantics).
+static bool IsFpCompare(ComparisonInstr* comp) {
+  if (comp->IsRelationalOp()) {
+    return comp->operation_cid() == kDoubleCid;
+  }
+  return false;
+}
+
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
+  // Convert e.g. !(x > y) into (x <= y) for non-FP x, y.
   if (defn->IsComparison() && defn->HasOnlyUse(value()) &&
       defn->Type()->ToCid() == kBoolCid) {
-    defn->AsComparison()->NegateComparison();
-    return defn;
+    ComparisonInstr* comp = defn->AsComparison();
+    if (!IsFpCompare(comp)) {
+      comp->NegateComparison();
+      return defn;
+    }
   }
   return this;
 }
@@ -3128,15 +3141,21 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   if ((kind == Token::kNE_STRICT) && (constant.raw() == Bool::True().raw()) &&
       other_defn->IsComparison() && can_merge &&
       other_defn->HasOnlyUse(other)) {
-    *negated = true;
-    return other_defn;
+    ComparisonInstr* comp = other_defn->AsComparison();
+    if (!IsFpCompare(comp)) {
+      *negated = true;
+      return other_defn;
+    }
   }
   // Handle e === false.
   if ((kind == Token::kEQ_STRICT) && (constant.raw() == Bool::False().raw()) &&
       other_defn->IsComparison() && can_merge &&
       other_defn->HasOnlyUse(other)) {
-    *negated = true;
-    return other_defn;
+    ComparisonInstr* comp = other_defn->AsComparison();
+    if (!IsFpCompare(comp)) {
+      *negated = true;
+      return other_defn;
+    }
   }
   return compare;
 }
