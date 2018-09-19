@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
 //   var x = new ExistingClass.nonExistingConstructor();

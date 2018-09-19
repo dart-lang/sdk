@@ -1,3 +1,35 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) → dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) → dart.core::int'.
+//       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+//                                                                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) → dart.core::double'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) → dart.core::double'.
+//       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+//                                                                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) → dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) → dart.core::int'.
+//   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+//                                                                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) → dart.core::double'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) → dart.core::double'.
+//   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+//                                                                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) → dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) → dart.core::int'.
+//           . /*@target=C::m*/ m);
+//                              ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type '(dart.core::num, dart.core::num) → dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) → dart.core::double'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) → dart.core::double'.
+//           . /*@target=C::m*/ m);
+//                              ^
+
 library test;
 import self as self;
 import "dart:core" as core;

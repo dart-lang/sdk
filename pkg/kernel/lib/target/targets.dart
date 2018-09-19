@@ -127,7 +127,7 @@ abstract class Target {
 
   /// Whether a library is allowed to import a platform private library.
   ///
-  /// By default only `dart:*` libraries are allowed. May be overriden for
+  /// By default only `dart:*` libraries are allowed. May be overridden for
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       imported.scheme != "dart" ||

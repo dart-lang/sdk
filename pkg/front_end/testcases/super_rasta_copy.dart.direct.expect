@@ -1,4 +1,226 @@
-// Errors:
+// Formatted problems:
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:60:11: Warning: Superclass has no getter named 'g'.
+//     super.g;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:61:15: Warning: Superclass has no getter named 'g'.
+//     use(super.g);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:79:11: Warning: Superclass has no setter named 'e'.
+//     super.e++;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:80:15: Warning: Superclass has no setter named 'e'.
+//     use(super.e++);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:81:11: Warning: Superclass has no setter named 'f'.
+//     super.f++;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:82:15: Warning: Superclass has no setter named 'f'.
+//     use(super.f++);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:83:11: Warning: Superclass has no getter named 'g'.
+//     super.g++;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:84:15: Warning: Superclass has no getter named 'g'.
+//     use(super.g++);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:91:11: Warning: Superclass has no setter named 'm'.
+//     super.m++;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:92:15: Warning: Superclass has no setter named 'm'.
+//     use(super.m++);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:102:13: Warning: Superclass has no setter named 'e'.
+//     ++super.e;
+//             ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:103:17: Warning: Superclass has no setter named 'e'.
+//     use(++super.e);
+//                 ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:104:13: Warning: Superclass has no setter named 'f'.
+//     ++super.f;
+//             ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:105:17: Warning: Superclass has no setter named 'f'.
+//     use(++super.f);
+//                 ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:106:13: Warning: Superclass has no getter named 'g'.
+//     ++super.g;
+//             ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:107:17: Warning: Superclass has no getter named 'g'.
+//     use(++super.g);
+//                 ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:114:13: Warning: Superclass has no setter named 'm'.
+//     ++super.m;
+//             ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:115:17: Warning: Superclass has no setter named 'm'.
+//     use(++super.m);
+//                 ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:129:11: Warning: Superclass has no method named 'g'.
+//     super.g();
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:130:15: Warning: Superclass has no method named 'g'.
+//     use(super.g());
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:150:11: Warning: Superclass has no setter named 'e'.
+//     super.e = 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:151:15: Warning: Superclass has no setter named 'e'.
+//     use(super.e = 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:152:11: Warning: Superclass has no setter named 'f'.
+//     super.f = 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:153:15: Warning: Superclass has no setter named 'f'.
+//     use(super.f = 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:162:11: Warning: Superclass has no setter named 'm'.
+//     super.m = 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:163:15: Warning: Superclass has no setter named 'm'.
+//     use(super.m = 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:173:11: Warning: Superclass has no setter named 'e'.
+//     super.e ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:174:15: Warning: Superclass has no setter named 'e'.
+//     use(super.e ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:175:11: Warning: Superclass has no setter named 'f'.
+//     super.f ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:176:15: Warning: Superclass has no setter named 'f'.
+//     use(super.f ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:177:11: Warning: Superclass has no getter named 'g'.
+//     super.g ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:178:15: Warning: Superclass has no getter named 'g'.
+//     use(super.g ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:185:11: Warning: Superclass has no setter named 'm'.
+//     super.m ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:186:15: Warning: Superclass has no setter named 'm'.
+//     use(super.m ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:196:11: Warning: Superclass has no setter named 'e'.
+//     super.e += 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:197:15: Warning: Superclass has no setter named 'e'.
+//     use(super.e += 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:198:11: Warning: Superclass has no setter named 'f'.
+//     super.f += 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:199:15: Warning: Superclass has no setter named 'f'.
+//     use(super.f += 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:200:11: Warning: Superclass has no getter named 'g'.
+//     super.g += 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:201:15: Warning: Superclass has no getter named 'g'.
+//     use(super.g += 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:208:11: Warning: Superclass has no setter named 'm'.
+//     super.m += 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:209:15: Warning: Superclass has no setter named 'm'.
+//     use(super.m += 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:219:11: Warning: Superclass has no setter named 'e'.
+//     super.e -= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:220:15: Warning: Superclass has no setter named 'e'.
+//     use(super.e -= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:221:11: Warning: Superclass has no setter named 'f'.
+//     super.f -= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:222:15: Warning: Superclass has no setter named 'f'.
+//     use(super.f -= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:223:11: Warning: Superclass has no getter named 'g'.
+//     super.g -= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:224:15: Warning: Superclass has no getter named 'g'.
+//     use(super.g -= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:231:11: Warning: Superclass has no setter named 'm'.
+//     super.m -= 42;
+//           ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:232:15: Warning: Superclass has no setter named 'm'.
+//     use(super.m -= 42);
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:139:12: Warning: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     super.m(87);
+//            ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:140:16: Warning: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     use(super.m(87));
+//                ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:14:9: Error: Final field 'f' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final f;
+//         ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:33:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
+
+// Unhandled errors:
 //
 // pkg/front_end/testcases/super_rasta_copy.dart:14:9: Error: Final field 'f' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.

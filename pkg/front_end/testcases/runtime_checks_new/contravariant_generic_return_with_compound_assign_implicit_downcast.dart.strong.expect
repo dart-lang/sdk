@@ -1,3 +1,15 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:41: Error: A value of type '(dart.core::num) → dart.core::num' can't be assigned to a variable of type '(dart.core::int) → dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::int'.
+//   d.value /*@checkReturn=(num) -> num*/ += 1;
+//                                         ^
+//
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:43: Error: A value of type '(dart.core::num) → dart.core::num' can't be assigned to a variable of type '(dart.core::int) → dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::int'.
+//     d.value /*@checkReturn=(num) -> num*/ += 1;
+//                                           ^
+
 library test;
 import self as self;
 import "dart:core" as core;

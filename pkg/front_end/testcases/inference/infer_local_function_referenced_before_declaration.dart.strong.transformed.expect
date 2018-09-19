@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:74: Error: Method not found: 'g'.
 //   /*@returnType=dynamic*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();

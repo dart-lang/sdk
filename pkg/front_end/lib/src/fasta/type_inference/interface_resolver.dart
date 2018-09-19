@@ -786,7 +786,7 @@ class InterfaceResolver {
         //     method to infer from and the signatures are compatible, it is
         //     treated as dynamic (e.g. overriding a one parameter method with a
         //     method that takes a second optional parameter).  Note: if there
-        //     is no corresponding parameter position in the overriden method to
+        //     is no corresponding parameter position in the overridden method to
         //     infer from and the signatures are incompatible (e.g. overriding a
         //     one parameter method with a method that takes a second
         //     non-optional parameter), the inference result is not defined and

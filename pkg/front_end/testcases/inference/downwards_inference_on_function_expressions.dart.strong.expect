@@ -1,3 +1,60 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:15:66: Error: A value of type '(dart.core::String) → dart.core::String' can't be assigned to a variable of type '(dart.core::int) → dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::String'.
+//         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (String x) =>
+//                                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:18:77: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//         l3 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (int x) => 3;
+//                                                                             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:20:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:29:13: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//             3;
+//             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:31:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:34:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//       return /*error:RETURN_OF_INVALID_TYPE*/ x;
+//                                               ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:42:72: Error: A value of type '(dart.core::String) → dart.core::List<dart.core::String>' can't be assigned to a variable of type '(dart.core::int) → dart.core::List<dart.core::String>'.
+// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::List<dart.core::String>'.
+//         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=List<String>*/ (String
+//                                                                        ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:46:58: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//               /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
+//                                                          ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:50:52: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//         /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
+//                                                    ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:60:13: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//             x;
+//             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:63:14: Error: The method 'substring' isn't defined for the class 'dart.core::int'.
+// Try correcting the name to the name of an existing method, or defining a method named 'substring'.
+//             .substring(3);
+//              ^
+
 library test;
 import self as self;
 import "dart:core" as core;

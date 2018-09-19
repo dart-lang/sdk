@@ -1,3 +1,21 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+//   for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                     ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+//   await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                           ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+//   for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                 ^
+//
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+//   await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+//                                                       ^
+
 library test;
 import self as self;
 import "dart:core" as core;

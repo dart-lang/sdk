@@ -1,3 +1,35 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:29:71: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+//       /*@typeArgs=int*/ max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+//                                                                       ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:31:71: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+//       /*@typeArgs=int*/ min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+//                                                                       ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:33:71: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::double'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::double'.
+//       /*@typeArgs=double*/ max(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+//                                                                       ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:35:71: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::double'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::double'.
+//       /*@typeArgs=double*/ min(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+//                                                                       ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:39:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+//       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hi",
+//                                              ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:40:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+// Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+//       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "there"));
+//                                              ^
+
 library test;
 import self as self;
 import "dart:core" as core;

@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/type_variable_uses.dart:24:13: Error: Type variables can't be used as constants.
 //     const C<T>();

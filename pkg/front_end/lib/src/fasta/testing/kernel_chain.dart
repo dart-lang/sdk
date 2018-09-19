@@ -30,9 +30,8 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import '../../api_prototype/compilation_message.dart' show CompilationMessage;
-
-import '../../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../../api_prototype/compiler_options.dart'
+    show CompilerOptions, FormattedMessage, Severity;
 
 import '../../api_prototype/kernel_generator.dart' show kernelForProgram;
 
@@ -44,6 +43,8 @@ import '../../compute_platform_binaries_location.dart'
 import '../compiler_context.dart' show CompilerContext;
 
 import '../kernel/verifier.dart' show verifyComponent;
+
+import '../messages.dart' show LocatedMessage;
 
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
@@ -73,15 +74,25 @@ class Verify extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    var options = new ProcessedOptions();
+    StringBuffer problems = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
+            if (problems.isNotEmpty) {
+              problems.write("\n");
+            }
+            problems.write(problem.formatted);
+          });
     return await CompilerContext.runWithOptions(options, (_) async {
-      var errors = verifyComponent(component,
+      List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
-      if (errors.isEmpty) {
+      assert(verificationErrors.isEmpty || problems.isNotEmpty);
+      if (problems.isEmpty) {
         return pass(component);
       } else {
-        return new Result<Component>(
-            null, context.expectationSet["VerificationError"], errors, null);
+        return new Result<Component>(null,
+            context.expectationSet["VerificationError"], "$problems", null);
       }
     }, errorOnMissingInput: false);
   }
@@ -123,17 +134,26 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, _) async {
+  Future<Result<Component>> run(Component component, dynamic context) async {
+    StringBuffer problems = context.componentToProblems[component];
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
+    if (problems.isNotEmpty) {
+      buffer.write("// Formatted problems:\n//");
+      for (String line in "${problems}".split("\n")) {
+        buffer.write("\n// $line".trimRight());
+      }
+      buffer.write("\n\n");
+      problems.clear();
+    }
     for (Field field in library.fields) {
       if (field.name.name != "#errors") continue;
       ListLiteral list = field.initializer;
-      buffer.write("// Errors:");
+      buffer.write("// Unhandled errors:");
       for (StringLiteral string in list.expressions) {
         buffer.write("\n//");
         for (String line in string.value.split("\n")) {
@@ -240,17 +260,16 @@ class Compile extends Step<TestDescription, Component, CompileContext> {
   Future<Result<Component>> run(
       TestDescription description, CompileContext context) async {
     Result<Component> result;
-    reportError(CompilationMessage error) {
-      result ??= fail(null, error.message);
-    }
-
     Uri sdk = Uri.base.resolve("sdk/");
     var options = new CompilerOptions()
       ..sdkRoot = sdk
       ..compileSdk = true
       ..packagesFileUri = Uri.base.resolve('.packages')
       ..strongMode = context.strongMode
-      ..onError = reportError;
+      ..onProblem = (FormattedMessage problem, Severity severity,
+          List<FormattedMessage> context) {
+        result ??= fail(null, problem.formatted);
+      };
     if (context.target != null) {
       options.target = context.target;
       // Do not link platform.dill, but recompile the platform libraries. This

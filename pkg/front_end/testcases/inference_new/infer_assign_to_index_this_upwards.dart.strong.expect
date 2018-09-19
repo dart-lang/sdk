@@ -1,3 +1,40 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:56:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v7 = this /*@target=Test3::[]=*/ ['x'] += getInt();
+//                                                              ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:59:29: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v10 = ++this /*@target=Test3::[]=*/ ['x'];
+//                             ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:60:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+//     var /*@type=int*/ v11 = this /*@target=Test3::[]=*/ ['x']++;
+//                                                              ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:125:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v7 = this /*@target=Test7::[]=*/ ['x'] += getInt();
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:126:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v8 = this /*@target=Test7::[]=*/ ['x'] += getNum();
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:127:32: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v10 = ++this /*@target=Test7::[]=*/ ['x'];
+//                                ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:128:65: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//     var /*@type=double*/ v11 = this /*@target=Test7::[]=*/ ['x']++;
+//                                                                 ^
+
 library test;
 import self as self;
 import "dart:core" as core;

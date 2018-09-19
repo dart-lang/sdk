@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:10:67: Error: Can't infer the type of 'y': circularity found during type inference.
 // Specify the type explicitly.

@@ -1,3 +1,25 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:37: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'test::A'.
+// Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+// var /*@topType=int*/ v_prefix_pp = (++new B(). /*@target=B::a*/ a);
+//                                     ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:18:40: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'test::A'.
+// Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+// var /*@topType=double*/ v_prefix_mm = (--new B(). /*@target=B::a*/ a);
+//                                        ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:63: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'test::A'.
+// Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+// var /*@topType=A*/ v_postfix_pp = (new B(). /*@target=B::a*/ a++);
+//                                                               ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:20:63: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'test::A'.
+// Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+// var /*@topType=A*/ v_postfix_mm = (new B(). /*@target=B::a*/ a--);
+//                                                               ^
+
 library test;
 import self as self;
 import "dart:core" as core;

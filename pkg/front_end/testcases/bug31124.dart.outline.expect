@@ -1,3 +1,14 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/bug31124.dart:1:22: Error: Expected a function body or '=>'.
+// Try adding {}.
+// var a = () => 'b';a();
+//                      ^
+//
+// pkg/front_end/testcases/bug31124.dart:1:19: Error: Duplicated definition of 'a'.
+// var a = () => 'b';a();
+//                   ^
+
 library;
 import self as self;
 

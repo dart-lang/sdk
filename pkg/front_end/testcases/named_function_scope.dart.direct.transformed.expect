@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
 //     var x = /*@error=NamedFunctionExpression*/ T() {};

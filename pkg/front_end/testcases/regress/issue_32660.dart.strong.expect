@@ -1,4 +1,34 @@
-// Errors:
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:13:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//   'foo'.
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C extends A implements B {
+//       ^
+// pkg/front_end/testcases/regress/issue_32660.dart:10:3: Error: 'foo' is defined here.
+//   foo(int x, {int y}) => y;
+//   ^^^
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:24:7: Error: The non-abstract class 'E' is missing implementations for these members:
+//   'foo'.
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class E extends D {
+//       ^
+// pkg/front_end/testcases/regress/issue_32660.dart:25:3: Error: 'foo' is defined here.
+//   foo(int x, {int y});
+//   ^^^
+
+// Unhandled errors:
 //
 // pkg/front_end/testcases/regress/issue_32660.dart:13:7: Error: The non-abstract class 'C' is missing implementations for these members:
 //   'foo'.
