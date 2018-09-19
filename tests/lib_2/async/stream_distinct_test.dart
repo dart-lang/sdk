@@ -120,7 +120,7 @@ class T {
       other is T && ((other.value == 2) ? throw 2 : (value == other.value));
 }
 
-final reifyErrors =
+StreamTransformer reifyErrors =
     new StreamTransformer.fromHandlers(handleError: (e, s, sink) {
   sink.add("[$e]");
 });

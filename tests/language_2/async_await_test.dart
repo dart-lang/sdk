@@ -8,6 +8,8 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "dart:async";
 
+typedef dynamic DynamicToDynamic(dynamic d);
+
 main() {
   asyncStart();
   group("basic", () {
@@ -2095,7 +2097,7 @@ Future topArrowExpression(f) {
   return (() async => await f)();
 }
 
-var topVarExpression = (f) async {
+DynamicToDynamic topVarExpression = (f) async {
   return await f;
 };
 
@@ -2148,7 +2150,7 @@ class Async {
     return (() async => await f)();
   }
 
-  static var staticVarExpression = (f) async {
+  static DynamicToDynamic staticVarExpression = (f) async {
     return await f;
   };
 
@@ -2190,7 +2192,7 @@ class Async {
     return (() async => await f)();
   }
 
-  var instanceVarExpression = (f) async {
+  DynamicToDynamic instanceVarExpression = (f) async {
     return await f;
   };
 

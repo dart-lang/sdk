@@ -10,7 +10,7 @@ class Bar {
   foo() => field;
 }
 
-var topLevel = new Bar(String).foo();
+dynamic topLevel = new Bar(String).foo();
 
 main() {
   Expect.isTrue(topLevel is Type);

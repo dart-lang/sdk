@@ -4,8 +4,10 @@
 
 import "package:expect/expect.dart";
 
+typedef void VoidToVoid();
+
 var b;
-var a = () {
+VoidToVoid a = () {
   b = 42;
 };
 

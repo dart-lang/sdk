@@ -58,7 +58,6 @@ invalid_returns/sync_invalid_return_02_test/none: CompileTimeError # issue #3431
 invalid_returns/sync_invalid_return_03_test/none: CompileTimeError # issue #34319
 invalid_returns/sync_invalid_return_04_test/none: CompileTimeError # issue #34319
 invalid_returns/sync_invalid_return_05_test/none: CompileTimeError # issue #34319
-issue13673_test: StaticWarning # Issue 31925
 issue31596_implement_covariant_test: CompileTimeError # Issue #31596
 issue31596_override_test/01: CompileTimeError # Issue #31596
 issue31596_override_test/02: CompileTimeError # Issue #31596

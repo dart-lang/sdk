@@ -64,6 +64,16 @@ String formatError(AnalysisContext context, AnalysisError error) {
 }
 
 ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
+  var errorCode = error.errorCode;
+  if (errorCode == StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_GETTER ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_METHOD) {
+    // These are normally hints, but they should be errors when running DDC, so
+    // that users won't be surprised by behavioral differences between DDC and
+    // dart2js.
+    return ErrorSeverity.ERROR;
+  }
+
   // TODO(jmesserly): this Analyzer API totally bonkers, but it's what
   // analyzer_cli and server use.
   //
@@ -74,7 +84,7 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   // * it requires an AnalysisContext
   return ErrorProcessor.getProcessor(context.analysisOptions, error)
           ?.severity ??
-      error.errorCode.errorSeverity;
+      errorCode.errorSeverity;
 }
 
 const invalidImportDartMirrors = StrongModeCode(
