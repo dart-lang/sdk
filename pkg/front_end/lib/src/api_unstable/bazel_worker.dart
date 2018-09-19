@@ -44,7 +44,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
   return new InitializedCompilerState(options, processedOpts);
 }

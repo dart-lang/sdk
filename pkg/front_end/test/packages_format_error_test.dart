@@ -23,8 +23,8 @@ main() {
   Uri packages = root.resolve(".packages");
   fs.entityForUri(packages).writeAsStringSync("bad\n");
   List<FormattedMessage> messages = <FormattedMessage>[];
-  CompilerContext c =
-      new CompilerContext(new ProcessedOptions(new CompilerOptions()
+  CompilerContext c = new CompilerContext(new ProcessedOptions(
+      options: new CompilerOptions()
         ..fileSystem = fs
         ..onProblem = (message, severity, context) {
           messages.add(message);

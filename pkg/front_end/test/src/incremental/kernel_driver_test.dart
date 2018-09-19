@@ -1008,8 +1008,8 @@ import 'b.dart';
       ..strongMode = true
       ..target = new NoneTarget(new TargetFlags(strongMode: true));
 
-    driver = new KernelDriver(
-        new ProcessedOptions(options), uriTranslator, new KernelErrorListener(),
+    driver = new KernelDriver(new ProcessedOptions(options: options),
+        uriTranslator, new KernelErrorListener(),
         sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: fileAddedFn);
   }
 

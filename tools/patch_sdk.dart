@@ -199,8 +199,10 @@ Future<List<Uri>> compilePlatform(
     ..target = target;
 
   var inputs = [Uri.parse('dart:core')];
-  var result = await generateKernel(new ProcessedOptions(options, inputs),
-      buildSummary: true, buildComponent: true);
+  var result = await generateKernel(
+      new ProcessedOptions(options: options, inputs: inputs),
+      buildSummary: true,
+      buildComponent: true);
   await writeComponentToFile(result.component, output);
   return result.deps;
 }

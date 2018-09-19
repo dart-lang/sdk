@@ -100,7 +100,7 @@ void testExpression(String source, [String expected]) {
 
 main() {
   CompilerContext context = new CompilerContext(new ProcessedOptions(
-      new CompilerOptions()
+      options: new CompilerOptions()
         ..onProblem = (FormattedMessage problem, Severity severity,
             List<FormattedMessage> context) {
           handler(problem, severity, context);

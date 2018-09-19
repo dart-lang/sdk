@@ -335,7 +335,7 @@ ProcessedOptions analyzeCommandLine(
     }
 
     return new ProcessedOptions(
-        new CompilerOptions()
+        options: new CompilerOptions()
           ..sdkSummary = options["--platform"]
           ..librariesSpecificationUri =
               resolveInputUri(arguments[1], extraSchemes: extraSchemes)
@@ -351,8 +351,8 @@ ProcessedOptions analyzeCommandLine(
           ..verbose = verbose
           ..verify = verify
           ..bytecode = bytecode,
-        <Uri>[Uri.parse(arguments[0])],
-        resolveInputUri(arguments[3], extraSchemes: extraSchemes));
+        inputs: <Uri>[Uri.parse(arguments[0])],
+        output: resolveInputUri(arguments[3], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
@@ -392,7 +392,8 @@ ProcessedOptions analyzeCommandLine(
       inputs.add(resolveInputUri(argument, extraSchemes: extraSchemes));
     }
   }
-  return new ProcessedOptions(compilerOptions, inputs, output);
+  return new ProcessedOptions(
+      options: compilerOptions, inputs: inputs, output: output);
 }
 
 Future<T> withGlobalOptions<T>(
@@ -416,7 +417,7 @@ Future<T> withGlobalOptions<T>(
     options = analyzeCommandLine(
         programName, parsedArguments, areRestArgumentsInputs, verbose);
   } on CommandLineProblem catch (e) {
-    options = new ProcessedOptions(new CompilerOptions());
+    options = new ProcessedOptions();
     problem = e;
   }
 

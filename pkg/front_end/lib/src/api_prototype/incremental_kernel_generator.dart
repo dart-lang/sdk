@@ -21,14 +21,16 @@ abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
       [Uri initializeFromDillUri]) {
     return new IncrementalCompiler(
-        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFromDillUri);
   }
 
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component) {
     return new IncrementalCompiler.fromComponent(
-        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
         component);
   }
 

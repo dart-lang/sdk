@@ -67,7 +67,8 @@ class Tester {
     formattedErrors.clear();
     formattedWarnings.clear();
     IncrementalCompiler compiler = new IncrementalCompiler(
-        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
     await compiler.computeDelta();
     if (compiler.initializedFromDill) {
@@ -128,7 +129,8 @@ main() {
 
   Future<Null> test() async {
     IncrementalCompiler compiler = new IncrementalCompiler(
-        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
 
     Component componentGood = await compiler.computeDelta();
@@ -137,7 +139,8 @@ main() {
 
     // Initialize from good dill file should be ok.
     compiler = new IncrementalCompiler(
-        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
     compiler.invalidate(entryPoint);
     Component component = await compiler.computeDelta();

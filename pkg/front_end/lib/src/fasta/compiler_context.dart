@@ -8,8 +8,6 @@ import 'dart:async' show Future, Zone, runZoned;
 
 import 'package:kernel/ast.dart' show Source;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -134,8 +132,7 @@ class CompilerContext {
 
   static Future<T> runWithDefaultOptions<T>(
       Future<T> action(CompilerContext c)) {
-    return new CompilerContext(new ProcessedOptions(new CompilerOptions()))
-        .runInContext<T>(action);
+    return new CompilerContext(new ProcessedOptions()).runInContext<T>(action);
   }
 
   static bool get enableColors {

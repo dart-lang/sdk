@@ -43,7 +43,7 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
-  var pOptions = new ProcessedOptions(options, [source]);
+  var pOptions = new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     var component = (await generateKernelInternal())?.component;
     if (component == null) return null;
@@ -80,6 +80,7 @@ Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
 /// summaries.
 Future<Component> kernelForComponent(
     List<Uri> sources, CompilerOptions options) async {
-  return (await generateKernel(new ProcessedOptions(options, sources)))
+  return (await generateKernel(
+          new ProcessedOptions(options: options, inputs: sources)))
       ?.component;
 }

@@ -135,7 +135,8 @@ Future _runGlobalTransformations(
 /// be able to report compile-time errors.
 Future<T> runWithFrontEndCompilerContext<T>(Uri source,
     CompilerOptions compilerOptions, Component component, T action()) async {
-  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
+  final processedOptions =
+      new ProcessedOptions(options: compilerOptions, inputs: [source]);
 
   // Run within the context, so we have uri source tokens...
   return await CompilerContext.runWithOptions(processedOptions,

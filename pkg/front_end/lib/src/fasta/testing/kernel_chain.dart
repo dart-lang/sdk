@@ -73,7 +73,7 @@ class Verify extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
+    var options = new ProcessedOptions();
     return await CompilerContext.runWithOptions(options, (_) async {
       var errors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);

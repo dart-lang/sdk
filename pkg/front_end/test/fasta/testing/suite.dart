@@ -185,9 +185,10 @@ class FastaContext extends ChainContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..sdkRoot = sdk
-      ..packagesFileUri = packages);
+    var options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..sdkRoot = sdk
+          ..packagesFileUri = packages);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
@@ -264,7 +265,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
 
   Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
+    var options = new ProcessedOptions();
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.

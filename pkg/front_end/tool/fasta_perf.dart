@@ -98,7 +98,7 @@ Future setup(Uri entryUri, {bool strongMode: false}) async {
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..target = createTarget(isFlutter: false, strongMode: strongMode);
-  uriResolver = await new ProcessedOptions(options).getUriTranslator();
+  uriResolver = await new ProcessedOptions(options: options).getUriTranslator();
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
