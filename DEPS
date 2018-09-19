@@ -78,7 +78,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "6f3efd209ff1828835936397b64be79265cc0c19",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.0",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.20.4",
   "fixnum_tag": "0.10.8",
