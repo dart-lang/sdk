@@ -24,12 +24,7 @@ runTestCase(Uri source) async {
 
   final coreTypes = new CoreTypes(component);
 
-  final entryPoints = [
-    pkgVmDir + '/lib/transformations/type_flow/entry_points.json',
-    pkgVmDir + '/lib/transformations/type_flow/entry_points_extra.json',
-  ];
-
-  component = transformComponent(target, coreTypes, component, entryPoints,
+  component = transformComponent(target, coreTypes, component, [],
       new ExpressionPragmaAnnotationParser(coreTypes));
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);

@@ -35,10 +35,6 @@ const bool kDumpClassHierarchy =
 Component transformComponent(Target target, CoreTypes coreTypes,
     Component component, List<String> entryPoints,
     [PragmaAnnotationParser matcher]) {
-  if ((entryPoints == null) || entryPoints.isEmpty) {
-    throw 'Error: unable to perform global type flow analysis without entry points.';
-  }
-
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
