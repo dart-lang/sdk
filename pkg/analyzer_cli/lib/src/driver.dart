@@ -564,8 +564,9 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     // If we have the analysis driver, and the new analysis options are the
     // same, we can reuse this analysis driver.
     if (analysisDriver != null &&
-        _equalAnalysisOptions(
-            analysisDriver.analysisOptions, analysisOptions)) {
+        AnalysisOptions.signaturesEqual(
+            analysisDriver.analysisOptions.signature,
+            analysisOptions.signature)) {
       return;
     }
 
@@ -643,21 +644,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     return null;
-  }
-
-  /// Return whether [a] and [b] options are equal for the purpose of
-  /// command line analysis.
-  bool _equalAnalysisOptions(AnalysisOptions a, AnalysisOptions b) {
-    return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
-        a.enableSuperMixins == b.enableSuperMixins &&
-        a.enableTiming == b.enableTiming &&
-        a.generateImplicitErrors == b.generateImplicitErrors &&
-        a.generateSdkErrors == b.generateSdkErrors &&
-        a.hint == b.hint &&
-        a.lint == b.lint &&
-        AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
-        a.preserveComments == b.preserveComments &&
-        a.useFastaParser == b.useFastaParser;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
