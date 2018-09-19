@@ -78,15 +78,13 @@ prebuilt_dart_action("kernel_service_dill") {
     output,
   ]
 
-  # Enable this when the prebuilt SDK rolls to pick up the fix for
-  # Issue #34026.
-  # depfile = "$target_gen_dir/kernel_service_dill.d"
-  # abs_depfile = rebase_path(depfile)
-  # abs_output = rebase_path(output)
-  # vm_args = [
-  #   "--depfile=$abs_depfile",
-  #   "--depfile_output_filename=$abs_output",
-  # ]
+  depfile = "$root_gen_dir/kernel_service_dill.d"
+  abs_depfile = rebase_path(depfile)
+  abs_output = rebase_path(output)
+  vm_args = [
+    "--depfile=$abs_depfile",
+    "--depfile_output_filename=$abs_output",
+  ]
 
   script = gen_kernel_script
 

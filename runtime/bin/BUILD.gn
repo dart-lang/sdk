@@ -6,7 +6,6 @@ import("../../build/dart/dart_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
-import("../../utils/generate_entry_points_json.gni")
 import("../runtime_args.gni")
 import("../vm/heap/heap_sources.gni")
 import("../vm/compiler/compiler_sources.gni")
@@ -666,7 +665,7 @@ gen_snapshot_action("generate_snapshot_bin") {
     # dart 2.
     "--no-strong",
     "--no-sync-async",
-    "--reify-generic-functions",
+    "--no-reify-generic-functions",
 
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
@@ -1238,12 +1237,4 @@ shared_library("sample_extension") {
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
   }
-}
-
-generate_entry_points_json_with_dart_bootstrap(
-    "precompiler_entry_points_json") {
-  # Dart script to precompile (any valid script would suffice).
-  input = "../tests/vm/dart/hello_world_test.dart"
-
-  output = "$target_gen_dir/precompiler_entry_points.json"
 }

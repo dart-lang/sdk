@@ -121,8 +121,7 @@ template("_application_snapshot") {
 #    Arguments to pass to the Dart application for the training run.
 #
 #  vm_args (optional):
-#    Additional arguments to the Dart VM. Do not put --no-preview-dart-2 here.
-#    Instead use the template application_snapshot_dart1.
+#    Additional arguments to the Dart VM.
 #
 #  name (optional):
 #    The name of the snapshot if different from the target name. The output
@@ -148,40 +147,6 @@ template("application_snapshot") {
   }
 }
 
-# Creates an app-jit snapshot for a Dart1 program based on a training run.
-#
-# Parameters:
-#  main_dart (required):
-#    The entrypoint to the Dart application.
-#
-#  training_args (required):
-#    Arguments to pass to the Dart application for the training run.
-#
-#  vm_args (optional):
-#    Additional arguments to the Dart VM. Do not put --no-preview-dart-2 here.
-#
-#  name (optional):
-#    The name of the snapshot if different from the target name. The output
-#    will be in $root_gen_dir/$name.dart.snapshot.
-#
-#  deps (optional):
-#    Any build dependencies.
-#
-#  dot_packages (optional):
-#    The .packages file for the app. Defaults to the $_dart_root/.packages.
-#
-#  output (optional):
-#    Overrides the full output path.
-template("application_snapshot_dart1") {
-  _application_snapshot(target_name) {
-    forward_variables_from(invoker, "*")
-    if (!defined(invoker.vm_args)) {
-      vm_args = []
-    }
-    vm_args += [ "--no-preview-dart-2" ]
-  }
-}
-
 # Creates an app-jit snapshot for the common FE based on a training run.
 #
 # Parameters:
@@ -192,7 +157,7 @@ template("application_snapshot_dart1") {
 #    Arguments to pass to the Dart application for the training run.
 #
 #  vm_args (optional):
-#    Additional arguments to the Dart VM. Do not put --no-preview-dart-2 here.
+#    Additional arguments to the Dart VM.
 #
 #  name (optional):
 #    The name of the snapshot if different from the target name. The output

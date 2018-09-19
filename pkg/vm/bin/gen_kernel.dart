@@ -96,12 +96,6 @@ Future<int> compile(List<String> arguments) async {
   }
 
   final List<String> entryPoints = options['entry-points'] ?? <String>[];
-  if (entryPoints.isEmpty) {
-    entryPoints.addAll([
-      'pkg/vm/lib/transformations/type_flow/entry_points.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-    ]);
-  }
 
   final errorPrinter = new ErrorPrinter();
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);

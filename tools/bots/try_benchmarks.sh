@@ -242,7 +242,6 @@ EOF
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
-      out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
       out/ReleaseX64/run_vm_tests \
@@ -363,7 +362,6 @@ EOF
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
-      out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
       out/ReleaseX64/run_vm_tests \
