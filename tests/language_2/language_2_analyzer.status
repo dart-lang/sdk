@@ -74,14 +74,9 @@ issue31596_test: CompileTimeError # Issue #31596
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
-mixin_forwarding_constructor4_test/01: CompileTimeError # See issue #34375
-mixin_forwarding_constructor4_test/02: CompileTimeError # See issue #34375
-mixin_forwarding_constructor4_test/03: CompileTimeError # See issue #34375
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
-mixin_super_constructor_named_test/01: CompileTimeError # See issue #34375
-mixin_super_constructor_positionals_test/01: CompileTimeError # See issue #34375
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614

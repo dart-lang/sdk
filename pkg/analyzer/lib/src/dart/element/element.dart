@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
@@ -614,50 +613,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return super.documentationComment;
   }
 
-  /**
-   * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
-   * be reported for this class.
-   */
-  bool get doesMixinLackConstructors {
-    if (!isMixinApplication && mixins.isEmpty) {
-      // This class is not a mixin application and it doesn't have a "with"
-      // clause, so CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS is
-      // inapplicable.
-      return false;
-    }
-    if (supertype == null) {
-      // Should never happen, since Object and mixins are the only classes that
-      // have no supertype, and they should have been caught by the test above.
-      assert(false);
-      return false;
-    }
-    // Find the nearest class in the supertype chain that is not a mixin
-    // application.
-    ClassElement nearestNonMixinClass = supertype.element;
-    if (nearestNonMixinClass.isMixinApplication) {
-      // Use a list to keep track of the classes we've seen, so that we won't
-      // go into an infinite loop in the event of a non-trivial loop in the
-      // class hierarchy.
-      List<ClassElement> classesSeen = <ClassElement>[this];
-      while (nearestNonMixinClass.isMixinApplication) {
-        if (classesSeen.contains(nearestNonMixinClass)) {
-          // Loop in the class hierarchy (which is reported elsewhere).  Don't
-          // confuse the user with further errors.
-          return false;
-        }
-        classesSeen.add(nearestNonMixinClass);
-        if (nearestNonMixinClass.supertype == null) {
-          // Should never happen, since Object and mixins are the only classes that
-          // have no supertype, and they are not mixin applications.
-          assert(false);
-          return false;
-        }
-        nearestNonMixinClass = nearestNonMixinClass.supertype.element;
-      }
-    }
-    return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
-  }
-
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
@@ -1068,22 +1023,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) {
-    if (!constructor.isAccessibleIn(library)) {
-      return false;
-    }
-    // If this class has no mixins, then all superclass constructors are
-    // accessible.
-    if (mixins.isEmpty) {
-      return true;
-    }
-    // Otherwise only constructors that lack optional parameters are
-    // accessible (see dartbug.com/19576).
-    for (ParameterElement parameter in constructor.parameters) {
-      if (parameter.isOptional) {
-        return false;
-      }
-    }
-    return true;
+    return constructor.isAccessibleIn(library);
   }
 
   @override
@@ -1170,8 +1110,15 @@ class ClassElementImpl extends AbstractClassElementImpl
             new List<ParameterElement>(count);
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
-          ParameterElementImpl implicitParameter =
-              new ParameterElementImpl(superParameter.name, -1);
+          ParameterElementImpl implicitParameter;
+          if (superParameter is DefaultParameterElementImpl) {
+            implicitParameter =
+                new DefaultParameterElementImpl(superParameter.name, -1)
+                  ..constantInitializer = superParameter.constantInitializer;
+          } else {
+            implicitParameter =
+                new ParameterElementImpl(superParameter.name, -1);
+          }
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
           // ignore: deprecated_member_use

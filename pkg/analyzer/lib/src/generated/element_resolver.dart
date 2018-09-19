@@ -1053,8 +1053,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     ConstructorElement element =
         superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null ||
-        (!enclosingClass.doesMixinLackConstructors &&
-            !enclosingClass.isSuperConstructorAccessible(element))) {
+        !enclosingClass.isSuperConstructorAccessible(element)) {
       if (name != null) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,

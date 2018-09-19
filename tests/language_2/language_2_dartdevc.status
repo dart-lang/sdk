@@ -113,14 +113,9 @@ mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTim
 mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError   # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
-mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
 mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
-mixin_super_constructor_named_test/01: CompileTimeError # See issue 15101
-mixin_super_constructor_positionals_test/01: CompileTimeError # See issue 15101
 mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError

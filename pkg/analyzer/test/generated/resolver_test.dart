@@ -28,7 +28,6 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1924,124 +1923,6 @@ A v = new A();
     _resolveNode(declaration, [elementA, elementB]);
     expect(elementB.supertype, same(elementA.type));
     _listener.assertNoErrors();
-  }
-
-  test_visitClassTypeAlias() async {
-    // class A = B with C implements D;
-    ClassElement elementA = ElementFactory.classElement2("A");
-    ClassElement elementB = ElementFactory.classElement2("B");
-    ClassElement elementC = ElementFactory.classElement2("C");
-    ClassElement elementD = ElementFactory.classElement2("D");
-    WithClause withClause =
-        AstTestFactory.withClause([AstTestFactory.typeName(elementC)]);
-    ImplementsClause implementsClause =
-        AstTestFactory.implementsClause([AstTestFactory.typeName(elementD)]);
-    ClassTypeAlias alias = AstTestFactory.classTypeAlias("A", null, null,
-        AstTestFactory.typeName(elementB), withClause, implementsClause);
-    alias.name.staticElement = elementA;
-    _resolveNode(alias, [elementA, elementB, elementC, elementD]);
-    expect(elementA.supertype, same(elementB.type));
-    List<InterfaceType> mixins = elementA.mixins;
-    expect(mixins, hasLength(1));
-    expect(mixins[0], same(elementC.type));
-    List<InterfaceType> interfaces = elementA.interfaces;
-    expect(interfaces, hasLength(1));
-    expect(interfaces[0], same(elementD.type));
-    _listener.assertNoErrors();
-  }
-
-  test_visitClassTypeAlias_constructorWithOptionalParams_ignored() async {
-    // class T {}
-    // class B {
-    //   B.c1();
-    //   B.c2([T a0]);
-    //   B.c3({T a0});
-    // }
-    // class M {}
-    // class C = B with M
-    ClassElement classT = ElementFactory.classElement2('T', []);
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorBc1 =
-        ElementFactory.constructorElement2(classB, 'c1', []);
-    ConstructorElementImpl constructorBc2 =
-        ElementFactory.constructorElement2(classB, 'c2', [classT.type]);
-    (constructorBc2.parameters[0] as ParameterElementImpl).parameterKind =
-        ParameterKind.POSITIONAL;
-    ConstructorElementImpl constructorBc3 =
-        ElementFactory.constructorElement2(classB, 'c3', [classT.type]);
-    (constructorBc3.parameters[0] as ParameterElementImpl).parameterKind =
-        ParameterKind.NAMED;
-    classB.constructors = [constructorBc1, constructorBc2, constructorBc3];
-    ClassElement classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
-        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
-    alias.name.staticElement = classC;
-    _resolveNode(alias, [classT, classB, classM, classC]);
-    expect(classC.constructors, hasLength(1));
-    ConstructorElement constructor = classC.constructors[0];
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.isSynthetic, isTrue);
-    expect(constructor.name, 'c1');
-    expect(constructor.parameters, isEmpty);
-  }
-
-  test_visitClassTypeAlias_constructorWithParams() async {
-    // class T {}
-    // class B {
-    //   B(T a0);
-    // }
-    // class M {}
-    // class C = B with M
-    ClassElement classT = ElementFactory.classElement2('T', []);
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorB =
-        ElementFactory.constructorElement2(classB, '', [classT.type]);
-    classB.constructors = [constructorB];
-    ClassElement classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
-        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
-    alias.name.staticElement = classC;
-    _resolveNode(alias, [classT, classB, classM, classC]);
-    expect(classC.constructors, hasLength(1));
-    ConstructorElement constructor = classC.constructors[0];
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.isSynthetic, isTrue);
-    expect(constructor.name, '');
-    expect(constructor.parameters, hasLength(1));
-    expect(constructor.parameters[0].type, equals(classT.type));
-    expect(constructor.parameters[0].name,
-        equals(constructorB.parameters[0].name));
-  }
-
-  test_visitClassTypeAlias_defaultConstructor() async {
-    // class B {}
-    // class M {}
-    // class C = B with M
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorB =
-        ElementFactory.constructorElement2(classB, '', []);
-    constructorB.setModifier(Modifier.SYNTHETIC, true);
-    classB.constructors = [constructorB];
-    ClassElement classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
-        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
-    alias.name.staticElement = classC;
-    _resolveNode(alias, [classB, classM, classC]);
-    expect(classC.constructors, hasLength(1));
-    ConstructorElement constructor = classC.constructors[0];
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.isSynthetic, isTrue);
-    expect(constructor.name, '');
-    expect(constructor.parameters, isEmpty);
   }
 
   test_visitFieldFormalParameter_functionType() async {

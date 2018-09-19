@@ -56,6 +56,13 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     newFile('/test/lib/test.dart', content: content);
   }
 
+  void assertConstructors(ClassElement class_, List<String> expected) {
+    expect(
+      class_.constructors.map((c) => c.toString()).toList(),
+      unorderedEquals(expected),
+    );
+  }
+
   void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
     expect(actual, same(expected));
@@ -94,6 +101,10 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   void assertElementTypeString(DartType type, String expected) {
     expect(type.toString(), expected);
+  }
+
+  void assertElementTypeStrings(List<DartType> types, List<String> expected) {
+    expect(types.map((t) => t.displayName).toList(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {

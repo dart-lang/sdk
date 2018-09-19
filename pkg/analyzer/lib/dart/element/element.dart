@@ -269,6 +269,8 @@ abstract class ClassElement
   /**
    * Determine whether the given [constructor], which exists in the superclass
    * of this class, is accessible to constructors in this class.
+   *
+   * TODO(scheglov) Remove this.
    */
   bool isSuperConstructorAccessible(ConstructorElement constructor);
 

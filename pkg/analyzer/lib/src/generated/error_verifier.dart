@@ -1354,7 +1354,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
-      _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       if (!disableConflictingGenericsCheck) {
@@ -4204,18 +4203,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Report the error [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] if
-   * appropriate.
-   */
-  void _checkForMixinHasNoConstructors(AstNode node) {
-    if (_enclosingClass.doesMixinLackConstructors) {
-      ErrorCode errorCode = CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS;
-      _errorReporter
-          .reportErrorForNode(errorCode, node, [_enclosingClass.supertype]);
-    }
-  }
-
-  /**
    * Verify that the given mixin has the 'Object' superclass. The [mixinName] is
    * the node to report problem on. The [mixinElement] is the mixing to
    * evaluate.
@@ -4487,10 +4474,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForNoDefaultSuperConstructorImplicit(
       ClassDeclaration declaration) {
-    // do nothing if mixin errors have already been reported for this class.
-    if (_enclosingClass.doesMixinLackConstructors) {
-      return;
-    }
     // do nothing if there is explicit constructor
     List<ConstructorElement> constructors = _enclosingClass.constructors;
     if (!constructors[0].isSynthetic) {
@@ -5489,10 +5472,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
     if (_enclosingClass == null) {
-      return;
-    }
-    // do nothing if mixin errors have already been reported for this class.
-    if (_enclosingClass.doesMixinLackConstructors) {
       return;
     }
 

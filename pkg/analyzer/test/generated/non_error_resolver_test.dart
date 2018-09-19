@@ -1756,21 +1756,6 @@ f(Function a) {
     verify([source]);
   }
 
-  test_extraPositionalArguments_implicitConstructor() async {
-    Source source = addSource(r'''
-class A<E extends num> {
-  A(E x, E y);
-}
-class M {}
-class B<E extends num> = A<E> with M;
-void main() {
-   B<int> x = new B<int>(0,0);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_extraPositionalArguments_typedef_local() async {
     Source source = addSource(r'''
 typedef A(p1, p2);
@@ -2257,29 +2242,6 @@ void test1() {
   // These two should be equivalent
   foo<String>("hello");
   y<String>("hello");
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_implicitConstructorDependencies() async {
-    // No warning should be generated for the code below; this requires that
-    // implicit constructors are generated for C1 before C2, even though C1
-    // follows C2 in the file.  See dartbug.com/21600.
-    Source source = addSource(r'''
-class B {
-  B(int i);
-}
-class M1 {}
-class M2 {}
-
-class C2 = C1 with M2;
-class C1 = B with M1;
-
-main() {
-  new C2(5);
 }
 ''');
     await computeAnalysisResult(source);
@@ -5837,18 +5799,6 @@ class B extends A {
 class A {
   A() {}
 }
-class B extends A {
-  B();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_undefinedConstructorInInitializer_implicit_typeAlias() async {
-    Source source = addSource(r'''
-class M {}
-class A = Object with M;
 class B extends A {
   B();
 }''');
