@@ -122,10 +122,11 @@ class CompilerContext {
   /// Perform [action] in a [Zone] where [options] will be available as
   /// `CompilerContext.current.options`.
   static Future<T> runWithOptions<T>(
-      ProcessedOptions options, Future<T> action(CompilerContext c)) {
+      ProcessedOptions options, Future<T> action(CompilerContext c),
+      {bool errorOnMissingInput: true}) {
     return new CompilerContext(options)
         .runInContext<T>((CompilerContext c) async {
-      await options.validateOptions();
+      await options.validateOptions(errorOnMissingInput: errorOnMissingInput);
       return action(c);
     });
   }

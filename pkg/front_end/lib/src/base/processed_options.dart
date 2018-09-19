@@ -247,10 +247,10 @@ class ProcessedOptions {
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
-  Future<bool> validateOptions() async {
+  Future<bool> validateOptions({bool errorOnMissingInput: true}) async {
     if (verbose) print(debugString());
 
-    if (inputs.isEmpty) {
+    if (errorOnMissingInput && inputs.isEmpty) {
       reportWithoutLocation(messageMissingInput, Severity.error);
       return false;
     }

@@ -83,7 +83,7 @@ class Verify extends Step<Component, Component, ChainContext> {
         return new Result<Component>(
             null, context.expectationSet["VerificationError"], errors, null);
       }
-    });
+    }, errorOnMissingInput: false);
   }
 }
 
