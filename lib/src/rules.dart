@@ -101,6 +101,7 @@ import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
+import 'package:linter/src/rules/pub/sort_pub_dependencies.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
@@ -235,6 +236,7 @@ void registerLintRules() {
     ..register(new RecursiveGetters())
     ..registerDefault(new SlashForDocComments())
     ..register(new SortConstructorsFirst())
+    ..register(new SortPubDependencies())
     ..register(new SortUnnamedConstructorsFirst())
     ..registerDefault(new SuperGoesLast())
     ..register(new TestTypesInEquals())
