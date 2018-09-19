@@ -632,17 +632,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final receiver = _visit(node.receiver);
     final args = new Args<TypeExpr>([receiver]);
     final target = node.target;
-    if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      return _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      // TODO(alexmarkov): Consider cleaning up this code as it duplicates
-      // processing in DirectInvocation.
-      // TODO(alexmarkov): capture receiver type
-      _entryPointsListener.addRawCall(new DirectSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(
+        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -768,15 +759,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return _makeCall(
           node, new DynamicSelector(CallKind.PropertyGet, node.name), args);
     }
-    if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      return _makeCall(node,
-          new InterfaceSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      // TODO(alexmarkov): capture receiver type
-      _entryPointsListener.addRawCall(new InterfaceSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(node,
+        new InterfaceSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
@@ -835,17 +819,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (target == null) {
       return new Type.empty();
     } else {
-      if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-        return _makeCall(node,
-            new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-      } else {
-        // Tear-off.
-        // TODO(alexmarkov): Consider cleaning up this code as it duplicates
-        // processing in DirectInvocation.
-        // TODO(alexmarkov): capture receiver type
-        _entryPointsListener.addRawCall(new DirectSelector(target));
-        return _staticType(node);
-      }
+      return _makeCall(node,
+          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
     }
   }
 
@@ -886,14 +861,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitStaticGet(StaticGet node) {
     final args = new Args<TypeExpr>(const <TypeExpr>[]);
     final target = node.target;
-    if ((target is Field) || (target is Procedure) && target.isGetter) {
-      return _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-    } else {
-      // Tear-off.
-      _entryPointsListener.addRawCall(new DirectSelector(target));
-      return _staticType(node);
-    }
+    return _makeCall(
+        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
   }
 
   @override
