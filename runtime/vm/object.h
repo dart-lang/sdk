@@ -2376,6 +2376,7 @@ class Function : public Object {
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  bool IsBytecodeAllowed(Zone* zone) const;
   void AttachBytecode(const Code& bytecode) const;
   RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
   bool HasBytecode() const;

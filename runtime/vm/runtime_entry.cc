@@ -7,6 +7,7 @@
 #include "vm/ast.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"

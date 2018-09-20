@@ -5966,6 +5966,24 @@ bool Function::HasCode() const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::IsBytecodeAllowed(Zone* zone) const {
+  switch (kind()) {
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kMethodExtractor:
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kDynamicInvocationForwarder:
+    case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kIrregexpFunction:
+      return false;
+    case RawFunction::kImplicitStaticFinalGetter:
+      return kernel::IsFieldInitializer(*this, zone);
+    default:
+      return true;
+  }
+}
+
 void Function::AttachBytecode(const Code& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // Finish setting up code before activating it.

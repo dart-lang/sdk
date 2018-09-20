@@ -9,6 +9,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel.h"  // For IsFieldInitializer.
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
@@ -1908,43 +1909,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   SetOffset(kernel_offset);
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    // TODO(regis): For now, we skip bytecode loading for functions that were
-    // synthesized and that do not have bytecode. Since they inherited the
-    // kernel offset of a concrete function, the wrong bytecode would be loaded.
-    switch (function.kind()) {
-      case RawFunction::kImplicitGetter:
-      case RawFunction::kImplicitSetter:
-      case RawFunction::kMethodExtractor:
-      case RawFunction::kNoSuchMethodDispatcher:
-      case RawFunction::kInvokeFieldDispatcher:
-      case RawFunction::kDynamicInvocationForwarder:
-      case RawFunction::kImplicitClosureFunction:
-        break;
-      case RawFunction::kImplicitStaticFinalGetter:
-        if (!IsFieldInitializer(function, Z)) {
-          break;
-        }
-        // Fallthrough.
-      default: {
-        // TODO(regis): Clean up this logic of when to compile.
-        // If the bytecode was previously loaded, we really want to compile.
-        if (!function.HasBytecode()) {
-          bytecode_metadata_helper_.ReadMetadata(function);
-        }
-        if (function.HasBytecode()) {
-          if (FLAG_use_bytecode_compiler) {
-            BytecodeFlowGraphBuilder bytecode_compiler(
-                flow_graph_builder_, parsed_function(),
-                &(flow_graph_builder_->ic_data_array_));
-            FlowGraph* flow_graph = bytecode_compiler.BuildGraph();
-            if (flow_graph != nullptr) {
-              return flow_graph;
-            }
-          } else {
-            return nullptr;
-          }
-        }
+  if (FLAG_use_bytecode_compiler && function.IsBytecodeAllowed(Z)) {
+    if (!function.HasBytecode()) {
+      bytecode_metadata_helper_.ReadMetadata(function);
+    }
+    if (function.HasBytecode()) {
+      BytecodeFlowGraphBuilder bytecode_compiler(
+          flow_graph_builder_, parsed_function(),
+          &(flow_graph_builder_->ic_data_array_));
+      FlowGraph* flow_graph = bytecode_compiler.BuildGraph();
+      if (flow_graph != nullptr) {
+        return flow_graph;
       }
     }
   }

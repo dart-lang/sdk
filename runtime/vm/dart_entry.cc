@@ -6,6 +6,7 @@
 
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
 #include "vm/heap/safepoint.h"
@@ -130,29 +131,35 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
-    // There's no native code. If we're not using the interpreter, then we
-    // compile to native code. If we are using the interpreter, but there's no
-    // native code and no bytecode, then we invoke the compiler to extract the
-    // bytecode.
-    if (!FLAG_enable_interpreter || !function.HasBytecode()) {
-      const Object& result =
-          Object::Handle(zone, Compiler::CompileFunction(thread, function));
-      if (result.IsError()) {
-        return Error::Cast(result).raw();
+    if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
+      if (!function.HasBytecode()) {
+        RawError* error =
+            kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
+        if (error != Error::null()) {
+          return error;
+        }
       }
+
+      // If we have bytecode but no native code then invoke the interpreter.
+      if (function.HasBytecode()) {
+        ASSERT(thread->no_callback_scope_depth() == 0);
+        SuspendLongJumpScope suspend_long_jump_scope(thread);
+        TransitionToGenerated transition(thread);
+        return Interpreter::Current()->Call(function, arguments_descriptor,
+                                            arguments, thread);
+      }
+
+      // No bytecode, fall back to compilation.
     }
 
-    // At this point we should have either native code or bytecode.
-    ASSERT(function.HasCode() || function.HasBytecode());
-
-    // If we have bytecode but no native code then invoke the interpreter.
-    if (!function.HasCode() && function.HasBytecode()) {
-      ASSERT(thread->no_callback_scope_depth() == 0);
-      SuspendLongJumpScope suspend_long_jump_scope(thread);
-      TransitionToGenerated transition(thread);
-      return Interpreter::Current()->Call(function, arguments_descriptor,
-                                          arguments, thread);
+    const Object& result =
+        Object::Handle(zone, Compiler::CompileFunction(thread, function));
+    if (result.IsError()) {
+      return Error::Cast(result).raw();
     }
+
+    // At this point we should have native code.
+    ASSERT(function.HasCode());
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

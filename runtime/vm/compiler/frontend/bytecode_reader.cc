@@ -10,6 +10,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/timeline.h"
 
@@ -709,6 +710,57 @@ RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
     argc_tag = NativeArguments::ComputeArgcTag(function);
   }
   return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
+}
+
+RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
+                                               const Function& function) {
+  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!function.HasBytecode());
+  ASSERT(thread->sticky_error() == Error::null());
+
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    StackZone stack_zone(thread);
+    Zone* const zone = stack_zone.GetZone();
+    HANDLESCOPE(thread);
+    CompilerState compiler_state(thread);
+
+    const Script& script = Script::Handle(zone, function.script());
+    TranslationHelper translation_helper(thread);
+    translation_helper.InitFromScript(script);
+
+    KernelReaderHelper reader_helper(
+        zone, &translation_helper, script,
+        ExternalTypedData::Handle(zone, function.KernelData()),
+        function.KernelDataProgramOffset());
+    ActiveClass active_class;
+    TypeTranslator type_translator(&reader_helper, &active_class,
+                                   /* finalize= */ true);
+
+    BytecodeMetadataHelper bytecode_metadata_helper(
+        &reader_helper, &type_translator, &active_class);
+
+    // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+    // e.g. for type translation.
+    const Class& klass = Class::Handle(zone, function.Owner());
+    Function& outermost_function =
+        Function::Handle(zone, function.GetOutermostFunction());
+
+    ActiveClassScope active_class_scope(&active_class, &klass);
+    ActiveMemberScope active_member(&active_class, &outermost_function);
+    ActiveTypeParametersScope active_type_params(&active_class, function, zone);
+
+    bytecode_metadata_helper.ReadMetadata(function);
+
+    return Error::null();
+  } else {
+    StackZone stack_zone(thread);
+    Error& error = Error::Handle();
+    // We got an error during bytecode reading.
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
 }
 
 }  // namespace kernel

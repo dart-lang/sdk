@@ -41,6 +41,14 @@ class BytecodeMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
 };
 
+class BytecodeReader : public AllStatic {
+ public:
+  // Reads bytecode for the given function and sets its bytecode field.
+  // Returns error (if any), or null.
+  static RawError* ReadFunctionBytecode(Thread* thread,
+                                        const Function& function);
+};
+
 }  // namespace kernel
 }  // namespace dart
 
