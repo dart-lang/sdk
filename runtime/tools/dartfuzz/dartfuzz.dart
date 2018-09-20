@@ -92,9 +92,9 @@ const localName = 'loc';
 const fieldName = 'fld';
 const methodName = 'foo';
 
-// Class that generates a random, but runnable Dart program for fuzz testing.
+/// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
-  DartFuzz(this.seed, this.sink);
+  DartFuzz(this.seed, this.file);
 
   void run() {
     // Initialize program variables.
@@ -842,23 +842,23 @@ class DartFuzz {
 
   // Emits indented line to append to program.
   void emitLn(String line, {bool newline = true}) {
-    sink.write(' ' * indent);
+    file.writeStringSync(' ' * indent);
     emit(line, newline: newline);
   }
 
   // Emits text to append to program.
   void emit(String txt, {bool newline = false}) {
-    sink.write(txt);
+    file.writeStringSync(txt);
     if (newline) {
-      sink.write('\n');
+      file.writeStringSync('\n');
     }
   }
 
   // Random seed used to generate program.
   final int seed;
 
-  // Sink used for output.
-  final IOSink sink;
+  // File used for output.
+  final RandomAccessFile file;
 
   // Program variables.
   Random rand;
@@ -896,22 +896,19 @@ int getSeed(String userSeed) {
   return seed;
 }
 
-// Main driver when dartfuzz.dart is run stand-alone.
+/// Main driver when dartfuzz.dart is run stand-alone.
 main(List<String> arguments) {
   final parser = new ArgParser()
     ..addOption('seed',
-        abbr: 's',
-        help: 'random seed (0 forces time-based seed)',
-        defaultsTo: '0');
+        help: 'random seed (0 forces time-based seed)', defaultsTo: '0');
   try {
     final results = parser.parse(arguments);
     final seed = getSeed(results['seed']);
-    final sink = results.rest.isEmpty
-        ? stdout
-        : new File(results.rest.single).openWrite();
-    new DartFuzz(seed, sink).run();
+    final file = new File(results.rest.single).openSync(mode: FileMode.write);
+    new DartFuzz(seed, file).run();
+    file.closeSync();
   } catch (e) {
-    print('Usage: dart dartfuzz.dart [OPTIONS] [FILENAME]');
+    print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME');
     print(parser.usage);
   }
 }

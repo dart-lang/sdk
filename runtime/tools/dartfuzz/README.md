@@ -10,15 +10,15 @@ architectures (x86, arm, etc.). Any difference between the outputs
 
 How to run DartFuzz
 ===================
+To generate a single random Dart program, run
 
-    dart dartfuzz.dart [--help] [--seed SEED] [FILENAME]
+    dart dartfuzz.dart [--help] [--seed SEED] FILENAME
 
 where
 
     --help : prints help and exits
     --seed : defines random seed (system-set by default)
 
-If no FILENAME is given, DartFuzz sends all output to stdout.
 The tool provides a runnable main isolate. A typical single
 test run looks as:
 
@@ -27,6 +27,9 @@ test run looks as:
 
 How to start DartFuzz testing
 =============================
+To start a fuzz testing session, run
+
+    dart dartfuzz_test.dart
 
     run_dartfuzz_test.py  [--help]
                           [--repeat REPEAT]
@@ -38,21 +41,23 @@ where
 
     --help            : prints help and exits
     --repeat          : number of tests to run (1000 by default)
-    --true_divergence : only report true divergences
+    --show-stats      : show session statistics (true by default)
+    --true-divergence : only report true divergences (true by default)
+    --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-ia32  = Dart JIT (ia32)
-        jit-x64   = Dart JIT (x64)
-        jit-arm32 = Dart JIT (simarm)
-        jit-arm64 = Dart JIT (simarm64)
-        aot-x64   = Dart AOT (x64)
-        aot-arm64 = Dart AOT (simarm64)
-        js        = dart2js + JS
+        jit-[debug-]ia32  = Dart JIT (ia32)
+        jit-[debug-]x64   = Dart JIT (x64)
+        jit-[debug-]arm32 = Dart JIT (simarm)
+        jit-[debug-]arm64 = Dart JIT (simarm64)
+        aot-[debug-]x64   = Dart AOT (x64)
+        aot-[debug-]arm64 = Dart AOT (simarm64)
+        js                = dart2js + JS
 
-This fuzzer tool assumes the environment variable 'DART_TOP' points to
-the top of the Dart SDK development tree in which all proper binaries
-have been built already (e.g. testing jit-ia32 will invoke the binary
-${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM).
+This fuzz testing tool assumes the environment variable 'DART_TOP'
+points to the top of the Dart SDK development tree in which all proper
+binaries have been built already (e.g. testing jit-ia32 will invoke
+the binary ${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM).
 
 Background
 ==========
@@ -73,9 +78,9 @@ as input to a system in an attempt to find bugs or make it crash. Generation-
 based fuzz testing constructs random, but properly formatted input data.
 Mutation-based fuzz testing applies small random changes to existing inputs
 in order to detect shortcomings in a system. Profile-guided or coverage-guided
-fuzzing adds a direction to the way these random changes are applied. Multi-
-layered approaches generate random inputs that are subsequently mutated at
-various stages of execution.
+fuzz testing adds a direction to the way these random changes are applied.
+Multi-layered approaches generate random inputs that are subsequently mutated
+at various stages of execution.
 
 The randomness of fuzz testing implies that the size and scope of testing is
 no longer bounded. Every new run can potentially discover bugs and crashes
