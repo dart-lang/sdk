@@ -212,7 +212,7 @@ class _IndexAssembler {
   /**
    * All subtypes declared in the unit.
    */
-  final List<AnalysisDriverSubtypeBuilder> subtypes = [];
+  final List<_SubtypeInfo> subtypes = [];
 
   /**
    * The [_StringInfo] to use for `null` strings.
@@ -236,12 +236,25 @@ class _IndexAssembler {
     nameRelations.add(new _NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
+  void addSubtype(String name, List<String> members, List<String> supertypes) {
+    for (var supertype in supertypes) {
+      subtypes.add(
+        new _SubtypeInfo(
+          _getStringInfo(supertype),
+          _getStringInfo(name),
+          members.map(_getStringInfo).toList(),
+        ),
+      );
+    }
+  }
+
   /**
    * Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
    */
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
     unit.accept(new _IndexContributor(this));
-    // sort strings end set IDs
+
+    // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList();
     stringInfoList.sort((a, b) {
       return a.value.compareTo(b.value);
@@ -249,16 +262,17 @@ class _IndexAssembler {
     for (int i = 0; i < stringInfoList.length; i++) {
       stringInfoList[i].id = i;
     }
-    // sort elements and set IDs
+
+    // Sort elements and set IDs.
     List<_ElementInfo> elementInfoList = elementMap.values.toList();
     elementInfoList.sort((a, b) {
       int delta;
       delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
-      if (delta != null) {
+      if (delta != 0) {
         return delta;
       }
       delta = a.nameIdClassMember.id - b.nameIdClassMember.id;
-      if (delta != null) {
+      if (delta != 0) {
         return delta;
       }
       return a.nameIdParameter.id - b.nameIdParameter.id;
@@ -266,6 +280,7 @@ class _IndexAssembler {
     for (int i = 0; i < elementInfoList.length; i++) {
       elementInfoList[i].id = i;
     }
+
     // Sort element and name relations.
     elementRelations.sort((a, b) {
       return a.elementInfo.id - b.elementInfo.id;
@@ -273,6 +288,12 @@ class _IndexAssembler {
     nameRelations.sort((a, b) {
       return a.nameInfo.id - b.nameInfo.id;
     });
+
+    // Sort subtypes by supertypes.
+    subtypes.sort((a, b) {
+      return a.supertype.id - b.supertype.id;
+    });
+
     return new AnalysisDriverUnitIndexBuilder(
         strings: stringInfoList.map((s) => s.value).toList(),
         nullStringId: nullString.id,
@@ -297,7 +318,13 @@ class _IndexAssembler {
         usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
         usedNameIsQualifiedFlags:
             nameRelations.map((r) => r.isQualified).toList(),
-        subtypes: subtypes);
+        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(),
+        subtypes: subtypes.map((subtype) {
+          return new AnalysisDriverSubtypeBuilder(
+            name: subtype.name.id,
+            members: subtype.members.map((member) => member.id).toList(),
+          );
+        }).toList());
   }
 
   /**
@@ -806,8 +833,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     supertypes.sort();
     members.sort();
 
-    assembler.subtypes.add(new AnalysisDriverSubtypeBuilder(
-        name: name, supertypes: supertypes, members: members));
+    assembler.addSubtype(name, members, supertypes);
   }
 
   /**
@@ -937,4 +963,26 @@ class _StringInfo {
   int id;
 
   _StringInfo(this.value);
+}
+
+/**
+ * Information about a subtype in the index.
+ */
+class _SubtypeInfo {
+  /**
+   * The identifier of a direct supertype.
+   */
+  final _StringInfo supertype;
+
+  /**
+   * The name of the class.
+   */
+  final _StringInfo name;
+
+  /**
+   * The names of defined instance members.
+   */
+  final List<_StringInfo> members;
+
+  _SubtypeInfo(this.supertype, this.name, this.members);
 }

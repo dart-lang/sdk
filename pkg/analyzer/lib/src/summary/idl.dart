@@ -134,23 +134,18 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 abstract class AnalysisDriverSubtype extends base.SummaryClass {
   /**
    * The names of defined instance members.
-   * The list is sorted in ascending order.
-   */
-  @Id(2)
-  List<String> get members;
-
-  /**
-   * The name of the class.
-   */
-  @Id(0)
-  String get name;
-
-  /**
-   * The identifiers of the direct supertypes.
+   * They are indexes into [AnalysisDriverUnitError.strings] list.
    * The list is sorted in ascending order.
    */
   @Id(1)
-  List<String> get supertypes;
+  List<int> get members;
+
+  /**
+   * The name of the class.
+   * It is an index into [AnalysisDriverUnitError.strings] list.
+   */
+  @Id(0)
+  int get name;
 }
 
 /**
@@ -255,8 +250,17 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   /**
    * The list of classes declared in the unit.
    */
-  @Id(18)
+  @Id(19)
   List<AnalysisDriverSubtype> get subtypes;
+
+  /**
+   * The identifiers of supertypes of elements at corresponding indexes
+   * in [subtypes].  They are indexes into [strings] list. The list is sorted
+   * in ascending order.  There might be more than one element with the same
+   * value if there is more than one subtype of this supertype.
+   */
+  @Id(18)
+  List<int> get supertypes;
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
