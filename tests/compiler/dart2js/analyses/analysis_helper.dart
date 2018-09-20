@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' as json;
+import 'dart:io';
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -9,6 +12,7 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -17,18 +21,17 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 
-// TODO(johnniwinther): Update allowed-listing to mention specific properties.
-run(Uri entryPoint,
+run(Uri entryPoint, String allowedListPath,
     {Map<String, String> memorySourceFiles = const {},
-    Map<String, List<String>> allowedList,
-    bool verbose = false}) {
+    bool verbose = false,
+    bool generate = false}) {
   asyncTest(() async {
     Compiler compiler = await compilerFor(memorySourceFiles: memorySourceFiles);
     LoadedLibraries loadedLibraries =
         await compiler.libraryLoader.loadLibraries(entryPoint);
     new DynamicVisitor(
-            compiler.reporter, loadedLibraries.component, allowedList)
-        .run(verbose: verbose);
+            compiler.reporter, loadedLibraries.component, allowedListPath)
+        .run(verbose: verbose, generate: generate);
   });
 }
 
@@ -86,50 +89,141 @@ abstract class StaticTypeVisitor extends ir.Visitor<ir.DartType> {
 class DynamicVisitor extends StaticTypeVisitor {
   final DiagnosticReporter reporter;
   final ir.Component component;
-  final Map<String, List<String>> allowedList;
-  int _errorCount = 0;
-  Map<String, Set<String>> _encounteredAllowedListedErrors =
-      <String, Set<String>>{};
-  Map<Uri, List<DiagnosticMessage>> _allowedListedErrors =
-      <Uri, List<DiagnosticMessage>>{};
+  final String _allowedListPath;
 
-  DynamicVisitor(this.reporter, this.component, this.allowedList);
+  Map _expectedJson = {};
+  Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
-  void run({bool verbose = false}) {
-    component.accept(this);
-    bool failed = false;
-    if (_errorCount != 0) {
-      print('$_errorCount error(s) found.');
-      failed = true;
-    }
-    allowedList.forEach((String file, List<String> messageParts) {
-      Set<String> encounteredParts = _encounteredAllowedListedErrors[file];
-      if (encounteredParts == null) {
-        print("Allowed-listing of path '$file' isn't used. "
-            "Remove it from the allowed-list.");
-        failed = true;
-      } else if (messageParts != null) {
-        for (String messagePart in messageParts) {
-          if (!encounteredParts.contains(messagePart)) {
-            print("Allowed-listing of message '$messagePart' in path '$file' "
-                "isn't used. Remove it from the allowed-list.");
-          }
-          failed = true;
+  DynamicVisitor(this.reporter, this.component, this._allowedListPath);
+
+  void run({bool verbose = false, bool generate = false}) {
+    if (!generate) {
+      File file = new File(_allowedListPath);
+      if (file.existsSync()) {
+        try {
+          _expectedJson = json.jsonDecode(file.readAsStringSync());
+        } catch (e) {
+          Expect.fail('Error reading allowed list from $_allowedListPath: $e');
         }
       }
+    }
+    component.accept(this);
+    if (generate) {
+      Map<String, Map<String, int>> actualJson = {};
+      _actualMessages.forEach(
+          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+        Map<String, int> map = {};
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          map[message] = actualMessages.length;
+        });
+        actualJson[uri] = map;
+      });
+
+      new File(_allowedListPath).writeAsStringSync(
+          new json.JsonEncoder.withIndent('  ').convert(actualJson));
+      return;
+    }
+
+    int errorCount = 0;
+    _expectedJson.forEach((uri, expectedMessages) {
+      Map<String, List<DiagnosticMessage>> actualMessagesMap =
+          _actualMessages[uri];
+      if (actualMessagesMap == null) {
+        print("Error: Allowed-listing of uri '$uri' isn't used. "
+            "Remove it from the allowed-list.");
+        errorCount++;
+      } else {
+        expectedMessages.forEach((expectedMessage, expectedCount) {
+          List<DiagnosticMessage> actualMessages =
+              actualMessagesMap[expectedMessage];
+          if (actualMessages == null) {
+            print("Error: Allowed-listing of message '$expectedMessage' "
+                "in uri '$uri' isn't used. Remove it from the allowed-list.");
+            errorCount++;
+          } else {
+            int actualCount = actualMessages.length;
+            if (actualCount != expectedCount) {
+              print("Error: Unexpected count of allowed message "
+                  "'$expectedMessage' in uri '$uri'. "
+                  "Expected $expectedCount, actual $actualCount:");
+              print(
+                  '----------------------------------------------------------');
+              for (DiagnosticMessage message in actualMessages) {
+                reporter.reportError(message);
+              }
+              print(
+                  '----------------------------------------------------------');
+              errorCount++;
+            }
+          }
+        });
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          if (!expectedMessages.containsKey(message)) {
+            for (DiagnosticMessage message in actualMessages) {
+              reporter.reportError(message);
+              errorCount++;
+            }
+          }
+        });
+        _actualMessages.forEach((String uri,
+            Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+          if (!_expectedJson.containsKey(uri)) {
+            actualMessagesMap.forEach(
+                (String message, List<DiagnosticMessage> actualMessages) {
+              if (!expectedMessages.containsKey(message)) {
+                for (DiagnosticMessage message in actualMessages) {
+                  reporter.reportError(message);
+                  errorCount++;
+                }
+              }
+            });
+          }
+        });
+      }
     });
-    Expect.isFalse(failed, "Errors occurred.");
+    if (errorCount != 0) {
+      print('$errorCount error(s) found.');
+      print("""
+
+********************************************************************************
+  Unexpected dynamic invocations found by test:
+
+    ${relativize(Uri.base, Platform.script, Platform.isWindows)}
+
+  Please address the reported errors, or, if the errors are as expected, run
+
+    dart ${relativize(Uri.base, Platform.script, Platform.isWindows)} -g
+
+  to update the expectation file.
+********************************************************************************
+""");
+      exit(-1);
+    }
     if (verbose) {
-      _allowedListedErrors.forEach((Uri uri, List<DiagnosticMessage> messages) {
-        for (DiagnosticMessage message in messages) {
-          reporter.reportError(message);
-        }
+      _actualMessages.forEach(
+          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          for (DiagnosticMessage message in actualMessages) {
+            reporter.reportErrorMessage(message.sourceSpan, MessageKind.GENERIC,
+                {'text': '${message.message} (allowed)'});
+          }
+        });
       });
     } else {
       int total = 0;
-      _allowedListedErrors.forEach((Uri uri, List<DiagnosticMessage> messages) {
-        print('${messages.length} error(s) allowed in $uri');
-        total += messages.length;
+      _actualMessages.forEach(
+          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+        int count = 0;
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          count += actualMessages.length;
+        });
+
+        print('${count} error(s) allowed in $uri');
+        total += count;
       });
       if (total > 0) {
         print('${total} error(s) allowed in total.');
@@ -174,41 +268,17 @@ class DynamicVisitor extends StaticTypeVisitor {
   void reportError(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
+    String uriString = relativize(Uri.base, uri, Platform.isWindows);
+    Map<String, List<DiagnosticMessage>> actualMap = _actualMessages
+        .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
     if (uri.scheme == 'org-dartlang-sdk') {
-      uri = Uri.base.resolve(uri.path.substring(1));
-      span = new SourceSpan(uri, span.begin, span.end);
+      span = new SourceSpan(
+          Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
-    bool whiteListed = false;
-    allowedList.forEach((String file, List<String> messageParts) {
-      if (uri.path.endsWith(file)) {
-        if (messageParts == null) {
-          // All errors are whitelisted.
-          whiteListed = true;
-          message += ' (white-listed)';
-          _encounteredAllowedListedErrors.putIfAbsent(
-              file, () => new Set<String>());
-        } else {
-          for (String messagePart in messageParts) {
-            if (message.contains(messagePart)) {
-              _encounteredAllowedListedErrors
-                  .putIfAbsent(file, () => new Set<String>())
-                  .add(messagePart);
-              message += ' (allowed)';
-              whiteListed = true;
-            }
-          }
-        }
-      }
-    });
     DiagnosticMessage diagnosticMessage =
         reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
-    if (whiteListed) {
-      _allowedListedErrors
-          .putIfAbsent(uri, () => <DiagnosticMessage>[])
-          .add(diagnosticMessage);
-    } else {
-      reporter.reportError(diagnosticMessage);
-      _errorCount++;
-    }
+    actualMap
+        .putIfAbsent(message, () => <DiagnosticMessage>[])
+        .add(diagnosticMessage);
   }
 }
