@@ -189,7 +189,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor2() async {
     addTestFile('class A {bool foo; A() : s^;}');
     await getSuggestions();
@@ -208,7 +207,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor4() async {
     addTestFile('class A {bool foo; A() : a=7,s^;}');
     await getSuggestions();
@@ -218,7 +216,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor5() async {
     addTestFile('class A {bool foo; A() : a=7,s^}');
     await getSuggestions();

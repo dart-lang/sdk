@@ -31,7 +31,17 @@ class ConstructorTest extends PartialCodeTest {
               ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
               ParserErrorCode.MISSING_FUNCTION_BODY
             ],
-            'C() : _s_ = f {}',
+            'C() : f = _s_ {}',
+            adjustValidUnitBeforeComparison: setSeparator,
+          ),
+          new TestDescriptor(
+            'colon_field_increment',
+            'C() : f++',
+            [
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+              ParserErrorCode.MISSING_FUNCTION_BODY
+            ],
+            'C() : _s_ = f++ {}',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
           new TestDescriptor(

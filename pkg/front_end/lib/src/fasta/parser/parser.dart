@@ -2430,10 +2430,21 @@ class Parser {
       }
       // Fall through to recovery
     } else if (next.isIdentifier) {
-      if (optional('=', next.next)) {
+      Token next2 = next.next;
+      if (optional('=', next2)) {
         return parseInitializerExpressionRest(token);
       }
-      // Fall through to recovery
+      // Recovery: If this looks like an expression,
+      // then fall through to insert the LHS and `=` of the assignment,
+      // otherwise insert an `=` and synthetic identifier.
+      if (!next2.isOperator && !optional('.', next2)) {
+        token = rewriter.insertToken(
+            next, new SyntheticToken(TokenType.EQ, next2.offset));
+        token = insertSyntheticIdentifier(token, IdentifierContext.expression,
+            message: fasta.messageMissingAssignmentInInitializer,
+            messageOnToken: next);
+        return parseInitializerExpressionRest(beforeExpression);
+      }
     } else {
       // Recovery: Insert a synthetic assignment.
       token = insertSyntheticIdentifier(
@@ -2444,9 +2455,10 @@ class Parser {
       token = rewriter.insertSyntheticIdentifier(token);
       return parseInitializerExpressionRest(beforeExpression);
     }
-    // Recovery
-    // Insert a sythetic assignment to ensure that the expression is indeed
-    // an assignment. Failing to do so causes this test to fail:
+    // Recovery:
+    // Insert a synthetic identifier and assignment operator
+    // to ensure that the expression is indeed an assignment.
+    // Failing to do so causes this test to fail:
     // pkg/front_end/testcases/regress/issue_31192.dart
     // TODO(danrubel): Investigate better recovery.
     token = insertSyntheticIdentifier(
