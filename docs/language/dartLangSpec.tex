@@ -1,8 +1,8 @@
 \documentclass{article}
 \usepackage{epsfig}
 \usepackage{color}
+\usepackage{syntax}
 \usepackage{dart}
-\usepackage{bnf}
 \usepackage{hyperref}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
@@ -263,18 +263,16 @@ An example would be:
 }
 
 \begin{grammar}
-{\sf
-{\bf AProduction:}AnAlternative;
-  AnotherAlternative;
-  OneThing After Another;
-  ZeroOrMoreThings*;
-  OneOrMoreThings+;
-  AnOptionalThing?;
-  (Some Grouped Things);
-  \~{}NotAThing;
-  A\_LEXICAL\_THING
-  .
-}
+<aProduction> ::= <anAlternative>
+  \alt <anotherAlternative>
+  \alt <oneThing> <after> <another>
+  \alt <zeroOrMoreThings>*
+  \alt <oneOrMoreThings>+
+  \alt <anOptionalThing>?
+  \alt (<some> <grouped> <things>)
+  \alt \~{}<notAThing>
+  \alt `aTerminal'
+  \alt <A\_LEXICAL\_THING>
 \end{grammar}
 
 \LMHash{}
@@ -624,44 +622,46 @@ If an uncaught exception is thrown by a running isolate $A$, $A$ is immediately 
 Variables are storage locations in memory.
 
 \begin{grammar}
-{\bf variableDeclaration:}declaredIdentifier (`,' identifier)*
-  .
+<variableDeclaration> ::= <declaredIdentifier> (`,' <identifier>)*
 
-{\bf declaredIdentifier:}metadata finalConstVarOrType identifier
-  .
+<declaredIdentifier> ::= <metadata> <finalConstVarOrType> <identifier>
 
-{\bf finalConstVarOrType:}\FINAL{} type?;
-  \CONST{} type?;
-  varOrType
-  .
+<finalConstVarOrType> ::= \FINAL{} <type>?
+  \alt \CONST{} <type>?
+  \alt <varOrType>
 
-{\bf varOrType:}\VAR{};
-  type
-  .
+<varOrType> ::= \VAR{}
+  \alt <type>
 
-{\bf initializedVariableDeclaration:}declaredIdentifier (`=' expression)? (`,' initializedIdentifier)*
-  .
+<initializedVariableDeclaration> ::=
+  <declaredIdentifier> (`=' <expression>)? (`,' <initializedIdentifier>)*
 
-{\bf initializedIdentifier:}identifier (`=' expression)?
-  .
+<initializedIdentifier> ::= <identifier> (`=' <expression>)?
 
-{\bf initializedIdentifierList:}initializedIdentifier (`,' initializedIdentifier)*
-  .
+<initializedIdentifierList> ::= <initializedIdentifier> (`,' <initializedIdentifier>)*
 \end{grammar}
 
 \LMHash{}
 A variable declaration that contains one or more terms of the form
-\NonTerminal{initializedIdentifier}
+\syntax{<identifier>}
 (\commentary{i.e., a declaration that declares two or more variables})
+is equivalent to multiple variable declarations declaring
+the same set of variable names in the same order,
+with the same type and modifiers.
+
+\LMHash{}
+An initialized variable declaration that contains one or more terms of the form
+\syntax{<initializedIdentifier>}
+(\commentary{a declaration that declares two or more initialized variables})
 is equivalent to multiple variable declarations declaring
 the same set of variable names in the same order,
 with the same initialization, type, and modifiers.
 
 \commentary{
 For example,
-\code{\VAR{} x = 1, y;}
+\code{\VAR{} x, y;}
 is equivalent to
-\code{\VAR{} x = 1; \VAR{} y;}
+\code{\VAR{} x; \VAR{} y;}
 and
 \code{\STATIC{} \FINAL{} String s1, s2 = "foo";}
 is equivalent to
@@ -673,7 +673,7 @@ In a variable declaration of one of the forms
 \code{$N$ $v$;}
 \code{$N$ $v$ = $e$;}
 where $N$ is derived from
-\NonTerminal{metadata finalConstVarOrType},
+\syntax{<metadata> <finalConstVarOrType>},
 we say that $v$ is the {\em declaring occurrence} of the identifier.
 For every identifier which is not a declaring occurrence,
 we say that it is an {\em referencing occurrence}.
@@ -684,7 +684,7 @@ a {\em declaring identifier} respectively an {\em referencing identifier}.
 In an expression of the form \code{$e$.\id} it is possible that
 $e$ has static type \DYNAMIC{} and \id{} cannot be associated with
 any declaration named \id{} at compile-time,
-but in this situation \id{} is still an referencing identifier.
+but in this situation \id{} is still a referencing identifier.
 }
 
 \LMHash{}
@@ -916,22 +916,17 @@ The result of executing the getter method is the value stored in $v$.
 Functions abstract over executable actions.
 
 \begin{grammar}
-{\bf functionSignature:}metadata returnType? identifier formalParameterPart
-  .
+<functionSignature> ::= <metadata> <returnType>? <identifier> <formalParameterPart>
 
-{\bf formalParameterPart:}typeParameters? formalParameterList
-  .
+<formalParameterPart> ::= <typeParameters>? <formalParameterList>
 
-{\bf returnType:}\VOID{};
-  type
-  .
+<returnType> ::= \VOID{}
+  \alt <type>
 
-{\bf functionBody:}\ASYNC{}? `={\escapegrammar \gt}' expression `{\escapegrammar ;}';
-  (\ASYNC{} $|$ \ASYNC* $|$ \SYNC*)? block
-  .
+<functionBody> ::= \ASYNC{}? `=>' <expression> `;'
+  \alt (\ASYNC{} | \ASYNC `*' | \SYNC `*')? <block>
 
-{\bf block:}`\{' statements `\}'
-  .
+<block> ::= `{' <statements> `}'
 \end{grammar}
 
 \LMHash{}
@@ -950,7 +945,7 @@ The formal parameter part optionally specifies the formal type parameter list of
 and it always specifies its formal parameter list.
 A function body is either:
 \begin{itemize}
-\item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*.
+\item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \code{\ASYNC*} or \code{\SYNC*}.
 
   \commentary{
   Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression.
@@ -978,9 +973,9 @@ OR
 \end{itemize}
 
 \LMHash{}
-A function is {\em asynchronous} if its body is marked with the \ASYNC{} or \ASYNC* modifier.
+A function is {\em asynchronous} if its body is marked with the \ASYNC{} or \code{\ASYNC*} modifier.
 Otherwise the function is {\em synchronous}.
-A function is a {\em generator} if its body is marked with the \SYNC* or \ASYNC* modifier.
+A function is a {\em generator} if its body is marked with the \code{\SYNC*} or \code{\ASYNC*} modifier.
 
 \commentary{
 Whether a function is synchronous or asynchronous is orthogonal to whether it is a generator or not.
@@ -991,7 +986,7 @@ Dart also allows both synchronous and asynchronous functions that produce a sing
 }
 
 \LMHash{}
-It is a compile-time error if an \ASYNC, \ASYNC* or \SYNC* modifier is attached to the body of a setter or constructor.
+It is a compile-time error if an \ASYNC, \code{\ASYNC*} or \code{\SYNC*} modifier is attached to the body of a setter or constructor.
 
 \rationale{
 An asynchronous setter would be of little use, since setters can only be used in the context of an assignment (\ref{assignment}),
@@ -1004,15 +999,15 @@ Calling such a beast via \NEW{} would be very confusing.
 If you need to produce an object asynchronously, use a method.
 
 One could allow modifiers for factories.
-A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*.
+A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \code{\ASYNC*} and a factory for \code{Iterable} could be modified by \code{\SYNC*}.
 No other scenario makes sense because the object returned by the factory would be of the wrong type.
 This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
 
 \LMHash{}
 It is a compile-time error if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future<$T$>} for some type $T$.
-It is a compile-time error if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable<$T$>} for some type $T$.
-It is a compile-time error if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream<$T$>} for some type $T$.
+It is a compile-time error if the declared return type of a function marked \code{\SYNC*} is not a supertype of \code{Iterable<$T$>} for some type $T$.
+It is a compile-time error if the declared return type of a function marked \code{\ASYNC*} is not a supertype of \code{Stream<$T$>} for some type $T$.
 
 
 \subsection{Function Declarations}
@@ -1112,27 +1107,22 @@ The body scope of a function $f$ is enclosed in the scope introduced by the form
 It is a compile-time error if a formal parameter is declared as a constant variable (\ref{variables}).
 
 \begin{grammar}
-{\bf formalParameterList:}`(' `)';
-  `(' normalFormalParameters \gcomma{}? `)';
-  `(' normalFormalParameters \gcomma{} optionalFormalParameters `)';
-  `(' optionalFormalParameters `)'
-  .
+<formalParameterList> ::= `(' `)'
+  \alt `(' <normalFormalParameters> `,'? `)'
+  \alt `(' <normalFormalParameters> `,' <optionalFormalParameters> `)'
+  \alt `(' <optionalFormalParameters> `)'
 
-{\bf normalFormalParameters:}normalFormalParameter (\gcomma{} normalFormalParameter)*
-  .
+<normalFormalParameters> ::= <normalFormalParameter> (`,' <normalFormalParameter>)*
 
-{\bf optionalFormalParameters:}optionalPositionalFormalParameters;
-  namedFormalParameters
-  .
+<optionalFormalParameters> ::= <optionalPositionalFormalParameters>
+  \alt <namedFormalParameters>
 
-{\bf optionalPositionalFormalParameters:}`[' defaultFormalParameter (\gcomma{} defaultFormalParameter)* \gcomma{}? `]'
-  .
+<optionalPositionalFormalParameters> ::= `[' <defaultFormalParameter> (`,' <defaultFormalParameter>)* `,'? `]'
 
-{\bf namedFormalParameters:}`\{' defaultNamedParameter (\gcomma{} defaultNamedParameter)* \gcomma{}? `\}'
-  .
+<namedFormalParameters> ::= `{' <defaultNamedParameter> (`,' <defaultNamedParameter>)* `,'? `}'
 \end{grammar}
 
-Formal parameter lists allow an optional trailing comma after the last parameter (\gcomma{}?).
+Formal parameter lists allow an optional trailing comma after the last parameter (\syntax{`,'?}).
 A parameter list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma.
 All parameter lists in this specification are shown without a trailing comma, but the rules and semantics apply equally to the corresponding parameter list with a trailing comma.
 
@@ -1150,21 +1140,17 @@ It is a compile-time error if any default values are specified in the signature 
 \end{itemize}
 
 \begin{grammar}
-{\bf normalFormalParameter:}functionFormalParameter;
-  fieldFormalParameter;
-  simpleFormalParameter
-  .
+<normalFormalParameter> ::= <functionFormalParameter>
+  \alt <fieldFormalParameter>
+  \alt <simpleFormalParameter>
 
-{\bf functionFormalParameter:}metadata \COVARIANT{}? returnType? identifier
-  \gnewline{} formalParameterPart
-  .
+<functionFormalParameter> ::= <metadata> \COVARIANT{}? <returnType>? <identifier>
+  \gnewline{} <formalParameterPart>
 
-{\bf simpleFormalParameter:}metadata \COVARIANT{}? finalConstVarOrType? identifier;
-  .
+<simpleFormalParameter> ::= <metadata> \COVARIANT{}? <finalConstVarOrType>? <identifier>
 
-{\bf fieldFormalParameter:}metadata finalConstVarOrType? \THIS{} `{\escapegrammar .}' identifier
-  \gnewline{} formalParameterPart?
-  .
+<fieldFormalParameter> ::= <metadata> <finalConstVarOrType>? \THIS{} `.' <identifier>
+  \gnewline{} <formalParameterPart>?
 \end{grammar}
 
 \LMHash{}
@@ -1187,22 +1173,16 @@ It is a compile-time error if the modifier \COVARIANT{} occurs on a parameter of
 Optional parameters may be specified and provided with default values.
 
 \begin{grammar}
-{\bf defaultFormalParameter:}normalFormalParameter (`=' expression)?
-  .
+<defaultFormalParameter> ::= <normalFormalParameter> (`=' <expression>)?
 
-{\bf defaultNamedParameter:}normalFormalParameter (`=' expression)?;
-  normalFormalParameter ( `{\escapegrammar :}' expression)?
-  .
+<defaultNamedParameter> ::= <normalFormalParameter> (`=' <expression>)?
+  \alt <normalFormalParameter> ( `:' <expression>)?
 \end{grammar}
 
-A {\bf defaultNamedParameter} of the form:
-\begin{code}
-   normalFormalParameter : expression
-\end{code}
+A \syntax{<defaultNamedParameter>} of the form
+\syntax{<normalFormalParameter> `:' <expression>}
 is equivalent to one of the form:
-\begin{code}
-   normalFormalParameter = expression
-\end{code}
+\syntax{<normalFormalParameter> `=' <expression>}.
 The colon-syntax is included only for backwards compatibility.
 It is deprecated and will be removed in a later version of the language specification.
 
@@ -1211,7 +1191,7 @@ It is a compile-time error if the default value of an optional parameter is not 
 If no default is explicitly specified for an optional parameter an implicit default of \NULL{} is provided.
 
 \LMHash{}
-It is a compile-time error if the name of a named optional parameter begins with an `\_' character.
+It is a compile-time error if the name of a named optional parameter begins with an `_' character.
 
 \rationale{
 The need for this restriction is a direct consequence of the fact that naming and privacy are not orthogonal.
@@ -1323,48 +1303,41 @@ A {\em class} defines the form and behavior of a set of objects which are its {\
 Classes may be defined by class declarations as described below, or via mixin applications (\ref{mixinApplication}).
 
 \begin{grammar}
-{\bf classDefinition:}metadata \ABSTRACT{}? \CLASS{} identifier typeParameters?
-  \gnewline{} superclass? mixins? interfaces?
-  \gnewline{} `\{' (metadata classMemberDefinition)* `\}';
-  metadata \ABSTRACT{}? \CLASS{} mixinApplicationClass
-  .
+<classDefinition> ::= <metadata> \ABSTRACT{}? \CLASS{} <identifier> <typeParameters>?
+  \gnewline{} <superclass>? <mixins>? <interfaces>?
+  \gnewline{} `{' (<metadata> <classMemberDefinition>)* `}'
+  \alt <metadata> \ABSTRACT{}? \CLASS{} <mixinApplicationClass>
 
-{\bf mixins:}\WITH{} typeList
-  .
+<mixins> ::= \WITH{} <typeList>
 
-{\bf classMemberDefinition:}declaration `{\escapegrammar ;}' ;
-  methodSignature functionBody
-  .
+<classMemberDefinition> ::= <declaration> `;'
+  \alt <methodSignature> <functionBody>
 
-{\bf methodSignature:}constructorSignature initializers?;
-  factoryConstructorSignature;
+<methodSignature> ::= <constructorSignature> <initializers>?
+  \alt <factoryConstructorSignature>
 % This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
-  \STATIC{}? functionSignature;
-  \STATIC{}? getterSignature;
-  \STATIC{}? setterSignature;
-  operatorSignature
-  .
+  \alt \STATIC{}? <functionSignature>
+  \alt \STATIC{}? <getterSignature>
+  \alt \STATIC{}? <setterSignature>
+  \alt <operatorSignature>
 
-{\bf declaration:}constantConstructorSignature (redirection $|$ initializers)?;
-  constructorSignature (redirection $|$ initializers)?;
-  \EXTERNAL{} constantConstructorSignature;
-  \EXTERNAL{} constructorSignature;
-  ((\EXTERNAL{} \STATIC{}?))? getterSignature;
-  ((\EXTERNAL{} \STATIC{}?))? setterSignature;
-  \EXTERNAL{}? operatorSignature;
+<declaration> ::= <constantConstructorSignature> (<redirection> | <initializers>)?
+  \alt <constructorSignature> (<redirection> | <initializers>)?
+  \alt \EXTERNAL{} <constantConstructorSignature>
+  \alt \EXTERNAL{} <constructorSignature>
+  \alt ((\EXTERNAL{} \STATIC{}?))? <getterSignature>
+  \alt ((\EXTERNAL{} \STATIC{}?))? <setterSignature>
+  \alt \EXTERNAL{}? <operatorSignature>
 % This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
-  ((\EXTERNAL{} \STATIC{}?))? functionSignature;
-  \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
+  \alt ((\EXTERNAL{} \STATIC{}?))? <functionSignature>
+  \alt \STATIC{} (\FINAL{} | \CONST{}) <type>? <staticFinalDeclarationList>
 %      \CONST{} type? staticFinalDeclarationList;
-  \FINAL{} type? initializedIdentifierList;
-  (\STATIC{} $|$ \COVARIANT{})? (\VAR{} $|$ type) initializedIdentifierList
-  .
+  \alt \FINAL{} <type>? <initializedIdentifierList>
+  \alt (\STATIC{} | \COVARIANT{})? (\VAR{} | <type>) <initializedIdentifierList>
 
-{\bf staticFinalDeclarationList:}staticFinalDeclaration (\gcomma{} staticFinalDeclaration)*
-  .
+<staticFinalDeclarationList> ::= <staticFinalDeclaration> (`,' <staticFinalDeclaration>)*
 
-{\bf staticFinalDeclaration:}identifier `=' expression
-  .
+<staticFinalDeclaration> ::= <identifier> `=' <expression>
 \end{grammar}
 
 \LMHash{}
@@ -1441,13 +1414,13 @@ The rules of inheritance determine what members a class has.
   \VAR{} j;
   f(x) => 3;
 \}
-
+\\
 \CLASS{} B \EXTENDS{} A \{
-  int i = 1; // getter i and setter i= override versions from A
-  \STATIC{} j; // compile-time error: static getter \& setter conflict with
-  // instance getter \& setter
-
-  /* compile-time error: static method conflicts with instance method */
+  int i = 1; // \comment{getter i and setter i= override versions from A}
+  \STATIC{} j; // \comment{compile-time error: static getter \& setter conflict with}
+  // \comment{instance getter \& setter}
+\\
+  // \comment{compile-time error: static method conflicts with instance method}
   \STATIC{} f(x) => 3;
 \}
 \end{dartCode}
@@ -1492,68 +1465,118 @@ A method declaration may conflict with other declarations
 {\em Operators} are instance methods with special names.
 
 \begin{grammar}
-{\bf operatorSignature:}returnType? \OPERATOR{} operator formalParameterList
-  .
+<operatorSignature> ::= <returnType>? \OPERATOR{} <operator> <formalParameterList>
 
-{\bf operator:}`\~{}';
-  binaryOperator;
-  `[]' ;
-  `[]='
-  .
+<operator> ::= `~'
+  \alt <binaryOperator>
+  \alt `[]'
+  \alt `[]='
 
-{\bf binaryOperator:}multiplicativeOperator;
-  additiveOperator;
-  shiftOperator;
-  relationalOperator;
-  `==';
-  bitwiseOperator
-  .
+<binaryOperator> ::= <multiplicativeOperator>
+  \alt <additiveOperator>
+  \alt <shiftOperator>
+  \alt <relationalOperator>
+  \alt `=='
+  \alt <bitwiseOperator>
 \end{grammar}
 
 \LMHash{}
 An operator declaration is identified using the built-in identifier (\ref{identifierReference}) \OPERATOR{}.
 
 \LMHash{}
-The following names are allowed for user-defined operators: \code{<, >, <=, >=, ==, -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$, $>>>$, []=, [], \~{}}.
+The following names are allowed for user-defined operators:
+\syntax{`<'},
+\syntax{`>'},
+\syntax{`<='},
+\syntax{`>='},
+\syntax{`=='},
+\syntax{`-'},
+\syntax{`+'},
+\syntax{`/'},
+\syntax{`~'},
+\syntax{`*'},
+\syntax{`\%'},
+\syntax{`|'},
+\syntax{`^'},
+\syntax{`\&'},
+\syntax{`\ltlt'},
+\syntax{`\gtgt'},
+\syntax{`\gtgtgt'},
+\syntax{`[]='},
+\syntax{`[]'},
+\syntax{`~'}.
 
 \LMHash{}
-It is a compile-time error if the arity of the user-declared operator \code{[]=} is not 2.
-It is a compile-time error if the arity of a user-declared operator with one of the names: \code{<, >, <=, >=, ==, -, +, \~{}/, /, *, \%, $|$, \^{}, \&, $<<$, $>>$, $>>>$, []} is not 1.
-It is a compile-time error if the arity of the user-declared operator \code{-} is not 0 or 1.
+It is a compile-time error if the arity of the user-declared operator
+\syntax{`[]='} is not 2.
+It is a compile-time error if the arity of a user-declared operator with one of the names:
+\syntax{`<'},
+\syntax{`>'},
+\syntax{`<='},
+\syntax{`>='},
+\syntax{`=='},
+\syntax{`-'},
+\syntax{`+'},
+\syntax{`~/'},
+\syntax{`/'},
+\syntax{`*'},
+\syntax{`\%'},
+\syntax{`|'},
+\syntax{`^'},
+\syntax{`\&'},
+\syntax{`\ltlt'},
+\syntax{`\gtgt'},
+\syntax{`\gtgtgt'},
+\syntax{`[]'}
+is not 1.
+It is a compile-time error if the arity of the user-declared operator
+\syntax{`-'}
+is not 0 or 1.
 
 \commentary{
-The \code{-} operator is unique in that two overloaded versions are permitted.
+The \syntax{`-'} operator is unique
+in that two overloaded versions are permitted.
 If the operator has no arguments, it denotes unary minus.
 If it has an argument, it denotes binary subtraction.
 }
 
 \LMHash{}
-The name of the unary operator \code{-} is \code{unary-}.
+The name of the unary operator \syntax{`-'} is \code{unary-}.
 
 \rationale{
 This device allows the two methods to be distinguished for purposes of method lookup, override and reflection.
 }
 
 \LMHash{}
-It is a compile-time error if the arity of the user-declared operator \code{\~{}} is not 0.
+It is a compile-time error if the arity of the user-declared operator
+\syntax{`~'}
+is not 0.
 
 \LMHash{}
 It is a compile-time error to declare an optional parameter in an operator.
 
 \LMHash{}
-It is a compile-time error if the return type of a user-declared operator \code{[]=} is explicitly declared and not \VOID{}.
+It is a compile-time error if the return type of a user-declared operator
+\syntax{`[]='}
+is explicitly declared and not \VOID{}.
 
 \commentary{
-If no return type is specified for a user-declared operator \code{[]=}, its return type is \VOID{} (\ref{typeOfAFunction}).
+If no return type is specified for a user-declared operator
+\syntax{`[]='},
+its return type is \VOID{} (\ref{typeOfAFunction}).
 }
 
 \rationale{
 The return type is \VOID{} because
-a return statement in an implementation of operator \code{[]=} does not return a value.
+a return statement in an implementation of operator
+\syntax{`[]='}
+does not return a value.
 Consider a non-throwing evaluation of an expression $e$ of the form \code{$e_1$[$e_2$] = $e_3$},
 and assume that the evaluation of $e_3$ yields an instance $o$.
 $e$ will then evaluate to $o$,
-and even if the executed body of operator \code{[]=} completes with a value $o'$,
+and even if the executed body of operator
+\syntax{`[]='}
+completes with a value $o'$,
 that is, if $o'$ is returned, that value is simply ignored.
 The rationale for this behavior is that assignments should be guaranteed to evaluate to the assigned value.
 }
@@ -1566,8 +1589,7 @@ The rationale for this behavior is that assignments should be guaranteed to eval
 Getters are functions (\ref{functions}) that are used to retrieve the values of object properties.
 
 \begin{grammar}
-{\bf getterSignature:}returnType? \GET{} identifier
-  .
+<getterSignature> ::= <returnType>? \GET{} <identifier>
 \end{grammar}
 
 \LMHash{}
@@ -1602,8 +1624,7 @@ and the return type of $m_1$ is not a subtype of the return type of $m_2$.
 Setters are functions (\ref{functions}) that are used to set the values of object properties.
 
 \begin{grammar}
-{\bf setterSignature:}returnType? \SET{} identifier formalParameterList
-  .
+<setterSignature> ::= <returnType>? \SET{} <identifier> <formalParameterList>
 \end{grammar}
 
 \commentary{
@@ -1692,16 +1713,16 @@ However, code like the following should work:
 }
 
 \begin{dartCode}
-  class Base \{
-    int get one => 1;
-  \}
-
-  abstract class Mix \{
-    int get one;
-    int get two => one + one;
-  \}
-
-  class C extends Base with Mix \{ \}
+class Base \{
+  int get one => 1;
+\}
+\\
+\ABSTRACT{} \CLASS{} Mix \{
+  int get one;
+  int get two => one + one;
+\}
+\\
+\CLASS{} C extends Base with Mix \{ \}
 \end{dartCode}
 
 \rationale{
@@ -1781,8 +1802,7 @@ If{}f no constructor is specified for a class $C$, it implicitly has a default c
 A {\em generative constructor} consists of a constructor name, a constructor parameter list, and either a redirect clause or an initializer list and an optional body.
 
 \begin{grammar}
-{\bf constructorSignature:}identifier (`{\escapegrammar .}' identifier)? formalParameterList
-  .
+<constructorSignature> ::= <identifier> (`.' <identifier>)? <formalParameterList>
 \end{grammar}
 
 \LMHash{}
@@ -1858,8 +1878,7 @@ A redirecting constructor has no body;
 instead, it has a redirect clause that specifies which constructor the invocation is redirected to, and with which arguments.
 
 \begin{grammar}
-{\bf redirection:}`{\escapegrammar :}' \THIS{} (`{\escapegrammar .}' identifier)? arguments
-  .
+<redirection> ::= `:' \THIS{} (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \def\ConstMetavar{\mbox{\CONST{}?}}
@@ -1942,17 +1961,14 @@ Execution of the superinitializer causes the initializer list of the superconstr
 }
 
 \begin{grammar}
-{\bf initializers:}`{\escapegrammar :}' initializerListEntry (\gcomma{} initializerListEntry)*
-  .
+<initializers> ::= `:' <initializerListEntry> (`,' <initializerListEntry>)*
 
-{\bf initializerListEntry:}\SUPER{} arguments;
-  \SUPER{} `{\escapegrammar .}' identifier arguments;
-  fieldInitializer;
-  assertion
-  .
+<initializerListEntry> ::= \SUPER{} <arguments>
+  \alt \SUPER{} `.' <identifier> <arguments>
+  \alt <fieldInitializer>
+  \alt <assertion>
 
-{\bf fieldInitializer:}(\THIS{} `{\escapegrammar .}')? identifier `=' conditionalExpression cascadeSection*
-  .
+<fieldInitializer> ::= (\THIS{} `.')? <identifier> `=' <conditionalExpression> <cascadeSection>*
 \end{grammar}
 
 \LMHash{}
@@ -2053,7 +2069,8 @@ Execution then proceeds as follows:
 
 \LMHash{}
 The instance variable declarations of the immediately enclosing class are visited in the order they appear in the program text.
-For each such declaration $d$, if $d$ has the form \code{\metavar{finalConstVarOrType} $v$ = $e$; }
+For each such declaration $d$, if $d$ has the form
+\code{\syntax{finalConstVarOrType} $v$ = $e$; }
 then $e$ is evaluated to an object $o$
 and the instance variable $v$ of $i$ is bound to $o$.
 
@@ -2151,8 +2168,7 @@ and the formal type parameters of $S$ are bound to $u_1, \ldots, u_p$.
 A {\em factory} is a constructor prefaced by the built-in identifier (\ref{identifierReference}) \FACTORY{}.
 
 \begin{grammar}
-{\bf factoryConstructorSignature:}\FACTORY{} identifier (`{\escapegrammar .}' identifier)? formalParameterList
-  .
+<factoryConstructorSignature> ::= \FACTORY{} <identifier> (`.' <identifier>)? <formalParameterList>
 \end{grammar}
 
 %The enclosing scope of a factory constructor is the static scope \ref{} of the class in which it is declared.
@@ -2186,9 +2202,8 @@ Likewise, factories can return instances of different classes.
 A {\em redirecting factory constructor} specifies a call to a constructor of another class that is to be used whenever the redirecting constructor is called.
 
 \begin{grammar}
-{\bf redirectingFactoryConstructorSignature:}\CONST{}? \FACTORY{} identifier (`{\escapegrammar .}' identifier)? formalParameterList
-  \gnewline{} `=' type (`{\escapegrammar .}' identifier)?
-  .
+<redirectingFactoryConstructorSignature> ::= \CONST{}? \FACTORY{} <identifier> (`.' <identifier>)? <formalParameterList>
+  \gnewline{} `=' <type> (`.' <identifier>)?
 \end{grammar}
 
 Assume that
@@ -2202,7 +2217,7 @@ then consider a declaration of a redirecting factory constructor $k$ of one of t
 \begin{dartCode}
 $\ConstMetavar$ \FACTORY{}
     $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) = $R$;
-
+\\
 $\ConstMetavar$ \FACTORY{}
     $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) = $R$;
 \end{dartCode}
@@ -2360,8 +2375,7 @@ A {\em constant constructor} may be used to create compile-time constant (\ref{c
 A constant constructor is prefixed by the reserved word \CONST{}.
 
 \begin{grammar}
-{\bf constantConstructorSignature:}\CONST{} qualified formalParameterList
-  .
+<constantConstructorSignature> ::= \CONST{} <qualified> <formalParameterList>
 \end{grammar}
 
 %\commentary{Spell out subtleties: a constant constructor call within the initializer of a constant constructor is treated as a ordinary constructor call (a new), because the arguments cannot be assumed constant anymore. In practice, this means two versions are compiled and analyzed. One for new and one for const.}
@@ -2445,9 +2459,9 @@ However, the following constructors are disallowed:
 \begin{dartCode}
 \CLASS{} D \{
   \FINAL{} w;
-  \CONST{} D.makeList(p): w = \CONST{} [p]; // compile-time error
-  \CONST{} D.makeMap(p): w = \CONST{} \{``help'': q\}; // compile-time error
-  \CONST{} D.makeC(p): w = \CONST{} C(p, 12); // compile-time error
+  \CONST{} D.makeList(p): w = \CONST{} [p]; // \comment{compile-time error}
+  \CONST{} D.makeMap(p): w = \CONST{} \{``help'': q\}; // \comment{compile-time error}
+  \CONST{} D.makeC(p): w = \CONST{} C(p, 12); // \comment{compile-time error}
 \}
 \end{dartCode}
 
@@ -2528,8 +2542,7 @@ If no \EXTENDS{} clause is specified, then either:
 It is a compile-time error to specify an \EXTENDS{} clause for class \code{Object}.
 
 \begin{grammar}
-{\bf superclass:}\EXTENDS{} type
-  .
+<superclass> ::= \EXTENDS{} <type>
 \end{grammar}
 
 %The superclass clause of a class C is processed within the enclosing scope of the static scope of C.
@@ -2554,10 +2567,9 @@ The following code is therefore illegal and should cause a compile-time error:
 
 \begin{dartCode}
 class T \{\}
-
+\\
 /* Compilation error: Attempt to subclass a type parameter */
 class G<T> extends T \{\}
-
 \end{dartCode}
 
 \LMHash{}
@@ -2766,8 +2778,7 @@ A class has a set of direct superinterfaces.
 This set includes the interface of its superclass and the interfaces specified in the \IMPLEMENTS{} clause of the class.
 
 \begin{grammar}
-{\bf interfaces:}\IMPLEMENTS{} typeList
-  .
+<interfaces> ::= \IMPLEMENTS{} <typeList>
 \end{grammar}
 
 \LMHash{}
@@ -2966,11 +2977,9 @@ a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
 or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
 \begin{grammar}
-{\bf mixinApplicationClass:}identifier typeParameters? `=' mixinApplication `{\escapegrammar ;}'
-  .
+<mixinApplicationClass> ::= <identifier> <typeParameters>? `=' <mixinApplication> `;'
 
-{\bf mixinApplication:}type mixins interfaces?
-  .
+<mixinApplication> ::= <type> <mixins> <interfaces>?
 \end{grammar}
 
 \LMHash{}
@@ -2996,6 +3005,7 @@ Let $N_C$ be the name of the mixin application class $C$,
 let $S$ be the superclass of $C$, and let $S_N$ be the name of $S$.
 
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, $\ldots$, $T_{k}$ $a_{k}$)} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
+
 \begin{dartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$):$\SUPER_q$($a_{1}$, $\ldots$, $a_{k}$);
 \end{dartCode}
@@ -3009,6 +3019,7 @@ fields, $C_q$ is also a const constructor.
 
 \LMHash{}
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d_p$])} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
+
 \begin{dartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d'_{1}$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d'_p$])
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$, \ldots, $a_p$);
@@ -3125,28 +3136,26 @@ For any non-generic declaration, the corresponding type parameters may be elided
 An {\em enumerated type}, or {\em enum}, is used to represent a fixed number of constant values.
 
 \begin{grammar}
-{\bf enumType:}metadata \ENUM{} identifier
-  \gnewline{} `\{' enumEntry (\gcomma{} enumEntry)* (\gcomma{})? `\}'
-  .
+<enumType> ::= <metadata> \ENUM{} <identifier>
+  \gnewline{} `{' <enumEntry> (`,' <enumEntry>)* (`,')? `}'
 
-{\bf enumEntry:}metadata identifier
-  .
+<enumEntry> ::= <metadata> <identifier>
 \end{grammar}
 
 \LMHash{}
 The declaration of an enum of the form
-\code{$m$ \ENUM{} E \{$m_0\,\,\id_0, \ldots,\ m_{n-1}\,\,\id_{n-1}$\}}
+\code{$m$ \ENUM{} $E$ \{$m_0\,\,\id_0, \ldots,\ m_{n-1}\,\,\id_{n-1}$\}}
 has the same effect as a class declaration
 
 \begin{dartCode}
-$m$ \CLASS{} E \{
+$m$ \CLASS{} $E$ \{
   \FINAL{} int index;
-  \CONST{} E(\THIS{}.index);
-  $m_0$ \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
+  \CONST{} $E$(\THIS{}.index);
+  $m_0$ \STATIC{} \CONST{} $E$ $\id_0$ = \CONST{} $E$(0);
   $\ldots$
-  $m_{n-1}$ \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
-  \STATIC{} \CONST{} List<E> values = const <E>[\id$_0, \ldots, $ \id$_{n-1}$];
-  String toString() => \{ 0: `E.\id$_0$', $\ldots$, n-1: `E.\id$_{n-1}$'\}[index]
+  $m_{n-1}$ \STATIC{} \CONST{} $E$ $\id_{n-1}$ = const $E$(n - 1);
+  \STATIC{} \CONST{} List<$E$> values = const <$E$>[\id$_0, \ldots, $ \id$_{n-1}$];
+  String toString() => \{ 0: `$E$.\id$_0$', $\ldots$, n-1: `$E$.\id$_{n-1}$'\}[index]
 \}
 \end{dartCode}
 
@@ -3258,11 +3267,9 @@ where each formal type parameter has been replaced by the corresponding actual t
 }
 
 \begin{grammar}
-{\bf typeParameter:}metadata identifier (\EXTENDS{} type)?
-  .
+<typeParameter> ::= <metadata> <identifier> (\EXTENDS{} <type>)?
 
-{\bf typeParameters:}`<' typeParameter (\gcomma{} typeParameter)* `>'
-  .
+<typeParameters> ::= `<' <typeParameter> (`,' <typeParameter>)* `>'
 \end{grammar}
 
 \LMHash{}
@@ -3302,10 +3309,10 @@ This enables typechecking code such as:
 
 \begin{dartCode}
 \CLASS{} Ordered<T> \{
-  operator > (T x);
+  operator >(T x);
 \}
 
-\CLASS{} Sorter<T \EXTENDS{} Ordered<T$>>$ \{
+\CLASS{} Sorter<T \EXTENDS{} Ordered<T\gtgt{} \{
    sort(List<T> l) {... l[n] < l[n+1] ...}
 \}
 
@@ -3651,7 +3658,7 @@ function applications involving other types. Here is an example:
 \CLASS{} A<X \EXTENDS{} num> \{
   X x;
 \}
-
+\\
 A<Object> a;
 \end{dartCode}
 
@@ -3723,8 +3730,7 @@ of expressions whose type proceeds beyond the given finite unfolding.
 Dart supports metadata which is used to attach user defined annotations to program structures.
 
 \begin{grammar}
-{\bf metadata:}(`@' qualified ({\escapegrammar `.'} identifier)? (arguments)?)*
-  .
+<metadata> ::= (`@' <qualified> (`.' <identifier>)? (<arguments>)?)*
 \end{grammar}
 
 \LMHash{}
@@ -3789,31 +3795,25 @@ and the evaluation of the other expression throws an exception and a stack trace
 the evaluation of $e$ stops at that point and throws the same exception object and stack trace.
 
 \begin{grammar}
-{\bf expression:}assignableExpression assignmentOperator expression;
-  conditionalExpression cascadeSection*;
-  throwExpression
-  .
+<expression> ::= <assignableExpression> <assignmentOperator> <expression>
+  \alt <conditionalExpression> <cascadeSection>*
+  \alt <throwExpression>
 
-{\bf expressionWithoutCascade:}assignableExpression assignmentOperator
-  \gnewline{} expressionWithoutCascade;
-  conditionalExpression;
-  throwExpressionWithoutCascade
-  .
+<expressionWithoutCascade> ::= <assignableExpression> <assignmentOperator>
+  \gnewline{} <expressionWithoutCascade>
+  \alt <conditionalExpression>
+  \alt <throwExpressionWithoutCascade>
 
-{\bf expressionList:}expression (\gcomma{} expression)*
-  .
-\end{grammar}
+<expressionList> ::= <expression> (`,' <expression>)*
 
-\begin{grammar}
-{\bf primary:}thisExpression;
-  \SUPER{} unconditionalAssignableSelector;
-  functionExpression;
-  literal;
-  identifier;
-  newExpression;
-  constObjectExpression;
-  `(' expression `)'
-  .
+<primary> ::= <thisExpression>
+  \alt \SUPER{} <unconditionalAssignableSelector>
+  \alt <functionExpression>
+  \alt <literal>
+  \alt <identifier>
+  \alt <newExpression>
+  \alt <constObjectExpression>
+  \alt `(' <expression> `)'
 \end{grammar}
 
 \LMHash{}
@@ -3897,13 +3897,13 @@ For example, If C is a class or typedef, C is a constant, and if C is imported w
 \item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
 \item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
 \item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions and \code{identical()} is statically bound to the predefined dart function \code{identical()} discussed above (\ref{objectIdentity}).
-\item An expression of one of the forms \code{$e_1$ == $e_2$} or \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to the null object (\ref{null}).
-\item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
-\item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 << e_2$, $e_1 >> e_2$ or $e_1 >>> e_2$, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to the null object (\ref{null}).
-\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$}, \code{$e_1 > e_2$}, \code{$e_1 < e_2$}, \code{$e_1$ >= $e_2$}, \code{$e_1$ <= $e_2$} or \code{$e_1$ \% $e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
-\item An expression of the form \code{$e_1 ?? e_2$} where $e_1$ and $e_2$ are constant expressions.
+\item An expression of one of the forms \code{$e_1$\,==\,$e_2$} or \code{$e_1$\,!=\,$e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to the null object (\ref{null}).
+\item An expression of one of the forms \code{!$e$}, \code{$e_1$\,\&\&\,$e_2$} or \code{$e_1$\,||\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
+\item An expression of one of the forms \code{\~{}$e$}, \code{$e_1$\,\^\,$e_2$}, \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, \code{$e_1$\,<\mbox<\,$e_2$}, \code{$e_1$\,\gtgt\,$e_2$} or \code{$e_1$\,\gtgtgt\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to the null object (\ref{null}).
+\item An expression of the form \code{$e_1$\,+\,$e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to the null object (\ref{null}).
+\item An expression of one of the forms \code{-$e$}, \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$}, \code{$e_1$\,/\,$e_2$,} \code{$e_1$\,\~{}/\,$e_2$}, \code{$e_1$\,>\,$e_2$}, \code{$e_1$\,<\,$e_2$}, \code{$e_1$\,>=\,$e_2$}, \code{$e_1$\,<=\,$e_2$} or \code{$e_1$\,\%\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value or to the null object (\ref{null}).
+\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
+\item An expression of the form \code{$e_1$\,??\,$e_2$} where $e_1$ and $e_2$ are constant expressions.
 \item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
 \end{itemize}
 
@@ -3928,18 +3928,18 @@ On the other hand, since implementations are free to compile code late, some com
 }
 
 \begin{dartCode}
-\CONST{} x = 1 ~/ 0;
-\FINAL{} y = 1 ~/ 0;
-
+\CONST{} x = 1 \~{}/ 0;
+\FINAL{} y = 1 \~{}/ 0;
+\\
 \CLASS{} K \{
   m1() \{
-   \VAR{} z = \FALSE{};
-    \IF{} (z) \{\RETURN{} x; \}
+    \VAR{} z = \FALSE{};
+    \IF{} (z) \{ \RETURN{} x; \}
     \ELSE{} \{ \RETURN{} 2; \}
   \}
-
+\\
   m2() \{
-    \IF{} (\TRUE{}) \{\RETURN{} y; \}
+    \IF{} (\TRUE{}) \{ \RETURN{} y; \}
     \ELSE{} \{ \RETURN{} 3; \}
   \}
 \}
@@ -3971,12 +3971,12 @@ We can evaluate it at compile time.
 }
 
 \rationale{
-One might reasonably ask why $e_1? e_1: e_3$ and $e_1?? e_2$ have constant forms.
-For example, if $e_1$ is known statically, why do we need to test it?.
+One might reasonably ask why $e_1$\,?\,$e_1$\,:\,$e_3$ and $e_1$\,??\,$e_2$ have constant forms.
+For example, if $e_1$ is known statically, why do we need to test it?
 The answer is that there are contexts where $e_1$ is a variable.
 In particular, constant constructor initializers such as
 
-\code{\CONST{} C(foo) : \THIS.foo = foo ?? someDefaultValue;}
+\code{\CONST{} C(foo): \THIS.foo = foo ?? someDefaultValue;}
 }
 
 \LMHash{}
@@ -3987,22 +3987,21 @@ As an example, consider:
 }
 
 \begin{dartCode}
-\CLASS{} CircularConsts\{
-// Illegal program - mutually recursive compile-time constants
-  \STATIC{} \CONST{} i = j; // a compile-time constant
-  \STATIC{} \CONST{} j = i; // a compile-time constant
+\CLASS{} CircularConsts \{
+  // \comment{Illegal program - mutually recursive compile-time constants}
+  \STATIC{} \CONST{} i = j; // \comment{a compile-time constant}
+  \STATIC{} \CONST{} j = i; // \comment{a compile-time constant}
 \}
 \end{dartCode}
 
 \begin{grammar}
-{\bf literal:}nullLiteral;
-  booleanLiteral;
-  numericLiteral;
-  stringLiteral;
-  symbolLiteral;
-  mapLiteral;
-  listLiteral
-  .
+<literal> ::= <nullLiteral>
+  \alt <booleanLiteral>
+  \alt <numericLiteral>
+  \alt <stringLiteral>
+  \alt <symbolLiteral>
+  \alt <mapLiteral>
+  \alt <listLiteral>
 \end{grammar}
 
 
@@ -4013,8 +4012,7 @@ As an example, consider:
 The reserved word \NULL{} evaluates to the {\em null object}.
 
 \begin{grammar}
-{\bf nullLiteral:}\NULL{}
-  .
+<nullLiteral> ::= \NULL{}
 \end{grammar}
 
 \LMHash{}
@@ -4034,25 +4032,20 @@ The static type of \NULL{} is the \code{Null} type.
 A {\em numeric literal} is either a decimal or hexadecimal numeral representing an integer value, or a decimal double representation.
 
 \begin{grammar}
-{\bf numericLiteral:}NUMBER;
-  HEX\_NUMBER
-  .
+<numericLiteral> ::= <NUMBER>
+  \alt <HEX\_NUMBER>
 
-{\bf NUMBER:}DIGIT+ (`{\escapegrammar.}' DIGIT+)? EXPONENT?;
-  {`\escapegrammar .}' DIGIT+ EXPONENT?
-  .
+<NUMBER> ::= <DIGIT>+ (`.' <DIGIT>+)? <EXPONENT>?
+  \alt `.' <DIGIT>+ <EXPONENT>?
 
-{\bf EXPONENT:}(`e' $|$ `E') (`+' $|$ `-')? DIGIT+
-  .
+<EXPONENT> ::= (`e' | `E') (`+' | `-')? <DIGIT>+
 
-{\bf HEX\_NUMBER:}`0x' HEX\_DIGIT+;
-  `0X' HEX\_DIGIT+
-  .
+<HEX\_NUMBER> ::= `0x' <HEX\_DIGIT>+
+  \alt `0X' <HEX\_DIGIT>+
 
-{\bf HEX\_DIGIT:}`a'{\escapegrammar ..}`f';
-  `A'{\escapegrammar ..}`F';
-  DIGIT
-  .
+<HEX\_DIGIT> ::= `a' .. `f'
+  \alt `A' .. `F'
+  \alt <DIGIT>
 \end{grammar}
 
 \LMHash{}
@@ -4091,7 +4084,7 @@ and $l$ is not the operand of a unary minus operator,
 then evaluation of $l$ proceeds as follows:
 \begin{itemize}
   \item{} If $l$ is a hexadecimal integer literal,
-  $2^{63} \le{} i \lt{} 2^{64}$ and the \code{int} class is implemented as
+  $2^{63} \le i < 2^{64}$ and the \code{int} class is implemented as
   signed 64-bit two's complement integers,
   then $l$ evaluates to an instance of the \code{int} class
   representing the numeric value $i - 2^{64}$,
@@ -4145,9 +4138,8 @@ The reserved words \TRUE{} and \FALSE{} evaluate to objects {\em true} and {\em 
 They are the {\em boolean literals}.
 
 \begin{grammar}
-{\bf booleanLiteral:}\TRUE{};
-  \FALSE{}
-  .
+<booleanLiteral> ::= \TRUE{}
+  \alt \FALSE{}
 \end{grammar}
 
 \LMHash{}
@@ -4173,19 +4165,17 @@ Programmers should not depend on this distinction.
 }
 
 \begin{grammar}
-{\bf stringLiteral:}(multilineString $|$ singleLineString)+
-  .
+<stringLiteral> ::= (<multilineString> | <singleLineString>)+
 \end{grammar}
 
 \LMHash{}
 A string can be a sequence of single line strings and multiline strings.
 
 \begin{grammar}
-{\bf singleLineString:}`{\escapegrammar \code{"}}' stringContentDQ* `{\escapegrammar \code{"}}';
-  `{\escapegrammar \code{'}}' stringContentSQ* `{\escapegrammar \code{'}}';
-  `r{\escapegrammar \code{'}}' (\~{}( `{\escapegrammar \code{'}}' $|$ NEWLINE ))* `{\escapegrammar \code{'}}';
-  `r{\escapegrammar \code{"}}' (\~{}( `{\escapegrammar \code{"}}' $|$ NEWLINE ))* `{\escapegrammar \code{"}}'
-  .
+<singleLineString> ::= `"' <stringContentDQ>* `"'
+  \alt `\'' <stringContentSQ>* `\''
+  \alt `r\'' (\~{}( `\'' | <NEWLINE>))* `\''
+  \alt `r"' (\~{}( `"' | <NEWLINE>))* `"'
 \end{grammar}
 
 \LMHash{}
@@ -4208,7 +4198,7 @@ Here is an example
 }
 
 \begin{dartCode}
-print("A string" "and then another"); // prints: A stringand then another
+print("A string" "and then another"); // \comment{A stringand then another}
 \end{dartCode}
 
 \rationale{
@@ -4249,31 +4239,28 @@ This can be expressed by writing smaller strings separated by whitespace, as sho
 \end{dartCode}
 
 \begin{grammar}
-{\bf multilineString:}`{\escapegrammar \texttt{"""}}' stringContentTDQ* `{\escapegrammar \texttt{"""}}';
-  `{\escapegrammar \code{'}\code{'}\code{'}}' stringContentTSQ* `{\escapegrammar \code{'}\code{'}\code{'}}';
-  `r{\escapegrammar \texttt{"""}}' (\~{} `{\escapegrammar \texttt{"""}}')* `{\escapegrammar \texttt{"""}}';
-  `r{\escapegrammar \code{'}\code{'}\code{'}}' (\~{} `{\escapegrammar \code{'}\code{'}\code{'}}')* `{\escapegrammar \code{'}\code{'}\code{'}}'
-  .
+<multilineString> ::= `"""' <stringContentTDQ>* `"""'
+  \alt `\'\mbox\'\mbox\'' <stringContentTSQ>* `\'\mbox\'\mbox\''
+  \alt `r"""' (\~{} `"""')* `"""'
+  \alt `r\'\mbox\'\mbox\'' (\~{} `\'\mbox\'\mbox\'')* `\'\mbox\'\mbox\''
 
-{\bf ESCAPE\_SEQUENCE:}`$\backslash$n';
-  `$\backslash$r';
-  `$\backslash$f';
-  `$\backslash$b';
-  `$\backslash$t';
-  `$\backslash$v';
-  `$\backslash$x' HEX\_DIGIT HEX\_DIGIT;
-  `$\backslash$u' HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT;
-  `$\backslash$u\{' HEX\_DIGIT\_SEQUENCE `\}'
-  .
+<ESCAPE\_SEQUENCE> ::= `\\n'
+  \alt `\\r'
+  \alt `\\f'
+  \alt `\\b'
+  \alt `\\t'
+  \alt `\\v'
+  \alt `\\x' <HEX\_DIGIT> <HEX\_DIGIT>
+  \alt `\\u' <HEX\_DIGIT> <HEX\_DIGIT> <HEX\_DIGIT> <HEX\_DIGIT>
+  \alt `\\u{' <HEX\_DIGIT\_SEQUENCE> `}'
 
-{\bf HEX\_DIGIT\_SEQUENCE:}HEX\_DIGIT HEX\_DIGIT? HEX\_DIGIT?
-  \gnewline{} HEX\_DIGIT? HEX\_DIGIT? HEX\_DIGIT?
-  .
+<HEX\_DIGIT\_SEQUENCE> ::= <HEX\_DIGIT> <HEX\_DIGIT>? <HEX\_DIGIT>?
+  \gnewline{} <HEX\_DIGIT>? <HEX\_DIGIT>? <HEX\_DIGIT>?
 \end{grammar}
 
 \LMHash{}
 Multiline strings are delimited by either matching triples of single quotes or matching triples of double quotes.
-If the first line of a multiline string consists solely of the whitespace characters defined by the production {\em WHITESPACE} (\ref{lexicalRules}), possibly prefixed by $\backslash$, then that line is ignored, including the line break at its end.
+If the first line of a multiline string consists solely of the whitespace characters defined by the production {\em WHITESPACE} (\ref{lexicalRules}), possibly prefixed by \syntax{`\\'}, then that line is ignored, including the line break at its end.
 
 \rationale{
 The idea is to ignore a whitespace-only first line of a multiline string, where whitespace is defined as tabs, spaces and the final line break.
@@ -4288,58 +4275,61 @@ These can be represented directly, but since for most characters prefixing by ba
 Strings support escape sequences for special characters.
 The escapes are:
 \begin{itemize}
-\item $\backslash$n for newline, equivalent to $\backslash$x0A.
-\item $\backslash$r for carriage return, equivalent to $\backslash$x0D.
-\item $\backslash$f for form feed, equivalent to $\backslash$x0C.
-\item $\backslash$b for backspace, equivalent to $\backslash$x08.
-\item $\backslash$t for tab, equivalent to $\backslash$x09.
-\item $\backslash$v for vertical tab, equivalent to $\backslash$x0B.
-\item $\backslash$x $HEX\_DIGIT_1$ $HEX\_DIGIT_2$, equivalent to
+\item \syntax{`\\n'} for newline, equivalent to \syntax{`\\x0A'}.
+\item \syntax{`\\r'} for carriage return, equivalent to \syntax{`\\x0D'}.
+\item \syntax{`\\f'} for form feed, equivalent to \syntax{`\\x0C'}.
+\item \syntax{`\\b'} for backspace, equivalent to \syntax{`\\x08'}.
+\item \syntax{`\\t'} for tab, equivalent to \syntax{`\\x09'}.
+\item \syntax{`\\v'} for vertical tab, equivalent to \syntax{`\\x0B'}.
+\item \syntax{`\\x' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$}, equivalent to
 
-$\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
-\item $\backslash$u $HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$\}.
-\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the Unicode code point represented by the $HEX\_DIGIT\_SEQUENCE$.
-It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid Unicode code point.
-\item \$ indicating the beginning of an interpolated expression.
-\item Otherwise, $\backslash k$ indicates the character $k$ for any $k$ not in $\{n, r, f, b, t, v, x, u\}$.
+\syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ `}'}.
+\item \syntax{`\\u' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$},
+equivalent to
+\syntax{`\\u{' <HEX\_DIGIT>$_1$ <HEX\_DIGIT>$_2$ <HEX\_DIGIT>$_3$ <HEX\_DIGIT>$_4$ `}'}.
+\item \syntax{`\\u{' <HEX\_DIGIT\_SEQUENCE> `}'} is the Unicode code point represented by the
+\syntax{<HEX\_DIGIT\_SEQUENCE>}.
+It is a compile-time error if the value of the
+\syntax{<HEX\_DIGIT\_SEQUENCE>}
+is not a valid Unicode code point.
+\item \syntax{`$'} indicating the beginning of an interpolated expression.
+\item Otherwise, \syntax{`\\'$k$} indicates the character $k$ for any $k$ not in
+\syntax{$\{$`n', `r', `f', `b', `t', `v', `x', `u'$\}$}.
 \end{itemize}
 
 \LMHash{}
-Any string may be prefixed with the character `r', indicating that it is a {\em raw string}, in which case no escapes or interpolations are recognized.
+Any string may be prefixed with the character \syntax{`r'},
+indicating that it is a {\em raw string},
+in which case no escapes or interpolations are recognized.
 
 \LMHash{}
-Line breaks in a multiline string are represented by the {\em NEWLINE} production.
+Line breaks in a multiline string are represented by the \syntax{<NEWLINE>} production.
 A line break introduces a single newline character into the string value.
 
 \LMHash{}
-It is a compile-time error if a non-raw string literal contains a character sequence of the form $\backslash$x that is not followed by a sequence of two hexadecimal digits.
-It is a compile-time error if a non-raw string literal contains a character sequence of the form $\backslash$u that is not followed by either a sequence of four hexadecimal digits, or by curly brace delimited sequence of hexadecimal digits.
+It is a compile-time error if a non-raw string literal contains a character sequence of the form \syntax{`\\x'} that is not followed by a sequence of two hexadecimal digits.
+It is a compile-time error if a non-raw string literal contains a character sequence of the form \syntax{`\\u'} that is not followed by either a sequence of four hexadecimal digits, or by curly brace delimited sequence of hexadecimal digits.
 
 \begin{grammar}
-{\bf stringContentDQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \texttt{"}}' $|$ `\$' $|$ NEWLINE );
-  `$\backslash$' \~{}( NEWLINE );
-  stringInterpolation
-  .
+<stringContentDQ> ::= \~{}( `\\' | `"' | `$' | <NEWLINE> )
+  \alt `\\' \~{}( <NEWLINE> )
+  \alt <stringInterpolation>
 
-{\bf stringContentSQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \texttt{'}}' $|$ `\$' $|$ NEWLINE );
-  `$\backslash$' \~{}( NEWLINE );
-  stringInterpolation
-  .
+<stringContentSQ> ::= \~{}( `\\' | `\'' | `$' | <NEWLINE> )
+  \alt `\\' \~{}( <NEWLINE> )
+  \alt <stringInterpolation>
 
-{\bf stringContentTDQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \texttt{"""}}' $|$ `\$');
-  `$\backslash$' \~{}( NEWLINE );
-  stringInterpolation
-  .
+<stringContentTDQ> ::= \~{}( `\\' | `"""' | `$')
+  \alt `\\' \~{}( <NEWLINE> )
+  \alt <stringInterpolation>
 
-{\bf stringContentTSQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \code{'}\code{'}\code{'}}' $|$ `\$');
-  `$\backslash$' \~{}( NEWLINE );
-  stringInterpolation
-  .
+<stringContentTSQ> ::= \~{}( `\\' | `\'\'\'' | `$')
+  \alt `\\' \~{}( <NEWLINE> )
+  \alt <stringInterpolation>
 
-{\bf NEWLINE:}$\backslash$n;
-  $\backslash$r;
-  $\backslash$r$\backslash$n
-  .
+<NEWLINE> ::= `\\n'
+  \alt `\\r'
+  \alt `\\r\\n'
 \end{grammar}
 
 \LMHash{}
@@ -4356,9 +4346,8 @@ It is possible to embed expressions within non-raw string literals, such that th
 This process is known as {\em string interpolation}.
 
 \begin{grammar}
-{\bf stringInterpolation:}`\$' IDENTIFIER\_NO\_DOLLAR;
-  `\$\{' expression `\}'
-  .
+<stringInterpolation> ::= `$' <IDENTIFIER\_NO\_DOLLAR>
+  \alt `${' <expression> `}'
 \end{grammar}
 
 \commentary{
@@ -4366,16 +4355,17 @@ The reader will note that the expression inside the interpolation could itself i
 }
 
 \LMHash{}
-An unescaped \$ character in a string signifies the beginning of an interpolated expression.
-The \$ sign may be followed by either:
+An unescaped \syntax{`$'} character in a string signifies the beginning of an interpolated expression.
+The \syntax{`$'} sign may be followed by either:
 \begin{itemize}
-\item A single identifier \id{} that must not contain the \$ character.
+\item A single identifier \id{} that must not contain the \syntax{`$'} character.
 \item An expression $e$ delimited by curly braces.
 \end{itemize}
 
 \LMHash{}
 The form \code{\$\id} is equivalent to the form \code{\$\{\id\}}.
-An interpolated string, $s$, with content `\code{$s_0$\$\{$e_1$\}$s_1\ldots{}s_{n-1}\$\{e_n\}s_{n}$}' (where any of $s_0, \ldots, s_n$ can be empty)
+An interpolated string, $s$, with content
+`\code{$s_0$\$\{$e_1$\}$s_1\ldots{}s_{n-1}$\$\{$e_n$\}$s_{n}$}' (where any of $s_0, \ldots, s_n$ can be empty)
 is evaluated by evaluating each expression $e_i$ ($1 \le i \le n$) in to a string $r_i$ in the order they occur in the source text, as follows:
 \begin{itemize}
 \item{} Evaluate $e_i$ to an object $o_i$.
@@ -4394,8 +4384,7 @@ A {\em symbol literal} denotes a name that would be either
 a valid declaration name or a valid library name in a Dart program.
 
 \begin{grammar}
-{\bf symbolLiteral:}`\#' (operator $|$ (identifier (`{\escapegrammar .}' identifier)*))
-  .
+<symbolLiteral> ::= `#' (<operator> | (<identifier> (`.' <identifier>)*))
 \end{grammar}
 
 \LMHash{}
@@ -4458,8 +4447,7 @@ The static type of a symbol literal is \code{Symbol}.
 A {\em list literal} denotes a list, which is an integer indexed collection of objects.
 
 \begin{grammar}
-{\bf listLiteral:}\CONST{}? typeArguments? `[' (expressionList \gcomma{}?)? `]'
-  .
+<listLiteral> ::= \CONST{}? <typeArguments>? `[' (<expressionList> `,'?)? `]'
 \end{grammar}
 
 \LMHash{}
@@ -4485,12 +4473,22 @@ The binding of a type parameter is not known at compile time, so we cannot use t
 }
 
 \LMHash{}
-The value of a constant list literal \CONST{} $<E>[e_1, \ldots, e_n]$ is an object $a$ whose class implements the built-in class $List<E>$.
+The value of a constant list literal
+\code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
+is an object $a$ whose class implements the built-in class
+\code{List<$E$>}.
 The $i$th element of $a$ is $v_{i+1}$, where $v_i$ is the value of the compile-time expression $e_i$.
-The value of a constant list literal \CONST{} $[e_1, \ldots, e_n]$ is defined as the value of the constant list literal \CONST{}$ <\DYNAMIC{}>[e_1, \ldots, e_n]$.
+The value of a constant list literal
+\code{\CONST{} [$e_1, \ldots, e_n$]}
+is defined as the value of the constant list literal
+\code{\CONST{} <\DYNAMIC{}>[$e_1, \ldots, e_n$]}.
 
 \LMHash{}
-Let $list_1 =$ \CONST{} $<V>[e_{11}, \ldots, e_{1n}]$ and $list_2 =$ \CONST{} $<U>[e_{21}, \ldots, e_{2n}]$ be two constant list literals and let the elements of $list_1$ and $list_2$ evaluate to $o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
+Let
+$list_1 =$ \code{\CONST{} <$V$>[$e_{11}, \ldots, e_{1n}$]}
+and
+$list_2 =$ \code{\CONST{} <$U$>[$e_{21}, \ldots, e_{2n}$]}
+be two constant list literals and let the elements of $list_1$ and $list_2$ evaluate to $o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
 If{}f \code{identical($o_{1i}$, $o_{2i}$)} for $i \in 1 .. n$ and $V = U$ then \code{identical($list_1$, $list_2$)}.
 
 \commentary{
@@ -4498,13 +4496,17 @@ In other words, constant list literals are canonicalized.
 }
 
 \LMHash{}
-A run-time list literal $<E>[e_1, \ldots, e_n]$ is evaluated as follows:
+A run-time list literal
+\code{<$E$>[$e_1, \ldots, e_n$]}
+is evaluated as follows:
 \begin{itemize}
 \item
 First, the expressions $e_1, \ldots, e_n$ are evaluated in order they appear in the program, producing objects $o_1, \ldots, o_n$.
-\item A fresh instance (\ref{generativeConstructors}) $a$, of size $n$, whose class implements the built-in class $List<E>$ is allocated.
+\item A fresh instance (\ref{generativeConstructors}) $a$, of size $n$, whose class implements the built-in class
+\code{List<$E$>}
+is allocated.
 \item
-The operator \code{[]=} is invoked on $a$ with first argument $i$ and second argument
+The operator \syntax{`[]='} is invoked on $a$ with first argument $i$ and second argument
 %The $i$th element of $a$ is set to
 $o_{i+1}, 0 \le i < n$.
 \item
@@ -4518,18 +4520,33 @@ The order can only be observed in checked mode (and may not be relied upon): if 
 }
 
 \LMHash{}
-A run-time list literal $[e_1, \ldots, e_n]$ is evaluated as $<\DYNAMIC{}>[e_1, \ldots, e_n]$.
+A run-time list literal
+\code{[$e_1, \ldots, e_n$]}
+is evaluated as
+\code{<\DYNAMIC{}>[$e_1, \ldots, e_n$]}.
 
 \commentary{
 There is no restriction precluding nesting of list literals.
 It follows from the rules above that
-$<List<int>>[[1, 2, 3], [4, 5, 6]]$
-is a list with type parameter $List<int>$, containing two lists with type parameter \DYNAMIC{}.
+\code{<List<int\gtgt{}[[1, 2, 3], [4, 5, 6]]}
+is a list with type parameter
+\code{List<int>},
+containing two lists with type parameter \DYNAMIC{}.
 }
 
 \LMHash{}
-The static type of a list literal of the form \CONST{}$ <E>[e_1, \ldots, e_n]$ or the form $<E>[e_1, \ldots, e_n]$ is $List<E>$.
-The static type a list literal of the form \CONST{} $[e_1, \ldots, e_n$] or the form $[e_1, \ldots, e_n$] is $List<\DYNAMIC{}>$.
+The static type of a list literal of the form
+\code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
+or the form
+\code{<$E$>[$e_1, \ldots, e_n$]}
+is
+\code{List<E>}.
+The static type a list literal of the form
+\code{\CONST{} [$e_1, \ldots, e_n$]}
+or the form
+\code{[$e_1, \ldots, e_n$]}
+is
+\code{List<\DYNAMIC{}>}.
 
 \rationale{
 It is tempting to assume that the type of the list literal would be computed based on the types of its elements.
@@ -4551,12 +4568,10 @@ It is also much more uniform (and therefore predictable and understandable) to i
 A {\em map literal} denotes a map object.
 
 \begin{grammar}
-{\bf mapLiteral:}\CONST{}? typeArguments?
-  \gnewline{} `\{' (mapLiteralEntry (\gcomma{} mapLiteralEntry)* \gcomma{}?)? `\}'
-  .
+<mapLiteral> ::= \CONST{}? <typeArguments>?
+  \gnewline{} `{' (<mapLiteralEntry> (`,' <mapLiteralEntry>)* `,'?)? `\}'
 
-{\bf mapLiteralEntry:}expression `{\escapegrammar :}' expression
-  .
+<mapLiteralEntry> ::= <expression> `:' <expression>
 \end{grammar}
 
 \LMHash{}
@@ -4573,19 +4588,29 @@ Attempting to mutate a constant map literal will result in a dynamic error.
 \LMHash{}
 It is a compile-time error if either a key or a value of an entry in a constant map literal is not a compile-time constant.
 It is a compile-time error if the key of an entry in a constant map literal is an instance of
-a class that has a concrete operator \code{==} declaration different from the one in \code{Object},
+a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
 unless the key is a string or an integer,
 or the key expression is a literal symbol or
 an invocation of a constant constructor of class \code{Symbol}.
 It is a compile-time error if the type arguments of a constant map literal include a type variable.
 
 \LMHash{}
-The value of a constant map literal \CONST{}$ <K, V>\{k_1:e_1, \ldots, k_n :e_n\}$ is an object $m$ whose class implements the built-in class $Map<K, V>$.
+The value of a constant map literal
+\code{\CONST{} <$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
+is an object $m$ whose class implements the built-in class
+\code{Map<$K, V$>}.
 The entries of $m$ are $u_i:v_i, i \in 1 .. n$, where $u_i$ is the value of the compile-time expression $k_i$ and $v_i$ is the value of the compile-time expression $e_i$.
-The value of a constant map literal \CONST{} $\{k_1:e_1, \ldots, k_n :e_n\}$ is defined as the value of a constant map literal \CONST{} $<\DYNAMIC{}, \DYNAMIC{}>\{k_1:e_1, \ldots, k_n:e_n\}$.
+The value of a constant map literal
+\code{\CONST{} \{$k_1:e_1, \ldots, k_n:e_n$\}}
+is defined as the value of a constant map literal
+\code{\CONST{} <\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
 
 \LMHash{}
-Let $map_1 =$ \CONST{}$ <K, V>\{k_{11}:e_{11}, \ldots, k_{1n} :e_{1n}\}$ and $map_2 =$ \CONST{}$ <J, U>\{k_{21}:e_{21}, \ldots, k_{2n} :e_{2n}\}$ be two constant map literals.
+Let
+$map_1 =$ \code{\CONST{} <$K, V$>\{$k_{11}:e_{11}, \ldots, k_{1n}:e_{1n}$\}}
+and
+$map_2 =$ \code{\CONST{} <$J, U$>\{$k_{21}:e_{21}, \ldots, k_{2n}:e_{2n}$\}}
+be two constant map literals.
 Let the keys of $map_1$ and $map_2$ evaluate to $s_{11}, \ldots, s_{1n}$ and $s_{21}, \ldots, s_{2n}$ respectively, and let the elements of $map_1$ and $map_2$ evaluate to $o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
 If{}f \code{identical($o_{1i}$, $o_{2i}$)} and \code{identical($s_{1i}$, $s_{2i}$)} for $i \in 1 .. n$, and $K = J, V = U$ then \code{identical($map_1$, $map_2$)}.
 
@@ -4594,24 +4619,29 @@ In other words, constant map literals are canonicalized.
 }
 
 \LMHash{}
-A run-time map literal $<K, V>\{k_1:e_1, \ldots, k_n :e_n\}$ is evaluated as follows:
+A run-time map literal
+\code{<$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
+is evaluated as follows:
 \begin{itemize}
 \item
 For each $i \in 1 .. n$ in numeric order,
 first the expression $k_i$ is evaluated producing object $u_i$,
 and then $e_i$ is evaluated producing object $o_i$.
 This produces all the objects $u_1, o_1, \ldots, u_n, o_n$.
-\item A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class $Map<K, V>$ is allocated.
+\item A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class
+\code{Map<$K, V$>} is allocated.
 \item
-The operator \code{[]=} is invoked on $m$ with first argument $u_i$ and second argument $o_i$ for each $i \in 1 .. n$.
+The operator \syntax{`[]='} is invoked on $m$ with first argument $u_i$ and second argument $o_i$ for each $i \in 1 .. n$.
 \item
 The result of the evaluation is $m$.
 \end{itemize}
 
 \LMHash{}
-A run-time map literal $\{k_1:e_1, \ldots, k_n :e_n\}$ is evaluated as
+A run-time map literal
+\code{\{$k_1:e_1, \ldots, k_n:e_n$\}}
+is evaluated as
 
-$<\DYNAMIC{}, \DYNAMIC{}>\{k_1:e_1, \ldots, k_n :e_n\}$.
+\code{<\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
 
 \LMHash{}
 It is a compile-time error if two keys of a constant map literal are equal.
@@ -4625,8 +4655,17 @@ Of course, if a key repeats, the order is defined by first occurrence, but the v
 }
 
 \LMHash{}
-The static type of a map literal of the form \CONST{}$ <K, V>\{k_1:e_1, \ldots, k_n :e_n\}$ or the form $<K, V>\{k_1:e_1, \ldots, k_n :e_n\}$ is $Map<K, V>$.
-The static type of a map literal of the form \CONST{}$\{k_1:e_1, \ldots, k_n :e_n\}$ or the form $\{k_1:e_1, \ldots, k_n :e_n\}$ is $Map<\DYNAMIC{}, \DYNAMIC{}>$.
+The static type of a map literal of the form
+\code{\CONST{} <$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
+or the form
+\code{<$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
+is
+\code{Map<$K, V$>}.
+The static type of a map literal of the form
+\code{\CONST{} \{$k_1:e_1, \ldots, k_n:e_n$\}}
+or the form
+\code{\{$k_1:e_1, \ldots, k_n:e_n$\}} is
+\code{Map<\DYNAMIC{}, \DYNAMIC{}>}.
 
 
 \subsection{Throw}
@@ -4636,11 +4675,9 @@ The static type of a map literal of the form \CONST{}$\{k_1:e_1, \ldots, k_n :e_
 The {\em throw expression} is used to throw an exception.
 
 \begin{grammar}
-{\bf throwExpression:}\THROW{} expression
-  .
+<throwExpression> ::= \THROW{} <expression>
 
-{\bf throwExpressionWithoutCascade:}\THROW{} expressionWithoutCascade
-  .
+<throwExpressionWithoutCascade> ::= \THROW{} <expressionWithoutCascade>
 \end{grammar}
 
 \LMHash{}
@@ -4682,8 +4719,7 @@ The static type of a throw expression is $\bot$.
 A {\em function literal} is an object that encapsulates an executable unit of code.
 
 \begin{grammar}
-{\bf functionExpression:}formalParameterPart functionBody
-  .
+<functionExpression> ::= <formalParameterPart> <functionBody>
 \end{grammar}
 
 %% TODO[inference]: The static and dynamic type of a function literal
@@ -4904,8 +4940,7 @@ it is considered to have been specified as \DYNAMIC{}.
 The reserved word \THIS{} denotes the target of the current instance member invocation.
 
 \begin{grammar}
-{\bf thisExpression:}\THIS{}
-  .
+<thisExpression> ::= \THIS{}
 \end{grammar}
 
 \LMHash{}
@@ -4964,8 +4999,7 @@ or is an enumerated type (\ref{enums}).
 The {\em new expression} invokes a constructor (\ref{constructors}).
 
 \begin{grammar}
-{\bf newExpression:}\NEW{} type (`{\escapegrammar .}' identifier)? arguments
-  .
+<newExpression> ::= \NEW{} <type> (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \LMHash{}
@@ -5145,8 +5179,7 @@ A {\em constant object expression} invokes a constant constructor
 (\ref{constantConstructors}).
 
 \begin{grammar}
-{\bf constObjectExpression:}\NEW{} type (`{\escapegrammar .}' identifier)? arguments
-  .
+<constObjectExpression> ::= \NEW{} <type> (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \LMHash{}
@@ -5306,17 +5339,17 @@ To see how such situations might arise, consider the following examples:
    \FINAL{} x;
    \CONST{} A(p): x = p * 10;
 \}
-
+\\
 \CLASS{} IntPair \{
   \CONST{} IntPair(\THIS{}.x, \THIS{}.y);
   \FINAL{} int x;
   \FINAL{} int y;
   \OPERATOR *(v) => \NEW{} IntPair(x*v, y*v);
 \}
-
-\CONST a1 = \CONST{} A(true); // compile-time error
-\CONST a2 = \CONST{} A(5); // legal
-\CONST a3 = \CONST{} A(\CONST{} IntPair(1,2)); // compile-time error
+\\
+\CONST a1 = \CONST{} A(true); // \comment{compile-time error}
+\CONST a2 = \CONST{} A(5); // \comment{legal}
+\CONST a3 = \CONST{} A(\CONST{} IntPair(1,2)); // \comment{compile-time error}
 \end{dartCode}
 
 \commentary{
@@ -5380,7 +5413,7 @@ Completing normally or returning without a value is treated the same as returnin
 }
 
 \LMHash{}
-If $f$ is marked \SYNC* (\ref{functions}),
+If $f$ is marked \code{\SYNC*} (\ref{functions}),
 then a fresh instance (\ref{generativeConstructors}) $i$
 implementing \code{Iterable<$U$>} is immediately returned,
 where $U$ is determined as follows:
@@ -5389,7 +5422,7 @@ If $T$ is \code{Iterable<$S$>} for some type $S$, then $U$ is $S$,
 otherwise $U$ is \code{Object}.
 
 \commentary{
-A Dart implementation will need to provide a specific implementation of \code{Iterable} that will be returned by \SYNC* methods.
+A Dart implementation will need to provide a specific implementation of \code{Iterable} that will be returned by \code{\SYNC*} methods.
 A typical strategy would be to produce an instance of a subclass of class \code{IterableBase} defined in \code{dart:core}.
 The only method that needs to be added by the Dart implementation in that case is \code{iterator}.
 }
@@ -5415,14 +5448,14 @@ Further calls to \code{moveNext()} must return false.
 \end{itemize}
 
 Each iterator starts a separate computation.
-If the \SYNC* function is impure, the sequence of values yielded by each iterator may differ.
+If the \code{\SYNC*} function is impure, the sequence of values yielded by each iterator may differ.
 
 \commentary{
 One can derive more than one iterator from a given iterable.
 Note that operations on the iterable itself can create distinct iterators.
 An example would be \code{length}.
 It is conceivable that different iterators might yield sequences of different length.
-The same care needs to be taken when writing \SYNC* functions as when
+The same care needs to be taken when writing \code{\SYNC*} functions as when
 writing an \code{Iterator} class.
 In particular, it should handle multiple simultaneous iterators gracefully.
 If the iterator depends on external state that might change, it should check that the state is still valid after every yield (and maybe throw a \code{ConcurrentModificationError} if it isn't).
@@ -5458,7 +5491,7 @@ so the future is not completed with an error {\em before} it has been returned.
 }
 
 \LMHash{}
-If $f$ is marked \ASYNC* (\ref{functions}),
+If $f$ is marked \code{\ASYNC*} (\ref{functions}),
 then a fresh instance (\ref{generativeConstructors}) $s$
 implementing \code{Stream<$U$>} is immediately returned,
 where $U$ is determined as follows:
@@ -5497,19 +5530,16 @@ We choose to direct any exceptions that occur at this time to the cancellation f
 Actual argument lists have the following syntax:
 
 \begin{grammar}
-{\bf arguments:}`(' (argumentList \gcomma{}?)? `)'
-  .
+<arguments> ::= `(' (<argumentList> `,'?)? `)'
 
-{\bf argumentList:}namedArgument (\gcomma{} namedArgument)*;
-  expressionList (\gcomma{} namedArgument)*
-  .
+<argumentList> ::= <namedArgument> (`,' <namedArgument>)*
+  \alt <expressionList> (`,' <namedArgument>)*
 
-{\bf namedArgument:}label expression
-  .
+<namedArgument> ::= <label> <expression>
 \end{grammar}
 
 \LMHash{}
-Argument lists allow an optional trailing comma after the last argument (\gcomma{}?).
+Argument lists allow an optional trailing comma after the last argument (\syntax{`,'?}).
 An argument list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma.
 All argument lists in this specification are shown without a trailing comma,
 but the rules and semantics apply equally to the corresponding argument list with a trailing comma.
@@ -6323,18 +6353,15 @@ A {\em cascaded method invocation} has the form \code{$e$..\metavar{suffix}}
 where $e$ is an expression and \metavar{suffix} is a sequence of operator, method, getter or setter invocations.
 
 \begin{grammar}
-{\bf cascadeSection:}`{\escapegrammar ..}' (cascadeSelector argumentPart*)
-  \gnewline{} (assignableSelector argumentPart*)*
-  \gnewline{} (assignmentOperator expressionWithoutCascade)?
-  .
+<cascadeSection> ::= `..' (<cascadeSelector> <argumentPart>*)
+  \gnewline{} (<assignableSelector> <argumentPart>*)*
+  \gnewline{} (<assignmentOperator> <expressionWithoutCascade>)?
 
-{\bf cascadeSelector:}`[' expression `]';
-  identifier
-  .
+<cascadeSelector> ::= `[' <expression> `]'
+  \alt <identifier>
 
-{\bf argumentPart:}
-  typeArguments? arguments
-  .
+<argumentPart> ::=
+  <typeArguments>? <arguments>
 \end{grammar}
 
 \LMHash{}
@@ -6673,7 +6700,6 @@ The {\em closurization of method $f$ on object $o$} is defined to be equivalent
 \item
 \begin{dartCode}
 <$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-
 ($T_1\ r_1, \ldots,\ T_n\ r_n,\ $\{$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$\}) =>
     $u.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1$: $p_1, \ldots,\ p_k$: $p_k$);
 \end{dartCode}
@@ -6684,7 +6710,6 @@ and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \item
 \begin{dartCode}
 <$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-
 ($T_1\ r_1, \ldots,\ T_n\ r_n,\ $[$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$]) =>
     $u.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1, \ldots,\ p_k$);
 \end{dartCode}
@@ -6804,7 +6829,6 @@ is defined to be equivalent
 \item
 \begin{dartCode}
 <$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-
 ($T_1\ r_1, \ldots,\ T_n\ r_n,\ $\{$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$\}) =>
     \SUPER$.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1$: $p_1, \ldots,\ p_k$: $p_k$);
 \end{dartCode}
@@ -6815,7 +6839,6 @@ and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \item
 \begin{dartCode}
 <$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-
 ($T_1\ r_1, \ldots,\ T_n\ r_n,\ $[$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$]) =>
     \SUPER.$m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1, \ldots,\ p_k$);
 \end{dartCode}
@@ -6887,9 +6910,8 @@ and the resulting function objects are $c_1$ respectively $c_2$:
 An assignment changes the value associated with a mutable variable or property.
 
 \begin{grammar}
-{\bf assignmentOperator:}`=' ;
-  compoundAssignmentOperator
-  .
+<assignmentOperator> ::= `='
+  \alt <compoundAssignmentOperator>
 \end{grammar}
 
 \LMHash{}
@@ -7291,20 +7313,19 @@ where $C$ is a type literal
 is equivalent to the expression \code{$C$.$v$ $op$ = $e_2$}.
 
 \begin{grammar}
-{\bf compoundAssignmentOperator:}`*=';
-  `/=';
-  `\~{}/=';
-  `\%=';
-  `+=';
-  `-=';
-  `{\escapegrammar \lt \lt}=';
-  `{\escapegrammar \gt \gt}=';
-  `{\escapegrammar \gt \gt \gt}=';
-  `\&=';
-  `\^{}=';
-  `$|$=';
-  `??='
-  .
+<compoundAssignmentOperator> ::= `*='
+  \alt `/='
+  \alt `~/='
+  \alt `\%='
+  \alt `+='
+  \alt `-='
+  \alt `\ltlt='
+  \alt `\gtgt='
+  \alt `\gtgtgt='
+  \alt `\&='
+  \alt `^='
+  \alt `|='
+  \alt `??='
 \end{grammar}
 
 
@@ -7315,9 +7336,8 @@ is equivalent to the expression \code{$C$.$v$ $op$ = $e_2$}.
 A {\em conditional expression} evaluates one of two expressions based on a boolean condition.
 
 \begin{grammar}
-{\bf conditionalExpression:}ifNullExpression
-  \gnewline{} (`?' expressionWithoutCascade `{\escapegrammar :}' expressionWithoutCascade)?
-  .
+<conditionalExpression> ::= <ifNullExpression>
+  \gnewline{} (`?' <expressionWithoutCascade> `:' <expressionWithoutCascade>)?
 \end{grammar}
 
 \LMHash{}
@@ -7352,8 +7372,7 @@ The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the 
 An {\em if-null expression} evaluates an expression and if the result is the null object (\ref{null}), evaluates another.
 
 \begin{grammar}
-{\bf ifNullExpression:}logicalOrExpression (`??' logicalOrExpression)*
-  .
+<ifNullExpression> ::= <logicalOrExpression> (`??' <logicalOrExpression>)*
 \end{grammar}
 
 \LMHash{}
@@ -7377,11 +7396,9 @@ The static type of $e$ is the least upper bound (\ref{leastUpperBounds}) of the 
 The logical boolean expressions combine boolean objects using the boolean conjunction and disjunction operators.
 
 \begin{grammar}
-{\bf logicalOrExpression:}logicalAndExpression (`$||$' logicalAndExpression)*
-  .
+<logicalOrExpression> ::= <logicalAndExpression> (`||' <logicalAndExpression>)*
 
-{\bf logicalAndExpression:}equalityExpression (`\&\&' equalityExpression)*
-  .
+<logicalAndExpression> ::= <equalityExpression> (`\&\&' <equalityExpression>)*
 \end{grammar}
 
 \LMHash{}
@@ -7432,13 +7449,11 @@ The static type of a logical boolean expression is \code{bool}.
 Equality expressions test objects for equality.
 
 \begin{grammar}
-{\bf equalityExpression:}relationalExpression (equalityOperator relationalExpression)?;
-  \SUPER{} equalityOperator relationalExpression
-  .
+<equalityExpression> ::= <relationalExpression> (<equalityOperator> <relationalExpression>)?
+  \alt \SUPER{} <equalityOperator> <relationalExpression>
 
-{\bf equalityOperator:}`==';
-  `!='
-  .
+<equalityOperator> ::= `=='
+  \alt `!='
 \end{grammar}
 
 \LMHash{}
@@ -7488,16 +7503,14 @@ The static type of an equality expression is \code{bool}.
 Relational expressions invoke the relational operators on objects.
 
 \begin{grammar}
-{\bf relationalExpression:}bitwiseOrExpression (typeTest $|$ typeCast $|$
-  \gnewline{} relationalOperator bitwiseOrExpression)?;
-  \SUPER{} relationalOperator bitwiseOrExpression
-  .
+<relationalExpression> ::= <bitwiseOrExpression> (<typeTest> | <typeCast> |
+  \gnewline{} <relationalOperator> <bitwiseOrExpression>)?
+  \alt \SUPER{} <relationalOperator> <bitwiseOrExpression>
 
-{\bf relationalOperator:}`{\escapegrammar \gt=}';
-  `{\escapegrammar \gt}';
-  `{\escapegrammar \lt}=';
-  `{\escapegrammar \lt}'
-  .
+<relationalOperator> ::= `>='
+  \alt `>'
+  \alt `<='
+  \alt `<'
 \end{grammar}
 
 \LMHash{}
@@ -7515,22 +7528,18 @@ A relational expression of the form \SUPER{} $op$ $e_2$ is equivalent to the met
 Bitwise expressions invoke the bitwise operators on objects.
 
 \begin{grammar}
-{\bf bitwiseOrExpression:}bitwiseXorExpression (`$|$' bitwiseXorExpression)*;
-  \SUPER{} (`$|$' bitwiseXorExpression)+
-  .
+<bitwiseOrExpression> ::= <bitwiseXorExpression> (`|' <bitwiseXorExpression>)*
+  \alt \SUPER{} (`|' <bitwiseXorExpression>)+
 
-{\bf bitwiseXorExpression:}bitwiseAndExpression (`\^{}' bitwiseAndExpression)*;
-  \SUPER{} (`\^{}' bitwiseAndExpression)+
-  .
+<bitwiseXorExpression> ::= <bitwiseAndExpression> (`^' <bitwiseAndExpression>)*
+  \alt \SUPER{} (`^' <bitwiseAndExpression>)+
 
-{\bf bitwiseAndExpression:}shiftExpression (`\&' shiftExpression)*;
-  \SUPER{} (`\&' shiftExpression)+
-  .
+<bitwiseAndExpression> ::= <shiftExpression> (`\&' <shiftExpression>)*
+  \alt \SUPER{} (`\&' <shiftExpression>)+
 
-{\bf bitwiseOperator:}`\&';
-  `\^{}';
-  `$|$'
-  .
+<bitwiseOperator> ::= `\&'
+  \alt `^'
+  \alt `|'
 \end{grammar}
 
 \LMHash{}
@@ -7553,14 +7562,12 @@ The same holds in similar situations throughout this specification.
 Shift expressions invoke the shift operators on objects.
 
 \begin{grammar}
-{\bf shiftExpression:}additiveExpression (shiftOperator additiveExpression)*;
-  \SUPER{} (shiftOperator additiveExpression)+
-  .
+<shiftExpression> ::= <additiveExpression> (<shiftOperator> <additiveExpression>)*
+  \alt \SUPER{} (<shiftOperator> <additiveExpression>)+
 
-{\bf shiftOperator:}`{\escapegrammar \lt\lt'};
-  `{\escapegrammar \gt\gt}';
-  `{\escapegrammar \gt \gt \gt}'
-  .
+<shiftOperator> ::= `\ltlt'
+  \alt `\gtgt'
+  \alt `\gtgtgt'
 \end{grammar}
 
 \LMHash{}
@@ -7572,10 +7579,10 @@ A shift expression of the form \SUPER{} $op$ $e_2$ is equivalent to the method i
 
 \commentary{
 Note that this definition implies left-to-right evaluation order among shift expressions:
-
-$e_1 << e_2 << e_3$
-
-is evaluated as $(e_1 << e_2 ).<< (e_3)$ which is equivalent to $(e_1 << e_2) << e_3$.
+\code{$e_1$\,<\mbox<\,$e_2$\,<\mbox<\,$e_3$}
+is evaluated as
+\code{($e_1$\,<\mbox<\,$e_2$).<\mbox< ($e_3$)} which is equivalent to
+\code{($e_1$\,<\mbox<\,$e_2$)\,<\mbox<\,$e_3$}.
 The same holds for additive and multiplicative expressions.
 }
 
@@ -7587,14 +7594,12 @@ The same holds for additive and multiplicative expressions.
 Additive expressions invoke the addition operators on objects.
 
 \begin{grammar}
-{\bf additiveExpression:}multiplicativeExpression
-  \gnewline{} (additiveOperator multiplicativeExpression)*;
-  \SUPER{} (additiveOperator multiplicativeExpression)+
-  .
+<additiveExpression> ::= <multiplicativeExpression>
+  \gnewline{} (<additiveOperator> <multiplicativeExpression>)*
+  \alt \SUPER{} (<additiveOperator> <multiplicativeExpression>)+
 
-{\bf additiveOperator:}`+';
-  `-'
-  .
+<additiveOperator> ::= `+'
+  \alt `-'
 \end{grammar}
 
 \LMHash{}
@@ -7618,15 +7623,13 @@ The static type of an expression $e_1 - e_2$ where $e_1$ has static type \code{i
 Multiplicative expressions invoke the multiplication operators on objects.
 
 \begin{grammar}
-{\bf multiplicativeExpression:}unaryExpression (multiplicativeOperator unaryExpression)*;
-  \SUPER{} (multiplicativeOperator unaryExpression)+
-  .
+<multiplicativeExpression> ::= <unaryExpression> (<multiplicativeOperator> <unaryExpression>)*
+  \alt \SUPER{} (<multiplicativeOperator> <unaryExpression>)+
 
-{\bf multiplicativeOperator:}`*';
-  `/';
-  `\%';
-  `\~{}/'
-  .
+<multiplicativeOperator> ::= `*'
+  \alt `/'
+  \alt `\%'
+  \alt `~/'
 \end{grammar}
 
 \LMHash{}
@@ -7649,39 +7652,32 @@ The static type of an expression $e_1 \% e_2$ where $e_1$ has static type \code{
 Unary expressions invoke unary operators on objects.
 
 \begin{grammar}
-{\bf unaryExpression:}prefixOperator unaryExpression;
-  awaitExpression;
-  postfixExpression;
-  (minusOperator $|$ tildeOperator) \SUPER{};
-  incrementOperator assignableExpression
-  .
+<unaryExpression> ::= <prefixOperator> <unaryExpression>
+  \alt <awaitExpression>
+  \alt <postfixExpression>
+  \alt (<minusOperator> | <tildeOperator>) \SUPER{}
+  \alt <incrementOperator> <assignableExpression>
 
-{\bf prefixOperator:}minusOperator;
-  negationOperator;
-  tildeOperator
-  .
+<prefixOperator> ::= <minusOperator>
+  \alt <negationOperator>
+  \alt <tildeOperator>
 
-{\bf minusOperator:}`-'
-  .
+<minusOperator> ::= `-'
 
-{\bf negationOperator:}`!'
-  .
+<negationOperator> ::= `!'
 
-{\bf tildeOperator:}`\~{}'
-  .
+<tildeOperator> ::= `~'
 \end{grammar}
 
 \LMHash{}
 A {\em unary expression} is either a postfix expression (\ref{postfixExpressions}), an await expression (\ref{awaitExpressions}) or an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
 
 \LMHash{}
-The expression $!e$ is equivalent to the expression \code{$e$ ? \FALSE{} : \TRUE{}}.
+The expression $!e$ is equivalent to the expression \code{$e$\,?\,\FALSE\,:\,\TRUE}.
 
 \LMHash{}
-Evaluation of an expression of the form \code{++$e$} is equivalent to \code{$e$ += 1}.
-Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e$ -= 1}.
-
-%The expression $-e$ is equivalent to the method invocation \code{$e$.-()}.  The expression \code{-\SUPER{}} is equivalent to the method invocation \code{\SUPER{}.-()}.
+Evaluation of an expression of the form \code{++$e$} is equivalent to \code{$e$\,+=\,1}.
+Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e$\,-=\,1}.
 
 \LMHash{}
 If $e$ is an expression of the form \code{-$l$}
@@ -7721,8 +7717,7 @@ An expression of the form \code{$op$ \SUPER{}} is equivalent to the method invoc
 An {\em await expression} allows code to yield control until an asynchronous operation (\ref{functions}) completes.
 
 \begin{grammar}
-{\bf awaitExpression:}\AWAIT{} unaryExpression
-  .
+<awaitExpression> ::= \AWAIT{} <unaryExpression>
 \end{grammar}
 
 \LMHash{}
@@ -7773,20 +7768,16 @@ The static type of $a$ is \flatten{T} (\flatten{} is defined in section \ref{fun
 Postfix expressions invoke the postfix operators on objects.
 
 \begin{grammar}
-{\bf postfixExpression:}assignableExpression postfixOperator;
-  primary selector*
-  .
+<postfixExpression> ::= <assignableExpression> <postfixOperator>
+  \alt <primary> <selector>*
 
-{\bf postfixOperator:}incrementOperator
-  .
+<postfixOperator> ::= <incrementOperator>
 
-{\bf selector:}assignableSelector;
-  argumentPart
-  .
+<selector> ::= <assignableSelector>
+  \alt <argumentPart>
 
-{\bf incrementOperator:}`++';
-  `-{}-'
-  .
+<incrementOperator> ::= `++'
+  \alt `--'
 \end{grammar}
 
 \LMHash{}
@@ -7952,18 +7943,15 @@ However, assignable expressions can be subexpressions of other expressions and t
 }
 
 \begin{grammar}
-{\bf assignableExpression:}primary (argumentPart* assignableSelector)+;
-  \SUPER{} unconditionalAssignableSelector;
-  identifier
-  .
+<assignableExpression> ::= <primary> (<argumentPart>* <assignableSelector>)+
+  \alt \SUPER{} <unconditionalAssignableSelector>
+  <identifier>
 
-{\bf unconditionalAssignableSelector:}`[' expression `]';
-  `{\escapegrammar .}' identifier
-  .
+<unconditionalAssignableSelector> ::= `[' <expression> `]'
+  \alt `.' <identifier>
 
-{\bf assignableSelector:}unconditionalAssignableSelector;
-  `{\escapegrammar ?.}' identifier
-  .
+<assignableSelector> ::= <unconditionalAssignableSelector>
+  \alt `?.' <identifier>
 \end{grammar}
 
 \LMHash{}
@@ -7999,56 +7987,48 @@ Evaluation of an assignable expression of the form \code{\SUPER{}[$e_2$]} is equ
 An {\em identifier expression} consists of a single identifier; it provides access to an object via an unqualified name.
 
 \begin{grammar}
-{\bf identifier:}IDENTIFIER
+<identifier> ::= <IDENTIFIER>
   .
 
-{\bf IDENTIFIER\_NO\_DOLLAR:}IDENTIFIER\_START\_NO\_DOLLAR
-  \gnewline{} IDENTIFIER\_PART\_NO\_DOLLAR*
-  .
+<IDENTIFIER\_NO\_DOLLAR> ::= <IDENTIFIER\_START\_NO\_DOLLAR>
+  \gnewline{} <IDENTIFIER\_PART\_NO\_DOLLAR>*
 
-{\bf IDENTIFIER:}IDENTIFIER\_START IDENTIFIER\_PART*
-  .
+<IDENTIFIER> ::= <IDENTIFIER\_START IDENTIFIER\_PART>*
 
-{\bf BUILT\_IN\_IDENTIFIER:}\ABSTRACT{};
-  \AS{};
-  \COVARIANT{};
-  \DEFERRED{};
-  \DYNAMIC{};
-  \EXPORT{};
-  \EXTERNAL{};
-  \FACTORY{};
-  \FUNCTION{};
-  \GET{};
-  \IMPLEMENTS{};
-  \IMPORT{};
-  \INTERFACE{};
-  \LIBRARY{};
-  \OPERATOR{};
-  \MIXIN{};
-  \PART{};
-  \SET{};
-  \STATIC{};
-  \TYPEDEF{}
-  .
+<BUILT\_IN\_IDENTIFIER> ::= \ABSTRACT{}
+  \alt \AS{}
+  \alt \COVARIANT{}
+  \alt \DEFERRED{}
+  \alt \DYNAMIC{}
+  \alt \EXPORT{}
+  \alt \EXTERNAL{}
+  \alt \FACTORY{}
+  \alt \FUNCTION{}
+  \alt \GET{}
+  \alt \IMPLEMENTS{}
+  \alt \IMPORT{}
+  \alt \INTERFACE{}
+  \alt \LIBRARY{}
+  \alt \OPERATOR{}
+  \alt \MIXIN{}
+  \alt \PART{}
+  \alt \SET{}
+  \alt \STATIC{}
+  \alt \TYPEDEF{}
 
-{\bf IDENTIFIER\_START:}IDENTIFIER\_START\_NO\_DOLLAR;
-  `\$'
-  .
+<IDENTIFIER\_START> ::= <IDENTIFIER\_START\_NO\_DOLLAR>
+  \alt `$'
 
-{\bf IDENTIFIER\_START\_NO\_DOLLAR:}LETTER;
-  `\_'
-  .
+<IDENTIFIER\_START\_NO\_DOLLAR> ::= <LETTER>
+  \alt `_'
 
-{\bf IDENTIFIER\_PART\_NO\_DOLLAR:}IDENTIFIER\_START\_NO\_DOLLAR;
-  DIGIT
-  .
+<IDENTIFIER\_PART\_NO\_DOLLAR> ::= <IDENTIFIER\_START\_NO\_DOLLAR>
+  \alt <DIGIT>
 
-{\bf IDENTIFIER\_PART:}IDENTIFIER\_START;
-  DIGIT
-  .
+<IDENTIFIER\_PART> ::= <IDENTIFIER\_START>
+  \alt <DIGIT>
 
-{\bf qualified:}identifier (`{\escapegrammar .}' identifier)?
-  .
+<qualified> ::= <identifier> (`.' <identifier>)?
 \end{grammar}
 
 \LMHash{}
@@ -8067,7 +8047,7 @@ Furthermore, types should begin with an uppercase letter (see the appendix) and 
 }
 
 \LMHash{}
-It is a compile-time error if either of the identifiers \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
+It is a compile-time error if either of the identifiers \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \code{\ASYNC*} or \code{\SYNC*}.
 
 \rationale{
 For compatibility reasons, new constructs cannot rely upon new reserved words or even built-in identifiers.
@@ -8148,11 +8128,9 @@ and there is no declaration $d$ with name \id{} in the lexical scope enclosing t
 The {\em is-expression} tests if an object is a member of a type.
 
 \begin{grammar}
-{\bf typeTest:}isOperator type
-  .
+<typeTest> ::= <isOperator> <type>
 
-{\bf isOperator:}\IS{} `!'?
-  .
+<isOperator> ::= \IS{} `!'?
 \end{grammar}
 
 \LMHash{}
@@ -8208,11 +8186,9 @@ The static type of an is-expression is \code{bool}.
 The {\em cast expression} ensures that an object is a member of a type.
 
 \begin{grammar}
-{\bf typeCast:}asOperator type
-  .
+<typeCast> ::= <asOperator> <type>
 
-{\bf asOperator:}\AS{}
-  .
+<asOperator> ::= \AS{}
 \end{grammar}
 
 \LMHash{}
@@ -8264,30 +8240,27 @@ Likewise, if evaluation of the expression of a \RETURN{} statement throws, so do
 \LMHash{}
 
 \begin{grammar}
-{\bf statements:}statement*
-  .
+<statements> ::= <statement>*
 
-{\bf statement:}label* nonLabelledStatement
-  .
+<statement> ::= <label>* <nonLabelledStatement>
 
-{\bf nonLabelledStatement:}block;
-  localVariableDeclaration;
-  forStatement;
-  whileStatement;
-  doStatement;
-  switchStatement;
-  ifStatement;
-  rethrowStatement;
-  tryStatement;
-  breakStatement;
-  continueStatement;
-  returnStatement;
-  yieldStatement;
-  yieldEachStatement;
-  expressionStatement;
-  assertStatement;
-  localFunctionDeclaration
-  .
+<nonLabelledStatement> ::= <block>
+  \alt <localVariableDeclaration>
+  \alt <forStatement>
+  \alt <whileStatement>
+  \alt <doStatement>
+  \alt <switchStatement>
+  \alt <ifStatement>
+  \alt <rethrowStatement>
+  \alt <tryStatement>
+  \alt <breakStatement>
+  \alt <continueStatement>
+  \alt <returnStatement>
+  \alt <yieldStatement>
+  \alt <yieldEachStatement>
+  \alt <expressionStatement>
+  \alt <assertStatement>
+  \alt <localFunctionDeclaration>
 \end{grammar}
 
 
@@ -8312,23 +8285,22 @@ A block statement introduces a new scope, which is nested in the lexically enclo
 
 \LMHash{}
 An {\em expression statement} consists of an expression that does not
-begin with a \{ character.
+begin with a \syntax{`{'} character.
 
 \begin{grammar}
-{\bf expressionStatement:}expression? `{\escapegrammar ;}'
-  .
+<expressionStatement> ::= <expression>? `;'
 \end{grammar}
 
 \LMHash{}
-The expression of an expression statement is not allowed to begin with a \{.
+The expression of an expression statement is not allowed to begin with a \syntax{`\{'}.
 \commentary{
 This means that if some source text could otherwise be parsed as an expression
-followed by a {\rm `$;$'}, then this grammar production does not apply
-when the expression starts with a \{.
+followed by a \syntax{`;'}, then this grammar production does not apply
+when the expression starts with a \syntax{`\{'}.
 }
 \rationale{
 The restriction resolves an ambiguity while parsing where a
-\{ can start either a block (\ref{blocks}) or a map literal (\ref{maps}).
+\syntax{`\{'} can start either a block (\ref{blocks}) or a map literal (\ref{maps}).
 By disallowing the latter from starting an expression statement,
 the parser does not need to look further ahead
 before deciding that it is parsing a block statement.
@@ -8349,8 +8321,7 @@ also known as a {\em local variable declaration},
 has the following form:
 
 \begin{grammar}
-{\bf localVariableDeclaration:}initializedVariableDeclaration `{\escapegrammar ;}'
-  .
+<localVariableDeclaration> ::= <initializedVariableDeclaration> `;'
 \end{grammar}
 
 \LMHash{}
@@ -8419,14 +8390,14 @@ and another `\code{x}' is declared inside the function `\code{f}'.
 
 \begin{dartCode}
 \VAR{} x = 0;
-
+\\
 f(y) \{
-  \VAR{} z = x; // compile-time error
+  \VAR{} z = x; // \comment{compile-time error}
   if (y) \{
-    x = x + 1; // two compile-time errors
-    print(x); // compile-time error
+    x = x + 1; // \comment{two compile-time errors}
+    print(x); // \comment{compile-time error}
   \}
-  \VAR{} x = x++; // compile-time error
+  \VAR{} x = x++; // \comment{compile-time error}
   print(x);
 \}
 \end{dartCode}
@@ -8467,8 +8438,8 @@ single namespace for types, functions and variables.
 \begin{dartCode}
 \CLASS{} C \{\}
 perverse() \{
-   \VAR{} v = \NEW{} C(); // compile-time error
-   C aC; // compile-time error
+   \VAR{} v = \NEW{} C(); // \comment{compile-time error}
+   C aC; // \comment{compile-time error}
    \VAR{} C = 10;
 \}
 \end{dartCode}
@@ -8510,8 +8481,7 @@ of $v$.
 A function declaration statement declares a new local function (\ref{functionDeclarations}).
 
 \begin{grammar}
-{\bf localFunctionDeclaration:}functionSignature functionBody
-  .
+<localFunctionDeclaration> ::= <functionSignature> <functionBody>
 \end{grammar}
 
 \LMHash{}
@@ -8528,19 +8498,20 @@ Consider these examples:
 }
 
 \begin{dartCode}
-f(x) => x++; // a top level function
-top() \{ // another top level function
-  f(3); // illegal
-  f(x) => x > 0? x*f(x-1): 1; // recursion is legal
-  g1(x) => h(x, 1); // error: h is not declared yet
-  h(x, n) => x > 1? h(x-1, n*x): n; // again, recursion is fine
-  g2(x) => h(x, 1); // legal
-
-  p1(x) => q(x,x); // illegal
-  q1(a, b)$ =>$ a > 0 ? p1(a-1): b; // fine
-
-  q2(a, b) => a > 0 ? p2(a-1): b; // illegal
-  p1(x) => q2(x,x); // fine
+f(x) => x++; // \comment{a top level function}
+\\
+top() \{ // \comment{another top level function}
+  f(3); // \comment{illegal}
+  f(x) => x > 0? x*f(x-1): 1; // \comment{recursion is legal}
+  g1(x) => h(x, 1); // \comment{error: h is not declared yet}
+  h(x, n) => x > 1? h(x-1, n*x): n; // \comment{again, recursion is fine}
+  g2(x) => h(x, 1); // \comment{legal}
+\\
+  p1(x) => q(x,x); // \comment{illegal}
+  q1(a, b)$ =>$ a > 0 ? p1(a-1): b; // \comment{fine}
+\\
+  q2(a, b) => a > 0 ? p2(a-1): b; // \comment{illegal}
+  p1(x) => q2(x,x); // \comment{fine}
 \}
 \end{dartCode}
 
@@ -8553,7 +8524,7 @@ then assigning them appropriate function literals:
 }
 
 \begin{dartCode}
-top2() \{ // a top level function
+top2() \{ // \comment{a top level function}
   \VAR{} p, q;
   p = (x) => q(x,x);
   q = (a, b) => a > 0 ? p(a-1): b;
@@ -8574,15 +8545,17 @@ It therefore makes sense to harmonize the rules for local functions with those f
 The {\em if statement} allows for conditional execution of statements.
 
 \begin{grammar}
-{\bf ifStatement:}\IF{} `(' expression `)' statement ( \ELSE{} statement)?
-  .
+<ifStatement> ::= \IF{} `(' <expression> `)' <statement> (\ELSE{} <statement>)?
 \end{grammar}
+
+\LMHash{}
 An if statement of the form \code{\IF{} ($e$) $s_1$ \ELSE{} $s_2$} where $s_1$ is not a block statement is equivalent to the statement \code{\IF{} ($e$) \{$s_1$\} \ELSE{} $s_2$}.
 An if statement of the form \code{\IF{} ($e$) $s_1$ \ELSE{} $s_2$} where $s_2$ is not a block statement is equivalent to the statement \code{\IF{} ($e$) $s_1$ \ELSE{} \{$s_2$\}}.
 
 \rationale{
 The reason for this equivalence is to catch errors such as
 }
+
 \begin{dartCode}
 \VOID{} main() \{
   \IF{} (somePredicate)
@@ -8634,17 +8607,14 @@ An if statement of the form \code{\IF{} ($e$) $s$} is equivalent to the if state
 The {\em for statement} supports iteration.
 
 \begin{grammar}
-{\bf forStatement:}\AWAIT? \FOR{} `(' forLoopParts `)' statement
-  .
+<forStatement> ::= \AWAIT? \FOR{} `(' <forLoopParts> `)' <statement>
 
-{\bf forLoopParts:}forInitializerStatement expression? `{\escapegrammar ;}' expressionList?;
-  declaredIdentifier \IN{} expression;
-  identifier \IN{} expression
-  .
+<forLoopParts> ::= <forInitializerStatement> <expression>? `;' <expressionList>?
+  \alt <declaredIdentifier> \IN{} <expression>
+  \alt <identifier> \IN{} <expression>
 
-{\bf forInitializerStatement:}localVariableDeclaration;
-  expression? `{\escapegrammar ;}'
-  .
+<forInitializerStatement> ::= <localVariableDeclaration>
+  \alt <expression>? `;'
 \end{grammar}
 
 \LMHash{}
@@ -8721,7 +8691,7 @@ It is a compile-time error if the static type of $c$ may not be assigned to \cod
 \LMLabel{for-in}
 
 \LMHash{}
-Let $D$ be derived from \code{finalConstVarOrType?}
+Let $D$ be derived from \syntax{<finalConstVarOrType>?}
 and let $n0$ be an identifier that does not occur anywhere in the program.
 A for statement of the form \code{\FOR{} ($D$ \id{} \IN{} $e$) $s$} is equivalent to the following code:
 
@@ -8751,7 +8721,7 @@ The asynchronous form is designed to iterate over streams.
 An asynchronous for loop is distinguished by the keyword \AWAIT{} immediately preceding the keyword \FOR.
 
 \LMHash{}
-Let $D$ be derived from \code{finalConstVarOrType?}.
+Let $D$ be derived from \syntax{<finalConstVarOrType>?}.
 Execution of a for-in statement, $f$, of the form
 \code{\AWAIT{} \FOR{} ($D$ \id{} \IN{} $e$) $s$}
 proceeds as follows:
@@ -8835,8 +8805,7 @@ An asynchronous loop would make no sense within a synchronous function, for the 
 The while statement supports conditional iteration, where the condition is evaluated prior to the loop.
 
 \begin{grammar}
-{\bf whileStatement:}\WHILE{} `(' expression `)' statement
-  .
+<whileStatement> ::= \WHILE{} `(' <expression> `)' <statement>
 \end{grammar}
 
 \LMHash{}
@@ -8869,8 +8838,7 @@ It is a compile-time error if the static type of $e$ may not be assigned to \cod
 The do statement supports conditional iteration, where the condition is evaluated after the loop.
 
 \begin{grammar}
-{\bf doStatement:}\DO{} statement \WHILE{} `(' expression `)' `{\escapegrammar ;}'
-  .
+<doStatement> ::= \DO{} <statement> \WHILE{} `(' <expression> `)' `;'
 \end{grammar}
 
 \LMHash{}
@@ -8897,14 +8865,11 @@ It is a compile-time error if the static type of $e$ may not be assigned to \cod
 The {\em switch statement} supports dispatching control among a large number of cases.
 
 \begin{grammar}
-{\bf switchStatement:}\SWITCH{} `(' expression `)' `\{' switchCase* defaultCase? `\}'
-  .
+<switchStatement> ::= \SWITCH{} `(' <expression> `)' `{' <switchCase>* <defaultCase>? `}'
 
-{\bf switchCase:}label* \CASE{} expression `{\escapegrammar :}' statements
-  .
+<switchCase> ::= <label>* \CASE{} <expression> `:' <statements>
 
-{\bf defaultCase:}label* \DEFAULT{} `{\escapegrammar :}' statements
-  .
+<defaultCase> ::= <label>* \DEFAULT{} `:' <statements>
 \end{grammar}
 
 \LMHash{}
@@ -9143,8 +9108,7 @@ If execution of $\{s_h\}$ completes in any other way, execution of the \SWITCH{}
 The {\em rethrow statement} is used to re-throw an exception and its associated stack trace.
 
 \begin{grammar}
-{\bf rethrowStatement:}\RETHROW{} `{\escapegrammar ;}'
-  .
+<rethrowStatement> ::= \RETHROW{} `;'
 \end{grammar}
 
 \LMHash{}
@@ -9172,18 +9136,14 @@ It is a compile-time error if a \code{\RETHROW{}} statement is not enclosed with
 The try statement supports the definition of exception handling code in a structured way.
 
 \begin{grammar}
-{\bf tryStatement:}\TRY{} block (onPart+ finallyPart? $|$ finallyPart)
-  .
+<tryStatement> ::= \TRY{} <block> (<onPart>+ <finallyPart>? | <finallyPart>)
 
-{\bf onPart:}catchPart block;
-  \ON{} type catchPart? block
-  .
+<onPart> ::= <catchPart> <block>
+  \alt \ON{} <type> <catchPart>? <block>
 
-{\bf catchPart:}\CATCH{} `(' identifier (\gcomma{} identifier)? `)'
-  .
+<catchPart> ::= \CATCH{} `(' <identifier> (`,' <identifier>)? `)'
 
-{\bf finallyPart:}\FINALLY{} block
-  .
+<finallyPart> ::= \FINALLY{} <block>
 \end{grammar}
 
 \LMHash{}
@@ -9221,6 +9181,7 @@ The static type of $p_1$ is $T$ and the static type of $p_2$ is \code{StackTrace
 
 \LMHash{}
 Execution of a \TRY{} statement $s$ of the form:
+
 \begin{dartCode}
 \TRY{} $b$
 \ON{} $T_1$ \CATCH{} ($e_1$, $t_1$) $c_1$
@@ -9251,6 +9212,7 @@ It is a compile-time error if $T_i$, $1 \le i \le n$ is a deferred or malformed 
 
 \LMHash{}
 Matching an exception object $e$ and stack trace $t$ against a (potentially empty) sequence of \ON{}-\CATCH{} clauses of the form
+
 \begin{dartCode}
 \ON{} $T_1$ \CATCH{} ($e_1$, $st_1$) \{ $s_1$ \}
 \ldots
@@ -9270,6 +9232,7 @@ The matching completes in the same way as this execution.
 
 \LMHash{}
 Otherwise, if the first clause did not match $e$, $e$ and $t$ are recursively matched against the remaining \ON{}-\CATCH{} clauses:
+
 \begin{dartCode}
 \ON{} $T_2$ \CATCH{} ($e_2$, $t_2$) \{ $s_2$ \}
 \ldots
@@ -9286,8 +9249,7 @@ completes the future associated with an asynchronous function,
 or terminates the stream or iterable associated with a generator (\ref{functions}).
 
 \begin{grammar}
-{\bf returnStatement:}\RETURN{} expression? `{\escapegrammar ;}'
-  .
+<returnStatement> ::= \RETURN{} <expression>? `;'
 \end{grammar}
 
 \LMHash{}
@@ -9422,8 +9384,7 @@ The sole role of labels is to provide targets for the break (\ref{break}) and co
 }
 
 \begin{grammar}
-{\bf label:}identifier `{\escapegrammar :}'
-  .
+<label> ::= <identifier> `:'
 \end{grammar}
 
 \LMHash{}
@@ -9452,8 +9413,7 @@ The motivation for including labels in the language is primarily making Dart a b
 The {\em break statement} consists of the reserved word \BREAK{} and an optional label (\ref{labels}).
 
 \begin{grammar}
-{\bf breakStatement:}\BREAK{} identifier? `{\escapegrammar ;}'
-  .
+<breakStatement> ::= \BREAK{} <identifier>? `;'
 \end{grammar}
 
 \LMHash{}
@@ -9479,8 +9439,7 @@ Execution of a \BREAK{} statement \code{\BREAK{};} breaks without a label (\ref{
 The {\em continue statement} consists of the reserved word \CONTINUE{} and an optional label (\ref{labels}).
 
 \begin{grammar}
-{\bf continueStatement:}\CONTINUE{} identifier? `{\escapegrammar ;}'
-  .
+<continueStatement> ::= \CONTINUE{} <identifier>? `;'
 \end{grammar}
 
 \LMHash{}
@@ -9513,8 +9472,7 @@ Execution of a \CONTINUE{} statement \code{\CONTINUE{};} continues without a lab
 The {\em yield statement} adds an element to the result of a generator function (\ref{functions}).
 
 \begin{grammar}
-{\bf yieldStatement:}\YIELD{} expression `{\escapegrammar ;}'
-  .
+<yieldStatement> ::= \YIELD{} <expression> `;'
 \end{grammar}
 
 \LMHash{}
@@ -9522,13 +9480,13 @@ Execution of a statement $s$ of the form \code{\YIELD{} $e$;} proceeds as follow
 
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
-If the enclosing function $m$ is marked \ASYNC* (\ref{functions}) and the stream $u$ associated with $m$ has been paused, then the nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused and execution of $m$ is suspended until $u$ is resumed or canceled.
+If the enclosing function $m$ is marked \code{\ASYNC*} (\ref{functions}) and the stream $u$ associated with $m$ has been paused, then the nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused and execution of $m$ is suspended until $u$ is resumed or canceled.
 
 \LMHash{}
 Next, $o$ is added to the iterable or stream associated with the immediately enclosing function.
 
 \LMHash{}
-If the enclosing function $m$ is marked \ASYNC* and the stream $u$ associated with $m$ has been canceled, then the \YIELD{} statement returns without a value (\ref{completion}), otherwise it completes normally.
+If the enclosing function $m$ is marked \code{\ASYNC*} and the stream $u$ associated with $m$ has been canceled, then the \YIELD{} statement returns without a value (\ref{completion}), otherwise it completes normally.
 
 \rationale{
 The stream associated with an asynchronous generator could be canceled by any code with a reference to that stream at any point where the generator was passivated.
@@ -9537,7 +9495,7 @@ At this point, the only plausible action for the generator is to clean up after 
 }
 
 \LMHash{}
-Otherwise, if the enclosing function $m$ is marked \ASYNC* (\ref{functions}) then the enclosing function may suspend, in which case the nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused first.
+Otherwise, if the enclosing function $m$ is marked \code{\ASYNC*} (\ref{functions}) then the enclosing function may suspend, in which case the nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused first.
 
 \rationale{
 If a \YIELD{} occurred inside an infinite loop and the enclosing function never suspended, there might not be an opportunity for consumers of the enclosing stream to run and access the data in the stream.
@@ -9550,7 +9508,7 @@ The only requirement is that consumers are not blocked indefinitely.
 }
 
 \LMHash{}
-If the enclosing function $m$ is marked \SYNC* (\ref{functions}) then:
+If the enclosing function $m$ is marked \code{\SYNC*} (\ref{functions}) then:
 \begin{itemize}
 \item
 Execution of the function $m$ immediately enclosing $s$ is suspended until the nullary method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$.
@@ -9566,9 +9524,9 @@ Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing funct
 It is a compile-time error if either:
 \begin{itemize}
 \item
-the body of $f$ is marked \ASYNC* and the type \code{Stream<T>} may not be assigned to the declared return type of $f$.
+the body of $f$ is marked \code{\ASYNC*} and the type \code{Stream<T>} may not be assigned to the declared return type of $f$.
 \item
-the body of $f$ is marked \SYNC* and the type \code{Iterable<T>} may not be assigned to the declared return type of $f$.
+the body of $f$ is marked \code{\SYNC*} and the type \code{Iterable<T>} may not be assigned to the declared return type of $f$.
 \end{itemize}
 
 
@@ -9579,8 +9537,7 @@ the body of $f$ is marked \SYNC* and the type \code{Iterable<T>} may not be assi
 The {\em yield-each statement} adds a series of values to the result of a generator function (\ref{functions}).
 
 \begin{grammar}
-{\bf yieldEachStatement:}\YIELD* expression `{\escapegrammar ;}'
-  .
+<yieldEachStatement> ::= \YIELD{} `*' <expression> `;'
 \end{grammar}
 
 \LMHash{}
@@ -9590,7 +9547,7 @@ Execution of a statement $s$ of the form \code{\YIELD* $e$;} proceeds as follows
 First, the expression $e$ is evaluated to an object $o$.
 
 \LMHash{}
-If the immediately enclosing function $m$ is marked \SYNC* (\ref{functions}), then:
+If the immediately enclosing function $m$ is marked \code{\SYNC*} (\ref{functions}), then:
 \begin{enumerate}
 \item It is a dynamic error if the class of $o$ does not implement \code{Iterable}.
 Otherwise
@@ -9607,7 +9564,7 @@ The current call to \code{moveNext()} returns \TRUE.
 \end{enumerate}
 
 \LMHash{}
-If $m$ is marked \ASYNC* (\ref{functions}), then:
+If $m$ is marked \code{\ASYNC*} (\ref{functions}), then:
 \begin{itemize}
 \item It is a dynamic error if the class of $o$ does not implement \code{Stream}.
 Otherwise
@@ -9644,11 +9601,9 @@ If $f$ is asynchronous it is a compile-time error if $T$ may not be assigned to 
 An {\em assert statement} is used to disrupt normal execution if a given boolean condition does not hold.
 
 \begin{grammar}
-{\bf assertStatement:}assertion `{\escapegrammar ;}'
-  .
+<assertStatement> ::= <assertion> `;'
 
-{\bf assertion:}\ASSERT{} `(' expression (\gcomma{} expression )? \gcomma{}? `)'
-  .
+<assertion> ::= \ASSERT{} `(' <expression> (`,' <expression> )? `,'? `)'
 \end{grammar}
 
 \LMHash{}
@@ -9726,39 +9681,32 @@ A top-level declaration is either a class (\ref{classes}), a type alias declarat
 The members of a library $L$ are those top level declarations given within $L$.
 
 \begin{grammar}
-{\bf topLevelDefinition:}classDefinition;
-  enumType;
-  typeAlias;
-  \EXTERNAL{}? functionSignature `{\escapegrammar ;}';
-  \EXTERNAL{}? getterSignature `{\escapegrammar ;}';
-  \EXTERNAL{}? setterSignature `{\escapegrammar ;}';
-  functionSignature functionBody;
-  returnType? \GET{} identifier functionBody;
-  returnType? \SET{} identifier formalParameterList functionBody;
-  (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList `{\escapegrammar ;}';
-  variableDeclaration `{\escapegrammar ;}'
-  .
+<topLevelDefinition> ::= <classDefinition>
+  \alt <enumType>
+  \alt <typeAlias>
+  \alt \EXTERNAL{}? <functionSignature> `;'
+  \alt \EXTERNAL{}? <getterSignature> `;'
+  \alt \EXTERNAL{}? <setterSignature> `;'
+  \alt <functionSignature> <functionBody>
+  \alt <returnType>? \GET{} <identifier> <functionBody>
+  \alt <returnType>? \SET{} <identifier> <formalParameterList> <functionBody>
+  \alt (\FINAL{} | \CONST{}) <type> <staticFinalDeclarationList> `;'
+  \alt <variableDeclaration> `;'
 
-{\bf getOrSet:}\GET{};
-  \SET{}
-  .
+<getOrSet> ::= \GET{}
+  \alt \SET{}
 
-{\bf libraryDefinition:}scriptTag? libraryName? importOrExport* partDirective*
-  \gnewline{} topLevelDefinition*
-  .
+<libraryDefinition> ::= <scriptTag>? <libraryName>? <importOrExport>* <partDirective>*
+  \gnewline{} <topLevelDefinition>*
 
-{\bf scriptTag:}`\#!' {\escapegrammar (\~{}NEWLINE)*} NEWLINE
-  .
+<scriptTag> ::= `#!' (\~{}<NEWLINE>)* <NEWLINE>
 
-{\bf libraryName:}metadata \LIBRARY{} dottedIdentifierList `{\escapegrammar ;}'
-  .
+<libraryName> ::= <metadata> \LIBRARY{} <dottedIdentifierList> `;'
 
-{\bf importOrExport:}libraryImport;
-  libraryExport
-  .
+<importOrExport> ::= <libraryImport>
+  \alt <libraryExport>
 
-{\bf dottedIdentifierList:} identifier (`{\escapegrammar .}' identifier)*
-  .
+<dottedIdentifierList> ::= <identifier> (`.' <identifier>)*
 \end{grammar}
 
 \LMHash{}
@@ -9789,8 +9737,8 @@ A library may optionally begin with a {\em script tag}.
 Script tags are intended for use with scripts (\ref{scripts}).
 A script tag can be used to identify the interpreter of the script to whatever computing environment the script is embedded in.
 The script tag must appear before any whitespace or comments.
-A script tag begins with the characters \#! and ends at the end of the line.
-Any characters that follow \#! in the script tag are ignored by the Dart implementation.
+A script tag begins with \syntax{`#!'} and ends at the end of the line.
+Any characters that follow \syntax{`#!'} in the script tag are ignored by the Dart implementation.
 
 \LMHash{}
 Libraries are units of privacy.
@@ -9812,19 +9760,15 @@ The scope of a library $L$ consists of the names introduced by all top-level dec
 \LMHash{}
 An {\em import} specifies a library to be used in the scope of another library.
 \begin{grammar}
-{\bf libraryImport:}metadata importSpecification
-  .
+<libraryImport> ::= <metadata> <importSpecification>
 
-{\bf importSpecification:}\IMPORT{} configurableUri (\AS{} identifier)? combinator* `{\escapegrammar ;}';
-  \IMPORT{} uri \DEFERRED{} \AS{} identifier combinator* `{\escapegrammar ;}'
-  .
+<importSpecification> ::= \IMPORT{} <configurableUri> (\AS{} <identifier>)? <combinator>* `;'
+  \alt \IMPORT{} <uri> \DEFERRED{} \AS{} <identifier> <combinator>* `;'
 
-{\bf combinator:}\SHOW{} identifierList;
-  \HIDE{} identifierList
-  .
+<combinator> ::= \SHOW{} <identifierList>
+  \alt \HIDE{} <identifierList>
 
-{\bf identifierList:}identifier (, identifier)*
-  .
+<identifierList> ::= <identifier> (, <identifier>)*
 \end{grammar}
 
 \LMHash{}
@@ -10077,8 +10021,7 @@ A library $L$ exports a namespace (\ref{scoping}), meaning that the declarations
 The namespace that $L$ exports is known as its {\em exported namespace}.
 
 \begin{grammar}
-{\bf libraryExport:}metadata \EXPORT{} configurableUri combinator* `{\escapegrammar ;}'
-  .
+<libraryExport> ::= <metadata> \EXPORT{} <configurableUri> <combinator>* `;'
 \end{grammar}
 
 \LMHash{}
@@ -10155,14 +10098,11 @@ A library identifies its parts by listing them via \PART{} directives.
 A {\em part directive} specifies a URI where a Dart compilation unit that should be incorporated into the current library may be found.
 
 \begin{grammar}
-{\bf partDirective:}metadata \PART{} uri `{\escapegrammar ;}'
-  .
+<partDirective> ::= <metadata> \PART{} <uri> `;'
 
-{\bf partHeader:}metadata \PART{} \OF{} identifier (`{\escapegrammar .}' identifier)* `{\escapegrammar ;}'
-  .
+<partHeader> ::= <metadata> \PART{} \OF{} <identifier> (`.' <identifier>)* `;'
 
-{\bf partDeclaration:}partHeader topLevelDefinition* EOF
-  .
+<partDeclaration> ::= <partHeader> <topLevelDefinition>* <EOF>
 \end{grammar}
 
 \LMHash{}
@@ -10248,14 +10188,13 @@ in the future.}
 URIs are specified by means of string literals:
 
 \begin{grammar}
-{\bf uri:}stringLiteral
-  .
-{\bf configurableUri:} uri configurationUri*
-  .
-{\bf configurationUri:} \IF{} `(' uriTest `)' uri
-  .
-{\bf uriTest:} dottedIdentifierList (`==' stringLiteral)?
-  .
+<uri> ::= <stringLiteral>
+
+<configurableUri> ::= <uri> <configurationUri>*
+
+<configurationUri> ::= \IF{} `(' <uriTest> `)' <uri>
+
+<uriTest> ::= <dottedIdentifierList> (`==' <stringLiteral>)?
 \end{grammar}
 
 \LMHash{}
@@ -10344,17 +10283,13 @@ Static type annotations are used during static checking and when running program
 They have no effect whatsoever in production mode.
 
 \begin{grammar}
-{\bf type:}typeName typeArguments?
-  .
+<type> ::= <typeName> <typeArguments>?
 
-{\bf typeName:}qualified
-  .
+<typeName> ::= <qualified>
 
-{\bf typeArguments:}`<' typeList `>'
-  .
+<typeArguments> ::= `<' <typeList> `>'
 
-{\bf typeList:}type (\gcomma{} type)*
-  .
+<typeList> ::= <type> (`,' <type>)*
 \end{grammar}
 
 \LMHash{}
@@ -10563,17 +10498,13 @@ bool b = x is I;
 A {\em type alias} declares a name for a type expression.
 
 \begin{grammar}
-{\bf typeAlias:}metadata \TYPEDEF{} typeAliasBody
-  .
+<typeAlias> ::= <metadata> \TYPEDEF{} <typeAliasBody>
 
-{\bf typeAliasBody:}functionTypeAlias
-  .
+<typeAliasBody> ::= <functionTypeAlias>
 
-{\bf functionTypeAlias:}functionPrefix typeParameters? formalParameterList `{\escapegrammar ;}'
-  .
+<functionTypeAlias> ::= <functionPrefix> <typeParameters>? <formalParameterList> `;'
 
-{\bf functionPrefix:}returnType? identifier
-  .
+<functionPrefix> ::= <returnType>? <identifier>
 \end{grammar}
 
 % TODO(eernst): Introduce new type aliases and new function type syntax, then
@@ -10643,7 +10574,9 @@ Note that $<:$ is not a partial order on types, it is only binary relation on ty
 This is because $<:$ is not transitive.
 If it was, the subtype rule would have a cycle.
 For example:
-$List <: List<String>$ and $List<int> <: List$, but $List<int>$ is not a subtype of $List<String>$.
+\code{List $<:$ List<String>} and
+\code{List<int> $<:$ List}, but
+\code{List<int>} is not a subtype of \code{List<String>}.
 Although $<:$ is not a partial order on types, it does contain a partial order, namely $<<$.
 This means that, barring raw types, intuition about classical subtype rules does apply.
 }
@@ -10920,7 +10853,7 @@ An alternative is to consider them as meaning \code{Object}.
 This would lead to earlier error detection in checked mode, and more aggressive errors during static typechecking.
 For example:
 
-(1) \code{typedAPI(G\lt{String}\gt g)\{...\}}
+(1) \code{typedAPI(G<String> g)\{...\}}
 
 (2) \code{typedAPI(new G()); }
 
@@ -10928,7 +10861,7 @@ Under the alternative rules, (2) would cause a run-time error in checked mode.
 This seems desirable from the perspective of error localization.
 However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
 
-(3) \code{typedAPI(new G\lt{String}\gt());}
+(3) \code{typedAPI(new G<String>());}
 
 This forces users to write type information in their client code just because they are calling a typed API.
 We do not want to impose this on Dart programmers, some of which may be blissfully unaware of types in general, and genericity in particular.
@@ -10967,9 +10900,14 @@ type relations:
         then \code{FutureOr<$T$>} <: $S$.
         \commentary{In particular, \code{FutureOr<$T$>} <: \code{Object}.}
 \end{itemize}.
-\commentary{The last point guarantees that generic type \code{FutureOr} is
+
+\commentary{
+The last point guarantees that generic type \code{FutureOr} is
 {\em covariant} in its type parameter, just like class types.
-That is, if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.}
+That is, if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.
+}
+
+\LMHash{}
 If the type arguments passed to \code{FutureOr} would incur compile-time errors
 if applied to a normal generic class with one type parameter,
 the same compile-time errors are issued for \code{FutureOr}.
@@ -10988,15 +10926,17 @@ to provide a more precise type analysis.
 \LMHash{}
 The type \code{FutureOr<$T$>} has an interface that is identical to that
 of \code{Object}.
+
 \commentary{
 The only members that can be invoked on a value with static type
 \code{FutureOr<$T$>} are members that are also on \code{Object}.
 }
+
 \rationale{
 We only want to allow invocations of members that are inherited from
 a common supertype of both $T$ and \code{Future<$T$>}.
 In most cases the only common supertype is \code{Object}. The exceptions, like
-\code{FutureOr<Future<Object>>} which has \code{Future<Object>} as common
+\code{FutureOr<Future<Object\gtgt} which has \code{Future<Object>} as common
 supertype, are few and not practically useful, so for now we choose to
 only allow invocations of members inherited from \code{Object}.
 }
@@ -11277,15 +11217,12 @@ A {\em reserved word} may not be used as an identifier; it is a compile-time err
 \ASSERT{}, \BREAK{}, \CASE{}, \CATCH{}, \CLASS{}, \CONST{}, \CONTINUE{}, \DEFAULT{}, \DO{}, \ELSE{}, \ENUM{}, \EXTENDS{}, \FALSE{}, \FINAL{}, \FINALLY{}, \FOR{}, \IF{}, \IN{}, \IS{}, \NEW{}, \NULL{}, \RETHROW, \RETURN{}, \SUPER{}, \SWITCH{}, \THIS{}, \THROW{}, \TRUE{}, \TRY{}, \VAR{}, \VOID{}, \WHILE{}, \WITH{}.
 
 \begin{grammar}
-{\bf LETTER:}`a' {\escapegrammar ..} `z';
-  `A' {\escapegrammar ..}`Z'
-  .
+<LETTER> ::= `a' .. `z'
+  \alt `A' .. `Z'
 
-{\bf DIGIT:}`0' {\escapegrammar ..} `9'
-  .
+<DIGIT> ::= `0' .. `9'
 
-{\bf WHITESPACE:}(`$\backslash$t' $|$ ` ' $|$ NEWLINE)+
-  .
+<WHITESPACE> ::= (`\\t' | ` ' | <NEWLINE>)+
 \end{grammar}
 
 
@@ -11296,11 +11233,9 @@ A {\em reserved word} may not be used as an identifier; it is a compile-time err
 {\em Comments} are sections of program text that are used for documentation.
 
 \begin{grammar}
-{\bf SINGLE\_LINE\_COMMENT:}`//' \~{}(NEWLINE)* (NEWLINE)?
-  .
+<SINGLE\_LINE\_COMMENT> ::= `//' \~{}(<NEWLINE>)* (<NEWLINE>)?
 
-{\bf MULTI\_LINE\_COMMENT:}`/*' (MULTI\_LINE\_COMMENT $|$ \~{} `*/')* `*/'
-  .
+<MULTI\_LINE\_COMMENT> ::= `/*' (<MULTI\_LINE\_COMMENT> | \~{} `*/')* `*/'
 \end{grammar}
 
 \LMHash{}
@@ -11338,37 +11273,38 @@ The following non-normative table may be helpful
 \hline
 Description & Operator & Associativity & Precedence \\
 \hline
-Unary postfix & ., ?., e++, e--, e1[e2], e1() , () & None & 16 \\
+Unary postfix & \code{$e$.}, \code{$e$?.}, \code{$e$++}, \code{$e$-{}-}, \code{$e1$[$e2$]},
+\code{$e$()} & None & 16 \\
 \hline
-Unary prefix & -e, !e, \~{}e, ++e, --e & None & 15\\
+Unary prefix & \code{-$e$}, \code{!$e$}, \code{\~{}$e$}, \code{++$e$}, \code{-{}-$e$} & None & 15\\
 \hline
-Multiplicative & *, /, \~/, \% & Left & 14\\
+Multiplicative & \code{*}, \code{/}, \code{\~{}/}, \code{\%} & Left & 14\\
 \hline
-Additive & +, - & Left & 13\\
+Additive & \code{+}, \code{-} & Left & 13\\
 \hline
-Shift & $<<$, $>>$, $>>>$& Left & 12\\
+Shift & \code{\ltlt}, \code{\gtgt}, \code{\gtgtgt} & Left & 12\\
 \hline
-Bitwise AND & \& & Left & 11\\
+Bitwise AND & \code{\&} & Left & 11\\
 \hline
-Bitwise XOR & \^{} & Left & 10\\
+Bitwise XOR & \code{\^{}} & Left & 10\\
 \hline
-Bitwise Or & $|$ & Left & 9\\
+Bitwise Or & \code{|} & Left & 9\\
 \hline
-Relational & <, >, $<=$, $>=$, \AS{}, \IS{}, \IS{}! & None & 8\\
+Relational & \code{<}, \code{>}, \code{<=}, \code{>=}, \AS{}, \IS{}, \code{\IS{}!} & None & 8\\
 \hline
-Equality & ==, != & None & 7\\
+Equality & \code{==}, \code{!=} & None & 7\\
 \hline
-Logical AND & \&\& & Left & 6\\
+Logical AND & \code{\&\&} & Left & 6\\
 \hline
-Logical Or & $||$ & Left & 5\\
+Logical Or & \code{||} & Left & 5\\
 \hline
-If-null & ?? & Left & 4\\
+If-null & \code{??} & Left & 4\\
 \hline
-Conditional & e1? e2: e3 & Right & 3\\
+Conditional & \code{$e1$\,?\,$e2$\,:\,$e3$} & Right & 3\\
 \hline
-Cascade & .. & Left & 2\\
+Cascade & \code{..} & Left & 2\\
 \hline
-Assignment & =, *=, /=, +=, -= ,\&=, \^{}= etc. & Right & 1\\
+Assignment & \code{=}, \code{*=}, \code{/=}, \code{+=}, \code{-=}, \code{\&=}, \code{\^{}=}, etc. & Right & 1\\
 \hline
 \end{tabular}
 }
