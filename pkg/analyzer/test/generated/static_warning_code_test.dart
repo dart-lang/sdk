@@ -1389,6 +1389,17 @@ void main() {
     assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
   }
 
+  test_generalizedVoid_negateVoidValueError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  !x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
   test_generalizedVoid_throwVoidValueError() async {
     Source source = addSource(r'''
 void main() {
@@ -1398,6 +1409,21 @@ void main() {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_unaryNegativeVoidValueError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  -x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      StaticWarningCode.USE_OF_VOID_RESULT,
+      // TODO(mfairhurst) suppress UNDEFINED_OPERATOR
+      StaticTypeWarningCode.UNDEFINED_OPERATOR
+    ]);
   }
 
   test_generalizedVoid_useOfInForeachIterableError() async {

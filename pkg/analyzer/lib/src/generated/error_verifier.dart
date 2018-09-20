@@ -1101,6 +1101,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAssignmentToFinal(operand);
     }
     _checkForIntNotAssignable(operand);
+    _checkForUseOfVoidResult(operand);
     return super.visitPrefixExpression(node);
   }
 
