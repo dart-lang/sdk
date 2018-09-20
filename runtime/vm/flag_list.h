@@ -65,6 +65,9 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
     "The number of tasks to use for parallel compaction.")                     \
+  P(compilation_counter_threshold, int, 10,                                    \
+    "Function's usage-counter value before interpreted function is compiled, " \
+    "-1 means never")                                                          \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \

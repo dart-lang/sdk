@@ -1303,10 +1303,8 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
 }
 
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
-  if (function().is_native()) {
-    // Use default flow graph builder for native methods.
-    return nullptr;
-  }
+  // Use default flow graph builder for native methods.
+  ASSERT(!function().is_native());
 
   const Code& bytecode = Code::Handle(Z, function().Bytecode());
 

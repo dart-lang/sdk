@@ -3991,7 +3991,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  if ((compiler->is_optimizing() || FLAG_use_bytecode_compiler) &&
+  if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
       HasICData()) {
     ASSERT(HasICData());
     if (ic_data()->NumberOfUsedChecks() > 0) {

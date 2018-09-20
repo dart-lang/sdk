@@ -2147,9 +2147,15 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   ASSERT(!function.IsNull());
-  ASSERT(function.HasCode());
 
-  if (Compiler::CanOptimizeFunction(thread, function)) {
+  // If running with interpreter, do the unoptimized compilation first.
+  const bool unoptimized_compilation =
+      FLAG_enable_interpreter && !function.WasCompiled();
+
+  ASSERT(unoptimized_compilation || function.HasCode());
+
+  if (unoptimized_compilation ||
+      Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {

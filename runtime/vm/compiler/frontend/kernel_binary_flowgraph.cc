@@ -1909,7 +1909,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   SetOffset(kernel_offset);
 
-  if (FLAG_use_bytecode_compiler && function.IsBytecodeAllowed(Z)) {
+  if ((FLAG_use_bytecode_compiler || FLAG_enable_interpreter) &&
+      function.IsBytecodeAllowed(Z) && !function.is_native()) {
     if (!function.HasBytecode()) {
       bytecode_metadata_helper_.ReadMetadata(function);
     }
@@ -1918,9 +1919,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));
       FlowGraph* flow_graph = bytecode_compiler.BuildGraph();
-      if (flow_graph != nullptr) {
-        return flow_graph;
-      }
+      ASSERT(flow_graph != nullptr);
+      return flow_graph;
     }
   }
 

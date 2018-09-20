@@ -5986,6 +5986,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
 
 void Function::AttachBytecode(const Code& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
   // Finish setting up code before activating it.
   value.set_owner(*this);
   StorePointer(&raw_ptr()->bytecode_, value.raw());
@@ -5993,7 +5994,7 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  if (!FLAG_use_bytecode_compiler) {
+  if (FLAG_enable_interpreter) {
     // Set the code entry_point to InterpretCall stub.
     SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
   }
@@ -6099,7 +6100,7 @@ void Function::set_unoptimized_code(const Code& value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 #endif

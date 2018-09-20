@@ -136,12 +136,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   }
 #endif
 
-  if (FLAG_use_bytecode_compiler) {
-    // Interpreter is not able to trigger compilation yet.
-    // TODO(alexmarkov): Revise
-    FLAG_enable_interpreter = false;
-  }
-
   if (FLAG_enable_interpreter) {
 #if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
     return strdup(

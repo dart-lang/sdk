@@ -112,6 +112,9 @@ class Compiler : public AllStatic {
                                          const Function& function);
 
   // Generates optimized code for function.
+  // If interpreter is used and function was not compiled yet, then
+  // generates unoptimized code (it's basically the first round of
+  // optimization).
   //
   // Returns the code object if compilation succeeds.  Returns an Error if
   // there is a compilation error.  If optimization fails, but there is no
