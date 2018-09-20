@@ -12466,7 +12466,8 @@ static RawObject* EvaluateCompiledExpressionHelper(
 
   const Function& callee = Function::Cast(result);
 
-  if (type_definitions.Length() == 0) {
+  // type_arguments is null if all type arguments are dynamic.
+  if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
     return DartEntry::InvokeFunction(callee, arguments);
   }
 
