@@ -303,9 +303,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode = userCodeOld;
       }
 
+      Map<Uri, Source> optionalUriToSource = context.options.embedSourceText
+          ? uriToSource
+          : uriToSource.map((uri, source) => MapEntry<Uri, Source>(
+              uri, new Source(source.lineStarts, const <int>[])));
       // This is the incremental component.
-      return context.options.target.configureComponent(
-          new Component(libraries: outputLibraries, uriToSource: uriToSource))
+      return context.options.target.configureComponent(new Component(
+          libraries: outputLibraries, uriToSource: optionalUriToSource))
         ..mainMethod = mainMethod;
     });
   }
