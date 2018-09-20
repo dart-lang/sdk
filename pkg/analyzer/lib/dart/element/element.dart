@@ -267,14 +267,6 @@ abstract class ClassElement
   PropertyAccessorElement getSetter(String name);
 
   /**
-   * Determine whether the given [constructor], which exists in the superclass
-   * of this class, is accessible to constructors in this class.
-   *
-   * TODO(scheglov) Remove this.
-   */
-  bool isSuperConstructorAccessible(ConstructorElement constructor);
-
-  /**
    * Return the element representing the method that results from looking up the
    * given [methodName] in this class with respect to the given [library],
    * ignoring abstract methods, or `null` if the look up fails. The behavior of

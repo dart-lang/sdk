@@ -1022,11 +1022,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       getNamedConstructorFromList(name, constructors);
 
   @override
-  bool isSuperConstructorAccessible(ConstructorElement constructor) {
-    return constructor.isAccessibleIn(library);
-  }
-
-  @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(constructors, visitor);
@@ -1052,12 +1047,9 @@ class ClassElementImpl extends AbstractClassElementImpl
       assert(false);
       constructorsToForward = <ConstructorElement>[];
     } else if (!supertype.element.isMixinApplication) {
-      List<ConstructorElement> superclassConstructors =
-          supertype.element.constructors;
-      // Filter out any constructors with optional parameters (see
-      // dartbug.com/15101).
-      constructorsToForward =
-          superclassConstructors.where(isSuperConstructorAccessible);
+      var library = this.library;
+      constructorsToForward = supertype.element.constructors
+          .where((constructor) => constructor.isAccessibleIn(library));
     } else {
       if (visitedClasses == null) {
         visitedClasses = <ClassElementImpl>[this];
@@ -3755,9 +3747,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   ConstructorElement getNamedConstructor(String name) => null;
-
-  @override
-  bool isSuperConstructorAccessible(ConstructorElement constructor) => false;
 
   void _resynthesizeMembers() {
     List<FieldElementImpl> fields = <FieldElementImpl>[];

@@ -4496,9 +4496,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             [superUnnamedConstructor]);
         return;
       }
-      if (superUnnamedConstructor.isDefaultConstructor &&
-          _enclosingClass
-              .isSuperConstructorAccessible(superUnnamedConstructor)) {
+      if (superUnnamedConstructor.isDefaultConstructor) {
         return;
       }
     }
@@ -5505,9 +5503,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
             constructor.returnType,
             [superUnnamedConstructor]);
-      } else if (!superUnnamedConstructor.isDefaultConstructor ||
-          !_enclosingClass
-              .isSuperConstructorAccessible(superUnnamedConstructor)) {
+      } else if (!superUnnamedConstructor.isDefaultConstructor) {
         Identifier returnType = constructor.returnType;
         SimpleIdentifier name = constructor.name;
         int offset = returnType.offset;
