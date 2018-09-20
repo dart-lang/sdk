@@ -559,7 +559,7 @@ class ProgramCompiler extends Object
     _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
-    if (!isMixinDeclaration(c)) {
+    if (!c.isMixinDeclaration) {
       _defineExtensionMembers(className, body);
     }
     _emitClassMetadata(c.annotations, className, body);
@@ -863,7 +863,7 @@ class ProgramCompiler extends Object
       baseClass = mixinId;
     }
 
-    if (isMixinDeclaration(c)) {
+    if (c.isMixinDeclaration) {
       _emitMixinStatement(c, className, baseClass, methods, body);
     } else {
       body.add(_emitClassStatement(c, className, baseClass, methods));

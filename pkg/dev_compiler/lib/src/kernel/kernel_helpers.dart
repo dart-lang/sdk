@@ -234,6 +234,3 @@ Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   }
   return sc;
 }
-
-// TODO(jmesserly): replace with a flag on Class once Kernel supports it.
-bool isMixinDeclaration(Class c) => false;

@@ -222,7 +222,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaM(), CBaM_2()]) {
+    for (dynamic o in [CBaM(), CBaM_2()]) {
       Expect.type<B>(o);
       Expect.type<M>(o);
       Expect.equals("?&M", "$o");
@@ -241,7 +241,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaMO(), CBaMO_2()]) {
+    for (dynamic o in [CBaMO(), CBaMO_2()]) {
       Expect.type<B>(o);
       Expect.type<MO>(o);
       Expect.equals("B&MO", "$o");
@@ -288,7 +288,7 @@ void main() {
   }
 
   {
-    for (var o in [CBaMA(), CBaMA_2()]) {
+    for (dynamic o in [CBaMA(), CBaMA_2()]) {
       Expect.type<B>(o);
       Expect.type<MA>(o);
       Expect.equals("B&MA", "$o");
