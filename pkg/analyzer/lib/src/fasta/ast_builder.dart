@@ -2814,6 +2814,11 @@ class AstBuilder extends StackListener {
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
   }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
+  }
 }
 
 /// Data structure placed on the stack to represent the default parameter

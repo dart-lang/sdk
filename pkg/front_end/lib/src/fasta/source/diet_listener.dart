@@ -56,7 +56,7 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'stack_listener.dart' show NullValue, StackListener;
+import 'stack_listener.dart' show FixedNullableList, NullValue, StackListener;
 
 import '../quote.dart' show unescapeString;
 
@@ -104,9 +104,12 @@ class DietListener extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count, new List<Token>.filled(count, null, growable: true))
-            ?.first ??
-        NullValue.Metadata);
+    if (count > 0) {
+      discard(count - 1);
+      push(pop(NullValue.Metadata));
+    } else {
+      push(NullValue.Metadata);
+    }
   }
 
   @override
@@ -629,8 +632,7 @@ class DietListener extends StackListener {
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
-    List<String> names =
-        popList(count, new List<String>.filled(count, null, growable: true));
+    List<String> names = const FixedNullableList<String>().pop(stack, count);
     Declaration declaration = lookupBuilder(token, null, names.first);
     Token metadata = pop();
     // TODO(paulberry): don't re-parse the field if we've already parsed it
@@ -698,21 +700,21 @@ class DietListener extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
-
-    List metadataAndValues = new List.filled(count * 2, null, growable: true);
-    popList(count * 2, metadataAndValues);
-
+    List<Object> metadataAndValues =
+        const FixedNullableList<Object>().pop(stack, count * 2);
     String name = pop();
     Token metadata = pop();
 
     ClassBuilder enumBuilder = lookupBuilder(enumKeyword, null, name);
     parseMetadata(enumBuilder, metadata, enumBuilder.target);
-    for (int i = 0; i < metadataAndValues.length; i += 2) {
-      Token metadata = metadataAndValues[i];
-      String valueName = metadataAndValues[i + 1];
-      Declaration declaration = enumBuilder.scope.local[valueName];
-      if (metadata != null) {
-        parseMetadata(declaration, metadata, declaration.target);
+    if (metadataAndValues != null) {
+      for (int i = 0; i < metadataAndValues.length; i += 2) {
+        Token metadata = metadataAndValues[i];
+        String valueName = metadataAndValues[i + 1];
+        Declaration declaration = enumBuilder.scope.local[valueName];
+        if (metadata != null) {
+          parseMetadata(declaration, metadata, declaration.target);
+        }
       }
     }
 

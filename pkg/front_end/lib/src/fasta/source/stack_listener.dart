@@ -124,16 +124,12 @@ abstract class StackListener extends Listener {
     return value == null ? null : pop();
   }
 
-  List popList(int n, List list) {
-    if (n == 0) return null;
-    return stack.popList(n, list);
-  }
-
   void debugEvent(String name) {
     // printEvent(name);
   }
 
   void printEvent(String name) {
+    print('\n------------------');
     for (Object o in stack.values) {
       String s = "  $o";
       int index = s.indexOf("\n");
@@ -142,8 +138,7 @@ abstract class StackListener extends Listener {
       }
       print(s);
     }
-    print(name);
-    print('------------------\n');
+    print("  >> $name");
   }
 
   @override
@@ -326,14 +321,6 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
-    debugEvent("StringJuxtaposition");
-    push(popList(literalCount,
-            new List<Expression>.filled(literalCount, null, growable: true))
-        .join(""));
-  }
-
-  @override
   void handleDirectivesOnly() {
     pop(); // Discard the metadata.
   }
@@ -386,7 +373,7 @@ abstract class StackListener extends Listener {
 }
 
 class Stack {
-  List array = new List(8);
+  List<Object> array = new List<Object>(8);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
@@ -405,7 +392,7 @@ class Stack {
     }
   }
 
-  Object pop([NullValue nullValue]) {
+  Object pop(NullValue nullValue) {
     assert(arrayLength > 0);
     final Object value = array[--arrayLength];
     array[arrayLength] = null;
@@ -418,32 +405,67 @@ class Stack {
     }
   }
 
-  List popList(int count, List list) {
+  List<Object> popList(int count, List<Object> list, NullValue nullValue) {
     assert(arrayLength >= count);
-
-    final table = array;
-    final length = arrayLength;
-
-    final startIndex = length - count;
+    final List<Object> array = this.array;
+    final int length = arrayLength;
+    final int startIndex = length - count;
     for (int i = 0; i < count; i++) {
-      final value = table[startIndex + i];
-      list[i] = value is NullValue ? null : value;
-      table[startIndex + i] = null;
+      int arrayIndex = startIndex + i;
+      final Object value = array[arrayIndex];
+      array[arrayIndex] = null;
+      if (value is NullValue && nullValue == null ||
+          identical(value, nullValue)) {
+        list[i] = null;
+      } else {
+        list[i] = value;
+      }
     }
     arrayLength -= count;
 
     return list;
   }
 
-  List get values {
-    final List list = new List(arrayLength);
-    list.setRange(0, arrayLength, array);
+  List<Object> get values {
+    final int length = arrayLength;
+    final List<Object> list = new List<Object>(length);
+    list.setRange(0, length, array);
     return list;
   }
 
   void _grow() {
-    final List newTable = new List(array.length * 2);
-    newTable.setRange(0, array.length, array, 0);
-    array = newTable;
+    final int length = array.length;
+    final List<Object> newArray = new List<Object>(length * 2);
+    newArray.setRange(0, length, array, 0);
+    array = newArray;
+  }
+}
+
+/// Helper constant for popping a list of the top of a [Stack].  This helper
+/// returns null instead of empty lists, and the lists returned are of fixed
+/// length.
+class FixedNullableList<T> {
+  const FixedNullableList();
+
+  List<T> pop(Stack stack, int count, [NullValue nullValue]) {
+    if (count == 0) return null;
+    return stack.popList(count, new List<T>(count), nullValue);
+  }
+
+  List<T> popPadded(Stack stack, int count, int padding,
+      [NullValue nullValue]) {
+    if (count + padding == 0) return null;
+    return stack.popList(count, new List<T>(count + padding), nullValue);
+  }
+}
+
+/// Helper constant for popping a list of the top of a [Stack].  This helper
+/// returns growable lists (also when empty).
+class GrowableList<T> {
+  const GrowableList();
+
+  List<T> pop(Stack stack, int count, [NullValue nullValue]) {
+    return stack.popList(
+        count, new List<T>.filled(count, null, growable: true), nullValue);
   }
 }

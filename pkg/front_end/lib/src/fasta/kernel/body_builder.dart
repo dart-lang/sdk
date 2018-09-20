@@ -52,7 +52,12 @@ import '../scope.dart' show ProblemBuilder;
 import '../severity.dart' show Severity;
 
 import '../source/scope_listener.dart'
-    show JumpTargetKind, NullValue, ScopeListener;
+    show
+        FixedNullableList,
+        GrowableList,
+        JumpTargetKind,
+        NullValue,
+        ScopeListener;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -323,10 +328,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement popBlock(int count, Token openBrace, Token closeBrace) {
-    List<Statement> statements =
-        new List<Statement>.filled(count, null, growable: true);
-    popList(count, statements);
-    return forest.block(openBrace, statements, closeBrace);
+    return forest.block(openBrace,
+        const GrowableList<Statement>().pop(stack, count), closeBrace);
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -469,9 +472,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(
-            count, new List<Expression>.filled(count, null, growable: true)) ??
-        NullValue.Metadata);
+    if (count == 0) {
+      push(NullValue.Metadata);
+    } else {
+      push(const GrowableList<Expression>().pop(stack, count));
+    }
   }
 
   @override
@@ -1084,8 +1089,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List<Object> arguments = new List<Object>(count);
-    popList(count, arguments);
+    List<Object> arguments =
+        const FixedNullableList<Object>().pop(stack, count) ?? <Object>[];
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       Object node = arguments[i];
@@ -1726,7 +1731,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.literalString(value, token));
     } else {
       int count = 1 + interpolationCount * 2;
-      List<Object> parts = popList(count, new List<Object>(count));
+      List<Object> parts = const FixedNullableList<Object>().pop(stack, count);
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -1975,10 +1980,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       push(variable);
     } else {
-      List<VariableDeclarationJudgment> variables = popList(
-          count,
-          new List<VariableDeclarationJudgment>.filled(count, null,
-              growable: true));
+      List<VariableDeclaration> variables =
+          const FixedNullableList<VariableDeclaration>().pop(stack, count);
       constantContext = pop();
       currentLocalVariableType = pop();
       currentLocalVariableModifiers = pop();
@@ -2194,9 +2197,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
-    List<MapEntry> entries =
-        new List<MapEntry>.filled(count, null, growable: true);
-    popList(count, entries);
+    List<MapEntry> entries = const GrowableList<MapEntry>().pop(stack, count);
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     DartType keyType;
     DartType valueType;
@@ -2255,7 +2256,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.literalSymbolSingluar(value, hashToken, part));
     } else {
       List<Identifier> parts =
-          popList(identifierCount, new List<Identifier>(identifierCount));
+          const FixedNullableList<Identifier>().pop(stack, identifierCount);
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
@@ -2529,8 +2530,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
     List<KernelFormalParameterBuilder> parameters =
-        new List<KernelFormalParameterBuilder>(count);
-    popList(count, parameters);
+        const FixedNullableList<KernelFormalParameterBuilder>()
+            .pop(stack, count);
     for (KernelFormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
@@ -2603,14 +2604,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       count--;
       optionalsCount = optionals.length;
     }
-    List<KernelFormalParameterBuilder> parameters;
-    if (count + optionalsCount > 0) {
-      parameters =
-          new List<KernelFormalParameterBuilder>(count + optionalsCount);
-      popList(count, parameters);
-      if (optionals != null) {
-        parameters.setRange(count, count + optionalsCount, optionals);
-      }
+    List<KernelFormalParameterBuilder> parameters =
+        const FixedNullableList<KernelFormalParameterBuilder>()
+            .popPadded(stack, count, optionalsCount);
+    if (optionals != null && parameters != null) {
+      parameters.setRange(count, count + optionalsCount, optionals);
     }
     FormalParameters formals = new FormalParameters(parameters,
         offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
@@ -2653,7 +2651,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelFormalParameterBuilder exception;
     KernelFormalParameterBuilder stackTrace;
     List<Statement> compileTimeErrors;
-    if (catchParameters != null) {
+    if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters.parameters.length;
       if (parameterCount > 0) {
         exception = catchParameters.parameters[0];
@@ -2700,7 +2698,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<Statement> compileTimeErrors;
     if (catchCount != 0) {
       List<Object> catchBlocksAndErrors =
-          popList(catchCount * 2, new List<Object>(catchCount * 2));
+          const FixedNullableList<Object>().pop(stack, catchCount * 2);
       catchBlocks = new List<Catch>.filled(catchCount, null, growable: true);
       for (int i = 0; i < catchCount; i++) {
         catchBlocks[i] = catchBlocksAndErrors[i * 2];
@@ -3260,7 +3258,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count, new List<UnresolvedType<KernelTypeBuilder>>(count)));
+    push(const FixedNullableList<UnresolvedType<KernelTypeBuilder>>()
+        .pop(stack, count));
   }
 
   @override
@@ -3579,11 +3578,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = new List<Label>(labelCount);
-    popList(labelCount, labels);
+    List<Label> labels =
+        const FixedNullableList<Label>().pop(stack, labelCount);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
-        new LabelTarget(labels, member, functionNestingLevel, token.charOffset);
+        new LabelTarget(member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
       scope.declareLabel(label.name, target);
     }
@@ -3708,15 +3707,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     int count = labelCount + expressionCount;
-    List<Object> labelsAndExpressions = popList(count, new List<Object>(count));
-    List<Label> labels = <Label>[];
-    List<Expression> expressions = <Expression>[];
+    List<Object> labelsAndExpressions =
+        const FixedNullableList<Object>().pop(stack, count);
+    List<Label> labels = new List<Label>(labelCount);
+    List<Expression> expressions =
+        new List<Expression>.filled(expressionCount, null, growable: true);
+    int labelIndex = 0;
+    int expressionIndex = 0;
     if (labelsAndExpressions != null) {
       for (Object labelOrExpression in labelsAndExpressions) {
         if (labelOrExpression is Label) {
-          labels.add(labelOrExpression);
+          labels[labelIndex++] = labelOrExpression;
         } else {
-          expressions.add(labelOrExpression);
+          expressions[expressionIndex++] = labelOrExpression;
         }
       }
     }
@@ -3956,7 +3959,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
     List<KernelTypeVariableBuilder> typeVariables =
-        popList(count, new List<KernelTypeVariableBuilder>(count));
+        const FixedNullableList<KernelTypeVariableBuilder>().pop(stack, count);
     enterFunctionTypeScope(typeVariables);
     push(typeVariables);
   }
@@ -4610,8 +4613,6 @@ class JumpTarget extends Declaration {
 }
 
 class LabelTarget extends Declaration implements JumpTarget {
-  final List<Label> labels;
-
   @override
   final MemberBuilder parent;
 
@@ -4624,8 +4625,7 @@ class LabelTarget extends Declaration implements JumpTarget {
   @override
   final int charOffset;
 
-  LabelTarget(
-      this.labels, this.parent, this.functionNestingLevel, this.charOffset)
+  LabelTarget(this.parent, this.functionNestingLevel, this.charOffset)
       : breakTarget = new JumpTarget(
             JumpTargetKind.Break, functionNestingLevel, parent, charOffset),
         continueTarget = new JumpTarget(

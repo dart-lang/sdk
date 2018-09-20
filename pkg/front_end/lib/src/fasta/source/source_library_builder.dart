@@ -17,6 +17,7 @@ import '../builder/builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
+        EnumConstantInfo,
         FormalParameterBuilder,
         FunctionTypeBuilder,
         LibraryBuilder,
@@ -384,15 +385,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool hasInitializer);
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, T type, List<Object> fieldsInfo) {
-    for (int i = 0; i < fieldsInfo.length; i += 4) {
-      String name = fieldsInfo[i];
-      int charOffset = fieldsInfo[i + 1];
-      bool hasInitializer = fieldsInfo[i + 2] != null;
+      int modifiers, T type, List<FieldInfo> fieldInfos) {
+    for (FieldInfo info in fieldInfos) {
+      String name = info.name;
+      int charOffset = info.charOffset;
+      bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
-          type == null ? fieldsInfo[i + 2] : null;
+          type == null ? info.initializerTokenForInference : null;
       if (initializerTokenForInference != null) {
-        Token beforeLast = fieldsInfo[i + 3];
+        Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
       addField(documentationComment, metadata, modifiers, type, name,
@@ -435,7 +436,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset);
 
@@ -917,4 +918,14 @@ class DeclarationBuilder<T extends TypeBuilder> {
   Scope toScope(Scope parent) {
     return new Scope(members, setters, parent, name, isModifiable: false);
   }
+}
+
+class FieldInfo {
+  final String name;
+  final int charOffset;
+  final Token initializerTokenForInference;
+  final Token beforeLast;
+
+  const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
+      this.beforeLast);
 }
