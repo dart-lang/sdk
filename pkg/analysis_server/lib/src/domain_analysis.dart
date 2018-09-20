@@ -384,9 +384,17 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         return new Response.invalidFilePathFormat(request, path);
       }
     }
-    // continue in server
-    server.setAnalysisRoots(request.id, includedPathList, excludedPathList,
-        params.packageRoots ?? <String, String>{});
+    Map<String, String> packageRoots =
+        params.packageRoots ?? <String, String>{};
+
+    if (server.options.enableUXExperiment2 &&
+        server.detachableFileSystemManager != null) {
+      server.detachableFileSystemManager.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList, packageRoots);
+    } else {
+      server.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList, packageRoots);
+    }
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 

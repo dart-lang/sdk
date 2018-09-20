@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -31,6 +32,7 @@ class SocketServer {
   final DiagnosticServer diagnosticServer;
   final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
+  final DetachableFileSystemManager detachableFileSystemManager;
 
   /**
    * The analysis server that was created when a client established a
@@ -45,7 +47,8 @@ class SocketServer {
       this.instrumentationService,
       this.diagnosticServer,
       this.fileResolverProvider,
-      this.packageResolverProvider);
+      this.packageResolverProvider,
+      this.detachableFileSystemManager);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -75,10 +78,17 @@ class SocketServer {
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
-    analysisServer = new AnalysisServer(serverChannel, resourceProvider,
-        analysisServerOptions, sdkManager, instrumentationService,
-        diagnosticServer: diagnosticServer,
-        fileResolverProvider: fileResolverProvider,
-        packageResolverProvider: packageResolverProvider);
+    analysisServer = new AnalysisServer(
+      serverChannel,
+      resourceProvider,
+      analysisServerOptions,
+      sdkManager,
+      instrumentationService,
+      diagnosticServer: diagnosticServer,
+      fileResolverProvider: fileResolverProvider,
+      packageResolverProvider: packageResolverProvider,
+      detachableFileSystemManager: detachableFileSystemManager,
+    );
+    detachableFileSystemManager?.setAnalysisServer(analysisServer);
   }
 }
