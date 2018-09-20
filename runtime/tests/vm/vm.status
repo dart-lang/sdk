@@ -365,6 +365,3 @@ dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-g
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
-
-[ $arch == simdbc64 && $mode == debug && $no_preview_dart_2 ]
-cc/CustomIsolates: Crash  # http://dartbug.com/34424
