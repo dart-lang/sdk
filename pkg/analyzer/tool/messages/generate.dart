@@ -122,7 +122,7 @@ part of 'syntactic_errors.dart';
       out.writeln('const $className _$errorCode =');
       out.writeln('const $className(');
       out.writeln("'$errorCode',");
-      out.writeln('"${entry['template']}"');
+      out.writeln('r"${entry['template']}"');
       final tip = entry['tip'];
       if (tip is String) {
         out.writeln(',correction: "$tip"');
