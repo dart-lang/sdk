@@ -17,39 +17,31 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/**
- * A visitor that resolves declarations in an AST structure to already built
- * elements.
- *
- * The resulting AST must have everything resolved that would have been resolved
- * by a [CompilationUnitBuilder] (that is, must be a valid [RESOLVED_UNIT1]).
- * This class must not assume that the [CompilationUnitElement] passed to it is
- * any more complete than a [COMPILATION_UNIT_ELEMENT].
- */
+/// A visitor that resolves declarations in an AST structure to already built
+/// elements.
+///
+/// The resulting AST must have everything resolved that would have been
+/// resolved by a [CompilationUnitBuilder] (that is, must be a valid
+/// [RESOLVED_UNIT1]). This class must not assume that the
+/// [CompilationUnitElement] passed to it is any more complete than a
+/// [COMPILATION_UNIT_ELEMENT].
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
+  /// The compilation unit containing the AST nodes being visited.
   CompilationUnitElementImpl _enclosingUnit;
 
-  /**
-   * The type provider used to access the known types.
-   */
+  /// The type provider used to access the known types.
   TypeProvider _typeProvider;
 
-  /**
-   * The [ElementWalker] we are using to keep track of progress through the
-   * element model.
-   */
+  /// The [ElementWalker] we are using to keep track of progress through the
+  /// element model.
   ElementWalker _walker;
 
   DeclarationResolver();
 
-  /**
-   * Resolve the declarations within the given compilation [unit] to the
-   * elements rooted at the given [element]. Throw an [ElementMismatchException]
-   * if the element model and compilation unit do not match each other.
-   */
+  /// Resolve the declarations within the given compilation [unit] to the
+  /// elements rooted at the given [element]. Throw an
+  /// [ElementMismatchException] if the element model and compilation unit do
+  /// not match each other.
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
     _typeProvider = _enclosingUnit.context?.typeProvider;
@@ -518,16 +510,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Updates [identifier] to point to [element], after ensuring that the
-   * element has the expected name.
-   *
-   * If no [elementName] is given, it defaults to the name of the [identifier]
-   * (or the empty string if [identifier] is `null`).
-   *
-   * If [identifier] is `null`, nothing is updated, but the element name is
-   * still checked.
-   */
+  /// Updates [identifier] to point to [element], after ensuring that the
+  /// element has the expected name.
+  ///
+  /// If no [elementName] is given, it defaults to the name of the [identifier]
+  /// (or the empty string if [identifier] is `null`).
+  ///
+  /// If [identifier] is `null`, nothing is updated, but the element name is
+  /// still checked.
   E _match<E extends Element>(SimpleIdentifier identifier, E element,
       {String elementName, int offset}) {
     elementName ??= identifier?.name ?? '';
@@ -549,9 +539,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * If the given [typeNode] is a [GenericFunctionType], set its [type].
-   */
+  /// If the given [typeNode] is a [GenericFunctionType], set its [type].
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
     if (typeNode is GenericFunctionTypeImpl) {
       typeNode.type = type;
@@ -570,15 +558,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Recurses through the element model and AST, verifying that all elements are
-   * matched.
-   *
-   * Executes [callback] with [_walker] pointing to the given [walker] (which
-   * should be a new instance of [ElementWalker]).  Once [callback] returns,
-   * uses [ElementWalker.validate] to verify that all expected elements have
-   * been matched.
-   */
+  /// Recurses through the element model and AST, verifying that all elements
+  /// are matched.
+  ///
+  /// Executes [callback] with [_walker] pointing to the given [walker] (which
+  /// should be a new instance of [ElementWalker]).  Once [callback] returns,
+  /// uses [ElementWalker.validate] to verify that all expected elements have
+  /// been matched.
   void _walk(ElementWalker walker, void callback()) {
     ElementWalker outerWalker = _walker;
     _walker = walker;
@@ -749,11 +735,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Associate each of the annotation [nodes] with the corresponding
-   * [ElementAnnotation] in [annotations]. If there is a problem, report it
-   * against the given [parent] node.
-   */
+  /// Associate each of the annotation [nodes] with the corresponding
+  /// [ElementAnnotation] in [annotations]. If there is a problem, report it
+  /// against the given [parent] node.
   static void resolveAnnotations(AstNode parent, NodeList<Annotation> nodes,
       List<ElementAnnotation> annotations) {
     int nodeCount = nodes.length;
@@ -766,15 +750,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * If [element] is not `null`, associate each of the annotation [nodes] with
-   * the corresponding [ElementAnnotation] in [element.metadata]. If there is a
-   * problem, report it against the given [parent] node.
-   *
-   * If [element] is `null`, do nothing--this allows us to be robust in the
-   * case where we are operating on an element model that hasn't been fully
-   * built.
-   */
+  /// If [element] is not `null`, associate each of the annotation [nodes] with
+  /// the corresponding [ElementAnnotation] in [element.metadata]. If there is a
+  /// problem, report it against the given [parent] node.
+  ///
+  /// If [element] is `null`, do nothing--this allows us to be robust in the
+  /// case where we are operating on an element model that hasn't been fully
+  /// built.
   static void resolveMetadata(
       AstNode parent, NodeList<Annotation> nodes, Element element) {
     if (element != null) {
@@ -816,27 +798,19 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 }
 
-/**
- * Keeps track of the set of non-synthetic child elements of an element,
- * yielding them one at a time in response to "get" method calls.
- */
+/// Keeps track of the set of non-synthetic child elements of an element,
+/// yielding them one at a time in response to "get" method calls.
 class ElementWalker {
-  /**
-   * The element whose child elements are being walked.
-   */
+  /// The element whose child elements are being walked.
   final Element element;
 
-  /**
-   * If [element] is an executable element, an element builder which is
-   * accumulating the executable element's local variables and labels.
-   * Otherwise `null`.
-   */
+  /// If [element] is an executable element, an element builder which is
+  /// accumulating the executable element's local variables and labels.
+  /// Otherwise `null`.
   LocalElementBuilder elementBuilder;
 
-  /**
-   * If [element] is an executable element, the element holder associated with
-   * [elementBuilder].  Otherwise `null`.
-   */
+  /// If [element] is an executable element, the element holder associated with
+  /// [elementBuilder].  Otherwise `null`.
   ElementHolder _elementHolder;
 
   List<PropertyAccessorElement> _accessors;
@@ -860,10 +834,8 @@ class ElementWalker {
   List<VariableElement> _variables;
   int _variableIndex = 0;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a class
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a class
+  /// element.
   ElementWalker.forClass(ClassElement element)
       : element = element,
         _accessors = element.accessors.where(_isNotSynthetic).toList(),
@@ -874,10 +846,8 @@ class ElementWalker {
         _typeParameters = element.typeParameters,
         _variables = element.fields.where(_isNotSynthetic).toList();
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a compilation
-   * unit element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a compilation
+  /// unit element.
   ElementWalker.forCompilationUnit(CompilationUnitElement compilationUnit)
       : element = compilationUnit,
         _accessors = compilationUnit.accessors.where(_isNotSynthetic).toList(),
@@ -889,35 +859,27 @@ class ElementWalker {
         _variables =
             compilationUnit.topLevelVariables.where(_isNotSynthetic).toList();
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a compilation
-   * unit element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a compilation
+  /// unit element.
   ElementWalker.forExecutable(
       ExecutableElement element, CompilationUnitElement compilationUnit)
       : this._forExecutable(element, compilationUnit, new ElementHolder());
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element.
   ElementWalker.forGenericFunctionType(GenericFunctionTypeElement element)
       : element = element,
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element defined using a generic function type.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element defined using a generic function type.
   ElementWalker.forGenericTypeAlias(FunctionTypeAliasElement element)
       : element = element,
         _typeParameters = element.typeParameters;
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a parameter
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a parameter
+  /// element.
   ElementWalker.forParameter(ParameterElement element, bool functionTyped)
       : element = element,
         _parameters = element.parameters,
@@ -931,10 +893,8 @@ class ElementWalker {
     }
   }
 
-  /**
-   * Creates an [ElementWalker] which walks the child elements of a typedef
-   * element.
-   */
+  /// Creates an [ElementWalker] which walks the child elements of a typedef
+  /// element.
   ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
       : element = element,
         _parameters = element.parameters,
@@ -958,73 +918,52 @@ class ElementWalker {
     _parameterIndex = _parameters.length;
   }
 
-  /**
-   * Returns the next non-synthetic child of [element] which is an accessor;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is an accessor;
+  /// throws an [IndexError] if there are no more.
   PropertyAccessorElement getAccessor() => _accessors[_accessorIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a class; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a class; throws
+  /// an [IndexError] if there are no more.
   ClassElement getClass() => _classes[_classIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a constructor;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a constructor;
+  /// throws an [IndexError] if there are no more.
   ConstructorElement getConstructor() => _constructors[_constructorIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is an enum; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is an enum; throws
+  /// an [IndexError] if there are no more.
   ClassElement getEnum() => _enums[_enumIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a top level
-   * function, method, or local function; throws an [IndexError] if there are no
-   * more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a top level
+  /// function, method, or local function; throws an [IndexError] if there are
+  /// no more.
   ExecutableElement getFunction() => _functions[_functionIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a mixin; throws
-   * an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a mixin; throws
+  /// an [IndexError] if there are no more.
   ClassElement getMixin() => _mixins[_mixinIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a parameter;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a parameter;
+  /// throws an [IndexError] if there are no more.
   ParameterElement getParameter() => _parameters[_parameterIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a typedef;
-   * throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a typedef;
+  /// throws an [IndexError] if there are no more.
   FunctionTypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a type
-   * parameter; throws an [IndexError] if there are no more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a type
+  /// parameter; throws an [IndexError] if there are no more.
   TypeParameterElement getTypeParameter() =>
       _typeParameters[_typeParameterIndex++];
 
-  /**
-   * Returns the next non-synthetic child of [element] which is a top level
-   * variable, field, or local variable; throws an [IndexError] if there are no
-   * more.
-   */
+  /// Returns the next non-synthetic child of [element] which is a top level
+  /// variable, field, or local variable; throws an [IndexError] if there are no
+  /// more.
   VariableElement getVariable() => _variables[_variableIndex++];
 
-  /**
-   * Verifies that all non-synthetic children of [element] have been obtained
-   * from their corresponding "get" method calls; if not, throws a [StateError].
-   */
+  /// Verifies that all non-synthetic children of [element] have been obtained
+  /// from their corresponding "get" method calls; if not, throws a
+  /// [StateError].
   void validate() {
     void check(List<Element> elements, int index) {
       if (elements != null && elements.length != index) {
@@ -1054,10 +993,8 @@ class ElementWalker {
 }
 
 class _ElementMismatchException extends AnalysisException {
-  /**
-   * Creates an exception to refer to the given [compilationUnit], [element],
-   * and [cause].
-   */
+  /// Creates an exception to refer to the given [compilationUnit], [element],
+  /// and [cause].
   _ElementMismatchException(
       CompilationUnitElement compilationUnit, Element element,
       [CaughtException cause = null])
