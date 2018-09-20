@@ -25,7 +25,69 @@ main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest extends ResolverTestCase {
+class NonErrorResolverTest extends NonErrorResolverTestBase {
+  @override
+  @failingTest
+  test_constConstructorWithMixinWithField_withoutSuperMixins() {
+    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_infer_mixin() {
+    return super.test_infer_mixin();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_infer_mixin_multiplyConstrained() {
+    return super.test_infer_mixin_multiplyConstrained();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution() {
+    return super.test_infer_mixin_with_substitution();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution_functionType() {
+    return super.test_infer_mixin_with_substitution_functionType();
+  }
+
+  @override
+  @failingTest
+  test_intLiteralInDoubleContext_const_exact() {
+    return super.test_intLiteralInDoubleContext_const_exact();
+  }
+
+  @override
+  @failingTest // Fails with the old task model
+  test_issue_32394() {
+    return super.test_issue_32394();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_with_actual_mixins() {
+    return super.test_mixinInference_with_actual_mixins();
+  }
+
+  @override
+  @failingTest
+  test_null_callMethod() {
+    return super.test_null_callMethod();
+  }
+
+  @override
+  @failingTest
+  test_null_callOperator() {
+    return super.test_null_callOperator();
+  }
+}
+
+class NonErrorResolverTestBase extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
@@ -1215,7 +1277,6 @@ const int value = 12345;
     verify([source]);
   }
 
-  @failingTest
   test_constConstructorWithMixinWithField_withoutSuperMixins() async {
     Source source = addSource(r'''
 class M {
@@ -2575,7 +2636,6 @@ class C implements A, B {
     verify([source]);
   }
 
-  @failingTest // Does not work with old task model
   test_infer_mixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -2599,7 +2659,6 @@ class C extends A<B> with M {}
     expect(classC.mixins[0].toString(), 'M<B>');
   }
 
-  @failingTest // Does not work with old task model
   test_infer_mixin_multiplyConstrained() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -2629,7 +2688,6 @@ class F extends E with M {}
     expect(classF.mixins[0].toString(), 'M<C, D>');
   }
 
-  @failingTest // Does not work with old task model
   test_infer_mixin_with_substitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -2653,7 +2711,6 @@ class C extends A<List<B>> with M {}
     expect(classC.mixins[0].toString(), 'M<B>');
   }
 
-  @failingTest // Does not work with old task model
   test_infer_mixin_with_substitution_functionType() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -2845,7 +2902,6 @@ void main() {
     verify([source]);
   }
 
-  @failingTest
   test_intLiteralInDoubleContext_const_exact() async {
     // TODO(mfairhurst): get the commented out assertions to pass.
     Source source = addSource(r'''
@@ -3555,7 +3611,6 @@ f(S s) async {
     verify([source]);
   }
 
-  @failingTest // Fails with the old task model
   test_issue_32394() async {
     Source source = addSource('''
 var x = y.map((a) => a.toString());
@@ -3820,7 +3875,6 @@ class B extends Object with A {}''');
     verify([source]);
   }
 
-  @failingTest // Does not work with old task model
   test_mixinInference_with_actual_mixins() async {
     Source source = addSource('''
 class I<X> {}
@@ -4732,7 +4786,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_null_callMethod() async {
     Source source = addSource(r'''
 main() {
@@ -4742,7 +4795,6 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  @failingTest
   test_null_callOperator() async {
     Source source = addSource(r'''
 main() {
