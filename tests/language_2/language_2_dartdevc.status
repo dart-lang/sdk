@@ -112,7 +112,35 @@ mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTim
 mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError   # https://github.com/dart-lang/sdk/issues/34164
+mixin_declaration/mixin_declaration_inference_valid_A00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A20_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A21_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A22_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A23_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A30_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A31_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A42_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B03_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B13_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C03_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
 mixin_super_2_test/01: MissingCompileTimeError
