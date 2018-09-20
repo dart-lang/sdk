@@ -9,7 +9,15 @@ import 'dart:io' show BytesBuilder, File, IOSink;
 import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/ast.dart'
-    show Library, Component, Procedure, Class, TypeParameter, Supertype;
+    show
+        DartType,
+        Library,
+        Component,
+        Procedure,
+        Class,
+        TypeParameter,
+        TypeParameterType,
+        Supertype;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -70,9 +78,18 @@ List<int> serializeProcedure(Procedure procedure) {
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
 
-    CloneVisitor cloner = new CloneVisitor();
-
     Class fakeClass = new Class(name: kDebugClassName);
+    Map<TypeParameter, TypeParameter> typeParams =
+        <TypeParameter, TypeParameter>{};
+    Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
+    for (TypeParameter typeParam in realClass.typeParameters) {
+      var newNode = new TypeParameter(typeParam.name);
+      typeParams[typeParam] = newNode;
+      typeSubstitution[typeParam] = new TypeParameterType(newNode);
+    }
+    CloneVisitor cloner = new CloneVisitor(
+        typeSubstitution: typeSubstitution, typeParams: typeParams);
+
     for (TypeParameter typeParam in realClass.typeParameters) {
       fakeClass.typeParameters.add(typeParam.accept(cloner));
     }

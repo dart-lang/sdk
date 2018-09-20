@@ -48,6 +48,13 @@ class D<T> {
   }
 }
 
+abstract class Built<V extends Built<V, B>, B extends Builder<V, B>> {}
+
+abstract class Builder<V extends Built<V, B>, B extends Builder<V, B>> {}
+
+class MiddlewareApi<State extends Built<State, StateBuilder>,
+    StateBuilder extends Builder<State, StateBuilder>> {}
+
 main() {
   exit(0);
 }
