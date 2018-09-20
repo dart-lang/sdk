@@ -923,19 +923,35 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   **SP = result;
   pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
 
-  // It is legit to call the constructor of an error object, however a
-  // result of class UnhandledException must be propagated.
-  if (result->IsHeapObject() &&
-      result->GetClassId() == kUnhandledExceptionCid) {
-    (*SP)[0] = UnhandledException::RawCast(result)->ptr()->exception_;
-    (*SP)[1] = UnhandledException::RawCast(result)->ptr()->stacktrace_;
-    (*SP)[2] = 0;  // Space for result.
-    Exit(thread, *FP, *SP + 3, *pc);
-    NativeArguments args(thread, 2, *SP, *SP + 2);
-    if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
+  // If the result is an error (not a Dart instance), it must either be rethrown
+  // (in the case of an unhandled exception) or it must be returned to the
+  // caller of the interpreter to be propagated.
+  if (result->IsHeapObject()) {
+    const intptr_t result_cid = result->GetClassId();
+    if (result_cid == kUnhandledExceptionCid) {
+      (*SP)[0] = UnhandledException::RawCast(result)->ptr()->exception_;
+      (*SP)[1] = UnhandledException::RawCast(result)->ptr()->stacktrace_;
+      (*SP)[2] = 0;  // Space for result.
+      Exit(thread, *FP, *SP + 3, *pc);
+      NativeArguments args(thread, 2, *SP, *SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
+        return false;
+      }
+      UNREACHABLE();
+    }
+    if (RawObject::IsErrorClassId(result_cid)) {
+      // Unwind to entry frame.
+      fp_ = *FP;
+      pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+      while ((pc_ & 2) == 0) {
+        fp_ = SavedCallerFP(fp_);
+        pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+      }
+      // Pop entry frame.
+      fp_ = SavedCallerFP(fp_);
+      special_[KernelBytecode::kExceptionSpecialIndex] = result;
       return false;
     }
-    UNREACHABLE();
   }
   return true;
 }
