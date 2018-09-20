@@ -1071,15 +1071,6 @@ abstract class VMKernelCompilerMixin {
       dillFile,
     ];
 
-    if (_isAot) {
-      args.addAll([
-        '--entry-points',
-        '${_configuration.buildDirectory}/gen/runtime/bin/precompiler_entry_points.json',
-        '--entry-points',
-        '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra.json',
-      ]);
-    }
-
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
     args.addAll(arguments.where((name) => name.startsWith('-D')));
     if (_isChecked || _useEnableAsserts) {
