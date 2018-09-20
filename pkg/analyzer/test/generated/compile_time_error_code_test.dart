@@ -7,6 +7,7 @@ library analyzer.test.generated.compile_time_error_code_test;
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';

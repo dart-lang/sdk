@@ -1759,6 +1759,9 @@ abstract class TypeSystem {
 
   List<InterfaceType> gatherMixinSupertypeConstraints(
       ClassElement mixinElement) {
+    if (mixinElement.isMixin) {
+      return mixinElement.superclassConstraints;
+    }
     var mixinSupertypeConstraints = <InterfaceType>[];
     void addIfGeneric(InterfaceType type) {
       if (type.element.typeParameters.isNotEmpty) {

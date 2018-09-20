@@ -3820,6 +3820,33 @@ class B extends Object with A {}''');
     verify([source]);
   }
 
+  @failingTest // Does not work with old task model
+  test_mixinInference_with_actual_mixins() async {
+    Source source = addSource('''
+class I<X> {}
+
+mixin M0<T> on I<T> {}
+
+mixin M1<T> on I<T> {
+  T foo() => null;
+}
+
+class A = I<int> with M0, M1;
+
+void main () {
+  var x = new A().foo();
+}
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var main = result.unit.declarations.last as FunctionDeclaration;
+    var mainBody = main.functionExpression.body as BlockFunctionBody;
+    var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
+    var xElem = xDecl.variables.variables[0].declaredElement;
+    expect(xElem.type.toString(), 'int');
+  }
+
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;

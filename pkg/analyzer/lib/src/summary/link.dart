@@ -1241,6 +1241,9 @@ abstract class CompilationUnitElementForLink
       for (ClassElementForLink_Class type in types) {
         _containedNames[type.name] = type;
       }
+      for (ClassElementForLink_Class mixin in mixins) {
+        _containedNames[mixin.name] = mixin;
+      }
       for (ClassElementForLink_Enum enm in enums) {
         _containedNames[enm.name] = enm;
       }

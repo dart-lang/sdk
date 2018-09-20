@@ -34,4 +34,8 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTest {
 
   @override // Passes with driver
   test_issue_32394() => super.test_issue_32394();
+
+  @override // Passes with driver
+  test_mixinInference_with_actual_mixins() =>
+      super.test_mixinInference_with_actual_mixins();
 }
