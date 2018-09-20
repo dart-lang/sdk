@@ -8,7 +8,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
@@ -192,7 +192,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
       this._rtiSubstitutions, this._closedWorld, this._registry);
 
-  CommonElements get commonElements => _closedWorld.commonElements;
+  JCommonElements get commonElements => _closedWorld.commonElements;
 
   ConstantSystem get constantSystem => _closedWorld.constantSystem;
 

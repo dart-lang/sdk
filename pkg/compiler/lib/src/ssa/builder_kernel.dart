@@ -154,7 +154,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
-  CommonElements get _commonElements => _elementMap.commonElements;
+  JCommonElements get _commonElements => _elementMap.commonElements;
 
   KernelToTypeInferenceMap get _typeInferenceMap =>
       _currentFrame.typeInferenceMap;

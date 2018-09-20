@@ -115,7 +115,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   BackendUsageBuilderImpl(this._frontendStrategy);
 
-  CommonElements get _commonElements => _frontendStrategy.commonElements;
+  KCommonElements get _commonElements => _frontendStrategy.commonElements;
 
   @override
   void registerBackendFunctionUse(FunctionEntity element) {
@@ -159,10 +159,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         element == _commonElements.functionClass ||
         element == _commonElements.stringClass) {
       // TODO(johnniwinther): Avoid these.
-      return true;
-    } else if (element == _commonElements.genericNoSuchMethod ||
-        element == _commonElements.unresolvedConstructorError ||
-        element == _commonElements.malformedTypeError) {
       return true;
     }
     return false;

@@ -13,7 +13,7 @@ import '../compiler_new.dart';
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart';
+import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
@@ -33,7 +33,7 @@ class ElementInfoCollector {
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
 
-  ElementEnvironment get environment => closedWorld.elementEnvironment;
+  JElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
 
   final AllInfo result = new AllInfo();
@@ -207,7 +207,7 @@ class ElementInfoCollector {
           size += closureInfo.size;
         }
       }
-    }, ensureResolved: false);
+    });
 
     classInfo.size = size;
 

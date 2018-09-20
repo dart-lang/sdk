@@ -99,7 +99,7 @@ class TypeEnvironment {
   DartType getElementType(String name) {
     dynamic element = getElement(name);
     if (element is FieldEntity) {
-      return elementEnvironment.getFieldType(element);
+      return (elementEnvironment as JElementEnvironment).getFieldType(element);
     } else if (element is FunctionEntity) {
       return elementEnvironment.getFunctionType(element);
     } else if (element is ClassEntity) {
@@ -131,7 +131,7 @@ class TypeEnvironment {
   DartType getMemberType(String name, [ClassEntity cls]) {
     MemberEntity member = _getMember(name, cls);
     if (member is FieldEntity) {
-      return elementEnvironment.getFieldType(member);
+      return (elementEnvironment as JElementEnvironment).getFieldType(member);
     } else if (member is FunctionEntity) {
       return elementEnvironment.getFunctionType(member);
     }
@@ -159,7 +159,7 @@ class TypeEnvironment {
     FieldEntity field =
         elementEnvironment.lookupLibraryMember(mainLibrary, name);
     Expect.isNotNull(field);
-    return elementEnvironment.getFieldType(field);
+    return (elementEnvironment as JElementEnvironment).getFieldType(field);
   }
 
   bool isSubtype(DartType T, DartType S) {

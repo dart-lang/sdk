@@ -5,7 +5,7 @@
 library js_backend.backend.resolution_listener;
 
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -32,8 +32,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final DeferredLoadTask _deferredLoadTask;
 
   final CompilerOptions _options;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final KElementEnvironment _elementEnvironment;
+  final KCommonElements _commonElements;
   final BackendImpacts _impacts;
 
   final NativeBasicData _nativeData;

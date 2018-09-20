@@ -4,7 +4,7 @@
 
 library js_backend.backend.annotations;
 
-import '../common_elements.dart';
+import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
@@ -14,8 +14,8 @@ import '../native/native.dart' as native;
 const VERBOSE_OPTIMIZER_HINTS = false;
 
 /// Returns `true` if inlining is disabled for [element].
-bool _noInline(ElementEnvironment elementEnvironment,
-    CommonElements commonElements, MemberEntity element) {
+bool _noInline(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
   if (_hasAnnotation(
       elementEnvironment, element, commonElements.metaNoInlineClass)) {
     return true;
@@ -30,8 +30,8 @@ bool _noInline(ElementEnvironment elementEnvironment,
 }
 
 /// Returns `true` if inlining is requested for [element].
-bool _tryInline(ElementEnvironment elementEnvironment,
-    CommonElements commonElements, MemberEntity element) {
+bool _tryInline(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
   if (_hasAnnotation(
       elementEnvironment, element, commonElements.metaTryInlineClass)) {
     return true;
@@ -41,22 +41,22 @@ bool _tryInline(ElementEnvironment elementEnvironment,
 
 /// Returns `true` if parameter and returns types should be trusted for
 /// [element].
-bool _trustTypeAnnotations(ElementEnvironment elementEnvironment,
-    CommonElements commonElements, MemberEntity element) {
+bool _trustTypeAnnotations(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
   return _hasAnnotation(elementEnvironment, element,
       commonElements.expectTrustTypeAnnotationsClass);
 }
 
 /// Returns `true` if inference of parameter types is disabled for [element].
-bool _assumeDynamic(ElementEnvironment elementEnvironment,
-    CommonElements commonElements, MemberEntity element) {
+bool _assumeDynamic(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
   return _hasAnnotation(
       elementEnvironment, element, commonElements.expectAssumeDynamicClass);
 }
 
 /// Returns `true` if [element] is annotated with [annotationClass].
-bool _hasAnnotation(ElementEnvironment elementEnvironment, MemberEntity element,
-    ClassEntity annotationClass) {
+bool _hasAnnotation(KElementEnvironment elementEnvironment,
+    MemberEntity element, ClassEntity annotationClass) {
   if (annotationClass == null) return false;
   for (ConstantValue value in elementEnvironment.getMemberMetadata(element)) {
     if (value.isConstructedObject) {
@@ -73,8 +73,8 @@ bool _hasAnnotation(ElementEnvironment elementEnvironment, MemberEntity element,
 // TODO(johnniwinther): Merge this with [AnnotationProcessor].
 AnnotationsData processAnnotations(
     DiagnosticReporter reporter,
-    CommonElements commonElements,
-    ElementEnvironment elementEnvironment,
+    KCommonElements commonElements,
+    KElementEnvironment elementEnvironment,
     Iterable<MemberEntity> processedMembers) {
   AnnotationsDataBuilder annotationsDataBuilder = new AnnotationsDataBuilder();
 

@@ -63,7 +63,7 @@ abstract class GraphBuilder {
 
   CompilerOptions get options => compiler.options;
 
-  CommonElements get commonElements => closedWorld.commonElements;
+  JCommonElements get commonElements => closedWorld.commonElements;
 
   CodeEmitterTask get emitter => backend.emitter;
 

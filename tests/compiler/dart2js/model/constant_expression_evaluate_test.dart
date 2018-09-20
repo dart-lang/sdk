@@ -601,14 +601,14 @@ Future testData(TestData data) async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': source});
     Compiler compiler = result.compiler;
-    ElementEnvironment elementEnvironment =
+    KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     LibraryEntity library = elementEnvironment.mainLibrary;
     constants.forEach((String name, ConstantData data) {
       FieldEntity field = elementEnvironment.lookupLibraryMember(library, name);
       compiler.reporter.withCurrentElement(field, () {
         ConstantExpression constant =
-            elementEnvironment.getFieldConstant(field);
+            elementEnvironment.getFieldConstantForTesting(field);
 
         var expectedResults = data.expectedResults;
         if (expectedResults is String) {

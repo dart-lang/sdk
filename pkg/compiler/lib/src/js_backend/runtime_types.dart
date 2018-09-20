@@ -6,7 +6,12 @@ library js_backend.runtime_types;
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show
+        CommonElements,
+        ElementEnvironment,
+        JCommonElements,
+        JElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -286,7 +291,8 @@ abstract class RuntimeTypesSubstitutionsMixin
   JClosedWorld get _closedWorld;
   TypeChecks get _requiredChecks;
 
-  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
   DartTypes get _types => _closedWorld.dartTypes;
   RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
@@ -1852,8 +1858,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   RuntimeTypesImpl(this._closedWorld) : super(_closedWorld.dartTypes);
 
-  CommonElements get _commonElements => _closedWorld.commonElements;
-  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+  JCommonElements get _commonElements => _closedWorld.commonElements;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
   RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
   @override

@@ -77,7 +77,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 

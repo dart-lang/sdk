@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:compiler/src/common_elements.dart' show ElementEnvironment;
+import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 
 ClassEntity findClass(JClosedWorld closedWorld, String name) {
-  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls =
       elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
   cls ??= elementEnvironment.lookupClass(
@@ -40,7 +40,7 @@ MemberEntity findClassMember(
     memberName = memberName.substring(0, memberName.length - 1);
     isSetter = true;
   }
-  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   assert(cls != null, "Class '$className' not found.");
   MemberEntity member =
@@ -59,7 +59,7 @@ MemberEntity findMember(JClosedWorld closedWorld, String name) {
     name = name.substring(0, name.length - 1);
     isSetter = true;
   }
-  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   MemberEntity member = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, name,
       setter: isSetter);

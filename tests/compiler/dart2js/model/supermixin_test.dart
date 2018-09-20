@@ -42,7 +42,7 @@ main() {
         options: <String>[Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
 
-    ElementEnvironment elementEnvironment =
+    JElementEnvironment elementEnvironment =
         result.compiler.backendClosedWorldForTesting.elementEnvironment;
 
     ClassEntity cls = lookupClass(elementEnvironment, 'Class');

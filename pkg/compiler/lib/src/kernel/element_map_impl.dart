@@ -68,8 +68,8 @@ part 'no_such_method_resolver.dart';
 abstract class KernelToElementMapBase implements IrToElementMap {
   final CompilerOptions options;
   final DiagnosticReporter reporter;
-  CommonElements _commonElements;
-  ElementEnvironment _elementEnvironment;
+  CommonElementsImpl _commonElements;
+  KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
@@ -91,7 +91,7 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   KernelToElementMapBase(this.options, this.reporter, Environment environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _commonElements = new CommonElements(_elementEnvironment);
+    _commonElements = new CommonElementsImpl(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
@@ -101,10 +101,10 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   DartTypes get types => _types;
 
-  ElementEnvironment get elementEnvironment => _elementEnvironment;
+  KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElements get commonElements => _commonElements;
+  CommonElementsImpl get commonElements => _commonElements;
 
   /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData;
@@ -1717,7 +1717,8 @@ class KernelToElementMapImpl extends KernelToElementMapBase
   }
 }
 
-class KernelElementEnvironment extends ElementEnvironment {
+class KernelElementEnvironment extends ElementEnvironment
+    implements KElementEnvironment, JElementEnvironment {
   final KernelToElementMapBase elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1855,7 +1856,7 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
+  ConstantExpression getFieldConstantForTesting(FieldEntity field) {
     return elementMap._getFieldConstantExpression(field);
   }
 
@@ -1930,8 +1931,7 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor),
-      {bool ensureResolved: true}) {
+      ClassEntity cls, void f(ConstructorEntity constructor)) {
     elementMap._forEachConstructor(cls, f);
   }
 
@@ -2128,9 +2128,9 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 
 class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final KernelToElementMapImpl elementMap;
-  final ElementEnvironment elementEnvironment;
+  final KElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
-  final CommonElements commonElements;
+  final KCommonElements commonElements;
   final NativeData nativeData;
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
@@ -2200,7 +2200,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
       this.elementMap, this.nativeBasicData, this.nativeDataBuilder);
 
   @override
-  ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
+  KElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
   @override
   CommonElements get commonElements => elementMap.commonElements;

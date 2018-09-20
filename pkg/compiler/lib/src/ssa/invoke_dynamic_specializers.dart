@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -39,7 +39,7 @@ class InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     return null;
   }
@@ -51,7 +51,7 @@ class InvokeDynamicSpecializer {
   }
 
   Selector renameToOptimizedSelector(
-      String name, Selector selector, CommonElements commonElements) {
+      String name, Selector selector, JCommonElements commonElements) {
     if (selector.name == name) return selector;
     return new Selector.call(new Name(name, commonElements.interceptorsLibrary),
         new CallStructure(selector.argumentCount));
@@ -121,7 +121,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.inputs[1];
     HInstruction index = instruction.inputs[2];
@@ -152,7 +152,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       HInvokeDynamic instruction,
       HInstruction receiver,
       HInstruction value,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     // Handle typed arrays by recognizing the exact implementation of `[]=` and
     // checking if [value] has the appropriate type.
@@ -185,7 +185,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     if (!instruction.inputs[1]
         .isIndexablePrimitive(closedWorld.abstractValueDomain)) {
@@ -233,7 +233,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain)) {
@@ -280,7 +280,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain)) {
@@ -319,7 +319,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain)) {
@@ -368,7 +368,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     if (isBuiltin(instruction, closedWorld)) {
       HInstruction builtin =
@@ -697,7 +697,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction right = instruction.inputs[2];
     if (isBuiltin(instruction, closedWorld)) {
@@ -788,7 +788,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -841,7 +841,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -1012,7 +1012,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -1035,7 +1035,7 @@ class EqualsSpecializer extends RelationalSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -1139,7 +1139,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
@@ -1167,7 +1167,7 @@ class CompareToSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     // `compareTo` has no side-effect (other than throwing) and can be GVN'ed
@@ -1199,7 +1199,7 @@ class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isStringOrNull(closedWorld.abstractValueDomain)) {
@@ -1227,7 +1227,7 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction pattern = instruction.inputs[2];
@@ -1253,7 +1253,7 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
       HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
-      CommonElements commonElements,
+      JCommonElements commonElements,
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isNumberOrNull(closedWorld.abstractValueDomain)) {

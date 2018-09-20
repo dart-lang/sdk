@@ -8,7 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
+import 'common_elements.dart' show KElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
@@ -147,7 +147,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     allOutputUnits.add(mainOutputUnit);
   }
 
-  ElementEnvironment get elementEnvironment =>
+  KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
   DiagnosticReporter get reporter => compiler.reporter;
 

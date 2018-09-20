@@ -8,7 +8,12 @@ import 'package:front_end/src/fasta/util/link.dart' show Link;
 
 import 'common.dart';
 import 'common/names.dart';
-import 'common_elements.dart' show CommonElements, ElementEnvironment;
+import 'common_elements.dart'
+    show
+        JCommonElements,
+        JElementEnvironment,
+        KCommonElements,
+        KElementEnvironment;
 import 'constants/constant_system.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
@@ -52,11 +57,11 @@ abstract class JClosedWorld implements World {
 
   InterceptorData get interceptorData;
 
-  ElementEnvironment get elementEnvironment;
+  JElementEnvironment get elementEnvironment;
 
   DartTypes get dartTypes;
 
-  CommonElements get commonElements;
+  JCommonElements get commonElements;
 
   /// Returns the [AbstractValueDomain] used in the global type inference.
   AbstractValueDomain get abstractValueDomain;
@@ -243,9 +248,9 @@ abstract class ClosedWorldBase implements JClosedWorld {
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
 
-  final ElementEnvironment elementEnvironment;
+  final JElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
-  final CommonElements commonElements;
+  final JCommonElements commonElements;
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
@@ -617,8 +622,8 @@ abstract class KClosedWorld {
   BackendUsage get backendUsage;
   NativeData get nativeData;
   InterceptorData get interceptorData;
-  ElementEnvironment get elementEnvironment;
-  CommonElements get commonElements;
+  KElementEnvironment get elementEnvironment;
+  KCommonElements get commonElements;
   ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
