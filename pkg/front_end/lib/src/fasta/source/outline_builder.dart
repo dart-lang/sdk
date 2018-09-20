@@ -59,6 +59,7 @@ import '../modifier.dart'
         constMask,
         covariantMask,
         externalMask,
+        mixinDeclarationMask,
         staticMask;
 
 import '../operator.dart'
@@ -535,7 +536,7 @@ class OutlineBuilder extends StackListener {
     library.addClass(
         documentationComment,
         metadata,
-        abstractMask,
+        mixinDeclarationMask,
         name,
         typeVariables,
         supertype,

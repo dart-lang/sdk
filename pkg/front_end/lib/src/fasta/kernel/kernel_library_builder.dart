@@ -62,7 +62,11 @@ import '../import.dart' show Import;
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
-    show abstractMask, namedMixinApplicationMask, staticMask;
+    show
+        abstractMask,
+        mixinDeclarationMask,
+        namedMixinApplicationMask,
+        staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -216,6 +220,11 @@ class KernelLibraryBuilder
     // library scope.
     Scope constructorScope = new Scope(constructors, null, null, "constructors",
         isModifiable: false);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
@@ -230,7 +239,8 @@ class KernelLibraryBuilder
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startCharOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
 
@@ -470,8 +480,7 @@ class KernelLibraryBuilder
             startCharOffset,
             charOffset,
             TreeNode.noOffset,
-            null,
-            mixin);
+            mixedInType: mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);

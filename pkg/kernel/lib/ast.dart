@@ -728,6 +728,7 @@ class Class extends NamedNode implements FileUriNode {
   static const int FlagEnum = 1 << 3;
   static const int FlagAnonymousMixin = 1 << 4;
   static const int FlagEliminatedMixin = 1 << 5;
+  static const int FlagMixinDeclaration = 1 << 6;
 
   int flags = 0;
 
@@ -772,6 +773,38 @@ class Class extends NamedNode implements FileUriNode {
   void set isEliminatedMixin(bool value) {
     flags =
         value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+  }
+
+  /// True if this class was a mixin declaration in Dart.
+  ///
+  /// Mixins are declared in Dart with the `mixin` keyword.  They are compiled
+  /// to Kernel classes.
+  bool get isMixinDeclaration => flags & FlagMixinDeclaration != 0;
+
+  void set isMixinDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagMixinDeclaration)
+        : (flags & ~FlagMixinDeclaration);
+  }
+
+  List<Supertype> superclassConstraints() {
+    var constraints = <Supertype>[];
+
+    // Not a mixin declaration.
+    if (!isMixinDeclaration) return constraints;
+
+    Class previous = this;
+    Class current = supertype.classNode;
+
+    // Otherwise we have a left-linear binary tree (subtrees are supertype and
+    // mixedInType) of constraints, where all the interior nodes are anonymous
+    // mixin applications.
+    while (current != null && current.isAnonymousMixin) {
+      constraints.add(current.mixedInType);
+      previous = current;
+      current = current.supertype.classNode;
+    }
+    return constraints..add(previous.supertype);
   }
 
   /// The URI of the source file this class was loaded from.

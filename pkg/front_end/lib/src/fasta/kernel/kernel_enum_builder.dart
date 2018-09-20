@@ -88,7 +88,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       int startCharOffset,
       int charOffset)
       : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, startCharOffset, charOffset, TreeNode.noOffset, cls);
+            null, startCharOffset, charOffset, TreeNode.noOffset,
+            cls: cls);
 
   factory KernelEnumBuilder(
       MetadataCollector metadataCollector,
