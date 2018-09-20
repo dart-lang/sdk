@@ -180,7 +180,6 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor() async {
     addTestFile('class A {bool foo; A() : ^;}');
     await getSuggestions();
@@ -200,7 +199,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor3() async {
     addTestFile('class A {bool foo; A() : a=7,^;}');
     await getSuggestions();
@@ -230,7 +228,6 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constructor6() async {
     addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
     await getSuggestions();
@@ -538,11 +535,11 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_inherited() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import ${convertPathForImport('/libA.dart')};
+class A {
+  m() {}
+}
 class B extends A {
   x() {^}
 }

@@ -2435,9 +2435,13 @@ class Parser {
       }
       // Fall through to recovery
     } else {
-      // Recovery
-      insertSyntheticIdentifier(token, IdentifierContext.fieldInitializer,
+      // Recovery: Insert a synthetic assignment.
+      token = insertSyntheticIdentifier(
+          token, IdentifierContext.fieldInitializer,
           message: fasta.messageExpectedAnInitializer, messageOnToken: token);
+      token = rewriter.insertToken(
+          token, new SyntheticToken(TokenType.EQ, token.offset));
+      token = rewriter.insertSyntheticIdentifier(token);
       return parseInitializerExpressionRest(beforeExpression);
     }
     // Recovery

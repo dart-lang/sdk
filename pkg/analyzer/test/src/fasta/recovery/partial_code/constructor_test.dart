@@ -20,7 +20,28 @@ class ConstructorTest extends PartialCodeTest {
               ParserErrorCode.MISSING_INITIALIZER,
               ParserErrorCode.MISSING_FUNCTION_BODY
             ],
-            'C() {}',
+            'C() : _s_ = _s_ {}',
+            adjustValidUnitBeforeComparison: setSeparator,
+            failing: ['methodNonVoid', 'getter', 'setter'],
+          ),
+          new TestDescriptor(
+            'colon_field',
+            'C() : f',
+            [
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+              ParserErrorCode.MISSING_FUNCTION_BODY
+            ],
+            'C() : _s_ = f {}',
+            adjustValidUnitBeforeComparison: setSeparator,
+          ),
+          new TestDescriptor(
+            'colon_field_comma',
+            'C() : f = 0,',
+            [
+              ParserErrorCode.MISSING_INITIALIZER,
+              ParserErrorCode.MISSING_FUNCTION_BODY
+            ],
+            'C() : f = 0, _s_ = _s_ {}',
             adjustValidUnitBeforeComparison: setSeparator,
             failing: ['methodNonVoid', 'getter', 'setter'],
           ),
@@ -28,14 +49,14 @@ class ConstructorTest extends PartialCodeTest {
             'colon_block',
             'C() : {}',
             [ParserErrorCode.MISSING_INITIALIZER],
-            'C() {}',
+            'C() : _s_ = _s_ {}',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
           new TestDescriptor(
             'colon_semicolon',
             'C() : ;',
             [ParserErrorCode.MISSING_INITIALIZER],
-            'C();',
+            'C() : _s_ = _s_ ;',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
           new TestDescriptor(
