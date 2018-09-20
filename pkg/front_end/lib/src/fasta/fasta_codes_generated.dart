@@ -2372,7 +2372,7 @@ const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedAnInitializer = const MessageCode(
     "ExpectedAnInitializer",
-    analyzerCode: "MISSING_INITIALIZER",
+    index: 36,
     message: r"""Expected an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4695,7 +4695,7 @@ const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidHexEscape = const MessageCode(
     "InvalidHexEscape",
-    analyzerCode: "INVALID_HEX_ESCAPE",
+    index: 40,
     message:
         r"""An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.""");
 
@@ -4733,7 +4733,7 @@ const Template<Message Function(Token token)> templateInvalidOperator =
 const Code<Message Function(Token token)> codeInvalidOperator =
     const Code<Message Function(Token token)>(
         "InvalidOperator", templateInvalidOperator,
-        analyzerCode: "INVALID_OPERATOR");
+        index: 39);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidOperator(Token token) {
@@ -4781,7 +4781,7 @@ const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidUnicodeEscape = const MessageCode(
     "InvalidUnicodeEscape",
-    analyzerCode: "INVALID_UNICODE_ESCAPE",
+    index: 38,
     message:
         r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
@@ -4857,7 +4857,7 @@ const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
     "LibraryDirectiveNotFirst",
-    analyzerCode: "LIBRARY_DIRECTIVE_NOT_FIRST",
+    index: 37,
     message:
         r"""The library directive must appear before all other directives.""",
     tip: r"""Try moving the library directive before any other directives.""");
@@ -5019,7 +5019,7 @@ const Code<Null> codeMissingAssignableSelector =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingAssignableSelector = const MessageCode(
     "MissingAssignableSelector",
-    analyzerCode: "MISSING_ASSIGNABLE_SELECTOR",
+    index: 35,
     message: r"""Missing selector such as '.<identifier>' or '[0]'.""",
     tip: r"""Try adding a selector.""");
 
@@ -5030,7 +5030,7 @@ const Code<Null> codeMissingAssignmentInInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
     "MissingAssignmentInInitializer",
-    analyzerCode: "MISSING_ASSIGNMENT_IN_INITIALIZER",
+    index: 34,
     message: r"""Expected an assignment after the field name.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -5041,7 +5041,7 @@ const Code<Null> codeMissingConstFinalVarOrType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
     "MissingConstFinalVarOrType",
-    analyzerCode: "MISSING_CONST_FINAL_VAR_OR_TYPE",
+    index: 33,
     message:
         r"""Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
     tip:
@@ -5084,7 +5084,7 @@ const Code<Null> codeMissingExpressionInThrow = messageMissingExpressionInThrow;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingExpressionInThrow = const MessageCode(
     "MissingExpressionInThrow",
-    analyzerCode: "MISSING_EXPRESSION_IN_THROW",
+    index: 32,
     message: r"""Missing expression after 'throw'.""",
     tip:
         r"""Add an expression after 'throw' or use 'rethrow' to throw a caught exception""");
@@ -5194,7 +5194,7 @@ const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingOperatorKeyword = const MessageCode(
     "MissingOperatorKeyword",
-    analyzerCode: "MISSING_KEYWORD_OPERATOR",
+    index: 31,
     message:
         r"""Operator declarations must be preceeded by the keyword 'operator'.""",
     tip: r"""Try adding the keyword 'operator'.""");

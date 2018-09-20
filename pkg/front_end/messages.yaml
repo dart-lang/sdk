@@ -385,16 +385,18 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
 
 MissingExpressionInThrow:
+  index: 32
   template: "Missing expression after 'throw'."
   tip: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
-  analyzerCode: MISSING_EXPRESSION_IN_THROW
+  analyzerCode: ParserErrorCode.MISSING_EXPRESSION_IN_THROW
   statement:
     - "throw;"
 
 MissingConstFinalVarOrType:
+  index: 33
   template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   tip: "Try adding the name of the type of the variable or the keyword 'var'."
-  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
+  analyzerCode: ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
   script:
     - "class C { static f; }"
 
@@ -897,15 +899,17 @@ InvalidCodePoint:
     - "'\\u{110000}'"
 
 InvalidHexEscape:
+  index: 40
   template: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
-  analyzerCode: INVALID_HEX_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_HEX_ESCAPE
   expression:
     - "'\\x0'"
     - "'\\x0y'"
 
 InvalidUnicodeEscape:
+  index: 38
   template: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
-  analyzerCode: INVALID_UNICODE_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE
   expression:
     - "'\\u'"
     - "'\\u0F'"
@@ -1884,9 +1888,10 @@ TypedefNotFunction:
   analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
 
 LibraryDirectiveNotFirst:
+  index: 37
   template: "The library directive must appear before all other directives."
   tip: "Try moving the library directive before any other directives."
-  analyzerCode: LIBRARY_DIRECTIVE_NOT_FIRST
+  analyzerCode: ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST
   script:
     - "class Foo{} library l;"
     - "import 'x.dart'; library l;"
@@ -2130,15 +2135,17 @@ EnumConstantSameNameAsEnclosing:
   analyzerCode: ENUM_CONSTANT_WITH_ENUM_NAME
 
 MissingOperatorKeyword:
+  index: 31
   template: "Operator declarations must be preceeded by the keyword 'operator'."
   tip: "Try adding the keyword 'operator'."
-  analyzerCode: MISSING_KEYWORD_OPERATOR
+  analyzerCode: ParserErrorCode.MISSING_KEYWORD_OPERATOR
   script:
     - "class C { +(x) {} }"
 
 InvalidOperator:
+  index: 39
   template: "The string '#lexeme' isn't a user-definable operator."
-  analyzerCode: INVALID_OPERATOR
+  analyzerCode: ParserErrorCode.INVALID_OPERATOR
   script:
     - "class C { void operator %=(x) {} }"
 
@@ -2380,15 +2387,17 @@ ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
 
 ExpectedAnInitializer:
+  index: 36
   template: "Expected an initializer."
-  analyzerCode: MISSING_INITIALIZER
+  analyzerCode: ParserErrorCode.MISSING_INITIALIZER
   script:
     - "class C { C() : {} }"
 
 MissingAssignmentInInitializer:
+  index: 34
   template: "Expected an assignment after the field name."
   tip: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: MISSING_ASSIGNMENT_IN_INITIALIZER
+  analyzerCode: ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER
   script:
     - "class C { C() : x(3) {} }"
 
@@ -2419,9 +2428,10 @@ IllegalAssignmentToNonAssignable:
     - "main(){ f()++; }"
 
 MissingAssignableSelector:
+  index: 35
   template: "Missing selector such as '.<identifier>' or '[0]'."
   tip: "Try adding a selector."
-  analyzerCode: MISSING_ASSIGNABLE_SELECTOR
+  analyzerCode: ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR
   script:
     - "main(){ ++f(); }"
 

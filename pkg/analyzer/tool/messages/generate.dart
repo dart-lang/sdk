@@ -138,7 +138,7 @@ part of 'syntactic_errors.dart';
     for (Map entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
-      if (errorConverterSource.contains(errorCode)) {
+      if (errorConverterSource.contains('"$errorCode"')) {
         if (converterCount == 0) {
           print('');
           print('The following ParserErrorCodes could be removed'

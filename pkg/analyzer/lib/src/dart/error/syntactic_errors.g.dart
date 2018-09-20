@@ -38,6 +38,16 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MULTIPLE_EXTENDS_CLAUSES,
   _MISSING_STATEMENT,
   _MISSING_PREFIX_IN_DEFERRED_IMPORT,
+  _MISSING_KEYWORD_OPERATOR,
+  _MISSING_EXPRESSION_IN_THROW,
+  _MISSING_CONST_FINAL_VAR_OR_TYPE,
+  _MISSING_ASSIGNMENT_IN_INITIALIZER,
+  _MISSING_ASSIGNABLE_SELECTOR,
+  _MISSING_INITIALIZER,
+  _LIBRARY_DIRECTIVE_NOT_FIRST,
+  _INVALID_UNICODE_ESCAPE,
+  _INVALID_OPERATOR,
+  _INVALID_HEX_ESCAPE,
 ];
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
@@ -73,6 +83,53 @@ const ParserErrorCode _INVALID_AWAIT_IN_FOR = const ParserErrorCode(
     'INVALID_AWAIT_IN_FOR',
     r"The keyword 'await' isn't allowed for a normal 'for' statement.",
     correction: "Try removing the keyword, or use a for-each statement.");
+
+const ParserErrorCode _INVALID_HEX_ESCAPE = const ParserErrorCode(
+    'INVALID_HEX_ESCAPE',
+    r"An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.");
+
+const ParserErrorCode _INVALID_OPERATOR = const ParserErrorCode(
+    'INVALID_OPERATOR',
+    r"The string '#lexeme' isn't a user-definable operator.");
+
+const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
+    'INVALID_UNICODE_ESCAPE',
+    r"An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
+
+const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode(
+    'LIBRARY_DIRECTIVE_NOT_FIRST',
+    r"The library directive must appear before all other directives.",
+    correction:
+        "Try moving the library directive before any other directives.");
+
+const ParserErrorCode _MISSING_ASSIGNABLE_SELECTOR = const ParserErrorCode(
+    'MISSING_ASSIGNABLE_SELECTOR',
+    r"Missing selector such as '.<identifier>' or '[0]'.",
+    correction: "Try adding a selector.");
+
+const ParserErrorCode _MISSING_ASSIGNMENT_IN_INITIALIZER =
+    const ParserErrorCode('MISSING_ASSIGNMENT_IN_INITIALIZER',
+        r"Expected an assignment after the field name.",
+        correction: "To initialize a field, use the syntax 'name = value'.");
+
+const ParserErrorCode _MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode(
+    'MISSING_CONST_FINAL_VAR_OR_TYPE',
+    r"Variables must be declared using the keywords 'const', 'final', 'var' or a type name.",
+    correction:
+        "Try adding the name of the type of the variable or the keyword 'var'.");
+
+const ParserErrorCode _MISSING_EXPRESSION_IN_THROW = const ParserErrorCode(
+    'MISSING_EXPRESSION_IN_THROW', r"Missing expression after 'throw'.",
+    correction:
+        "Add an expression after 'throw' or use 'rethrow' to throw a caught exception");
+
+const ParserErrorCode _MISSING_INITIALIZER =
+    const ParserErrorCode('MISSING_INITIALIZER', r"Expected an initializer.");
+
+const ParserErrorCode _MISSING_KEYWORD_OPERATOR = const ParserErrorCode(
+    'MISSING_KEYWORD_OPERATOR',
+    r"Operator declarations must be preceeded by the keyword 'operator'.",
+    correction: "Try adding the keyword 'operator'.");
 
 const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
     const ParserErrorCode('MISSING_PREFIX_IN_DEFERRED_IMPORT',
