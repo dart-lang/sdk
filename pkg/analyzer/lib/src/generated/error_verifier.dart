@@ -1926,7 +1926,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             if (_checkForMixinSuperclassConstraints(mixinName, i)) {
               problemReported = true;
             }
-            if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
+            if (_checkForMixinSuperInvokedMembers(i, mixinName, mixinElement)) {
               problemReported = true;
             }
           } else {
@@ -4268,15 +4268,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /// Check that the [_enclosingClass] has concrete implementations of all
-  /// the super-invoked members of the [mixinElement].
+  /// Check that the superclass of the given [mixinElement] at the given
+  /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
+  /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(
-      TypeName mixinName, ClassElementImpl mixinElement) {
+      int mixinIndex, TypeName mixinName, ClassElementImpl mixinElement) {
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
     for (var name in mixinElement.superInvokedNames) {
       var superMember = enclosingType.lookUpInheritedMember(
           name, _currentLibrary,
-          concrete: true, setter: name.endsWith('='));
+          concrete: true,
+          stopMixinIndex: mixinIndex,
+          setter: name.endsWith('='));
       if (superMember == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode

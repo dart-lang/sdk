@@ -918,6 +918,50 @@ abstract class X extends A with M {}
     ]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inNextMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M1 on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+mixin M2 on A {
+  void foo() {}
+}
+
+class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inSameMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    ]);
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_method() async {
     addTestFile(r'''
 abstract class A {
@@ -955,6 +999,30 @@ mixin M2 on A {
 }
 
 class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inSuper_fromMixin() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M1 {
+  void foo() {}
+}
+
+class B extends A with M1 {}
+
+mixin M2 on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X extends B with M2 {}
 ''');
     await resolveTestFile();
     assertNoTestErrors();

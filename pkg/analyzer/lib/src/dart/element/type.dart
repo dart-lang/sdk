@@ -1761,11 +1761,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false, bool setter: false}) {
+      {bool concrete: false, int stopMixinIndex, bool setter: false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
-        {bool acceptAbstract: false, bool includeType: true}) {
+        {bool acceptAbstract: false,
+        bool includeType: true,
+        int stopMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
       }
@@ -1789,8 +1791,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      for (InterfaceType mixin in type.mixins.reversed) {
-        var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+      var mixins = type.mixins;
+      for (var i = 0; i < mixins.length; i++) {
+        if (stopMixinIndex != null && i >= stopMixinIndex) {
+          break;
+        }
+        var result = lookUpImpl(mixins[i], acceptAbstract: acceptAbstract);
         if (result != null) {
           return result;
         }
@@ -1819,7 +1825,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return null;
     } else {
-      return lookUpImpl(this, includeType: false);
+      return lookUpImpl(
+        this,
+        includeType: false,
+        stopMixinIndex: stopMixinIndex,
+      );
     }
   }
 
