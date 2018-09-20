@@ -114,16 +114,20 @@ class Command {
       Uri workingDirectory) {
     return new FastaCompilationCommand._(
         compilerLocation,
-        outputFile,
+        outputFile.toFilePath(),
         bootstrapDependencies,
-        executable,
+        executable.toFilePath(),
         arguments,
         environment,
-        workingDirectory);
+        workingDirectory?.toFilePath());
   }
 
   /// A descriptive name for this command.
   final String displayName;
+
+  /// When cloning a command object to run it multiple times, we give
+  /// the different copies distinct values for index.
+  int index;
 
   /// Number of times this command *can* be retried.
   int get maxNumRetries => 2;
@@ -135,7 +139,15 @@ class Command {
   /// be expensive to compute (and hashCode is called often).
   int _cachedHashCode;
 
-  Command._(this.displayName);
+  Command._(this.displayName, {this.index = 0});
+
+  /// A virtual clone method for a member of the Command hierarchy.
+  /// Two clones with the same index will be equal, with different indices
+  /// will be distinct. Used to run tests multiple times, since identical
+  /// commands are only run once by the dependency graph scheduler.
+  Command indexedCopy(int index) {
+    return Command._(displayName, index: index);
+  }
 
   int get hashCode {
     if (_cachedHashCode == null) {
@@ -152,10 +164,13 @@ class Command {
 
   void _buildHashCode(HashCodeBuilder builder) {
     builder.addJson(displayName);
+    builder.add(index);
   }
 
   bool _equal(covariant Command other) =>
-      hashCode == other.hashCode && displayName == other.displayName;
+      hashCode == other.hashCode &&
+      displayName == other.displayName &&
+      index == other.index;
 
   String toString() => reproductionCommand;
 
@@ -176,14 +191,19 @@ class ProcessCommand extends Command {
   final String workingDirectory;
 
   ProcessCommand._(String displayName, this.executable, this.arguments,
-      [this.environmentOverrides, this.workingDirectory])
-      : super._(displayName) {
+      [this.environmentOverrides, this.workingDirectory, int index = 0])
+      : super._(displayName, index: index) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
       // NOTE: Issue 1306
       executable = executable.replaceAll('/', '\\');
     }
+  }
+
+  ProcessCommand indexedCopy(int index) {
+    return ProcessCommand._(displayName, executable, arguments,
+        environmentOverrides, workingDirectory, index);
   }
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -240,9 +260,21 @@ class CompilationCommand extends ProcessCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {String workingDirectory})
+      {String workingDirectory,
+      int index = 0})
       : super._(displayName, executable, arguments, environmentOverrides,
-            workingDirectory);
+            workingDirectory, index);
+
+  CompilationCommand indexedCopy(int index) => CompilationCommand._(
+      displayName,
+      _outputFile,
+      _alwaysCompile,
+      _bootstrapDependencies,
+      executable,
+      arguments,
+      environmentOverrides,
+      workingDirectory: workingDirectory,
+      index: index);
 
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
@@ -294,15 +326,27 @@ class FastaCompilationCommand extends CompilationCommand {
 
   FastaCompilationCommand._(
       this._compilerLocation,
-      Uri outputFile,
+      String outputFile,
       List<Uri> bootstrapDependencies,
-      Uri executable,
+      String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      Uri workingDirectory)
-      : super._("fasta", outputFile.toFilePath(), true, bootstrapDependencies,
-            executable.toFilePath(), arguments, environmentOverrides,
-            workingDirectory: workingDirectory?.toFilePath());
+      String workingDirectory,
+      {int index = 0})
+      : super._("fasta", outputFile, true, bootstrapDependencies, executable,
+            arguments, environmentOverrides,
+            workingDirectory: workingDirectory, index: index);
+
+  @override
+  FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand._(
+      _compilerLocation,
+      _outputFile,
+      _bootstrapDependencies,
+      executable,
+      arguments,
+      environmentOverrides,
+      workingDirectory,
+      index: index);
 
   @override
   List<String> get batchArguments {
@@ -370,13 +414,20 @@ class FastaCompilationCommand extends CompilationCommand {
 class VMKernelCompilationCommand extends CompilationCommand {
   VMKernelCompilationCommand._(
       String outputFile,
-      bool neverSkipCompilation,
+      bool alwaysCompile,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
-      Map<String, String> environmentOverrides)
-      : super._('vm_compile_to_kernel', outputFile, neverSkipCompilation,
-            bootstrapDependencies, executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides,
+      {int index = 0})
+      : super._('vm_compile_to_kernel', outputFile, alwaysCompile,
+            bootstrapDependencies, executable, arguments, environmentOverrides,
+            index: index);
+
+  VMKernelCompilationCommand indexedCopy(int index) =>
+      VMKernelCompilationCommand._(_outputFile, _alwaysCompile,
+          _bootstrapDependencies, executable, arguments, environmentOverrides,
+          index: index);
 
   int get maxNumRetries => 1;
 }
@@ -398,8 +449,12 @@ class BrowserTestCommand extends Command {
   final TestConfiguration configuration;
   final bool retry;
 
-  BrowserTestCommand._(this.url, this.configuration, this.retry)
-      : super._(configuration.runtime.name);
+  BrowserTestCommand._(this.url, this.configuration, this.retry,
+      {int index = 0})
+      : super._(configuration.runtime.name, index: index);
+
+  BrowserTestCommand indexedCopy(int index) =>
+      BrowserTestCommand._(url, configuration, retry, index: index);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -431,27 +486,45 @@ class BrowserTestCommand extends Command {
 
 class AnalysisCommand extends ProcessCommand {
   AnalysisCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides)
-      : super._('dart2analyzer', executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides, {int index = 0})
+      : super._('dart2analyzer', executable, arguments, environmentOverrides,
+            null, index);
+
+  AnalysisCommand indexedCopy(int index) =>
+      AnalysisCommand._(executable, arguments, environmentOverrides,
+          index: index);
 }
 
 class CompareAnalyzerCfeCommand extends ProcessCommand {
   CompareAnalyzerCfeCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides)
+      Map<String, String> environmentOverrides, {int index = 0})
       : super._('compare_analyzer_cfe', executable, arguments,
-            environmentOverrides);
+            environmentOverrides, null, index);
+
+  CompareAnalyzerCfeCommand indexedCopy(int index) =>
+      CompareAnalyzerCfeCommand._(executable, arguments, environmentOverrides,
+          index: index);
 }
 
 class SpecParseCommand extends ProcessCommand {
   SpecParseCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides)
-      : super._('spec_parser', executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides, {int index = 0})
+      : super._('spec_parser', executable, arguments, environmentOverrides,
+            null, index);
+
+  SpecParseCommand indexedCopy(int index) =>
+      SpecParseCommand._(executable, arguments, environmentOverrides,
+          index: index);
 }
 
 class VmCommand extends ProcessCommand {
   VmCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides)
-      : super._('vm', executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides,
+      {int index = 0})
+      : super._('vm', executable, arguments, environmentOverrides, null, index);
+
+  VmCommand indexedCopy(int index) =>
+      VmCommand._(executable, arguments, environmentOverrides, index: index);
 }
 
 class VmBatchCommand extends ProcessCommand implements VmCommand {
@@ -460,9 +533,14 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
-      {this.checked: true})
+      {this.checked: true, int index = 0})
       : this.dartFile = dartFile,
-        super._('vm-batch', executable, arguments, environmentOverrides);
+        super._('vm-batch', executable, arguments, environmentOverrides, null,
+            index);
+
+  VmBatchCommand indexedCopy(int index) =>
+      VmBatchCommand._(executable, dartFile, arguments, environmentOverrides,
+          checked: checked, index: index);
 
   @override
   List<String> get batchArguments =>
@@ -495,10 +573,18 @@ class AdbPrecompilationCommand extends Command {
       this.processTestFilename,
       this.precompiledTestDirectory,
       this.arguments,
-      this.useBlobs)
-      : super._("adb_precompilation");
+      this.useBlobs,
+      {int index = 0})
+      : super._("adb_precompilation", index: index);
 
-  void _buildHashCode(HashCodeBuilder builder) {
+  AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand._(
+      precompiledRunnerFilename,
+      processTestFilename,
+      precompiledTestDirectory,
+      arguments,
+      useBlobs,
+      index: index);
+  _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(precompiledRunnerFilename);
     builder.add(precompiledTestDirectory);
@@ -520,13 +606,18 @@ class AdbPrecompilationCommand extends Command {
 class JSCommandlineCommand extends ProcessCommand {
   JSCommandlineCommand._(
       String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides = null])
-      : super._(displayName, executable, arguments, environmentOverrides);
+      [Map<String, String> environmentOverrides = null, int index = 0])
+      : super._(displayName, executable, arguments, environmentOverrides, null,
+            index);
+
+  JSCommandlineCommand indexedCopy(int index) => JSCommandlineCommand._(
+      displayName, executable, arguments, environmentOverrides, index);
 }
 
 /// [ScriptCommand]s are executed by dart code.
 abstract class ScriptCommand extends Command {
-  ScriptCommand._(String displayName) : super._(displayName);
+  ScriptCommand._(String displayName, {int index = 0})
+      : super._(displayName, index: index);
 
   Future<ScriptCommandOutput> run();
 }
@@ -535,8 +626,13 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
   final String _sourceDirectory;
   final String _destinationDirectory;
 
-  CleanDirectoryCopyCommand._(this._sourceDirectory, this._destinationDirectory)
-      : super._('dir_copy');
+  CleanDirectoryCopyCommand._(this._sourceDirectory, this._destinationDirectory,
+      {int index = 0})
+      : super._('dir_copy', index: index);
+
+  CleanDirectoryCopyCommand indexedCopy(int index) =>
+      CleanDirectoryCopyCommand._(_sourceDirectory, _destinationDirectory,
+          index: index);
 
   String get reproductionCommand =>
       "Copying '$_sourceDirectory' to '$_destinationDirectory'.";
@@ -581,7 +677,11 @@ class MakeSymlinkCommand extends ScriptCommand {
   String _link;
   String _target;
 
-  MakeSymlinkCommand._(this._link, this._target) : super._('make_symlink');
+  MakeSymlinkCommand._(this._link, this._target, {int index = 0})
+      : super._('make_symlink', index: index);
+
+  MakeSymlinkCommand indexedCopy(int index) =>
+      MakeSymlinkCommand._(_link, _target, index: index);
 
   String get reproductionCommand =>
       "Make symbolic link '$_link' (target: $_target)'.";

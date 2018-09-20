@@ -70,10 +70,11 @@ class Graph<T> {
   /// Adds a new node to the graph with [dependencies] and [userData].
   ///
   /// The node is in the [NodeState.initialized] state.
-  Node<T> add(T userData, Iterable<Node<T>> dependencies) {
+  Node<T> add(T userData, Iterable<Node<T>> dependencies,
+      {bool timingDependency = false}) {
     assert(!_isSealed);
 
-    var node = new Node._(userData);
+    var node = new Node._(userData, timingDependency);
     _nodes.add(node);
 
     for (var dependency in dependencies) {
@@ -114,11 +115,12 @@ class Graph<T> {
 /// A single node in a [Graph].
 class Node<T> extends UniqueObject {
   final T data;
+  final bool timingDependency;
   NodeState _state = NodeState.initialized;
   final Set<Node<T>> _dependencies = new Set();
   final Set<Node<T>> _neededFor = new Set();
 
-  Node._(this.data);
+  Node._(this.data, this.timingDependency);
 
   NodeState get state => _state;
   Iterable<Node<T>> get dependencies => _dependencies;

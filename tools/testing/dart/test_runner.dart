@@ -135,6 +135,14 @@ class TestCase extends UniqueObject {
     }
   }
 
+  TestCase indexedCopy(int index) {
+    var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
+    return new TestCase(
+        displayName, newCommands, configuration, expectedOutcomes)
+      .._expectations = _expectations
+      ..hash = hash;
+  }
+
   bool get isNegative => _expectations & IS_NEGATIVE != 0;
   bool get hasRuntimeError => _expectations & HAS_RUNTIME_ERROR != 0;
   bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
@@ -872,27 +880,46 @@ class TestCaseEnqueuer {
     enqueueNextSuite();
   }
 
+  /// Adds a test case to the list of active test cases, and adds its commands
+  /// to the dependency graph of commands.
+  ///
+  /// If the repeat flag is > 1, replicates the test case and its commands,
+  /// adding an index field with a distinct value to each of the copies.
+  ///
+  /// Each copy of the test case depends on the previous copy of the test
+  /// case completing, with its first command having a dependency on the last
+  /// command of the previous copy of the test case. This dependency is
+  /// marked as a "timingDependency", so that it doesn't depend on the previous
+  /// test completing successfully, just on it completing.
   void _newTest(TestCase testCase) {
-    remainingTestCases.add(testCase);
-
     Node<Command> lastNode;
-    for (var command in testCase.commands) {
-      // Make exactly *one* node in the dependency graph for every command.
-      // This ensures that we never have two commands c1 and c2 in the graph
-      // with "c1 == c2".
-      var node = command2node[command];
-      if (node == null) {
-        var requiredNodes = (lastNode != null) ? [lastNode] : <Node<Command>>[];
-        node = graph.add(command, requiredNodes);
-        command2node[command] = node;
-        command2testCases[command] = <TestCase>[];
+    for (int i = 0; i < testCase.configuration.repeat; ++i) {
+      if (i > 0) {
+        testCase = testCase.indexedCopy(i);
       }
-      // Keep mapping from command to all testCases that refer to it
-      command2testCases[command].add(testCase);
+      remainingTestCases.add(testCase);
+      bool isFirstCommand = true;
+      for (var command in testCase.commands) {
+        // Make exactly *one* node in the dependency graph for every command.
+        // This ensures that we never have two commands c1 and c2 in the graph
+        // with "c1 == c2".
+        var node = command2node[command];
+        if (node == null) {
+          var requiredNodes =
+              (lastNode != null) ? [lastNode] : <Node<Command>>[];
+          node = graph.add(command, requiredNodes,
+              timingDependency: isFirstCommand);
+          command2node[command] = node;
+          command2testCases[command] = <TestCase>[];
+        }
+        // Keep mapping from command to all testCases that refer to it
+        command2testCases[command].add(testCase);
 
-      lastNode = node;
+        lastNode = node;
+        isFirstCommand = false;
+      }
+      _onTestCaseAdded(testCase);
     }
-    _onTestCaseAdded(testCase);
   }
 }
 
@@ -921,8 +948,8 @@ class CommandEnqueuer {
       if (event.from == NodeState.waiting ||
           event.from == NodeState.processing) {
         if (_finishedStates.contains(event.to)) {
-          for (var dependendNode in event.node.neededFor) {
-            _changeNodeStateIfNecessary(dependendNode);
+          for (var dependentNode in event.node.neededFor) {
+            _changeNodeStateIfNecessary(dependentNode);
           }
         }
       }
@@ -933,19 +960,19 @@ class CommandEnqueuer {
   // changed it's state.
   void _changeNodeStateIfNecessary(Node<Command> node) {
     if (_initStates.contains(node.state)) {
+      bool allDependenciesFinished =
+          node.dependencies.every((dep) => _finishedStates.contains(dep.state));
       bool anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
           [NodeState.failed, NodeState.unableToRun].contains(dep.state));
+      bool allDependenciesSuccessful =
+          node.dependencies.every((dep) => dep.state == NodeState.successful);
 
       var newState = NodeState.waiting;
-      if (anyDependenciesUnsuccessful) {
+      if (allDependenciesSuccessful ||
+          (allDependenciesFinished && node.timingDependency)) {
+        newState = NodeState.enqueuing;
+      } else if (anyDependenciesUnsuccessful) {
         newState = NodeState.unableToRun;
-      } else {
-        bool allDependenciesSuccessful =
-            node.dependencies.every((dep) => dep.state == NodeState.successful);
-
-        if (allDependenciesSuccessful) {
-          newState = NodeState.enqueuing;
-        }
       }
       if (node.state != newState) {
         _graph.changeState(node, newState);

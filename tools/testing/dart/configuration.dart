@@ -27,6 +27,7 @@ class TestConfiguration {
       this.selectors,
       this.testList,
       this.appendLogs,
+      this.repeat,
       this.batch,
       this.batchDart2JS,
       this.copyCoreDumps,
@@ -133,6 +134,7 @@ class TestConfiguration {
   final int taskCount;
   final int shardCount;
   final int shard;
+  final int repeat;
   final String stepName;
 
   final int testServerPort;
