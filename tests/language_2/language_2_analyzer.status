@@ -75,8 +75,6 @@ malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
-mixin_mixin6_test: CompileTimeError # TODO(paulberry): triage
-mixin_mixin7_test: CompileTimeError # TODO(paulberry): triage
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614

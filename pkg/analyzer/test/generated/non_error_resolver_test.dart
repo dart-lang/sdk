@@ -70,6 +70,12 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
 
   @override
   @failingTest // Does not work with old task model
+  test_mixin_of_mixin_type_argument_inference_cascaded_mixin() {
+    return super.test_mixin_of_mixin_type_argument_inference_cascaded_mixin();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
   test_mixinInference_with_actual_mixins() {
     return super.test_mixinInference_with_actual_mixins();
   }
@@ -3857,6 +3863,43 @@ class C {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  test_mixin_of_mixin_type_argument_inference() async {
+    // In the code below, B's superclass constraints don't include A, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is Object.  So no mixin type inference is attempted, and
+    // "with B" is interpreted as "with B<dynamic>".
+    Source source = addSource('''
+class A<T> {}
+class B<T> = Object with A<T>;
+class C = Object with B;
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var bReference = result.unit.declaredElement.getType('C').mixins[0];
+    expect(bReference.typeArguments[0].toString(), 'dynamic');
+  }
+
+  test_mixin_of_mixin_type_argument_inference_cascaded_mixin() async {
+    // In the code below, B has a single superclass constraint, A1, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
+    // (since C's base class implements A1<int>), and "with B" is interpreted as
+    // "with B<int>".
+    Source source = addSource('''
+class A1<T> {}
+class A2<T> {}
+class B<T> = Object with A1<T>, A2<T>;
+class Base implements A1<int> {}
+class C = Base with B;
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var bReference = result.unit.declaredElement.getType('C').mixins[0];
+    expect(bReference.typeArguments[0].toString(), 'int');
   }
 
   test_mixinDeclaresConstructor() async {

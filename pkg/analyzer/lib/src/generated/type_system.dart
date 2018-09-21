@@ -1762,16 +1762,15 @@ abstract class TypeSystem {
     if (mixinElement.isMixin) {
       return mixinElement.superclassConstraints;
     }
-    var mixinSupertypeConstraints = <InterfaceType>[];
-    void addIfGeneric(InterfaceType type) {
-      if (type.element.typeParameters.isNotEmpty) {
-        mixinSupertypeConstraints.add(type);
-      }
-    }
 
-    addIfGeneric(mixinElement.supertype);
-    mixinElement.mixins.forEach(addIfGeneric);
-    return mixinSupertypeConstraints;
+    var candidates = [mixinElement.supertype];
+    candidates.addAll(mixinElement.mixins);
+    if (mixinElement.isMixinApplication) {
+      candidates.removeLast();
+    }
+    return candidates
+        .where((type) => type.element.typeParameters.isNotEmpty)
+        .toList();
   }
 
   /**

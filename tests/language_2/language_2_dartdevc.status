@@ -145,8 +145,6 @@ mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError #
 mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
-mixin_mixin6_test: CompileTimeError # TODO(paulberry): triage
-mixin_mixin7_test: CompileTimeError # TODO(paulberry): triage
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_test: RuntimeError
