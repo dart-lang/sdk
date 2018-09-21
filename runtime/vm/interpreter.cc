@@ -943,7 +943,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       // Unwind to entry frame.
       fp_ = *FP;
       pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
-      while ((pc_ & 2) == 0) {
+      while (!IsEntryFrameMarker(pc_)) {
         fp_ = SavedCallerFP(fp_);
         pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
       }
@@ -1525,7 +1525,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
   do {                                                                         \
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1553,7 +1553,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
   do {                                                                         \
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1632,7 +1632,7 @@ DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
 
   // Check if it is a fake PC marking the entry frame.
-  ASSERT((reinterpret_cast<uword>(*pc) & 2) == 0);
+  ASSERT(!IsEntryFrameMarker(reinterpret_cast<uword>(*pc)));
 
   // Restore SP, FP and PP.
   // Unoptimized frame SP is one below FrameArguments(...) because
@@ -3483,7 +3483,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) {
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {
       // Pop entry frame.
       fp_ = SavedCallerFP(FP);
       // Restore exit frame info saved in entry frame.
@@ -4798,7 +4798,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     // Restore caller context as we are going to throw NoSuchMethod.
     pc = SavedCallerPC(FP);
 
-    const bool has_dart_caller = (reinterpret_cast<uword>(pc) & 2) == 0;
+    const bool has_dart_caller =
+        !IsEntryFrameMarker(reinterpret_cast<uword>(pc));
     const intptr_t argc = has_dart_caller ? KernelBytecode::DecodeArgc(pc[-1])
                                           : (reinterpret_cast<uword>(pc) >> 2);
     const intptr_t type_args_len =

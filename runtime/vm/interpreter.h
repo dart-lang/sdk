@@ -59,6 +59,9 @@ class Interpreter {
     return frame >= stack_base() && frame <= get_fp();
   }
 
+  // Identify an entry frame by looking at its pc marker value.
+  static bool IsEntryFrameMarker(uword pc) { return (pc & 2) != 0; }
+
   // Call on program start.
   static void InitOnce();
 
