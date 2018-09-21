@@ -9,8 +9,16 @@ import 'analysis_helper.dart';
 // code.
 main(List<String> args) {
   asyncTest(() async {
-    await run(Uri.parse('package:compiler/src/dart2js.dart'),
+    await run(
+        Uri.parse('package:compiler/src/dart2js.dart'),
         'tests/compiler/dart2js/analyses/dart2js_allowed.json',
-        verbose: args.contains('-v'), generate: args.contains('-g'));
+        [
+          'package:compiler/',
+          'package:js_ast/',
+          'package:dart2js_info/',
+          'package:js_runtime/'
+        ],
+        verbose: args.contains('-v'),
+        generate: args.contains('-g'));
   });
 }

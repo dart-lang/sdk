@@ -21,7 +21,7 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 
-run(Uri entryPoint, String allowedListPath,
+run(Uri entryPoint, String allowedListPath, List<String> analyzedPaths,
     {Map<String, String> memorySourceFiles = const {},
     bool verbose = false,
     bool generate = false}) {
@@ -29,8 +29,8 @@ run(Uri entryPoint, String allowedListPath,
     Compiler compiler = await compilerFor(memorySourceFiles: memorySourceFiles);
     LoadedLibraries loadedLibraries =
         await compiler.libraryLoader.loadLibraries(entryPoint);
-    new DynamicVisitor(
-            compiler.reporter, loadedLibraries.component, allowedListPath)
+    new DynamicVisitor(compiler.reporter, loadedLibraries.component,
+            allowedListPath, analyzedPaths)
         .run(verbose: verbose, generate: generate);
   });
 }
@@ -90,11 +90,13 @@ class DynamicVisitor extends StaticTypeVisitor {
   final DiagnosticReporter reporter;
   final ir.Component component;
   final String _allowedListPath;
+  final List<String> analyzedPaths;
 
   Map _expectedJson = {};
   Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
-  DynamicVisitor(this.reporter, this.component, this._allowedListPath);
+  DynamicVisitor(
+      this.reporter, this.component, this._allowedListPath, this.analyzedPaths);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate) {
@@ -188,15 +190,15 @@ class DynamicVisitor extends StaticTypeVisitor {
       print("""
 
 ********************************************************************************
-  Unexpected dynamic invocations found by test:
-
-    ${relativize(Uri.base, Platform.script, Platform.isWindows)}
-
-  Please address the reported errors, or, if the errors are as expected, run
-
-    dart ${relativize(Uri.base, Platform.script, Platform.isWindows)} -g
-
-  to update the expectation file.
+*  Unexpected dynamic invocations found by test:
+*
+*    ${relativize(Uri.base, Platform.script, Platform.isWindows)}
+*
+*  Please address the reported errors, or, if the errors are as expected, run
+*
+*    dart ${relativize(Uri.base, Platform.script, Platform.isWindows)} -g
+*
+*  to update the expectation file.
 ********************************************************************************
 """);
       exit(-1);
@@ -227,6 +229,14 @@ class DynamicVisitor extends StaticTypeVisitor {
       });
       if (total > 0) {
         print('${total} error(s) allowed in total.');
+      }
+    }
+  }
+
+  Null visitLibrary(ir.Library node) {
+    for (String path in analyzedPaths) {
+      if ('${node.importUri}'.startsWith(path)) {
+        return super.visitLibrary(node);
       }
     }
   }
