@@ -21,92 +21,116 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
-    defineReflectiveTests(CompileTimeErrorCodeSpecTest);
   });
 }
 
 @reflectiveTest
-class CompileTimeErrorCodeSpecTest extends ResolverTestCase {
-  test_constWithTypeParameters_direct() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<T>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
+class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
+  @override
+  @failingTest
+  test_awaitInWrongContext_sync() {
+    return super.test_awaitInWrongContext_sync();
   }
 
-  test_constWithTypeParameters_indirect() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<List<T>>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
+  @override
+  @failingTest
+  test_constEvalThrowsException() {
+    return super.test_constEvalThrowsException();
   }
 
-  test_invalidTypeArgumentInConstList() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <E>[];
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
-    verify([source]);
+  @override
+  @failingTest
+  test_genericFunctionTypeArgument_typedef() {
+    return super.test_genericFunctionTypeArgument_typedef();
   }
 
-  test_invalidTypeArgumentInConstMap() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <String, E>{};
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
-    verify([source]);
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_async() {
+    return super.test_invalidIdentifierInAsync_async();
   }
 
-  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
-    Source source = addSource(r'''
-class A {}
-class C = A with String, num;''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [
-        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    }
-    verify([source]);
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_await() {
+    return super.test_invalidIdentifierInAsync_await();
+  }
+
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_yield() {
+    return super.test_invalidIdentifierInAsync_yield();
+  }
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax() {
+    return super
+        .test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax();
+  }
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_typeParametersSupplied() {
+    return super.test_mixinInference_noMatchingClass_typeParametersSupplied();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() {
+    return super.test_mixinInference_recursiveSubtypeCheck();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck_new_syntax() {
+    return super.test_mixinInference_recursiveSubtypeCheck_new_syntax();
+  }
+
+  @override
+  @failingTest
+  test_mixinOfNonClass() {
+    return super.test_mixinOfNonClass();
+  }
+
+  @override
+  @failingTest
+  test_objectCannotExtendAnotherClass() {
+    return super.test_objectCannotExtendAnotherClass();
+  }
+
+  @override
+  @failingTest
+  test_superInitializerInObject() {
+    return super.test_superInitializerInObject();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_async() {
+    return super.test_yieldEachInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_sync() {
+    return super.test_yieldEachInNonGenerator_sync();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_async() {
+    return super.test_yieldInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_sync() {
+    return super.test_yieldInNonGenerator_sync();
   }
 }
 
-@reflectiveTest
-class CompileTimeErrorCodeTest extends ResolverTestCase {
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
+class CompileTimeErrorCodeTestBase extends ResolverTestCase {
   disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
     // There is an interface conflict here due to a loop in the class
     // hierarchy leading to an infinite set of implemented types; this loop
@@ -526,7 +550,6 @@ f() sync* {
     verify([source]);
   }
 
-  @failingTest
   test_awaitInWrongContext_sync() async {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -1078,7 +1101,6 @@ const C = a.m;''');
     verify([source]);
   }
 
-  @failingTest
   test_constEvalThrowsException() async {
     Source source = addSource(r'''
 class C {
@@ -1558,6 +1580,34 @@ void f() {
     await computeAnalysisResult(source2);
     assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
     verify([source1]);
+  }
+
+  test_constWithTypeParameters_direct() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<T>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_constWithTypeParameters_indirect() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<List<T>>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
   }
 
   test_constWithUndefinedConstructor() async {
@@ -2449,7 +2499,6 @@ main() { new C().f<S Function<S>(S)>(null); }''');
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_typedef() async {
     // TODO(mfairhurst) diagnose these parse errors to give the correct error
     Source source = addSource(r'''
@@ -3341,7 +3390,6 @@ class A {
     // no verify() call, "B" is not resolved
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_async() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3355,7 +3403,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_await() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3369,7 +3416,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_yield() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3586,6 +3632,32 @@ class B extends A {
     Source source = addSource("int x = this;");
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstList() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>[];
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <String, E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
     verify([source]);
   }
 
@@ -3876,7 +3948,6 @@ class C = Object with M;
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
   }
 
-  @failingTest
   test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax() async {
     Source source = addSource('''
 abstract class A<T> {}
@@ -3926,7 +3997,6 @@ class C extends Object with M {}
     assertNoErrors(source);
   }
 
-  @failingTest
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3954,7 +4024,6 @@ class C extends Object with M<int> {}
         [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
   }
 
-  @failingTest // Does not work with old task model
   test_mixinInference_recursiveSubtypeCheck() async {
     // See dartbug.com/32353 for a detailed explanation.
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -3993,7 +4062,6 @@ abstract class DirectoryAddOnsMixin implements Directory {}
     expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
   }
 
-  @failingTest // Does not work with old task model
   test_mixinInference_recursiveSubtypeCheck_new_syntax() async {
     // See dartbug.com/32353 for a detailed explanation.
     Source source = addSource('''
@@ -4165,7 +4233,26 @@ class C = A with String;''');
     verify([source]);
   }
 
-  @failingTest
+  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
+    Source source = addSource(r'''
+class A {}
+class C = A with String, num;''');
+    await computeAnalysisResult(source);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    }
+    verify([source]);
+  }
+
   test_mixinOfNonClass() async {
     // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
     Source source = addSource(r'''
@@ -4999,7 +5086,6 @@ class B extends A {
     verify([source]);
   }
 
-  @failingTest
   test_objectCannotExtendAnotherClass() async {
     Source source = addSource(r'''
 ''');
@@ -5979,7 +6065,6 @@ f() {
     // no verify(), 'super.y' is not resolved
   }
 
-  @failingTest
   test_superInitializerInObject() async {
     Source source = addSource(r'''
 ''');
@@ -6523,7 +6608,6 @@ f() sync* {
     verify([source]);
   }
 
-  @failingTest
   test_yieldEachInNonGenerator_async() async {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
@@ -6536,7 +6620,6 @@ f() async {
     verify([source]);
   }
 
-  @failingTest
   test_yieldEachInNonGenerator_sync() async {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
@@ -6549,7 +6632,6 @@ f() {
     verify([source]);
   }
 
-  @failingTest
   test_yieldInNonGenerator_async() async {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.
@@ -6562,7 +6644,6 @@ f() async {
     verify([source]);
   }
 
-  @failingTest
   test_yieldInNonGenerator_sync() async {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.
