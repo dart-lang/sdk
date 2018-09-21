@@ -65,6 +65,19 @@ isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
 
+# The failures below still need to be investigated and possibly fixed, or marked as skipped.
+[ $compiler == dartkb && $strong ]
+convert/streamed_conversion_json_utf8_decode_test: Crash # Assert fault about installed LazyCompile stub in bytecode function.
+isolate/isolate_complex_messages_test: Crash # Non-canonical type arguments.
+isolate/mandel_isolate_test: Pass, Crash # Assert fault about installed LazyCompile stub in bytecode function.
+isolate/spawn_uri_exported_main_test: RuntimeError # Please triage.
+mirrors/dart2js_mirrors_test: Crash # Not able to compile bytecode function.
+mirrors/generic_local_function_test: Crash # Assert fault about installed LazyCompile stub in bytecode function.
+mirrors/intercepted_class_test: Pass, Crash # ICData issue when optimizing.
+mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
+mirrors/method_mirror_location_test: Crash # Not able to compile bytecode function.
+mirrors/mirrors_test: Crash # Not able to compile bytecode function.
+
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
