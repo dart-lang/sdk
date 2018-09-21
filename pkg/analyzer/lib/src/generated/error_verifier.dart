@@ -16,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -4273,9 +4274,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(
-      int mixinIndex, TypeName mixinName, ClassElementImpl mixinElement) {
+      int mixinIndex, TypeName mixinName, ClassElement mixinElement) {
+    ClassElementImpl mixinElementImpl = mixinElement is ClassElementHandle
+        ? mixinElement.actualElement
+        : mixinElement;
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
-    for (var name in mixinElement.superInvokedNames) {
+    for (var name in mixinElementImpl.superInvokedNames) {
       var superMember = enclosingType.lookUpInheritedMember(
           name, _currentLibrary,
           concrete: true,
@@ -5801,7 +5805,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   void _checkMixinInference(
       NamedCompilationUnitMember node, WithClause withClause) {
-    if (withClause == null || !_options.enableSuperMixins) {
+    if (withClause == null) {
       return;
     }
     ClassElement classElement = node.declaredElement;
@@ -5811,7 +5815,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl.collectAllSupertypes(
         supertypesForMixinInference, supertype, type);
     for (var typeName in withClause.mixinTypes) {
-      var mixinElement = typeName.name.staticElement;
+      var mixinType = typeName.type;
+      var mixinElement = mixinType.element;
       if (mixinElement is ClassElement) {
         if (typeName.typeArguments == null) {
           var mixinSupertypeConstraints =
@@ -5840,7 +5845,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
         }
         ClassElementImpl.collectAllSupertypes(
-            supertypesForMixinInference, mixinElement.type, type);
+            supertypesForMixinInference, mixinType, type);
       }
     }
   }

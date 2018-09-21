@@ -75,6 +75,12 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   }
 
   @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_with_actual_mixins_supermixins_enabled() {
+    return super.test_mixinInference_with_actual_mixins_supermixins_enabled();
+  }
+
+  @override
   @failingTest
   test_null_callMethod() {
     return super.test_null_callMethod();
@@ -3876,6 +3882,35 @@ class B extends Object with A {}''');
   }
 
   test_mixinInference_with_actual_mixins() async {
+    Source source = addSource('''
+class I<X> {}
+
+mixin M0<T> on I<T> {}
+
+mixin M1<T> on I<T> {
+  T foo() => null;
+}
+
+class A = I<int> with M0, M1;
+
+void main () {
+  var x = new A().foo();
+}
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var main = result.unit.declarations.last as FunctionDeclaration;
+    var mainBody = main.functionExpression.body as BlockFunctionBody;
+    var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
+    var xElem = xDecl.variables.variables[0].declaredElement;
+    expect(xElem.type.toString(), 'int');
+  }
+
+  test_mixinInference_with_actual_mixins_supermixins_enabled() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
     Source source = addSource('''
 class I<X> {}
 

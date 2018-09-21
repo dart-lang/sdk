@@ -101,6 +101,8 @@ issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
+issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
+issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
 issue34498_test: MissingCompileTimeError # Issue 34500
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
@@ -143,6 +145,8 @@ mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError #
 mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
+mixin_mixin6_test: CompileTimeError # TODO(paulberry): triage
+mixin_mixin7_test: CompileTimeError # TODO(paulberry): triage
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_test: RuntimeError

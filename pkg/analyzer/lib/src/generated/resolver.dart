@@ -7546,10 +7546,18 @@ class TypeNameResolver {
   final Source source;
   final AnalysisErrorListener errorListener;
 
+  /// Indicates whether bare typenames in "with" clauses should have their type
+  /// inferred type arguments loaded from the element model.
+  ///
+  /// This is needed for mixin type inference, but is incompatible with the old
+  /// task model.
+  final bool shouldUseWithClauseInferredTypes;
+
   Scope nameScope;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.definingLibrary, this.source, this.errorListener)
+      this.definingLibrary, this.source, this.errorListener,
+      {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
         undefinedType = typeProvider.undefinedType;
 
@@ -7831,8 +7839,35 @@ class TypeNameResolver {
         }
       }
     }
-    typeName.staticType = type;
-    node.type = type;
+    DartType refinedType;
+    if (shouldUseWithClauseInferredTypes) {
+      var parent = node.parent;
+      if (parent is WithClause &&
+          type is InterfaceType &&
+          type.element.typeParameters.isNotEmpty) {
+        // Get the (possibly inferred) mixin type from the element model.
+        var grandParent = parent.parent;
+        if (grandParent is ClassDeclaration) {
+          refinedType =
+              _getInferredMixinType(grandParent.declaredElement, type.element);
+        } else if (grandParent is ClassTypeAlias) {
+          refinedType =
+              _getInferredMixinType(grandParent.declaredElement, type.element);
+        } else {
+          assert(false, 'Unexpected context for "with" clause');
+        }
+      }
+    }
+    refinedType ??= type;
+    typeName.staticType = refinedType;
+    node.type = refinedType;
+  }
+
+  DartType _getInferredMixinType(
+      ClassElement classElement, ClassElement mixinElement) {
+    for (var candidateMixin in classElement.mixins) {
+      if (candidateMixin.element == mixinElement) return candidateMixin;
+    }
   }
 
   /// The number of type arguments in the given [typeName] does not match the
@@ -8863,14 +8898,17 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// created based on [definingLibrary] and [typeProvider].
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, this.mode: TypeResolverMode.everything})
+      {Scope nameScope,
+      this.mode: TypeResolverMode.everything,
+      bool shouldUseWithClauseInferredTypes: true})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(
-        _typeSystem, typeProvider, definingLibrary, source, errorListener);
+        _typeSystem, typeProvider, definingLibrary, source, errorListener,
+        shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 
   @override
