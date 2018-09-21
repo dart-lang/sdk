@@ -979,10 +979,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
   // Save frame pointer coming in.
   __ EnterFrame(0);
 
@@ -2008,10 +2004,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
   __ EnterStubFrame();
 
 #if defined(DEBUG)

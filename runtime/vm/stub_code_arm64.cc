@@ -1066,10 +1066,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
@@ -1992,11 +1988,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter")
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
   __ SetPrologueOffset();
   __ EnterStubFrame();
 
