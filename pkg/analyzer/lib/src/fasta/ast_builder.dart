@@ -1304,7 +1304,7 @@ class AstBuilder extends StackListener {
         : optional(':', colonAfterDefault));
     debugEvent("SwitchCase");
 
-    List<Statement> statements = popTypedList<Statement>(statementCount);
+    List<Statement> statements = popTypedList(statementCount);
     List<SwitchMember> members;
 
     if (labelCount == 0 && defaultKeyword == null) {
@@ -1325,8 +1325,7 @@ class AstBuilder extends StackListener {
         members = new List<SwitchMember>(expressionCount);
       }
       for (int index = expressionCount - 1; index >= 0; --index) {
-        SwitchMember member;
-        member = pop();
+        SwitchMember member = pop();
         while (peek() is Label) {
           member.labels.insert(0, pop());
           --labelCount;

@@ -5819,22 +5819,22 @@ class Parser {
   }
 
   void reportRecoverableError(Token token, Message message) {
+    // Find a non-synthetic token on which to report the error.
+    token = findNonZeroLengthToken(token);
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
-      // Find a non-synthetic token on which to report the error.
-      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(message, token, token);
     }
   }
 
   void reportRecoverableErrorWithToken(
       Token token, Template<_MessageWithArgument<Token>> template) {
+    // Find a non-synthetic token on which to report the error.
+    token = findNonZeroLengthToken(token);
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
-      // Find a non-synthetic token on which to report the error.
-      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(
           template.withArguments(token), token, token);
     }
