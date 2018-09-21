@@ -715,7 +715,7 @@ class ClassElementForLink_Class extends ClassElementForLink
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
             var mixinSupertypeConstraints = context.typeSystem
-                .gatherMixinSupertypeConstraints(mixinElement);
+                .gatherMixinSupertypeConstraintsForInference(mixinElement);
             if (mixinSupertypeConstraints.isNotEmpty) {
               if (supertypesForMixinInference == null) {
                 supertypesForMixinInference = <InterfaceType>[];

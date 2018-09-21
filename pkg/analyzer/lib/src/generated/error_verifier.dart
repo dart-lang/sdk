@@ -5819,8 +5819,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       var mixinElement = mixinType.element;
       if (mixinElement is ClassElement) {
         if (typeName.typeArguments == null) {
-          var mixinSupertypeConstraints =
-              _typeSystem.gatherMixinSupertypeConstraints(mixinElement);
+          var mixinSupertypeConstraints = _typeSystem
+              .gatherMixinSupertypeConstraintsForInference(mixinElement);
           if (mixinSupertypeConstraints.isNotEmpty) {
             var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
                 typeName,

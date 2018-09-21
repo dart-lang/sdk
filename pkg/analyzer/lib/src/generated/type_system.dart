@@ -1757,16 +1757,17 @@ abstract class TypeSystem {
    */
   TypeProvider get typeProvider;
 
-  List<InterfaceType> gatherMixinSupertypeConstraints(
+  List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
+    List<InterfaceType> candidates;
     if (mixinElement.isMixin) {
-      return mixinElement.superclassConstraints;
-    }
-
-    var candidates = [mixinElement.supertype];
-    candidates.addAll(mixinElement.mixins);
-    if (mixinElement.isMixinApplication) {
-      candidates.removeLast();
+      candidates = mixinElement.superclassConstraints;
+    } else {
+      candidates = [mixinElement.supertype];
+      candidates.addAll(mixinElement.mixins);
+      if (mixinElement.isMixinApplication) {
+        candidates.removeLast();
+      }
     }
     return candidates
         .where((type) => type.element.typeParameters.isNotEmpty)
