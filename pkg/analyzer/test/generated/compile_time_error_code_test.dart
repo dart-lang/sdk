@@ -64,13 +64,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax() {
-    return super
-        .test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax();
-  }
-
-  @override
-  @failingTest
   test_mixinInference_noMatchingClass_typeParametersSupplied() {
     return super.test_mixinInference_noMatchingClass_typeParametersSupplied();
   }
@@ -3956,8 +3949,8 @@ mixin M<T> on A<T> {}
 class C = Object with M;
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
   }
 
   test_mixinInference_noMatchingClass_new_syntax() async {
