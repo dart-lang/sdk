@@ -56,8 +56,6 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
-  ..addMultiOption('entry-points',
-      help: 'Path to JSON file with the list of entry points')
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -349,7 +347,6 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
-          entryPoints: options['entry-points'],
           environmentDefines: environmentDefines));
     }
     if (component != null) {

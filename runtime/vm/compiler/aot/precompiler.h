@@ -338,8 +338,7 @@ typedef DirectChainedHashMap<FunctionFeedbackPair> FunctionFeedbackMap;
 
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll(
-      Dart_QualifiedFunctionName embedder_entry_points[]);
+  static RawError* CompileAll();
 
   static RawError* CompileFunction(Precompiler* precompiler,
                                    Thread* thread,
@@ -363,11 +362,9 @@ class Precompiler : public ValueObject {
  private:
   explicit Precompiler(Thread* thread);
 
-  void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
-  void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
+  void DoCompileAll();
+  void AddRoots();
   void AddAnnotatedRoots();
-  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[],
-                      PrecompilerEntryPointsPrinter* entry_points_printer);
   void Iterate();
 
   void AddType(const AbstractType& type);

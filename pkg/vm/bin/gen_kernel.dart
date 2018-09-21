@@ -44,8 +44,6 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-constant-evaluation',
       help: 'Whether kernel constant evaluation will be enabled.',
       defaultsTo: true)
-  ..addMultiOption('entry-points',
-      help: 'Path to JSON file with the list of entry points')
   ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
@@ -95,8 +93,6 @@ Future<int> compile(List<String> arguments) async {
     return _badUsageExitCode;
   }
 
-  final List<String> entryPoints = options['entry-points'] ?? <String>[];
-
   final errorPrinter = new ErrorPrinter();
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
@@ -118,7 +114,6 @@ Future<int> compile(List<String> arguments) async {
       Uri.base.resolveUri(inputUri), compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
-      entryPoints: entryPoints,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       dropAST: dropAST,

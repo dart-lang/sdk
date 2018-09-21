@@ -5,9 +5,7 @@
 /// Handling of native code and entry points.
 library vm.transformations.type_flow.native_code;
 
-import 'dart:convert' show json;
 import 'dart:core' hide Type;
-import 'dart:io' show File;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -279,22 +277,6 @@ class NativeCodeOracle {
       return returnType;
     } else {
       return new Type.fromStatic(member.function.returnType);
-    }
-  }
-
-  /// Reads JSON files [jsonFiles] describing entry points and native methods.
-  /// Currently just checks that JSON file is empty as it is deprecated.
-  void processEntryPointsJSONFiles(
-      List<String> jsonFiles, EntryPointsListener entryPointsListener) {
-    for (var file in jsonFiles) {
-      String jsonString = new File(file).readAsStringSync();
-      final jsonObject = json.decode(jsonString);
-
-      final roots = jsonObject['roots'];
-      if (roots != null && roots.isNotEmpty) {
-        throw "Error: Found non-empty entry points JSON file $file."
-            " Use the @pragma('vm:entry-point') annotation instead.";
-      }
     }
   }
 }

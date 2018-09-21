@@ -141,9 +141,6 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
-  P(print_precompiler_entry_points, charp, NULL,                               \
-    "Print entry points and info about recognized methods used by "            \
-    "precompiler.")                                                            \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \

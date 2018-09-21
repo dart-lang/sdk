@@ -974,7 +974,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (Options::gen_snapshot_kind() == kAppAOT) {
-      result = Dart_Precompile(standalone_entry_points);
+      result = Dart_Precompile();
       CHECK_RESULT(result);
 
       if (Options::obfuscate() &&

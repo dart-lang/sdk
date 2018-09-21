@@ -1191,7 +1191,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   TypeFlowAnalysis(this.target, Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
-      {List<String> entryPointsJSONFiles, PragmaAnnotationParser matcher})
+      {PragmaAnnotationParser matcher})
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
@@ -1200,10 +1200,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
         new SummaryCollector(target, environment, this, nativeCodeOracle);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
-
-    if (entryPointsJSONFiles != null) {
-      nativeCodeOracle.processEntryPointsJSONFiles(entryPointsJSONFiles, this);
-    }
 
     component.accept(new PragmaEntryPointsVisitor(
         this, nativeCodeOracle, annotationMatcher));
