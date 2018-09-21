@@ -4,12 +4,18 @@
 
 #include "vm/compilation_trace.h"
 
+#include "vm/globals.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/symbols.h"
 
 namespace dart {
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool, trace_compilation_trace, false, "Trace compilation trace.");
 
 CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
     : buf_(zone, 4 * KB),
@@ -152,17 +158,27 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   if (function_name_.Equals("_getMainClosure")) {
     // The scheme for invoking main relies on compiling _getMainClosure after
     // synthetically importing the root library.
+    if (FLAG_trace_compilation_trace) {
+      THR_Print("Compilation trace: skip %s,%s,%s\n", uri_.ToCString(),
+                class_name_.ToCString(), function_name_.ToCString());
+    }
     return Object::null();
   }
 
   lib_ = Library::LookupLibrary(thread_, uri_);
   if (lib_.IsNull()) {
     // Missing library.
+    if (FLAG_trace_compilation_trace) {
+      THR_Print("Compilation trace: missing library %s,%s,%s\n",
+                uri_.ToCString(), class_name_.ToCString(),
+                function_name_.ToCString());
+    }
     return Object::null();
   }
 
   bool is_getter = Field::IsGetterName(function_name_);
   bool add_closure = false;
+  bool processed = false;
 
   if (class_name_.Equals(Symbols::TopLevel())) {
     function_ = lib_.LookupFunctionAllowPrivate(function_name_);
@@ -178,11 +194,23 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
     cls_ = lib_.SlowLookupClassAllowMultiPartPrivate(class_name_);
     if (cls_.IsNull()) {
       // Missing class.
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Compilation trace: missing class %s,%s,%s\n",
+                  uri_.ToCString(), class_name_.ToCString(),
+                  function_name_.ToCString());
+      }
       return Object::null();
     }
 
     error_ = cls_.EnsureIsFinalized(thread_);
     if (error_.IsError()) {
+      // Non-finalized class.
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Compilation trace: non-finalized class %s,%s,%s (%s)\n",
+                  uri_.ToCString(), class_name_.ToCString(),
+                  function_name_.ToCString(),
+                  Error::Cast(error_).ToErrorCString());
+      }
       return error_.raw();
     }
 
@@ -201,6 +229,14 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
         if (!function2_.IsNull()) {
           error_ = CompileFunction(function2_);
           if (error_.IsError()) {
+            if (FLAG_trace_compilation_trace) {
+              THR_Print(
+                  "Compilation trace: error compiling extractor %s for "
+                  "%s,%s,%s (%s)\n",
+                  function2_.ToCString(), uri_.ToCString(),
+                  class_name_.ToCString(), function_name_.ToCString(),
+                  Error::Cast(error_).ToErrorCString());
+            }
             return error_.raw();
           }
         }
@@ -210,26 +246,53 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
 
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
+    processed = true;
     error_ = EvaluateInitializer(field_);
     if (error_.IsError()) {
+      if (FLAG_trace_compilation_trace) {
+        THR_Print(
+            "Compilation trace: error initializing field %s for %s,%s,%s "
+            "(%s)\n",
+            field_.ToCString(), uri_.ToCString(), class_name_.ToCString(),
+            function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
+      }
       return error_.raw();
     }
   }
 
   if (!function_.IsNull()) {
+    processed = true;
     error_ = CompileFunction(function_);
     if (error_.IsError()) {
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Compilation trace: error compiling %s,%s,%s (%s)\n",
+                  uri_.ToCString(), class_name_.ToCString(),
+                  function_name_.ToCString(),
+                  Error::Cast(error_).ToErrorCString());
+      }
       return error_.raw();
     }
     if (add_closure) {
       function_ = function_.ImplicitClosureFunction();
       error_ = CompileFunction(function_);
       if (error_.IsError()) {
+        if (FLAG_trace_compilation_trace) {
+          THR_Print(
+              "Compilation trace: error compiling closure %s,%s,%s (%s)\n",
+              uri_.ToCString(), class_name_.ToCString(),
+              function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
+        }
         return error_.raw();
       }
     }
   }
 
+  if (FLAG_trace_compilation_trace) {
+    if (!processed) {
+      THR_Print("Compilation trace: ignored %s,%s,%s\n", uri_.ToCString(),
+                class_name_.ToCString(), function_name_.ToCString());
+    }
+  }
   return Object::null();
 }
 
@@ -252,5 +315,7 @@ RawObject* CompilationTraceLoader::EvaluateInitializer(const Field& field) {
   }
   return Object::null();
 }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
