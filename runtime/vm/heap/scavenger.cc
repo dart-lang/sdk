@@ -173,9 +173,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         // Promoted: update age/barrier tags.
         uint32_t tags = new_obj->ptr()->tags_;
         tags = RawObject::OldBit::update(true, tags);
-        tags = RawObject::OldAndNotMarkedBit::update(true, tags);
         tags = RawObject::OldAndNotRememberedBit::update(true, tags);
         tags = RawObject::NewBit::update(false, tags);
+        // Setting the forwarding pointer below will make this tenured object
+        // visible to the concurrent marker, but we haven't visited its slots
+        // yet. We mark the object here to prevent the concurrent marker from
+        // adding it to the mark stack and visiting its unprocessed slots. We
+        // push it to the mark stack after forwarding its slots.
+        tags =
+            RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
       }
 
@@ -408,7 +414,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
-  isolate->PrepareForGC();
+  isolate->ReleaseStoreBuffers();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -636,6 +642,8 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 }
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
+  Thread* thread = Thread::Current();
+
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
@@ -659,6 +667,14 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
         raw_object->VisitPointersNonvirtual(visitor);
+        if (raw_object->IsMarked()) {
+          // Complete our promise from ScavengePointer. Note that marker cannot
+          // visit this object until it pops a block from the mark stack, which
+          // involves a memory fence from the mutex, so even on architectures
+          // with a relaxed memory model, the marker will see the fully
+          // forwarded contents of this object.
+          thread->MarkingStackAddObject(raw_object);
+        }
       }
       visitor->VisitingOldObject(NULL);
     }

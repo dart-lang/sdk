@@ -117,7 +117,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
-  R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,       \
+  P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
   P(max_polymorphic_checks, int, 4,                                            \

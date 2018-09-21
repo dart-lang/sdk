@@ -179,8 +179,12 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
+      usage_(),
+      allocated_black_in_words_(0),
       tasks_lock_(new Monitor()),
       tasks_(0),
+      concurrent_marker_tasks_(0),
+      phase_(kDone),
 #if defined(DEBUG)
       iterating_thread_(NULL),
 #endif
@@ -188,6 +192,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
                              FLAG_old_gen_growth_space_ratio,
                              FLAG_old_gen_growth_rate,
                              FLAG_old_gen_growth_time_ratio),
+      marker_(NULL),
       gc_time_micros_(0),
       collections_(0),
       mark_words_per_micro_(kConservativeInitialMarkSpeed) {
@@ -209,6 +214,7 @@ PageSpace::~PageSpace() {
   FreePages(image_pages_);
   delete pages_lock_;
   delete tasks_lock_;
+  ASSERT(marker_ == NULL);
 }
 
 intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
@@ -351,6 +357,16 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         HeapPage::PageType type,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
+  if (growth_policy != kForceGrowth) {
+    if (heap_ != NULL) {  // Some unit tests.
+      Thread* thread = Thread::Current();
+      if (thread->CanCollectGarbage()) {
+        heap_->CheckFinishConcurrentMarking(thread);
+        heap_->CheckStartConcurrentMarking(thread, Heap::kOldSpace);
+      }
+    }
+  }
+
   ASSERT(size < kAllocatablePageSize);
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
@@ -561,6 +577,11 @@ void PageSpace::AbandonBumpAllocation() {
     bump_top_ = 0;
     bump_end_ = 0;
   }
+}
+
+void PageSpace::AbandonMarkingForShutdown() {
+  delete marker_;
+  marker_ = NULL;
 }
 
 void PageSpace::UpdateMaxCapacityLocked() {
@@ -899,7 +920,18 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
-void PageSpace::CollectGarbage(bool compact) {
+void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  if (!finalize) {
+#if defined(TARGET_ARCH_IA32)
+    return;  // Barrier not implemented.
+#elif !defined(CONCURRENT_MARKING)
+    return;  // Barrier generation disabled.
+#else
+    if (FLAG_marker_tasks == 0) return;   // Concurrent marking disabled.
+    if (FLAG_write_protect_code) return;  // Not implemented.
+#endif
+  }
+
   Thread* thread = Thread::Current();
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
@@ -907,9 +939,16 @@ void PageSpace::CollectGarbage(bool compact) {
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
+    if (!finalize &&
+        (phase() == kMarking || phase() == kAwaitingFinalization)) {
+      // Concurrent mark is already running.
+      return;
+    }
+
     while (tasks() > 0) {
       locker.WaitWithSafepointCheck(thread);
     }
+    ASSERT(phase() == kAwaitingFinalization || phase() == kDone);
     set_tasks(1);
   }
 
@@ -921,7 +960,8 @@ void PageSpace::CollectGarbage(bool compact) {
   // loser skips collection and goes straight to allocation.
   {
     SafepointOperationScope safepoint_scope(thread);
-    CollectGarbageAtSafepoint(compact, pre_wait_for_sweepers, pre_safe_point);
+    CollectGarbageAtSafepoint(compact, finalize, pre_wait_for_sweepers,
+                              pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -933,6 +973,7 @@ void PageSpace::CollectGarbage(bool compact) {
 }
 
 void PageSpace::CollectGarbageAtSafepoint(bool compact,
+                                          bool finalize,
                                           int64_t pre_wait_for_sweepers,
                                           int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
@@ -942,7 +983,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   const int64_t start = OS::GetCurrentMonotonicMicros();
 
-  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
 
@@ -957,7 +997,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before marking...");
-    heap_->VerifyGC();
+    heap_->VerifyGC(phase() == kDone ? kForbidMarked : kAllowMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -974,9 +1014,27 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
                       !isolate->HasAttemptedReload();
 #endif  // !defined(PRODUCT)
-  GCMarker marker(heap_);
-  marker.MarkObjects(isolate, this, collect_code);
-  usage_.used_in_words = marker.marked_words();
+
+  if (marker_ == NULL) {
+    ASSERT(phase() == kDone);
+    marker_ = new GCMarker(isolate, heap_);
+  } else {
+    ASSERT(phase() == kAwaitingFinalization);
+  }
+
+  if (!finalize) {
+    ASSERT(phase() == kDone);
+    marker_->StartConcurrentMark(this, collect_code);
+    return;
+  }
+
+  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
+  marker_->MarkObjects(this, collect_code);
+  usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
+  allocated_black_in_words_ = 0;
+  mark_words_per_micro_ = marker_->MarkedWordsPerMicro();
+  delete marker_;
+  marker_ = NULL;
 
   int64_t mid1 = OS::GetCurrentMonotonicMicros();
 
@@ -1040,10 +1098,12 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (compact) {
     Compact(thread);
+    set_phase(kDone);
   } else if (FLAG_concurrent_sweep) {
     ConcurrentSweep(isolate);
   } else {
     BlockingSweep();
+    set_phase(kDone);
   }
 
   // Make code pages read-only.
@@ -1054,15 +1114,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   // Record signals for growth control. Include size of external allocations.
   page_space_controller_.EvaluateGarbageCollection(
       usage_before, GetCurrentUsage(), start, end);
-
-  int64_t mark_micros = mid3 - start;
-  if (mark_micros == 0) {
-    mark_micros = 1;  // Prevent division by zero.
-  }
-  mark_words_per_micro_ = usage_before.used_in_words / mark_micros;
-  if (mark_words_per_micro_ == 0) {
-    mark_words_per_micro_ = 1;  // Prevent division by zero.
-  }
 
   heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
   heap_->RecordTime(kSafePoint, start - pre_safe_point);
@@ -1256,6 +1307,17 @@ PageSpaceController::PageSpaceController(Heap* heap,
 PageSpaceController::~PageSpaceController() {}
 
 bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
+  if (!is_enabled_) {
+    return false;
+  }
+  if (heap_growth_ratio_ == 100) {
+    return false;
+  }
+  return after.CombinedCapacityInWords() >
+         (gc_threshold_in_words_ + heap_->new_space()->CapacityInWords());
+}
+
+bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
   if (!is_enabled_) {
     return false;
   }

@@ -382,21 +382,30 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, neu);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, neu);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
@@ -404,21 +413,30 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
@@ -426,22 +444,31 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old.SetAt(0, neu);
-  old = Array::null();
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old.SetAt(0, neu);
+    old = Array::null();
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  EXPECT(size_before == size_after);
+  EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
@@ -449,15 +476,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu.SetAt(0, old);
-  old = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu.SetAt(0, old);
+    old = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -470,15 +506,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, neu);
-  neu = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, neu);
+    neu = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -491,15 +536,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  neu = Array::null();
-  old.SetAt(0, old);
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    neu = Array::null();
+    old.SetAt(0, old);
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -512,15 +566,24 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
   Heap* heap = isolate->heap();
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old = Array::null();
-  neu.SetAt(0, neu);
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old = Array::null();
+    neu.SetAt(0, neu);
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
+  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
 
   intptr_t size_after =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
@@ -536,13 +599,20 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  old.SetAt(0, old2);
-  neu.SetAt(0, old);
-  old = Array::null();
-  old2 = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    old.SetAt(0, old2);
+    neu.SetAt(0, old);
+    old = Array::null();
+    old2 = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
 
@@ -560,13 +630,20 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   intptr_t size_before =
       heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
 
-  Array& old = Array::Handle(Array::New(1, Heap::kOld));
-  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
-  Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
-  neu.SetAt(0, neu2);
-  old.SetAt(0, neu);
-  neu = Array::null();
-  neu2 = Array::null();
+  {
+    // Prevent allocation from starting marking, otherwise the incremental write
+    // barrier will keep these objects live.
+    NoHeapGrowthControlScope force_growth;
+    EXPECT(!thread->is_marking());
+    Array& old = Array::Handle(Array::New(1, Heap::kOld));
+    Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+    Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
+    neu.SetAt(0, neu2);
+    old.SetAt(0, neu);
+    neu = Array::null();
+    neu2 = Array::null();
+    EXPECT(!thread->is_marking());
+  }
 
   heap->CollectAllGarbage();
 

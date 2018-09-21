@@ -202,9 +202,12 @@ class Isolate : public BaseIsolate {
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // Prepares all threads in an isolate for Garbage Collection.
-  void PrepareForGC();
+  void ReleaseStoreBuffers();
+  void EnableIncrementalBarrier(MarkingStack* marking_stack);
+  void DisableIncrementalBarrier();
 
-  StoreBuffer* store_buffer() { return store_buffer_; }
+  StoreBuffer* store_buffer() const { return store_buffer_; }
+  MarkingStack* marking_stack() const { return marking_stack_; }
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
@@ -290,7 +293,7 @@ class Isolate : public BaseIsolate {
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
-  void ScheduleMessageInterrupts();
+  void ScheduleInterrupts(uword interrupt_bits);
 
   // Marks all libraries as loaded.
   void DoneLoading();
@@ -854,8 +857,6 @@ class Isolate : public BaseIsolate {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  StoreBuffer* store_buffer_;
-  Heap* heap_;
   uword user_tag_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
@@ -863,6 +864,11 @@ class Isolate : public BaseIsolate {
   ObjectStore* object_store_;
   ClassTable class_table_;
   bool single_step_;
+  // End accessed from generated code.
+
+  StoreBuffer* store_buffer_;
+  MarkingStack* marking_stack_;
+  Heap* heap_;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \

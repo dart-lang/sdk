@@ -501,6 +501,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   HeapIterationScope iteration(Thread::Current());
+  NoSafepointScope no_safepoint;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   iteration.IterateObjects(&visitor);
   return visitor.length();

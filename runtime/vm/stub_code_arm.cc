@@ -1200,7 +1200,56 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
 #if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
-  __ Stop("Incremental barrier");
+  __ PushList((1 << R1) | (1 << R2) | (1 << R3));  // Spill.
+
+  Label marking_retry, lost_race, marking_overflow;
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+// TODO(21263): Implement 'swp' and use it below.
+#if !defined(USING_SIMULATOR)
+    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
+#endif
+    __ ldr(R2, FieldAddress(TMP, Object::tags_offset()));
+    __ bic(R2, R2, Operand(1 << RawObject::kOldAndNotMarkedBit));
+    __ str(R2, FieldAddress(TMP, Object::tags_offset()));
+  } else {
+    // Atomically clear kOldAndNotMarkedBit.
+    ASSERT(Object::tags_offset() == 0);
+    __ sub(R3, TMP, Operand(kHeapObjectTag));
+    // R3: Untagged address of header word (ldrex/strex do not support offsets).
+    __ Bind(&marking_retry);
+    __ ldrex(R2, R3);
+    __ tst(R2, Operand(1 << RawObject::kOldAndNotMarkedBit));
+    __ b(&lost_race, ZERO);
+    __ bic(R2, R2, Operand(1 << RawObject::kOldAndNotMarkedBit));
+    __ strex(R1, R2, R3);
+    __ cmp(R1, Operand(1));
+    __ b(&marking_retry, EQ);
+  }
+
+  __ ldr(R1, Address(THR, Thread::marking_stack_block_offset()));
+  __ ldr(R2, Address(R1, MarkingStackBlock::top_offset()));
+  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
+  __ str(TMP, Address(R3, MarkingStackBlock::pointers_offset()));
+  __ add(R2, R2, Operand(1));
+  __ str(R2, Address(R1, MarkingStackBlock::top_offset()));
+  __ CompareImmediate(R2, MarkingStackBlock::kSize);
+  __ PopList((1 << R1) | (1 << R2) | (1 << R3));  // Unspill.
+  __ b(&marking_overflow, EQ);
+  __ Ret();
+
+  __ Bind(&marking_overflow);
+  __ Push(CODE_REG);
+  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ mov(R0, Operand(THR));
+  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
+  __ LeaveCallRuntimeFrame();
+  __ Pop(CODE_REG);
+  __ Ret();
+
+  __ Bind(&lost_race);
+  __ PopList((1 << R1) | (1 << R2) | (1 << R3));  // Unspill.
+  __ Ret();
 #endif
 }
 

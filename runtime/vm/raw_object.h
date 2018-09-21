@@ -690,35 +690,21 @@ class RawObject {
   template <typename type>
   void StorePointer(type const* addr, type value) {
     *const_cast<type*>(addr) = value;
-
-    if (!value->IsHeapObject()) return;
-
-    uint32_t source_tags = this->ptr()->tags_;
-    uint32_t target_tags = value->ptr()->tags_;
-    Thread* thread = Thread::Current();
-    if (((source_tags >> kBarrierOverlapShift) & target_tags &
-         thread->write_barrier_mask()) != 0) {
-      if (value->IsNewObject()) {
-        // Generational barrier: record when a store creates an
-        // old-and-not-remembered -> new reference.
-        ASSERT(!this->IsRemembered());
-        this->SetRememberedBit();
-        thread->StoreBufferAddObject(this);
-      } else {
-        // Incremental barrier: record when a store creates an
-        // old -> old-and-not-marked reference.
-        ASSERT(value->IsOldObject());
-        UNREACHABLE();
-      }
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, Thread::Current());
     }
   }
 
   template <typename type>
   void StorePointer(type const* addr, type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
 
-    if (!value->IsHeapObject()) return;
-
+  DART_FORCE_INLINE
+  void CheckHeapPointerStore(RawObject* value, Thread* thread) {
     uint32_t source_tags = this->ptr()->tags_;
     uint32_t target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
@@ -733,7 +719,9 @@ class RawObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
-        UNREACHABLE();
+        if (value->TryAcquireMarkBit()) {
+          thread->MarkingStackAddObject(value);
+        }
       }
     }
   }
@@ -811,6 +799,7 @@ class RawObject {
   friend class ObjectGraph::Stack;  // GetClassId
   friend class Precompiler;         // GetClassId
   friend class ObjectOffsetTrait;   // GetClassId
+  friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

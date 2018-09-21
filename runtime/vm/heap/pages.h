@@ -25,6 +25,7 @@ class JSONObject;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ForwardingPage;
+class GCMarker;
 
 // TODO(iposva): Determine heap sizes and tune the page size accordingly.
 static const intptr_t kPageSize = 256 * KB;
@@ -150,6 +151,7 @@ class PageSpaceController {
   // This method can be called before allocation (e.g., pretenuring) or after
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
+  bool AlmostNeedsGarbageCollection(SpaceUsage after) const;
 
   // Returns whether an idle GC is worthwhile.
   bool NeedsIdleGarbageCollection(SpaceUsage current) const;
@@ -216,6 +218,7 @@ class PageSpaceController {
 class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
+  enum Phase { kDone, kMarking, kAwaitingFinalization, kSweeping };
 
   PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
@@ -232,6 +235,9 @@ class PageSpace {
 
   bool NeedsGarbageCollection() const {
     return page_space_controller_.NeedsGarbageCollection(usage_);
+  }
+  bool AlmostNeedsGarbageCollection() const {
+    return page_space_controller_.AlmostNeedsGarbageCollection(usage_);
   }
   void EvaluateSnapshotLoad() {
     page_space_controller_.EvaluateSnapshotLoad(usage_);
@@ -279,7 +285,7 @@ class PageSpace {
   bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
-  void CollectGarbage(bool compact);
+  void CollectGarbage(bool compact, bool finalize);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -319,6 +325,11 @@ class PageSpace {
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 #endif  // PRODUCT
 
+  void AllocateBlack(intptr_t size) {
+    AtomicOperations::IncrementBy(&allocated_black_in_words_,
+                                  size >> kWordSizeLog2);
+  }
+
   void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
@@ -339,6 +350,13 @@ class PageSpace {
     ASSERT(val >= 0);
     tasks_ = val;
   }
+  intptr_t concurrent_marker_tasks() const { return concurrent_marker_tasks_; }
+  void set_concurrent_marker_tasks(intptr_t val) {
+    ASSERT(val >= 0);
+    concurrent_marker_tasks_ = val;
+  }
+  Phase phase() const { return phase_; }
+  void set_phase(Phase val) { phase_ = val; }
 
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
@@ -350,6 +368,8 @@ class PageSpace {
 
   // Return any bump allocation block to the freelist.
   void AbandonBumpAllocation();
+  // Have threads release marking stack blocks, etc.
+  void AbandonMarkingForShutdown();
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -392,6 +412,7 @@ class PageSpace {
   void FreePages(HeapPage* pages);
 
   void CollectGarbageAtSafepoint(bool compact,
+                                 bool finalize,
                                  int64_t pre_wait_for_sweepers,
                                  int64_t pre_safe_point);
   void BlockingSweep();
@@ -438,14 +459,19 @@ class PageSpace {
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;
+  intptr_t allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
   Monitor* tasks_lock_;
   intptr_t tasks_;
+  intptr_t concurrent_marker_tasks_;
+  Phase phase_;
+
 #if defined(DEBUG)
   Thread* iterating_thread_;
 #endif
   PageSpaceController page_space_controller_;
+  GCMarker* marker_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;

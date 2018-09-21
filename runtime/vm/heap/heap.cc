@@ -204,15 +204,25 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       old_space_(heap_->old_space()),
       writable_(writable) {
   {
-    // It's not yet safe to iterate over a paged space while it's concurrently
-    // sweeping, so wait for any such task to complete first.
+    // It's not safe to iterate over old space when concurrent marking or
+    // sweeping is in progress, or another thread is iterating the heap, so wait
+    // for any such task to complete first.
     MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
     // We currently don't support nesting of HeapIterationScopes.
     ASSERT(old_space_->iterating_thread_ != thread);
 #endif
-    while (old_space_->tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
+    while ((old_space_->tasks() > 0) ||
+           (old_space_->phase() != PageSpace::kDone)) {
+      if (old_space_->phase() == PageSpace::kAwaitingFinalization) {
+        ml.Exit();
+        heap_->CollectOldSpaceGarbage(thread, Heap::kMarkSweep,
+                                      Heap::kFinalize);
+        ml.Enter();
+      }
+      while (old_space_->tasks() > 0) {
+        ml.WaitWithSafepointCheck(thread);
+      }
     }
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == NULL);
@@ -407,8 +417,12 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
       EndNewSpaceGC();
     }
-    if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
-      CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
+    if (reason == kNewSpace) {
+      if (old_space_.NeedsGarbageCollection()) {
+        CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
+      } else {
+        CheckStartConcurrentMarking(thread, kPromotion);
+      }
     }
   }
 }
@@ -425,7 +439,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     RecordBeforeGC(type, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
-    old_space_.CollectGarbage(type == kMarkCompact);
+    old_space_.CollectGarbage(type == kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
@@ -475,6 +489,49 @@ void Heap::CollectAllGarbage(GCReason reason) {
   EvacuateNewSpace(thread, reason);
   CollectOldSpaceGarbage(
       thread, reason == kLowMemory ? kMarkCompact : kMarkSweep, reason);
+}
+
+void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    if (old_space_.phase() != PageSpace::kDone) {
+      return;  // Busy.
+    }
+  }
+
+  if (old_space_.AlmostNeedsGarbageCollection()) {
+    if (BeginOldSpaceGC(thread)) {
+      TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
+      old_space_.CollectGarbage(kMarkSweep, false /* finish */);
+      EndOldSpaceGC();
+    }
+  }
+}
+
+void Heap::CheckFinishConcurrentMarking(Thread* thread) {
+  bool ready;
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    ready = old_space_.phase() == PageSpace::kAwaitingFinalization;
+  }
+  if (ready) {
+    CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
+  }
+}
+
+void Heap::WaitForMarkerTasks(Thread* thread) {
+  MonitorLocker ml(old_space_.tasks_lock());
+  while ((old_space_.phase() == PageSpace::kMarking) ||
+         (old_space_.phase() == PageSpace::kAwaitingFinalization)) {
+    while (old_space_.phase() == PageSpace::kMarking) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+    if (old_space_.phase() == PageSpace::kAwaitingFinalization) {
+      ml.Exit();
+      CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
+      ml.Enter();
+    }
+  }
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
@@ -656,6 +713,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "promotion";
     case kOldSpace:
       return "old space";
+    case kFinalize:
+      return "finalize";
     case kFull:
       return "full";
     case kExternal:

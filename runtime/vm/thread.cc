@@ -32,6 +32,8 @@ DECLARE_FLAG(bool, trace_service_verbose);
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
+  ASSERT(store_buffer_block_ == NULL);
+  ASSERT(marking_stack_block_ == NULL);
   if (compiler_stats_ != NULL) {
     delete compiler_stats_;
     compiler_stats_ = NULL;
@@ -67,10 +69,11 @@ Thread::Thread(Isolate* isolate)
       end_(0),
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
+      marking_stack_block_(NULL),
       vm_tag_(0),
-      task_kind_(kUnknownTask),
       async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
+      task_kind_(kUnknownTask),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
@@ -333,6 +336,10 @@ bool Thread::EnterIsolate(Isolate* isolate) {
     ASSERT(thread->store_buffer_block_ == NULL);
     thread->task_kind_ = kMutatorTask;
     thread->StoreBufferAcquire();
+    if (isolate->marking_stack() != NULL) {
+      // Concurrent mark in progress. Enable barrier for this thread.
+      thread->MarkingStackAcquire();
+    }
     return true;
   }
   return false;
@@ -348,6 +355,9 @@ void Thread::ExitIsolate() {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
+  if (thread->is_marking()) {
+    thread->MarkingStackRelease();
+  }
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
     thread->set_vm_tag(VMTag::kIdleTagId);
@@ -371,6 +381,10 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
     // before Scavenge.
     thread->store_buffer_block_ =
         thread->isolate()->store_buffer()->PopEmptyBlock();
+    if (isolate->marking_stack() != NULL) {
+      // Concurrent mark in progress. Enable barrier for this thread.
+      thread->MarkingStackAcquire();
+    }
     // This thread should not be the main mutator.
     thread->task_kind_ = kind;
     ASSERT(!thread->IsMutatorThread());
@@ -387,6 +401,9 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->task_kind_ = kUnknownTask;
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
+  if (thread->is_marking()) {
+    thread->MarkingStackRelease();
+  }
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
@@ -394,7 +411,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
 }
 
-void Thread::PrepareForGC() {
+void Thread::ReleaseStoreBuffer() {
   ASSERT(IsAtSafepoint());
   // Prevent scheduling another GC by ignoring the threshold.
   ASSERT(store_buffer_block_ != NULL);
@@ -526,6 +543,7 @@ RawError* Thread::HandleInterrupts() {
       }
       heap()->CollectGarbage(Heap::kNew);
     }
+    heap()->CheckFinishConcurrentMarking(this);
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =
@@ -582,6 +600,31 @@ void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
 
 void Thread::StoreBufferAcquire() {
   store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
+}
+
+void Thread::MarkingStackBlockProcess() {
+  MarkingStackRelease();
+  MarkingStackAcquire();
+}
+
+void Thread::MarkingStackAddObject(RawObject* obj) {
+  marking_stack_block_->Push(obj);
+  if (marking_stack_block_->IsFull()) {
+    MarkingStackBlockProcess();
+  }
+}
+
+void Thread::MarkingStackRelease() {
+  MarkingStackBlock* block = marking_stack_block_;
+  marking_stack_block_ = NULL;
+  write_barrier_mask_ = RawObject::kGenerationalBarrierMask;
+  isolate()->marking_stack()->PushBlock(block);
+}
+
+void Thread::MarkingStackAcquire() {
+  marking_stack_block_ = isolate()->marking_stack()->PopEmptyBlock();
+  write_barrier_mask_ =
+      RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
 }
 
 bool Thread::IsMutatorThread() const {

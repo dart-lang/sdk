@@ -9293,8 +9293,9 @@ class WeakProperty : public Instance {
 
   static void Clear(RawWeakProperty* raw_weak) {
     ASSERT(raw_weak->ptr()->next_ == 0);
-    raw_weak->StorePointer(&(raw_weak->ptr()->key_), Object::null());
-    raw_weak->StorePointer(&(raw_weak->ptr()->value_), Object::null());
+    // This action is performed by the GC. No barrier.
+    raw_weak->ptr()->key_ = Object::null();
+    raw_weak->ptr()->value_ = Object::null();
   }
 
  private:

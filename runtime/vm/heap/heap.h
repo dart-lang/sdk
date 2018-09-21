@@ -51,6 +51,7 @@ class Heap {
     kNewSpace,   // New space is full.
     kPromotion,  // Old space limit crossed after a scavenge.
     kOldSpace,   // Old space limit crossed.
+    kFinalize,   // Concurrent marking finished.
     kFull,       // Heap::CollectAllGarbage
     kExternal,   // Dart_NewWeakPersistentHandle
     kIdle,       // Dart_NotifyIdle
@@ -132,6 +133,10 @@ class Heap {
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
   }
+
+  void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckFinishConcurrentMarking(Thread* thread);
+  void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be

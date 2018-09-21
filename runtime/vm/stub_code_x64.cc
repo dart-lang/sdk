@@ -1327,7 +1327,48 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
 #if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
-  __ Stop("Incremental barrier");
+  __ pushq(RAX);  // Spill.
+  __ pushq(RCX);  // Spill.
+
+  // Atomically clear kOldAndNotMarkedBit.
+  // Note that we use 32 bit operations here to match the size of the
+  // background marker which is also manipulating this 32 bit word.
+  Label retry, lost_race, marking_overflow;
+  __ movl(RAX, FieldAddress(TMP, Object::tags_offset()));
+  __ Bind(&retry);
+  __ movl(RCX, RAX);
+  __ testl(RCX, Immediate(1 << RawObject::kOldAndNotMarkedBit));
+  __ j(ZERO, &lost_race);  // Marked by another thread.
+  __ andl(RCX, Immediate(~(1 << RawObject::kOldAndNotMarkedBit)));
+  __ LockCmpxchgl(FieldAddress(TMP, Object::tags_offset()), RCX);
+  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+  __ movq(RAX, Address(THR, Thread::marking_stack_block_offset()));
+  __ movl(RCX, Address(RAX, MarkingStackBlock::top_offset()));
+  __ movq(Address(RAX, RCX, TIMES_8, MarkingStackBlock::pointers_offset()),
+          TMP);
+  __ incq(RCX);
+  __ movl(Address(RAX, MarkingStackBlock::top_offset()), RCX);
+  __ cmpl(RCX, Immediate(MarkingStackBlock::kSize));
+  __ popq(RCX);  // Unspill.
+  __ popq(RAX);  // Unspill.
+  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&marking_overflow);
+  __ pushq(CODE_REG);
+  __ movq(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ EnterCallRuntimeFrame(0);
+  __ movq(CallingConventions::kArg1Reg, THR);
+  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
+  __ LeaveCallRuntimeFrame();
+  __ popq(CODE_REG);
+  __ ret();
+
+  __ Bind(&lost_race);
+  __ popq(RCX);  // Unspill.
+  __ popq(RAX);  // Unspill.
+  __ ret();
 #endif
 }
 

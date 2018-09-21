@@ -240,7 +240,9 @@ class Thread : public BaseThread {
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
   // Empties the store buffer block into the isolate.
-  void PrepareForGC();
+  void ReleaseStoreBuffer();
+  void AcquireMarkingStack();
+  void ReleaseMarkingStack();
 
   void SetStackLimit(uword value);
   void ClearStackLimit();
@@ -420,6 +422,13 @@ class Thread : public BaseThread {
   void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
+  }
+
+  bool is_marking() const { return marking_stack_block_ != NULL; }
+  void MarkingStackAddObject(RawObject* obj);
+  void MarkingStackBlockProcess();
+  static intptr_t marking_stack_block_offset() {
+    return OFFSET_OF(Thread, marking_stack_block_);
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
@@ -806,8 +815,8 @@ class Thread : public BaseThread {
   uword end_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
+  MarkingStackBlock* marking_stack_block_;
   uword vm_tag_;
-  TaskKind task_kind_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
@@ -833,7 +842,9 @@ class Thread : public BaseThread {
     defined(TARGET_ARCH_X64)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
+  // End accessed from generated code.
 
+  TaskKind task_kind_;
   TimelineStream* dart_stream_;
   OSThread* os_thread_;
   Monitor* thread_lock_;
@@ -902,6 +913,9 @@ class Thread : public BaseThread {
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
+
+  void MarkingStackRelease();
+  void MarkingStackAcquire();
 
   void set_zone(Zone* zone) { zone_ = zone; }
 

@@ -2042,26 +2042,31 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+  if (raw_obj->IsOldObject() && thread->is_marking()) {
+    // Black allocation. Prevents a data race between the mutator and concurrent
+    // marker on ARM and ARM64 (the marker may observe a publishing store of
+    // this object before the stores that initialize its slots), and helps the
+    // collection to finish sooner.
+    raw_obj->SetMarkBitUnsynchronized();
+    heap->old_space()->AllocateBlack(size);
+  }
   return raw_obj;
 }
 
-class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
+class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Thread* thread, RawObject* obj)
+  explicit WriteBarrierUpdateVisitor(Thread* thread, RawObject* obj)
       : ObjectPointerVisitor(thread->isolate()),
         thread_(thread),
         old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
   }
 
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** curr = first; curr <= last; ++curr) {
-      RawObject* raw_obj = *curr;
-      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        old_obj_->SetRememberedBit();
-        thread_->StoreBufferAddObject(old_obj_);
-        // Remembered this object. There is no need to continue searching.
-        return;
+  void VisitPointers(RawObject** from, RawObject** to) {
+    for (RawObject** slot = from; slot <= to; ++slot) {
+      RawObject* value = *slot;
+      if (value->IsHeapObject()) {
+        old_obj_->CheckHeapPointerStore(value, thread_);
       }
     }
   }
@@ -2070,7 +2075,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
   Thread* thread_;
   RawObject* old_obj_;
 
-  DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
+  DISALLOW_COPY_AND_ASSIGN(WriteBarrierUpdateVisitor);
 };
 
 bool Object::IsReadOnlyHandle() const {
@@ -2086,9 +2091,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   intptr_t size = orig.raw()->Size();
   RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
   NoSafepointScope no_safepoint;
-  // TODO(koda): This will trip when we start allocating black.
-  // Revisit code below at that point, to account for the new write barrier.
-  ASSERT(!(raw_clone->IsOldObject() && raw_clone->IsMarked()));
   // Copy the body of the original into the clone.
   uword orig_addr = RawObject::ToAddr(orig.raw());
   uword clone_addr = RawObject::ToAddr(raw_clone);
@@ -2100,11 +2102,8 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
     return raw_clone;
-  } else if (orig.raw()->IsOldObject() && !orig.raw()->IsRemembered()) {
-    // Old original doesn't need to be remembered, so neither does the clone.
-    return raw_clone;
   }
-  StoreBufferUpdateVisitor visitor(Thread::Current(), raw_clone);
+  WriteBarrierUpdateVisitor visitor(Thread::Current(), raw_clone);
   raw_clone->VisitPointers(&visitor);
   return raw_clone;
 }
