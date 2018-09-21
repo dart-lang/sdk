@@ -249,7 +249,6 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   Object& result = Object::Handle(zone);
-  ASSERT(!function.HasCode());
 
   if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
     if (!function.HasBytecode()) {
@@ -259,8 +258,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
       }
     }
     if (function.HasBytecode()) {
-      // Verify that InterpretCall stub code was installed.
-      ASSERT(function.CurrentCode() == StubCode::InterpretCall_entry()->code());
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
@@ -268,6 +265,8 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
       return;
     }
     // No bytecode, fall back to compilation.
+  } else {
+    ASSERT(!function.HasCode());
   }
 
   result = Compiler::CompileFunction(thread, function);

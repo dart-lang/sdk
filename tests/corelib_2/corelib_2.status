@@ -59,6 +59,12 @@ int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
+# These tests crash in mixed mode.
+[ $compiler == dartkb ]
+bigint_from_test: Pass, Crash # Please triage
+bigint_parse_radix_test: Pass, Crash # Please triage
+bigint_test: Pass, Crash # Please triage
+
 [ $compiler == precompiler ]
 bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify

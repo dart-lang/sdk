@@ -409,6 +409,10 @@
     "app_jitk-linux-(debug|product|release)-x64": { },
     "dartkb-interpret-linux-(debug|release)-x64": {
       "options": {
+        "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
+      }},
+    "dartkb-mixed-linux-(debug|release)-x64": {
+      "options": {
         "vm-options": ["--enable_interpreter"]
       }},
     "dartkb-compile-linux-(debug|release)-x64": {
@@ -527,11 +531,14 @@
           ]
         },
         {
-          "name": "vm interpreter tests",
+          "name": "vm mixed mode tests",
           "arguments": [
-            "-ndartkb-interpret-linux-${mode}-x64",
+            "-ndartkb-mixed-linux-${mode}-x64",
             "--compiler=dartkb",
-            "language_2"
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
           ]
         },
         {
@@ -539,7 +546,21 @@
           "arguments": [
             "-ndartkb-compile-linux-${mode}-x64",
             "--compiler=dartkb",
-            "language_2"
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ]
+        },
+        {
+          "name": "vm interpreter tests",
+          "arguments": [
+            "-ndartkb-interpret-linux-${mode}-x64",
+            "--compiler=dartkb",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
           ]
         }
       ]
