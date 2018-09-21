@@ -1,3 +1,8 @@
+# 0.1.63
+
+* updated `unawaited_futures` to ignore assignments within cascades
+* new lint: `sort_pub_dependencies`
+
 # 0.1.62
 
 * new lint: `prefer_mixin`
