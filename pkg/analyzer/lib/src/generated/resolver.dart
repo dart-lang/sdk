@@ -7868,6 +7868,7 @@ class TypeNameResolver {
     for (var candidateMixin in classElement.mixins) {
       if (candidateMixin.element == mixinElement) return candidateMixin;
     }
+    return null; // Not found
   }
 
   /// The number of type arguments in the given [typeName] does not match the
