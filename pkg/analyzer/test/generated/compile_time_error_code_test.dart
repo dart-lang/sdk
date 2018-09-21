@@ -3823,6 +3823,29 @@ class C extends Object with M1, M2 {}
     assertNoErrors(source);
   }
 
+  test_mixinInference_matchingClass_inPreviousMixin_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M1 implements A<B> {}
+mixin M2<T> on A<T> {}
+class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends A<int> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_mixinInference_noMatchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3853,6 +3876,31 @@ class C = Object with M;
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
   }
 
+  @failingTest
+  test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C = Object with M;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
+  }
+
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3867,6 +3915,18 @@ class C extends Object with M {}
     assertNoErrors(source);
   }
 
+  test_mixinInference_noMatchingClass_noSuperclassConstraint_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  @failingTest
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3878,7 +3938,20 @@ class M<T> extends A<T> {}
 class C extends Object with M<int> {}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
+  }
+
+  test_mixinInference_noMatchingClass_typeParametersSupplied_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends Object with M<int> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
   }
 
   @failingTest // Does not work with old task model
@@ -3912,6 +3985,42 @@ abstract class ForwardingDirectory<T extends Directory>
 abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins =
+        analysisResult.unit.declaredElement.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck_new_syntax() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+mixin ForwardingDirectory<T extends Directory>
+    on ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+mixin DirectoryAddOnsMixin implements Directory {}
 ''');
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);

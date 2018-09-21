@@ -25,6 +25,12 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
 
   @override
   @failingTest
+  test_infer_mixin_with_substitution_functionType_new_syntax() {
+    return super.test_infer_mixin_with_substitution_functionType_new_syntax();
+  }
+
+  @override
+  @failingTest
   test_intLiteralInDoubleContext_const_exact() {
     return super.test_intLiteralInDoubleContext_const_exact();
   }

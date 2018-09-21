@@ -20,4 +20,8 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override // Passes with driver
   test_mixinInference_recursiveSubtypeCheck() =>
       super.test_mixinInference_recursiveSubtypeCheck();
+
+  @override // Passes with driver
+  test_mixinInference_recursiveSubtypeCheck_new_syntax() =>
+      super.test_mixinInference_recursiveSubtypeCheck_new_syntax();
 }

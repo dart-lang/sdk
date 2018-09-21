@@ -46,6 +46,12 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
 
   @override
   @failingTest // Does not work with old task model
+  test_infer_mixin_new_syntax() {
+    return super.test_infer_mixin_new_syntax();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
   test_infer_mixin_with_substitution() {
     return super.test_infer_mixin_with_substitution();
   }
@@ -54,6 +60,18 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   @failingTest // Does not work with old task model
   test_infer_mixin_with_substitution_functionType() {
     return super.test_infer_mixin_with_substitution_functionType();
+  }
+
+  @override
+  @failingTest
+  test_infer_mixin_with_substitution_functionType_new_syntax() {
+    return super.test_infer_mixin_with_substitution_functionType_new_syntax();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution_new_syntax() {
+    return super.test_infer_mixin_with_substitution_new_syntax();
   }
 
   @override
@@ -1307,6 +1325,18 @@ class A extends Object with M {
     resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class M {
+}
+class A extends Object with M {
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_constConstructorWithMixinWithField_withSuperMixins_new_syntax() async {
+    Source source = addSource(r'''
+mixin M {
 }
 class A extends Object with M {
   const A();
@@ -2700,6 +2730,26 @@ class F extends E with M {}
     expect(classF.mixins[0].toString(), 'M<C, D>');
   }
 
+  test_infer_mixin_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+mixin M<T> on A<T> {}
+
+class C extends A<B> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
   test_infer_mixin_with_substitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -2743,6 +2793,45 @@ class C extends A<int Function(String)> with M {}
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<int, String>');
+  }
+
+  test_infer_mixin_with_substitution_functionType_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+mixin M<T, U> on A<T Function(U)> {}
+
+class C extends A<int Function(String)> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<int, String>');
+  }
+
+  test_infer_mixin_with_substitution_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+mixin M<T> on A<List<T>> {}
+
+class C extends A<List<B>> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<B>');
   }
 
   test_initializingFormalForNonExistentField() async {
@@ -3986,7 +4075,17 @@ void main () {
     Source source = addSource(r'''
 class A {}
 class B extends A {}
-class C extends Object with B {}''');
+class C extends A with B {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_mixinInheritsFromNotObject_classDeclaration_extends_new_syntax() async {
+    Source source = addSource(r'''
+class A {}
+mixin B on A {}
+class C extends A with B {}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -4022,7 +4121,17 @@ class C extends Object with B {}''');
     Source source = addSource(r'''
 class A {}
 class B extends A {}
-class C = Object with B;''');
+class C = A with B;''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_mixinInheritsFromNotObject_typeAlias_extends_new_syntax() async {
+    Source source = addSource(r'''
+class A {}
+mixin B on A {}
+class C = A with B;''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -4057,6 +4166,17 @@ class C = Object with B;''');
     resetWith(options: options);
     Source source = addSource(r'''
 class A {
+  toString() => super.toString();
+}
+class B extends Object with A {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_mixinReferencesSuper_new_syntax() async {
+    Source source = addSource(r'''
+mixin A {
   toString() => super.toString();
 }
 class B extends Object with A {}''');
