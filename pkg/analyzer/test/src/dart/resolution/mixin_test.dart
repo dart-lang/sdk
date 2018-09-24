@@ -1579,6 +1579,30 @@ mixin M implements A, B {}
     ]);
   }
 
+  test_isMoreSpecificThan() async {
+    addTestFile(r'''
+mixin M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var element = findElement.mixin('M');
+    var type = element.type;
+    expect(type.isMoreSpecificThan(intType), isFalse);
+  }
+
+  test_lookUpMemberInInterfaces_Object() async {
+    addTestFile(r'''
+class Foo {}
+
+mixin UnhappyMixin on Foo {
+  String toString() => '$runtimeType';
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_metadata() async {
     addTestFile(r'''
 const a = 0;

@@ -1508,9 +1508,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     List<DartType> jArgs = j.typeArguments;
     List<DartType> jVars = jElement.type.typeArguments;
-    supertype = supertype.substitute2(jArgs, jVars);
-    if (supertype == i) {
-      return true;
+    if (supertype != null) {
+      supertype = supertype.substitute2(jArgs, jVars);
+      if (supertype == i) {
+        return true;
+      }
     }
     //
     // I is listed in the on clause of J.
@@ -2390,6 +2392,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (InterfaceType interfaceType in targetType.interfaces) {
       ExecutableElement member = _lookUpMemberInInterfaces(
           interfaceType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType constraint in targetType.superclassConstraints) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          constraint, true, library, visitedInterfaces, getMember);
       if (member != null) {
         return member;
       }
