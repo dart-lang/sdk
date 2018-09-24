@@ -12,7 +12,7 @@ import 'fasta_codes.dart'
         Message,
         messageInternalProblemExtendingUnmodifiableScope,
         templateAccessError,
-        templateDuplicatedName,
+        templateDuplicatedDeclarationUse,
         templateDuplicatedNamePreviouslyUsedCause;
 
 import 'problems.dart' show internalProblem, unsupported;
@@ -351,5 +351,7 @@ class AmbiguousBuilder extends ProblemBuilder {
 
   Declaration get parent => null;
 
-  Message get message => templateDuplicatedName.withArguments(name);
+  Message get message => templateDuplicatedDeclarationUse.withArguments(name);
+
+  // TODO(ahe): Also provide context.
 }

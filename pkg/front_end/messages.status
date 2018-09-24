@@ -99,6 +99,10 @@ DirectiveAfterDeclaration/script1: Fail
 DirectiveAfterDeclaration/script2: Fail
 DuplicateDeferred/example: Fail
 DuplicatePrefix/example: Fail
+DuplicatedDeclaration/script: Fail
+DuplicatedDeclarationUse/analyzerCode: Fail # No corresponding analyzer code.
+DuplicatedDeclarationUse/script1: Fail # This test can't pass.
+DuplicatedDeclarationUse/script2: Fail # Wrong error.
 DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
 DuplicatedExportInType/analyzerCode: Fail

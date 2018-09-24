@@ -23,7 +23,7 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart'
     show
         Message,
-        templateDuplicatedDefinition,
+        templateDuplicatedDeclaration,
         templateTypeNotFound,
         templateUnspecified;
 
@@ -154,7 +154,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (builder.parent == this) return builder;
     return new KernelInvalidTypeBuilder(
         name,
-        templateDuplicatedDefinition
+        templateDuplicatedDeclaration
             .withArguments(name)
             .withLocation(fileUri, charOffset, name.length));
   }

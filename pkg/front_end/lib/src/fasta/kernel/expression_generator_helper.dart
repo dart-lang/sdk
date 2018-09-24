@@ -23,7 +23,7 @@ import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart'
-    show KernelTypeBuilder, PrefixBuilder, UnresolvedType;
+    show Declaration, KernelTypeBuilder, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -150,4 +150,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   List<DartType> buildDartTypeArguments(
       List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes);
+
+  void reportDuplicatedDeclaration(
+      Declaration existing, String name, int charOffset);
 }

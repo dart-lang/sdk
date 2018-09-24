@@ -30,9 +30,10 @@ import 'kernel_shadow_ast.dart' show ShadowClass;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         messageNoUnnamedConstructorInObject,
-        noLength,
-        templateDuplicatedName,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateEnumConstantSameNameAsEnclosing;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
@@ -171,9 +172,19 @@ class KernelEnumBuilder extends SourceClassBuilder
         String name = enumConstantInfo.name;
         int charOffset = enumConstantInfo.charOffset;
         String documentationComment = enumConstantInfo.documentationComment;
-        if (members.containsKey(name)) {
-          parent.addProblem(templateDuplicatedName.withArguments(name),
-              charOffset, noLength, parent.fileUri);
+        MemberBuilder existing = members[name];
+        if (existing != null) {
+          List<LocatedMessage> context = existing.isSynthetic
+              ? null
+              : <LocatedMessage>[
+                  templateDuplicatedDeclarationCause
+                      .withArguments(name)
+                      .withLocation(
+                          parent.fileUri, existing.charOffset, name.length)
+                ];
+          parent.addProblem(templateDuplicatedDeclaration.withArguments(name),
+              charOffset, name.length, parent.fileUri,
+              context: context);
           enumConstantInfos[i] = null;
           continue;
         }
@@ -181,7 +192,7 @@ class KernelEnumBuilder extends SourceClassBuilder
           parent.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
               charOffset,
-              noLength,
+              name.length,
               parent.fileUri);
           enumConstantInfos[i] = null;
           continue;
@@ -288,7 +299,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       // unnamed constructor requires no arguments. But that information isn't
       // always available at this point, and it's not really a situation that
       // can happen unless you start modifying the SDK sources.
-      addProblem(messageNoUnnamedConstructorInObject, -1, noLength);
+      library.addProblem(messageNoUnnamedConstructorInObject,
+          objectClass.charOffset, objectClass.name.length, objectClass.fileUri);
     } else {
       constructor.initializers.add(
           new SuperInitializer(superConstructor.target, new Arguments.empty())

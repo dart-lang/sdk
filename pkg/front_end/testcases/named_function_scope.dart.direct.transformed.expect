@@ -9,7 +9,7 @@
 //         ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
-//         T< /*@context=DuplicatedNameCause*/ T>() {};
+//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //         ^
 
 library;
@@ -63,7 +63,7 @@ static method test() → dynamic {
   }
   {
     dynamic x = let final dynamic #t4 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:62:9: Error: 'T' is already declared in this scope.
-        T< /*@context=DuplicatedNameCause*/ T>() {};
+        T< /*@context=DuplicatedDeclarationCause*/ T>() {};
         ^" in let final <T extends core::Object = dynamic>() → dynamic T = <T extends core::Object = dynamic>() → dynamic {} in T;
   }
   {

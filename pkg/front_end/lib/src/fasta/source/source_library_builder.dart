@@ -58,7 +58,8 @@ import '../fasta_codes.dart'
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
-        templateDuplicatedDefinition,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateMissingPartOf,
         templateNotAPrefixInTypeAnnotation,
         templatePartOfInLibrary,
@@ -529,14 +530,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           return computeAmbiguousDeclaration(
               name, existing, member, charOffset);
         });
-    } else if (isDuplicatedDefinition(existing, declaration)) {
-      addProblem(templateDuplicatedDefinition.withArguments(name), charOffset,
-          noLength, fileUri);
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
+      addProblem(templateDuplicatedDeclaration.withArguments(name), charOffset,
+          name.length, fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
+                existing.fileUri, existing.charOffset, name.length)
+          ]);
     }
     return members[name] = declaration;
   }
 
-  bool isDuplicatedDefinition(Declaration existing, Declaration other) {
+  bool isDuplicatedDeclaration(Declaration existing, Declaration other) {
     if (existing == null) return false;
     Declaration next = existing.next;
     if (next == null) {

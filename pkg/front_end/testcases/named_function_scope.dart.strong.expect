@@ -37,15 +37,15 @@
 //     ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
-//         T< /*@context=DuplicatedNameCause*/ T>() {};
+//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //         ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:62:9: Error: 'T' is already declared in this scope.
-//         T< /*@context=DuplicatedNameCause*/ T>() {};
+//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //         ^
-// pkg/front_end/testcases/named_function_scope.dart:62:45: Error: Previous declaration of 'T'.
-//         T< /*@context=DuplicatedNameCause*/ T>() {};
-//                                             ^
+// pkg/front_end/testcases/named_function_scope.dart:62:52: Error: Previous declaration of 'T'.
+//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
+//                                                    ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:67:47: Error: Can't declare 'T' because it was already used in this scope.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
@@ -90,7 +90,7 @@
 //         ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
-//         T< /*@context=DuplicatedNameCause*/ T>() {};
+//         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //         ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:83:32: Error: 'T' isn't a type.
@@ -148,7 +148,7 @@ static method test() → dynamic {
   }
   {
     dynamic x = let final dynamic #t4 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:62:9: Error: 'T' is already declared in this scope.
-        T< /*@context=DuplicatedNameCause*/ T>() {};
+        T< /*@context=DuplicatedDeclarationCause*/ T>() {};
         ^" in let final <T extends core::Object = dynamic>() → dynamic T = <T extends core::Object = dynamic>() → dynamic {} in T;
   }
   {

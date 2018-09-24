@@ -1977,22 +1977,62 @@ const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
     tip: r"""Try removing all but one prefix.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedDefinition =
+const Template<Message Function(String name)> templateDuplicatedDeclaration =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Duplicated definition of '#name'.""",
-        withArguments: _withArgumentsDuplicatedDefinition);
+        messageTemplate: r"""'#name' is already declared in this scope.""",
+        withArguments: _withArgumentsDuplicatedDeclaration);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedDefinition =
+const Code<Message Function(String name)> codeDuplicatedDeclaration =
     const Code<Message Function(String name)>(
-  "DuplicatedDefinition",
-  templateDuplicatedDefinition,
+        "DuplicatedDeclaration", templateDuplicatedDeclaration,
+        analyzerCode: "DUPLICATE_DEFINITION");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedDeclaration(String name) {
+  return new Message(codeDuplicatedDeclaration,
+      message: """'${name}' is already declared in this scope.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedDeclarationCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Previous declaration of '#name'.""",
+        withArguments: _withArgumentsDuplicatedDeclarationCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedDeclarationCause =
+    const Code<Message Function(String name)>(
+        "DuplicatedDeclarationCause", templateDuplicatedDeclarationCause,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedDeclarationCause(String name) {
+  return new Message(codeDuplicatedDeclarationCause,
+      message: """Previous declaration of '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedDeclarationUse =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't use '#name' because it is declared more than once.""",
+        withArguments: _withArgumentsDuplicatedDeclarationUse);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedDeclarationUse =
+    const Code<Message Function(String name)>(
+  "DuplicatedDeclarationUse",
+  templateDuplicatedDeclarationUse,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDefinition(String name) {
-  return new Message(codeDuplicatedDefinition,
-      message: """Duplicated definition of '${name}'.""",
+Message _withArgumentsDuplicatedDeclarationUse(String name) {
+  return new Message(codeDuplicatedDeclarationUse,
+      message: """Can't use '${name}' because it is declared more than once.""",
       arguments: {'name': name});
 }
 
@@ -2113,44 +2153,6 @@ Message _withArgumentsDuplicatedModifier(Token token) {
       message: """The modifier '${lexeme}' was already specified.""",
       tip: """Try removing all but one occurance of the modifier.""",
       arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedName =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is already declared in this scope.""",
-        withArguments: _withArgumentsDuplicatedName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedName =
-    const Code<Message Function(String name)>(
-        "DuplicatedName", templateDuplicatedName,
-        analyzerCode: "DUPLICATE_DEFINITION");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedName(String name) {
-  return new Message(codeDuplicatedName,
-      message: """'${name}' is already declared in this scope.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedNameCause =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Previous declaration of '#name'.""",
-        withArguments: _withArgumentsDuplicatedNameCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedNameCause =
-    const Code<Message Function(String name)>(
-        "DuplicatedNameCause", templateDuplicatedNameCause,
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNameCause(String name) {
-  return new Message(codeDuplicatedNameCause,
-      message: """Previous declaration of '${name}'.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

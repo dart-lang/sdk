@@ -386,8 +386,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
       wrapVariableInitializerInError(
-          variable, fasta.templateDuplicatedName, <LocatedMessage>[
-        fasta.templateDuplicatedNameCause
+          variable, fasta.templateDuplicatedDeclaration, <LocatedMessage>[
+        fasta.templateDuplicatedDeclarationCause
             .withArguments(name)
             .withLocation(uri, existing.charOffset, name.length)
       ]);
@@ -2309,10 +2309,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
         } else {
-          addProblem(fasta.templateDuplicatedName.withArguments(name),
-              builder.charOffset, name.length);
-          addProblem(fasta.templateDuplicatedNameCause.withArguments(name),
-              existing.charOffset, name.length);
+          reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }
       }
     }
@@ -3290,10 +3287,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true)
-      ..fileOffset = offsetForToken(nameToken);
-    if (scope.local[variable.name] != null) {
-      addProblem(fasta.templateDuplicatedName.withArguments(variable.name),
-          name.charOffset, nameToken.length);
+      ..fileOffset = name.charOffset;
+    // TODO(ahe): Why are we looking up in local scope, but declaring in parent
+    // scope?
+    Declaration existing = scope.local[name.name];
+    if (existing != null) {
+      reportDuplicatedDeclaration(existing, name.name, name.charOffset);
     }
     push(new FunctionDeclarationJudgment(
         variable,
@@ -4443,6 +4442,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void reportDuplicatedDeclaration(
+      Declaration existing, String name, int charOffset) {
+    List<LocatedMessage> context = existing.isSynthetic
+        ? null
+        : <LocatedMessage>[
+            fasta.templateDuplicatedDeclarationCause
+                .withArguments(name)
+                .withLocation(
+                    existing.fileUri, existing.charOffset, name.length)
+          ];
+    addProblem(fasta.templateDuplicatedDeclaration.withArguments(name),
+        charOffset, name.length,
+        context: context);
+  }
+
+  @override
   void debugEvent(String name) {
     // printEvent('BodyBuilder: $name');
   }
@@ -4701,16 +4716,8 @@ class FormalParameters {
     for (KernelFormalParameterBuilder parameter in parameters) {
       Declaration existing = local[parameter.name];
       if (existing != null) {
-        helper.addProblem(
-            fasta.templateDuplicatedName.withArguments(parameter.name),
-            parameter.charOffset,
-            parameter.name.length,
-            context: <LocatedMessage>[
-              fasta.templateDuplicatedNameCause
-                  .withArguments(parameter.name)
-                  .withLocation(existing.fileUri, existing.charOffset,
-                      parameter.name.length)
-            ]);
+        helper.reportDuplicatedDeclaration(
+            existing, parameter.name, parameter.charOffset);
       } else {
         local[parameter.name] = parameter;
       }
