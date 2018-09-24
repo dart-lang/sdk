@@ -303,8 +303,11 @@ main(List<String> arguments) {
     final mode1 = results['mode1'];
     final mode2 = results['mode2'];
     var top = results['dart-top'];
-    if (top == '') {
+    if (top == null || top == '') {
       top = env['DART_TOP'];
+    }
+    if (top == null || top == '') {
+      top = Directory.current.path;
     }
     final session = new DartFuzzTest(
         env, repeat, trueDivergence, showStats, top, mode1, mode2);

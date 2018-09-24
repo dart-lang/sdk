@@ -54,10 +54,13 @@ where
         aot-[debug-]arm64 = Dart AOT (simarm64)
         js                = dart2js + JS
 
-This fuzz testing tool assumes the environment variable 'DART_TOP'
-points to the top of the Dart SDK development tree in which all proper
-binaries have been built already (e.g. testing jit-ia32 will invoke
-the binary ${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM).
+This fuzz testing tool must have access to the top of a Dart SDK
+development tree (DART_TOP) in which all proper binaries have been
+built already (for example, testing jit-ia32 will invoke the binary
+${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM). The DART_TOP
+can be provided through the --dart-top option, as an environment
+variable, or, by default, as the current directory by invoking the
+fuzz testing tool from the Dart SDK top.
 
 Background
 ==========
