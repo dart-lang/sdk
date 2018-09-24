@@ -9,6 +9,7 @@
 \title{Dart Programming Language Specification\\
 {5th edition draft}\\
 {\large Version 2.1.0-dev}}
+\author{}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -56,6 +57,8 @@
 %   \ref{unqualifiedInvocation}, \ref{functionExpressionInvocation},
 %   \ref{superInvocations}, \ref{assignment}, \ref{compoundAssignment},
 %   \ref{localVariableDeclaration}, and \ref{return}.
+% - Corrected error involving multiple uses of the same part in the same
+%   program such that it takes exports into account.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -1953,10 +1956,10 @@ An initializer list begins with a colon, and consists of a comma-separated list 
 \commentary{
 There are three kinds of initializers.
 \begin{itemize}
-\item A {\em superinitializer} identifies a {\em superconstructor}\,---\,that is, a specific constructor of the superclass.
+\item[$\bullet$] A {\em superinitializer} identifies a {\em superconstructor}\,---\,that is, a specific constructor of the superclass.
 Execution of the superinitializer causes the initializer list of the superconstructor to be executed.
-\item An {\em instance variable initializer} assigns a value to an individual instance variable.
-\item An assertion.
+\item[$\bullet$] An {\em instance variable initializer} assigns a value to an individual instance variable.
+\item[$\bullet$] An assertion.
 \end{itemize}
 }
 
@@ -2677,7 +2680,7 @@ The controlling language is in the relevant sections of the specification.
   for getters, setters, methods and constructors (\ref{scoping}).
   An instance or static variable $f$ introduces a getter $f$,
   and a mutable instance or static variable $f$ also introduces a setter
-  \code{$f$=} (\ref{instanceVariables}, \ref{staticVariables}).
+  \code{$f$=} (\ref{instanceVariables}, \ref{variables}).
   When we speak of members here, we mean
   accessible instance or static variables, getters, setters, and methods
   (\ref{classes}).
@@ -2809,7 +2812,7 @@ It is a compile-time error if the interface of a class $C$ is a superinterface o
 \LMHash{}
 Let $C$ be a concrete class that does not have a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
 %% TODO(eernst): Adjust to use 'correctly overrides' terminology.
-It is a compile-time error if the implicit interface of $C$ includes an accessible instance member $m$ of type $F$,
+It is a compile-time error if the implicit interface of $C$ has an accessible instance member $m$ of type $F$,
 and $C$ does not declare or inherit a corresponding concrete instance member $m$ of type $F'$ such that $F' <: F$.
 
 \commentary{
@@ -2832,7 +2835,7 @@ This allows proxy classes for specific types to be implemented without provoking
 
 \LMHash{}
 %% TODO(eernst): Switch to use 'correctly overrides' terminology.
-It is a compile-time error if the implicit interface of a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if $F'$ is not a subtype of $F$.
+It is a compile-time error if the implicit interface of a class $C$ has an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if $F'$ is not a subtype of $F$.
 
 \rationale{
 However, if a class does explicitly declare a member that conflicts with its superinterface, this always yields an error.
@@ -2847,13 +2850,16 @@ However, if a class does explicitly declare a member that conflicts with its sup
 \subsection{Class Member Conflicts}
 \LMLabel{classMemberConflicts}
 
+\LMHash{}
 Some pairs of class member declarations cannot coexist,
 even though they do not both introduce the same name into the same scope.
 This section specifies these errors.
 
+\LMHash{}
 The {\em basename} of a getter or method named $n$ is $n$;
 the basename of a setter named \code{$n$=} is $n$.
 
+\LMHash{}
 Let $C$ be a class.
 It is a compile-time error if $C$ declares a
 \begin{itemize}
@@ -3007,7 +3013,7 @@ let $S$ be the superclass of $C$, and let $S_N$ be the name of $S$.
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, $\ldots$, $T_{k}$ $a_{k}$)} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
 
 \begin{dartCode}
-$C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$):$\SUPER_q$($a_{1}$, $\ldots$, $a_{k}$);
+$C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$): $\SUPER_q$($a_{1}$, $\ldots$, $a_{k}$);
 \end{dartCode}
 
 \noindent
@@ -3037,6 +3043,7 @@ fields, $C_q$ is also a const constructor.
 
 \LMHash{}
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d_n$\})} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
+
 \begin{dartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d'_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d'_n$\})
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$: $a_{k+1}$, \ldots, $a_p$: $a_p$);
@@ -3321,9 +3328,9 @@ This enables typechecking code such as:
 \commentary{
 Even where type parameters are in scope there are numerous restrictions at this time:
 \begin{itemize}
-\item A type parameter cannot be used to name a constructor in an instance creation expression (\ref{instanceCreation}).
-\item A type parameter cannot be used as a superclass or superinterface (\ref{superclasses}, \ref{superinterfaces}, \ref{interfaceSuperinterfaces}).
-\item A type parameter cannot be used as a generic type.
+\item[$\bullet$] A type parameter cannot be used to name a constructor in an instance creation expression (\ref{instanceCreation}).
+\item[$\bullet$] A type parameter cannot be used as a superclass or superinterface (\ref{superclasses}, \ref{superinterfaces}, \ref{interfaceSuperinterfaces}).
+\item[$\bullet$] A type parameter cannot be used as a generic type.
 \end{itemize}
 
 The normative versions of these are given in the appropriate sections of this specification.
@@ -3825,7 +3832,7 @@ Given a class $C$ with static method $m => 42$, $C.m()$ returns 42, but $(C).m()
 }
 
 
-\subsubsection{Object Identity}
+\subsection{Object Identity}
 \LMLabel{objectIdentity}
 
 \LMHash{}
@@ -4467,7 +4474,8 @@ Attempting to mutate a constant list literal will result in a dynamic error.
 
 \LMHash{}
 It is a compile-time error if an element of a constant list literal is not a compile-time constant.
-It is a compile-time error if the type argument of a constant list literal includes a type parameter.
+% Need 'free': `const <Function(Function<X>(X))>[]` is OK, but `X` is not free.
+It is a compile-time error if the type argument of a constant list literal is or contains a free type variable.
 \rationale{
 The binding of a type parameter is not known at compile time, so we cannot use type parameters inside compile-time constants.
 }
@@ -4592,7 +4600,10 @@ a class that has a concrete operator \syntax{`=='} declaration different from th
 unless the key is a string or an integer,
 or the key expression is a literal symbol or
 an invocation of a constant constructor of class \code{Symbol}.
-It is a compile-time error if the type arguments of a constant map literal include a type variable.
+% Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
+% `X` is not free.
+It is a compile-time error if a type argument of a constant map literal
+is or contains a free type variable.
 
 \LMHash{}
 The value of a constant map literal
@@ -5179,7 +5190,7 @@ A {\em constant object expression} invokes a constant constructor
 (\ref{constantConstructors}).
 
 \begin{grammar}
-<constObjectExpression> ::= \NEW{} <type> (`.' <identifier>)? <arguments>
+<constObjectExpression> ::= \CONST{} <type> (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \LMHash{}
@@ -7777,11 +7788,11 @@ Postfix expressions invoke the postfix operators on objects.
   \alt <argumentPart>
 
 <incrementOperator> ::= `++'
-  \alt `--'
+  \alt `-\mbox-'
 \end{grammar}
 
 \LMHash{}
- A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
+A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
 Evaluation of a postfix expression $e$ of the form \code{$v$++}, where $v$ is an identifier, proceeds as follows:
@@ -10116,17 +10127,30 @@ It is a compile-time error if the contents of the URI are not a valid part decla
 It is a compile-time error if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
 
 \LMHash{}
-Let $L$ be a library.
-It is a compile-time error if $L$ contains two part directives with the same URI.
-Furthermore,
-let $L_1$ be $L$ or any library which is directly or indirectly imported by $L$,
-and let $L_2$ be any library distinct from $L_1$ which is directly or indirectly imported by $L$
-(\ref{imports}).
-It is a compile-time error if $L_1$ and $L_2$ both contain a part directive with the same URI.
+It is a compile-time error if a library contains
+two part directives with the same URI.
+
+\LMHash{}
+We say that a library $L_1$ is {\em reachable from} a library $L$ if
+any of the following is true (\ref{imports}, \ref{exports}):
+\begin{itemize}
+\item $L$ and $L_1$ is the same library.
+\item $L$ imports or exports a library $L_2$, and $L_1$ is reachable from $L_2$.
+\end{itemize}
+
+\LMHash{}
+Let $L$ be a library, let $u$ be a URI,
+and let $L_1$ and $L_2$ be distinct libraries which are reachable from $L$.
+It is a compile-time error if $L_1$ and $L_2$ both contain
+a part directive with URI $u$.
 
 \commentary{
 In particular, it is an error to use the same part twice in the same program
 (\ref{scripts}).
+Note that a relative URI is interpreted as relative to the location of the
+enclosing library (\ref{uris}), which means that $L_1$ and $L_2$ may both
+have a part identified by \code{'myPart.dart'}, but they are not the same
+URI unless $L_1$ and $L_2$ have the same location.
 }
 
 
@@ -10957,11 +10981,11 @@ Void is not an interface type.
 
 The only subtype relations that pertain to void are therefore:
 \begin{itemize}
-\item
+\item[$\bullet$]
 $\VOID{} <: \VOID{}$ (by reflexivity)
-\item
+\item[$\bullet$]
 $\bot <: \VOID{}$ (as bottom is a subtype of all types).
-\item
+\item[$\bullet$]
 $\VOID{} <: \DYNAMIC{}$ (as \DYNAMIC{} is a supertype of all types)
 \end{itemize}
 
@@ -11322,7 +11346,8 @@ number type.
 
 This introduces a number of differencs:
 \begin{itemize}
-\item Valid values of JavaScript \code{int} are any
+\item[$\bullet$]
+Valid values of JavaScript \code{int} are any
 IEEE-754 64-bit floating point number with no fractional part.
 This includes positive and negative {\em infinity},
 which can be reached by overflowing
@@ -11332,15 +11357,18 @@ that represent invalid JavaScript \code{int} values
 cannot be compiled to JavaScript.
 Operations on integers may lose precision since 64-bit floating point numbers
 are limited to 53 significant bits.
-\item JavaScript \code{int} instances also implement \code{double},
+\item[$\bullet$]
+JavaScript \code{int} instances also implement \code{double},
 and integer-valued \code{double} instances also implement \code{int}.
 The \code{int} and \code{double} class are still separate subclasses of the
 class \code{num}, but {\em instances} of either class that represent an integer,
 act as if they are actually instances of a common subclass implementing both
 \code{int} and \code{double}. Fractional numbers only implement \code{double}.
-\item Bitwise operations on integers (and, or, xor, negate and shifts)
+\item[$\bullet$]
+Bitwise operations on integers (and, or, xor, negate and shifts)
 all truncate the operands to 32-bit values.
-\item The \code{identical} method cannot distinguish the values $0.0$ and $-0.0$,
+\item[$\bullet$]
+The \code{identical} method cannot distinguish the values $0.0$ and $-0.0$,
 and it cannot recognize any {\em NaN} value as identical to itself.
 For efficiency, the \code{identical} operation uses the JavaScript \code{===}
 operator.
