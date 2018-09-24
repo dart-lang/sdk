@@ -396,7 +396,7 @@ int _stdinFD = 0;
 int _stdoutFD = 1;
 int _stderrFD = 2;
 
-// This is an embedder entrypoint.
+@pragma('vm:entry-point')
 void _setStdioFDs(int stdin, int stdout, int stderr) {
   _stdinFD = stdin;
   _stdoutFD = stdout;
