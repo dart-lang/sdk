@@ -1508,11 +1508,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     List<DartType> jArgs = j.typeArguments;
     List<DartType> jVars = jElement.type.typeArguments;
-    if (supertype != null) {
-      supertype = supertype.substitute2(jArgs, jVars);
-      if (supertype == i) {
-        return true;
-      }
+    supertype = supertype.substitute2(jArgs, jVars);
+    if (supertype == i) {
+      return true;
     }
     //
     // I is listed in the on clause of J.
@@ -1766,16 +1764,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false,
-      int startMixinIndex,
-      bool setter: false,
-      bool thisType: false}) {
+      {bool concrete: false, int stopMixinIndex, bool setter: false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
         {bool acceptAbstract: false,
         bool includeType: true,
-        int startMixinIndex}) {
+        int stopMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
       }
@@ -1801,8 +1796,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
 
       var mixins = type.mixins;
-      startMixinIndex ??= mixins.length;
-      for (var i = startMixinIndex - 1; i >= 0; i--) {
+      for (var i = 0; i < mixins.length; i++) {
+        if (stopMixinIndex != null && i >= stopMixinIndex) {
+          break;
+        }
         var result = lookUpImpl(mixins[i], acceptAbstract: acceptAbstract);
         if (result != null) {
           return result;
@@ -1834,8 +1831,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else {
       return lookUpImpl(
         this,
-        includeType: thisType,
-        startMixinIndex: startMixinIndex,
+        includeType: false,
+        stopMixinIndex: stopMixinIndex,
       );
     }
   }

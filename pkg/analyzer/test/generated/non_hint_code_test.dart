@@ -658,10 +658,7 @@ class B implements A {
 }''');
     await computeAnalysisResult(source);
     if (previewDart2) {
-      assertErrors(
-        source,
-        [CompileTimeErrorCode.INVALID_OVERRIDE],
-      );
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     } else {
       assertNoErrors(source);
     }
@@ -685,10 +682,7 @@ class B extends A {
 }''');
     await computeAnalysisResult(source);
     if (previewDart2) {
-      assertErrors(
-        source,
-        [CompileTimeErrorCode.INVALID_OVERRIDE],
-      );
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     } else {
       assertNoErrors(source);
     }

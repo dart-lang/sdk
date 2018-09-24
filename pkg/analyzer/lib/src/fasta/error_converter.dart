@@ -364,7 +364,7 @@ class FastaErrorReporter {
         return;
       case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_OVERRIDE, offset, length);
+            StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);
         return;
       case "INVALID_MODIFIER_ON_SETTER":
         _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,

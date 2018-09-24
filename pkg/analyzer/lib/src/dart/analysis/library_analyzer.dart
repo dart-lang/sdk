@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -295,13 +294,14 @@ class LibraryAnalyzer {
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
-    var typeSystem = new StrongTypeSystemImpl(_typeProvider,
-        implicitCasts: options.implicitCasts,
-        declarationCasts: options.declarationCasts,
-        nonnullableTypes: options.nonnullableTypes);
-
-    CodeChecker checker =
-        new CodeChecker(_typeProvider, typeSystem, errorListener, options);
+    CodeChecker checker = new CodeChecker(
+        _typeProvider,
+        new StrongTypeSystemImpl(_typeProvider,
+            implicitCasts: options.implicitCasts,
+            declarationCasts: options.declarationCasts,
+            nonnullableTypes: options.nonnullableTypes),
+        errorListener,
+        options);
     checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
@@ -315,13 +315,6 @@ class LibraryAnalyzer {
     // Use the ConstantVerifier to compute errors.
     //
     _computeConstantErrors(errorReporter, unit);
-
-    //
-    // Compute inheritance and override errors.
-    //
-    var inheritanceOverrideVerifier =
-        new InheritanceOverrideVerifier(typeSystem, errorReporter);
-    inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.

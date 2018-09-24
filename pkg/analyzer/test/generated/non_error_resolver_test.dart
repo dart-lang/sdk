@@ -4458,12 +4458,7 @@ class A {
 class C {}
 class B extends A with C {}''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(
-        source,
-        [CompileTimeErrorCode.INVALID_OVERRIDE],
-      );
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 

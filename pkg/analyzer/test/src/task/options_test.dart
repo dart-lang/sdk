@@ -227,6 +227,9 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
         removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
         removeCode(StrongModeCode.DYNAMIC_INVOKE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN);
         removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
