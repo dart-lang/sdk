@@ -106,7 +106,7 @@ void addPropertiesFromSignature(
 
     if (!walkPrototypeChain) break;
 
-    sig = safeGetProperty(sig, '__proto__');
+    sig = dart.getPrototypeOf(sig);
   }
 }
 
@@ -462,6 +462,7 @@ class DartFormatter {
       IterableSpanFormatter(),
       MapEntryFormatter(),
       StackTraceFormatter(),
+      ErrorAndExceptionFormatter(),
       FunctionFormatter(),
       HeritageClauseFormatter(),
       LibraryModuleFormatter(),
@@ -802,12 +803,51 @@ class IterableSpanFormatter implements Formatter {
   accept(object, config) => object is IterableSpan;
 
   String preview(object) {
-    return '[${object.start}...${object.end-1}]';
+    return '[${object.start}...${object.end - 1}]';
   }
 
   bool hasChildren(object) => true;
 
   List<NameValuePair> children(object) => object.children();
+}
+
+/// Formatter for Dart Errors and Exceptions.
+class ErrorAndExceptionFormatter extends ObjectFormatter {
+  static final RegExp _pattern = RegExp(r'\d+\:\d+');
+
+  accept(object, config) => object is Error || object is Exception;
+
+  bool hasChildren(object) => true;
+
+  String preview(object) {
+    var trace = dart.stackTrace(object);
+    // TODO(vsm): Pull our stack mapping logic here.  We should aim to
+    // provide the first meaningful stack frame.
+    var line = '$trace'.split('\n').firstWhere(
+        (l) =>
+            l.contains(_pattern) &&
+            !l.contains('dart:sdk') &&
+            !l.contains('dart_sdk'),
+        orElse: () => null);
+    return line != null ? '${object} at ${line}' : '${object}';
+  }
+
+  List<NameValuePair> children(object) {
+    var trace = dart.stackTrace(object);
+    var entries = LinkedHashSet<NameValuePair>();
+    entries.add(NameValuePair(name: 'stackTrace', value: trace));
+    addInstanceMembers(object, entries);
+    addMetadataChildren(object, entries);
+    return entries.toList();
+  }
+
+  // Add an ObjectFormatter view underneath.
+  void addInstanceMembers(object, Set<NameValuePair> ret) {
+    ret.add(NameValuePair(
+        name: "[[instance members]]",
+        value: object,
+        config: JsonMLConfig.asObject));
+  }
 }
 
 class StackTraceFormatter implements Formatter {

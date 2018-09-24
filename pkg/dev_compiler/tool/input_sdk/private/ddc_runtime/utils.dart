@@ -37,6 +37,8 @@ final Iterable Function(Object) getOwnPropertyNames =
 final Function(Object) getOwnPropertySymbols =
     JS('', 'Object.getOwnPropertySymbols');
 
+final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');
+
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwTypeError(String message) {
