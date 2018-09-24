@@ -40,8 +40,8 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
-    addDeclarationEdit(element);
-    return searchEngine.searchReferences(element).then(addReferenceEdits);
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(searchEngine, change, newName);
+    await processor.renameElement(element);
   }
 }
