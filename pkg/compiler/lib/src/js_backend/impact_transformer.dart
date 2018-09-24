@@ -160,8 +160,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
-          onIsCheck(type, transformed);
-          hasAsCast = true;
+          if (!_options.omitAsCasts) {
+            onIsCheck(type, transformed);
+            hasAsCast = true;
+          }
           break;
         case TypeUseKind.IMPLICIT_CAST:
           if (_options.implicitDowncastCheckPolicy.isEmitted) {

@@ -2066,7 +2066,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     DartType type = _elementMap.getDartType(node.type);
-    if (!node.isTypeError || options.implicitDowncastCheckPolicy.isEmitted) {
+    if ((!node.isTypeError && !options.omitAsCasts) ||
+        options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),

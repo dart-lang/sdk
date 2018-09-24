@@ -359,9 +359,13 @@ abstract class DeferredLoadTask extends CompilerTask {
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
             case TypeUseKind.IS_CHECK:
-            case TypeUseKind.AS_CAST:
             case TypeUseKind.CATCH_TYPE:
               _collectTypeDependencies(type, dependencies);
+              break;
+            case TypeUseKind.AS_CAST:
+              if (!compiler.options.omitAsCasts) {
+                _collectTypeDependencies(type, dependencies);
+              }
               break;
             case TypeUseKind.IMPLICIT_CAST:
               if (compiler.options.implicitDowncastCheckPolicy.isEmitted) {
