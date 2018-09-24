@@ -227,6 +227,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
    * location of this [Expression] in AST allows extracting.
    */
   RefactoringStatus _checkSelection() {
+    if (selectionOffset <= 0) {
+      return new RefactoringStatus.fatal(
+          'The selection offset must be greater than zero.');
+    }
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+      return new RefactoringStatus.fatal(
+          'The selection end offset must be less then the length of the file.');
+    }
+
     String selectionStr;
     // exclude whitespaces
     {
