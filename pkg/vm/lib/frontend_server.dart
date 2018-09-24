@@ -101,7 +101,15 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Includes sources into generated dill file. Having sources'
           ' allows to effectively use observatory to debug produced'
           ' application, produces better stack traces on exceptions.',
-      defaultsTo: true);
+      defaultsTo: true)
+  ..addFlag('unsafe-package-serialization',
+      help: 'Potentially unsafe: Does not allow for invalidating packages, '
+          'additionally the output dill file might include more libraries than '
+          'needed. The use case is test-runs, where invalidation is not really '
+          'used, and where dill filesize does not matter, and the gain is '
+          'improved speed.',
+      defaultsTo: false,
+      hide: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -201,7 +209,7 @@ abstract class ProgramTransformer {
 /// Class that for test mocking purposes encapsulates creation of [BinaryPrinter].
 class BinaryPrinterFactory {
   /// Creates new [BinaryPrinter] to write to [targetSink].
-  BinaryPrinter newBinaryPrinter(IOSink targetSink) {
+  BinaryPrinter newBinaryPrinter(Sink<List<int>> targetSink) {
     return new LimitedBinaryPrinter(targetSink, (_) => true /* predicate */,
         false /* excludeUriToSource */);
   }
@@ -209,13 +217,16 @@ class BinaryPrinterFactory {
 
 class FrontendCompiler implements CompilerInterface {
   FrontendCompiler(this._outputStream,
-      {this.printerFactory, this.transformer}) {
+      {this.printerFactory,
+      this.transformer,
+      this.unsafePackageSerialization}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
 
   StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
+  bool unsafePackageSerialization;
 
   CompilerOptions _compilerOptions;
   Uri _mainSource;
@@ -388,6 +399,9 @@ class FrontendCompiler implements CompilerInterface {
         return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
       });
     }
+    if (unsafePackageSerialization == true) {
+      writePackagesToSinkAndTrimComponent(component, sink);
+    }
 
     printer.writeComponentFile(component);
     await sink.close();
@@ -495,6 +509,63 @@ class FrontendCompiler implements CompilerInterface {
     _outputStream.writeln(boundaryKey);
   }
 
+  /// Map of already serialized dill data. All uris in a serialized component
+  /// maps to the same blob of data. Used by
+  /// [writePackagesToSinkAndTrimComponent].
+  Map<Uri, List<int>> cachedPackageLibraries = new Map<Uri, List<int>>();
+
+  writePackagesToSinkAndTrimComponent(
+      Component deltaProgram, Sink<List<int>> ioSink) {
+    if (deltaProgram == null) return;
+
+    List<Library> packageLibraries = new List<Library>();
+    List<Library> libraries = new List<Library>();
+    deltaProgram.computeCanonicalNames();
+
+    for (var lib in deltaProgram.libraries) {
+      Uri uri = lib.importUri;
+      if (uri.scheme == "package") {
+        packageLibraries.add(lib);
+      } else {
+        libraries.add(lib);
+      }
+    }
+    deltaProgram.libraries
+      ..clear()
+      ..addAll(libraries);
+
+    Map<String, List<Library>> newPackages = new Map<String, List<Library>>();
+    Set<List<int>> alreadyAdded = new Set<List<int>>();
+    for (Library lib in packageLibraries) {
+      List<int> data = cachedPackageLibraries[lib.fileUri];
+      if (data != null) {
+        if (alreadyAdded.add(data)) {
+          ioSink.add(data);
+        }
+      } else {
+        String package = lib.importUri.pathSegments.first;
+        newPackages[package] ??= <Library>[];
+        newPackages[package].add(lib);
+      }
+    }
+
+    for (String package in newPackages.keys) {
+      List<Library> libraries = newPackages[package];
+      Component singleLibrary = new Component(
+          libraries: libraries,
+          uriToSource: deltaProgram.uriToSource,
+          nameRoot: deltaProgram.root);
+      ByteSink byteSink = new ByteSink();
+      final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
+      printer.writeComponentFile(singleLibrary);
+      List<int> data = byteSink.builder.takeBytes();
+      for (Library lib in libraries) {
+        cachedPackageLibraries[lib.fileUri] = data;
+      }
+      ioSink.add(data);
+    }
+  }
+
   @override
   void acceptLastDelta() {
     _generator.accept();
@@ -556,6 +627,17 @@ class FrontendCompiler implements CompilerInterface {
             print: (Zone self, ZoneDelegate parent, Zone zone, String line) =>
                 _outputStream.writeln(line)));
   }
+}
+
+/// A [Sink] that directly writes data into a byte builder.
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {}
 }
 
 String _escapePath(String path) {
@@ -758,10 +840,9 @@ Future<int> starter(
     }
   }
 
-  compiler ??= new FrontendCompiler(
-    output,
-    printerFactory: binaryPrinterFactory,
-  );
+  compiler ??= new FrontendCompiler(output,
+      printerFactory: binaryPrinterFactory,
+      unsafePackageSerialization: options["unsafe-package-serialization"]);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
