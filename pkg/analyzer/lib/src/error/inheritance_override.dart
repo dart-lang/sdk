@@ -251,7 +251,7 @@ class InheritanceOverrideVerifier {
 
   void _verifyClass(SimpleIdentifier classNameNode,
       {List<ClassMember> members: const [], WithClause withClause}) {
-    ClassElementImpl element = classNameNode.staticElement;
+    ClassElement element = classNameNode.staticElement;
     LibraryElement library = element.library;
     InterfaceTypeImpl type = element.type;
 
