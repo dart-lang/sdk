@@ -62,6 +62,7 @@ LibTest/math/pow_A10_t01: CompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
+Language/Classes/Constructors/Factories/arguments_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Classes/Constructors/Factories/function_type_t01: CompileTimeError # Expects a warning but this is an error in Dart 2
 Language/Classes/Constructors/Generative_Constructors/static_type_t01: CompileTimeError
 Language/Classes/Constructors/name_t01: MissingCompileTimeError
@@ -557,6 +558,7 @@ Language/Expressions/Instance_Creation/New/execution_t11: CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t13: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t01: CompileTimeError # Issue 33308
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_argument_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t01: CompileTimeError

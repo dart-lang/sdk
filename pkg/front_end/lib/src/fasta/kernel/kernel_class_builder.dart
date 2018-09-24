@@ -70,7 +70,7 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchParameter,
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
-        templateRedirectingFactoryIncompatibleBounds,
+        templateRedirectingFactoryIncompatibleTypeArgument,
         templateRedirectingFactoryInvalidNamedParameterType,
         templateRedirectingFactoryInvalidPositionalParameterType,
         templateRedirectingFactoryMissingNamedParameter,
@@ -103,7 +103,8 @@ import 'kernel_builder.dart'
         Scope,
         TypeVariableBuilder;
 
-import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+import 'redirecting_factory_body.dart'
+    show getRedirectingFactoryBody, RedirectingFactoryBody;
 
 import 'kernel_target.dart' show KernelTarget;
 
@@ -1190,9 +1191,9 @@ abstract class KernelClassBuilder
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of actual target could not be computed.
-  FunctionType computeRedirecteeType(
-      ConstructorReferenceBuilder redirectionTarget,
+  FunctionType computeRedirecteeType(KernelRedirectingFactoryBuilder factory,
       TypeEnvironment typeEnvironment) {
+    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
     FunctionNode target;
     bool isConstructor = false;
     Class targetClass; // Used when the redirection target is a constructor.
@@ -1225,51 +1226,43 @@ abstract class KernelClassBuilder
       return null;
     }
 
-    FunctionType inferredType = target.functionType;
-    if (redirectionTarget.typeArguments != null &&
-        inferredType.typeParameters.length !=
-            redirectionTarget.typeArguments.length) {
+    List<DartType> typeArguments =
+        getRedirectingFactoryBody(factory.target).typeArguments;
+    FunctionType targetFunctionType = target.functionType;
+    if (typeArguments != null &&
+        targetFunctionType.typeParameters.length != typeArguments.length) {
       addProblem(
           templateTypeArgumentMismatch
-              .withArguments(inferredType.typeParameters.length),
+              .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
           noLength);
       return null;
     }
 
     // Compute the substitution of the target class type parameters if
-    // [redirectionTarget] has any type arguments. Any built type arguments are
-    // stored in [typeArguments] for later use.
+    // [redirectionTarget] has any type arguments.
     Substitution substitution;
-    List<DartType> typeArguments;
-    if (redirectionTarget.typeArguments != null &&
-        redirectionTarget.typeArguments.length > 0) {
-      typeArguments = new List<DartType>();
-      for (var i = 0; i < inferredType.typeParameters.length; i++) {
-        var typeParameter = inferredType.typeParameters[i];
-        var typeArgument = redirectionTarget.typeArguments[i].build(library);
+    bool hasProblem = false;
+    if (typeArguments != null && typeArguments.length > 0) {
+      substitution = Substitution.fromPairs(
+          targetFunctionType.typeParameters, typeArguments);
+      for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
+        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
+        DartType typeParameterBound =
+            substitution.substituteType(typeParameter.bound);
+        DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of [typeParameter].
-        if (typeArgument is TypeParameterType) {
-          if (!typeEnvironment.isSubtypeOf(
-              typeArgument.bound, typeParameter.bound)) {
-            // TODO(hillerstrom): Use dmitrays' error message once his "bounds
-            // checking" CL has landed.
-            addProblem(
-                templateRedirectingFactoryIncompatibleBounds.withArguments(
-                    typeArgument.parameter.name,
-                    typeArgument.bound,
-                    typeParameter.bound),
-                redirectionTarget.charOffset,
-                noLength);
-            return null;
-          }
+        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
+          addProblem(
+              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
+                  typeArgument, typeParameterBound),
+              redirectionTarget.charOffset,
+              noLength);
+          hasProblem = true;
         }
-        typeArguments.add(typeArgument);
       }
-      substitution =
-          Substitution.fromPairs(inferredType.typeParameters, typeArguments);
-    } else if (redirectionTarget.typeArguments == null &&
-        inferredType.typeParameters.length > 0) {
+    } else if (typeArguments == null &&
+        targetFunctionType.typeParameters.length > 0) {
       // TODO(hillerstrom): In this case, we need to perform type inference on
       // the redirectee to obtain actual type arguments which would allow the
       // following program to type check:
@@ -1286,21 +1279,21 @@ abstract class KernelClassBuilder
 
     FunctionType redirecteeType;
     // If the target is a constructor then we need to patch the return type of
-    // the inferred type, because the type inferrer always infers the return
-    // type to be "void", whereas the inferred return type of a factory is its
-    // enclosing class. TODO(hillerstrom): It may be worthwhile to change the
-    // typing of constructors such that the return type is its enclosing class.
+    // [targetFunctionType], because constructors always have return type to be
+    // "void", whereas the return type of a factory is its enclosing
+    // class. TODO(hillerstrom): It may be worthwhile to change the typing of
+    // constructors such that the return type is its enclosing class.
     if (isConstructor) {
       DartType returnType =
           new InterfaceType(targetClass, typeArguments ?? const <DartType>[]);
 
       redirecteeType = new FunctionType(
-          inferredType.positionalParameters, returnType,
-          namedParameters: inferredType.namedParameters,
-          typeParameters: inferredType.typeParameters,
-          requiredParameterCount: inferredType.requiredParameterCount);
+          targetFunctionType.positionalParameters, returnType,
+          namedParameters: targetFunctionType.namedParameters,
+          typeParameters: targetFunctionType.typeParameters,
+          requiredParameterCount: targetFunctionType.requiredParameterCount);
     } else {
-      redirecteeType = inferredType;
+      redirecteeType = targetFunctionType;
     }
 
     // Substitute if necessary.
@@ -1309,7 +1302,7 @@ abstract class KernelClassBuilder
         : (substitution.substituteType(redirecteeType.withoutTypeParameters)
             as FunctionType);
 
-    return redirecteeType;
+    return hasProblem ? null : redirecteeType;
   }
 
   String computeRedirecteeName(ConstructorReferenceBuilder redirectionTarget) {
@@ -1329,7 +1322,7 @@ abstract class KernelClassBuilder
     FunctionType factoryType =
         factory.procedure.function.functionType.withoutTypeParameters;
     FunctionType redirecteeType =
-        computeRedirecteeType(factory.redirectionTarget, typeEnvironment);
+        computeRedirecteeType(factory, typeEnvironment);
 
     // TODO(hillerstrom): It would be preferable to know whether a failure
     // happened during [_computeRedirecteeType].

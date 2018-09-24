@@ -35,6 +35,8 @@ mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
+mirrors/redirecting_factory_test/01: CompileTimeError # Issue 33308
+mirrors/redirecting_factory_test/none: CompileTimeError # Issue 33308
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mint_maker_test: Timeout # Please triage.

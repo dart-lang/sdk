@@ -237,7 +237,6 @@ deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/Ker
 duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
-factory4_test/00: MissingCompileTimeError # Issue 31590
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
@@ -1289,6 +1288,7 @@ assertion_initializer_const_error2_test/cc10: Pass # Works in --checked mode but
 
 [ $fasta && $strong ]
 issue18628_2_test/01: MissingCompileTimeError
+redirecting_factory_bounds_test/02: MissingCompileTimeError # Related to issue 33308
 type_promotion_logical_and_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]

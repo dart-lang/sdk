@@ -6399,29 +6399,25 @@ const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
         r"""Try removing the body, or not making this a redirecting constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        DartType _type,
-        DartType
-            _type2)> templateRedirectingFactoryIncompatibleBounds = const Template<
-        Message Function(String name, DartType _type, DartType _type2)>(
-    messageTemplate:
-        r"""The type variable '#name' has bound '#type' but the context expects a type variable with bound '#type2'.""",
-    tipTemplate: r"""Try redirecting to a different constructor.""",
-    withArguments: _withArgumentsRedirectingFactoryIncompatibleBounds);
+const Template<Message Function(DartType _type, DartType _type2)>
+    templateRedirectingFactoryIncompatibleTypeArgument =
+    const Template<Message Function(DartType _type, DartType _type2)>(
+        messageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
+        tipTemplate: r"""Try using a different type as argument.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryIncompatibleTypeArgument);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryIncompatibleBounds =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryIncompatibleBounds",
-        templateRedirectingFactoryIncompatibleBounds,
-        analyzerCode: "REDIRECT_TO_INVALID_RETURN_TYPE");
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeRedirectingFactoryIncompatibleTypeArgument =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "RedirectingFactoryIncompatibleTypeArgument",
+        templateRedirectingFactoryIncompatibleTypeArgument,
+        analyzerCode: "TYPE_ARGUMENT_NOT_MATCHING_BOUNDS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryIncompatibleBounds(
-    String name, DartType _type, DartType _type2) {
+Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
+    DartType _type, DartType _type2) {
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -6432,11 +6428,10 @@ Message _withArgumentsRedirectingFactoryIncompatibleBounds(
   new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
   String type2 = '$buffer';
 
-  return new Message(codeRedirectingFactoryIncompatibleBounds,
-      message:
-          """The type variable '${name}' has bound '${type}' but the context expects a type variable with bound '${type2}'.""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
+  return new Message(codeRedirectingFactoryIncompatibleTypeArgument,
+      message: """The type '${type}' doesn't extend '${type2}'.""",
+      tip: """Try using a different type as argument.""",
+      arguments: {'type': _type, 'type2': _type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -2978,15 +2978,13 @@ RedirectingFactoryProvidesTooFewRequiredParameters:
         A.g(int x, int y) {}
       }
 
-RedirectingFactoryIncompatibleBounds:
-  template: "The type variable '#name' has bound '#type' but the context expects a type variable with bound '#type2'."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_RETURN_TYPE
+RedirectingFactoryIncompatibleTypeArgument:
+  template: "The type '#type' doesn't extend '#type2'."
+  tip: "Try using a different type as argument."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script:
     - >-
       class A<T extends int> {
-         factory A() = B<T>;
+         factory A() = B<T, int>;
       }
-      class B<S extends String> implements A<int> {
-         B();
-      }
+      class B<T extends int, S extends String> implements A<T> {}
