@@ -9388,7 +9388,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     AstNode parent2 = node.parent?.parent;
     if (parent2 is ClassDeclaration ||
         parent2 is ClassTypeAlias ||
-        parent2 is FunctionTypeAlias) {
+        parent2 is FunctionTypeAlias ||
+        parent2 is GenericTypeAlias) {
       // Bounds of parameters of classes and function type aliases are
       // already resolved.
     } else {
