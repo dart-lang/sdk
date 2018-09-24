@@ -332,7 +332,7 @@ abstract class B {
   String aaa;
 }
 class C implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/var aaa;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/var aaa;
 }
 ''';
     await checkFile(content);

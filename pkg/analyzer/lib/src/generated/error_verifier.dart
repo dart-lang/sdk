@@ -4283,7 +4283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       var superMember = enclosingType.lookUpInheritedMember(
           name, _currentLibrary,
           concrete: true,
-          stopMixinIndex: mixinIndex,
+          startMixinIndex: mixinIndex,
           setter: name.endsWith('='));
       if (superMember == null) {
         _errorReporter.reportErrorForNode(

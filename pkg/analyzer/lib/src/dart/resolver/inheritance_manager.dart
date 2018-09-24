@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -717,33 +716,9 @@ class InheritanceManager {
   }
 
   /**
-   * This method is used to report errors on when they are found computing inheritance information.
-   * See [ErrorVerifier.checkForInconsistentMethodInheritance] to see where these generated
-   * error codes are reported back into the analysis engine.
-   *
-   * @param classElt the location of the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  void _reportError(
-      ClassElement classElt, ErrorCode errorCode, List<Object> arguments) {
-    if (ignoreErrors) {
-      return;
-    }
-    HashSet<AnalysisError> errorSet = _errorsInClassElement.putIfAbsent(
-        classElt, () => new HashSet<AnalysisError>());
-    errorSet.add(new AnalysisError(classElt.source, classElt.nameOffset,
-        classElt.nameLength, errorCode, arguments));
-  }
-
-  /**
    * Given the set of methods defined by classes above [classElt] in the class hierarchy,
    * apply the appropriate inheritance rules to determine those methods inherited by or overridden
-   * by [classElt]. Also report static warnings
-   * [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE] and
-   * [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD] if appropriate.
+   * by [classElt].
    *
    * @param classElt the class element to query.
    * @param unionMap a mapping from method name to the set of unique (in terms of signature) methods
@@ -838,38 +813,7 @@ class InheritanceManager {
             //
             resultMap[key] = elements[subtypesOfAllOtherTypesIndexes[0]];
           } else {
-            if (subtypesOfAllOtherTypesIndexes.isEmpty) {
-              //
-              // Determine if the current class has a method or accessor with
-              // the member name, if it does then then this class does not
-              // "inherit" from any of the supertypes. See issue 16134.
-              //
-              bool classHasMember = false;
-              if (allMethods) {
-                classHasMember = classElt.getMethod(key) != null;
-              } else {
-                List<PropertyAccessorElement> accessors = classElt.accessors;
-                for (int i = 0; i < accessors.length; i++) {
-                  if (accessors[i].name == key) {
-                    classHasMember = true;
-                  }
-                }
-              }
-              //
-              // Example: class A inherited only 2 method named 'm'.
-              // One has the function type '() -> int' and one has the function
-              // type '() -> String'. Since neither is a subtype of the other,
-              // we create a warning, and have this class inherit nothing.
-              //
-              if (!classHasMember) {
-                String firstTwoFunctionTypesStr =
-                    "${executableElementTypes[0]}, ${executableElementTypes[1]}";
-                _reportError(
-                    classElt,
-                    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
-                    [key, firstTwoFunctionTypesStr]);
-              }
-            } else {
+            if (!subtypesOfAllOtherTypesIndexes.isEmpty) {
               //
               // Example: class A inherits 2 methods named 'm'.
               // One has the function type '(int) -> dynamic' and one has the
@@ -896,12 +840,6 @@ class InheritanceManager {
               resultMap[key] = mergedExecutableElement;
             }
           }
-        } else {
-          _reportError(
-              classElt,
-              StaticWarningCode
-                  .INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
-              [key]);
         }
       }
     });
