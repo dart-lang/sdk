@@ -1508,9 +1508,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     List<DartType> jArgs = j.typeArguments;
     List<DartType> jVars = jElement.type.typeArguments;
-    supertype = supertype.substitute2(jArgs, jVars);
-    if (supertype == i) {
-      return true;
+    if (supertype != null) {
+      supertype = supertype.substitute2(jArgs, jVars);
+      if (supertype == i) {
+        return true;
+      }
     }
     //
     // I is listed in the on clause of J.
