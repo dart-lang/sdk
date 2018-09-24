@@ -170,15 +170,14 @@ LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t19: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t20: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t21: MissingCompileTimeError # Issue 34087
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t01: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t02: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t01: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t02: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t03: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t04: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t05: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t06: Crash # Issue 33152, 33477
-LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t07: Crash # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t01: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t02: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t01: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t02: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t03: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t05: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t06: MissingCompileTimeError # Issue 33152, 33477
+LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t07: MissingCompileTimeError # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t04: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t05: CompileTimeError # Issue 33995

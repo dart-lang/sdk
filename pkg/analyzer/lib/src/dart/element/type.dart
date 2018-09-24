@@ -1389,6 +1389,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         _typeArguments = _typeArgumentsComputer();
       } on RecursiveInstantiateToBounds {
         _hasTypeParameterReferenceInBound = true;
+        _typeArguments = new List<DartType>.filled(
+            element.typeParameters.length,
+            element.context.typeProvider.dynamicType);
       }
       _typeArgumentsComputer = null;
     }
