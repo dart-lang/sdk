@@ -35,10 +35,6 @@ dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
-[ $compiler == dart2analyzer ]
-dart/byte_array_optimized_test: CompileTimeError # int64
-dart/byte_array_test: CompileTimeError # int64
-
 [ $compiler == dart2js ]
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
 dart/byte_array_test: Skip # compilers not aware of byte arrays

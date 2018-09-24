@@ -1318,6 +1318,7 @@ LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: CompileTimeError
 LibTest/core/AssertionError/AssertionError_A01_t01: CompileTimeError
 LibTest/core/AssertionError/message_A01_t01: CompileTimeError
 LibTest/core/AssertionError/toString_A01_t01: CompileTimeError
+LibTest/core/Duration/Duration_A02_t01: CompileTimeError
 LibTest/core/FallThroughError/toString_A01_t02: CompileTimeError
 LibTest/core/Invocation/isAccessor_A01_t01: CompileTimeError
 LibTest/core/Invocation/isAccessor_A01_t02: CompileTimeError

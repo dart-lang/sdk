@@ -44,7 +44,7 @@ import 'kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelLargeIntAccessGenerator,
+        KernelIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPrefixUseGenerator,
@@ -697,9 +697,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  KernelLargeIntAccessGenerator largeIntAccessGenerator(
+  KernelIntAccessGenerator intAccessGenerator(
       ExpressionGeneratorHelper helper, Token token) {
-    return new KernelLargeIntAccessGenerator(helper, token);
+    return new KernelIntAccessGenerator(helper, token);
   }
 
   @override

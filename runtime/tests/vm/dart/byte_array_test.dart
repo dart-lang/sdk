@@ -1022,9 +1022,9 @@ class ByteArrayTest {
     Expect.isTrue(copy is Uint64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 7, [-0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    array.setRange(3, 7, [-0x8000000000000000, 0, 1, 0xFFFFFFFFFFFFFFFF]);
     Expect.listEquals(
-        [0, 1, 2, -0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
+        [0, 1, 2, -0x8000000000000000, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
         array);
   }
 

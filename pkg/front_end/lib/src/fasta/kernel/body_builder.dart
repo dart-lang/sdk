@@ -75,7 +75,7 @@ import 'expression_generator.dart'
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         IndexedAccessGenerator,
-        LargeIntAccessGenerator,
+        IntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
         PrefixUseGenerator,
@@ -135,8 +135,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   final bool enableNative;
 
   final bool stringExpectedAfterNative;
-
-  final bool errorOnUnexactWebIntLiterals;
 
   /// Whether to ignore an unresolved reference to `main` within the body of
   /// `_getMainClosure` when compiling the current library.
@@ -231,8 +229,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString,
-        errorOnUnexactWebIntLiterals =
-            library.loader.target.backendTarget.errorOnUnexactWebIntLiterals,
         ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
@@ -1806,15 +1802,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    int value = int.parse(token.lexeme, onError: (_) => null);
-    if (value == null) {
-      push(new LargeIntAccessGenerator(this, token));
-    } else {
-      if (errorOnUnexactWebIntLiterals) {
-        checkWebIntLiteralsErrorIfUnexact(value, token);
-      }
-      push(forest.literalInt(value, token));
-    }
+    push(IntAccessGenerator.parseIntLiteral(this, token));
   }
 
   @override
@@ -2757,14 +2745,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (optional("-", token)) {
         operator = "unary-";
 
-        if (receiver is LargeIntAccessGenerator) {
-          int value = int.tryParse("-" + receiver.token.lexeme);
-          if (value != null) {
-            receiverValue = forest.literalInt(value, receiver.token);
-            if (errorOnUnexactWebIntLiterals) {
-              checkWebIntLiteralsErrorIfUnexact(value, token);
-            }
-          }
+        if (receiver is IntAccessGenerator) {
+          receiverValue = receiver.buildNegatedRead();
         }
       }
       bool isSuper = false;
@@ -4487,26 +4469,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   bool isErroneousNode(TreeNode node) {
     return library.loader.handledErrors.isNotEmpty &&
         forest.isErroneousNode(node);
-  }
-
-  void checkWebIntLiteralsErrorIfUnexact(int value, Token token) {
-    BigInt asInt = new BigInt.from(value).toUnsigned(64);
-    BigInt asDouble = new BigInt.from(asInt.toDouble());
-    if (asInt != asDouble) {
-      String nearest;
-      if (token.lexeme.startsWith("0x") || token.lexeme.startsWith("0X")) {
-        nearest = '0x${asDouble.toRadixString(16)}';
-      } else {
-        nearest = '$asDouble';
-      }
-      library.addProblem(
-          fasta.templateWebLiteralCannotBeRepresentedExactly
-              .withArguments(token.lexeme, nearest),
-          token.charOffset,
-          token.charCount,
-          uri,
-          wasHandled: true);
-    }
   }
 
   @override

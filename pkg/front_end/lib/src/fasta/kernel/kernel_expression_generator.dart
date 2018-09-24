@@ -45,7 +45,7 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
-        LargeIntAccessGenerator,
+        IntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         PrefixUseGenerator,
@@ -1390,9 +1390,8 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   }
 }
 
-class KernelLargeIntAccessGenerator extends KernelGenerator
-    with LargeIntAccessGenerator {
-  KernelLargeIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
+class KernelIntAccessGenerator extends KernelGenerator with IntAccessGenerator {
+  KernelIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
       : super(helper, token);
 
   @override
