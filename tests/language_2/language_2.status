@@ -224,6 +224,9 @@ map_literal7_test: RuntimeError # Requires strong mode
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
 
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
 [ $compiler == app_jit || $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == none || $compiler == precompiler ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34358
 

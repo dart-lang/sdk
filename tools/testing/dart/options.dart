@@ -374,6 +374,10 @@ compiler.''',
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
       return null;
     }
+    // Dart1 mode has been deprecated.
+    if (arguments.contains("--no-preview-dart-2")) {
+      return null;
+    }
 
     var configuration = <String, dynamic>{};
 
@@ -608,7 +612,7 @@ compiler.''',
     if (runtimes.isEmpty) {
       if (compilers.isEmpty) {
         runtimes = [Runtime.vm];
-        compilers = [Compiler.none];
+        compilers = [Compiler.dartk];
       } else {
         // Pick a runtime for each compiler.
         runtimes.addAll(compilers.map((compiler) => compiler.defaultRuntime));
@@ -662,7 +666,7 @@ compiler.''',
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
                     builderTag: data["builder_tag"] as String,
-                    previewDart2: !(data["no_preview_dart_2"] as bool));
+                    previewDart2: true);
             var configuration = new TestConfiguration(
                 configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),

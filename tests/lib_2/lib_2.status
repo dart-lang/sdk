@@ -172,6 +172,9 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
 [ ($compiler != precompiler || $runtime != dart_precompiled) && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign
 

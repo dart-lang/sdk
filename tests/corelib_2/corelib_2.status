@@ -406,6 +406,9 @@ string_from_environment3_test/05: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_test/01: MissingCompileTimeError
 
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
 # Sections for dartk and dartkp.
 #
 # Note: these sections are normalized so we can update them with automated

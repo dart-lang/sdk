@@ -39,7 +39,7 @@ const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
 DEFINE_FLAG(bool,
             use_dart_frontend,
-            false,
+            true,
             "Parse scripts with Dart-to-Kernel parser");
 
 DECLARE_FLAG(bool, strong);
