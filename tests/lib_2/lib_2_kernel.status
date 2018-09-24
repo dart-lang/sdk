@@ -69,6 +69,8 @@ isolate/browser/package_resolve_browser_test: CompileTimeError
 
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
+io/file_lock_test: Pass, Timeout # Please triage.
 isolate/isolate_complex_messages_test: Pass, Crash # Non-canonical type arguments.
 isolate/mandel_isolate_test: Pass, Timeout, Crash # Please triage.
 isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage.

@@ -81,6 +81,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   List<Label> yieldPoints;
   Map<TreeNode, int> contextLevels;
   List<ClosureBytecode> closures;
+  Set<Field> initializedFields;
+  List<Reference> nullableFields;
   ConstantPool cp;
   ConstantEmitter constantEmitter;
   BytecodeAssembler asm;
@@ -263,20 +265,35 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       libraryIndex.getTopLevelMember('dart:_internal', 'unsafeCast');
 
   void _genConstructorInitializers(Constructor node) {
-    bool isRedirecting =
+    final bool isRedirecting =
         node.initializers.any((init) => init is RedirectingInitializer);
+
     if (!isRedirecting) {
+      initializedFields = new Set<Field>();
       for (var field in node.enclosingClass.fields) {
         if (!field.isStatic && field.initializer != null) {
           _genFieldInitializer(field, field.initializer);
         }
       }
     }
+
     visitList(node.initializers, this);
+
+    if (!isRedirecting) {
+      nullableFields = <Reference>[];
+      for (var field in node.enclosingClass.fields) {
+        if (!field.isStatic && !initializedFields.contains(field)) {
+          nullableFields.add(field.reference);
+        }
+      }
+      initializedFields = null; // No more initialized fields, please.
+    }
   }
 
   void _genFieldInitializer(Field field, Expression initializer) {
-    if (initializer is NullLiteral) {
+    assert(!field.isStatic);
+
+    if (initializer is NullLiteral && !initializedFields.contains(field)) {
       return;
     }
 
@@ -285,6 +302,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final int cpIndex = cp.add(new ConstantInstanceField(field));
     asm.emitStoreFieldTOS(cpIndex);
+
+    initializedFields.add(field);
   }
 
   void _genArguments(Expression receiver, Arguments arguments) {
@@ -677,6 +696,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     yieldPoints = null; // Initialized when entering sync-yielding closure.
     contextLevels = <TreeNode, int>{};
     closures = <ClosureBytecode>[];
+    initializedFields = null; // Tracked for constructors only.
+    nullableFields = const <Reference>[];
     cp = new ConstantPool();
     constantEmitter = new ConstantEmitter(cp);
     asm = new BytecodeAssembler();
@@ -716,8 +737,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void end(Member node) {
     if (!hasErrors) {
-      metadata.mapping[node] =
-          new BytecodeMetadata(cp, asm.bytecode, asm.exceptionsTable, closures);
+      metadata.mapping[node] = new BytecodeMetadata(
+          cp, asm.bytecode, asm.exceptionsTable, nullableFields, closures);
     }
 
     enclosingClass = null;
@@ -737,6 +758,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     yieldPoints = null;
     contextLevels = null;
     closures = null;
+    initializedFields = null;
+    nullableFields = null;
     cp = null;
     constantEmitter = null;
     asm = null;

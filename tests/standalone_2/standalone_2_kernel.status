@@ -57,6 +57,7 @@ dart_developer_disabled_env_test: RuntimeError
 [ $compiler == dartkb && $strong ]
 io/dart_std_io_pipe_test: Pass, Crash # Trap bytecode encountered.
 io/file_lock_test: Pass, Crash # Trap bytecode encountered.
+io/http_advanced_test: Pass, RuntimeError # Please triage.
 io/http_client_connect_test: Pass, RuntimeError # Please triage.
 io/http_outgoing_size_test: Pass, RuntimeError # Please triage.
 io/platform_test: RuntimeError # Platform.script points to dill file.
@@ -64,13 +65,14 @@ io/process_sync_test: Pass, Crash # Bytecode compilation.
 io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
 io/test_extension_test: RuntimeError # Platform.script points to dill file.
 io/web_socket_compression_test: Pass, RuntimeError # Please triage.
+io/web_socket_ping_test: Pass, RuntimeError # Please triage.
 io/web_socket_protocol_test: Pass, RuntimeError # Please triage.
 io/web_socket_typed_data_test: Pass, RuntimeError # Please triage.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
 package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
-typed_data_isolate_test: Pass, Crash # Bytecode compilation.
+typed_data_isolate_test: Pass, Crash, Timeout # Please triage.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 io/compile_all_test: Crash # Issue 32373

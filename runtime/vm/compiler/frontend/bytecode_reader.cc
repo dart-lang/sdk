@@ -49,6 +49,15 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
+  const int kHasExceptionsTableFlag = 1 << 0;
+  const int kHasNullableFieldsFlag = 1 << 1;
+  const int kHasClosuresFlag = 1 << 2;
+
+  const intptr_t flags = helper_->reader_.ReadUInt();
+  const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
+  const bool has_nullable_fields = (flags & kHasNullableFieldsFlag) != 0;
+  const bool has_closures = (flags & kHasClosuresFlag) != 0;
+
   // Create object pool and read pool entries.
   const intptr_t obj_count = helper_->reader_.ReadListLength();
   const ObjectPool& pool =
@@ -69,30 +78,51 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   function.AttachBytecode(bytecode);
 
   // Read exceptions table.
-  ReadExceptionsTable(bytecode);
+  ReadExceptionsTable(bytecode, has_exceptions_table);
 
   if (FLAG_dump_kernel_bytecode) {
     KernelBytecodeDisassembler::Disassemble(function);
   }
 
+  // Initialization of fields with null literal is elided from bytecode.
+  // Record the corresponding stores if field guards are enabled.
+  if (has_nullable_fields) {
+    ASSERT(function.IsGenerativeConstructor());
+    const intptr_t num_fields = helper_->ReadListLength();
+    if (I->use_field_guards()) {
+      Field& field = Field::Handle(helper_->zone_);
+      for (intptr_t i = 0; i < num_fields; i++) {
+        NameIndex name_index = helper_->ReadCanonicalNameReference();
+        field = H.LookupFieldByKernelField(name_index);
+        field.RecordStore(Object::null_object());
+      }
+    } else {
+      for (intptr_t i = 0; i < num_fields; i++) {
+        helper_->SkipCanonicalNameReference();
+      }
+    }
+  }
+
   // Read closures.
-  Function& closure = Function::Handle(helper_->zone_);
-  Code& closure_bytecode = Code::Handle(helper_->zone_);
-  intptr_t num_closures = helper_->ReadListLength();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    intptr_t closure_index = helper_->ReadUInt();
-    ASSERT(closure_index < obj_count);
-    closure ^= pool.ObjectAt(closure_index);
+  if (has_closures) {
+    Function& closure = Function::Handle(helper_->zone_);
+    Code& closure_bytecode = Code::Handle(helper_->zone_);
+    const intptr_t num_closures = helper_->ReadListLength();
+    for (intptr_t i = 0; i < num_closures; i++) {
+      intptr_t closure_index = helper_->ReadUInt();
+      ASSERT(closure_index < obj_count);
+      closure ^= pool.ObjectAt(closure_index);
 
-    // Read closure bytecode and attach to closure function.
-    closure_bytecode = ReadBytecode(pool);
-    closure.AttachBytecode(closure_bytecode);
+      // Read closure bytecode and attach to closure function.
+      closure_bytecode = ReadBytecode(pool);
+      closure.AttachBytecode(closure_bytecode);
 
-    // Read closure exceptions table.
-    ReadExceptionsTable(closure_bytecode);
+      // Read closure exceptions table.
+      ReadExceptionsTable(closure_bytecode);
 
-    if (FLAG_dump_kernel_bytecode) {
-      KernelBytecodeDisassembler::Disassemble(closure);
+      if (FLAG_dump_kernel_bytecode) {
+        KernelBytecodeDisassembler::Disassemble(closure);
+      }
     }
   }
 }
@@ -580,13 +610,15 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
                                 pool);
 }
 
-void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
+void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode,
+                                                 bool has_exceptions_table) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadExceptionsTable");
 #endif  // !defined(PRODUCT)
 
-  const intptr_t try_block_count = helper_->reader_.ReadListLength();
+  const intptr_t try_block_count =
+      has_exceptions_table ? helper_->reader_.ReadListLength() : 0;
   if (try_block_count > 0) {
     const ObjectPool& pool =
         ObjectPool::Handle(helper_->zone_, bytecode.object_pool());
