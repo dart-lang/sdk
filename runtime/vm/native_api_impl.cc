@@ -197,6 +197,26 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+DART_EXPORT Dart_Handle Dart_ReadAllBytecode() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot read bytecode on an AOT runtime.",
+                       CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(T);
+  const Error& error = Error::Handle(T->zone(), Library::ReadAllBytecode());
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.raw());
+  }
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
 DART_EXPORT Dart_Handle Dart_ParseAll() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);

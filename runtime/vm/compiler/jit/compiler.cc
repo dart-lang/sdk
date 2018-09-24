@@ -1425,6 +1425,34 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   return Error::null();
 }
 
+RawError* Compiler::ReadAllBytecode(const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+  ASSERT(error.IsNull());
+  Array& functions = Array::Handle(zone, cls.functions());
+  Function& func = Function::Handle(zone);
+  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
+  // an empty array.
+  if (functions.IsNull()) {
+    ASSERT(cls.IsDynamicClass());
+    return Error::null();
+  }
+  // Compile all the regular functions.
+  for (int i = 0; i < functions.Length(); i++) {
+    func ^= functions.At(i);
+    ASSERT(!func.IsNull());
+    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode()) {
+      RawError* error =
+          kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
+      if (error != Error::null()) {
+        return error;
+      }
+    }
+  }
+  return Error::null();
+}
+
 RawError* Compiler::ParseAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

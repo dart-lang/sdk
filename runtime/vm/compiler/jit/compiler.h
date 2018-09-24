@@ -154,6 +154,9 @@ class Compiler : public AllStatic {
   static RawError* CompileAllFunctions(const Class& cls);
   static RawError* ParseAllFunctions(const Class& cls);
 
+  // Eagerly read all bytecode.
+  static RawError* ReadAllBytecode(const Class& cls);
+
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile

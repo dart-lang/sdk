@@ -178,6 +178,8 @@ BENCHMARK(Dart2JSCompilerStats) {
   free(script);
 }
 
+#endif  // !PRODUCT
+
 // This file is created by the target //runtime/bin:gen_kernel_bytecode_dill
 // which is depended on by run_vm_tests.
 static char* ComputeGenKernelKernelPath(const char* arg) {
@@ -230,9 +232,47 @@ BENCHMARK(GenKernelKernelLoadKernel) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
   free(dill_path);
+  free(kernel_buffer);
 }
 
-#endif  // !PRODUCT
+BENCHMARK(GenKernelKernelReadAllBytecode) {
+  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+  char* dill_path = ComputeGenKernelKernelPath(Benchmark::Executable());
+  File* file = File::Open(NULL, dill_path, File::kRead);
+  EXPECT(file != NULL);
+  bin::RefCntReleaseScope<File> rs(file);
+  intptr_t kernel_buffer_size = file->Length();
+  uint8_t* kernel_buffer =
+      reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
+  EXPECT(kernel_buffer != NULL);
+  bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
+  EXPECT(read_fully);
+
+  bool enable_interpreter_orig = FLAG_enable_interpreter;
+  FLAG_enable_interpreter = true;
+
+  Dart_Handle result =
+      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+  EXPECT_VALID(result);
+
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+
+  Timer timer(true, "GenKernelKernelLoadKernel benchmark");
+  timer.Start();
+
+  result = Dart_ReadAllBytecode();
+  EXPECT_VALID(result);
+
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+  FLAG_enable_interpreter = enable_interpreter_orig;
+  free(dill_path);
+  free(kernel_buffer);
+}
 
 //
 // Measure creation of core isolate from a snapshot.
