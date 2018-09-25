@@ -1,41 +1,41 @@
 ///
 //  Generated code. Do not modify.
+//  source: info.proto
 ///
-// ignore_for_file: non_constant_identifier_names,library_prefixes
+// ignore_for_file: non_constant_identifier_names,library_prefixes,unused_import
 
 // ignore: UNUSED_SHOWN_NAME
 import 'dart:core' show int, bool, double, String, List, override;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:protobuf/protobuf.dart';
+import 'package:protobuf/protobuf.dart' as $pb;
 
-class DependencyInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('DependencyInfoPB')
+class DependencyInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('DependencyInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'targetId')
     ..aOS(2, 'mask')
     ..hasRequiredFields = false;
 
   DependencyInfoPB() : super();
   DependencyInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   DependencyInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   DependencyInfoPB clone() => new DependencyInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  DependencyInfoPB copyWith(void Function(DependencyInfoPB) updates) =>
+      super.copyWith((message) => updates(message as DependencyInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static DependencyInfoPB create() => new DependencyInfoPB();
-  static PbList<DependencyInfoPB> createRepeated() =>
-      new PbList<DependencyInfoPB>();
-  static DependencyInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyDependencyInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<DependencyInfoPB> createRepeated() =>
+      new $pb.PbList<DependencyInfoPB>();
+  static DependencyInfoPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static DependencyInfoPB _defaultInstance;
   static void $checkItem(DependencyInfoPB v) {
-    if (v is! DependencyInfoPB) checkItemFailed(v, 'DependencyInfoPB');
+    if (v is! DependencyInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get targetId => $_getS(0, '');
@@ -55,38 +55,36 @@ class DependencyInfoPB extends GeneratedMessage {
   void clearMask() => clearField(2);
 }
 
-class _ReadonlyDependencyInfoPB extends DependencyInfoPB
-    with ReadonlyMessageMixin {}
-
-class AllInfoPB_AllInfosEntry extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('AllInfoPB_AllInfosEntry')
+class AllInfoPB_AllInfosEntry extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo(
+      'AllInfoPB.AllInfosEntry',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'key')
-    ..a<InfoPB>(2, 'value', PbFieldType.OM, InfoPB.getDefault, InfoPB.create)
+    ..a<InfoPB>(
+        2, 'value', $pb.PbFieldType.OM, InfoPB.getDefault, InfoPB.create)
     ..hasRequiredFields = false;
 
   AllInfoPB_AllInfosEntry() : super();
   AllInfoPB_AllInfosEntry.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   AllInfoPB_AllInfosEntry.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   AllInfoPB_AllInfosEntry clone() =>
       new AllInfoPB_AllInfosEntry()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  AllInfoPB_AllInfosEntry copyWith(
+          void Function(AllInfoPB_AllInfosEntry) updates) =>
+      super.copyWith((message) => updates(message as AllInfoPB_AllInfosEntry));
+  $pb.BuilderInfo get info_ => _i;
   static AllInfoPB_AllInfosEntry create() => new AllInfoPB_AllInfosEntry();
-  static PbList<AllInfoPB_AllInfosEntry> createRepeated() =>
-      new PbList<AllInfoPB_AllInfosEntry>();
-  static AllInfoPB_AllInfosEntry getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyAllInfoPB_AllInfosEntry();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<AllInfoPB_AllInfosEntry> createRepeated() =>
+      new $pb.PbList<AllInfoPB_AllInfosEntry>();
+  static AllInfoPB_AllInfosEntry getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static AllInfoPB_AllInfosEntry _defaultInstance;
   static void $checkItem(AllInfoPB_AllInfosEntry v) {
-    if (v is! AllInfoPB_AllInfosEntry)
-      checkItemFailed(v, 'AllInfoPB_AllInfosEntry');
+    if (v is! AllInfoPB_AllInfosEntry) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get key => $_getS(0, '');
@@ -106,37 +104,34 @@ class AllInfoPB_AllInfosEntry extends GeneratedMessage {
   void clearValue() => clearField(2);
 }
 
-class _ReadonlyAllInfoPB_AllInfosEntry extends AllInfoPB_AllInfosEntry
-    with ReadonlyMessageMixin {}
-
-class AllInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('AllInfoPB')
-    ..a<ProgramInfoPB>(1, 'program', PbFieldType.OM, ProgramInfoPB.getDefault,
-        ProgramInfoPB.create)
-    ..pp<AllInfoPB_AllInfosEntry>(2, 'allInfos', PbFieldType.PM,
+class AllInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('AllInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
+    ..a<ProgramInfoPB>(1, 'program', $pb.PbFieldType.OM,
+        ProgramInfoPB.getDefault, ProgramInfoPB.create)
+    ..pp<AllInfoPB_AllInfosEntry>(2, 'allInfos', $pb.PbFieldType.PM,
         AllInfoPB_AllInfosEntry.$checkItem, AllInfoPB_AllInfosEntry.create)
-    ..pp<LibraryDeferredImportsPB>(3, 'deferredImports', PbFieldType.PM,
+    ..pp<LibraryDeferredImportsPB>(3, 'deferredImports', $pb.PbFieldType.PM,
         LibraryDeferredImportsPB.$checkItem, LibraryDeferredImportsPB.create)
     ..hasRequiredFields = false;
 
   AllInfoPB() : super();
   AllInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
-  AllInfoPB.fromJson(String i, [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+  AllInfoPB.fromJson(String i,
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   AllInfoPB clone() => new AllInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  AllInfoPB copyWith(void Function(AllInfoPB) updates) =>
+      super.copyWith((message) => updates(message as AllInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static AllInfoPB create() => new AllInfoPB();
-  static PbList<AllInfoPB> createRepeated() => new PbList<AllInfoPB>();
-  static AllInfoPB getDefault() {
-    if (_defaultInstance == null) _defaultInstance = new _ReadonlyAllInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<AllInfoPB> createRepeated() => new $pb.PbList<AllInfoPB>();
+  static AllInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static AllInfoPB _defaultInstance;
   static void $checkItem(AllInfoPB v) {
-    if (v is! AllInfoPB) checkItemFailed(v, 'AllInfoPB');
+    if (v is! AllInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   ProgramInfoPB get program => $_getN(0);
@@ -152,55 +147,53 @@ class AllInfoPB extends GeneratedMessage {
   List<LibraryDeferredImportsPB> get deferredImports => $_getList(2);
 }
 
-class _ReadonlyAllInfoPB extends AllInfoPB with ReadonlyMessageMixin {}
-
-class InfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('InfoPB')
+class InfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('InfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'name')
-    ..a<int>(2, 'id', PbFieldType.O3)
+    ..a<int>(2, 'id', $pb.PbFieldType.O3)
     ..aOS(3, 'serializedId')
     ..aOS(4, 'coverageId')
-    ..a<int>(5, 'size', PbFieldType.O3)
+    ..a<int>(5, 'size', $pb.PbFieldType.O3)
     ..aOS(6, 'parentId')
-    ..pp<DependencyInfoPB>(7, 'uses', PbFieldType.PM,
+    ..pp<DependencyInfoPB>(7, 'uses', $pb.PbFieldType.PM,
         DependencyInfoPB.$checkItem, DependencyInfoPB.create)
     ..aOS(8, 'outputUnitId')
-    ..a<LibraryInfoPB>(100, 'libraryInfo', PbFieldType.OM,
+    ..a<LibraryInfoPB>(100, 'libraryInfo', $pb.PbFieldType.OM,
         LibraryInfoPB.getDefault, LibraryInfoPB.create)
-    ..a<ClassInfoPB>(101, 'classInfo', PbFieldType.OM, ClassInfoPB.getDefault,
-        ClassInfoPB.create)
-    ..a<FunctionInfoPB>(102, 'functionInfo', PbFieldType.OM,
+    ..a<ClassInfoPB>(101, 'classInfo', $pb.PbFieldType.OM,
+        ClassInfoPB.getDefault, ClassInfoPB.create)
+    ..a<FunctionInfoPB>(102, 'functionInfo', $pb.PbFieldType.OM,
         FunctionInfoPB.getDefault, FunctionInfoPB.create)
-    ..a<FieldInfoPB>(103, 'fieldInfo', PbFieldType.OM, FieldInfoPB.getDefault,
-        FieldInfoPB.create)
-    ..a<ConstantInfoPB>(104, 'constantInfo', PbFieldType.OM,
+    ..a<FieldInfoPB>(103, 'fieldInfo', $pb.PbFieldType.OM,
+        FieldInfoPB.getDefault, FieldInfoPB.create)
+    ..a<ConstantInfoPB>(104, 'constantInfo', $pb.PbFieldType.OM,
         ConstantInfoPB.getDefault, ConstantInfoPB.create)
-    ..a<OutputUnitInfoPB>(105, 'outputUnitInfo', PbFieldType.OM,
+    ..a<OutputUnitInfoPB>(105, 'outputUnitInfo', $pb.PbFieldType.OM,
         OutputUnitInfoPB.getDefault, OutputUnitInfoPB.create)
-    ..a<TypedefInfoPB>(106, 'typedefInfo', PbFieldType.OM,
+    ..a<TypedefInfoPB>(106, 'typedefInfo', $pb.PbFieldType.OM,
         TypedefInfoPB.getDefault, TypedefInfoPB.create)
-    ..a<ClosureInfoPB>(107, 'closureInfo', PbFieldType.OM,
+    ..a<ClosureInfoPB>(107, 'closureInfo', $pb.PbFieldType.OM,
         ClosureInfoPB.getDefault, ClosureInfoPB.create)
     ..hasRequiredFields = false;
 
   InfoPB() : super();
   InfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
-  InfoPB.fromJson(String i, [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+  InfoPB.fromJson(String i,
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   InfoPB clone() => new InfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  InfoPB copyWith(void Function(InfoPB) updates) =>
+      super.copyWith((message) => updates(message as InfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static InfoPB create() => new InfoPB();
-  static PbList<InfoPB> createRepeated() => new PbList<InfoPB>();
-  static InfoPB getDefault() {
-    if (_defaultInstance == null) _defaultInstance = new _ReadonlyInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<InfoPB> createRepeated() => new $pb.PbList<InfoPB>();
+  static InfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static InfoPB _defaultInstance;
   static void $checkItem(InfoPB v) {
-    if (v is! InfoPB) checkItemFailed(v, 'InfoPB');
+    if (v is! InfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get name => $_getS(0, '');
@@ -326,12 +319,11 @@ class InfoPB extends GeneratedMessage {
   void clearClosureInfo() => clearField(107);
 }
 
-class _ReadonlyInfoPB extends InfoPB with ReadonlyMessageMixin {}
-
-class ProgramInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('ProgramInfoPB')
+class ProgramInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('ProgramInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'entrypointId')
-    ..a<int>(2, 'size', PbFieldType.O3)
+    ..a<int>(2, 'size', $pb.PbFieldType.O3)
     ..aOS(3, 'dart2jsVersion')
     ..aInt64(4, 'compilationMoment')
     ..aInt64(5, 'compilationDuration')
@@ -347,24 +339,22 @@ class ProgramInfoPB extends GeneratedMessage {
 
   ProgramInfoPB() : super();
   ProgramInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   ProgramInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   ProgramInfoPB clone() => new ProgramInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  ProgramInfoPB copyWith(void Function(ProgramInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ProgramInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static ProgramInfoPB create() => new ProgramInfoPB();
-  static PbList<ProgramInfoPB> createRepeated() => new PbList<ProgramInfoPB>();
-  static ProgramInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyProgramInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<ProgramInfoPB> createRepeated() =>
+      new $pb.PbList<ProgramInfoPB>();
+  static ProgramInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ProgramInfoPB _defaultInstance;
   static void $checkItem(ProgramInfoPB v) {
-    if (v is! ProgramInfoPB) checkItemFailed(v, 'ProgramInfoPB');
+    if (v is! ProgramInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get entrypointId => $_getS(0, '');
@@ -472,34 +462,31 @@ class ProgramInfoPB extends GeneratedMessage {
   void clearMinified() => clearField(13);
 }
 
-class _ReadonlyProgramInfoPB extends ProgramInfoPB with ReadonlyMessageMixin {}
-
-class LibraryInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('LibraryInfoPB')
+class LibraryInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('LibraryInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'uri')
     ..pPS(2, 'childrenIds')
     ..hasRequiredFields = false;
 
   LibraryInfoPB() : super();
   LibraryInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   LibraryInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   LibraryInfoPB clone() => new LibraryInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  LibraryInfoPB copyWith(void Function(LibraryInfoPB) updates) =>
+      super.copyWith((message) => updates(message as LibraryInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static LibraryInfoPB create() => new LibraryInfoPB();
-  static PbList<LibraryInfoPB> createRepeated() => new PbList<LibraryInfoPB>();
-  static LibraryInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyLibraryInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<LibraryInfoPB> createRepeated() =>
+      new $pb.PbList<LibraryInfoPB>();
+  static LibraryInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static LibraryInfoPB _defaultInstance;
   static void $checkItem(LibraryInfoPB v) {
-    if (v is! LibraryInfoPB) checkItemFailed(v, 'LibraryInfoPB');
+    if (v is! LibraryInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get uri => $_getS(0, '');
@@ -513,67 +500,61 @@ class LibraryInfoPB extends GeneratedMessage {
   List<String> get childrenIds => $_getList(1);
 }
 
-class _ReadonlyLibraryInfoPB extends LibraryInfoPB with ReadonlyMessageMixin {}
-
-class OutputUnitInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('OutputUnitInfoPB')
+class OutputUnitInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('OutputUnitInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..pPS(1, 'imports')
     ..hasRequiredFields = false;
 
   OutputUnitInfoPB() : super();
   OutputUnitInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   OutputUnitInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   OutputUnitInfoPB clone() => new OutputUnitInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  OutputUnitInfoPB copyWith(void Function(OutputUnitInfoPB) updates) =>
+      super.copyWith((message) => updates(message as OutputUnitInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static OutputUnitInfoPB create() => new OutputUnitInfoPB();
-  static PbList<OutputUnitInfoPB> createRepeated() =>
-      new PbList<OutputUnitInfoPB>();
-  static OutputUnitInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyOutputUnitInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<OutputUnitInfoPB> createRepeated() =>
+      new $pb.PbList<OutputUnitInfoPB>();
+  static OutputUnitInfoPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static OutputUnitInfoPB _defaultInstance;
   static void $checkItem(OutputUnitInfoPB v) {
-    if (v is! OutputUnitInfoPB) checkItemFailed(v, 'OutputUnitInfoPB');
+    if (v is! OutputUnitInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   List<String> get imports => $_getList(0);
 }
 
-class _ReadonlyOutputUnitInfoPB extends OutputUnitInfoPB
-    with ReadonlyMessageMixin {}
-
-class ClassInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('ClassInfoPB')
+class ClassInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('ClassInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOB(1, 'isAbstract')
     ..pPS(2, 'childrenIds')
     ..hasRequiredFields = false;
 
   ClassInfoPB() : super();
   ClassInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   ClassInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   ClassInfoPB clone() => new ClassInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  ClassInfoPB copyWith(void Function(ClassInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ClassInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static ClassInfoPB create() => new ClassInfoPB();
-  static PbList<ClassInfoPB> createRepeated() => new PbList<ClassInfoPB>();
-  static ClassInfoPB getDefault() {
-    if (_defaultInstance == null) _defaultInstance = new _ReadonlyClassInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<ClassInfoPB> createRepeated() =>
+      new $pb.PbList<ClassInfoPB>();
+  static ClassInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ClassInfoPB _defaultInstance;
   static void $checkItem(ClassInfoPB v) {
-    if (v is! ClassInfoPB) checkItemFailed(v, 'ClassInfoPB');
+    if (v is! ClassInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   bool get isAbstract => $_get(0, false);
@@ -587,34 +568,30 @@ class ClassInfoPB extends GeneratedMessage {
   List<String> get childrenIds => $_getList(1);
 }
 
-class _ReadonlyClassInfoPB extends ClassInfoPB with ReadonlyMessageMixin {}
-
-class ConstantInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('ConstantInfoPB')
+class ConstantInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('ConstantInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'code')
     ..hasRequiredFields = false;
 
   ConstantInfoPB() : super();
   ConstantInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   ConstantInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   ConstantInfoPB clone() => new ConstantInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  ConstantInfoPB copyWith(void Function(ConstantInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ConstantInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static ConstantInfoPB create() => new ConstantInfoPB();
-  static PbList<ConstantInfoPB> createRepeated() =>
-      new PbList<ConstantInfoPB>();
-  static ConstantInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyConstantInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<ConstantInfoPB> createRepeated() =>
+      new $pb.PbList<ConstantInfoPB>();
+  static ConstantInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ConstantInfoPB _defaultInstance;
   static void $checkItem(ConstantInfoPB v) {
-    if (v is! ConstantInfoPB) checkItemFailed(v, 'ConstantInfoPB');
+    if (v is! ConstantInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get code => $_getS(0, '');
@@ -626,11 +603,9 @@ class ConstantInfoPB extends GeneratedMessage {
   void clearCode() => clearField(1);
 }
 
-class _ReadonlyConstantInfoPB extends ConstantInfoPB with ReadonlyMessageMixin {
-}
-
-class FieldInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('FieldInfoPB')
+class FieldInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('FieldInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'type')
     ..aOS(2, 'inferredType')
     ..pPS(3, 'childrenIds')
@@ -641,23 +616,22 @@ class FieldInfoPB extends GeneratedMessage {
 
   FieldInfoPB() : super();
   FieldInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   FieldInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   FieldInfoPB clone() => new FieldInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  FieldInfoPB copyWith(void Function(FieldInfoPB) updates) =>
+      super.copyWith((message) => updates(message as FieldInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static FieldInfoPB create() => new FieldInfoPB();
-  static PbList<FieldInfoPB> createRepeated() => new PbList<FieldInfoPB>();
-  static FieldInfoPB getDefault() {
-    if (_defaultInstance == null) _defaultInstance = new _ReadonlyFieldInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<FieldInfoPB> createRepeated() =>
+      new $pb.PbList<FieldInfoPB>();
+  static FieldInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static FieldInfoPB _defaultInstance;
   static void $checkItem(FieldInfoPB v) {
-    if (v is! FieldInfoPB) checkItemFailed(v, 'FieldInfoPB');
+    if (v is! FieldInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get type => $_getS(0, '');
@@ -703,33 +677,30 @@ class FieldInfoPB extends GeneratedMessage {
   void clearInitializerId() => clearField(6);
 }
 
-class _ReadonlyFieldInfoPB extends FieldInfoPB with ReadonlyMessageMixin {}
-
-class TypedefInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('TypedefInfoPB')
+class TypedefInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('TypedefInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'type')
     ..hasRequiredFields = false;
 
   TypedefInfoPB() : super();
   TypedefInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   TypedefInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   TypedefInfoPB clone() => new TypedefInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  TypedefInfoPB copyWith(void Function(TypedefInfoPB) updates) =>
+      super.copyWith((message) => updates(message as TypedefInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static TypedefInfoPB create() => new TypedefInfoPB();
-  static PbList<TypedefInfoPB> createRepeated() => new PbList<TypedefInfoPB>();
-  static TypedefInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyTypedefInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<TypedefInfoPB> createRepeated() =>
+      new $pb.PbList<TypedefInfoPB>();
+  static TypedefInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static TypedefInfoPB _defaultInstance;
   static void $checkItem(TypedefInfoPB v) {
-    if (v is! TypedefInfoPB) checkItemFailed(v, 'TypedefInfoPB');
+    if (v is! TypedefInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get type => $_getS(0, '');
@@ -741,10 +712,9 @@ class TypedefInfoPB extends GeneratedMessage {
   void clearType() => clearField(1);
 }
 
-class _ReadonlyTypedefInfoPB extends TypedefInfoPB with ReadonlyMessageMixin {}
-
-class FunctionModifiersPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('FunctionModifiersPB')
+class FunctionModifiersPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('FunctionModifiersPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOB(1, 'isStatic')
     ..aOB(2, 'isConst')
     ..aOB(3, 'isFactory')
@@ -753,26 +723,24 @@ class FunctionModifiersPB extends GeneratedMessage {
 
   FunctionModifiersPB() : super();
   FunctionModifiersPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   FunctionModifiersPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   FunctionModifiersPB clone() =>
       new FunctionModifiersPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  FunctionModifiersPB copyWith(void Function(FunctionModifiersPB) updates) =>
+      super.copyWith((message) => updates(message as FunctionModifiersPB));
+  $pb.BuilderInfo get info_ => _i;
   static FunctionModifiersPB create() => new FunctionModifiersPB();
-  static PbList<FunctionModifiersPB> createRepeated() =>
-      new PbList<FunctionModifiersPB>();
-  static FunctionModifiersPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyFunctionModifiersPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<FunctionModifiersPB> createRepeated() =>
+      new $pb.PbList<FunctionModifiersPB>();
+  static FunctionModifiersPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static FunctionModifiersPB _defaultInstance;
   static void $checkItem(FunctionModifiersPB v) {
-    if (v is! FunctionModifiersPB) checkItemFailed(v, 'FunctionModifiersPB');
+    if (v is! FunctionModifiersPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   bool get isStatic => $_get(0, false);
@@ -808,11 +776,9 @@ class FunctionModifiersPB extends GeneratedMessage {
   void clearIsExternal() => clearField(4);
 }
 
-class _ReadonlyFunctionModifiersPB extends FunctionModifiersPB
-    with ReadonlyMessageMixin {}
-
-class ParameterInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('ParameterInfoPB')
+class ParameterInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('ParameterInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'name')
     ..aOS(2, 'type')
     ..aOS(3, 'declaredType')
@@ -820,25 +786,23 @@ class ParameterInfoPB extends GeneratedMessage {
 
   ParameterInfoPB() : super();
   ParameterInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   ParameterInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   ParameterInfoPB clone() => new ParameterInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  ParameterInfoPB copyWith(void Function(ParameterInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ParameterInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static ParameterInfoPB create() => new ParameterInfoPB();
-  static PbList<ParameterInfoPB> createRepeated() =>
-      new PbList<ParameterInfoPB>();
-  static ParameterInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyParameterInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<ParameterInfoPB> createRepeated() =>
+      new $pb.PbList<ParameterInfoPB>();
+  static ParameterInfoPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static ParameterInfoPB _defaultInstance;
   static void $checkItem(ParameterInfoPB v) {
-    if (v is! ParameterInfoPB) checkItemFailed(v, 'ParameterInfoPB');
+    if (v is! ParameterInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get name => $_getS(0, '');
@@ -866,37 +830,33 @@ class ParameterInfoPB extends GeneratedMessage {
   void clearDeclaredType() => clearField(3);
 }
 
-class _ReadonlyParameterInfoPB extends ParameterInfoPB
-    with ReadonlyMessageMixin {}
-
-class MeasurementEntryPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('MeasurementEntryPB')
+class MeasurementEntryPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementEntryPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'name')
-    ..p<int>(2, 'values', PbFieldType.P3)
+    ..p<int>(2, 'values', $pb.PbFieldType.P3)
     ..hasRequiredFields = false;
 
   MeasurementEntryPB() : super();
   MeasurementEntryPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   MeasurementEntryPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   MeasurementEntryPB clone() =>
       new MeasurementEntryPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  MeasurementEntryPB copyWith(void Function(MeasurementEntryPB) updates) =>
+      super.copyWith((message) => updates(message as MeasurementEntryPB));
+  $pb.BuilderInfo get info_ => _i;
   static MeasurementEntryPB create() => new MeasurementEntryPB();
-  static PbList<MeasurementEntryPB> createRepeated() =>
-      new PbList<MeasurementEntryPB>();
-  static MeasurementEntryPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyMeasurementEntryPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<MeasurementEntryPB> createRepeated() =>
+      new $pb.PbList<MeasurementEntryPB>();
+  static MeasurementEntryPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static MeasurementEntryPB _defaultInstance;
   static void $checkItem(MeasurementEntryPB v) {
-    if (v is! MeasurementEntryPB) checkItemFailed(v, 'MeasurementEntryPB');
+    if (v is! MeasurementEntryPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get name => $_getS(0, '');
@@ -910,37 +870,33 @@ class MeasurementEntryPB extends GeneratedMessage {
   List<int> get values => $_getList(1);
 }
 
-class _ReadonlyMeasurementEntryPB extends MeasurementEntryPB
-    with ReadonlyMessageMixin {}
-
-class MeasurementCounterPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('MeasurementCounterPB')
+class MeasurementCounterPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementCounterPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'name')
-    ..a<int>(2, 'value', PbFieldType.O3)
+    ..a<int>(2, 'value', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   MeasurementCounterPB() : super();
   MeasurementCounterPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   MeasurementCounterPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   MeasurementCounterPB clone() =>
       new MeasurementCounterPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  MeasurementCounterPB copyWith(void Function(MeasurementCounterPB) updates) =>
+      super.copyWith((message) => updates(message as MeasurementCounterPB));
+  $pb.BuilderInfo get info_ => _i;
   static MeasurementCounterPB create() => new MeasurementCounterPB();
-  static PbList<MeasurementCounterPB> createRepeated() =>
-      new PbList<MeasurementCounterPB>();
-  static MeasurementCounterPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyMeasurementCounterPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<MeasurementCounterPB> createRepeated() =>
+      new $pb.PbList<MeasurementCounterPB>();
+  static MeasurementCounterPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static MeasurementCounterPB _defaultInstance;
   static void $checkItem(MeasurementCounterPB v) {
-    if (v is! MeasurementCounterPB) checkItemFailed(v, 'MeasurementCounterPB');
+    if (v is! MeasurementCounterPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get name => $_getS(0, '');
@@ -960,39 +916,34 @@ class MeasurementCounterPB extends GeneratedMessage {
   void clearValue() => clearField(2);
 }
 
-class _ReadonlyMeasurementCounterPB extends MeasurementCounterPB
-    with ReadonlyMessageMixin {}
-
-class MeasurementsPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('MeasurementsPB')
+class MeasurementsPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('MeasurementsPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'sourceFile')
-    ..pp<MeasurementEntryPB>(2, 'entries', PbFieldType.PM,
+    ..pp<MeasurementEntryPB>(2, 'entries', $pb.PbFieldType.PM,
         MeasurementEntryPB.$checkItem, MeasurementEntryPB.create)
-    ..pp<MeasurementCounterPB>(3, 'counters', PbFieldType.PM,
+    ..pp<MeasurementCounterPB>(3, 'counters', $pb.PbFieldType.PM,
         MeasurementCounterPB.$checkItem, MeasurementCounterPB.create)
     ..hasRequiredFields = false;
 
   MeasurementsPB() : super();
   MeasurementsPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   MeasurementsPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   MeasurementsPB clone() => new MeasurementsPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  MeasurementsPB copyWith(void Function(MeasurementsPB) updates) =>
+      super.copyWith((message) => updates(message as MeasurementsPB));
+  $pb.BuilderInfo get info_ => _i;
   static MeasurementsPB create() => new MeasurementsPB();
-  static PbList<MeasurementsPB> createRepeated() =>
-      new PbList<MeasurementsPB>();
-  static MeasurementsPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyMeasurementsPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<MeasurementsPB> createRepeated() =>
+      new $pb.PbList<MeasurementsPB>();
+  static MeasurementsPB getDefault() => _defaultInstance ??= create()..freeze();
   static MeasurementsPB _defaultInstance;
   static void $checkItem(MeasurementsPB v) {
-    if (v is! MeasurementsPB) checkItemFailed(v, 'MeasurementsPB');
+    if (v is! MeasurementsPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get sourceFile => $_getS(0, '');
@@ -1008,46 +959,41 @@ class MeasurementsPB extends GeneratedMessage {
   List<MeasurementCounterPB> get counters => $_getList(2);
 }
 
-class _ReadonlyMeasurementsPB extends MeasurementsPB with ReadonlyMessageMixin {
-}
-
-class FunctionInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('FunctionInfoPB')
-    ..a<FunctionModifiersPB>(1, 'functionModifiers', PbFieldType.OM,
+class FunctionInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('FunctionInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
+    ..a<FunctionModifiersPB>(1, 'functionModifiers', $pb.PbFieldType.OM,
         FunctionModifiersPB.getDefault, FunctionModifiersPB.create)
     ..pPS(2, 'childrenIds')
     ..aOS(3, 'returnType')
     ..aOS(4, 'inferredReturnType')
-    ..pp<ParameterInfoPB>(5, 'parameters', PbFieldType.PM,
+    ..pp<ParameterInfoPB>(5, 'parameters', $pb.PbFieldType.PM,
         ParameterInfoPB.$checkItem, ParameterInfoPB.create)
     ..aOS(6, 'sideEffects')
-    ..a<int>(7, 'inlinedCount', PbFieldType.O3)
+    ..a<int>(7, 'inlinedCount', $pb.PbFieldType.O3)
     ..aOS(8, 'code')
-    ..a<MeasurementsPB>(9, 'measurements', PbFieldType.OM,
+    ..a<MeasurementsPB>(9, 'measurements', $pb.PbFieldType.OM,
         MeasurementsPB.getDefault, MeasurementsPB.create)
     ..hasRequiredFields = false;
 
   FunctionInfoPB() : super();
   FunctionInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   FunctionInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   FunctionInfoPB clone() => new FunctionInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  FunctionInfoPB copyWith(void Function(FunctionInfoPB) updates) =>
+      super.copyWith((message) => updates(message as FunctionInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static FunctionInfoPB create() => new FunctionInfoPB();
-  static PbList<FunctionInfoPB> createRepeated() =>
-      new PbList<FunctionInfoPB>();
-  static FunctionInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyFunctionInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<FunctionInfoPB> createRepeated() =>
+      new $pb.PbList<FunctionInfoPB>();
+  static FunctionInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static FunctionInfoPB _defaultInstance;
   static void $checkItem(FunctionInfoPB v) {
-    if (v is! FunctionInfoPB) checkItemFailed(v, 'FunctionInfoPB');
+    if (v is! FunctionInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   FunctionModifiersPB get functionModifiers => $_getN(0);
@@ -1111,34 +1057,30 @@ class FunctionInfoPB extends GeneratedMessage {
   void clearMeasurements() => clearField(9);
 }
 
-class _ReadonlyFunctionInfoPB extends FunctionInfoPB with ReadonlyMessageMixin {
-}
-
-class ClosureInfoPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('ClosureInfoPB')
+class ClosureInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('ClosureInfoPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'functionId')
     ..hasRequiredFields = false;
 
   ClosureInfoPB() : super();
   ClosureInfoPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   ClosureInfoPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   ClosureInfoPB clone() => new ClosureInfoPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  ClosureInfoPB copyWith(void Function(ClosureInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ClosureInfoPB));
+  $pb.BuilderInfo get info_ => _i;
   static ClosureInfoPB create() => new ClosureInfoPB();
-  static PbList<ClosureInfoPB> createRepeated() => new PbList<ClosureInfoPB>();
-  static ClosureInfoPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyClosureInfoPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<ClosureInfoPB> createRepeated() =>
+      new $pb.PbList<ClosureInfoPB>();
+  static ClosureInfoPB getDefault() => _defaultInstance ??= create()..freeze();
   static ClosureInfoPB _defaultInstance;
   static void $checkItem(ClosureInfoPB v) {
-    if (v is! ClosureInfoPB) checkItemFailed(v, 'ClosureInfoPB');
+    if (v is! ClosureInfoPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get functionId => $_getS(0, '');
@@ -1150,35 +1092,32 @@ class ClosureInfoPB extends GeneratedMessage {
   void clearFunctionId() => clearField(1);
 }
 
-class _ReadonlyClosureInfoPB extends ClosureInfoPB with ReadonlyMessageMixin {}
-
-class DeferredImportPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('DeferredImportPB')
+class DeferredImportPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo('DeferredImportPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'prefix')
     ..pPS(2, 'files')
     ..hasRequiredFields = false;
 
   DeferredImportPB() : super();
   DeferredImportPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   DeferredImportPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   DeferredImportPB clone() => new DeferredImportPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  DeferredImportPB copyWith(void Function(DeferredImportPB) updates) =>
+      super.copyWith((message) => updates(message as DeferredImportPB));
+  $pb.BuilderInfo get info_ => _i;
   static DeferredImportPB create() => new DeferredImportPB();
-  static PbList<DeferredImportPB> createRepeated() =>
-      new PbList<DeferredImportPB>();
-  static DeferredImportPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyDeferredImportPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<DeferredImportPB> createRepeated() =>
+      new $pb.PbList<DeferredImportPB>();
+  static DeferredImportPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static DeferredImportPB _defaultInstance;
   static void $checkItem(DeferredImportPB v) {
-    if (v is! DeferredImportPB) checkItemFailed(v, 'DeferredImportPB');
+    if (v is! DeferredImportPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get prefix => $_getS(0, '');
@@ -1192,40 +1131,37 @@ class DeferredImportPB extends GeneratedMessage {
   List<String> get files => $_getList(1);
 }
 
-class _ReadonlyDeferredImportPB extends DeferredImportPB
-    with ReadonlyMessageMixin {}
-
-class LibraryDeferredImportsPB extends GeneratedMessage {
-  static final BuilderInfo _i = new BuilderInfo('LibraryDeferredImportsPB')
+class LibraryDeferredImportsPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = new $pb.BuilderInfo(
+      'LibraryDeferredImportsPB',
+      package: const $pb.PackageName('dart2js_info.proto'))
     ..aOS(1, 'libraryUri')
     ..aOS(2, 'libraryName')
-    ..pp<DeferredImportPB>(3, 'imports', PbFieldType.PM,
+    ..pp<DeferredImportPB>(3, 'imports', $pb.PbFieldType.PM,
         DeferredImportPB.$checkItem, DeferredImportPB.create)
     ..hasRequiredFields = false;
 
   LibraryDeferredImportsPB() : super();
   LibraryDeferredImportsPB.fromBuffer(List<int> i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromBuffer(i, r);
   LibraryDeferredImportsPB.fromJson(String i,
-      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY])
       : super.fromJson(i, r);
   LibraryDeferredImportsPB clone() =>
       new LibraryDeferredImportsPB()..mergeFromMessage(this);
-  BuilderInfo get info_ => _i;
+  LibraryDeferredImportsPB copyWith(
+          void Function(LibraryDeferredImportsPB) updates) =>
+      super.copyWith((message) => updates(message as LibraryDeferredImportsPB));
+  $pb.BuilderInfo get info_ => _i;
   static LibraryDeferredImportsPB create() => new LibraryDeferredImportsPB();
-  static PbList<LibraryDeferredImportsPB> createRepeated() =>
-      new PbList<LibraryDeferredImportsPB>();
-  static LibraryDeferredImportsPB getDefault() {
-    if (_defaultInstance == null)
-      _defaultInstance = new _ReadonlyLibraryDeferredImportsPB();
-    return _defaultInstance;
-  }
-
+  static $pb.PbList<LibraryDeferredImportsPB> createRepeated() =>
+      new $pb.PbList<LibraryDeferredImportsPB>();
+  static LibraryDeferredImportsPB getDefault() =>
+      _defaultInstance ??= create()..freeze();
   static LibraryDeferredImportsPB _defaultInstance;
   static void $checkItem(LibraryDeferredImportsPB v) {
-    if (v is! LibraryDeferredImportsPB)
-      checkItemFailed(v, 'LibraryDeferredImportsPB');
+    if (v is! LibraryDeferredImportsPB) $pb.checkItemFailed(v, _i.messageName);
   }
 
   String get libraryUri => $_getS(0, '');
@@ -1246,6 +1182,3 @@ class LibraryDeferredImportsPB extends GeneratedMessage {
 
   List<DeferredImportPB> get imports => $_getList(2);
 }
-
-class _ReadonlyLibraryDeferredImportsPB extends LibraryDeferredImportsPB
-    with ReadonlyMessageMixin {}
