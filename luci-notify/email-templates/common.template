@@ -1,4 +1,5 @@
 This file contains useful common templates for email notifications.
+
 {{- define "status_to_color" -}}
 {{- if eq . 12 }} {{/* SUCCESS */}}
 #049300
