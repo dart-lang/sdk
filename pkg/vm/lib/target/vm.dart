@@ -26,6 +26,7 @@ class VmTarget extends Target {
   Class _immutableMap;
   Class _oneByteString;
   Class _twoByteString;
+  Class _smi;
 
   VmTarget(this.flags);
 
@@ -322,6 +323,20 @@ class VmTarget extends Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _immutableMap ??=
         coreTypes.index.getClass('dart:core', '_ImmutableMap');
+  }
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) {
+    const int bitsPerInt32 = 32;
+    const int smiBits32 = bitsPerInt32 - 2;
+    const int smiMin32 = -(1 << smiBits32);
+    const int smiMax32 = (1 << smiBits32) - 1;
+    if ((smiMin32 <= value) && (value <= smiMax32)) {
+      // Value fits into Smi on all platforms.
+      return _smi ??= coreTypes.index.getClass('dart:core', '_Smi');
+    }
+    // Otherwise, class could be either _Smi or _Mint depending on a platform.
+    return null;
   }
 
   @override
