@@ -32,6 +32,12 @@ class Class3 {
   method6<T>() => null;
 }
 
+/*strong.class: Class4:explicit=[Class4]*/
+class Class4 {}
+
+/*strong.element: method10:needsArgs*/
+method10<T extends Class4>() => null;
+
 main() {
   /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
   method7<T extends Class1a>() => null;
@@ -75,4 +81,6 @@ main() {
     f7<Class2a<num>>();
     f8<Class2b<String>>();
   }
+
+  method10();
 }

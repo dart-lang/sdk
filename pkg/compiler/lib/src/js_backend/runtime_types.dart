@@ -1725,9 +1725,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         });
         localFunctionsNeedingSignature.addAll(localFunctions);
       }
-      for (FunctionEntity function in resolutionWorldBuilder.genericMethods) {
-        potentiallyNeedTypeArguments(function);
-      }
       for (FunctionEntity function
           in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
         methodsNeedingSignature.add(function);
