@@ -164,5 +164,8 @@ class VerifyStatic extends StaticsNo {
 }
 
 mixin M on A1 {
-  int x;
+  @override
+  int f; // LINT
+
+  int g; // OK
 }
