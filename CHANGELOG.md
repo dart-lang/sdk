@@ -1,3 +1,7 @@
+# 0.1.64
+
+* fixes to better support mixins
+
 # 0.1.63
 
 * updated `unawaited_futures` to ignore assignments within cascades
