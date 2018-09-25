@@ -629,6 +629,9 @@ void IsolateReloadContext::Reload(bool force_reload,
         const String& error_str = String::Handle(String::New(retval.error));
         free(retval.error);
         const ApiError& error = ApiError::Handle(ApiError::New(error_str));
+        if (retval.kernel != NULL) {
+          free(const_cast<uint8_t*>(retval.kernel));
+        }
         AddReasonForCancelling(new Aborted(zone_, error));
         ReportReasonsForCancelling();
         CommonFinalizeTail();

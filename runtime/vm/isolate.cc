@@ -1041,7 +1041,9 @@ Isolate::~Isolate() {
 
 void Isolate::InitOnce() {
   create_callback_ = NULL;
-  isolates_list_monitor_ = new Monitor();
+  if (isolates_list_monitor_ == NULL) {
+    isolates_list_monitor_ = new Monitor();
+  }
   ASSERT(isolates_list_monitor_ != NULL);
   EnableIsolateCreation();
 }

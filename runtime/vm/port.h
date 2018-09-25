@@ -55,6 +55,7 @@ class PortMap : public AllStatic {
   static Isolate* GetIsolate(Dart_Port id);
 
   static void InitOnce();
+  static void Cleanup();
 
   static void PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream);

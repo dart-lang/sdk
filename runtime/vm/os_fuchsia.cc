@@ -254,12 +254,6 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
   auto environment_services = std::make_shared<component::Services>();
   auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
   environment_services->Bind(std::move(env_service_root));

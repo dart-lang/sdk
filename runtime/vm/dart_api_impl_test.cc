@@ -4,6 +4,7 @@
 
 #include "vm/dart_api_impl.h"
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
@@ -12,6 +13,7 @@
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger_api_impl_test.h"
 #include "vm/heap/verifier.h"
@@ -25,6 +27,35 @@ DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
+
+UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create = TesterState::create_callback;
+  params.shutdown = TesterState::shutdown_callback;
+  params.cleanup = TesterState::cleanup_callback;
+  params.start_kernel_isolate = true;
+
+  // Reinitialize and ensure we can execute Dart code.
+  EXPECT(Dart_Initialize(&params) == NULL);
+  {
+    TestIsolateScope scope;
+    const char* kScriptChars =
+        "int testMain() {\n"
+        "  return 42;\n"
+        "}\n";
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+    EXPECT_VALID(result);
+    int64_t value = 0;
+    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+    EXPECT_EQ(42, value);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+}
 
 TEST_CASE(DartAPI_ErrorHandleBasics) {
   const char* kScriptChars =
@@ -57,7 +88,6 @@ TEST_CASE(DartAPI_ErrorHandleBasics) {
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
   EXPECT(Dart_IsError(Dart_ErrorGetException(error)));
   EXPECT_VALID(Dart_ErrorGetException(exception));
-
   EXPECT(Dart_IsError(Dart_ErrorGetStackTrace(instance)));
   EXPECT(Dart_IsError(Dart_ErrorGetStackTrace(error)));
   EXPECT_VALID(Dart_ErrorGetStackTrace(exception));
@@ -3539,6 +3569,7 @@ static Dart_Handle LoadScript(const char* url_str, const char* source) {
     if (error != NULL) {
       return Dart_NewApiError(error);
     }
+    TestCaseBase::AddToKernelBuffers(kernel_buffer);
     return Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
   }
 }

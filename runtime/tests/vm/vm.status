@@ -139,10 +139,6 @@ dart/data_uri_import_test/percentencoded: Crash
 dart/data_uri_import_test/utf16: Crash
 dart/data_uri_import_test/wrongmime: Crash
 
-[ $arch == x64 && ($compiler == dartk || $compiler == dartkb) && $system == windows && $strong ]
-cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
-cc/Profiler_CodeTicks: Fail # dartbug.com/33337
-
 [ $arch == ia32 && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $system == windows && $runtime == vm && $mode == debug ]
 cc/BitTestImmediate: Crash # dartbug.com/34252
 
@@ -219,8 +215,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass
 cc/Profiler_TrivialRecordAllocation: Fail, Pass
-cc/Service_Address: Fail
-cc/Service_Code: Fail
 
 [ ($compiler == dartk || $compiler == dartkb) && $checked ]
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.

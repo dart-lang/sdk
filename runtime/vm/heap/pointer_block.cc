@@ -29,13 +29,15 @@ Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
 template <int BlockSize>
 void BlockStack<BlockSize>::InitOnce() {
   global_empty_ = new List();
-  global_mutex_ = new Mutex();
+  if (global_mutex_ == NULL) {
+    global_mutex_ = new Mutex();
+  }
 }
 
 template <int BlockSize>
 void BlockStack<BlockSize>::ShutDown() {
   delete global_empty_;
-  delete global_mutex_;
+  global_empty_ = NULL;
 }
 
 template <int BlockSize>

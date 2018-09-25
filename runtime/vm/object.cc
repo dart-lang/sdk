@@ -950,6 +950,46 @@ void Object::FinishInitOnce(Isolate* isolate) {
   void_type_->SetTypeTestingStub(instr);
 }
 
+void Object::Cleanup() {
+  null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+  class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unresolved_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  redirection_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  kernel_program_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  code_source_map_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  var_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  exception_handlers_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  singletargetcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  megamorphic_cache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  subtypetestcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unhandled_exception_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+}
+
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.  Also precalculates hash
 // codes so that we can get the identity hash code of objects in the read-
@@ -12481,6 +12521,10 @@ static RawObject* EvaluateCompiledExpressionHelper(
   kernel::KernelLoader loader(kernel_pgm);
   const Object& result = Object::Handle(
       loader.LoadExpressionEvaluationFunction(library_url, klass));
+
+  delete kernel_pgm;
+  kernel_pgm = NULL;
+
   if (result.IsError()) return result.raw();
 
   const Function& callee = Function::Cast(result);
