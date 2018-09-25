@@ -1849,6 +1849,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   const AbstractType& field_type = AbstractType::Handle(Z, field.type());
   getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
+  getter.set_accessor_field(field);
   SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
@@ -1868,6 +1869,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_kernel_offset(field.kernel_offset());
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
+    setter.set_accessor_field(field);
     SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }

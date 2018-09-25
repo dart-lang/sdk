@@ -1787,19 +1787,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         }
       }
     }
-    if (function.IsImplicitGetterFunction() ||
-        function.IsImplicitSetterFunction() ||
-        function.IsImplicitStaticFieldInitializer()) {
-      // Cache the field object in the function data_ field.
-      if (function.IsImplicitSetterFunction()) {
-        other_name = Field::NameFromSetter(name);
-      } else {
-        other_name = Field::NameFromGetter(name);
-      }
-      field = cls.LookupFieldAllowPrivate(other_name);
-      ASSERT(!field.IsNull());
-      function.set_accessor_field(field);
-    }
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       if (function.is_static()) {
         super_class = FindSuperOwnerOfFunction(cls, name);
