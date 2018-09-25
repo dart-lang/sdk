@@ -443,7 +443,7 @@ int DisassemblerX64::PrintRightOperandHelper(
         int scale, index, base;
         get_sib(sib, &scale, &index, &base);
         int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 2)
-                              : *reinterpret_cast<char*>(modrmp + 2);
+                              : *reinterpret_cast<int8_t*>(modrmp + 2);
         if (index == 4 && (base & 7) == 4 && scale == 0 /*times_1*/) {
           Print("[%s", NameOfCPURegister(base));
           PrintDisp(disp, "]");
@@ -456,7 +456,7 @@ int DisassemblerX64::PrintRightOperandHelper(
       } else {
         // No sib.
         int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 1)
-                              : *reinterpret_cast<char*>(modrmp + 1);
+                              : *reinterpret_cast<int8_t*>(modrmp + 1);
         Print("[%s", NameOfCPURegister(rm));
         PrintDisp(disp, "]");
         return (mod == 2) ? 5 : 2;
