@@ -402,10 +402,6 @@
       "options": {
         "hot-reload-rollback": true
       }},
-    "app_jit-legacy-linux-(debug|product|release)-x64": {
-      "options": {
-        "preview-dart-2": false
-      }},
     "app_jitk-linux-(debug|product|release)-x64": { },
     "dartkb-interpret-linux-(debug|release)-x64": {
       "options": {
@@ -423,21 +419,6 @@
       "options": {
         "checked": true,
         "use-sdk": true
-      }},
-    "precompiler-legacy-linux-(debug|product)-x64": {
-      "options": {
-        "preview-dart-2": false,
-        "use-blobs": true
-      }},
-    "precompiler-legacy-(mac|win)-debug-simarm64": {
-      "options": {
-        "preview-dart-2": false,
-        "use-blobs": true
-      }},
-    "precompiler-legacy-android-debug-arm": {
-      "options": {
-        "preview-dart-2": false,
-        "use-blobs": true
       }},
     "fasta-(linux|mac|win)": { },
     "analyzer-(linux|mac|win)": {
@@ -830,30 +811,6 @@
     },
     {
       "builders": [
-        "app-linux-debug-x64",
-        "app-linux-product-x64",
-        "app-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm app builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-napp_jit-legacy-linux-${mode}-x64"]
-        }
-      ]
-    },
-    {
-      "builders": [
         "app-kernel-linux-debug-x64",
         "app-kernel-linux-product-x64",
         "app-kernel-linux-release-x64"
@@ -1004,49 +961,6 @@
             "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
             "-rnone"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "precomp-linux-debug-x64",
-        "precomp-linux-product-x64",
-        "vm-noopt-mac-simarm64",
-        "vm-precomp-win-simarm64"
-      ],
-      "meta": {
-        "description": "This is the configuration for the vm precomp builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["runtime", "runtime_precompiled"]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nprecompiler-legacy-${system}-${mode}-${arch}"]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-precomp-android-release"
-      ],
-      "meta": {
-        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass arch and os as arguments to build and system to test.py."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=arm", "--os=android", "runtime", "runtime_precompiled"]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nprecompiler-legacy-android-debug-arm"]
         }
       ]
     },
