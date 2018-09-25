@@ -99,6 +99,15 @@ class FindElement {
     fail('Not found top-level function: $name');
   }
 
+  GenericTypeAliasElement genericTypeAlias(String name) {
+    for (var element in unitElement.functionTypeAliases) {
+      if (element is GenericTypeAliasElement && element.name == name) {
+        return element;
+      }
+    }
+    fail('Not found generic type alias: $name');
+  }
+
   PropertyAccessorElement getter(String name, {String className}) {
     for (var class_ in unitElement.types) {
       if (className != null && class_.name != className) {

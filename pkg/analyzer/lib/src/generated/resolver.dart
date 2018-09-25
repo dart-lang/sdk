@@ -8285,6 +8285,11 @@ class TypeParameterBoundsResolver {
             unitMember.typeParameters,
             () => new FunctionTypeScope(
                 libraryScope, unitMember.declaredElement));
+      } else if (unitMember is GenericTypeAlias) {
+        _resolveTypeParameters(
+            unitMember.typeParameters,
+            () => new FunctionTypeScope(
+                libraryScope, unitMember.declaredElement));
       }
     }
   }
