@@ -75,10 +75,24 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
 
   accumulator.add(interface);
   InterfaceType superclass = interface.superclass;
-  Iterable<InterfaceType> interfaces = [superclass]
+  List<InterfaceType> interfaces = [];
+  if (superclass != null) {
+    interfaces.add(superclass);
+  }
+  interfaces
     ..addAll(interface.element.mixins)
     ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
   return interfaces.where((i) => i != interface);
+}
+
+Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
+  List<InterfaceType> supertypes = <InterfaceType>[];
+  List<InterfaceType> accumulator = <InterfaceType>[];
+  for (InterfaceType type in classElement.superclassConstraints) {
+    supertypes.add(type);
+    supertypes.addAll(_findAllSupertypesAndMixins(type, accumulator));
+  }
+  return supertypes;
 }
 
 class OverriddenFields extends LintRule implements NodeLintRule {
@@ -134,8 +148,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         i.accessors.any(isOverriddenMember);
     ClassElement classElement = member.enclosingElement;
 
-    Iterable<InterfaceType> interfaces =
-        _findAllSupertypesAndMixins(classElement.type, <InterfaceType>[]);
+    Iterable<InterfaceType> interfaces;
+    if (classElement.isMixin) {
+      interfaces = _findAllSupertypesInMixin(classElement);
+    } else {
+      interfaces =
+          _findAllSupertypesAndMixins(classElement.type, <InterfaceType>[]);
+    }
     InterfaceType interface =
         interfaces.firstWhere(containsOverriddenMember, orElse: () => null);
     return interface == null

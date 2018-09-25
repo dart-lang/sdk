@@ -162,3 +162,10 @@ class StaticsNo {
 class VerifyStatic extends StaticsNo {
   static int a;
 }
+
+mixin M on A1 {
+  @override
+  int f; // LINT
+
+  int g; // OK
+}
