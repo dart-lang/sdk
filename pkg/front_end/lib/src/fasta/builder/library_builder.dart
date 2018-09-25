@@ -98,7 +98,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Declaration member) {
+  bool addToExportScope(String name, Declaration member,
+      [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Map<String, Declaration> map =
@@ -107,7 +108,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     if (existing == member) return false;
     if (existing != null) {
       Declaration result = computeAmbiguousDeclaration(
-          name, existing, member, -1,
+          name, existing, member, charOffset,
           isExport: true);
       map[name] = result;
       return result != existing;

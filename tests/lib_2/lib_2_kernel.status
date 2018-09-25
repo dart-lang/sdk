@@ -26,6 +26,7 @@ isolate/spawn_function_custom_class_test: Skip # Timeout
 html/*: Skip # TODO(ahe): Make dart:html available.
 isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
+mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
 
 [ $fasta ]
 mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
@@ -204,7 +205,7 @@ mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
-mirrors/repeated_private_anon_mixin_app_test: RuntimeError
+mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError # Issue 31537

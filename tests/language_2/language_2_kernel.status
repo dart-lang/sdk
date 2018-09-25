@@ -234,7 +234,6 @@ constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
@@ -335,9 +334,6 @@ type_variable_bounds_test/06: MissingCompileTimeError # Issue 33308
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
-export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
@@ -767,7 +763,6 @@ constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -1487,7 +1482,6 @@ dynamic_prefix_core_test/01: MissingCompileTimeError
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 factory1_test/00: MissingCompileTimeError

@@ -2049,7 +2049,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedExport", templateDuplicatedExport,
-        analyzerCode: "AMBIGUOUS_EXPORT", severity: Severity.ignored);
+        analyzerCode: "AMBIGUOUS_EXPORT");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
@@ -2131,6 +2131,86 @@ Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
   return new Message(codeDuplicatedImportInType,
       message: """'${name}' is imported from both '${uri}' and '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedLibraryExport =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""A library with name '#name' is exported more than once.""",
+        withArguments: _withArgumentsDuplicatedLibraryExport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryExport =
+    const Code<Message Function(String name)>(
+        "DuplicatedLibraryExport", templateDuplicatedLibraryExport,
+        analyzerCode: "EXPORT_DUPLICATED_LIBRARY_NAMED");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryExport(String name) {
+  return new Message(codeDuplicatedLibraryExport,
+      message: """A library with name '${name}' is exported more than once.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedLibraryExportContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is also exported here.""",
+        withArguments: _withArgumentsDuplicatedLibraryExportContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryExportContext =
+    const Code<Message Function(String name)>("DuplicatedLibraryExportContext",
+        templateDuplicatedLibraryExportContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryExportContext(String name) {
+  return new Message(codeDuplicatedLibraryExportContext,
+      message: """'${name}' is also exported here.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedLibraryImport =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""A library with name '#name' is imported more than once.""",
+        withArguments: _withArgumentsDuplicatedLibraryImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryImport =
+    const Code<Message Function(String name)>(
+        "DuplicatedLibraryImport", templateDuplicatedLibraryImport,
+        analyzerCode: "IMPORT_DUPLICATED_LIBRARY_NAMED");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryImport(String name) {
+  return new Message(codeDuplicatedLibraryImport,
+      message: """A library with name '${name}' is imported more than once.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedLibraryImportContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is also imported here.""",
+        withArguments: _withArgumentsDuplicatedLibraryImportContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryImportContext =
+    const Code<Message Function(String name)>("DuplicatedLibraryImportContext",
+        templateDuplicatedLibraryImportContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryImportContext(String name) {
+  return new Message(codeDuplicatedLibraryImportContext,
+      message: """'${name}' is also imported here.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

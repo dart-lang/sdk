@@ -285,7 +285,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 function_propagation_test: RuntimeError

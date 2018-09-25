@@ -11,6 +11,8 @@ Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: Co
 Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/same_name_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t07: CompileTimeError
@@ -920,7 +922,6 @@ Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t06: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t07: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t08: CompileTimeError
-Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/show_hide_t01: CompileTimeError
 Language/Libraries_and_Scripts/Exports/show_hide_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t02: CompileTimeError
