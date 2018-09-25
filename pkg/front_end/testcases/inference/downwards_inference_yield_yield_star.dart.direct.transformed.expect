@@ -64,7 +64,7 @@ static method bar() → core::Iterable<core::Map<core::int, core::int>> /* origi
         [yield] true;
       }
       {
-        :iterator.{core::_SyncIterator::_current} = core::List::•<dynamic>();
+        :iterator.{core::_SyncIterator::_current} = core::_GrowableList::•<dynamic>(0);
         [yield] true;
       }
       {
@@ -72,7 +72,7 @@ static method bar() → core::Iterable<core::Map<core::int, core::int>> /* origi
         [yield] true;
       }
       {
-        :iterator.{core::_SyncIterator::_yieldEachIterable} = core::List::•<dynamic>();
+        :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::•<dynamic>(0);
         [yield] true;
       }
     }

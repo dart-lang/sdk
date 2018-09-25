@@ -15,6 +15,8 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/list_factory_specializer.dart'
+    as listFactorySpecializer;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -76,6 +78,8 @@ class VmTarget extends Target {
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
     logger?.call("Transformed async methods");
+
+    listFactorySpecializer.transformLibraries(libraries, coreTypes);
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);
