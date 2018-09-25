@@ -56,7 +56,6 @@ deferred_static_seperate_test: RuntimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 example_constructor_test: RuntimeError
-export_ambiguous_main_test: Crash
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
