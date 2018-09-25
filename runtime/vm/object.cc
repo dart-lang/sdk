@@ -15704,7 +15704,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 }
 
 const Code::Comments& Code::comments() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   Comments* comments = new Code::Comments(Array::Handle());
 #else
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
@@ -15713,7 +15713,7 @@ const Code::Comments& Code::comments() const {
 }
 
 void Code::set_comments(const Code::Comments& comments) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   UNREACHABLE();
 #else
   ASSERT(comments.comments_.IsOld());
@@ -15722,7 +15722,7 @@ void Code::set_comments(const Code::Comments& comments) const {
 }
 
 void Code::SetPrologueOffset(intptr_t offset) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   UNREACHABLE();
 #else
   ASSERT(offset >= 0);
@@ -15733,7 +15733,8 @@ void Code::SetPrologueOffset(intptr_t offset) const {
 }
 
 intptr_t Code::GetPrologueOffset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
+  UNREACHABLE();
   return -1;
 #else
   const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
@@ -15771,8 +15772,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
     result.set_is_alive(false);
-    result.set_comments(Comments::New(0));
-    result.set_compile_timestamp(0);
+    NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
+    NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -15886,15 +15887,14 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 #endif
 
+#ifndef PRODUCT
   const Code::Comments& comments = assembler->GetCodeComments();
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-#ifndef PRODUCT
   CodeCommentsWrapper comments_wrapper(comments);
   CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                            assembler->prologue_offset(), instrs.Size(),
                            optimized, &comments_wrapper);
-#endif
   code.set_comments(comments);
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
@@ -15905,6 +15905,7 @@ RawCode* Code::FinalizeCode(const char* name,
   }
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
+#endif
   return code.raw();
 }
 
@@ -16250,7 +16251,7 @@ void Code::DumpSourcePositions() const {
 }
 
 RawArray* Code::await_token_positions() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   return Array::null();
 #else
   return raw_ptr()->await_token_positions_;

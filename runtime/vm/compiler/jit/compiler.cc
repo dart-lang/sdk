@@ -1550,7 +1550,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       const Code& code = Code::Handle(helper.Compile(&pipeline));
 
       if (!code.IsNull()) {
-        code.set_var_descriptors(Object::empty_var_descriptors());
+        NOT_IN_PRODUCT(
+            code.set_var_descriptors(Object::empty_var_descriptors()));
         return DartEntry::InvokeFunction(initializer, Object::empty_array());
       }
     }
@@ -1625,7 +1626,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
     const Code& code = Code::Handle(helper.Compile(&pipeline));
     if (!code.IsNull()) {
-      code.set_var_descriptors(Object::empty_var_descriptors());
+      NOT_IN_PRODUCT(code.set_var_descriptors(Object::empty_var_descriptors()));
       const Object& result = PassiveObject::Handle(
           DartEntry::InvokeFunction(func, Object::empty_array()));
       return result.raw();

@@ -5128,7 +5128,7 @@ class Code : public Object {
   void set_comments(const Comments& comments) const;
 
   RawObject* return_address_metadata() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
     return NULL;
 #else
@@ -5169,7 +5169,7 @@ class Code : public Object {
   void DumpSourcePositions() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
     return NULL;
 #else
@@ -5177,7 +5177,7 @@ class Code : public Object {
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
@@ -5265,7 +5265,7 @@ class Code : public Object {
   const char* QualifiedName() const;
 
   int64_t compile_timestamp() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     return 0;
 #else
     return raw_ptr()->compile_timestamp_;
@@ -5331,7 +5331,7 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
 #else
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);

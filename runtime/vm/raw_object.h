@@ -1386,24 +1386,27 @@ class RawCode : public RawObject {
   RawArray* stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
-  NOT_IN_PRECOMPILED(RawArray* await_token_positions_);
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
+  NOT_IN_PRODUCT(RawArray* await_token_positions_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
-  NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
-  NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
-  NOT_IN_PRECOMPILED(RawArray* comments_);
-#if defined(DART_PRECOMPILED_RUNTIME)
+  NOT_IN_PRODUCT(RawObject* return_address_metadata_);
+  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
+  NOT_IN_PRODUCT(RawArray* comments_);
+
+#if !defined(PRODUCT)
+  VISIT_TO(RawObject*, comments_);
+#elif defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(RawObject*, code_source_map_);
 #else
-  VISIT_TO(RawObject*, comments_);
+  VISIT_TO(RawObject*, static_calls_target_table_);
 #endif
 
   // Compilation timestamp.
-  NOT_IN_PRECOMPILED(int64_t compile_timestamp_);
+  NOT_IN_PRODUCT(int64_t compile_timestamp_);
 
   // state_bits_ is a bitfield with three fields:
   // The optimized bit, the alive bit, and a count of the number of pointer

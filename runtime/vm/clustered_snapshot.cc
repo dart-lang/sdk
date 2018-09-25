@@ -1675,15 +1675,12 @@ class CodeSerializationCluster : public SerializationCluster {
       s->Push(code->ptr()->inlined_id_to_function_);
       s->Push(code->ptr()->code_source_map_);
     }
-    if (s->kind() != Snapshot::kFullAOT) {
-      s->Push(code->ptr()->await_token_positions_);
-    }
-
     if (s->kind() == Snapshot::kFullJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
+    NOT_IN_PRODUCT(s->Push(code->ptr()->await_token_positions_));
+    NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1739,14 +1736,12 @@ class CodeSerializationCluster : public SerializationCluster {
         s->WriteRef(code->ptr()->inlined_id_to_function_);
         s->WriteRef(code->ptr()->code_source_map_);
       }
-      if (s->kind() != Snapshot::kFullAOT) {
-        s->WriteRef(code->ptr()->await_token_positions_);
-      }
       if (s->kind() == Snapshot::kFullJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
+      NOT_IN_PRODUCT(s->WriteRef(code->ptr()->await_token_positions_));
+      NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
 
       s->Write<int32_t>(code->ptr()->state_bits_);
     }
@@ -1823,30 +1818,22 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->await_token_positions_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
-
       if (d->kind() == Snapshot::kFullJIT) {
         code->ptr()->deopt_info_array_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
-#if defined(PRODUCT)
-        code->ptr()->return_address_metadata_ = Object::null();
-#else
-        code->ptr()->return_address_metadata_ = d->ReadRef();
-#endif
-      } else {
-        code->ptr()->deopt_info_array_ = Array::null();
-        code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->return_address_metadata_ = Object::null();
       }
+#endif  // !DART_PRECOMPILED_RUNTIME
 
+#if !defined(PRODUCT)
+      code->ptr()->await_token_positions_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->return_address_metadata_ = d->ReadRef();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
       code->ptr()->comments_ = Array::null();
-
       code->ptr()->compile_timestamp_ = 0;
-#endif  // !DART_PRECOMPILED_RUNTIME
+#endif
 
       code->ptr()->state_bits_ = d->Read<int32_t>();
     }

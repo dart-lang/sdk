@@ -1128,8 +1128,8 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
                                           parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
-    Code::Handle(func.unoptimized_code())
-        .set_var_descriptors(Object::empty_var_descriptors());
+    NOT_IN_PRODUCT(Code::Handle(func.unoptimized_code())
+                       .set_var_descriptors(Object::empty_var_descriptors()));
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
