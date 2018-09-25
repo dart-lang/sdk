@@ -1789,11 +1789,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           if (!concrete || acceptAbstract || !result.isAbstract) {
             return result;
           }
-          ClassElementImpl elementImpl =
-              AbstractClassElementImpl.getImpl(type.element);
-          if (elementImpl.hasNoSuchMethod) {
-            return result;
-          }
         }
       }
 
