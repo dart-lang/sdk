@@ -649,8 +649,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode =
-        _checkForInvocationError(target, true, staticElement, staticType);
+    ErrorCode errorCode = _checkForInvocationError(
+        target, true, staticElement, staticType, methodName.name);
     if (errorCode != null &&
         target is SimpleIdentifier &&
         target.staticElement is PrefixElement) {
@@ -1122,7 +1122,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invocation is in a static constant (does not have access to instance state).
    */
   ErrorCode _checkForInvocationError(Expression target, bool useStaticContext,
-      Element element, DartType type) {
+      Element element, DartType type, String name) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
       return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
@@ -1194,6 +1194,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             // Proxy-conditional warning, based on state of
             // targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
+          } else if (targetType.isDynamic) {
+            PropertyAccessorElement getter =
+                _resolver.typeProvider.objectType.getGetter(name);
+            if (getter != null && getter.returnType is! FunctionType) {
+              return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+            }
           }
         }
       }

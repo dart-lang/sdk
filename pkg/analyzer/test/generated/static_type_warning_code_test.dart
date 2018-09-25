@@ -702,6 +702,15 @@ class A {
 }''', previewDart2 ? [] : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
+  test_invocationOfNonFunction_dynamic() async {
+    await assertErrorsInCode(r'''
+main() {
+  dynamic d;
+  d.hashCode();
+}
+''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+  }
+
   test_invocationOfNonFunction_localGenericFunction() async {
     // Invoking `.call` on a `Function` type works similarly to invoking it on
     // `dynamic`--the invocation is accepted at compile time, and all type
