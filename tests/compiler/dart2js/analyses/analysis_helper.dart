@@ -11,12 +11,14 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
@@ -35,58 +37,9 @@ run(Uri entryPoint, String allowedListPath, List<String> analyzedPaths,
   });
 }
 
-// TODO(johnniwinther): Add improved type promotion to handle negative
-// reasoning.
-// TODO(johnniwinther): Use this visitor in kernel impact computation.
-abstract class StaticTypeVisitor extends ir.Visitor<ir.DartType> {
-  ir.Component get component;
-  ir.TypeEnvironment _typeEnvironment;
-  bool _isStaticTypePrepared = false;
-
-  @override
-  ir.DartType defaultNode(ir.Node node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  ir.DartType defaultExpression(ir.Expression node) {
-    defaultNode(node);
-    return getStaticType(node);
-  }
-
-  ir.DartType getStaticType(ir.Expression node) {
-    if (!_isStaticTypePrepared) {
-      _isStaticTypePrepared = true;
-      try {
-        _typeEnvironment ??= new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component));
-      } catch (e) {}
-    }
-    if (_typeEnvironment == null) {
-      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
-      // as static type.
-      return const ir.DynamicType();
-    }
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
-    }
-    try {
-      _typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return node.getStaticType(_typeEnvironment);
-    } catch (e) {
-      // The static type computation crashes on type errors. Use `dynamic`
-      // as static type.
-      return const ir.DynamicType();
-    }
-  }
-}
-
 // TODO(johnniwinther): Handle dynamic access of Object properties/methods
 // separately.
-class DynamicVisitor extends StaticTypeVisitor {
+class DynamicVisitor extends StaticTypeTraversalVisitor {
   final DiagnosticReporter reporter;
   final ir.Component component;
   final String _allowedListPath;
@@ -96,7 +49,9 @@ class DynamicVisitor extends StaticTypeVisitor {
   Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
   DynamicVisitor(
-      this.reporter, this.component, this._allowedListPath, this.analyzedPaths);
+      this.reporter, this.component, this._allowedListPath, this.analyzedPaths)
+      : super(new ir.TypeEnvironment(
+            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate) {
@@ -233,6 +188,36 @@ class DynamicVisitor extends StaticTypeVisitor {
     }
   }
 
+  /// Pulls the static type from `getStaticType` on [node].
+  ir.DartType _getStaticTypeFromExpression(ir.Expression node) {
+    if (typeEnvironment == null) {
+      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
+      // as static type.
+      return const ir.DynamicType();
+    }
+    ir.TreeNode enclosingClass = node;
+    while (enclosingClass != null && enclosingClass is! ir.Class) {
+      enclosingClass = enclosingClass.parent;
+    }
+    try {
+      typeEnvironment.thisType =
+          enclosingClass is ir.Class ? enclosingClass.thisType : null;
+      return node.getStaticType(typeEnvironment);
+    } catch (e) {
+      // The static type computation crashes on type errors. Use `dynamic`
+      // as static type.
+      return const ir.DynamicType();
+    }
+  }
+
+  ir.DartType visitNode(ir.Node node) {
+    ir.DartType staticType = node?.accept(this);
+    assert(node is! ir.Expression ||
+        staticType == _getStaticTypeFromExpression(node));
+    return staticType;
+  }
+
+  @override
   Null visitLibrary(ir.Library node) {
     for (String path in analyzedPaths) {
       if ('${node.importUri}'.startsWith(path)) {
@@ -243,8 +228,8 @@ class DynamicVisitor extends StaticTypeVisitor {
 
   @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) {
-    ir.DartType result = super.visitPropertyGet(node);
-    ir.DartType type = node.receiver.accept(this);
+    ir.DartType type = visitNode(node.receiver);
+    ir.DartType result = computePropertyGetType(node, type);
     if (type is ir.DynamicType) {
       reportError(node, "Dynamic access of '${node.name}'.");
     }
@@ -253,8 +238,8 @@ class DynamicVisitor extends StaticTypeVisitor {
 
   @override
   ir.DartType visitPropertySet(ir.PropertySet node) {
-    ir.DartType result = super.visitPropertySet(node);
-    ir.DartType type = node.receiver.accept(this);
+    ir.DartType type = visitNode(node.receiver);
+    ir.DartType result = visitNode(node.value);
     if (type is ir.DynamicType) {
       reportError(node, "Dynamic update to '${node.name}'.");
     }
@@ -263,12 +248,16 @@ class DynamicVisitor extends StaticTypeVisitor {
 
   @override
   ir.DartType visitMethodInvocation(ir.MethodInvocation node) {
-    ir.DartType result = super.visitMethodInvocation(node);
+    ir.DartType type = visitNode(node.receiver);
+    ir.DartType result = computeMethodInvocationType(node, type);
+    if (!isSpecialCasedBinaryOperator(node.interfaceTarget)) {
+      visitNodes(node.arguments.positional);
+      visitNodes(node.arguments.named);
+    }
     if (node.name.name == '==' &&
         node.arguments.positional.single is ir.NullLiteral) {
       return result;
     }
-    ir.DartType type = node.receiver.accept(this);
     if (type is ir.DynamicType) {
       reportError(node, "Dynamic invocation of '${node.name}'.");
     }

@@ -13,8 +13,8 @@
     "Dynamic invocation of '[]'.": 3,
     "Dynamic access of 'isNaN'.": 3,
     "Dynamic invocation of '<='.": 4,
-    "Dynamic invocation of '-'.": 7,
-    "Dynamic invocation of '>>'.": 3,
+    "Dynamic invocation of '-'.": 4,
+    "Dynamic invocation of '>>'.": 2,
     "Dynamic invocation of '&'.": 3,
     "Dynamic invocation of '<'.": 6,
     "Dynamic invocation of '>'.": 4,
@@ -38,7 +38,7 @@
     "Dynamic invocation of '+'.": 1,
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'substring'.": 7,
-    "Dynamic invocation of 'allMatches'.": 7,
+    "Dynamic invocation of 'allMatches'.": 4,
     "Dynamic access of 'isNotEmpty'.": 1,
     "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
     "Dynamic access of 'start'.": 1,
@@ -54,7 +54,7 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/linked_hash_map.dart": {
     "Dynamic access of 'hashCode'.": 1,
     "Dynamic invocation of '=='.": 2,
-    "Dynamic access of '_js_helper::_length'.": 3,
+    "Dynamic access of '_js_helper::_length'.": 2,
     "Dynamic access of '_js_helper::_modifications'.": 4,
     "Dynamic invocation of 'containsKey'.": 1,
     "Dynamic access of '_js_helper::_first'.": 2
@@ -69,12 +69,12 @@
     "Dynamic invocation of '[]'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/regexp_helper.dart": {
-    "Dynamic access of 'length'.": 2,
+    "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '-'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/native_typed_data.dart": {
     "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '|'.": 7,
+    "Dynamic invocation of '|'.": 3,
     "Dynamic invocation of '>='.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/async_patch.dart": {
@@ -95,7 +95,7 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/collection_patch.dart": {
     "Dynamic access of 'hashCode'.": 3,
     "Dynamic invocation of '=='.": 4,
-    "Dynamic access of 'dart.collection::_length'.": 3,
+    "Dynamic access of 'dart.collection::_length'.": 2,
     "Dynamic invocation of 'dart.collection::_computeKeys'.": 2,
     "Dynamic invocation of 'containsKey'.": 2,
     "Dynamic access of 'dart.collection::_keys'.": 2,
@@ -115,7 +115,7 @@
     "Dynamic access of 'hashCode'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/collection/iterable.dart": {
-    "Dynamic access of 'length'.": 4,
+    "Dynamic access of 'length'.": 2,
     "Dynamic invocation of '+'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart": {
@@ -157,20 +157,20 @@
     "Dynamic invocation of '=='.": 2
   },
   "org-dartlang-sdk:///sdk/lib/indexed_db/dart2js/indexed_db_dart2js.dart": {
-    "Dynamic access of 'onUpgradeNeeded'.": 2,
+    "Dynamic access of 'onUpgradeNeeded'.": 1,
     "Dynamic invocation of 'listen'.": 2,
-    "Dynamic access of 'onBlocked'.": 2
+    "Dynamic access of 'onBlocked'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/io/directory_impl.dart": {
     "Dynamic invocation of '=='.": 5,
-    "Dynamic invocation of '[]'.": 11
+    "Dynamic invocation of '[]'.": 10
   },
   "org-dartlang-sdk:///sdk/lib/io/file_impl.dart": {
-    "Dynamic invocation of 'cancel'.": 2,
-    "Dynamic invocation of 'pause'.": 2,
-    "Dynamic invocation of 'resume'.": 2,
+    "Dynamic invocation of 'cancel'.": 1,
+    "Dynamic invocation of 'pause'.": 1,
+    "Dynamic invocation of 'resume'.": 1,
     "Dynamic invocation of '=='.": 2,
-    "Dynamic invocation of '[]'.": 5,
+    "Dynamic invocation of '[]'.": 4,
     "Dynamic access of 'length'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/io/file_system_entity.dart": {
@@ -186,13 +186,13 @@
     "Dynamic access of 'dart.io::_arguments'.": 1,
     "Dynamic access of 'dart.io::_workingDirectory'.": 2,
     "Dynamic access of 'isListening'.": 3,
-    "Dynamic access of 'address'.": 10,
+    "Dynamic access of 'address'.": 4,
     "Dynamic access of 'host'.": 5,
     "Dynamic access of 'port'.": 3,
-    "Dynamic access of 'remoteAddress'.": 4,
+    "Dynamic access of 'remoteAddress'.": 2,
     "Dynamic access of 'remotePort'.": 2,
     "Dynamic access of 'isTcp'.": 1,
-    "Dynamic access of 'type'.": 2,
+    "Dynamic access of 'type'.": 1,
     "Dynamic access of 'name'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/io/link.dart": {
@@ -209,17 +209,17 @@
     "Dynamic update to 'dart.io::_owner'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/io/secure_socket.dart": {
-    "Dynamic invocation of 'dart.io::_detachRaw'.": 8,
-    "Dynamic invocation of '[]'.": 14,
-    "Dynamic access of 'dart.io::_socket'.": 2,
+    "Dynamic invocation of 'dart.io::_detachRaw'.": 2,
+    "Dynamic invocation of '[]'.": 10,
+    "Dynamic access of 'dart.io::_socket'.": 1,
     "Dynamic access of 'closedReadEventSent'.": 1,
     "Dynamic access of 'host'.": 1,
     "Dynamic update to 'dart.io::_owner'.": 1,
-    "Dynamic access of 'length'.": 2,
+    "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '+'.": 6,
-    "Dynamic invocation of '-'.": 9
+    "Dynamic invocation of '+'.": 2,
+    "Dynamic invocation of '-'.": 7
   },
   "org-dartlang-sdk:///sdk/lib/io/stdio.dart": {
     "Dynamic invocation of 'writeFromSync'.": 1,
@@ -237,23 +237,23 @@
   },
   "org-dartlang-sdk:///sdk/lib/svg/dart2js/svg_dart2js.dart": {
     "Dynamic invocation of 'createFragment'.": 1,
-    "Dynamic access of 'nodes'.": 4,
-    "Dynamic invocation of 'where'.": 2,
+    "Dynamic access of 'nodes'.": 1,
+    "Dynamic invocation of 'where'.": 1,
     "Dynamic access of 'single'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/core_patch.dart": {
     "Dynamic access of 'dart.core::_digits'.": 2,
     "Dynamic invocation of '<'.": 2,
     "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of '[]'.": 47,
+    "Dynamic invocation of '[]'.": 19,
     "Dynamic invocation of 'dart.core::_absSubSetSign'.": 3,
-    "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 3,
+    "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 2,
     "Dynamic invocation of 'dart.core::_absAddSetSign'.": 2,
-    "Dynamic invocation of 'dart.core::_absXorSetSign'.": 2,
+    "Dynamic invocation of 'dart.core::_absXorSetSign'.": 1,
     "Dynamic invocation of '[]='.": 2,
-    "Dynamic invocation of '&'.": 12,
+    "Dynamic invocation of '&'.": 6,
     "Dynamic invocation of '=='.": 16,
-    "Dynamic invocation of '-'.": 2,
+    "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '>='.": 1
   },
   "org-dartlang-sdk:///sdk/lib/core/date_time.dart": {
@@ -310,7 +310,7 @@
     "Dynamic invocation of 'clear'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/convert/encoding.dart": {
-    "Dynamic invocation of 'write'.": 2,
+    "Dynamic invocation of 'write'.": 1,
     "Dynamic invocation of 'toString'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/convert/string_conversion.dart": {
@@ -323,16 +323,16 @@
     "Dynamic invocation of '[]'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_http/crypto.dart": {
-    "Dynamic invocation of '+'.": 6,
+    "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '-'.": 3,
+    "Dynamic invocation of '-'.": 2,
     "Dynamic invocation of 'unary-'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_date.dart": {
-    "Dynamic access of 'length'.": 6,
+    "Dynamic access of 'length'.": 3,
     "Dynamic invocation of '<'.": 1,
     "Dynamic invocation of '>='.": 2,
-    "Dynamic invocation of '[]'.": 9,
+    "Dynamic invocation of '[]'.": 7,
     "Dynamic invocation of '=='.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_headers.dart": {
@@ -342,18 +342,18 @@
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_impl.dart": {
-    "Dynamic access of 'message'.": 4,
-    "Dynamic invocation of 'split'.": 2,
-    "Dynamic invocation of 'trim'.": 4,
-    "Dynamic invocation of 'toLowerCase'.": 2,
+    "Dynamic access of 'message'.": 3,
+    "Dynamic invocation of 'split'.": 1,
+    "Dynamic invocation of 'trim'.": 1,
+    "Dynamic invocation of 'toLowerCase'.": 1,
     "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'destroy'.": 2,
     "Dynamic invocation of 'setOption'.": 1,
-    "Dynamic access of 'address'.": 3,
+    "Dynamic access of 'address'.": 2,
     "Dynamic access of 'host'.": 2,
     "Dynamic access of 'port'.": 2,
-    "Dynamic access of 'remoteAddress'.": 2,
+    "Dynamic access of 'remoteAddress'.": 1,
     "Dynamic access of 'remotePort'.": 1,
     "Dynamic invocation of 'dart._http::_toJSON'.": 3,
     "Dynamic invocation of 'listen'.": 1,
@@ -363,9 +363,9 @@
     "Dynamic invocation of '=='.": 4
   },
   "org-dartlang-sdk:///sdk/lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'transform'.": 2,
+    "Dynamic invocation of 'transform'.": 1,
     "Dynamic invocation of 'listen'.": 1,
-    "Dynamic access of 'address'.": 2,
+    "Dynamic access of 'address'.": 1,
     "Dynamic access of 'host'.": 1,
     "Dynamic access of 'port'.": 1,
     "Dynamic invocation of 'dart._http::_toJSON'.": 1

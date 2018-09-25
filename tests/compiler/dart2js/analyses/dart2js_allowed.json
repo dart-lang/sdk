@@ -2,14 +2,14 @@
   "pkg/compiler/lib/src/dart2js.dart": {
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'pause'.": 8,
+    "Dynamic invocation of 'pause'.": 1,
     "Dynamic invocation of 'resume'.": 1
   },
   "pkg/compiler/lib/src/source_file_provider.dart": {
     "Dynamic invocation of 'call'.": 3
   },
   "pkg/compiler/lib/src/util/util.dart": {
-    "Dynamic access of 'hashCode'.": 65,
+    "Dynamic access of 'hashCode'.": 8,
     "Dynamic access of 'a'.": 1,
     "Dynamic access of 'b'.": 1,
     "Dynamic invocation of 'write'.": 11,
@@ -28,7 +28,7 @@
     "Dynamic invocation of 'remove'.": 1,
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic access of 'keys'.": 2,
+    "Dynamic access of 'keys'.": 1,
     "Dynamic access of 'iterator'.": 1
   },
   "pkg/compiler/lib/src/util/setlet.dart": {
@@ -69,14 +69,14 @@
   },
   "pkg/compiler/lib/src/deferred_load.dart": {
     "Dynamic invocation of '[]='.": 1,
-    "Dynamic access of 'memberContext'.": 2,
+    "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
   "pkg/compiler/lib/src/elements/entities.dart": {
     "Dynamic access of 'requiredParameters'.": 1,
     "Dynamic access of 'positionalParameters'.": 1,
     "Dynamic access of 'typeParameters'.": 1,
-    "Dynamic access of 'namedParameters'.": 4,
+    "Dynamic access of 'namedParameters'.": 2,
     "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '[]'.": 1
   },
@@ -94,9 +94,9 @@
     "Dynamic access of 'allocationNode'.": 1,
     "Dynamic access of 'keyType'.": 4,
     "Dynamic access of 'valueType'.": 4,
-    "Dynamic access of 'masks::_typeMap'.": 12,
+    "Dynamic access of 'masks::_typeMap'.": 5,
     "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic access of 'keys'.": 2,
+    "Dynamic access of 'keys'.": 1,
     "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'every'.": 1,
     "Dynamic access of 'isNullable'.": 2,
@@ -109,14 +109,14 @@
     "Dynamic access of 'isMap'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/forwarding_type_mask.dart": {
-    "Dynamic access of 'forwardTo'.": 4,
+    "Dynamic access of 'forwardTo'.": 2,
     "Dynamic invocation of 'nullable'.": 1,
     "Dynamic invocation of 'nonNullable'.": 1,
     "Dynamic access of 'isNullable'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/map_type_mask.dart": {
     "Dynamic access of 'allocationNode'.": 2,
-    "Dynamic access of 'keyType'.": 6,
+    "Dynamic access of 'keyType'.": 5,
     "Dynamic access of 'valueType'.": 3,
     "Dynamic access of 'isNullable'.": 2,
     "Dynamic access of 'isEmptyOrNull'.": 1,
@@ -124,8 +124,8 @@
     "Dynamic access of 'forwardTo'.": 2,
     "Dynamic access of 'isDictionary'.": 1,
     "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'typeMap'.": 4,
-    "Dynamic access of 'values'.": 2,
+    "Dynamic access of 'typeMap'.": 1,
+    "Dynamic access of 'values'.": 1,
     "Dynamic invocation of 'union'.": 1,
     "Dynamic invocation of 'fold'.": 1,
     "Dynamic access of 'allocationElement'.": 1
@@ -137,7 +137,7 @@
   "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
     "Dynamic invocation of '=='.": 1,
     "Dynamic access of 'isUnion'.": 5,
-    "Dynamic access of 'disjointMasks'.": 6,
+    "Dynamic access of 'disjointMasks'.": 4,
     "Dynamic invocation of 'contains'.": 1,
     "Dynamic invocation of 'nonNullable'.": 1,
     "Dynamic invocation of 'every'.": 1
@@ -234,7 +234,7 @@
     "Dynamic access of 'type'.": 1,
     "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'hashCode'.": 5
+    "Dynamic access of 'hashCode'.": 2
   },
   "pkg/compiler/lib/src/elements/types.dart": {
     "Dynamic access of 'element'.": 1
@@ -242,7 +242,7 @@
   "pkg/compiler/lib/src/js_backend/constant_system_javascript.dart": {
     "Dynamic invocation of 'remainder'.": 1,
     "Dynamic access of 'isString'.": 1,
-    "Dynamic access of 'stringValue'.": 2,
+    "Dynamic access of 'stringValue'.": 1,
     "Dynamic invocation of '=='.": 1
   },
   "pkg/compiler/lib/src/universe/use.dart": {
@@ -256,7 +256,7 @@
     "Dynamic access of 'value'.": 1
   },
   "third_party/pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 35,
+    "Dynamic invocation of '[]'.": 13,
     "Dynamic invocation of 'forEach'.": 3,
     "Dynamic invocation of 'map'.": 2,
     "Dynamic invocation of '=='.": 2,
@@ -266,7 +266,7 @@
     "Dynamic invocation of '=='.": 1
   },
   "pkg/compiler/lib/src/util/enumset.dart": {
-    "Dynamic access of 'index'.": 6,
+    "Dynamic access of 'index'.": 4,
     "Dynamic access of 'value'.": 1
   },
   "pkg/compiler/lib/src/native/enqueue.dart": {
@@ -281,12 +281,12 @@
   },
   "pkg/compiler/lib/src/js_backend/namer_names.dart": {
     "Dynamic access of 'js_backend.namer::_target'.": 4,
-    "Dynamic access of 'base'.": 2,
+    "Dynamic access of 'base'.": 1,
     "Dynamic invocation of '=='.": 4,
-    "Dynamic access of 'prefix'.": 2,
-    "Dynamic access of 'js_backend.namer::_parts'.": 8,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '[]'.": 2
+    "Dynamic access of 'prefix'.": 1,
+    "Dynamic access of 'js_backend.namer::_parts'.": 2,
+    "Dynamic access of 'length'.": 1,
+    "Dynamic invocation of '[]'.": 1
   },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
     "Dynamic access of 'universe.side_effects::_flags'.": 1
@@ -329,8 +329,8 @@
   },
   "pkg/compiler/lib/src/ssa/validate.dart": {
     "Dynamic invocation of 'isInBasicBlock'.": 2,
-    "Dynamic access of 'usedBy'.": 4,
-    "Dynamic access of 'inputs'.": 2
+    "Dynamic access of 'usedBy'.": 2,
+    "Dynamic access of 'inputs'.": 1
   },
   "pkg/compiler/lib/src/universe/function_set.dart": {
     "Dynamic access of 'selector'.": 1,
@@ -348,12 +348,12 @@
   "pkg/compiler/lib/src/ssa/optimize.dart": {
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic invocation of 'replaceWith'.": 1,
-    "Dynamic access of 'inputs'.": 6,
-    "Dynamic invocation of '[]'.": 3,
+    "Dynamic access of 'inputs'.": 2,
+    "Dynamic invocation of '[]'.": 2,
     "Dynamic invocation of 'isInteger'.": 1,
     "Dynamic invocation of 'isConstantList'.": 1,
     "Dynamic invocation of 'isConstantString'.": 1,
-    "Dynamic access of 'constant'.": 2,
+    "Dynamic access of 'constant'.": 1,
     "Dynamic access of 'length'.": 4,
     "Dynamic access of 'instructionType'.": 2,
     "Dynamic access of 'isContainer'.": 2,
@@ -386,7 +386,7 @@
     "Dynamic invocation of '=='.": 1
   },
   "third_party/pkg/dart2js_info/lib/src/measurements.dart": {
-    "Dynamic access of 'name'.": 2,
+    "Dynamic access of 'name'.": 1,
     "Dynamic invocation of 'call'.": 1
   },
   "third_party/pkg/dart2js_info/lib/src/util.dart": {
@@ -398,10 +398,10 @@
   },
   "pkg/js_ast/lib/src/template.dart": {
     "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'keys'.": 4,
-    "Dynamic invocation of 'where'.": 2,
+    "Dynamic access of 'keys'.": 1,
+    "Dynamic invocation of 'where'.": 1,
     "Dynamic invocation of 'join'.": 1,
-    "Dynamic invocation of 'containsKey'.": 3,
+    "Dynamic invocation of 'containsKey'.": 2,
     "Dynamic invocation of '[]'.": 9,
     "Dynamic invocation of 'toStatement'.": 3
   },
@@ -415,7 +415,7 @@
   "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
     "Dynamic invocation of 'add'.": 1,
     "Dynamic invocation of 'remove'.": 1,
-    "Dynamic access of 'type'.": 8,
+    "Dynamic access of 'type'.": 4,
     "Dynamic invocation of 'containsOnlyInt'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic invocation of 'satisfies'.": 2
@@ -426,9 +426,9 @@
   },
   "pkg/compiler/lib/src/ssa/variable_allocator.dart": {
     "Dynamic access of 'checkedInput'.": 1,
-    "Dynamic access of 'usedBy'.": 2,
+    "Dynamic access of 'usedBy'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'nonCheck'.": 2,
+    "Dynamic invocation of 'nonCheck'.": 1,
     "Dynamic invocation of 'isCodeMotionInvariant'.": 1
   },
   "pkg/compiler/lib/src/ssa/interceptor_simplifier.dart": {
@@ -440,15 +440,15 @@
     "Dynamic access of 'value'.": 7,
     "Dynamic access of 'isInt'.": 3,
     "Dynamic access of 'intValue'.": 4,
-    "Dynamic invocation of 'unary-'.": 2,
+    "Dynamic invocation of 'unary-'.": 1,
     "Dynamic invocation of 'min'.": 1,
     "Dynamic invocation of 'max'.": 1,
     "Dynamic access of 'instruction'.": 1,
     "Dynamic access of 'left'.": 4,
     "Dynamic access of 'right'.": 4,
-    "Dynamic access of 'lower'.": 2,
+    "Dynamic access of 'lower'.": 1,
     "Dynamic invocation of '=='.": 2,
-    "Dynamic access of 'upper'.": 2,
+    "Dynamic access of 'upper'.": 1,
     "Dynamic invocation of 'operation'.": 1
   },
   "pkg/compiler/lib/src/ssa/value_set.dart": {
@@ -456,42 +456,42 @@
   },
   "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic access of 'positional'.": 4,
+    "Dynamic access of 'positional'.": 2,
     "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'named'.": 6,
-    "Dynamic invocation of '[]'.": 3,
+    "Dynamic access of 'named'.": 2,
+    "Dynamic invocation of '[]'.": 2,
     "Dynamic invocation of '=='.": 1
   },
   "pkg/compiler/lib/src/inferrer/type_graph_dump.dart": {
     "Dynamic invocation of 'contains'.": 2
   },
   "pkg/compiler/lib/src/js_emitter/full_emitter/emitter.dart": {
-    "Dynamic access of 'scheme'.": 2,
+    "Dynamic access of 'scheme'.": 1,
     "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'toString'.": 1,
     "Dynamic invocation of 'finalizeTokens'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
-    "Dynamic access of 'keys'.": 2,
+    "Dynamic access of 'keys'.": 1,
     "Dynamic invocation of 'toSet'.": 1,
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
   },
   "pkg/compiler/lib/src/inferrer/node_tracer.dart": {
-    "Dynamic access of 'receiver'.": 4,
+    "Dynamic access of 'receiver'.": 2,
     "Dynamic invocation of '=='.": 2,
-    "Dynamic access of 'selector'.": 11,
+    "Dynamic access of 'selector'.": 6,
     "Dynamic access of 'name'.": 4,
     "Dynamic access of 'isIndex'.": 1
   },
   "pkg/compiler/lib/src/hash/sha1.dart": {
-    "Dynamic invocation of '+'.": 6,
+    "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '&'.": 2,
-    "Dynamic invocation of '-'.": 2,
+    "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of 'unary-'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,
-    "Dynamic access of 'needsTearOff'.": 2
+    "Dynamic access of 'needsTearOff'.": 1
   }
 }

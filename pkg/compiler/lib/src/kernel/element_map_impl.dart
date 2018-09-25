@@ -131,10 +131,12 @@ abstract class KernelToElementMapBase implements IrToElementMap {
       } else if (spannable is IndexedClass &&
           spannable.classIndex < classes.length) {
         ClassData data = classes.getData(spannable);
+        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is IndexedMember &&
           spannable.memberIndex < members.length) {
         MemberData data = members.getData(spannable);
+        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is KLocalFunction) {
         return getSourceSpan(spannable.memberContext, currentElement);
