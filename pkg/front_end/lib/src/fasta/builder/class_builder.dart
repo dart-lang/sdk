@@ -240,6 +240,22 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   void prepareTopLevelInference() {}
+
+  /// Find the first member of this class with [name]. This method isn't
+  /// suitable for scope lookups as it will throw an error if the name isn't
+  /// declared. The [scope] should be used for that. This method is used to
+  /// find a member that is known to exist and it wil pick the first
+  /// declaration if the name is ambiguous.
+  ///
+  /// For example, this method is convenient for use when building synthetic
+  /// members, such as those of an enum.
+  MemberBuilder firstMemberNamed(String name) {
+    Declaration declaration = this[name];
+    while (declaration.next != null) {
+      declaration = declaration.next;
+    }
+    return declaration;
+  }
 }
 
 class ConstructorRedirection {

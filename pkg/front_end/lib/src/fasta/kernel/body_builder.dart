@@ -501,11 +501,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression initializer = pop();
       Identifier identifier = pop();
       String name = identifier.name;
-      FieldBuilder<Object> field;
+      Declaration declaration;
       if (classBuilder != null) {
-        field = classBuilder[name];
+        declaration = classBuilder[name];
       } else {
-        field = library[name];
+        declaration = library[name];
+      }
+      FieldBuilder<Object> field;
+      if (declaration.isField && declaration.next == null) {
+        field = declaration;
+      } else {
+        continue;
       }
       fields.add(field);
       if (initializer != null) {
@@ -2305,6 +2311,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
+    } else if (name is ProblemBuilder) {
+      // TODO(ahe): Arguments could be passed here.
+      result = new KernelNamedTypeBuilder(name.name, null)
+        ..bind(new KernelInvalidTypeBuilder(
+            name.name,
+            name.message.withLocation(
+                name.fileUri, name.charOffset, name.name.length)));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);

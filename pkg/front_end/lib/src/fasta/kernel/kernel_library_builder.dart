@@ -801,11 +801,24 @@ class KernelLibraryBuilder
       return;
     }
     if (cls != null) {
+      if (declaration.next != null) {
+        int count = 0;
+        Declaration current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        cls.name += "#$count";
+      }
       library.addClass(cls);
     } else if (member != null) {
-      library.addMember(member);
+      if (declaration.next == null) {
+        library.addMember(member);
+      }
     } else if (typedef != null) {
-      library.addTypedef(typedef);
+      if (declaration.next == null) {
+        library.addTypedef(typedef);
+      }
     }
   }
 

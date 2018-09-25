@@ -127,12 +127,12 @@ class SourceClassBuilder extends KernelClassBuilder {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           Member field = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
         } else {

@@ -186,16 +186,12 @@ class KernelEnumBuilder extends SourceClassBuilder
               charOffset, name.length, parent.fileUri,
               context: context);
           enumConstantInfos[i] = null;
-          continue;
-        }
-        if (name == className) {
+        } else if (name == className) {
           parent.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
               charOffset,
               name.length,
               parent.fileUri);
-          enumConstantInfos[i] = null;
-          continue;
         }
         KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
             metadata,
@@ -208,7 +204,7 @@ class KernelEnumBuilder extends SourceClassBuilder
             true);
         metadataCollector?.setDocumentationComment(
             fieldBuilder.target, documentationComment);
-        members[name] = fieldBuilder;
+        members[name] = fieldBuilder..next = existing;
       }
     }
     final int startCharOffset =
@@ -229,10 +225,11 @@ class KernelEnumBuilder extends SourceClassBuilder
         parent,
         startCharOffset,
         charOffset);
-    // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
-    void setParent(String name, dynamic b) {
-      MemberBuilder builder = b;
-      builder.parent = enumBuilder;
+    void setParent(String name, MemberBuilder builder) {
+      do {
+        builder.parent = enumBuilder;
+        builder = builder.next;
+      } while (builder != null);
     }
 
     members.forEach(setParent);
@@ -259,23 +256,26 @@ class KernelEnumBuilder extends SourceClassBuilder
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
-    KernelFieldBuilder indexFieldBuilder = this["index"];
+    KernelFieldBuilder indexFieldBuilder = firstMemberNamed("index");
     Field indexField = indexFieldBuilder.build(libraryBuilder);
-    KernelFieldBuilder nameFieldBuilder = this["_name"];
+    KernelFieldBuilder nameFieldBuilder = firstMemberNamed("_name");
     Field nameField = nameFieldBuilder.build(libraryBuilder);
-    KernelProcedureBuilder toStringBuilder = this["toString"];
+    KernelProcedureBuilder toStringBuilder = firstMemberNamed("toString");
     toStringBuilder.body = new ReturnStatement(
         new DirectPropertyGet(new ThisExpression(), nameField));
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {
         if (enumConstantInfo != null) {
-          KernelFieldBuilder builder = this[enumConstantInfo.name];
-          values.add(new StaticGet(builder.build(libraryBuilder)));
+          Declaration declaration = firstMemberNamed(enumConstantInfo.name);
+          if (declaration.isField) {
+            KernelFieldBuilder field = declaration;
+            values.add(new StaticGet(field.build(libraryBuilder)));
+          }
         }
       }
     }
-    KernelFieldBuilder valuesBuilder = this["values"];
+    KernelFieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
@@ -311,8 +311,13 @@ class KernelEnumBuilder extends SourceClassBuilder
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {
         if (enumConstantInfo != null) {
           String constant = enumConstantInfo.name;
-          KernelFieldBuilder field = this[constant];
-          field.build(libraryBuilder);
+          Declaration declaration = firstMemberNamed(constant);
+          KernelFieldBuilder field;
+          if (declaration.isField) {
+            field = declaration;
+          } else {
+            continue;
+          }
           Arguments arguments = new Arguments(<Expression>[
             new IntLiteral(index++),
             new StringLiteral("$name.$constant")

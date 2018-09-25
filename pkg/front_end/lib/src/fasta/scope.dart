@@ -354,4 +354,12 @@ class AmbiguousBuilder extends ProblemBuilder {
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
   // TODO(ahe): Also provide context.
+
+  Declaration getFirstDeclaration() {
+    Declaration declaration = builder;
+    while (declaration.next != null) {
+      declaration = declaration.next;
+    }
+    return declaration;
+  }
 }

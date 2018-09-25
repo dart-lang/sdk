@@ -27,8 +27,7 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../crash.dart' show Crash;
 
-import '../deprecated_problems.dart'
-    show deprecated_InputError, deprecated_inputError;
+import '../deprecated_problems.dart' show deprecated_InputError;
 
 import '../fasta_codes.dart'
     show
@@ -679,8 +678,21 @@ class DietListener extends StackListener {
   }
 
   @override
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    debugEvent("beginMixinDeclaration");
+    push(mixinKeyword);
+  }
+
+  @override
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    debugEvent("beginClassDeclaration");
+    push(begin);
+  }
+
+  @override
   void beginClassOrMixinBody(Token token) {
     debugEvent("beginClassOrMixinBody");
+    Token beginToken = pop();
     Object name = pop();
     Token metadata = pop();
     assert(currentClass == null);
@@ -690,7 +702,7 @@ class DietListener extends StackListener {
       return;
     }
 
-    Declaration classBuilder = lookupBuilder(token, null, name);
+    Declaration classBuilder = lookupBuilder(beginToken, null, name);
     parseMetadata(classBuilder, metadata, classBuilder.target);
 
     currentClass = classBuilder;
@@ -856,6 +868,7 @@ class DietListener extends StackListener {
     } else {
       declaration = library.scopeBuilder[name];
     }
+    declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, name);
     return declaration;
   }
@@ -870,17 +883,36 @@ class DietListener extends StackListener {
       suffix = nameOrQualified == currentClass.name ? "" : nameOrQualified;
     }
     declaration = currentClass.constructors.local[suffix];
+    declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;
+  }
+
+  Declaration handleDuplicatedName(Declaration declaration, Token token) {
+    int offset = token.charOffset;
+    if (declaration?.next == null) {
+      return declaration;
+    } else {
+      Declaration nearestDeclaration;
+      int minDistance = -1;
+      do {
+        int distance = declaration.charOffset - offset;
+        if (distance >= 0) {
+          if (minDistance == -1 || distance < minDistance) {
+            minDistance = distance;
+            nearestDeclaration = declaration;
+          }
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
+      return nearestDeclaration;
+    }
   }
 
   void checkBuilder(Token token, Declaration declaration, Object name) {
     if (declaration == null) {
       internalProblem(templateInternalProblemNotFound.withArguments("$name"),
           token.charOffset, uri);
-    }
-    if (declaration.next != null) {
-      deprecated_inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     if (uri != declaration.fileUri) {
       unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,

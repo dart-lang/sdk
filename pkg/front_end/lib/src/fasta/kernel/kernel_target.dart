@@ -69,6 +69,8 @@ import '../problems.dart' show unhandled;
 
 import '../severity.dart' show Severity;
 
+import '../scope.dart' show AmbiguousBuilder;
+
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -405,6 +407,10 @@ class KernelTarget extends TargetImplementation {
       // TODO(sigmund): do only for full program
       Declaration declaration =
           loader.first.exportScope.lookup("main", -1, null);
+      if (declaration is AmbiguousBuilder) {
+        AmbiguousBuilder problem = declaration;
+        declaration = problem.getFirstDeclaration();
+      }
       if (declaration is KernelProcedureBuilder) {
         component.mainMethod = declaration.procedure;
       } else if (declaration is DillMemberBuilder) {

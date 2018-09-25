@@ -14,17 +14,17 @@ async_function: Fail
 await: Fail
 bug21938: TypeCheckError
 bug30695: TypeCheckError
-bug31124: RuntimeError # Test has an intentional error
+bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 bug32629: Fail # Test has an intentional error
 call: Fail
 cascade: Fail
 casts: Fail
 classes: Fail
 closure: Fail
-co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail
+duplicated_declarations: TypeCheckError
 dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
 external: Fail
@@ -184,8 +184,8 @@ redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactory
 redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 regress/issue_29975: Fail # Issue 29975.
-regress/issue_29976: TypeCheckError # Issue 29976.
-regress/issue_29982: Fail # Issue 29982.
+regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
+regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31184: TypeCheckError
 regress/issue_31299: TypeCheckError

@@ -23,7 +23,5 @@ class B extends core::Object {
   synthetic constructor •() → void
     ;
 }
-static method A() → dynamic
-  ;
 static method main() → dynamic
   ;
