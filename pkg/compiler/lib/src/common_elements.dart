@@ -502,13 +502,13 @@ abstract class KCommonElements implements CommonElements {
 
   ClassEntity get forceInlineClass;
 
+  ClassEntity get pragmaClass;
+  FieldEntity get pragmaClassNameField;
+  FieldEntity get pragmaClassOptionsField;
+
   bool isCreateInvocationMirrorHelper(MemberEntity member);
 
   bool isSymbolValidatedConstructor(ConstructorEntity element);
-
-  ClassEntity get metaNoInlineClass;
-
-  ClassEntity get metaTryInlineClass;
 
   /// Returns `true` if [function] is allowed to be external.
   ///
@@ -1321,6 +1321,18 @@ class CommonElementsImpl
   ClassEntity get forceInlineClass =>
       _forceInlineClass ??= _findHelperClass('ForceInline');
 
+  ClassEntity _pragmaClass;
+  ClassEntity get pragmaClass =>
+      _pragmaClass ??= _findClass(coreLibrary, 'pragma');
+
+  FieldEntity _pragmaClassNameField;
+  FieldEntity get pragmaClassNameField =>
+      _pragmaClassNameField ??= _findClassMember(pragmaClass, 'name');
+
+  FieldEntity _pragmaClassOptionsField;
+  FieldEntity get pragmaClassOptionsField =>
+      _pragmaClassOptionsField ??= _findClassMember(pragmaClass, 'options');
+
   ClassEntity _jsInvocationMirrorClass;
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
@@ -1696,39 +1708,6 @@ class CommonElementsImpl
   ClassEntity get expectAssumeDynamicClass {
     _ensureExpectAnnotations();
     return _expectAssumeDynamicClass;
-  }
-
-  static final Uri PACKAGE_META_DART2JS =
-      new Uri(scheme: 'package', path: 'meta/dart2js.dart');
-
-  bool _metaAnnotationChecked = false;
-  ClassEntity _metaNoInlineClass;
-  ClassEntity _metaTryInlineClass;
-
-  void _ensureMetaAnnotations() {
-    if (!_metaAnnotationChecked) {
-      _metaAnnotationChecked = true;
-      LibraryEntity library = _env.lookupLibrary(PACKAGE_META_DART2JS);
-      if (library != null) {
-        _metaNoInlineClass = _env.lookupClass(library, '_NoInline');
-        _metaTryInlineClass = _env.lookupClass(library, '_TryInline');
-        if (_metaNoInlineClass == null || _metaTryInlineClass == null) {
-          // This is not the package you're looking for.
-          _metaNoInlineClass = null;
-          _metaTryInlineClass = null;
-        }
-      }
-    }
-  }
-
-  ClassEntity get metaNoInlineClass {
-    _ensureMetaAnnotations();
-    return _metaNoInlineClass;
-  }
-
-  ClassEntity get metaTryInlineClass {
-    _ensureMetaAnnotations();
-    return _metaTryInlineClass;
   }
 
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
