@@ -5105,7 +5105,8 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     TypeResolverVisitor visitor = new TypeResolverVisitor(
         library, unitElement.source, typeProvider, errorListener,
-        shouldUseWithClauseInferredTypes: false);
+        shouldUseWithClauseInferredTypes: false,
+        shouldSetElementSupertypes: true);
     unit.accept(visitor);
     //
     // Re-write the AST to handle the optional new and const feature.

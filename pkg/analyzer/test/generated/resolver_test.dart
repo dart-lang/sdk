@@ -1419,7 +1419,7 @@ class TypeResolverVisitorTest extends ParserTestCase {
     _listener.assertNoErrors();
   }
 
-  void setUp() {
+  void setUp({bool shouldSetElementSupertypes: false}) {
     _listener = new GatheringErrorListener();
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
@@ -1434,7 +1434,8 @@ class TypeResolverVisitorTest extends ParserTestCase {
     libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
-        nameScope: libraryScope);
+        nameScope: libraryScope,
+        shouldSetElementSupertypes: shouldSetElementSupertypes);
   }
 
   test_modeApi() async {
@@ -1881,6 +1882,7 @@ A v = new A();
     // class B {}
     // class C {}
     // class D {}
+    setUp(shouldSetElementSupertypes: true);
     ClassElement elementA = ElementFactory.classElement2("A");
     ClassElement elementB = ElementFactory.classElement2("B");
     ClassElement elementC = ElementFactory.classElement2("C");
@@ -1910,6 +1912,7 @@ A v = new A();
     // class B extends A {
     //   void A() {}
     // }
+    setUp(shouldSetElementSupertypes: true);
     ClassElementImpl elementA = ElementFactory.classElement2("A");
     ClassElementImpl elementB = ElementFactory.classElement2("B");
     elementB.methods = <MethodElement>[

@@ -2546,7 +2546,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         var oldType = interfaces[element];
         if (oldType == null) {
           interfaces[element] = type;
-        } else if (oldType != type) {
+        } else if (!oldType.isEquivalentTo(type)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
               node,

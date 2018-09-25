@@ -8889,6 +8889,13 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// [nameScope] was computed.
   bool _localModeScopeReady = false;
 
+  /// Indicates whether the ClassElement fields interfaces, mixins, and
+  /// supertype should be set by this visitor.
+  ///
+  /// This is needed when using the old task model, but causes problems with the
+  /// new driver.
+  final bool shouldSetElementSupertypes;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// [definingLibrary] is the element for the library containing the node being
@@ -8906,7 +8913,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
       this.mode: TypeResolverMode.everything,
-      bool shouldUseWithClauseInferredTypes: true})
+      bool shouldUseWithClauseInferredTypes: true,
+      this.shouldSetElementSupertypes: false})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
@@ -9010,7 +9018,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       superclassType =
           _resolveType(extendsClause.superclass, errorCode, asClass: true);
     }
-    if (classElement != null) {
+    if (shouldSetElementSupertypes && classElement != null) {
       if (superclassType == null) {
         InterfaceType objectType = typeProvider.objectType;
         if (!identical(classElement.type, objectType)) {
@@ -9059,7 +9067,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       superclassType = typeProvider.objectType;
     }
     ClassElementImpl classElement = _getClassElement(node.name);
-    if (classElement != null) {
+    if (shouldSetElementSupertypes && classElement != null) {
       classElement.supertype = superclassType;
     }
     _resolveWithClause(classElement, node.withClause);
@@ -9512,7 +9520,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       NodeList<TypeName> interfaces = clause.interfaces;
       List<InterfaceType> interfaceTypes =
           _resolveTypes(interfaces, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
-      if (classElement != null) {
+      if (shouldSetElementSupertypes && classElement != null) {
         classElement.interfaces = interfaceTypes;
       }
     }
@@ -9527,7 +9535,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (types == null || types.isEmpty) {
       types = [typeProvider.objectType];
     }
-    classElement.superclassConstraints = types;
+    if (shouldSetElementSupertypes) {
+      classElement.superclassConstraints = types;
+    }
   }
 
   /// Return the [InterfaceType] of the given [typeName].
@@ -9584,7 +9594,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (clause != null) {
       List<InterfaceType> mixinTypes = _resolveTypes(
           clause.mixinTypes, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
-      classElement.mixins = mixinTypes;
+      if (shouldSetElementSupertypes) {
+        classElement.mixins = mixinTypes;
+      }
     }
   }
 
