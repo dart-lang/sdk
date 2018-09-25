@@ -1,6 +1,6 @@
-Dart build {{ .Build.Status }} on {{.Build.Builder.Builder}}
+Dart build {{ .Build.Status }} on {{ .Build.Builder.Builder }}
 
-{{ template "summary" . }}
+{{ template "summary" .Build }}
 {{/* If the build is a failure, show failed steps. */}}
 {{ if ne .Build.Status 12 -}}
 <br />

@@ -14,11 +14,11 @@ This file contains useful common templates for email notifications.
 {{- end -}}
 {{- end -}}
 {{ define "builder_link" -}}
-<a href="https://ci.chromium.org/b/{{ .Build.Id }}">{{.Build.Builder.Builder}}</a>
+<a href="https://ci.chromium.org/b/{{ .Id }}">{{ .Builder.Builder }}#{{ .Number }}</a>
 {{- end -}}
 {{ define "summary" -}}
-{{- template "builder_link" -}}:
-<span style="color: #ffffff; background-color: {{- template "status_to_color" .Build.Status -}}; font-weight: bold">
-{{ .Build.Status -}}
+{{- template "builder_link" . -}}:
+<span style="color: #ffffff; background-color: {{- template "status_to_color" .Status -}}; font-weight: bold">
+{{- .Status -}}
 </span>
 {{ end -}}
