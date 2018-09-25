@@ -17,7 +17,7 @@ library meta_dart2js;
 ///
 ///     @dart2js.noInline
 ///     String text() => 'A String of unusual size';
-const pragma noInline = const pragma('dart2js:noInline');
+const _NoInline noInline = const _NoInline();
 
 /// An annotation for methods method to request that dart2js always inlines the
 /// method.
@@ -34,4 +34,12 @@ const pragma noInline = const pragma('dart2js:noInline');
 ///     }
 ///
 /// It is an error to use both `@noInline` and `@tryInline` on the same method.
-const pragma tryInline = const pragma('dart2js:tryInline');
+const _TryInline tryInline = const _TryInline();
+
+class _NoInline {
+  const _NoInline();
+}
+
+class _TryInline {
+  const _TryInline();
+}

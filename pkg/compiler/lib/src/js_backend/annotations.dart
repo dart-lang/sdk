@@ -11,6 +11,34 @@ import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
 import '../native/native.dart' as native;
 
+const VERBOSE_OPTIMIZER_HINTS = false;
+
+/// Returns `true` if inlining is disabled for [element].
+bool _noInline(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
+  if (_hasAnnotation(
+      elementEnvironment, element, commonElements.metaNoInlineClass)) {
+    return true;
+  }
+  if (_hasAnnotation(
+      elementEnvironment, element, commonElements.expectNoInlineClass)) {
+    // TODO(floitsch): restrict to elements from the test directory.
+    return true;
+  }
+  return _hasAnnotation(
+      elementEnvironment, element, commonElements.noInlineClass);
+}
+
+/// Returns `true` if inlining is requested for [element].
+bool _tryInline(KElementEnvironment elementEnvironment,
+    KCommonElements commonElements, MemberEntity element) {
+  if (_hasAnnotation(
+      elementEnvironment, element, commonElements.metaTryInlineClass)) {
+    return true;
+  }
+  return false;
+}
+
 /// Returns `true` if parameter and returns types should be trusted for
 /// [element].
 bool _trustTypeAnnotations(KElementEnvironment elementEnvironment,
@@ -52,7 +80,7 @@ AnnotationsData processAnnotations(
 
   void processMemberAnnotations(MemberEntity element) {
     bool hasNoInline = false;
-    bool hasTryInline = false;
+    bool hasForceInline = false;
 
     if (_trustTypeAnnotations(elementEnvironment, commonElements, element)) {
       annotationsDataBuilder.registerTrustTypeAnnotations(element);
@@ -62,107 +90,93 @@ AnnotationsData processAnnotations(
       annotationsDataBuilder.registerAssumeDynamic(element);
     }
 
-    // TODO(sra): Check for inappropriate annotations on fields.
-    if (element.isField) return;
+    if (element.isFunction || element.isConstructor) {
+      if (_noInline(elementEnvironment, commonElements, element)) {
+        hasNoInline = true;
+        annotationsDataBuilder.markAsNonInlinable(element);
+      }
+      if (_tryInline(elementEnvironment, commonElements, element)) {
+        hasForceInline = true;
+        if (hasNoInline) {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC,
+              {'text': '@tryInline must not be used with @noInline.'});
+        } else {
+          annotationsDataBuilder.markAsTryInline(element);
+        }
+      }
+    }
 
+    if (element.isField) return;
     FunctionEntity method = element;
-    LibraryEntity library = element.library;
-    bool platformAnnotationsAllowed = library.canonicalUri.scheme == 'dart' ||
-        native.maybeEnableNative(library.canonicalUri);
+
+    LibraryEntity library = method.library;
+    if (library.canonicalUri.scheme != 'dart' &&
+        !native.maybeEnableNative(library.canonicalUri)) {
+      return;
+    }
 
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-
     for (ConstantValue constantValue
         in elementEnvironment.getMemberMetadata(method)) {
       if (!constantValue.isConstructedObject) continue;
-      ConstructedConstantValue value = constantValue;
+      ObjectConstantValue value = constantValue;
       ClassEntity cls = value.type.element;
-
-      if (platformAnnotationsAllowed) {
-        if (cls == commonElements.forceInlineClass) {
-          hasTryInline = true;
-        } else if (cls == commonElements.noInlineClass) {
-          hasNoInline = true;
-        } else if (cls == commonElements.noThrowsClass) {
-          hasNoThrows = true;
-          bool isValid = true;
-          if (method.isTopLevel) {
-            isValid = true;
-          } else if (method.isStatic) {
-            isValid = true;
-          } else if (method is ConstructorEntity &&
-              method.isFactoryConstructor) {
-            isValid = true;
-          }
-          if (!isValid) {
-            reporter.internalError(
-                method,
-                "@NoThrows() is currently limited to top-level"
-                " or static functions and factory constructors.");
-          }
-          annotationsDataBuilder.registerCannotThrow(method);
-        } else if (cls == commonElements.noSideEffectsClass) {
-          hasNoSideEffects = true;
-          annotationsDataBuilder.registerSideEffectsFree(method);
+      if (cls == commonElements.forceInlineClass) {
+        hasForceInline = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          reporter.reportHintMessage(
+              method, MessageKind.GENERIC, {'text': "Must inline"});
         }
-      }
-
-      if (cls == commonElements.expectNoInlineClass) {
+        annotationsDataBuilder.markAsTryInline(method);
+      } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
-      } else if (cls == commonElements.pragmaClass) {
-        // Recognize:
-        //
-        //     @pragma('dart2js:noInline')
-        //     @pragma('dart2js:tryInline')
-        //
-        ConstantValue nameValue =
-            value.fields[commonElements.pragmaClassNameField];
-        if (nameValue == null || !nameValue.isString) continue;
-        String name = (nameValue as StringConstantValue).stringValue;
-        if (!name.startsWith('dart2js:')) continue;
-
-        ConstantValue optionsValue =
-            value.fields[commonElements.pragmaClassOptionsField];
-        if (name == 'dart2js:noInline') {
-          if (!optionsValue.isNull) {
-            reporter.reportErrorMessage(element, MessageKind.GENERIC,
-                {'text': "@pragma('$name') annotation does not take options"});
-          }
-          hasNoInline = true;
-        } else if (name == 'dart2js:tryInline') {
-          if (!optionsValue.isNull) {
-            reporter.reportErrorMessage(element, MessageKind.GENERIC,
-                {'text': "@pragma('$name') annotation does not take options"});
-          }
-          hasTryInline = true;
-        } else if (!platformAnnotationsAllowed) {
-          reporter.reportErrorMessage(element, MessageKind.GENERIC,
-              {'text': "Unknown dart2js pragma @pragma('$name')"});
-        } else {
-          // Handle platform-only `@pragma` annotations.
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          reporter.reportHintMessage(
+              method, MessageKind.GENERIC, {'text': "Cannot inline"});
         }
+        annotationsDataBuilder.markAsNonInlinable(method);
+      } else if (cls == commonElements.noThrowsClass) {
+        hasNoThrows = true;
+        bool isValid = true;
+        if (method.isTopLevel) {
+          isValid = true;
+        } else if (method.isStatic) {
+          isValid = true;
+        } else if (method is ConstructorEntity && method.isFactoryConstructor) {
+          isValid = true;
+        }
+        if (!isValid) {
+          reporter.internalError(
+              method,
+              "@NoThrows() is currently limited to top-level"
+              " or static functions and factory constructors.");
+        }
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          reporter.reportHintMessage(
+              method, MessageKind.GENERIC, {'text': "Cannot throw"});
+        }
+        annotationsDataBuilder.registerCannotThrow(method);
+      } else if (cls == commonElements.noSideEffectsClass) {
+        hasNoSideEffects = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          reporter.reportHintMessage(
+              method, MessageKind.GENERIC, {'text': "Has no side effects"});
+        }
+        annotationsDataBuilder.registerSideEffectsFree(method);
       }
     }
-
-    if (hasTryInline && hasNoInline) {
-      reporter.reportErrorMessage(element, MessageKind.GENERIC,
-          {'text': '@tryInline must not be used with @noInline.'});
-      hasTryInline = false;
-    }
-    if (hasNoInline) {
-      annotationsDataBuilder.markAsNonInlinable(method);
-    }
-    if (hasTryInline) {
-      annotationsDataBuilder.markAsTryInline(method);
+    if (hasForceInline && hasNoInline) {
+      reporter.internalError(
+          method, "@ForceInline() must not be used with @NoInline.");
     }
     if (hasNoThrows && !hasNoInline) {
       reporter.internalError(
-          method, "@NoThrows() should always be combined with @noInline.");
+          method, "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
       reporter.internalError(
-          method, "@NoSideEffects() should always be combined with @noInline.");
+          method, "@NoSideEffects() should always be combined with @NoInline.");
     }
   }
 
