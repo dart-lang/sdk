@@ -6166,6 +6166,218 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 }
 
 /**
+ * edit.dartfix params
+ *
+ * {
+ *   "included": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditDartfixParams implements RequestParams {
+  List<String> _included;
+
+  /**
+   * A list of the files and directories for which edits should be suggested.
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * FORMAT_INVALID_FILE will be generated.
+   */
+  List<String> get included => _included;
+
+  /**
+   * A list of the files and directories for which edits should be suggested.
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * FORMAT_INVALID_FILE will be generated.
+   */
+  void set included(List<String> value) {
+    assert(value != null);
+    this._included = value;
+  }
+
+  EditDartfixParams(List<String> included) {
+    this.included = included;
+  }
+
+  factory EditDartfixParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> included;
+      if (json.containsKey("included")) {
+        included = jsonDecoder.decodeList(
+            jsonPath + ".included", json["included"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "included");
+      }
+      return new EditDartfixParams(included);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.dartfix params", json);
+    }
+  }
+
+  factory EditDartfixParams.fromRequest(Request request) {
+    return new EditDartfixParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["included"] = included;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.dartfix", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditDartfixParams) {
+      return listEqual(
+          included, other.included, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.dartfix result
+ *
+ * {
+ *   "description": List<String>
+ *   "fixes": List<SourceFileEdit>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditDartfixResult implements ResponseResult {
+  List<String> _description;
+
+  List<SourceFileEdit> _fixes;
+
+  /**
+   * A list of human readable changes made by applying the fixes.
+   */
+  List<String> get description => _description;
+
+  /**
+   * A list of human readable changes made by applying the fixes.
+   */
+  void set description(List<String> value) {
+    assert(value != null);
+    this._description = value;
+  }
+
+  /**
+   * The suggested fixes.
+   */
+  List<SourceFileEdit> get fixes => _fixes;
+
+  /**
+   * The suggested fixes.
+   */
+  void set fixes(List<SourceFileEdit> value) {
+    assert(value != null);
+    this._fixes = value;
+  }
+
+  EditDartfixResult(List<String> description, List<SourceFileEdit> fixes) {
+    this.description = description;
+    this.fixes = fixes;
+  }
+
+  factory EditDartfixResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> description;
+      if (json.containsKey("description")) {
+        description = jsonDecoder.decodeList(jsonPath + ".description",
+            json["description"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "description");
+      }
+      List<SourceFileEdit> fixes;
+      if (json.containsKey("fixes")) {
+        fixes = jsonDecoder.decodeList(
+            jsonPath + ".fixes",
+            json["fixes"],
+            (String jsonPath, Object json) =>
+                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fixes");
+      }
+      return new EditDartfixResult(description, fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
+    }
+  }
+
+  factory EditDartfixResult.fromResponse(Response response) {
+    return new EditDartfixResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["description"] = description;
+    result["fixes"] =
+        fixes.map((SourceFileEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditDartfixResult) {
+      return listEqual(
+              description, other.description, (String a, String b) => a == b) &&
+          listEqual(fixes, other.fixes,
+              (SourceFileEdit a, SourceFileEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * edit.format params
  *
  * {
