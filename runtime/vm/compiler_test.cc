@@ -195,7 +195,6 @@ TEST_CASE(EvalExpression) {
     val = Instance::Cast(obj).EvaluateCompiledExpression(
         receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
         Array::empty_array(), TypeArguments::null_type_arguments());
-    free(const_cast<uint8_t*>(kernel_bytes));
   }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());

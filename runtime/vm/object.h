@@ -465,8 +465,6 @@ class Object {
   static void FinalizeVMIsolate(Isolate* isolate);
   static void FinalizeReadOnlyObject(RawObject* object);
 
-  static void Cleanup();
-
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
   static RawError* Init(Isolate* isolate,

@@ -221,8 +221,6 @@ class RunKernelTask : public ThreadPool::Task {
 };
 
 void KernelIsolate::Run() {
-  MonitorLocker ml(monitor_);
-  initializing_ = true;
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();

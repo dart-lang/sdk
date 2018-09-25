@@ -54,7 +54,7 @@ void Metric::Init(const char* name, const char* description, Unit unit) {
   RegisterWithVM();
 }
 
-void Metric::CleanupInstance() {
+Metric::~Metric() {
   // Only deregister metrics which had been registered. Metrics without a name
   // are from shallow copy isolates.
   if (name_ != NULL) {
@@ -64,10 +64,6 @@ void Metric::CleanupInstance() {
       DeregisterWithIsolate();
     }
   }
-}
-
-Metric::~Metric() {
-  CleanupInstance();
 }
 
 #ifndef PRODUCT
@@ -325,10 +321,6 @@ void Metric::Cleanup() {
     }
     OS::PrintErr("\n");
   }
-#define VM_METRIC_CLEANUP(type, variable, name, unit)                          \
-  vm_metric_##variable##_.CleanupInstance();
-  VM_METRIC_LIST(VM_METRIC_CLEANUP);
-#undef VM_METRIC_CLEANUP
 }
 
 MaxMetric::MaxMetric() : Metric() {

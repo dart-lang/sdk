@@ -28,8 +28,7 @@ class ScavengerVisitor;
 // Wrapper around VirtualMemory that adds caching and handles the empty case.
 class SemiSpace {
  public:
-  static void Init();
-  static void Cleanup();
+  static void InitOnce();
 
   // Get a space of the given size. Returns NULL on out of memory. If size is 0,
   // returns an empty space: pointer(), start() and end() all return NULL.

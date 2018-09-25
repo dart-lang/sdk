@@ -244,9 +244,6 @@ class Api : AllStatic {
   // Allocates handles for objects in the VM isolate.
   static void InitHandles();
 
-  // Cleanup
-  static void Cleanup();
-
   // Helper function to get the peer value of an external string object.
   static bool StringGetPeerHelper(NativeArguments* args,
                                   int arg_index,

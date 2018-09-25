@@ -479,9 +479,8 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
 }
 
 void Api::InitOnce() {
-  if (api_native_key_ == kUnsetThreadLocalKey) {
-    api_native_key_ = OSThread::CreateThreadLocal();
-  }
+  ASSERT(api_native_key_ == kUnsetThreadLocalKey);
+  api_native_key_ = OSThread::CreateThreadLocal();
   ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
@@ -510,13 +509,6 @@ void Api::InitHandles() {
 
   ASSERT(empty_string_handle_ == NULL);
   empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().raw());
-}
-
-void Api::Cleanup() {
-  true_handle_ = NULL;
-  false_handle_ = NULL;
-  null_handle_ = NULL;
-  empty_string_handle_ = NULL;
 }
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,

@@ -37,11 +37,6 @@ namespace dart {
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
-const uint8_t* TesterState::vm_snapshot_data = NULL;
-Dart_IsolateCreateCallback TesterState::create_callback = NULL;
-Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
-Dart_IsolateCleanupCallback TesterState::cleanup_callback = NULL;
-
 DEFINE_FLAG(bool,
             use_dart_frontend,
             true,
@@ -49,14 +44,8 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, strong);
 
-void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
-  next_ = new KernelBufferList(kernel_buffer_, next_);
-  kernel_buffer_ = kernel_buffer;
-}
-
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
-KernelBufferList* TestCaseBase::current_kernel_buffers_ = NULL;
 
 TestCaseBase::TestCaseBase(const char* name)
     : raw_test_(false), next_(NULL), name_(name) {
@@ -73,7 +62,6 @@ void TestCaseBase::RunAllRaw() {
   while (test != NULL) {
     if (test->raw_test_) {
       test->RunTest();
-      CleanupState();
     }
     test = test->next_;
   }
@@ -84,25 +72,8 @@ void TestCaseBase::RunAll() {
   while (test != NULL) {
     if (!test->raw_test_) {
       test->RunTest();
-      CleanupState();
     }
     test = test->next_;
-  }
-}
-
-void TestCaseBase::CleanupState() {
-  if (current_kernel_buffers_ != NULL) {
-    delete current_kernel_buffers_;
-    current_kernel_buffers_ = NULL;
-  }
-}
-
-void TestCaseBase::AddToKernelBuffers(const uint8_t* kernel_buffer) {
-  ASSERT(kernel_buffer != NULL);
-  if (current_kernel_buffers_ == NULL) {
-    current_kernel_buffers_ = new KernelBufferList(kernel_buffer);
-  } else {
-    current_kernel_buffers_->AddBufferToList(kernel_buffer);
   }
 }
 
@@ -351,18 +322,10 @@ char* TestCase::ValidateCompilationResult(
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
     free(compilation_result.error);
-    if (compilation_result.kernel != NULL) {
-      free(const_cast<uint8_t*>(compilation_result.kernel));
-    }
-    *kernel_buffer = NULL;
-    *kernel_buffer_size = 0;
     return result;
   }
   *kernel_buffer = compilation_result.kernel;
   *kernel_buffer_size = compilation_result.kernel_size;
-  if (compilation_result.error != NULL) {
-    free(compilation_result.error);
-  }
   if (kernel_buffer == NULL) {
     return OS::SCreate(zone, "front end generated a NULL kernel file");
   }
@@ -561,9 +524,6 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
         Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
 
-    // Ensure kernel buffer isn't leaked after test is run.
-    AddToKernelBuffers(kernel_buffer);
-
     // TODO(32618): Kernel doesn't correctly represent the root library.
     lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
     DART_CHECK_VALID(lib);
@@ -605,9 +565,6 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   Dart_Handle lib =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   DART_CHECK_VALID(lib);
-
-  // Ensure kernel buffer isn't leaked after test is run.
-  AddToKernelBuffers(kernel_buffer);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
@@ -699,14 +656,12 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       Dart_Handle result = Dart_NewApiError(compilation_result.error);
       free(compilation_result.error);
-      if (compilation_result.kernel != NULL) {
-        free(const_cast<uint8_t*>(compilation_result.kernel));
-      }
       return result;
     }
   } else {
     SetReloadTestScript(script);
   }
+
   return TriggerReload();
 }
 

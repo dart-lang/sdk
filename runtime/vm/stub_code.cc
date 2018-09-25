@@ -47,11 +47,6 @@ void StubCode::InitOnce() {
   // Stubs will be loaded from the snapshot.
   UNREACHABLE();
 }
-
-void StubCode::Cleanup() {
-  // Stubs will be loaded from the snapshot.
-  UNREACHABLE();
-}
 #else
 
 #define STUB_CODE_GENERATE(name)                                               \
@@ -65,16 +60,6 @@ void StubCode::InitOnce() {
 }
 
 #undef STUB_CODE_GENERATE
-
-#define STUB_CODE_CLEANUP(name)                                                \
-  delete entries_[k##name##Index];                                             \
-  entries_[k##name##Index] = NULL;
-
-void StubCode::Cleanup() {
-  VM_STUB_CODE_LIST(STUB_CODE_CLEANUP);
-}
-
-#undef STUB_CODE_CLEANUP
 
 RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {

@@ -277,36 +277,6 @@ extern const uint8_t* platform_strong_dill;
 extern const intptr_t platform_dill_size;
 extern const intptr_t platform_strong_dill_size;
 
-class TesterState : public AllStatic {
- public:
-  static const uint8_t* vm_snapshot_data;
-  static Dart_IsolateCreateCallback create_callback;
-  static Dart_IsolateShutdownCallback shutdown_callback;
-  static Dart_IsolateCleanupCallback cleanup_callback;
-};
-
-class KernelBufferList {
- public:
-  explicit KernelBufferList(const uint8_t* kernel_buffer)
-      : kernel_buffer_(kernel_buffer), next_(NULL) {}
-
-  KernelBufferList(const uint8_t* kernel_buffer, KernelBufferList* next)
-      : kernel_buffer_(kernel_buffer), next_(next) {}
-
-  ~KernelBufferList() {
-    free(const_cast<uint8_t*>(kernel_buffer_));
-    if (next_ != NULL) {
-      delete next_;
-    }
-  }
-
-  void AddBufferToList(const uint8_t* kernel_buffer);
-
- private:
-  const uint8_t* kernel_buffer_;
-  KernelBufferList* next_;
-};
-
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
@@ -319,11 +289,8 @@ class TestCaseBase {
 
   static void RunAll();
   static void RunAllRaw();
-  static void CleanupState();
-  static void AddToKernelBuffers(const uint8_t* kernel_buffer);
 
  protected:
-  static KernelBufferList* current_kernel_buffers_;
   bool raw_test_;
 
  private:

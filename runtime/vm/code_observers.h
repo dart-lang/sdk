@@ -68,7 +68,7 @@ class CodeObservers : public AllStatic {
   // Returns true if there is at least one active code observer.
   static bool AreActive();
 
-  static void Cleanup();
+  static void DeleteAll();
 
   static Mutex* mutex() { return mutex_; }
 

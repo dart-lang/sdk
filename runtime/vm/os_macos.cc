@@ -303,6 +303,13 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::InitOnce() {
+  // TODO(5411554): For now we check that initonce is called only once,
+  // Once there is more formal mechanism to call InitOnce we can move
+  // this check there.
+  static bool init_once_called = false;
+  ASSERT(init_once_called == false);
+  init_once_called = true;
+
   // See https://github.com/dart-lang/sdk/issues/29539
   // This is a workaround for a macos bug, we eagerly call localtime_r so that
   // libnotify is initialized early before any fork happens.

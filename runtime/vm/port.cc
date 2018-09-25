@@ -277,10 +277,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 }
 
 void PortMap::InitOnce() {
-  if (mutex_ == NULL) {
-    mutex_ = new Mutex();
-  }
-  ASSERT(mutex_ != NULL);
+  mutex_ = new Mutex();
   prng_ = new Random();
 
   static const intptr_t kInitialCapacity = 8;
@@ -291,22 +288,6 @@ void PortMap::InitOnce() {
   capacity_ = kInitialCapacity;
   used_ = 0;
   deleted_ = 0;
-}
-
-void PortMap::Cleanup() {
-  ASSERT(map_ != NULL);
-  ASSERT(prng_ != NULL);
-  for (intptr_t i = 0; i < capacity_; ++i) {
-    auto handler = map_[i].handler;
-    if (handler != NULL && handler != deleted_entry_) {
-      ClosePorts(handler);
-      delete handler;
-    }
-  }
-  delete prng_;
-  prng_ = NULL;
-  delete[] map_;
-  map_ = NULL;
 }
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,

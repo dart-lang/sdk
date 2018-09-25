@@ -150,7 +150,6 @@ class StubCode : public AllStatic {
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
 
-  static void Cleanup();
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.

@@ -150,15 +150,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     isolate = Dart_CreateIsolate(
         DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
         isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
-    if (*error != NULL) {
-      free(*error);
-      *error = NULL;
-    }
   }
   if (isolate == NULL) {
-    delete isolate_data;
-    isolate_data = NULL;
-
     bin::dfe.Init();
     bin::dfe.LoadKernelService(&kernel_service_buffer,
                                &kernel_service_buffer_size);
@@ -293,10 +286,6 @@ static int Main(int argc, const char** argv) {
     ASSERT(error == NULL);
   }
 
-  TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
-  TesterState::create_callback = CreateIsolateAndSetup;
-  TesterState::cleanup_callback = CleanupIsolate;
-
   error = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
@@ -315,10 +304,9 @@ static int Main(int argc, const char** argv) {
   error = Dart::Cleanup();
   ASSERT(error == NULL);
 
-  TestCaseBase::RunAllRaw();
-
   bin::EventHandler::Stop();
 
+  TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     bin::Log::PrintErr("No tests matched: %s\n", run_filter);

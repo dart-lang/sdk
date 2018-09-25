@@ -30,10 +30,7 @@ class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
 
-  ~ServiceTestMessageHandler() {
-    PortMap::ClosePorts(this);
-    free(_msg);
-  }
+  ~ServiceTestMessageHandler() { free(_msg); }
 
   MessageStatus HandleMessage(Message* message) {
     if (_msg != NULL) {
