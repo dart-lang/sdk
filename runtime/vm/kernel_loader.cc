@@ -179,6 +179,7 @@ KernelLoader::KernelLoader(Program* program)
               program_->kernel_data_size(),
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -343,6 +344,7 @@ KernelLoader::KernelLoader(const Script& script,
       translation_helper_(this, thread_),
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -760,6 +762,18 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
   }
 }
 
+void KernelLoader::ReadInferredType(const Field& field,
+                                    intptr_t kernel_offset) {
+  const InferredTypeMetadata type =
+      inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+  if (type.IsTrivial()) {
+    return;
+  }
+  field.set_guarded_cid(type.cid);
+  field.set_is_nullable(type.IsNullable());
+  field.set_guarded_list_length(Field::kNoFixedLength);
+}
+
 void KernelLoader::CheckForInitializer(const Field& field) {
   if (helper_.PeekTag() == kSomething) {
     SimpleExpressionConverter converter(&H, &helper_);
@@ -932,6 +946,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
+    ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1326,6 +1341,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
+      ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();

@@ -200,11 +200,17 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         addSelector(CallKind.PropertyGet);
         break;
       case PragmaEntryPointType.SetterOnly:
+        if (field.isFinal) {
+          throw "Error: can't use 'set' in entry-point pragma for final field "
+              "$field";
+        }
         addSelector(CallKind.PropertySet);
         break;
       case PragmaEntryPointType.Always:
         addSelector(CallKind.PropertyGet);
-        addSelector(CallKind.PropertySet);
+        if (!field.isFinal) {
+          addSelector(CallKind.PropertySet);
+        }
         break;
     }
 
