@@ -75,7 +75,11 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
 
   accumulator.add(interface);
   InterfaceType superclass = interface.superclass;
-  Iterable<InterfaceType> interfaces = [superclass]
+  List<InterfaceType> interfaces = [];
+  if (superclass != null) {
+    interfaces.add(superclass);
+  }
+  interfaces
     ..addAll(interface.element.mixins)
     ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
   return interfaces.where((i) => i != interface);
