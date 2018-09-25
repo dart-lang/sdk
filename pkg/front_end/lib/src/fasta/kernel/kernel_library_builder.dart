@@ -83,6 +83,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         DynamicTypeBuilder,
+        EnumConstantInfo,
         FormalParameterBuilder,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -700,22 +701,17 @@ class KernelLibraryBuilder
     }
   }
 
+  @override
   void addEnum(
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(
-        metadataCollector,
-        metadata,
-        name,
-        constantNamesAndOffsets,
-        this,
-        charOffset,
-        charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
+        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);

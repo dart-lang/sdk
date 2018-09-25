@@ -116,8 +116,13 @@ class SourceClassBuilder extends KernelClassBuilder {
     void buildBuilders(String name, Declaration declaration) {
       do {
         if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
+          if (fileUri != declaration.parent.fileUri) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+                charOffset, fileUri);
+          }
         } else if (declaration is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.

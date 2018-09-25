@@ -54,6 +54,7 @@ enum NullValue {
   Identifier,
   IdentifierList,
   Initializers,
+  Labels,
   Metadata,
   Modifiers,
   ParameterDefaultValue,
@@ -75,6 +76,12 @@ abstract class StackListener extends Listener {
 
   @override
   Uri get uri;
+
+  void discard(int n) {
+    for (int i = 0; i < n; i++) {
+      pop();
+    }
+  }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
@@ -150,7 +157,14 @@ abstract class StackListener extends Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    push(token.lexeme);
+    if (!token.isSynthetic) {
+      push(token.lexeme);
+    } else {
+      // This comes from a synthetic token which is inserted by the parser in
+      // an attempt to recover.  This almost always means that the parser has
+      // gotten very confused and we need to ignore the results.
+      push(new ParserRecovery(token.charOffset));
+    }
   }
 
   @override
@@ -410,6 +424,7 @@ class Stack {
     final List<Object> array = this.array;
     final int length = arrayLength;
     final int startIndex = length - count;
+    bool isParserRecovery = false;
     for (int i = 0; i < count; i++) {
       int arrayIndex = startIndex + i;
       final Object value = array[arrayIndex];
@@ -417,13 +432,18 @@ class Stack {
       if (value is NullValue && nullValue == null ||
           identical(value, nullValue)) {
         list[i] = null;
+      } else if (value is ParserRecovery) {
+        isParserRecovery = true;
       } else {
+        if (value is NullValue) {
+          print(value);
+        }
         list[i] = value;
       }
     }
     arrayLength -= count;
 
-    return list;
+    return isParserRecovery ? null : list;
   }
 
   List<Object> get values {
@@ -468,4 +488,11 @@ class GrowableList<T> {
     return stack.popList(
         count, new List<T>.filled(count, null, growable: true), nullValue);
   }
+}
+
+class ParserRecovery {
+  final int charOffset;
+  ParserRecovery(this.charOffset);
+
+  String toString() => "ParserRecovery(charOffset)";
 }

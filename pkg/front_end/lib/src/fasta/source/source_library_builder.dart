@@ -180,7 +180,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
-            currentDeclaration.name == "operator",
+            currentDeclaration.name == "operator" ||
+            identical(name, "<syntax-error>"),
         "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
@@ -477,6 +478,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
+    if (name == null) {
+      unhandled("null", "name", charOffset, fileUri);
+    }
     if (currentDeclaration == libraryDeclaration) {
       if (declaration is MemberBuilder) {
         declaration.parent = this;

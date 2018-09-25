@@ -31,8 +31,7 @@ import '../parser.dart'
         offsetForToken,
         optional;
 
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unsupported;
+import '../problems.dart' show unexpected, unhandled, unsupported;
 
 import '../quote.dart'
     show
@@ -57,6 +56,7 @@ import '../source/scope_listener.dart'
         GrowableList,
         JumpTargetKind,
         NullValue,
+        ParserRecovery,
         ScopeListener;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
@@ -324,8 +324,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement popBlock(int count, Token openBrace, Token closeBrace) {
-    return forest.block(openBrace,
-        const GrowableList<Statement>().pop(stack, count), closeBrace);
+    return forest.block(
+        openBrace,
+        const GrowableList<Statement>().pop(stack, count) ?? <Statement>[],
+        closeBrace);
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -471,7 +473,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (count == 0) {
       push(NullValue.Metadata);
     } else {
-      push(const GrowableList<Expression>().pop(stack, count));
+      push(const GrowableList<Expression>().pop(stack, count) ??
+          NullValue.Metadata /* Ignore parser recovery */);
     }
   }
 
@@ -1085,8 +1088,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List<Object> arguments =
-        const FixedNullableList<Object>().pop(stack, count) ?? <Object>[];
+    List<Object> arguments = count == 0
+        ? <Object>[]
+        : const FixedNullableList<Object>().pop(stack, count);
+    if (arguments == null) {
+      push(new ParserRecovery(beginToken.charOffset));
+      return;
+    }
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       Object node = arguments[i];
@@ -1728,6 +1736,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       int count = 1 + interpolationCount * 2;
       List<Object> parts = const FixedNullableList<Object>().pop(stack, count);
+      if (parts == null) {
+        push(new ParserRecovery(endToken.charOffset));
+        return;
+      }
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -1974,6 +1986,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       currentLocalVariableType = pop();
       currentLocalVariableModifiers = pop();
       List<Expression> annotations = pop();
+      if (variables == null) {
+        push(new ParserRecovery(endToken.charOffset));
+        return;
+      }
       if (annotations != null) {
         bool isFirstVariable = true;
         for (VariableDeclarationJudgment variable in variables) {
@@ -2185,7 +2201,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
-    List<MapEntry> entries = const GrowableList<MapEntry>().pop(stack, count);
+    List<MapEntry> entries =
+        const GrowableList<MapEntry>().pop(stack, count) ?? <MapEntry>[];
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     DartType keyType;
     DartType valueType;
@@ -2245,6 +2262,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       List<Identifier> parts =
           const FixedNullableList<Identifier>().pop(stack, identifierCount);
+      if (parts == null) {
+        push(new ParserRecovery(hashToken.charOffset));
+        return;
+      }
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
@@ -2460,6 +2481,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       modifiers |= finalMask;
     }
     List<Expression> annotations = pop();
+    if (nameToken.isSynthetic) {
+      push(new ParserRecovery(nameToken.charOffset));
+      return;
+    }
     KernelFormalParameterBuilder parameter;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -2467,11 +2492,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ProcedureBuilder<TypeBuilder> member = this.member;
       parameter = member.getFormal(name.name);
       if (parameter == null) {
-        internalProblem(
-            fasta.templateInternalProblemNotFoundIn
-                .withArguments(name.name, "formals"),
-            offsetForToken(nameToken),
-            uri);
+        push(new ParserRecovery(nameToken.charOffset));
+        return;
       }
     } else {
       parameter = new KernelFormalParameterBuilder(null, modifiers,
@@ -2517,10 +2539,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<KernelFormalParameterBuilder> parameters =
         const FixedNullableList<KernelFormalParameterBuilder>()
             .pop(stack, count);
-    for (KernelFormalParameterBuilder parameter in parameters) {
-      parameter.kind = kind;
+    if (parameters == null) {
+      push(new ParserRecovery(offsetForToken(beginToken)));
+    } else {
+      for (KernelFormalParameterBuilder parameter in parameters) {
+        parameter.kind = kind;
+      }
+      push(parameters);
     }
-    push(parameters);
   }
 
   @override
@@ -2595,6 +2621,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (optionals != null && parameters != null) {
       parameters.setRange(count, count + optionalsCount, optionals);
     }
+    assert(parameters?.isNotEmpty ?? true);
     FormalParameters formals = new FormalParameters(parameters,
         offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
     constantContext = pop();
@@ -3238,7 +3265,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(const FixedNullableList<UnresolvedType<KernelTypeBuilder>>()
-        .pop(stack, count));
+            .pop(stack, count) ??
+        NullValue.TypeArguments);
   }
 
   @override
@@ -3564,8 +3592,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(member, functionNestingLevel, token.charOffset);
-    for (Label label in labels) {
-      scope.declareLabel(label.name, target);
+    if (labels != null) {
+      for (Label label in labels) {
+        scope.declareLabel(label.name, target);
+      }
     }
     push(target);
   }
@@ -3690,7 +3720,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     int count = labelCount + expressionCount;
     List<Object> labelsAndExpressions =
         const FixedNullableList<Object>().pop(stack, count);
-    List<Label> labels = new List<Label>(labelCount);
+    List<Label> labels = labelCount == 0 ? null : new List<Label>(labelCount);
     List<Expression> expressions =
         new List<Expression>.filled(expressionCount, null, growable: true);
     int labelIndex = 0;
@@ -3705,23 +3735,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     assert(scope == switchScope);
-    for (Label label in labels) {
-      String labelName = label.name;
-      if (scope.hasLocalLabel(labelName)) {
-        // TODO(ahe): Should validate this is a goto target.
-        if (!scope.claimLabel(labelName)) {
-          addProblem(
-              fasta.templateDuplicateLabelInSwitchStatement
-                  .withArguments(labelName),
-              label.charOffset,
-              labelName.length);
+    if (labels != null) {
+      for (Label label in labels) {
+        String labelName = label.name;
+        if (scope.hasLocalLabel(labelName)) {
+          // TODO(ahe): Should validate this is a goto target.
+          if (!scope.claimLabel(labelName)) {
+            addProblem(
+                fasta.templateDuplicateLabelInSwitchStatement
+                    .withArguments(labelName),
+                label.charOffset,
+                labelName.length);
+          }
+        } else {
+          scope.declareLabel(
+              labelName, createGotoTarget(firstToken.charOffset));
         }
-      } else {
-        scope.declareLabel(labelName, createGotoTarget(firstToken.charOffset));
       }
     }
     push(expressions);
-    push(labels);
+    push(labels ?? NullValue.Labels);
     enterLocalScope("switch case");
   }
 
@@ -3749,7 +3782,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(new SwitchCaseJudgment(expressions, expressionOffsets, block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
-    push(labels);
+    push(labels ?? NullValue.Labels);
   }
 
   @override
@@ -3778,10 +3811,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label> labels = pop();
       SwitchCase current = cases[i] = pop();
-      for (Label label in labels) {
-        JumpTarget target = switchScope.lookupLabel(label.name);
-        if (target != null) {
-          target.resolveGotos(forest, current);
+      if (labels != null) {
+        for (Label label in labels) {
+          JumpTarget target = switchScope.lookupLabel(label.name);
+          if (target != null) {
+            target.resolveGotos(forest, current);
+          }
         }
       }
     }

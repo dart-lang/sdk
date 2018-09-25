@@ -32,8 +32,8 @@ import '../deprecated_problems.dart'
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         Code,
+        LocatedMessage,
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
@@ -56,7 +56,8 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'stack_listener.dart' show FixedNullableList, NullValue, StackListener;
+import 'stack_listener.dart'
+    show FixedNullableList, NullValue, ParserRecovery, StackListener;
 
 import '../quote.dart' show unescapeString;
 
@@ -78,6 +79,8 @@ class DietListener extends StackListener {
 
   ClassBuilder currentClass;
 
+  bool currentClassIsParserRecovery = false;
+
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentClass].
   Scope memberScope;
@@ -94,12 +97,6 @@ class DietListener extends StackListener {
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString;
-
-  void discard(int n) {
-    for (int i = 0; i < n; i++) {
-      pop();
-    }
-  }
 
   @override
   void endMetadataStar(int count) {
@@ -235,8 +232,10 @@ class DietListener extends StackListener {
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) pop(); // endToken
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
+    checkEmpty(typedefKeyword.charOffset);
+    if (name is ParserRecovery) return;
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
@@ -292,9 +291,11 @@ class DietListener extends StackListener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop();
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery) return;
+
     final StackListener listener =
         createFunctionListener(lookupBuilder(beginToken, getOrSet, name));
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
@@ -330,10 +331,16 @@ class DietListener extends StackListener {
   @override
   void handleQualified(Token period) {
     debugEvent("handleQualified");
-    String suffix = pop();
-    var prefix = pop();
-    assert(identical(suffix, period.next.lexeme));
-    push(new QualifiedName(prefix, period.next));
+    Object suffix = pop();
+    Object prefix = pop();
+    if (prefix is ParserRecovery) {
+      push(prefix);
+    } else if (suffix is ParserRecovery) {
+      push(suffix);
+    } else {
+      assert(identical(suffix, period.next.lexeme));
+      push(new QualifiedName(prefix, period.next));
+    }
   }
 
   @override
@@ -433,9 +440,11 @@ class DietListener extends StackListener {
   @override
   void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
-    pop(NullValue.Prefix);
+    Object name = pop(NullValue.Prefix);
 
     Token metadata = pop();
+    checkEmpty(importKeyword.charOffset);
+    if (name is ParserRecovery) return;
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
@@ -507,6 +516,7 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     ProcedureBuilder builder = lookupConstructor(beginToken, name);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
@@ -555,6 +565,7 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery || currentClassIsParserRecovery) return;
     ProcedureBuilder builder;
     if (name is QualifiedName ||
         (getOrSet == null && name == currentClass.name)) {
@@ -633,8 +644,11 @@ class DietListener extends StackListener {
 
   void buildFields(int count, Token token, bool isTopLevel) {
     List<String> names = const FixedNullableList<String>().pop(stack, count);
-    Declaration declaration = lookupBuilder(token, null, names.first);
     Token metadata = pop();
+    checkEmpty(token.charOffset);
+    if (names == null || currentClassIsParserRecovery) return;
+
+    Declaration declaration = lookupBuilder(token, null, names.first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(
@@ -642,6 +656,7 @@ class DietListener extends StackListener {
         token,
         metadata,
         isTopLevel);
+    checkEmpty(token.charOffset);
   }
 
   @override
@@ -665,11 +680,15 @@ class DietListener extends StackListener {
 
   @override
   void beginClassOrMixinBody(Token token) {
-    debugEvent("beginClassBody");
-    String name = pop();
+    debugEvent("beginClassOrMixinBody");
+    Object name = pop();
     Token metadata = pop();
     assert(currentClass == null);
     assert(memberScope == library.scope);
+    if (name is ParserRecovery) {
+      currentClassIsParserRecovery = true;
+      return;
+    }
 
     Declaration classBuilder = lookupBuilder(token, null, name);
     parseMetadata(classBuilder, metadata, classBuilder.target);
@@ -682,6 +701,7 @@ class DietListener extends StackListener {
   void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     currentClass = null;
+    currentClassIsParserRecovery = false;
     memberScope = library.scope;
   }
 
@@ -702,8 +722,10 @@ class DietListener extends StackListener {
     debugEvent("Enum");
     List<Object> metadataAndValues =
         const FixedNullableList<Object>().pop(stack, count * 2);
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
+    checkEmpty(enumKeyword.charOffset);
+    if (name is ParserRecovery) return;
 
     ClassBuilder enumBuilder = lookupBuilder(enumKeyword, null, name);
     parseMetadata(enumBuilder, metadata, enumBuilder.target);
@@ -726,13 +748,20 @@ class DietListener extends StackListener {
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
 
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
-
-    Declaration classBuilder = lookupBuilder(classKeyword, null, name);
-    parseMetadata(classBuilder, metadata, classBuilder.target);
-
     checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery) return;
+
+    Declaration classBuilder = library.scopeBuilder[name];
+    if (classBuilder != null) {
+      // TODO(ahe): We shouldn't have to check for null here. The problem is
+      // that we don't create a named mixin application if the mixins or
+      // supertype are missing. Could we create a class instead? The nested
+      // declarations wouldn't match up.
+      parseMetadata(classBuilder, metadata, classBuilder.target);
+      checkEmpty(beginToken.charOffset);
+    }
   }
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
