@@ -6597,7 +6597,8 @@ DART_EXPORT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size) {
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 const uint8_t* reused_instructions) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
 #elif defined(DART_PRECOMPILED_RUNTIME)
@@ -6621,6 +6622,9 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   }
   BackgroundCompiler::Stop(I);
 
+  if (reused_instructions) {
+    DropCodeWithoutReusableInstructions(reused_instructions);
+  }
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
@@ -6628,7 +6632,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                             "WriteAppJITSnapshot"));
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate, 2 * MB /* initial_size */,
-                                       NULL, NULL);
+                                       NULL, NULL, reused_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);
@@ -6637,6 +6641,10 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
+
+  if (reused_instructions) {
+    *isolate_snapshot_instructions_buffer = NULL;
+  }
 
   return Api::Success();
 #endif

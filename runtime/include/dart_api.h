@@ -3470,7 +3470,8 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size);
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 const uint8_t* reused_instructions);
 
 /**
  * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.

@@ -368,7 +368,7 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #if defined(TARGET_ARCH_IA32)
-  // Snapshots with code are not supported on IA32 or DBC.
+  // Snapshots with code are not supported on IA32.
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
 
@@ -387,7 +387,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   intptr_t isolate_instructions_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_data_buffer, &isolate_data_size, &isolate_instructions_buffer,
-      &isolate_instructions_size);
+      &isolate_instructions_size, NULL);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

@@ -96,10 +96,12 @@ typedef DirectChainedHashMap<ObjectOffsetTrait> ObjectOffsetMap;
 
 class ImageWriter : public ValueObject {
  public:
-  ImageWriter(const void* shared_objects, const void* shared_instructions);
+  ImageWriter(const void* shared_objects,
+              const void* shared_instructions,
+              const void* reused_instructions);
   virtual ~ImageWriter() {}
 
-  void SetupShared(ObjectOffsetMap* map, const void* shared_image);
+  static void SetupShared(ObjectOffsetMap* map, const void* shared_image);
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
     next_text_offset_ = Image::kHeaderSize;
@@ -156,6 +158,7 @@ class ImageWriter : public ValueObject {
   GrowableArray<InstructionsData> instructions_;
   ObjectOffsetMap shared_objects_;
   ObjectOffsetMap shared_instructions_;
+  ObjectOffsetMap reuse_instructions_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
@@ -196,7 +199,8 @@ class BlobImageWriter : public ImageWriter {
                   ReAlloc alloc,
                   intptr_t initial_size,
                   const void* shared_objects,
-                  const void* shared_instructions);
+                  const void* shared_instructions,
+                  const void* reused_instructions = NULL);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
 
@@ -209,6 +213,8 @@ class BlobImageWriter : public ImageWriter {
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
+
+void DropCodeWithoutReusableInstructions(const void* reused_instructions);
 
 }  // namespace dart
 

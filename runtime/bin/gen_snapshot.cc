@@ -60,7 +60,7 @@ static const int kErrorExitCode = 255;
   }
 
 // The core snapshot to use when creating isolates. Normally NULL, but loaded
-// from a file when creating script snapshots.
+// from a file when creating AppJIT snapshots.
 const uint8_t* isolate_snapshot_data = NULL;
 const uint8_t* isolate_snapshot_instructions = NULL;
 
@@ -69,7 +69,7 @@ const uint8_t* isolate_snapshot_instructions = NULL;
 enum SnapshotKind {
   kCore,
   kCoreJIT,
-  kScript,
+  kAppJIT,
   kAppAOTBlobs,
   kAppAOTAssembly,
   kVMAOTAssembly,
@@ -93,7 +93,7 @@ static bool ProcessEnvironmentOption(const char* arg,
 static const char* kSnapshotKindNames[] = {
     "core",
     "core-jit",
-    "script",
+    "app-jit",
     "app-aot-blobs",
     "app-aot-assembly",
     "vm-aot-assembly",
@@ -101,12 +101,18 @@ static const char* kSnapshotKindNames[] = {
 };
 
 #define STRING_OPTIONS_LIST(V)                                                 \
+  V(load_vm_snapshot_data, load_vm_snapshot_data_filename)                     \
+  V(load_vm_snapshot_instructions, load_vm_snapshot_instructions_filename)     \
+  V(load_isolate_snapshot_data, load_isolate_snapshot_data_filename)           \
+  V(load_isolate_snapshot_instructions,                                        \
+    load_isolate_snapshot_instructions_filename)                               \
   V(vm_snapshot_data, vm_snapshot_data_filename)                               \
   V(vm_snapshot_instructions, vm_snapshot_instructions_filename)               \
   V(isolate_snapshot_data, isolate_snapshot_data_filename)                     \
   V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
   V(shared_data, shared_data_filename)                                         \
   V(shared_instructions, shared_instructions_filename)                         \
+  V(reused_instructions, reused_instructions_filename)                         \
   V(assembly, assembly_filename)                                               \
   V(script_snapshot, script_snapshot_filename)                                 \
   V(dependencies, dependencies_filename)                                       \
@@ -148,10 +154,6 @@ static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) ||
          (snapshot_kind == kAppAOTAssembly) ||
          (snapshot_kind == kVMAOTAssembly);
-}
-
-static bool SnapshotKindAllowedFromKernel() {
-  return snapshot_kind != kScript;
 }
 
 // clang-format off
@@ -305,14 +307,17 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kScript: {
-      if ((vm_snapshot_data_filename == NULL) ||
+    case kAppJIT: {
+      if ((load_vm_snapshot_data_filename == NULL) ||
           (isolate_snapshot_data_filename == NULL) ||
-          (script_snapshot_filename == NULL) || (*script_name == NULL)) {
+          ((isolate_snapshot_instructions_filename == NULL) &&
+           (reused_instructions_filename == NULL))) {
         Log::PrintErr(
-            "Building a script snapshot requires specifying input files for "
-            "--vm_snapshot_data and --isolate_snapshot_data, an output file "
-            "for --script_snapshot, and a Dart script.\n\n");
+            "Building an app JIT snapshot requires specifying input files for "
+            "--load_vm_snapshot_data and --load_vm_snapshot_instructions, an "
+            " output file for --isolate_snapshot_data, and either an output "
+            "file for --isolate_snapshot_instructions or an input file for "
+            "--reused_instructions.\n\n");
         return -1;
       }
       break;
@@ -564,11 +569,12 @@ class DependenciesFileWriter : public ValueObject {
         WriteDependenciesWithTarget(vm_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         break;
-      case kScript:
-        WriteDependenciesWithTarget(script_snapshot_filename);
-        break;
       case kAppAOTAssembly:
         WriteDependenciesWithTarget(assembly_filename);
+        break;
+      case kAppJIT:
+        WriteDependenciesWithTarget(isolate_snapshot_data_filename);
+        // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
       case kCoreJIT:
       case kAppAOTBlobs:
@@ -592,21 +598,6 @@ class DependenciesFileWriter : public ValueObject {
   void WriteDependenciesWithTarget(const char* target) {
     WritePath(target);
     Write(": ");
-
-    if (snapshot_kind == kScript) {
-      if (vm_snapshot_data_filename != NULL) {
-        WritePath(vm_snapshot_data_filename);
-      }
-      if (vm_snapshot_instructions_filename != NULL) {
-        WritePath(vm_snapshot_instructions_filename);
-      }
-      if (isolate_snapshot_data_filename != NULL) {
-        WritePath(isolate_snapshot_data_filename);
-      }
-      if (isolate_snapshot_instructions_filename != NULL) {
-        WritePath(isolate_snapshot_instructions_filename);
-      }
-    }
 
     for (intptr_t i = 0; i < dependencies_->length(); i++) {
       WritePath(dependencies_->At(i));
@@ -765,7 +756,7 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
 
 static void LoadCompilationTrace() {
   if ((load_compilation_trace_filename != NULL) &&
-      (snapshot_kind == kCoreJIT)) {
+      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
@@ -803,6 +794,30 @@ static void CreateAndWriteCoreSnapshot() {
   if (isolate_snapshot_instructions_filename != NULL) {
     WriteFile(isolate_snapshot_instructions_filename, NULL, 0);
   }
+}
+
+static std::unique_ptr<MappedMemory> MapFile(const char* filename,
+                                             File::MapType type,
+                                             const uint8_t** buffer) {
+  File* file = File::Open(NULL, filename, File::kRead);
+  if (file == NULL) {
+    Log::PrintErr("Failed to open: %s\n", filename);
+    exit(kErrorExitCode);
+  }
+  RefCntReleaseScope<File> rs(file);
+  intptr_t length = file->Length();
+  if (length == 0) {
+    // Can't map an empty file.
+    *buffer = NULL;
+    return NULL;
+  }
+  MappedMemory* mapping = file->Map(type, 0, length);
+  if (mapping == NULL) {
+    Log::PrintErr("Failed to read: %s\n", filename);
+    exit(kErrorExitCode);
+  }
+  *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
+  return std::unique_ptr<MappedMemory>(mapping);
 }
 
 static void CreateAndWriteCoreJITSnapshot() {
@@ -844,18 +859,38 @@ static void CreateAndWriteCoreJITSnapshot() {
             isolate_snapshot_instructions_size);
 }
 
-static void CreateAndWriteScriptSnapshot() {
-  ASSERT(snapshot_kind == kScript);
-  ASSERT(script_snapshot_filename != NULL);
+static void CreateAndWriteAppJITSnapshot() {
+  ASSERT(snapshot_kind == kAppJIT);
+  ASSERT(isolate_snapshot_data_filename != NULL);
+  ASSERT((isolate_snapshot_instructions_filename != NULL) ||
+         (reused_instructions_filename != NULL));
 
-  // First create a snapshot.
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  Dart_Handle result = Dart_CreateScriptSnapshot(&buffer, &size);
+  const uint8_t* reused_instructions = NULL;
+  std::unique_ptr<MappedMemory> mapped_reused_instructions;
+  if (reused_instructions_filename != NULL) {
+    mapped_reused_instructions = MapFile(reused_instructions_filename,
+                                         File::kReadOnly, &reused_instructions);
+  }
+
+  Dart_Handle result;
+  uint8_t* isolate_snapshot_data_buffer = NULL;
+  intptr_t isolate_snapshot_data_size = 0;
+  uint8_t* isolate_snapshot_instructions_buffer = NULL;
+  intptr_t isolate_snapshot_instructions_size = 0;
+
+  result = Dart_CreateAppJITSnapshotAsBlobs(
+      &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
+      &isolate_snapshot_instructions_buffer,
+      &isolate_snapshot_instructions_size, reused_instructions);
   CHECK_RESULT(result);
 
-  // Now write it out to the specified file.
-  WriteFile(script_snapshot_filename, buffer, size);
+  WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+            isolate_snapshot_data_size);
+  if (reused_instructions_filename == NULL) {
+    WriteFile(isolate_snapshot_instructions_filename,
+              isolate_snapshot_instructions_buffer,
+              isolate_snapshot_instructions_size);
+  }
 }
 
 static void StreamingWriteCallback(void* callback_data,
@@ -868,30 +903,6 @@ static void StreamingWriteCallback(void* callback_data,
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
   }
-}
-
-static std::unique_ptr<MappedMemory> MapFile(const char* filename,
-                                             File::MapType type,
-                                             const uint8_t** buffer) {
-  File* file = File::Open(NULL, filename, File::kRead);
-  if (file == NULL) {
-    Log::PrintErr("Failed to open: %s\n", filename);
-    exit(kErrorExitCode);
-  }
-  RefCntReleaseScope<File> rs(file);
-  intptr_t length = file->Length();
-  if (length == 0) {
-    // Can't map an empty file.
-    *buffer = NULL;
-    return NULL;
-  }
-  MappedMemory* mapping = file->Map(type, 0, length);
-  if (mapping == NULL) {
-    Log::PrintErr("Failed to read: %s\n", filename);
-    exit(kErrorExitCode);
-  }
-  *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
-  return std::unique_ptr<MappedMemory>(mapping);
 }
 
 static void CreateAndWritePrecompiledSnapshot() {
@@ -1050,8 +1061,6 @@ static Dart_QualifiedFunctionName no_entry_points[] = {
 
 static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
                                       intptr_t kernel_buffer_size) {
-  ASSERT(SnapshotKindAllowedFromKernel());
-
   char* error = NULL;
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
@@ -1067,12 +1076,19 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
     isolate_flags.entry_points = no_entry_points;
   }
 
-  // We need to capture the vmservice library in the core snapshot, so load it
-  // in the main isolate as well.
-  isolate_flags.load_vmservice_library = true;
-  Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
-      NULL, NULL, kernel_buffer, kernel_buffer_size, &isolate_flags,
-      isolate_data, &error);
+  Dart_Isolate isolate;
+  if (isolate_snapshot_data == NULL) {
+    // We need to capture the vmservice library in the core snapshot, so load it
+    // in the main isolate as well.
+    isolate_flags.load_vmservice_library = true;
+    isolate = Dart_CreateIsolateFromKernel(NULL, NULL, kernel_buffer,
+                                           kernel_buffer_size, &isolate_flags,
+                                           isolate_data, &error);
+  } else {
+    isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, NULL, NULL,
+                                 &isolate_flags, isolate_data, &error);
+  }
   if (isolate == NULL) {
     delete isolate_data;
     Log::PrintErr("%s\n", error);
@@ -1125,6 +1141,10 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
       LoadCompilationTrace();
       CreateAndWriteCoreJITSnapshot();
       break;
+    case kAppJIT:
+      LoadCompilationTrace();
+      CreateAndWriteAppJITSnapshot();
+      break;
     default:
       UNREACHABLE();
   }
@@ -1172,13 +1192,6 @@ int main(int argc, char** argv) {
     dfe.ReadScript(app_script_name, &kernel_buffer, &kernel_buffer_size);
   }
   if (kernel_buffer != NULL) {
-    if (!SnapshotKindAllowedFromKernel()) {
-      // TODO(sivachandra): Add check for the kernel program format (incremental
-      // vs batch).
-      Log::PrintErr(
-          "Can only generate core or aot snapshots from a kernel file.\n");
-      return kErrorExitCode;
-    }
     if (dependencies_filename != NULL) {
       Log::PrintErr("Depfiles are not supported in Dart 2.\n");
       return kErrorExitCode;
@@ -1205,7 +1218,7 @@ int main(int argc, char** argv) {
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   }
-  if (snapshot_kind == kCoreJIT) {
+  if (snapshot_kind == kCoreJIT || snapshot_kind == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
     vm_options.AddArgument("--link_natives_lazily");
 #if !defined(PRODUCT)
@@ -1246,26 +1259,25 @@ int main(int argc, char** argv) {
   std::unique_ptr<MappedMemory> mapped_vm_snapshot_instructions;
   std::unique_ptr<MappedMemory> mapped_isolate_snapshot_data;
   std::unique_ptr<MappedMemory> mapped_isolate_snapshot_instructions;
-  if (snapshot_kind == kScript) {
+  if (load_vm_snapshot_data_filename != NULL) {
     mapped_vm_snapshot_data =
-        MapFile(vm_snapshot_data_filename, File::kReadOnly,
+        MapFile(load_vm_snapshot_data_filename, File::kReadOnly,
                 &init_params.vm_snapshot_data);
-
-    if (vm_snapshot_instructions_filename != NULL) {
-      mapped_vm_snapshot_instructions =
-          MapFile(vm_snapshot_instructions_filename, File::kReadExecute,
-                  &init_params.vm_snapshot_instructions);
-    }
-
+  }
+  if (load_vm_snapshot_instructions_filename != NULL) {
+    mapped_vm_snapshot_instructions =
+        MapFile(load_vm_snapshot_instructions_filename, File::kReadExecute,
+                &init_params.vm_snapshot_instructions);
+  }
+  if (load_isolate_snapshot_data_filename) {
     mapped_isolate_snapshot_data =
-        MapFile(isolate_snapshot_data_filename, File::kReadOnly,
+        MapFile(load_isolate_snapshot_data_filename, File::kReadOnly,
                 &isolate_snapshot_data);
-
-    if (isolate_snapshot_instructions_filename != NULL) {
-      mapped_isolate_snapshot_instructions =
-          MapFile(isolate_snapshot_instructions_filename, File::kReadExecute,
-                  &isolate_snapshot_instructions);
-    }
+  }
+  if (load_isolate_snapshot_instructions_filename != NULL) {
+    mapped_isolate_snapshot_instructions =
+        MapFile(load_isolate_snapshot_instructions_filename, File::kReadExecute,
+                &isolate_snapshot_instructions);
   }
 
   error = Dart_Initialize(&init_params);
@@ -1391,8 +1403,8 @@ int main(int argc, char** argv) {
       case kCoreJIT:
         CreateAndWriteCoreJITSnapshot();
         break;
-      case kScript:
-        CreateAndWriteScriptSnapshot();
+      case kAppJIT:
+        CreateAndWriteAppJITSnapshot();
         break;
       case kAppAOTBlobs:
       case kAppAOTAssembly:
@@ -1418,6 +1430,9 @@ int main(int argc, char** argv) {
         break;
       case kCoreJIT:
         CreateAndWriteCoreJITSnapshot();
+        break;
+      case kAppJIT:
+        CreateAndWriteAppJITSnapshot();
         break;
       default:
         UNREACHABLE();
