@@ -169,6 +169,10 @@ mixin M {}
     expect(element.typeParameters, isEmpty);
 
     expect(element.supertype, isNull);
+    expect(element.isAbstract, isTrue);
+    expect(element.isEnum, isFalse);
+    expect(element.isMixin, isTrue);
+    expect(element.isMixinApplication, isFalse);
     expect(element.type.isObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);

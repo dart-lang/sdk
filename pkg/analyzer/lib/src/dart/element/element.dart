@@ -6581,6 +6581,9 @@ class MixinElementImpl extends ClassElementImpl {
       : super.forSerialized(unlinkedClass, enclosingUnit);
 
   @override
+  bool get isAbstract => true;
+
+  @override
   bool get isMixin => true;
 
   @override

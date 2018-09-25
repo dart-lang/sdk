@@ -2732,7 +2732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       InstanceCreationExpression expression,
       TypeName typeName,
       InterfaceType type) {
-    if (type.element.isAbstract) {
+    if (type.element.isAbstract && !type.element.isMixin) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
         bool isImplicit =
