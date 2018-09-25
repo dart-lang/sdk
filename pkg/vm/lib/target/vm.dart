@@ -24,6 +24,8 @@ class VmTarget extends Target {
   Class _immutableList;
   Class _internalLinkedHashMap;
   Class _immutableMap;
+  Class _oneByteString;
+  Class _twoByteString;
 
   VmTarget(this.flags);
 
@@ -320,5 +322,18 @@ class VmTarget extends Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _immutableMap ??=
         coreTypes.index.getClass('dart:core', '_ImmutableMap');
+  }
+
+  @override
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
+    const int maxLatin1 = 0xff;
+    for (int i = 0; i < value.length; ++i) {
+      if (value.codeUnitAt(i) > maxLatin1) {
+        return _twoByteString ??=
+            coreTypes.index.getClass('dart:core', '_TwoByteString');
+      }
+    }
+    return _oneByteString ??=
+        coreTypes.index.getClass('dart:core', '_OneByteString');
   }
 }

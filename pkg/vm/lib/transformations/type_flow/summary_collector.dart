@@ -554,6 +554,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Class get _superclass => _environment.thisType.classNode.superclass;
 
+  Type _stringLiteralType(String value) {
+    Class concreteClass =
+        target.concreteStringLiteralClass(_environment.coreTypes, value);
+    return concreteClass != null
+        ? _entryPointsListener.addAllocatedClass(concreteClass)
+        : _stringType;
+  }
+
   void _handleNestedFunctionNode(FunctionNode node) {
     var oldReturn = _returnValue;
     var oldVariables = _variables;
@@ -892,7 +900,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitStringLiteral(StringLiteral node) {
-    return _stringType;
+    return _stringLiteralType(node.value);
   }
 
   @override
@@ -1244,7 +1252,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitStringConstant(StringConstant constant) {
-    return summaryCollector._stringType;
+    return summaryCollector._stringLiteralType(constant.value);
   }
 
   @override

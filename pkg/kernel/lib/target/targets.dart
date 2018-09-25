@@ -200,6 +200,8 @@ abstract class Target {
 
   Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 }
 
 class NoneTarget extends Target {
