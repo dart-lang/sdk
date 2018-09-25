@@ -2649,10 +2649,20 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_String_num() async {
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -2722,10 +2732,20 @@ class A {}
 class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -4231,14 +4251,18 @@ class C = A with String;''');
 class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (enableNewAnalysisDriver) {
       assertErrors(source, [
-        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.INVALID_OVERRIDE,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
       ]);
     } else {
       assertErrors(source, [
+        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+        CompileTimeErrorCode.INVALID_OVERRIDE,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
       ]);

@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -5553,6 +5554,14 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, libraryElement, typeProvider, context.declaredVariables);
     unit.accept(constantVerifier);
+
+    //
+    // Compute inheritance and override errors.
+    //
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        libraryElement.context.typeSystem, errorReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit);
+
     //
     // Use the ErrorVerifier to compute errors.
     //

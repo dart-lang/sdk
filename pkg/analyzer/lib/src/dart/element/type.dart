@@ -1766,13 +1766,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false, int stopMixinIndex, bool setter: false}) {
+      {bool concrete: false,
+      int startMixinIndex,
+      bool setter: false,
+      bool thisType: false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
+    /// TODO(scheglov) Remove [includeSupers]. It is used only to work around
+    /// the problem with Flutter code base (using old super-mixins).
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
         {bool acceptAbstract: false,
         bool includeType: true,
-        int stopMixinIndex}) {
+        bool includeSupers: true,
+        int startMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
       }
@@ -1792,14 +1798,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      var mixins = type.mixins;
-      for (var i = 0; i < mixins.length; i++) {
-        if (stopMixinIndex != null && i >= stopMixinIndex) {
-          break;
-        }
-        var result = lookUpImpl(mixins[i], acceptAbstract: acceptAbstract);
-        if (result != null) {
-          return result;
+      if (includeSupers) {
+        var mixins = type.mixins;
+        startMixinIndex ??= mixins.length;
+        for (var i = startMixinIndex - 1; i >= 0; i--) {
+          var result = lookUpImpl(
+            mixins[i],
+            acceptAbstract: acceptAbstract,
+            includeSupers: false,
+          );
+          if (result != null) {
+            return result;
+          }
         }
       }
 
@@ -1814,10 +1824,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+      if (includeSupers) {
+        return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+      }
+
+      return null;
     }
 
     if (element.isMixin) {
+      // TODO(scheglov) We should choose the most specific signature.
+      // Not just the first signature.
       for (InterfaceType constraint in superclassConstraints) {
         var result = lookUpImpl(constraint, acceptAbstract: true);
         if (result != null) {
@@ -1828,8 +1844,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else {
       return lookUpImpl(
         this,
-        includeType: false,
-        stopMixinIndex: stopMixinIndex,
+        includeType: thisType,
+        startMixinIndex: startMixinIndex,
       );
     }
   }

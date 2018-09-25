@@ -3460,7 +3460,7 @@ class D extends C {
   T f<T extends B>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3475,7 +3475,7 @@ class D extends C {
   T f<T extends A>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3488,7 +3488,7 @@ class D extends C {
   String f<S>(S x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3501,7 +3501,7 @@ class D extends C {
   S f<T, S>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
