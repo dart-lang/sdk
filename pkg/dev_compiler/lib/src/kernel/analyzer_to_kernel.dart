@@ -79,9 +79,9 @@ class AnalyzerToKernel {
   final _typeParams = HashMap<a.TypeParameterElement, TypeParameter>();
   final _namespaceBuilder = a.NamespaceBuilder();
 
-  AnalyzerToKernel._(a.AnalysisContext context, this._summaryData)
-      : _resynth = a.StoreBasedSummaryResynthesizer(
-            context, context.sourceFactory, /*strongMode*/ true, _summaryData),
+  AnalyzerToKernel._(a.AnalysisContextImpl context, this._summaryData)
+      : _resynth = (context.resultProvider as a.InputPackagesResultProvider)
+            .resynthesizer,
         types = context.typeProvider,
         rules = context.typeSystem as a.StrongTypeSystemImpl;
 

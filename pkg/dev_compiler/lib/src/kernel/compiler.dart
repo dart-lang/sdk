@@ -195,11 +195,10 @@ class ProgramCompiler extends Object
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Component component, SharedCompilerOptions options,
-      Map<String, String> declaredVariables) {
+  factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
+      SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
-    var types =
-        TypeSchemaEnvironment(coreTypes, ClassHierarchy(component), true);
+    var types = TypeSchemaEnvironment(coreTypes, hierarchy, true);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);

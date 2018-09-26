@@ -10,6 +10,8 @@ import 'package:kernel/target/targets.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
+  ClassHierarchy hierarchy;
+
   bool get strongMode => true; // the only correct answer
 
   bool get enableSuperMixins => true;
@@ -68,7 +70,9 @@ class DevCompilerTarget extends Target {
   @override
   void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
-      {void logger(String msg)}) {}
+      {void logger(String msg)}) {
+    this.hierarchy = hierarchy;
+  }
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

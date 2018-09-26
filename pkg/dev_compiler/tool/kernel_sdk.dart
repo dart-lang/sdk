@@ -54,8 +54,9 @@ Future main(List<String> args) async {
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
 
-  var jsModule = ProgramCompiler(component, SharedCompilerOptions(), {})
-      .emitModule(component, [], {});
+  var jsModule =
+      ProgramCompiler(component, target.hierarchy, SharedCompilerOptions(), {})
+          .emitModule(component, [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

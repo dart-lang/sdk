@@ -211,7 +211,9 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.Printer(sink, showExternal: false).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
-  var compiler = ProgramCompiler(component, options, declaredVariables);
+  var target = compilerState.options.target as DevCompilerTarget;
+  var compiler =
+      ProgramCompiler(component, target.hierarchy, options, declaredVariables);
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryModules);
 
