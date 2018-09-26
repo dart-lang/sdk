@@ -25,7 +25,7 @@ namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
 static const char* kSnapshotKindNames[] = {
-    "none", "script", "app-aot", "app-jit", NULL,
+    "none", "kernel", "app-aot", "app-jit", NULL,
 };
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
@@ -461,7 +461,7 @@ int Options::ParseArguments(int argc,
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
   if ((snapshot_filename_ != NULL) && (gen_snapshot_kind_ == kNone)) {
-    gen_snapshot_kind_ = kScript;
+    gen_snapshot_kind_ = kKernel;
   }
 
   return 0;

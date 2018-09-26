@@ -446,10 +446,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
       dart_result = Dart_LoadSource(library, uri, resolved_uri, source, 0, 0);
     } break;
     case Dart_kScriptTag:
-      if (payload_type == DartUtils::kSnapshotMagicNumber) {
-        dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
-        reload_extensions = true;
-      } else if (payload_type == DartUtils::kKernelMagicNumber) {
+      if (payload_type == DartUtils::kKernelMagicNumber) {
         // TODO(27590): This code path is only hit when trying to spawn
         // isolates. We currently do not have support for neither
         // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based

@@ -248,6 +248,7 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   return NULL;
 }
 
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
 static void WriteSnapshotFile(const char* filename,
                               const uint8_t* buffer,
                               const intptr_t size) {
@@ -263,6 +264,7 @@ static void WriteSnapshotFile(const char* filename,
   }
   file->Release();
 }
+#endif
 
 static bool WriteInt64(File* file, int64_t size) {
   return file->WriteFully(&size, sizeof(size));
@@ -352,18 +354,6 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
 #else
   UNREACHABLE();
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
-}
-
-void Snapshot::GenerateScript(const char* snapshot_filename) {
-  // First create a snapshot.
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  Dart_Handle result = Dart_CreateScriptSnapshot(&buffer, &size);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-
-  WriteSnapshotFile(snapshot_filename, buffer, size);
 }
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {

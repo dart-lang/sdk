@@ -177,7 +177,7 @@ def ToGnArgs(args, mode, arch, target_os):
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
     # snapshots instead.
-    gn_args['dart_snapshot_kind'] = 'script'
+    gn_args['dart_snapshot_kind'] = 'kernel'
   else:
     gn_args['dart_snapshot_kind'] = 'app-jit'
 

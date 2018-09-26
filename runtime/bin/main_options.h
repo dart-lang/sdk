@@ -68,7 +68,7 @@ namespace bin {
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
   kNone,
-  kScript,
+  kKernel,
   kAppAOT,
   kAppJIT,
 };

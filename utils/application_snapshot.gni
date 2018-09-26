@@ -11,7 +11,7 @@ declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
   if (target_cpu != host_cpu) {
-    dart_snapshot_kind = "script"
+    dart_snapshot_kind = "kernel"
   } else {
     dart_snapshot_kind = "app-jit"
   }
@@ -96,9 +96,9 @@ template("_application_snapshot") {
       "--snapshot-depfile=$abs_depfile",
     ] + snapshot_vm_args
 
-    if (dart_snapshot_kind == "script") {
+    if (dart_snapshot_kind == "kernel") {
       vm_args += [
-        "--snapshot-kind=script",
+        "--snapshot-kind=kernel",
       ]
       assert(training_args != "", "Ignoring unused argument")
       args = []

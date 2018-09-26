@@ -231,7 +231,6 @@ class ObjectStore {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
-      case Snapshot::kScript:
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
