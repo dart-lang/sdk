@@ -6618,7 +6618,14 @@ final v = ((a, b) {return 42;})(1, 2);
 ''');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
-        operators: [UnlinkedExprOperation.pushNull],
+        operators: [
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethod
+        ],
+        ints: [0, 0, 1, 2, 0, 2, 0],
+        strings: ['call'],
         forTypeInferenceOnly: true);
   }
 
@@ -6628,7 +6635,14 @@ final v = ((a, b) => 42)(1, 2);
 ''');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
-        operators: [UnlinkedExprOperation.pushNull],
+        operators: [
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethod
+        ],
+        ints: [0, 0, 1, 2, 0, 2, 0],
+        strings: ['call'],
         forTypeInferenceOnly: true);
   }
 

@@ -356,8 +356,11 @@ abstract class AbstractConstExprSerializer {
       }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
-      // TODO(scheglov) implement
-      operations.add(UnlinkedExprOperation.pushNull);
+      _serialize(expr.function);
+      _serializeArguments(expr.argumentList, expr.typeArguments != null);
+      strings.add('call');
+      _serializeTypeArguments(expr.typeArguments);
+      operations.add(UnlinkedExprOperation.invokeMethod);
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);

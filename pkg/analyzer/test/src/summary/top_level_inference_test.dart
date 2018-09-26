@@ -798,7 +798,6 @@ Future<int> vFuture;
 ''');
   }
 
-  @failingTest
   test_initializer_functionExpressionInvocation_noTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 var v = (() => 42)();
