@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer_fe_comparison/src/comparison_node.dart';
+import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
@@ -15,14 +16,12 @@ import 'package:kernel/target/targets.dart';
 /// [ComparisonNode] representing them.
 Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
-  bool errorOccurred = false;
+  var errors = <CompilationMessage>[];
   var component = await kernelForComponent(
-      inputs,
-      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
-        errorOccurred = true;
-      }));
-  if (errorOccurred) {
-    return ComparisonNode('Error occurred');
+      inputs, _makeCompilerOptions(packagesFileUri, platformUri, errors.add));
+  if (errors.isNotEmpty) {
+    return ComparisonNode(
+        'Error occurred', errors.map(_compilationMessageToNode).toList());
   }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
@@ -40,14 +39,12 @@ Future<ComparisonNode> analyzePackage(
 /// Only libraries whose URI passes the [uriFilter] are included in the results.
 Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
     Uri platformUri, bool uriFilter(Uri uri)) async {
-  var errorOccurred = false;
+  var errors = <CompilationMessage>[];
   var component = await kernelForProgram(
-      input,
-      _makeCompilerOptions(packagesFileUri, platformUri, (_) {
-        errorOccurred = true;
-      }));
-  if (errorOccurred) {
-    return ComparisonNode('Error occurred');
+      input, _makeCompilerOptions(packagesFileUri, platformUri, errors.add));
+  if (errors.isNotEmpty) {
+    return ComparisonNode(
+        'Error occurred', errors.map(_compilationMessageToNode).toList());
   }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
@@ -57,6 +54,10 @@ Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
     }
   }
   return ComparisonNode.sorted('Component', libraryNodes);
+}
+
+ComparisonNode _compilationMessageToNode(CompilationMessage message) {
+  return ComparisonNode(message.toString());
 }
 
 CompilerOptions _makeCompilerOptions(
