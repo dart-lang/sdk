@@ -758,6 +758,24 @@ InvalidBreakTarget:
 BreakTargetOutsideFunction:
   template: "Can't break to '#name' in a different function."
   analyzerCode: LABEL_IN_OUTER_SCOPE
+  statement: |
+    label: while (true) {
+      void f() {
+        while (true) {
+          break label;
+        }
+      }
+    }
+
+AnonymousBreakTargetOutsideFunction:
+  template: "Can't break to a target in a different function."
+  analyzerCode: LABEL_IN_OUTER_SCOPE
+  statement: |
+    while (true) {
+      void f() {
+        break;
+      }
+    }
 
 ContinueOutsideOfLoop:
   index: 2
@@ -773,6 +791,24 @@ InvalidContinueTarget:
 ContinueTargetOutsideFunction:
   template: "Can't continue at '#name' in a different function."
   analyzerCode: LABEL_IN_OUTER_SCOPE
+  statement: |
+    label: while (true) {
+      void f() {
+        while (true) {
+          continue label;
+        }
+      }
+    }
+
+AnonymousContinueTargetOutsideFunction:
+  template: "Can't continue at a target in a different function."
+  analyzerCode: LABEL_IN_OUTER_SCOPE
+  statement: |
+    while (true) {
+      void f() {
+        continue;
+      }
+    }
 
 ContinueLabelNotTarget:
   template: "Target of continue must be a label."

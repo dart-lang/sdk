@@ -130,6 +130,26 @@ Message _withArgumentsAmbiguousSupertypes(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAnonymousBreakTargetOutsideFunction =
+    messageAnonymousBreakTargetOutsideFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAnonymousBreakTargetOutsideFunction =
+    const MessageCode("AnonymousBreakTargetOutsideFunction",
+        analyzerCode: "LABEL_IN_OUTER_SCOPE",
+        message: r"""Can't break to a target in a different function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAnonymousContinueTargetOutsideFunction =
+    messageAnonymousContinueTargetOutsideFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAnonymousContinueTargetOutsideFunction =
+    const MessageCode("AnonymousContinueTargetOutsideFunction",
+        analyzerCode: "LABEL_IN_OUTER_SCOPE",
+        message: r"""Can't continue at a target in a different function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,

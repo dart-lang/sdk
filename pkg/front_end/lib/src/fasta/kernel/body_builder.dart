@@ -3892,17 +3892,34 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
-      Token labelToken = breakKeyword.next;
-      push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.templateBreakTargetOutsideFunction.withArguments(name),
-          labelToken.charOffset,
-          length: labelToken.length));
+      push(buildProblemTargetOutsideLocalFunction(name, breakKeyword));
     } else {
       Statement statement =
           forest.breakStatement(breakKeyword, identifier, endToken);
       target.addBreak(statement);
       push(statement);
     }
+  }
+
+  Statement buildProblemTargetOutsideLocalFunction(String name, Token keyword) {
+    Statement problem;
+    bool isBreak = optional("break", keyword);
+    if (name != null) {
+      Template<Message Function(String)> template = isBreak
+          ? fasta.templateBreakTargetOutsideFunction
+          : fasta.templateContinueTargetOutsideFunction;
+      problem = buildProblemStatement(
+          template.withArguments(name), offsetForToken(keyword),
+          length: lengthOfSpan(keyword, keyword.next));
+    } else {
+      Message message = isBreak
+          ? fasta.messageAnonymousBreakTargetOutsideFunction
+          : fasta.messageAnonymousContinueTargetOutsideFunction;
+      problem = buildProblemStatement(message, offsetForToken(keyword),
+          length: lengthForToken(keyword));
+    }
+    problemInLoopOrSwitch ??= problem;
+    return problem;
   }
 
   @override
@@ -3954,11 +3971,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
-      Token labelToken = continueKeyword.next;
-      push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.templateContinueTargetOutsideFunction.withArguments(name),
-          labelToken.charOffset,
-          length: labelToken.length));
+      push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
       Statement statement =
           forest.continueStatement(continueKeyword, identifier, endToken);

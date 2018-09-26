@@ -11,6 +11,8 @@ AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
+AnonymousBreakTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
+AnonymousContinueTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
 ArgumentTypeNotAssignable/example: Fail
 AssertAsExpression/analyzerCode: Fail
 AssertAsExpression/example: Fail
@@ -19,7 +21,6 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
-BreakTargetOutsideFunction/example: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 CannotAssignToParenthesizedExpression/example: Fail
@@ -78,7 +79,6 @@ ConstructorNotFound/example: Fail
 ConstructorNotSync/example: Fail
 ContinueLabelNotTarget/example: Fail
 ContinueOutsideOfLoop/script1: Fail
-ContinueTargetOutsideFunction/example: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
