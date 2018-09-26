@@ -167,9 +167,9 @@ Closure CP#0 {
   Push                 FP[-5]
   StoreContextVar      0
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#3
+  PushNull
+  PushNull
   PushConstant         CP#4
   AssertAssignable     0, CP#5
   Drop1

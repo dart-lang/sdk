@@ -5997,12 +5997,8 @@ bool Function::HasCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
 #else
-  if (FLAG_enable_interpreter) {
-    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-           raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
-  } else {
-    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
-  }
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 

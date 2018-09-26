@@ -957,10 +957,9 @@ void BytecodeFlowGraphBuilder::BuildAssertAssignable() {
   LoadStackSlots(5);
 
   const String& dst_name = String::Cast(PopConstant().value());
-  const AbstractType& dst_type = AbstractType::Cast(PopConstant().value());
-
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
+  const AbstractType& dst_type = AbstractType::Cast(PopConstant().value());
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(

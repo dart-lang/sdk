@@ -70,10 +70,10 @@ Bytecode {
   CheckStack
   Push                 FP[-6]
   Push                 FP[-5]
+  PushConstant         CP#0
   Push                 FP[-6]
-  LoadTypeArgumentsField CP#0
+  LoadTypeArgumentsField CP#1
   PushNull
-  PushConstant         CP#1
   PushConstant         CP#2
   AssertAssignable     0, CP#3
   StoreFieldTOS        CP#4
@@ -85,8 +85,8 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsField #lib::D
-  [1] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [0] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [1] = TypeArgumentsField #lib::D
   [2] = String ''
   [3] = SubtypeTestCache
   [4] = InstanceField #lib::D::foo
@@ -133,10 +133,10 @@ L1:
 L2:
   Push                 FP[-6]
   Push                 FP[-5]
+  PushConstant         CP#11
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#11
   PushConstant         CP#12
   AssertAssignable     0, CP#13
   InstanceCall         2, CP#15
@@ -257,10 +257,10 @@ Bytecode {
   Push                 r1
   PushInt              0
   Push                 FP[-5]
+  PushConstant         CP#2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#2
   PushConstant         CP#3
   AssertAssignable     0, CP#4
   StoreIndexedTOS
@@ -268,10 +268,10 @@ Bytecode {
   IndirectStaticCall   2, CP#5
   PopLocal             r0
   Push                 FP[-5]
+  PushConstant         CP#2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#2
   PushConstant         CP#3
   AssertAssignable     0, CP#7
   ReturnTOS
@@ -408,9 +408,9 @@ Bytecode {
   Entry                1
   CheckStack
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#0
+  PushNull
+  PushNull
   PushConstant         CP#1
   AssertAssignable     0, CP#2
   StoreStaticTOS       CP#3

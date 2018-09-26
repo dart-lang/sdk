@@ -1099,8 +1099,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genAssertAssignable(DartType type, {String name = ''}) {
     assert(!typeEnvironment.isTop(type));
-    _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.add(new ConstantType(type)));
+    _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.add(new ConstantString(name)));
     bool isIntOk = typeEnvironment.isSubtypeOf(typeEnvironment.intType, type);
     int subtypeTestCacheCpIndex = cp.add(new ConstantSubtypeTestCache());

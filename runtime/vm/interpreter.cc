@@ -1014,18 +1014,18 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         }
         // Push arguments of type test.
         // Type checked value is at call_base + 1.
+        call_base[2] = field_type;
         // Provide type arguments of instance as instantiator.
         RawClass* instance_class = thread->isolate()->class_table()->At(
             InterpreterHelpers::GetClassId(instance));
-        call_base[2] =
+        call_base[3] =
             instance_class->ptr()->num_type_arguments_ > 0
                 ? reinterpret_cast<RawObject**>(
                       instance
                           ->ptr())[instance_class->ptr()
                                        ->type_arguments_field_offset_in_words_]
                 : null_value;
-        call_base[3] = null_value;  // Implicit setters cannot be generic.
-        call_base[4] = field_type;
+        call_base[4] = null_value;  // Implicit setters cannot be generic.
         call_base[5] = field->ptr()->name_;
         if (!AssertAssignable(thread, *pc, *FP, call_base + 5, call_base + 1,
                               cache)) {
@@ -1656,9 +1656,9 @@ bool Interpreter::AssertAssignable(Thread* thread,
   if (cache != null_value) {
     RawInstance* instance = static_cast<RawInstance*>(args[0]);
     RawTypeArguments* instantiator_type_arguments =
-        static_cast<RawTypeArguments*>(args[1]);
-    RawTypeArguments* function_type_arguments =
         static_cast<RawTypeArguments*>(args[2]);
+    RawTypeArguments* function_type_arguments =
+        static_cast<RawTypeArguments*>(args[3]);
 
     const intptr_t cid = InterpreterHelpers::GetClassId(instance);
 
@@ -1716,18 +1716,16 @@ bool Interpreter::AssertAssignable(Thread* thread,
   }
 
 AssertAssignableCallRuntime:
-  // TODO(regis): Modify AssertAssignable bytecode to expect arguments in same
-  // order as the TypeCheck runtime call, so this copying can be avoided.
-  call_top[1] = 0;        // Unused result.
-  call_top[2] = args[0];  // Instance.
-  call_top[3] = args[3];  // Type.
-  call_top[4] = args[1];  // Instantiator type args.
-  call_top[5] = args[2];  // Function type args.
-  call_top[6] = args[4];  // Name.
-  call_top[7] = cache;
-  call_top[8] = Smi::New(kTypeCheckFromInline);
-  Exit(thread, FP, call_top + 9, pc);
-  NativeArguments native_args(thread, 7, call_top + 2, call_top + 1);
+  // args[0]: Instance.
+  // args[1]: Type.
+  // args[2]: Instantiator type args.
+  // args[3]: Function type args.
+  // args[4]: Name.
+  args[5] = cache;
+  args[6] = Smi::New(kTypeCheckFromInline);
+  args[7] = 0;  // Unused result.
+  Exit(thread, FP, args + 8, pc);
+  NativeArguments native_args(thread, 7, args, args + 7);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
@@ -3967,7 +3965,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(AssertAssignable, A_D);
-    // Stack: instance, instantiator type args, function type args, type, name
+    // Stack: instance, type, instantiator type args, function type args, name
     RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
     const bool is_smi =

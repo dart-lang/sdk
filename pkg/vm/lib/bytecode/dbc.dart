@@ -45,6 +45,8 @@ library vm.bytecode.dbc;
 //
 // 13. PushNull, PushTrue, PushFalse, PushInt instructions added.
 //
+// 14. AssertAssignable is modified to expect arguments in same order as runtime
+//     call: instance, type, instantiator type args, function type args, name.
 
 enum Opcode {
   kTrap,

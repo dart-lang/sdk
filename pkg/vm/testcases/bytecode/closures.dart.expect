@@ -671,9 +671,9 @@ Closure CP#0 {
   Push                 FP[-5]
   StoreContextVar      0
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#3
+  PushNull
+  PushNull
   PushConstant         CP#4
   AssertAssignable     1, CP#5
   Drop1
@@ -962,9 +962,9 @@ Closure CP#21 {
   LoadFieldTOS         CP#6
   PopLocal             r0
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#22
+  PushNull
+  PushNull
   PushConstant         CP#23
   AssertAssignable     1, CP#24
   Drop1
@@ -1123,10 +1123,10 @@ Bytecode {
   Push                 FP[-5]
   StoreContextVar      0
   Push                 FP[-5]
+  PushConstant         CP#0
   Push                 FP[-6]
-  LoadTypeArgumentsField CP#0
+  LoadTypeArgumentsField CP#1
   PushNull
-  PushConstant         CP#1
   PushConstant         CP#2
   AssertAssignable     0, CP#3
   Drop1
@@ -1134,7 +1134,7 @@ Bytecode {
   StoreLocal           r2
   Push                 r2
   Push                 FP[-6]
-  LoadTypeArgumentsField CP#0
+  LoadTypeArgumentsField CP#1
   StoreFieldTOS        CP#9
   Push                 r2
   PushNull
@@ -1153,8 +1153,8 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsField #lib::D
-  [1] = Type #lib::D::T
+  [0] = Type #lib::D::T
+  [1] = TypeArgumentsField #lib::D
   [2] = String 't'
   [3] = SubtypeTestCache
   [4] = ClosureFunction <anonymous closure> () → #lib::D::T;
@@ -1258,9 +1258,9 @@ Closure CP#0 {
   LoadFieldTOS         CP#1
   PopLocal             r0
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#3
+  PushNull
+  PushNull
   PushConstant         CP#4
   AssertAssignable     1, CP#5
   Drop1
@@ -1533,9 +1533,9 @@ L2:
   IndirectStaticCall   4, CP#8
   PopLocal             r0
   Push                 FP[-5]
+  PushConstant         CP#10
   PushNull
   Push                 r0
-  PushConstant         CP#10
   PushConstant         CP#11
   AssertAssignable     0, CP#12
   Drop1
