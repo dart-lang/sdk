@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -319,8 +320,8 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier =
-        new InheritanceOverrideVerifier(typeSystem, errorReporter);
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        typeSystem, new InheritanceManager2(typeSystem), errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //

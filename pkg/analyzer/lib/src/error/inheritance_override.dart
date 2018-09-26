@@ -8,18 +8,18 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
 class InheritanceOverrideVerifier {
   final StrongTypeSystemImpl _typeSystem;
+  final InheritanceManager2 _inheritance;
   final ErrorReporter _reporter;
 
-  /// Cached instance interfaces for [InterfaceType].
-  final Map<InterfaceType, _Interface> _interfaces = {};
-
-  InheritanceOverrideVerifier(this._typeSystem, this._reporter);
+  InheritanceOverrideVerifier(
+      this._typeSystem, this._inheritance, this._reporter);
 
   void verifyUnit(CompilationUnit unit) {
     for (var declaration in unit.declarations) {
@@ -102,127 +102,7 @@ class InheritanceOverrideVerifier {
     return result;
   }
 
-  /// Return the interface of the given [type], for the [consumerLibrary].
-  _Interface _getInterface(InterfaceType type, LibraryElement consumerLibrary) {
-    if (type == null) return new _Interface({}, []);
-
-    var result = _interfaces[type];
-    if (result != null) return result;
-
-    var map = <String, FunctionType>{};
-    var conflicts = <_Conflict>[];
-    _interfaces[type] = new _Interface(map, conflicts);
-
-    // If a class declaration has a member declaration, the signature of that
-    // member declaration becomes the signature in the interface.
-    {
-      void addTypeMember(ExecutableElement member) {
-        if (member.isAccessibleIn(consumerLibrary) && !member.isStatic) {
-          map[member.name] = member.type;
-        }
-      }
-
-      type.methods.forEach(addTypeMember);
-      type.accessors.forEach(addTypeMember);
-    }
-
-    var inheritedCandidates = <String, List<FunctionType>>{};
-    void addSuperinterfaceMember(String name, FunctionType candidate) {
-      // If name is in the [map], then it is defined in the [type] itself.
-      // Don't consider candidates from direct superinterfaces.
-      // The version defined in the type might be invalid, we check elsewhere.
-      if (map.containsKey(name)) return;
-
-      var candidates = inheritedCandidates[name];
-      if (candidates == null) {
-        candidates = <FunctionType>[];
-        inheritedCandidates[name] = candidates;
-      }
-      candidates.add(candidate);
-    }
-
-    var library = type.element.library;
-    void addSuperinterfaceMembers(InterfaceType superinterface) {
-      _getInterface(superinterface, library)
-          .map
-          .forEach(addSuperinterfaceMember);
-    }
-
-    // Fill candidates for each instance name.
-    addSuperinterfaceMembers(type.superclass);
-    type.superclassConstraints.forEach(addSuperinterfaceMembers);
-    type.mixins.forEach(addSuperinterfaceMembers);
-    type.interfaces.forEach(addSuperinterfaceMembers);
-
-    // If a class declaration does not have a member declaration with a
-    // particular name, but some super-interfaces do have a member with that
-    // name, it's a compile-time error if there is no signature among the
-    // super-interfaces that is a valid override of all the other
-    // super-interface signatures with the same name. That "most specific"
-    // signature becomes the signature of the class's interface.
-    for (var name in inheritedCandidates.keys) {
-      var candidates = inheritedCandidates[name];
-
-      bool allGetters = true;
-      bool allMethods = true;
-      bool allSetters = true;
-      for (var candidate in candidates) {
-        var kind = candidate.element.kind;
-        if (kind != ElementKind.GETTER) {
-          allGetters = false;
-        }
-        if (kind != ElementKind.METHOD) {
-          allMethods = false;
-        }
-        if (kind != ElementKind.SETTER) {
-          allSetters = false;
-        }
-      }
-
-      if (allSetters) {
-        // OK, setters don't conflict with anything.
-      } else if (!(allGetters || allMethods)) {
-        FunctionType getterType;
-        FunctionType methodType;
-        for (var candidate in candidates) {
-          var kind = candidate.element.kind;
-          if (kind == ElementKind.GETTER) {
-            getterType ??= candidate;
-          }
-          if (kind == ElementKind.METHOD) {
-            methodType ??= candidate;
-          }
-        }
-        conflicts.add(new _Conflict(name, candidates, getterType, methodType));
-        continue;
-      }
-
-      FunctionType validOverride;
-      for (var i = 0; i < candidates.length; i++) {
-        validOverride = candidates[i];
-        for (var j = 0; j < candidates.length; j++) {
-          var candidate = candidates[j];
-          if (!_typeSystem.isOverrideSubtypeOf(validOverride, candidate)) {
-            validOverride = null;
-            break;
-          }
-        }
-        if (validOverride != null) {
-          break;
-        }
-      }
-
-      if (validOverride != null) {
-        map[name] = validOverride;
-      } else {
-        conflicts.add(new _Conflict(name, candidates));
-      }
-    }
-
-    return new _Interface(map, conflicts);
-  }
-
-  void _reportInconsistentInheritance(AstNode node, _Conflict conflict) {
+  void _reportInconsistentInheritance(AstNode node, Conflict conflict) {
     var name = conflict.name;
 
     if (conflict.getter != null && conflict.method != null) {
@@ -230,7 +110,7 @@ class InheritanceOverrideVerifier {
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         node,
         [
-          name,
+          name.name,
           conflict.getter.element.enclosingElement.name,
           conflict.method.element.enclosingElement.name
         ],
@@ -238,13 +118,13 @@ class InheritanceOverrideVerifier {
     } else {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.element.enclosingElement.name;
-        return '$className.$name (${candidate.displayName})';
+        return '$className.${name.name} (${candidate.displayName})';
       }).join(', ');
 
       _reporter.reportErrorForNode(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
         node,
-        [name, candidatesStr],
+        [name.name, candidatesStr],
       );
     }
   }
@@ -303,18 +183,22 @@ class InheritanceOverrideVerifier {
     }
 
     // Compute the interface of the class.
-    var interfaceMembers = _getInterface(type, element.library);
+    var interfaceMembers = _inheritance.getInterface(type);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interfaceMembers.conflicts) {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
-    // TODO(scheglov) isMixin must be also isAbstract.
-    if (!element.isAbstract && !element.isMixin) {
+    if (!element.isAbstract) {
+      var libraryUri = library.source.uri;
       for (var name in interfaceMembers.map.keys) {
-        var concreteElement = type.lookUpInheritedMember(name, library,
-            concrete: true, thisType: true, setter: name.endsWith('='));
+        if (!name.isAccessibleFor(libraryUri)) {
+          continue;
+        }
+
+        var concreteElement = type.lookUpInheritedMember(name.name, library,
+            concrete: true, thisType: true, setter: name.name.endsWith('='));
 
         // TODO(scheglov) handle here instead of ErrorVerifier?
         if (concreteElement == null) {
@@ -346,7 +230,7 @@ class InheritanceOverrideVerifier {
             CompileTimeErrorCode.INVALID_OVERRIDE,
             classNameNode,
             [
-              name,
+              name.name,
               concreteElement.enclosingElement.name,
               concreteType.displayName,
               interfaceType.element.enclosingElement.name,
@@ -357,28 +241,4 @@ class InheritanceOverrideVerifier {
       }
     }
   }
-}
-
-/// Description of a failure to find a valid override from superinterfaces.
-class _Conflict {
-  /// The name of an instance member for which we failed to find a valid
-  /// override.
-  final String name;
-
-  /// The list of candidates for a valid override for a member [name].  It has
-  /// at least two items, because otherwise the only candidate is always valid.
-  final List<FunctionType> candidates;
-
-  final FunctionType getter;
-  final FunctionType method;
-
-  _Conflict(this.name, this.candidates, [this.getter, this.method]);
-}
-
-/// The instance interface of an [InterfaceType].
-class _Interface {
-  final Map<String, FunctionType> map;
-  final List<_Conflict> conflicts;
-
-  _Interface(this.map, this.conflicts);
 }

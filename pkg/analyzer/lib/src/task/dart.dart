@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
@@ -5558,8 +5559,9 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Compute inheritance and override errors.
     //
+    var typeSystem = libraryElement.context.typeSystem;
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        libraryElement.context.typeSystem, errorReporter);
+        typeSystem, new InheritanceManager2(typeSystem), errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
