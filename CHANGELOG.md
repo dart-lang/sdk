@@ -21,6 +21,8 @@
     succeed.
 *   Exported `Future` and `Stream` from `dart:core`.
 *   Added operators `&`, `|` and `^` to `bool`.
+*   Made `Uri` parsing more permissive about `[` and `]` occurring
+    in the path, query or fragment, and `#` occurring in fragment.
 
 #### `dart:async`
 

@@ -6028,21 +6028,21 @@ unit: null
     allowMissingFiles = true;
     shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
+import ':[invaliduri]';
+import ':[invaliduri]:foo.dart';
 import 'a1.dart';
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
+import ':[invaliduri]';
+import ':[invaliduri]:foo.dart';
 
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
+export ':[invaliduri]';
+export ':[invaliduri]:foo.dart';
 export 'a2.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
+export ':[invaliduri]';
+export ':[invaliduri]:foo.dart';
 
-part '[invalid uri]';
+part ':[invaliduri]';
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invaliduri]';
 ''');
     checkElementText(library, r'''
 import '<unresolved>';

@@ -5992,7 +5992,7 @@ class B extends A {}
   }
 
   test_export_uri_invalid() {
-    String uriString = '[invalid uri]';
+    String uriString = ':[invalid uri]';
     String libraryText = 'export "$uriString";';
     serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
@@ -7647,7 +7647,7 @@ class D extends p.C {} // Prevent "unused import" warning
   }
 
   test_import_uri_invalid() {
-    String uriString = '[invalid uri]';
+    String uriString = ':[invalid uri]';
     String libraryText = 'import "$uriString";';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
@@ -9035,7 +9035,7 @@ part "${'a'}.dart"; // <-part
   }
 
   test_part_uri_invalid() {
-    String uriString = '[invalid uri]';
+    String uriString = ':[invalid uri]';
     String libraryText = 'part "$uriString";';
     serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));

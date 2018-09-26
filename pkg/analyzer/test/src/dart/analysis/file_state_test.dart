@@ -397,13 +397,13 @@ part of L;
     String a3 = _p('/aaa/lib/a3.dart');
     String content_a1 = r'''
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     provider.newFile(a, content_a1);
 

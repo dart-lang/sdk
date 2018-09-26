@@ -1770,21 +1770,21 @@ class C {}
 
   test_getResult_invalidUri() async {
     String content = r'''
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 
-part '[invalid uri]';
+part ':[invalid uri]';
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     addTestFile(content);
 
