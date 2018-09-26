@@ -1663,6 +1663,21 @@ DuplicatedImportInType:
 CyclicClassHierarchy:
   template: "'#name' is a supertype of itself via '#string'."
   analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
+  script:
+    - |
+      class A extends B {}
+      class B extends A {}
+    - |
+      class A implements B {}
+      class B implements A {}
+
+DirectCyclicClassHierarchy:
+  template: "'#name' can't use itself as a supertype."
+  analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
+  script:
+    - "class C = Object with C;"
+    - "class C extends C {}"
+    - "class C implements C {}"
 
 ExtendingEnum:
   template: "'#name' is an enum and can't be extended or implemented."
@@ -2839,6 +2854,13 @@ NonSimpleBoundViaReference:
 
 CycleInTypeVariables:
   template: "Type '#name' is a bound of itself via '#string'."
+  tip: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
+  script:
+    - "foo<A extends B, B extends A>() {}"
+
+DirectCycleInTypeVariables:
+  template: "Type '#name' can't use itself as a bound."
   tip: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:

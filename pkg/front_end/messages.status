@@ -88,7 +88,9 @@ CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail
 CovariantMember/script1: Fail
 CovariantMember/script2: Fail
-CyclicClassHierarchy/example: Fail
+CycleInTypeVariables/script1: Fail # We report an error for each type variable involved in the cycle.
+CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
+CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/example: Fail

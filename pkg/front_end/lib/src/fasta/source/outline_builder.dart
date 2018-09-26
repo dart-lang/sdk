@@ -30,6 +30,7 @@ import '../fasta_codes.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateCycleInTypeVariables,
+        templateDirectCycleInTypeVariables,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
         templateOperatorMinusParameterMismatch,
@@ -1376,12 +1377,11 @@ class OutlineBuilder extends StackListener {
               via.add(bound.name);
               bound = typeVariablesByName[bound.bound.name];
             }
-            String involvedString = via.join("', '");
-            addProblem(
-                templateCycleInTypeVariables.withArguments(
-                    builder.name, involvedString),
-                builder.charOffset,
-                builder.name.length);
+            Message message = via.isEmpty
+                ? templateDirectCycleInTypeVariables.withArguments(builder.name)
+                : templateCycleInTypeVariables.withArguments(
+                    builder.name, via.join("', '"));
+            addProblem(message, builder.charOffset, builder.name.length);
           }
         }
       }

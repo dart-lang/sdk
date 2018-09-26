@@ -73,6 +73,7 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
         templateSourceOutlineSummary,
+        templateDirectCyclicClassHierarchy,
         templateUntranslatableUri;
 
 import '../fasta_codes.dart' as fasta_codes;
@@ -584,9 +585,14 @@ class SourceLoader<L> extends Loader<L> {
                 .toList()
                   ..sort())
             .join("', '");
-        messages[templateCyclicClassHierarchy
-            .withArguments(cls.fullNameForErrors, involvedString)
-            .withLocation(cls.fileUri, cls.charOffset, noLength)] = cls;
+        LocatedMessage message = involvedString.isEmpty
+            ? templateDirectCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors)
+                .withLocation(cls.fileUri, cls.charOffset, noLength)
+            : templateCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors, involvedString)
+                .withLocation(cls.fileUri, cls.charOffset, noLength);
+        messages[message] = cls;
       });
 
       // Report all classes involved in a cycle, sorted to ensure stability as

@@ -1943,6 +1943,52 @@ ${num3} ms/libraries.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDirectCycleInTypeVariables = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""Type '#name' can't use itself as a bound.""",
+    tipTemplate:
+        r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+    withArguments: _withArgumentsDirectCycleInTypeVariables);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDirectCycleInTypeVariables =
+    const Code<Message Function(String name)>(
+        "DirectCycleInTypeVariables", templateDirectCycleInTypeVariables,
+        analyzerCode: "TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDirectCycleInTypeVariables(String name) {
+  return new Message(codeDirectCycleInTypeVariables,
+      message: """Type '${name}' can't use itself as a bound.""",
+      tip:
+          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDirectCyclicClassHierarchy =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' can't use itself as a supertype.""",
+        withArguments: _withArgumentsDirectCyclicClassHierarchy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDirectCyclicClassHierarchy =
+    const Code<Message Function(String name)>(
+        "DirectCyclicClassHierarchy", templateDirectCyclicClassHierarchy,
+        analyzerCode: "RECURSIVE_INTERFACE_INHERITANCE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDirectCyclicClassHierarchy(String name) {
+  return new Message(codeDirectCyclicClassHierarchy,
+      message: """'${name}' can't use itself as a supertype.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDirectiveAfterDeclaration =
     messageDirectiveAfterDeclaration;
 
