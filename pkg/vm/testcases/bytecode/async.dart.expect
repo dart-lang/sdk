@@ -1299,7 +1299,7 @@ ConstantPool {
   [10] = ICData target-name '+', arg-desc CP#9
   [11] = Type dynamic
   [12] = Type dart.core::Error
-  [13] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#7
+  [13] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#9
   [14] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#7
   [15] = ICData target-name '+', arg-desc CP#9
   [16] = String 'fin'
@@ -1441,10 +1441,8 @@ Try #2 handler:
   StoreContextVar      1
   Push                 r4
   LoadContextVar       1
-  PushNull
-  PushNull
   PushConstant         CP#12
-  InstanceCall         4, CP#13
+  InstanceCall         2, CP#13
   AssertBoolean        0
   PushTrue
   IfNeStrictTOS

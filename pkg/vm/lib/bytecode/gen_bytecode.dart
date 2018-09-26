@@ -211,6 +211,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure get objectInstanceOf => _objectInstanceOf ??=
       libraryIndex.getMember('dart:core', 'Object', '_instanceOf');
 
+  Procedure _objectSimpleInstanceOf;
+  Procedure get objectSimpleInstanceOf => _objectSimpleInstanceOf ??=
+      libraryIndex.getMember('dart:core', 'Object', '_simpleInstanceOf');
+
   Procedure _objectAs;
   Procedure get objectAs =>
       _objectAs ??= libraryIndex.getMember('dart:core', 'Object', '_as');
@@ -636,7 +640,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    // TODO(alexmarkov): generate _simpleInstanceOf if possible
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      assert(type.classNode.typeParameters.isEmpty);
+      asm.emitPushConstant(cp.add(new ConstantType(type)));
+      final argDescIndex = cp.add(new ConstantArgDesc(2));
+      final icdataIndex = cp.add(new ConstantICData(
+          InvocationKind.method, objectSimpleInstanceOf.name, argDescIndex));
+      asm.emitInstanceCall(2, icdataIndex);
+      return;
+    }
 
     if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);

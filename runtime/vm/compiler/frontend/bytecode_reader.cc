@@ -186,6 +186,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
   Class* symbol_class = nullptr;
   Field* symbol_name_field = nullptr;
+  const String* simpleInstanceOf = nullptr;
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
     const intptr_t tag = helper_->ReadTag();
@@ -252,10 +253,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
+        if (simpleInstanceOf == nullptr) {
+          simpleInstanceOf =
+              &Library::PrivateCoreLibName(Symbols::_simpleInstanceOf());
+        }
         intptr_t checked_argument_count = 1;
         if ((kind == InvocationKind::method) &&
-            (MethodTokenRecognizer::RecognizeTokenKind(name) !=
-             Token::kILLEGAL)) {
+            ((MethodTokenRecognizer::RecognizeTokenKind(name) !=
+              Token::kILLEGAL) ||
+             (name.raw() == simpleInstanceOf->raw()))) {
           intptr_t argument_count = ArgumentsDescriptor(array).Count();
           ASSERT(argument_count <= 2);
           checked_argument_count = argument_count;

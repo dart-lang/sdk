@@ -1190,6 +1190,7 @@ static RawFunction* InlineCacheMissHandler(
   ObjectStore* store = Isolate::Current()->object_store();
   if (target_function.raw() == store->simple_instance_of_function()) {
     // Replace the target function with constant function.
+    ASSERT(args.length() == 2);
     const AbstractType& type = AbstractType::Cast(*args[1]);
     target_function =
         ComputeTypeCheckTarget(receiver, type, arguments_descriptor);

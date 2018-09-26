@@ -3994,7 +3994,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
       HasICData()) {
     ASSERT(HasICData());
-    if (ic_data()->NumberOfUsedChecks() > 0) {
+    if (compiler->is_optimizing() && (ic_data()->NumberOfUsedChecks() > 0)) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
