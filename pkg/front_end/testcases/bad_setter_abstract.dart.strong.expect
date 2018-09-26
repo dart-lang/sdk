@@ -59,7 +59,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void
@@ -72,7 +72,7 @@ class A extends core::Object {
        ^";
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void

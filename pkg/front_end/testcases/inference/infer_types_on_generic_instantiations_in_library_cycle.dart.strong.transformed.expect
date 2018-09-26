@@ -5,18 +5,18 @@ import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
 
 abstract class A<E extends core::Object = dynamic> extends core::Object implements inf::I<self::A::E> {
   final field self::A::E value = null;
-  const constructor •() → void
+  const constructor •() → self::A<self::A::E>
     : super core::Object::•()
     ;
 }
 abstract class M extends core::Object {
   final field core::int y = 0;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::M
     : super core::Object::•()
     ;
 }
 class B<E extends core::Object = dynamic> extends self::A<self::B::E> implements self::M {
-  const constructor •() → void
+  const constructor •() → self::B<self::B::E>
     : super self::A::•()
     ;
   get y() → core::int

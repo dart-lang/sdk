@@ -19,7 +19,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C1
     : super core::Object::•()
     ;
 }
@@ -39,7 +39,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C2
     : super core::Object::•()
     ;
 }
@@ -59,7 +59,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C3
     : super core::Object::•()
     ;
 }
@@ -79,7 +79,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C4
     : super core::Object::•()
     ;
 }
@@ -99,7 +99,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C5
     : super core::Object::•()
     ;
 }
@@ -119,7 +119,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C6
     : super core::Object::•()
     ;
 }
@@ -139,7 +139,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C7
     : super core::Object::•()
     ;
 }
@@ -159,7 +159,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C8
     : super core::Object::•()
     ;
 }
@@ -179,7 +179,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::A<self::A::T1, self::A::T2>
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -501,7 +501,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -794,7 +794,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -1110,7 +1110,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::D<self::D::T>
     : super core::Object::•()
     ;
 [@vm.bytecode=

@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor expressionOnly() → void
+  constructor expressionOnly() → self::C
     : assert(self::f<core::bool>()), super core::Object::•()
     ;
-  constructor expressionAndMessage() → void
+  constructor expressionAndMessage() → self::C
     : assert(self::f<core::bool>(), self::f<dynamic>()), super core::Object::•()
     ;
 }

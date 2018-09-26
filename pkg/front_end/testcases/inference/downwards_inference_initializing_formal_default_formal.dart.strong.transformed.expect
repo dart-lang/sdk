@@ -5,10 +5,10 @@ import "dart:core" as core;
 typedef Function2<S extends core::Object = dynamic, T extends core::Object = dynamic> = ([S]) → T;
 class Foo extends core::Object {
   field core::List<core::int> x;
-  constructor •([core::List<core::int> x = const <core::int>[1]]) → void
+  constructor •([core::List<core::int> x = const <core::int>[1]]) → self::Foo
     : self::Foo::x = x, super core::Object::•()
     ;
-  constructor named([core::List<core::int> x = const <core::int>[1]]) → void
+  constructor named([core::List<core::int> x = const <core::int>[1]]) → self::Foo
     : self::Foo::x = null, super core::Object::•()
     ;
 }

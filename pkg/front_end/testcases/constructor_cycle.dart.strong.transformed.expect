@@ -15,16 +15,16 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor foo() → void
+  constructor foo() → self::A
     : this self::A::bar()
     ;
-  constructor bar() → void
+  constructor bar() → self::A
     : this self::A::foo()
     ;
-  constructor baz() → void
+  constructor baz() → self::A
     : this self::A::foo()
     ;
-  constructor •() → void
+  constructor •() → self::A
     : this self::A::•()
     ;
 }

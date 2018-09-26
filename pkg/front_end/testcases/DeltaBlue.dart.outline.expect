@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class DeltaBlue extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::DeltaBlue
     ;
   method run() → void
     ;
@@ -11,7 +11,7 @@ class DeltaBlue extends core::Object {
 class Strength extends core::Object {
   final field core::int value;
   final field core::String name;
-  const constructor •(core::int value, core::String name) → void
+  const constructor •(core::int value, core::String name) → self::Strength
     ;
   method nextWeaker() → self::Strength
     ;
@@ -26,7 +26,7 @@ class Strength extends core::Object {
 }
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
-  const constructor •(self::Strength strength) → void
+  const constructor •(self::Strength strength) → self::Constraint
     ;
   abstract method isSatisfied() → core::bool;
   abstract method markUnsatisfied() → void;
@@ -50,7 +50,7 @@ abstract class Constraint extends core::Object {
 abstract class UnaryConstraint extends self::Constraint {
   final field self::Variable myOutput;
   field core::bool satisfied;
-  constructor •(self::Variable myOutput, self::Strength strength) → void
+  constructor •(self::Variable myOutput, self::Strength strength) → self::UnaryConstraint
     ;
   method addToGraph() → void
     ;
@@ -72,13 +72,13 @@ abstract class UnaryConstraint extends self::Constraint {
     ;
 }
 class StayConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable v, self::Strength str) → void
+  constructor •(self::Variable v, self::Strength str) → self::StayConstraint
     ;
   method execute() → void
     ;
 }
 class EditConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable v, self::Strength str) → void
+  constructor •(self::Variable v, self::Strength str) → self::EditConstraint
     ;
   method isInput() → core::bool
     ;
@@ -89,7 +89,7 @@ abstract class BinaryConstraint extends self::Constraint {
   field self::Variable v1;
   field self::Variable v2;
   field core::int direction;
-  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → void
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → self::BinaryConstraint
     ;
   method chooseMethod(core::int mark) → void
     ;
@@ -115,7 +115,7 @@ abstract class BinaryConstraint extends self::Constraint {
 class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable scale;
   final field self::Variable offset;
-  constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → void
+  constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → self::ScaleConstraint
     ;
   method addToGraph() → void
     ;
@@ -129,7 +129,7 @@ class ScaleConstraint extends self::BinaryConstraint {
     ;
 }
 class EqualityConstraint extends self::BinaryConstraint {
-  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → void
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → self::EqualityConstraint
     ;
   method execute() → void
     ;
@@ -142,7 +142,7 @@ class Variable extends core::Object {
   field core::bool stay;
   field core::int value;
   final field core::String name;
-  constructor •(core::String name, core::int value) → void
+  constructor •(core::String name, core::int value) → self::Variable
     ;
   method addConstraint(self::Constraint c) → void
     ;
@@ -151,7 +151,7 @@ class Variable extends core::Object {
 }
 class Planner extends core::Object {
   field core::int currentMark;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Planner
     ;
   method incrementalAdd(self::Constraint c) → void
     ;
@@ -172,7 +172,7 @@ class Planner extends core::Object {
 }
 class Plan extends core::Object {
   field core::List<self::Constraint> list;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Plan
     ;
   method addConstraint(self::Constraint c) → void
     ;

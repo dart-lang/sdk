@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Superclass extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Superclass
     ;
   method foo({dynamic alpha, dynamic beta}) → dynamic
     ;
@@ -13,7 +13,7 @@ class Superclass extends core::Object {
     ;
 }
 class Subclass extends self::Superclass {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Subclass
     ;
   method foo({dynamic beta, dynamic alpha}) → dynamic
     ;

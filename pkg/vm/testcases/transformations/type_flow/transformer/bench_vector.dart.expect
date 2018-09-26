@@ -7,7 +7,7 @@ class _Vector extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Smi]  final field core::int _offset;
 [@vm.inferred-type.metadata=dart.core::_Smi]  final field core::int _length;
 [@vm.inferred-type.metadata=dart.typed_data::_Float64List]  final field core::List<core::double> _elements;
-  constructor •([@vm.inferred-type.metadata=dart.core::_Smi] core::int size) → void
+  constructor •([@vm.inferred-type.metadata=dart.core::_Smi] core::int size) → self::_Vector
     : self::_Vector::_offset = 0, self::_Vector::_length = size, self::_Vector::_elements = [@vm.inferred-type.metadata=dart.typed_data::_Float64List] typ::Float64List::•(size), super core::Object::•()
     ;
   operator [](core::int i) → core::double

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Mixin extends core::Object {
   field dynamic field = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Mixin
     : super core::Object::•()
     ;
   method foo() → dynamic
@@ -19,7 +19,7 @@ abstract class _Foo&Object&Mixin extends core::Object implements self::Mixin {
     return 87;
 }
 class Foo extends self::_Foo&Object&Mixin {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   method foo() → dynamic

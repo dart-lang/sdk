@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void
+  constructor •() → self::Foo
     ;
 }
 class Bar extends self::Foo {

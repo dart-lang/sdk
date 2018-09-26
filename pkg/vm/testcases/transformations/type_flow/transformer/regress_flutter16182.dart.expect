@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
 class T1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T1
     : super core::Object::•()
     ;
   method doTest1() → void {
@@ -13,7 +13,7 @@ class T1 extends core::Object {
 }
 class A1 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T1?]  field self::T1 foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A1
     : super core::Object::•()
     ;
   method call([dynamic a1 = null, dynamic a2 = null, dynamic a3 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = null, [@vm.inferred-type.metadata=#lib::T1?] dynamic a5 = null]) → void {
@@ -22,12 +22,12 @@ class A1 extends core::Object {
 }
 class B1 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A1]  field self::A1 aa1 = new self::A1::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B1
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super core::Object::•()
     ;
   method doTest2() → void {
@@ -36,7 +36,7 @@ class T2 extends core::Object {
 }
 class A2 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T2?]  field dynamic foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A2
     : super core::Object::•()
     ;
   method call([dynamic a1 = null, dynamic a2 = null, dynamic a3 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = null, [@vm.inferred-type.metadata=#lib::T2?] dynamic a6 = null]) → void {
@@ -45,14 +45,14 @@ class A2 extends core::Object {
 }
 abstract class B2Base extends core::Object {
 [@vm.inferred-type.metadata=#lib::A2]  field dynamic _aa = new self::A2::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B2Base
     : super core::Object::•()
     ;
   get aa2() → dynamic
     return [@vm.direct-call.metadata=#lib::B2Base::_aa] [@vm.inferred-type.metadata=#lib::A2] this.{self::B2Base::_aa};
 }
 class B2 extends self::B2Base {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B2
     : super self::B2Base::•()
     ;
   method doSuperCall() → void {
@@ -60,7 +60,7 @@ class B2 extends self::B2Base {
   }
 }
 class T3 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T3
     : super core::Object::•()
     ;
   method doTest3() → void {
@@ -69,7 +69,7 @@ class T3 extends core::Object {
 }
 class A3 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T3?]  field dynamic foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A3
     : super core::Object::•()
     ;
   method call([dynamic a1 = null, dynamic a2 = null, dynamic a3 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = null, [@vm.inferred-type.metadata=#lib::T3?] dynamic a7 = null]) → void {
@@ -78,12 +78,12 @@ class A3 extends core::Object {
 }
 class B3 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A3]  field self::A3 aa3 = new self::A3::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B3
     : super core::Object::•()
     ;
 }
 class T4 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T4
     : super core::Object::•()
     ;
   method doTest4() → void {
@@ -92,7 +92,7 @@ class T4 extends core::Object {
 }
 class A4 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T4?]  field dynamic foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A4
     : super core::Object::•()
     ;
   method call([dynamic a1 = null, dynamic a2 = null, dynamic a3 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a7 = null, [@vm.inferred-type.metadata=#lib::T4?] dynamic a8 = null]) → void {
@@ -101,7 +101,7 @@ class A4 extends core::Object {
 }
 class B4 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A4]  field dynamic _aa = new self::A4::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B4
     : super core::Object::•()
     ;
   get aa4() → dynamic

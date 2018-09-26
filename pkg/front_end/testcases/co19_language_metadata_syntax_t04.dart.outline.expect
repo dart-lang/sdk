@@ -16,11 +16,11 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::A
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
 }
 static method main() → dynamic

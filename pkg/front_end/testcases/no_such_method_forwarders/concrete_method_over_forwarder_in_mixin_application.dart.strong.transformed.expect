@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I
     : super core::Object::•()
     ;
   abstract method foo() → dynamic;
 }
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   method foo() → dynamic {}
 }
 class B extends core::Object implements self::I {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation _) → dynamic
@@ -31,7 +31,7 @@ abstract class _C&A&B extends self::A implements self::B {
     return null;
 }
 class C extends self::_C&A&B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::A::•()
     ;
 }

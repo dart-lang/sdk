@@ -42,7 +42,7 @@ ConstantPool {
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target 'dart.core::Object::', arg-desc CP#6
 }
-]  constructor •(core::int foo4) → void
+]  constructor •(core::int foo4) → self::A
     : self::A::foo1 = null, self::A::foo4 = foo4, self::A::foo5 = 44, super core::Object::•()
     ;
 [@vm.bytecode=
@@ -83,7 +83,7 @@ ConstantPool {
   [8] = ArgDesc num-args 1, num-type-args 0, names []
   [9] = StaticICData target 'dart.core::Object::', arg-desc CP#8
 }
-]  constructor constr2(core::int x, core::int y) → void
+]  constructor constr2(core::int x, core::int y) → self::A
     : self::A::foo4 = null, self::A::foo1 = x, self::A::foo5 = y.{core::num::+}(1), super core::Object::•()
     ;
 [@vm.bytecode=
@@ -102,7 +102,7 @@ ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
   [1] = StaticICData target '#lib::A::', arg-desc CP#0
 }
-]  constructor redirecting1() → void
+]  constructor redirecting1() → self::A
     : this self::A::•(45)
     ;
 [@vm.bytecode=
@@ -126,7 +126,7 @@ ConstantPool {
   [2] = ArgDesc num-args 3, num-type-args 0, names []
   [3] = StaticICData target '#lib::A::constr2', arg-desc CP#2
 }
-]  constructor redirecting2(core::int a, core::int b, core::int c) → void
+]  constructor redirecting2(core::int a, core::int b, core::int c) → self::A
     : this self::A::constr2(a, b.{core::num::*}(c))
     ;
 }
@@ -155,7 +155,7 @@ ConstantPool {
   [2] = ArgDesc num-args 2, num-type-args 0, names []
   [3] = StaticICData target '#lib::A::', arg-desc CP#2
 }
-]  constructor •() → void
+]  constructor •() → self::B
     : super self::A::•(49)
     ;
 [@vm.bytecode=
@@ -184,7 +184,7 @@ ConstantPool {
   [2] = ArgDesc num-args 4, num-type-args 0, names []
   [3] = StaticICData target '#lib::A::redirecting2', arg-desc CP#2
 }
-]  constructor c2(core::int i, core::int j) → void
+]  constructor c2(core::int i, core::int j) → self::B
     : self::B::foo6 = 50, super self::A::redirecting2(i, j, 51)
     ;
 }

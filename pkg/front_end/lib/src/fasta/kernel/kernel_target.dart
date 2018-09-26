@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         FieldInitializer,
         FunctionNode,
         Initializer,
+        InterfaceType,
         InvalidInitializer,
         Library,
         ListLiteral,
@@ -37,9 +38,9 @@ import 'package:kernel/ast.dart'
         SuperInitializer,
         Throw,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
-        VariableGet,
-        VoidType;
+        VariableGet;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
@@ -511,15 +512,19 @@ class KernelTarget extends TargetImplementation {
                     builder.charOffset, dynamicType),
                 builder.parent);
         if (supertype.cls.constructors.isEmpty) {
-          builder.addSyntheticConstructor(makeDefaultConstructor());
+          builder
+              .addSyntheticConstructor(makeDefaultConstructor(builder.target));
         } else {
           for (Constructor constructor in supertype.cls.constructors) {
             builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-                builder.cls.mixin, constructor, substitutionMap));
+                builder.target,
+                builder.cls.mixin,
+                constructor,
+                substitutionMap));
           }
         }
       } else if (supertype is InvalidTypeBuilder) {
-        builder.addSyntheticConstructor(makeDefaultConstructor());
+        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
       } else {
         unhandled("${supertype.runtimeType}", "installDefaultConstructor",
             builder.charOffset, builder.fileUri);
@@ -528,7 +533,7 @@ class KernelTarget extends TargetImplementation {
       /// >Iff no constructor is specified for a class C, it implicitly has a
       /// >default constructor C() : super() {}, unless C is class Object.
       // The superinitializer is installed below in [finishConstructors].
-      builder.addSyntheticConstructor(makeDefaultConstructor());
+      builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
     }
   }
 
@@ -544,7 +549,7 @@ class KernelTarget extends TargetImplementation {
     return result;
   }
 
-  Constructor makeMixinApplicationConstructor(Class mixin,
+  Constructor makeMixinApplicationConstructor(Class cls, Class mixin,
       Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
@@ -574,7 +579,7 @@ class KernelTarget extends TargetImplementation {
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         requiredParameterCount: constructor.function.requiredParameterCount,
-        returnType: const VoidType());
+        returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
     return new Constructor(function,
@@ -583,11 +588,21 @@ class KernelTarget extends TargetImplementation {
         isSynthetic: true);
   }
 
-  Constructor makeDefaultConstructor() {
+  Constructor makeDefaultConstructor(Class enclosingClass) {
     return new Constructor(
-        new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
+        new FunctionNode(new EmptyStatement(),
+            returnType: makeConstructorReturnType(enclosingClass)),
         name: new Name(""),
         isSynthetic: true);
+  }
+
+  DartType makeConstructorReturnType(Class enclosingClass) {
+    List<DartType> typeParameterTypes = new List<DartType>();
+    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
+      TypeParameter typeParameter = enclosingClass.typeParameters[i];
+      typeParameterTypes.add(new TypeParameterType(typeParameter));
+    }
+    return new InterfaceType(enclosingClass, typeParameterTypes);
   }
 
   void computeCoreTypes() {

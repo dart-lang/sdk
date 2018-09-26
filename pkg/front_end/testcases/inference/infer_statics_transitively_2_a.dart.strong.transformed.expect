@@ -6,7 +6,7 @@ import "./infer_statics_transitively.dart" as test;
 
 class A extends core::Object {
   static final field core::int a2 = inf::b1;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }

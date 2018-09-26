@@ -11,9 +11,9 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class MyFuture<T extends core::Object = dynamic> extends core::Object implements asy::Future<self::MyFuture::T> {
-  constructor •() → void
+  constructor •() → self::MyFuture<self::MyFuture::T>
     : super core::Object::•() {}
-  constructor value([dynamic x = null]) → void
+  constructor value([dynamic x = null]) → self::MyFuture<self::MyFuture::T>
     : super core::Object::•() {}
   method noSuchMethod(core::Invocation invocation) → dynamic
     return null;

@@ -17,7 +17,7 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
   get e() → dynamic
     ;
@@ -48,7 +48,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   get b() → dynamic
     ;
@@ -58,7 +58,7 @@ class B extends self::A {
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   method test() → dynamic
     ;

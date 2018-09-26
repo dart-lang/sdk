@@ -55,7 +55,7 @@ import self as self;
 import "dart:core" as core;
 
 class ExistingClass extends core::Object {
-  constructor existingConstructor() → void
+  constructor existingConstructor() → self::ExistingClass
     : super core::Object::•()
     ;
 }

@@ -5,23 +5,23 @@ import "dart:core" as core;
 @self::TypedefAnnotation::•(const <core::int>[1, 2, 3])
 typedef SomeType<T extends core::Object = dynamic> = (core::List<T>) → void;
 abstract class ClassAnnotation2 extends core::Object {
-[@vm.unreachable.metadata=]  const constructor •() → void
+[@vm.unreachable.metadata=]  const constructor •() → self::ClassAnnotation2
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class MethodAnnotation extends core::Object {
-[@vm.unreachable.metadata=]  const constructor •(core::int x) → void
+[@vm.unreachable.metadata=]  const constructor •(core::int x) → self::MethodAnnotation
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class TypedefAnnotation extends core::Object {
-[@vm.unreachable.metadata=]  const constructor •(core::List<core::int> list) → void
+[@vm.unreachable.metadata=]  const constructor •(core::List<core::int> list) → self::TypedefAnnotation
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class VarAnnotation extends core::Object {
-[@vm.unreachable.metadata=]  const constructor •() → void
+[@vm.unreachable.metadata=]  const constructor •() → self::VarAnnotation
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class ParametrizedAnnotation<T extends core::Object = dynamic> extends core::Object {
-[@vm.unreachable.metadata=]  const constructor •(self::ParametrizedAnnotation::T foo) → void
+[@vm.unreachable.metadata=]  const constructor •(self::ParametrizedAnnotation::T foo) → self::ParametrizedAnnotation<self::ParametrizedAnnotation::T>
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class A extends core::Object {
@@ -29,7 +29,7 @@ abstract class A extends core::Object {
 }
 @self::ClassAnnotation2::•()
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   @self::MethodAnnotation::•(42)

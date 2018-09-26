@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::bool b;
-  constructor •(core::Object o) → void
+  constructor •(core::Object o) → self::C
     : self::C::b = o as{TypeError} core::bool, super core::Object::•()
     ;
 }

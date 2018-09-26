@@ -13,11 +13,11 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic foo;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   method foo() → dynamic
     ;

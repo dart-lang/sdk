@@ -18,7 +18,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::A<self::A::T>
     : super core::Object::•()
     ;
 }
@@ -38,7 +38,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::A::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
@@ -58,7 +58,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::B::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C<self::C::T1, self::C::T2, self::C::T3>
     : super self::B::•()
     ;
 }
@@ -94,7 +94,7 @@ ConstantPool {
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target '#lib::C::', arg-desc CP#6
 }
-]  constructor •(dynamic tt) → void
+]  constructor •(dynamic tt) → self::D<self::D::P, self::D::Q>
     : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
     ;
 [@vm.bytecode=

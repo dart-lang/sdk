@@ -3,24 +3,24 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T1
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
 [@vm.inferred-type.metadata=#lib::T1]  field dynamic field1 = new self::T1::•();
 [@vm.inferred-type.metadata=!]  field dynamic field2 = new self::T1::•();
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class DeepCaller1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::DeepCaller1
     : super core::Object::•()
     ;
   method barL1([@vm.inferred-type.metadata=#lib::A?] self::A aa) → dynamic
@@ -33,7 +33,7 @@ class DeepCaller1 extends core::Object {
     return [@vm.direct-call.metadata=#lib::A::field1??] [@vm.inferred-type.metadata=#lib::T1] aa.{self::A::field1};
 }
 class DeepCaller2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::DeepCaller2
     : super core::Object::•()
     ;
   method barL1([@vm.inferred-type.metadata=#lib::A?] self::A aa) → dynamic

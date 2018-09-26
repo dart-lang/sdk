@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A<self::A::T>
     : super core::Object::•()
     ;
 }
 class B<U extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B<self::B::U>
     : super core::Object::•()
     ;
   method fun() → dynamic {

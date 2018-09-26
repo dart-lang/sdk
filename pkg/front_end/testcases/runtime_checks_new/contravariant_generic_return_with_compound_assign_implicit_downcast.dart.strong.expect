@@ -16,7 +16,7 @@ import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   final field (self::C::T) → core::num plusResult;
-  constructor •((self::C::T) → core::num plusResult) → void
+  constructor •((self::C::T) → core::num plusResult) → self::C<self::C::T>
     : self::C::plusResult = plusResult, super core::Object::•()
     ;
   operator +(core::int i) → (self::C::T) → core::num
@@ -25,7 +25,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
 class D extends core::Object {
   final field self::C<core::num> getValue;
   field (core::int) → core::int setValue = null;
-  constructor •(self::C<core::num> getValue) → void
+  constructor •(self::C<core::num> getValue) → self::D
     : self::D::getValue = getValue, super core::Object::•()
     ;
   get value() → self::C<core::num>

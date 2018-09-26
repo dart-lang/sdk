@@ -21,7 +21,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::_ScheduleImmediate
     : super core::Object::•()
     ;
 }
@@ -42,7 +42,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  constructor _() → void
+]  constructor _() → self::_NamespaceImpl
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -196,7 +196,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::_Namespace
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -277,7 +277,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::VMLibraryHooks
     : super core::Object::•()
     ;
 [@vm.bytecode=

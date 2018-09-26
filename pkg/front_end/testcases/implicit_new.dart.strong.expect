@@ -23,21 +23,21 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   operator +(dynamic other) → dynamic
     return null;
 }
 class Bar extends core::Object {
-  constructor named() → void
+  constructor named() → self::Bar
     : super core::Object::•()
     ;
   operator +(dynamic other) → dynamic
     return null;
 }
 class IndexTester extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::IndexTester
     : super core::Object::•()
     ;
   operator [](dynamic _) → dynamic

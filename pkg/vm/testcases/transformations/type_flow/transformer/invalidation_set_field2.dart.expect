@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T1
     : super core::Object::•()
     ;
   method go() → self::T3
     return new self::T3::•();
 }
 class T2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super core::Object::•()
     ;
 }
 class T3 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T3
     : super core::Object::•()
     ;
   method run() → dynamic {
@@ -24,7 +24,7 @@ class T3 extends core::Object {
 }
 class Q<T extends core::Object = dynamic> extends core::Object {
   final field self::Q::T result;
-  constructor •(self::Q::T result) → void
+  constructor •(self::Q::T result) → self::Q<self::Q::T>
     : self::Q::result = result, super core::Object::•()
     ;
 }

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   operator +(dynamic other) → core::int
@@ -13,7 +13,7 @@ class A extends core::Object {
 }
 class B extends core::Object {
   field self::A a = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }

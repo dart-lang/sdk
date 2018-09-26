@@ -60,7 +60,7 @@ ConstantPool {
   [7] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#0
   [8] = StaticICData target 'dart.core::print', arg-desc CP#0
 }
-]  constructor •() → void
+]  constructor •() → self::Base<self::Base::T1, self::Base::T2>
     : super core::Object::•() {
     core::print("Base: ${self::Base::T1}, ${self::Base::T2}");
   }
@@ -81,7 +81,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base::', arg-desc CP#0
 }
-]  constructor •(core::String s) → void
+]  constructor •(core::String s) → self::A
     : super self::Base::•()
     ;
 }
@@ -126,7 +126,7 @@ ConstantPool {
   [5] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#0
   [6] = StaticICData target 'dart.core::print', arg-desc CP#0
 }
-]  constructor •() → void
+]  constructor •() → self::B<self::B::T>
     : super self::Base::•() {
     core::print("B: ${self::B::T}");
   }
@@ -167,7 +167,7 @@ ConstantPool {
   [3] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#0
   [4] = StaticICData target 'dart.core::print', arg-desc CP#0
 }
-]  constructor •(core::String s) → void
+]  constructor •(core::String s) → self::C
     : super core::Object::•() {
     core::print("C: ${s}");
   }
@@ -188,7 +188,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::E<self::E::K, self::E::V>
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -227,7 +227,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::E::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::F<self::F::K, self::F::V>
     : super self::E::•()
     ;
 [@vm.bytecode=
@@ -266,7 +266,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  constructor •() → void
+]  constructor •() → self::G<self::G::K, self::G::V>
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -312,7 +312,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::G::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::H<self::H::P1, self::H::P2, self::H::P3>
     : super self::G::•()
     ;
 }
@@ -332,7 +332,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  constructor •(dynamic param) → void
+]  constructor •(dynamic param) → self::I
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -419,7 +419,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::TestTypeArgReuse<self::TestTypeArgReuse::P, self::TestTypeArgReuse::Q>
     : super self::Base::•()
     ;
 }

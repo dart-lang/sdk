@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Initializer,
+        InterfaceType,
         Member,
         Name,
         Procedure,
@@ -481,8 +482,18 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {
-    // TODO(ahe): Should complain if another type is explicitly set.
-    return super.buildFunction(library)..returnType = const VoidType();
+    // According to the specification §9.3 the return type of a constructor
+    // function is its enclosing class.
+    FunctionNode functionNode = super.buildFunction(library);
+    ClassBuilder enclosingClass = parent;
+    List<DartType> typeParameterTypes = new List<DartType>();
+    for (int i = 0; i < enclosingClass.target.typeParameters.length; i++) {
+      TypeParameter typeParameter = enclosingClass.target.typeParameters[i];
+      typeParameterTypes.add(new TypeParameterType(typeParameter));
+    }
+    functionNode.returnType =
+        new InterfaceType(enclosingClass.target, typeParameterTypes);
+    return functionNode;
   }
 
   Constructor get target => origin.constructor;

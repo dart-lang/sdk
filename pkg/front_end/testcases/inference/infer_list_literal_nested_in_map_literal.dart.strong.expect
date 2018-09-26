@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 class Resource extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Resource
     : super core::Object::•()
     ;
 }
 class Folder extends self::Resource {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Folder
     : super self::Resource::•()
     ;
 }
 class Foo<T extends core::Object = dynamic> extends core::Object {
-  constructor •(self::Foo::T t) → void
+  constructor •(self::Foo::T t) → self::Foo<self::Foo::T>
     : super core::Object::•()
     ;
 }

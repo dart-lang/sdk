@@ -9,7 +9,7 @@ import "dart:core" as core;
 
 class Typed<T extends core::Object = dynamic> extends core::Object {
   field self::Typed::T v;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Typed<self::Typed::T>
     ;
 }
 static method main() → dynamic

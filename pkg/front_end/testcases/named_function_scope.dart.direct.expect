@@ -98,12 +98,12 @@ import self as self;
 import "dart:core" as core;
 
 class T extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T
     : super core::Object::•()
     ;
 }
 class V extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::V
     : super core::Object::•()
     ;
 }

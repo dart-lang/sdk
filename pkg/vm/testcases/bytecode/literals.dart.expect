@@ -111,7 +111,7 @@ ConstantPool {
   [4] = ArgDesc num-args 1, num-type-args 0, names []
   [5] = StaticICData target 'dart.core::Object::', arg-desc CP#4
 }
-]  const constructor •(core::int index, core::String _name) → void
+]  const constructor •(core::int index, core::String _name) → self::A
     : self::A::index = index, self::A::_name = _name, super core::Object::•()
     ;
 [@vm.bytecode=
@@ -154,7 +154,7 @@ ConstantPool {
   [2] = ArgDesc num-args 1, num-type-args 0, names []
   [3] = StaticICData target 'dart.core::Object::', arg-desc CP#2
 }
-]  const constructor •(core::int i) → void
+]  const constructor •(core::int i) → self::B
     : self::B::i = i, super core::Object::•()
     ;
 }
@@ -187,7 +187,7 @@ ConstantPool {
   [4] = ICData target-name '*', arg-desc CP#0
   [5] = StaticICData target '#lib::B::', arg-desc CP#0
 }
-]  const constructor •(core::int a, core::int b, core::int c) → void
+]  const constructor •(core::int a, core::int b, core::int c) → self::C
     : self::C::j = a.{core::num::+}(b), super self::B::•(c.{core::num::*}(5))
     ;
 }
@@ -222,7 +222,7 @@ ConstantPool {
   [5] = ArgDesc num-args 1, num-type-args 0, names []
   [6] = StaticICData target 'dart.core::Object::', arg-desc CP#5
 }
-]  const constructor •(dynamic x, [dynamic y = null]) → void
+]  const constructor •(dynamic x, [dynamic y = null]) → self::D
     : self::D::x = x, self::D::y = y, super core::Object::•()
     ;
 }
@@ -242,7 +242,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  const constructor •() → void
+]  const constructor •() → self::E<self::E::T>
     : super core::Object::•()
     ;
 }
@@ -262,7 +262,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::E::', arg-desc CP#0
 }
-]  const constructor •() → void
+]  const constructor •() → self::F<self::F::P, self::F::Q>
     : super self::E::•()
     ;
 }

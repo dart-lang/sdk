@@ -3,23 +3,23 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T1
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super core::Object::•()
     ;
 }
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   abstract method foo() → dynamic;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
   method foo() → dynamic
@@ -28,7 +28,7 @@ class B extends self::A {
 abstract class C extends core::Object implements self::B {
 }
 abstract class D extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super core::Object::•()
     ;
 }
@@ -38,14 +38,14 @@ abstract class _E&D&C extends self::D implements self::C {
     ;
 }
 class E extends self::_E&D&C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     : super self::D::•()
     ;
   method foo() → dynamic
     return new self::T2::•();
 }
 class Intermediate extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Intermediate
     : super core::Object::•()
     ;
   method bar(self::A aa) → dynamic

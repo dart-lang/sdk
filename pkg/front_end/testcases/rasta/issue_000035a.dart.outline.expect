@@ -13,6 +13,6 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → void
+  constructor •() → self::C
     ;
 }

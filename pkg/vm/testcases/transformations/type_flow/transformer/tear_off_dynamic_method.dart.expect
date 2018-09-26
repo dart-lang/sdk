@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
   method foo() → core::int
@@ -16,7 +16,7 @@ class B extends self::A {
 }
 class TearOffDynamicMethod extends core::Object {
   field dynamic bazz;
-  constructor •(dynamic arg) → void
+  constructor •(dynamic arg) → self::TearOffDynamicMethod
     : self::TearOffDynamicMethod::bazz = arg.foo, super core::Object::•() {
     this.{self::TearOffDynamicMethod::bazz}();
   }

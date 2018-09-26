@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 abstract class A<X extends core::Object = dynamic> extends core::Object {
   field core::List<self::A::X> foo;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A<self::A::X>
     ;
 }
 class B extends core::Object implements self::A<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   method noSuchMethod(dynamic i) → dynamic
     ;

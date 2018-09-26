@@ -55,7 +55,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method m(dynamic x) → dynamic
@@ -64,7 +64,7 @@ class C extends core::Object {
     return x;
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   method m<T extends core::Object = dynamic>(self::D::m::T x) → self::D::m::T
