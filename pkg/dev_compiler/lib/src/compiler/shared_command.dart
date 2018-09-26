@@ -2,11 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
-import 'dart:io' show Platform;
+import 'dart:io';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show InitializedCompilerState;
 import 'package:path/path.dart' as path;
 import 'module_builder.dart';
+import '../analyzer/command.dart' as analyzer_compiler;
+import '../kernel/command.dart' as kernel_compiler;
+
+export 'package:front_end/src/api_unstable/ddc.dart'
+    show InitializedCompilerState;
 
 /// Shared code between Analyzer and Kernel CLI interfaces.
 ///
@@ -211,7 +220,10 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
 
 /// Convert a [source] string to a Uri, where the source may be a
 /// dart/file/package URI or a local win/mac/linux path.
+///
+/// If [source] is null, this will return null.
 Uri sourcePathToUri(String source, {bool windows}) {
+  if (source == null) return null;
   if (windows == null) {
     // Running on the web the Platform check will fail, and we can't use
     // fromEnvironment because internally it's set to true for dart.library.io.
@@ -286,4 +298,166 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
   }
   map['file'] = makeRelative(map['file'] as String);
   return map;
+}
+
+/// Invoke the compiler with [args], optionally with the kernel backend if
+/// [isKernel] is set.
+///
+/// Returns a [CompilerResult], with a success flag indicating whether the
+/// program compiled without any fatal errors.
+///
+/// The result may also contain a [compilerState], which can be passed back in
+/// for batch/worker executions to attempt to existing state.
+Future<CompilerResult> compile(ParsedArguments args,
+    {InitializedCompilerState compilerState}) {
+  if (compilerState != null && (!args.isBatchOrWorker || !args.isKernel)) {
+    throw ArgumentError('compilerState requires --batch or --bazel_worker mode,'
+        ' and --kernel to be set.');
+  }
+  if (args.isKernel) {
+    return kernel_compiler.compile(args.rest, compilerState: compilerState);
+  } else {
+    var exitCode = analyzer_compiler.compile(args.rest);
+    if (args.isBatchOrWorker) {
+      AnalysisEngine.instance.clearCaches();
+    }
+    return Future.value(CompilerResult(exitCode));
+  }
+}
+
+/// The result of a single `dartdevc` compilation.
+///
+/// Typically used for exiting the proceess with [exitCode] or checking the
+/// [success] of the compilation.
+///
+/// For batch/worker compilations, the [compilerState] provides an opprotunity
+/// to reuse state from the previous run, if the options/input summaries are
+/// equiavlent. Otherwise it will be discarded.
+class CompilerResult {
+  /// Optionally provides the front_end state from the previous compilation,
+  /// which can be passed to [compile] to potentially speeed up the next
+  /// compilation.
+  ///
+  /// This field is unused when using the Analyzer-backend for DDC.
+  final InitializedCompilerState compilerState;
+
+  /// The process exit code of the compiler.
+  final int exitCode;
+
+  CompilerResult(this.exitCode, [this.compilerState]);
+
+  /// Whether the program compiled without any fatal errors (equivalent to
+  /// [exitCode] == 0).
+  bool get success => exitCode == 0;
+
+  /// Whether the compiler crashed (i.e. threw an unhandled exeception,
+  /// typically indicating an internal error in DDC itself or its front end).
+  bool get crashed => exitCode == 70;
+}
+
+/// Stores the result of preprocessing `dartdevc` command line arguments.
+///
+/// `dartdevc` preprocesses arguments to support some features that
+/// `package:args` does not handle (training `@` to reference arguments in a
+/// file).
+///
+/// [isBatch]/[isWorker] mode are preprocessed because they can combine
+/// argument lists from the initial invocation and from batch/worker jobs.
+///
+/// [isKernel] is also preprocessed because the Kernel backend supports
+/// different options compared to the Analyzer backend.
+class ParsedArguments {
+  /// The user's arguments to the compiler for this compialtion.
+  final List<String> rest;
+
+  /// Whether to run in `--batch` mode, e.g the Dart SDK and Language tests.
+  ///
+  /// Similar to [isWorker] but with a different protocol.
+  /// See also [isBatchOrWorker].
+  final bool isBatch;
+
+  /// Whether to run in `--bazel_worker` mode, e.g. for Bazel builds.
+  ///
+  /// Similar to [isBatch] but with a different protocol.
+  /// See also [isBatchOrWorker].
+  final bool isWorker;
+
+  /// Whether to use the Kernel-based back end for dartdevc.
+  ///
+  /// This is similar to the Analyzer-based back end, but uses Kernel trees
+  /// instead of Analyzer trees for representing the Dart code.
+  final bool isKernel;
+
+  ParsedArguments._(this.rest,
+      {this.isBatch = false, this.isWorker = false, this.isKernel = false});
+
+  /// Preprocess arguments to determine whether DDK is used in batch mode or as a
+  /// persistent worker.
+  ///
+  /// When used in batch mode, we expect a `--batch` parameter last.
+  ///
+  /// When used as a persistent bazel worker, the `--persistent_worker` might be
+  /// present, and an argument of the form `@path/to/file` might be provided. The
+  /// latter needs to be replaced by reading all the contents of the
+  /// file and expanding them into the resulting argument list.
+  factory ParsedArguments.from(List<String> args) {
+    if (args.isEmpty) return ParsedArguments._(args);
+
+    var newArgs = <String>[];
+    bool isWorker = false;
+    bool isBatch = false;
+    bool isKernel = false;
+    var len = args.length;
+    for (int i = 0; i < len; i++) {
+      var arg = args[i];
+      var isLastArg = i == len - 1;
+      if (isLastArg && arg.startsWith('@')) {
+        newArgs.addAll(_readLines(arg.substring(1)));
+      } else if (arg == '--persistent_worker') {
+        isWorker = true;
+      } else if (isLastArg && arg == '--batch') {
+        isBatch = true;
+      } else if (arg == '--kernel' || arg == '-k') {
+        isKernel = true;
+      } else {
+        newArgs.add(arg);
+      }
+    }
+    return ParsedArguments._(newArgs,
+        isWorker: isWorker, isBatch: isBatch, isKernel: isKernel);
+  }
+
+  /// Whether the compiler is running in [isBatch] or [isWorker] mode.
+  ///
+  /// Both modes are generally equivalent from the compiler's perspective,
+  /// the main difference is that they use distinct protocols to communicate
+  /// jobs to the compiler.
+  bool get isBatchOrWorker => isBatch || isWorker;
+
+  /// Merge [args] and return the new parsed arguments.
+  ///
+  /// Typically used when [isBatchOrWorker] is set to merge the compilation's
+  /// arguments with any global ones that were provided when the worker started.
+  ParsedArguments merge(List<String> arguments) {
+    // Parse the arguments again so `--kernel` can be passed. This provides
+    // added safety that we are really compiling in Kernel mode, if somehow the
+    // worker was not initialized correctly.
+    var newArgs = ParsedArguments.from(arguments);
+    if (newArgs.isBatchOrWorker) {
+      throw ArgumentError('cannot change batch or worker mode after startup.');
+    }
+    return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
+        isWorker: isWorker,
+        isBatch: isBatch,
+        isKernel: isKernel || newArgs.isKernel);
+  }
+}
+
+/// Return all lines in a file found at [path].
+Iterable<String> _readLines(String path) {
+  try {
+    return File(path).readAsLinesSync().where((String line) => line.isNotEmpty);
+  } on FileSystemException catch (e) {
+    throw Exception('Failed to read $path: $e');
+  }
 }

@@ -61,7 +61,7 @@ abstract class CompilerConfiguration {
         return new DevCompilerConfiguration(configuration);
 
       case Compiler.dartdevk:
-        return new DevCompilerConfiguration(configuration, useKernel: true);
+        return new DevCompilerConfiguration(configuration);
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration,
@@ -466,17 +466,14 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
 /// Configuration for `dartdevc` and `dartdevk`
 class DevCompilerConfiguration extends CompilerConfiguration {
-  final bool useKernel;
-
-  DevCompilerConfiguration(TestConfiguration configuration,
-      {this.useKernel: false})
+  DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
-  String get compilerName => useKernel ? 'dartdevk' : 'dartdevc';
+  bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/$compilerName$executableScriptSuffix";
+    return "$dir/bin/dartdevc$executableScriptSuffix";
   }
 
   List<String> computeCompilerArguments(
@@ -498,25 +495,24 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
     // summaries to Kernel IL.
     final useDillFormat = false;
-    var sdkSummaryFile = useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
-    var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/$sdkSummaryFile")
-        .absolute
-        .toNativePath();
 
-    // If we're testing a built SDK use the SDK path. This will test that we can
-    // find the summary file from that. For local development we don't have a
-    // built SDK yet, so point directly at the built summary file.
-    //
-    // TODO(jmesserly): ideally we'd test the `dartdevc` script/.bat file.
-    // That's the closest to what users/tools use. That script has its own way
-    // of computing `--dart-sdk` and passing it to DDC. For simplicitly that
-    // script should be passing `--dart-sdk-summary`, that way DDC doesn't need
-    // two options for the same thing.
-    var args = _useSdk && !useKernel
-        ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
-        : ["--dart-sdk-summary", sdkSummary];
-
+    var args = <String>[];
+    if (useKernel) {
+      args.add('--kernel');
+    }
+    if (!_useSdk) {
+      // If we're testing a built SDK, DDC will find its own summary.
+      //
+      // For local development we don't have a built SDK yet, so point directly
+      // at the built summary file location.
+      var sdkSummaryFile =
+          useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+      var sdkSummary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/$sdkSummaryFile")
+          .absolute
+          .toNativePath();
+      args.addAll(["--dart-sdk-summary", sdkSummary]);
+    }
     args.addAll(sharedOptions);
     if (!useKernel) {
       // TODO(jmesserly): library-root needs to be removed.
@@ -552,8 +548,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     var inputDir =
         new Path(inputFile).append("..").canonicalize().toNativePath();
-    return Command.compilation(compilerName, outputFile,
-        bootstrapDependencies(), computeCompilerPath(), args, environment,
+    var displayName = useKernel ? 'dartdevk' : 'dartdevc';
+    return Command.compilation(displayName, outputFile, bootstrapDependencies(),
+        computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
 
