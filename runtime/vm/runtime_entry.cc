@@ -637,24 +637,18 @@ static void UpdateTypeTestCache(
     }
     return;
   }
-  Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
-    if (FLAG_enable_interpreter) {
-      instance_class = Smi::Class();
-    } else {
-      if (FLAG_trace_type_checks) {
-        OS::PrintErr("UpdateTypeTestCache: instance is Smi, not updating\n");
-      }
-      return;
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("UpdateTypeTestCache: instance is Smi\n");
     }
-  } else {
-    instance_class = instance.clazz();
+    return;
   }
   // If the type is uninstantiated and refers to parent function type
   // parameters, the function_type_arguments have been canonicalized
   // when concatenated.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
+  const Class& instance_class = Class::Handle(zone, instance.clazz());
   auto& instance_class_id_or_function = Object::Handle(zone);
   auto& instance_type_arguments = TypeArguments::Handle(zone);
   auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
