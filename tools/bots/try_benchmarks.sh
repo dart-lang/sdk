@@ -84,6 +84,7 @@ for command; do
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
       sdk samples-dev/swarm \
@@ -183,6 +184,7 @@ for command; do
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
       sdk \
@@ -222,6 +224,7 @@ EOF
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     out/ReleaseIA32/run_vm_tests InitialRSS
+    out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
@@ -244,6 +247,7 @@ EOF
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
       out/ReleaseX64/dart_precompiled_runtime \
@@ -364,6 +368,7 @@ EOF
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
       out/ReleaseX64/dart_precompiled_runtime \
@@ -403,6 +408,7 @@ EOF
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --implementation=minimal --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests InitialRSS
+    out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
     cd ..
     rm -rf tmp
   else
