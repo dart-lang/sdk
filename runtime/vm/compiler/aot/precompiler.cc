@@ -64,7 +64,6 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
-DEFINE_FLAG(int, precompiler_rounds, 1, "Number of precompiler iterations");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -209,39 +208,21 @@ void Precompiler::DoCompileAll() {
       ClassFinalizer::ClearAllCode();
       PrecompileConstructors();
 
-      for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
-        if (FLAG_trace_precompiler) {
-          THR_Print("Precompiler round %" Pd "\n", round);
-        }
+      ClassFinalizer::ClearAllCode();
 
-        if (round > 0) {
-          ResetPrecompilerState();
-        }
+      CollectDynamicFunctionNames();
 
-        // TODO(rmacnak): We should be able to do a more thorough job and drop
-        // some
-        //  - implicit static closures
-        //  - field initializers
-        //  - invoke-field-dispatchers
-        //  - method-extractors
-        // that are needed in early iterations but optimized away in later
-        // iterations.
-        ClassFinalizer::ClearAllCode();
+      // Start with the allocations and invocations that happen from C++.
+      AddRoots();
+      AddAnnotatedRoots();
 
-        CollectDynamicFunctionNames();
+      // Compile newly found targets and add their callees until we reach a
+      // fixed point.
+      Iterate();
 
-        // Start with the allocations and invocations that happen from C++.
-        AddRoots();
-        AddAnnotatedRoots();
-
-        // Compile newly found targets and add their callees until we reach a
-        // fixed point.
-        Iterate();
-
-        // Replace the default type testing stubs installed on [Type]s with new
-        // [Type]-specialized stubs.
-        AttachOptimizedTypeTestingStub();
-      }
+      // Replace the default type testing stubs installed on [Type]s with new
+      // [Type]-specialized stubs.
+      AttachOptimizedTypeTestingStub();
 
       I->set_compilation_allowed(false);
 
@@ -2216,40 +2197,6 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
-
-void Precompiler::ResetPrecompilerState() {
-  changed_ = false;
-  function_count_ = 0;
-  class_count_ = 0;
-  selector_count_ = 0;
-  dropped_function_count_ = 0;
-  dropped_field_count_ = 0;
-  ASSERT(pending_functions_.Length() == 0);
-  sent_selectors_.Clear();
-  enqueued_functions_.Clear();
-
-  classes_to_retain_.Clear();
-  consts_to_retain_.Clear();
-  fields_to_retain_.Clear();
-  functions_to_retain_.Clear();
-  typeargs_to_retain_.Clear();
-  types_to_retain_.Clear();
-
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      cls.set_is_allocated(false);
-    }
-  }
-}
 
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,

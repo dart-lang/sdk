@@ -290,7 +290,6 @@ class Precompiler : public ValueObject {
 
   void BindStaticCalls();
   void SwitchICCalls();
-  void ResetPrecompilerState();
 
   void Obfuscate();
 
