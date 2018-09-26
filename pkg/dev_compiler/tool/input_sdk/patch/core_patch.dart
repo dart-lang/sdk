@@ -54,7 +54,7 @@ class Object {
 
   @patch
   String toString() =>
-      "Instance of '${dart.wrapType(dart.getReifiedType(this))}'";
+      "Instance of '${dart.typeName(dart.getReifiedType(this))}'";
 
   @patch
   noSuchMethod(Invocation invocation) {
@@ -198,7 +198,7 @@ class BigInt implements Comparable<BigInt> {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return "Instance of '${dart.wrapType(dart.getReifiedType(object))}'";
+    return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
   }
 
   @patch

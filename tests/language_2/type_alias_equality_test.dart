@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 typedef F1 = void Function(int);
 typedef F2 = void Function(int);
-typedef void F3(int);
+typedef void F3(int x);
 
 typedef G1 = X Function<X>(X);
 typedef G2 = X Function<X>(X);

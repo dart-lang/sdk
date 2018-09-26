@@ -432,10 +432,8 @@ class ProgramCompiler extends Object
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
       library.classes.forEach(_emitClass);
-      library.typedefs.forEach(_emitTypedef);
     } else {
       library.classes.forEach(_emitClass);
-      library.typedefs.forEach(_emitTypedef);
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
@@ -1785,7 +1783,7 @@ class ProgramCompiler extends Object
         JS.Method(
             name,
             js.fun('function(x) { return super.# = #; }',
-                [name, _emitImplicitCast(JS.Identifier('x'), setterType)]),
+                [name, _emitCast(JS.Identifier('x'), setterType)]),
             isSetter: true),
         JS.Method(name, js.fun('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1811,8 +1809,7 @@ class ProgramCompiler extends Object
 
       if (isCovariant(param) &&
           !isCovariant(superMember.function.positionalParameters[i])) {
-        var check =
-            _emitImplicitCast(jsParam, superMethodType.positionalParameters[i]);
+        var check = _emitCast(jsParam, superMethodType.positionalParameters[i]);
         if (i >= function.requiredParameterCount) {
           body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
         } else {
@@ -1831,8 +1828,7 @@ class ProgramCompiler extends Object
         body.add(js.statement('if (# in #) #;', [
           name,
           namedArgumentTemp,
-          _emitImplicitCast(
-              JS.PropertyAccess(namedArgumentTemp, name), paramType.type)
+          _emitCast(JS.PropertyAccess(namedArgumentTemp, name), paramType.type)
         ]));
       }
     }
@@ -1879,7 +1875,7 @@ class ProgramCompiler extends Object
 
     JS.Expression value = JS.Identifier('value');
     if (!field.isFinal && field.isGenericCovariantImpl) {
-      value = _emitImplicitCast(value, field.type);
+      value = _emitCast(value, field.type);
     }
     args.add(value);
 
@@ -2000,24 +1996,6 @@ class ProgramCompiler extends Object
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
-  }
-
-  void _emitTypedef(Typedef t) {
-    var savedUri = _currentUri;
-    _currentUri = t.fileUri;
-    var body = runtimeCall('typedef(#, () => #)',
-        [js.string(t.name, "'"), visitFunctionType(t.type)]);
-
-    JS.Statement result;
-    if (t.typeParameters.isNotEmpty) {
-      result = _defineClassTypeArguments(
-          t, t.typeParameters, js.statement('const # = #;', [t.name, body]));
-    } else {
-      result = js.statement('# = #;', [_emitTopLevelName(t), body]);
-    }
-
-    _currentUri = savedUri;
-    moduleItems.add(result);
   }
 
   void _emitTopLevelFields(List<Field> fields) {
@@ -2466,7 +2444,7 @@ class ProgramCompiler extends Object
   visitBottomType(type) => runtimeCall('bottom');
 
   @override
-  visitInterfaceType(type, {bool lowerGeneric = false}) {
+  visitInterfaceType(type) {
     var c = type.classNode;
     _declareBeforeUse(c);
 
@@ -2497,8 +2475,6 @@ class ProgramCompiler extends Object
     Iterable<JS.Expression> jsArgs = null;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
-    } else if (lowerGeneric) {
-      jsArgs = [];
     }
     if (jsArgs != null) {
       var typeRep = _emitGenericClassType(type, jsArgs);
@@ -2689,23 +2665,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTypedefType(type, {bool lowerGeneric = false}) {
-    var args = type.typeArguments;
-    List<JS.Expression> jsArgs = null;
-    if (args.any((a) => a != const DynamicType())) {
-      jsArgs = args.map(_emitType).toList();
-    } else if (lowerGeneric) {
-      jsArgs = [];
-    }
-    if (jsArgs != null) {
-      var genericName =
-          _emitTopLevelNameNoInterop(type.typedefNode, suffix: '\$');
-      var typeRep = JS.Call(genericName, jsArgs);
-      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
-    }
-
-    return _emitTopLevelNameNoInterop(type.typedefNode);
-  }
+  visitTypedefType(type) => visitFunctionType(type.unalias);
 
   JS.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -2910,7 +2870,7 @@ class ProgramCompiler extends Object
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
       if (isCovariant(p)) {
-        var castExpr = _emitImplicitCast(jsParam, p.type);
+        var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
       if (_annotatedNullCheck(p.annotations)) {
@@ -4784,15 +4744,15 @@ class ProgramCompiler extends Object
       return jsFrom;
     }
 
-    return isTypeError
-        ? _emitImplicitCast(jsFrom, to)
-        : js.call('#.as(#)', [_emitType(to), jsFrom]);
+    return _emitCast(jsFrom, to, implicit: isTypeError);
   }
 
-  JS.Expression _emitImplicitCast(JS.Expression expr, DartType type) {
-    return types.isTop(type)
-        ? expr
-        : js.call('#._check(#)', [_emitType(type), expr]);
+  JS.Expression _emitCast(JS.Expression expr, DartType type,
+      {bool implicit = true}) {
+    if (types.isTop(type)) return expr;
+
+    var code = implicit ? '#._check(#)' : '#.as(#)';
+    return js.call(code, [_emitType(type), expr]);
   }
 
   @override

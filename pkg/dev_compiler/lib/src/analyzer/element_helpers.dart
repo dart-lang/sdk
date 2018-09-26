@@ -22,13 +22,27 @@ class Tuple2<T0, T1> {
 }
 
 // TODO(jmesserly): replace this with instantiateToBounds
-T fillDynamicTypeArgs<T extends DartType>(T t) {
-  if (t is ParameterizedType && t.typeArguments.isNotEmpty) {
-    var rawT = (t.element as TypeParameterizedElement).type;
+InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
+  if (t.typeArguments.isNotEmpty) {
+    var rawT = t.element.type;
     var dyn = List.filled(rawT.typeArguments.length, DynamicTypeImpl.instance);
-    return rawT.substitute2(dyn, rawT.typeArguments) as T;
+    return rawT.substitute2(dyn, rawT.typeArguments);
   }
   return t;
+}
+
+// TODO(jmesserly): replace this with instantiateToBounds
+DartType fillDynamicTypeArgsForElement(TypeDefiningElement element) {
+  Element e = element;
+  if (e is TypeParameterizedElement) {
+    // TODO(jmesserly): GenericTypeAliasElement.type does not return the correct
+    // type (it is missing the type formals), so we workaround that here.
+    var type = e is GenericTypeAliasElement ? e.function.type : e.type;
+    return type.substitute2(
+        List.filled(e.typeParameters.length, DynamicTypeImpl.instance),
+        TypeParameterTypeImpl.getTypes(e.typeParameters));
+  }
+  return element.type;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching
@@ -231,7 +245,9 @@ bool typesAreEqual(DartType x, DartType y) {
       if (x.typeFormals.isNotEmpty) {
         var fresh = FunctionTypeImpl.relateTypeFormals(
             x, y, (t, s, _, __) => typesAreEqual(t, s));
-        if (fresh == null) return false;
+        if (fresh == null) {
+          return false;
+        }
         return typesAreEqual(x.instantiate(fresh), y.instantiate(fresh));
       }
 
@@ -273,8 +289,32 @@ bool _namedArgumentsAreEqual(
 
 /// Returns a valid hashCode for [t] for use with [typesAreEqual].
 int typeHashCode(DartType t) {
+  // TODO(jmesserly): this is from Analyzer; it's not a great hash function.
+  // We should at least fix how this combines hashes.
   if (t is FunctionType) {
-    // TODO(jmesserly): this is from Analyzer; it's not a great hash function.
+    if (t.typeFormals.isNotEmpty) {
+      // Instantiate the generic function type, so we hash equivalent
+      // generic function types to the same value. For example, `<X>(X) -> X`
+      // and `<Y>(Y) -> Y` shouold have the same hash.
+      //
+      // TODO(jmesserly): it would be better to instantiate these with unique
+      // types for each position, so we can distinguish cases like these:
+      //
+      //     <A, B>(A) -> B
+      //     <C, D>(D) -> C      // reversed
+      //     <E, F>(E) -> void   // uses `void`
+      //
+      // Currently all of those will have the same hash code.
+      //
+      // The choice of `void` is rather arbitrary. Of the types we can easily
+      // obtain from Analyzer, it should collide a bit less than something like
+      // `dynamic`.
+      int code = t.typeFormals.length;
+      code = (code << 1) +
+          typeHashCode(t.instantiate(
+              List.filled(t.typeFormals.length, VoidTypeImpl.instance)));
+      return code;
+    }
     int code = typeHashCode(t.returnType);
     for (var p in t.normalParameterTypes) {
       code = (code << 1) + typeHashCode(p);

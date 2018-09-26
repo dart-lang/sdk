@@ -77,7 +77,6 @@ partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
-type_alias_equality_test/02: RuntimeError # Issue 32784
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]

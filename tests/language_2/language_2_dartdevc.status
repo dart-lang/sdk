@@ -201,10 +201,6 @@ syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
-type_alias_equality_test/01: RuntimeError # Issue 32785
-type_alias_equality_test/02: RuntimeError # Issue 32785
-type_alias_equality_test/03: RuntimeError # Issue 32785
-type_alias_equality_test/04: RuntimeError # Issue 32785
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
@@ -407,8 +403,6 @@ switch_case_test/02: MissingCompileTimeError
 syncstar_yield_test/capturing: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 try_catch_test/01: MissingCompileTimeError
-type_alias_equality_test/02: RuntimeError # Issue 32785
-type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537
 type_promotion_functions_test/04: CompileTimeError # Issue 31537
