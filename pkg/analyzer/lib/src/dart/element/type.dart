@@ -1822,6 +1822,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
       {bool concrete: false,
+      bool forSuperInvocation: false,
       int startMixinIndex,
       bool setter: false,
       bool thisType: false}) {
@@ -1832,7 +1833,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
         {bool acceptAbstract: false,
         bool includeType: true,
-        bool includeSupers: true,
+        bool inMixin: false,
         int startMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
@@ -1853,14 +1854,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      if (includeSupers) {
+      if (forSuperInvocation) {
+        bool inOldStyleSuperMixin = inMixin &&
+            type.superclass != null &&
+            !type.superclass.isObject &&
+            element.context.analysisOptions.enableSuperMixins;
+        if (inOldStyleSuperMixin) {
+          acceptAbstract = true;
+        }
+      }
+
+      if (!inMixin || acceptAbstract) {
         var mixins = type.mixins;
         startMixinIndex ??= mixins.length;
         for (var i = startMixinIndex - 1; i >= 0; i--) {
           var result = lookUpImpl(
             mixins[i],
             acceptAbstract: acceptAbstract,
-            includeSupers: false,
+            inMixin: true,
           );
           if (result != null) {
             return result;
@@ -1879,8 +1890,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      if (includeSupers) {
-        return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+      if (!inMixin || acceptAbstract) {
+        return lookUpImpl(type.superclass,
+            acceptAbstract: acceptAbstract, inMixin: inMixin);
       }
 
       return null;

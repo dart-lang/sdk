@@ -598,7 +598,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           if (staticType is InterfaceTypeImpl) {
             staticElement = staticType.lookUpInheritedMember(
                 methodName.name, _definingLibrary,
-                concrete: true);
+                concrete: true, forSuperInvocation: true);
             // We were not able to find the concrete dispatch target.
             // But we would like to give the user at least some resolution.
             // So, we retry without the "concrete" requirement.
@@ -2096,7 +2096,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (staticType is InterfaceTypeImpl) {
           staticElement = staticType.lookUpInheritedMember(
               propertyName.name, _definingLibrary,
-              setter: propertyName.inSetterContext(), concrete: true);
+              setter: propertyName.inSetterContext(),
+              concrete: true,
+              forSuperInvocation: true);
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry without the "concrete" requirement.
