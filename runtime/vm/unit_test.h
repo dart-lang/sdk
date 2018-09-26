@@ -382,7 +382,8 @@ class TestCase : TestCaseBase {
   static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
-  static Dart_Handle TriggerReload();
+  static Dart_Handle TriggerReload(const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size);
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);

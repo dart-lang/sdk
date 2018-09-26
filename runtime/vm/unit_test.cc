@@ -184,7 +184,8 @@ static Dart_Handle IsolateReloadTestLibSource() {
 }
 
 static void ReloadTest(Dart_NativeArguments native_args) {
-  Dart_Handle result = TestCase::TriggerReload();
+  Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ NULL,
+                                               /* kernel_buffer_size= */ 0);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -610,17 +611,18 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   }
 }
 
-Dart_Handle TestCase::TriggerReload() {
+Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   JSONStream js;
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success = isolate->ReloadSources(&js,
-                                     false,  // force_reload
-                                     NULL, NULL,
-                                     true);  // dont_delete_reload_context
+    success = isolate->ReloadKernel(&js,
+                                    false,  // force_reload
+                                    kernel_buffer, kernel_buffer_size,
+                                    true);  // dont_delete_reload_context
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -662,12 +664,12 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     SetReloadTestScript(script);
   }
 
-  return TriggerReload();
+  return TriggerReload(/* kernel_buffer= */ NULL, /* kernel_buffer_size= */ 0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-  return TriggerReload();
+  return TriggerReload(kernel_buffer, kernel_buffer_size);
 }
 
 #endif  // !PRODUCT

@@ -1260,7 +1260,28 @@ bool Isolate::ReloadSources(JSONStream* js,
   ASSERT(!IsReloading());
   SetHasAttemptedReload(true);
   reload_context_ = new IsolateReloadContext(this, js);
-  reload_context_->Reload(force_reload, root_script_url, packages_url);
+  reload_context_->Reload(force_reload, root_script_url, packages_url,
+                          /* kernel_buffer= */ NULL,
+                          /* kernel_buffer_size= */ 0);
+  bool success = !reload_context_->reload_aborted();
+  if (!dont_delete_reload_context) {
+    DeleteReloadContext();
+  }
+  return success;
+}
+
+bool Isolate::ReloadKernel(JSONStream* js,
+                           bool force_reload,
+                           const uint8_t* kernel_buffer,
+                           intptr_t kernel_buffer_size,
+                           bool dont_delete_reload_context) {
+  ASSERT(!IsReloading());
+  SetHasAttemptedReload(true);
+  reload_context_ = new IsolateReloadContext(this, js);
+  reload_context_->Reload(force_reload,
+                          /* root_script_url= */ NULL,
+                          /* packages_url= */ NULL, kernel_buffer,
+                          kernel_buffer_size);
   bool success = !reload_context_->reload_aborted();
   if (!dont_delete_reload_context) {
     DeleteReloadContext();

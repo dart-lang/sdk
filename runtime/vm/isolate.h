@@ -307,6 +307,11 @@ class Isolate : public BaseIsolate {
                      const char* root_script_url = NULL,
                      const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
+  bool ReloadKernel(JSONStream* js,
+                    bool force_reload,
+                    const uint8_t* kernel_buffer = NULL,
+                    intptr_t kernel_buffer_size = 0,
+                    bool dont_delete_reload_context = false);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const char* MakeRunnable();

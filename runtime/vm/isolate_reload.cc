@@ -557,9 +557,12 @@ static void AcceptCompilation(Thread* thread) {
 }
 
 // NOTE: This function returns *after* FinalizeLoading is called.
+// If [root_script_url] is null, attempt to load from [kernel_buffer].
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
-                                  const char* packages_url_) {
+                                  const char* packages_url_,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -610,18 +613,25 @@ void IsolateReloadContext::Reload(bool force_reload,
     // compiled, so ReadKernelFromFile returns NULL.
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
     if (kernel_program.get() == NULL) {
-      Dart_SourceFile* modified_scripts = NULL;
-      intptr_t modified_scripts_count = 0;
-
-      FindModifiedSources(thread, force_reload, &modified_scripts,
-                          &modified_scripts_count, packages_url_);
-
       Dart_KernelCompilationResult retval;
-      {
-        TransitionVMToNative transition(thread);
-        retval = KernelIsolate::CompileToKernel(root_lib_url.ToCString(), NULL,
-                                                0, modified_scripts_count,
-                                                modified_scripts, true, NULL);
+      if (kernel_buffer != NULL && kernel_buffer_size != 0) {
+        retval.kernel = const_cast<uint8_t*>(kernel_buffer);
+        retval.kernel_size = kernel_buffer_size;
+        retval.status = Dart_KernelCompilationStatus_Ok;
+      } else {
+        Dart_SourceFile* modified_scripts = NULL;
+        intptr_t modified_scripts_count = 0;
+
+        FindModifiedSources(thread, force_reload, &modified_scripts,
+                            &modified_scripts_count, packages_url_);
+
+        {
+          TransitionVMToNative transition(thread);
+          retval = KernelIsolate::CompileToKernel(
+              root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
+              modified_scripts, true, NULL);
+          did_kernel_compilation = true;
+        }
       }
 
       if (retval.status != Dart_KernelCompilationStatus_Ok) {
@@ -634,7 +644,6 @@ void IsolateReloadContext::Reload(bool force_reload,
         CommonFinalizeTail();
         return;
       }
-      did_kernel_compilation = true;
 
       // The ownership of the kernel buffer goes now to the VM.
       const ExternalTypedData& typed_data = ExternalTypedData::Handle(

@@ -137,7 +137,9 @@ class IsolateReloadContext {
 
   void Reload(bool force_reload,
               const char* root_script_url = NULL,
-              const char* packages_url = NULL);
+              const char* packages_url = NULL,
+              const uint8_t* kernel_buffer = NULL,
+              intptr_t kernel_buffer_size = 0);
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
