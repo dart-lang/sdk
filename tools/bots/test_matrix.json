@@ -102,6 +102,7 @@
       "out/ReleaseX64/",
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugX64/",
+      "xcodebuild/ProductX64/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseX64/",
