@@ -290,6 +290,7 @@ class _AnalyzerVisitor extends UnifyingAstVisitor<void> {
       var children = <ComparisonNode>[];
       var visitor = _AnalyzerVisitor(_typeProvider, children);
       visitor._visitTypeParameters(type.typeFormals);
+      children.add(_translateType('Return type: ', type.returnType));
       int positionalParameterIndex = 0;
       for (var parameterElement in type.parameters) {
         var kind = parameterElement.isNotOptional

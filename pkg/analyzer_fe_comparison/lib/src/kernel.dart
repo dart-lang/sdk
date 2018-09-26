@@ -286,6 +286,7 @@ class _TypeVisitor extends DartTypeVisitor<ComparisonNode> {
     var children = <ComparisonNode>[];
     var visitor = _KernelVisitor(children);
     visitor._visitTypeParameters(node.typeParameters);
+    children.add(translate('Return type: ', node.returnType));
     for (int i = 0; i < node.positionalParameters.length; i++) {
       var kind = i < node.requiredParameterCount ? 'Required' : 'Optional';
       children
