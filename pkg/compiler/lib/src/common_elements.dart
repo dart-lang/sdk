@@ -502,6 +502,10 @@ abstract class KCommonElements implements CommonElements {
 
   ClassEntity get forceInlineClass;
 
+  ClassEntity get pragmaClass;
+  FieldEntity get pragmaClassNameField;
+  FieldEntity get pragmaClassOptionsField;
+
   bool isCreateInvocationMirrorHelper(MemberEntity member);
 
   bool isSymbolValidatedConstructor(ConstructorEntity element);
@@ -1320,6 +1324,18 @@ class CommonElementsImpl
   ClassEntity _forceInlineClass;
   ClassEntity get forceInlineClass =>
       _forceInlineClass ??= _findHelperClass('ForceInline');
+
+  ClassEntity _pragmaClass;
+  ClassEntity get pragmaClass =>
+      _pragmaClass ??= _findClass(coreLibrary, 'pragma');
+
+  FieldEntity _pragmaClassNameField;
+  FieldEntity get pragmaClassNameField =>
+      _pragmaClassNameField ??= _findClassMember(pragmaClass, 'name');
+
+  FieldEntity _pragmaClassOptionsField;
+  FieldEntity get pragmaClassOptionsField =>
+      _pragmaClassOptionsField ??= _findClassMember(pragmaClass, 'options');
 
   ClassEntity _jsInvocationMirrorClass;
   ClassEntity get jsInvocationMirrorClass =>
