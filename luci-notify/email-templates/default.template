@@ -18,5 +18,5 @@ Failed Steps:
 {{ end -}}
 </ul>
 <br />
-Completed at:{{ .Build.EndTime | time }}
+Completed at: {{ .Build.EndTime | time }}
 {{ end -}}
