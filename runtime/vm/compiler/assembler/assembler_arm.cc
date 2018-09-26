@@ -1615,9 +1615,34 @@ void Assembler::StoreIntoObject(Register object,
   and_(TMP, LR, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
   ldr(LR, Address(THR, Thread::write_barrier_mask_offset()));
   tst(TMP, Operand(LR));
-  mov(TMP, Operand(value), NE);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
-  blx(LR, NE);
+  if (value != kWriteBarrierValueReg) {
+    // Unlikely. Only non-graph intrinsics.
+    // TODO(rmacnak): Shuffle registers in intrinsics.
+    Label restore_and_done;
+    b(&restore_and_done, ZERO);
+    Register objectForCall = object;
+    if (object != kWriteBarrierValueReg) {
+      Push(kWriteBarrierValueReg);
+    } else {
+      COMPILE_ASSERT(R2 != kWriteBarrierValueReg);
+      COMPILE_ASSERT(R3 != kWriteBarrierValueReg);
+      objectForCall = (value == R2) ? R3 : R2;
+      PushList((1 << kWriteBarrierValueReg) | (1 << objectForCall));
+      mov(objectForCall, Operand(object));
+    }
+    mov(kWriteBarrierValueReg, Operand(value));
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
+    blx(LR);
+    if (object != kWriteBarrierValueReg) {
+      Pop(kWriteBarrierValueReg);
+    } else {
+      PopList((1 << kWriteBarrierValueReg) | (1 << objectForCall));
+    }
+    Bind(&restore_and_done);
+  } else {
+    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
+    blx(LR, NE);
+  }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
 #else
@@ -1632,12 +1657,12 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
     RegList regs = 0;
     regs |= (1 << LR);
-    if (value != R0) {
-      regs |= (1 << R0);  // Preserve R0.
+    if (value != kWriteBarrierObjectReg) {
+      regs |= (1 << kWriteBarrierObjectReg);
     }
     PushList(regs);
-    if (object != R0) {
-      mov(R0, Operand(object));
+    if (object != kWriteBarrierObjectReg) {
+      mov(kWriteBarrierObjectReg, Operand(object));
     }
     ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     blx(LR);

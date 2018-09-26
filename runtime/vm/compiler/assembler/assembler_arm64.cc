@@ -1004,12 +1004,33 @@ void Assembler::StoreIntoObject(Register object,
   ldr(TMP2, FieldAddress(value, Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
-  b(&done, EQ);
+  b(&done, ZERO);
 
   if (!lr_reserved) Push(LR);
-  mov(TMP2, value);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
+  Register objectForCall = object;
+  if (value != kWriteBarrierValueReg) {
+    // Unlikely. Only non-graph intrinsics.
+    // TODO(rmacnak): Shuffle registers in intrinsics.
+    if (object != kWriteBarrierValueReg) {
+      Push(kWriteBarrierValueReg);
+    } else {
+      COMPILE_ASSERT(R2 != kWriteBarrierValueReg);
+      COMPILE_ASSERT(R3 != kWriteBarrierValueReg);
+      objectForCall = (value == R2) ? R3 : R2;
+      PushPair(kWriteBarrierValueReg, objectForCall);
+      mov(objectForCall, object);
+    }
+    mov(kWriteBarrierValueReg, value);
+  }
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
   blr(LR);
+  if (value != kWriteBarrierValueReg) {
+    if (object != kWriteBarrierValueReg) {
+      Pop(kWriteBarrierValueReg);
+    } else {
+      PopPair(kWriteBarrierValueReg, objectForCall);
+    }
+  }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
 #else

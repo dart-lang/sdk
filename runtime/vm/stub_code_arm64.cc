@@ -1312,11 +1312,11 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
     __ Push(LR);
-    __ Push(R0);
-    __ mov(R0, reg);
+    __ Push(kWriteBarrierObjectReg);
+    __ mov(kWriteBarrierObjectReg, reg);
     __ ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
     __ blr(LR);
-    __ Pop(R0);
+    __ Pop(kWriteBarrierObjectReg);
     __ Pop(LR);
     __ ret(LR);
     intptr_t end = __ CodeSize();
@@ -1327,19 +1327,21 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   R0: Source object (old)
-//   TMP2: Target object (old or new)
-// If TMP2 is new, add R0 to the store buffer. Otherwise TMP2 is old, mark TMP2
+//   R1: Object (old)
+//   R0: Value (old or new)
+// If R0 is new, add R1 to the store buffer. Otherwise R0 is old, mark R0
 // and add it to the mark list.
+COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
+COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 #if defined(CONCURRENT_MARKING)
   Label add_to_mark_stack;
-  __ tbz(&add_to_mark_stack, TMP2, kNewObjectBitPosition);
+  __ tbz(&add_to_mark_stack, R0, kNewObjectBitPosition);
 #else
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kWord);
+  __ LoadFieldFromOffset(TMP, R1, Object::tags_offset(), kWord);
   __ tbnz(&add_to_buffer, TMP, RawObject::kOldAndNotRememberedBit);
   __ ret();
 
@@ -1347,13 +1349,13 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 #endif
 
   // Save values being destroyed.
-  __ Push(R1);
   __ Push(R2);
   __ Push(R3);
+  __ Push(R4);
 
   // Atomically set the remembered bit of the object header.
   ASSERT(Object::tags_offset() == 0);
-  __ sub(R3, R0, Operand(kHeapObjectTag));
+  __ sub(R3, R1, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   // Note that we use 32 bit operations here to match the size of the
   // background sweeper which is also manipulating this 32 bit word.
@@ -1361,27 +1363,27 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Bind(&retry);
   __ ldxr(R2, R3, kWord);
   __ AndImmediate(R2, R2, ~(1 << RawObject::kOldAndNotRememberedBit));
-  __ stxr(R1, R2, R3, kWord);
-  __ cbnz(&retry, R1);
+  __ stxr(R4, R2, R3, kWord);
+  __ cbnz(&retry, R4);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  __ LoadFromOffset(R1, THR, Thread::store_buffer_block_offset());
-  __ LoadFromOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
-  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
-  __ StoreToOffset(R0, R3, StoreBufferBlock::pointers_offset());
+  __ LoadFromOffset(R4, THR, Thread::store_buffer_block_offset());
+  __ LoadFromOffset(R2, R4, StoreBufferBlock::top_offset(), kUnsignedWord);
+  __ add(R3, R4, Operand(R2, LSL, kWordSizeLog2));
+  __ StoreToOffset(R1, R3, StoreBufferBlock::pointers_offset());
 
   // Increment top_ and check for overflow.
   // R2: top_.
-  // R1: StoreBufferBlock.
+  // R4: StoreBufferBlock.
   Label overflow;
   __ add(R2, R2, Operand(1));
-  __ StoreToOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
+  __ StoreToOffset(R2, R4, StoreBufferBlock::top_offset(), kUnsignedWord);
   __ CompareImmediate(R2, StoreBufferBlock::kSize);
   // Restore values.
+  __ Pop(R4);
   __ Pop(R3);
   __ Pop(R2);
-  __ Pop(R1);
   __ b(&overflow, EQ);
   __ ret();
 
@@ -1401,34 +1403,34 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
 #if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
-  __ Push(R1);  // Spill.
   __ Push(R2);  // Spill.
   __ Push(R3);  // Spill.
+  __ Push(R4);  // Spill.
 
   // Atomically clear kOldAndNotMarkedBit.
   // Note that we use 32 bit operations here to match the size of the
   // background sweeper which is also manipulating this 32 bit word.
   Label marking_retry, lost_race, marking_overflow;
   ASSERT(Object::tags_offset() == 0);
-  __ sub(R3, TMP2, Operand(kHeapObjectTag));
+  __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
   __ ldxr(R2, R3, kWord);
   __ tbz(&lost_race, R2, RawObject::kOldAndNotMarkedBit);
   __ AndImmediate(R2, R2, ~(1 << RawObject::kOldAndNotMarkedBit));
-  __ stxr(R1, R2, R3, kWord);
-  __ cbnz(&marking_retry, R1);
+  __ stxr(R4, R2, R3, kWord);
+  __ cbnz(&marking_retry, R4);
 
-  __ LoadFromOffset(R1, THR, Thread::marking_stack_block_offset());
-  __ LoadFromOffset(R2, R1, MarkingStackBlock::top_offset(), kUnsignedWord);
-  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
-  __ StoreToOffset(TMP2, R3, MarkingStackBlock::pointers_offset());
+  __ LoadFromOffset(R4, THR, Thread::marking_stack_block_offset());
+  __ LoadFromOffset(R2, R4, MarkingStackBlock::top_offset(), kUnsignedWord);
+  __ add(R3, R4, Operand(R2, LSL, kWordSizeLog2));
+  __ StoreToOffset(R0, R3, MarkingStackBlock::pointers_offset());
   __ add(R2, R2, Operand(1));
-  __ StoreToOffset(R2, R1, MarkingStackBlock::top_offset(), kUnsignedWord);
+  __ StoreToOffset(R2, R4, MarkingStackBlock::top_offset(), kUnsignedWord);
   __ CompareImmediate(R2, MarkingStackBlock::kSize);
+  __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
   __ Pop(R2);  // Unspill.
-  __ Pop(R1);  // Unspill.
   __ b(&marking_overflow, EQ);
   __ ret();
 
@@ -1443,9 +1445,9 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ ret();
 
   __ Bind(&lost_race);
+  __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
   __ Pop(R2);  // Unspill.
-  __ Pop(R1);  // Unspill.
   __ ret();
 #endif
 }

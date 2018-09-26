@@ -118,13 +118,13 @@ const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register BARRIER_MASK = R28;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = R1;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = R1;
+const Register kWriteBarrierValueReg = R0;
 
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;

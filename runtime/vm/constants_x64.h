@@ -108,13 +108,13 @@ const Register CODE_REG = R12;
 const Register THR = R14;  // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = RBX;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = RAX;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = RDX;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = RDX;
+const Register kWriteBarrierValueReg = RAX;
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;

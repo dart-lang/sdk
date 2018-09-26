@@ -979,7 +979,10 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   EDX: Address being stored
+//   EDX: Object (old)
+// If EDX is not remembered, mark as remembered and add to the store buffer.
+COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
+COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Save values being destroyed.
   __ pushl(EAX);
