@@ -223,11 +223,6 @@
         "checked": true,
         "builder-tag": "swarming"
       }},
-    "vm-legacy-(linux|mac|win)-product-x64": {
-      "options": {
-        "preview-dart-2": false,
-        "builder-tag": "swarming"
-      }},
     "vm-legacy-asan-linux-release-x64": {
       "options": {
         "preview-dart-2": false,
@@ -534,28 +529,6 @@
             "lib_2",
             "standalone_2"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-linux-product-x64",
-        "vm-mac-product-x64",
-        "vm-win-product-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm product builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["runtime"]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-legacy-${system}-product-x64"]
         }
       ]
     },
