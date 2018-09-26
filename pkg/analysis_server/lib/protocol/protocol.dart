@@ -402,7 +402,7 @@ class Response {
   Response.formatInvalidFile(Request request)
       : this(request.id,
             error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
-                'Error during `edit.format`: invalid file.'));
+                'Error during `${request.method}`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the FORMAT_WITH_ERROR

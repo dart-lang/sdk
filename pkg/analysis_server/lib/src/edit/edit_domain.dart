@@ -13,6 +13,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -260,6 +261,21 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
+  Future dartfix(Request request) async {
+    // TODO(danrubel): Fix only the included sources
+    //EditDartfixParams params = new EditDartfixParams.fromRequest(request);
+
+    // TODO(danrubel): Add support for dartfix plugins
+
+    //
+    // Compute fixes
+    //
+    var dartFix = new EditDartFix(request);
+    Response response = await dartFix.compute();
+
+    server.sendResponse(response);
+  }
+
   Future getPostfixCompletion(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -345,6 +361,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         return _getAvailableRefactorings(request);
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_DARTFIX) {
+        dartfix(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
