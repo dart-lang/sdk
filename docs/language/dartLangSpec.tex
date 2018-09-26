@@ -115,6 +115,13 @@
 %   dynamically.
 % - Specify that it is an error for a superinitializer to occur anywhere else
 %   than at the end of an initializer list.
+% - Update the potentially/compile-time constant expression definitions
+%   so that "potentially constant" depends only on the grammar, not the types
+%   of sub-expressions.
+% - Make `==` recognize `null` and make `&&` and `||` short-circuit in constant
+%   expressions.
+% - Add `as` and `is` expressions as constant expressions
+% - Make `^`, `|` and `&` operations on `bool` constant operations.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -2447,23 +2454,7 @@ The superinitializer that appears, explicitly or implicitly, in the initializer 
 Any expression that appears within the initializer list of a constant constructor must be a potentially constant expression, or a compile-time error occurs.
 
 \LMHash{}
-A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression, and where $e$ is also a valid expression if all the formal parameters are treated as non-constant variables.
-
-\commentary{
-Note that a parameter that is not used in a superexpression that is restricted to certain types can be a constant of any type.
-For example
-}
-
-\begin{dartCode}
-\CLASS{} A \{
-  \FINAL{} m;
-  \CONST{} A(this.m);
-\}
-\end{dartCode}
-
-\commentary{
-can be instantiated via \code{\CONST{} A(\CONST []);}
-}
+A {\em potentially constant expression} is an expression $e$ that could be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants of appropriate types, and where $e$ is also a valid expression if all the formal parameters are treated as non-constant variables.
 
 \commentary{
 The difference between a potentially constant expression and a compile-time constant expression (\ref{const}) deserves some explanation.
@@ -3931,47 +3922,155 @@ The rules for identity make it impossible for a Dart programmer to observe wheth
 \LMLabel{constants}
 
 \LMHash{}
-A {\em constant expression} is an expression whose value can never change, and that can be evaluated entirely at compile time.
+A {\em potentially constant expression} is an expression that structurally
+matches one of the cases listed below.
 
 \LMHash{}
-A constant expression is one of the following:
-\begin{itemize}
-\item A literal number (\ref{numbers}).
-\item A literal boolean (\ref{booleans}).
-\item A literal string (\ref{strings}) where every interpolated expression (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to the null object (\ref{null}).
+A {\em constant expression} is a potentially constant expression that {\em can} be evaluated entirely at compile time.
 \rationale{
-It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.
-However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.
+The constant expressions are restricted to expressions that
+perform only simple arithmetic operations, boolean conditions, and string and instance creation.
+No user written function body is executed during constant expression evaluation,
+only members of the system classes \code{int}, \code{double}, \code{bool}, \code{String} or \code{Null}.
 }
-\item A literal symbol (\ref{symbols}).
-\item \NULL{} (\ref{null}).
-\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix.
+
+\LMHash{}
+The potentially constant expressions and constant expressions are the following:
+
+\begin{itemize}
+\item A literal boolean, \TRUE{} or \FALSE{} (\ref{booleans}), is a potentially constant and constant expression.
+
+\item A literal number (\ref{numbers}) is a potentially constant and constant expression if it evaluates to a value of type \code{int} or \code{double}.
+% A too-large integer literal does not evaluate to a value.
+
+\item A literal string (\ref{strings}) with string interpolations (\ref{stringInterpolation} with expressions $e_1$, \ldots{}, $e_n$ is a potentially constant expression if $e_1$, \ldots{}, $e_n$ are potentially constant expressions.
+The literal is further a constant expression if $e_1$, \ldots{}, $e_n$ are constant expressions evaluating to values that are instances of \code{int}, \code{double} \code{String}, \code{bool} or \code{Null}. (These requirements hold trivially if there are zero \code{interpolations} in the string).
+\rationale{It would be tempting to allow string interpolation where the
+interpolated value is any compile-time constant. However, this would require
+running the \code{toString()} method for constant objects, which could contain
+arbitrary code.}
+
+\item A literal symbol (\ref{symbols}) is a potentially constant and constant expression.
+
+\item The literal \NULL{} (\ref{null}) is a potentially constant and constant expression.
+
+\item An identifier that denotes a constant variable is a potentially constant and constant expression.
+
+\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix, is a potentially constant and constant expression.
 \commentary{
-For example, if class C declares a constant variable v, C.v is a constant.
-The same is true if C is accessed via a prefix p; p.C.v is a constant unless p is a deferred prefix.
+For example, If class $C$ declares a constant static variable $v$, \code{$C$.$v$} is a constant.
+The same is true if $C$ is accessed via a prefix $p$; \code{$p$.$C$.$v$} is a constant unless $p$ is a deferred prefix.
 }
-\item An identifier expression that denotes a constant variable.
-\item A simple or qualified identifier denoting a class or type alias that is not qualified by a deferred prefix.
+
+\item A simple or qualified identifier denoting a class, a mixin or a type alias that is not qualified by a deferred prefix, is a potentially constant and constant expression.
 \commentary{
-For example, If C is a class or typedef, C is a constant, and if C is imported with a prefix p, p.C is a constant unless p is a deferred prefix.
+The constant expression always evaluate to a \code{Type} object.
+For example, If $C$ is the name of a class or type alias, the expression \code{$C$} is a constant, and if $C$ is imported with a prefix $p$, \code{$p$.$C$} is a constant \code{Type} instance representing the type of $C$ unless $p$ is a deferred prefix.
 }
-\item A constant constructor invocation (\ref{const}) that is not qualified by a deferred prefix.
-\item A constant list literal (\ref{lists}).
-\item A constant map literal (\ref{maps}).
-\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
-\item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
-\item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions and \code{identical()} is statically bound to the predefined dart function \code{identical()} discussed above (\ref{objectIdentity}).
-\item An expression of one of the forms \code{$e_1$\,==\,$e_2$} or \code{$e_1$\,!=\,$e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to the null object (\ref{null}).
-\item An expression of one of the forms \code{!$e$}, \code{$e_1$\,\&\&\,$e_2$} or \code{$e_1$\,||\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
-\item An expression of one of the forms \code{\~{}$e$}, \code{$e_1$\,\^\,$e_2$}, \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, \code{$e_1$\,<\mbox<\,$e_2$}, \code{$e_1$\,\gtgt\,$e_2$} or \code{$e_1$\,\gtgtgt\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1$\,+\,$e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to the null object (\ref{null}).
-\item An expression of one of the forms \code{-$e$}, \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$}, \code{$e_1$\,/\,$e_2$,} \code{$e_1$\,\~{}/\,$e_2$}, \code{$e_1$\,>\,$e_2$}, \code{$e_1$\,<\,$e_2$}, \code{$e_1$\,>=\,$e_2$}, \code{$e_1$\,<=\,$e_2$} or \code{$e_1$\,\%\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
-\item An expression of the form \code{$e_1$\,??\,$e_2$} where $e_1$ and $e_2$ are constant expressions.
-\item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
+
+\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix, is a potentially constant and constant expression.
+
+\item An identifier expression denoting a parameter of a constant constructor (\ref{constantConstructors}} that occurs in the initializer list of the constructor, is a potentially constant expression.
+
+\item A constant constructor invocation (\ref{const}), \code{\CONST{} $C$<$T_1$, \ldots{} , $T_k$>(\metavar{arguments})} or \code{\CONST{} $C$.$id$<$T_1$, \ldots{} , $T_k$>.$id$(\metavar{arguments})}, or either expression without the leading \CONST{} that occurs in a constant context, is a potentially constant expression if $T_1$, \ldots{}, $T_k$ are compile-time constant type expressions, and the actual argument expressions in \metavar{arguments} are constant expressions. It is further a constant expression if the invocation evaluates to a value. It is a compile-time error if a constant constructor invocation is not a constant expression.
+
+\item A constant list literal (\ref{lists}), \code{\CONST{} <$X$>[$e_1$, \ldots{}, $e_n$]}, or \code{<$X$>[$e_1$, \ldots{}, $e_n$]} that occurs in a constant context, is a potentially constant expression if $X$ is a compile-time constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions. It is further a constant expression if the list literal evaluates to a value.
+
+\item A constant map literal, \code{\CONST{} <$K$,$V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}} is a potentially constant expression if
+\begin{itemize}
+  \item $K$ and $V$ are compile-time constant type expressions,
+  \item $k_1$, \ldots{}, $k_n$ are constant expressions evaluating to values that are either \code{int} or \code{String} instances, created using a symbol literal or a const invocation of the \code{Symbol} constructor, or instances of classes that that do not override the \code{==} operator inherited from \code{Object}, and
+  \item $v_1$, \ldots{}, $v_n$ are constant expressions.
+\end{itemize}
+It is further a constant expression if the map literal evaluates to a value.
+%Should we also require the key instances to not override hashCode? Because Symbols do.
+
+\item A parenthesized expression \code{($e$)} is a potentially constant expression if $e$ is a potentially constant expression. It is further a constant expression if $e$ is a constant expression.
+
+\item An expression of the form \code{identical($e_1$, $e_2$)} is a potentially constant expression if $e_1$ and $e_2$ are potentially constant expressions and \code{identical} is statically bound to the predefined dart function \code{identical()} discussed above (\ref{objectIdentity}). It is further a constant expression if $e_1$ and $e_2$ are constant expressions.
+
+\item An expression of the form \code{$e_1$ != $e_2$} is equivalent to \code{!($e_1$ == $e_2$)} in every way, including whether it is potentially constant or compile-time constant.
+
+\item An expression of the form \code{$e_1$ == $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if both $e_1$ and $e_2$ are compile-time constants and either $e_1$ evaluates to a value that is an instance of \code{int}, \code{double}, \code{String}, \code{bool} or \code{Null}, or if $e_2$ evaluates to the null object (\ref{null}).
+%TODO: Consider adding enum instances here.
+
+\item An expression of the form \code{!$e_1$} is potentially constant if $e_1$ is potentially constant. It is further compile-time constant if $e_1$ is a constant expression that evaluates to a value of type \code{bool}.
+
+\item An expression of the form \code{$e_1$ \&\& $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if $e_1$ is a compile time constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \FALSE{}, or
+\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\end{enumerate}
+
+\item An expression of the form \code{$e_1$ || $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if $e_1$ is a compile time constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \TRUE{}, or
+\item $e_1$ evaluates to \FALSE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\end{enumerate}
+
+\item An expression of the form \code{~$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value of type \code{int}.
+
+\item An expression of one of the forms \code{$e_1$ \& $e_2$}, \code{$e_1$ | $e_2$}, or \code{$e_1$ \^{} $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if both $e_1$ and $e_2$ are compile time constant expressions that both evaluate to values that are both instances of \code{int}, or that are both instances of \code{bool}.
+% The bool case is new in 2.1.
+
+\item An expression of one of the forms \code{$e_1$ ~/ $e_2$}, \code{$e_1$ >> $e_2$}, \code{$e_1$ >>> $e_2$}, or \code{$e_1$ << $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if both $e_1$ and $e_2$ are compile-time constant that evaluate to values that are instances of \code{int}.
+
+\item An expression of the form \code{$e_1$ + $e_2$} is a potentially constant expression if $e_1$ and $e_2$ are both potentially constant expressions. It is further a constant expression if both $e_1$ and $e_2$ are constant expressions and either both evaluate to values that are instances of \code{int} or \code{double}, or both evaluate to values of type \code{String}.
+
+\item An expression of the form \code{-$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value that is an instance of \code{int} or \code{double}.
+
+\item An expression of the form \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$}, \code{$e_1$ \% $e_2$}, \code{$e_1$ < $e_2$}, \code{$e_1$ <= $e_2$}, \code{$e_1$ > $e_2$}, or \code{$e_1$ >= $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if both $e_1$ and $e_2$ are compile-time constant that evaluate to values that are instances of \code{int} or \code{double}.
+
+\item An expression of the form \code{$e_1$ ? $e_2$ : $e_3$} is potentially constant if $e_1$, $e_2$, and $e_3$ are all potentially constant expressions. It is compile-time constant if $e_1$ is a compile time constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression, or
+\item $e_1$ evaluates to \FALSE{} and $e_3$ is a constant expression.
+\end{enumerate}
+
+\item An expression of the form \code{$e_1$ ?? $e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further compile-time constant if $e_1$ is compile-time constant and either
+\begin{enumerate}
+\item $e_1$ evaluates to a non-\NULL{} value, or
+\item $e_1$ evaluates to \NULL{} and $e_2$ is a constant expression.
+\end{enumerate}
+
+\item An expression of the form \code{$e$.length} is potentially constant if $e$ is a potentially constant expression. It is further compile-time constant if $e$ is a constant expression that evaluates to a \code{String}.
+
+% New in 2.1.
+\item An expression of the form \code{$e$ as $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a compile-time constant type expression, and it is further compile-time constant if $e$ is compile-time constant. (It is a compile-time error to evaluate the constant expression if the cast operation would throw, that is, if the value the $e$ evaluates to is not \NULL{} and not of type $T$).
+
+% New in 2.1.
+\item An expression of the form \code{$e$ is $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a compile-time constant type expression, and it is further compile-time constant if $e$ is compile-time constant.
+
+% New in 2.1.
+\item{}
+An expression of the form \code{$e$ is! $T$} is equivalent to \code{!($e$ is $T$)} in every way,
+including whether it's potentially constant or compile-time constant.
+
 \end{itemize}
 
-% null in all the expressions
+\LMHash{}
+% New in 2.1.
+A compile-time constant type expression is one of:
+\begin{itemize}
+\item An simple or qualified identifier denoting a type declaration (a type alias, class or mixin declaration) that is not qualified by a deferred prefix,
+optionally followed by type arguments on the form \code{<$T_1$, \dots{} , $T_n$>} where $T_1$, \ldots{}, $T_n$ are compile-time constant type expressions.
+\item A type of the form \code{FutureOr<$T$>} where $T$ is a compile-time constant type expression.
+\item A function type \code{$R$ Function<\metavar{typeParameters}>(\metavar{argumentTypes})$} (where $R$ and \code{<\metavar{typeParameters}>} may be omitted) and where $R$, \metavar{typeParameters} and \metavar{argumentTypes} (if present) contain only compile-time constant type expressions.
+\item The type \VOID{}.
+\item The type \DYNAMIC{}.
+\end{itemize}
+
+% Being potentially constant is entirely structural, not type based,
+% but the program still has to satisfy strong-mode typing.
+
+% Compile-time constant expressions (like "const Foo(42)") always evaluate to the
+% same value, with at most one value per source location.
+% Potentially constant expressions that are not compile-time constant only
+% allow simple operations on basic types (num, String, bool, Null). These can
+% be computed statically without running user code.
+
+% A validly typed potentially constant expression can still fail when evaluated.
+% If that happens in a const invociation, it's a compile-time error.
 
 \LMHash{}
 It is a compile-time error if an expression is required to be a constant expression but its evaluation would throw an exception.
@@ -4452,7 +4551,7 @@ a valid declaration name or a valid library name in a Dart program.
 A symbol literal \code{\#\id} where \id{} is an identifier
 that does not begin with an underscore ('\code{\_}'),
 evaluates to an instance of \code{Symbol} representing the identifier \id.
-All occurences of \code{\#\id} evaluate to the same instance
+All occurrences of \code{\#\id} evaluate to the same instance
 \commentary{(symbol instances are canonicalized)},
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is equal
@@ -4462,7 +4561,7 @@ or to a \code{Symbol} instance that is equal
 A symbol literal \code{\#$\id.\id_2\ldots\id_n$}
 where $\id{} \ldots \id_n$ are identifiers,
 evaluates to an instance of \code{Symbol} representing that particular sequence of identifiers.
-All occurences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
+All occurrences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
 evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
@@ -4472,14 +4571,14 @@ if some of its identifiers begin with an underscore.}
 \LMHash{}
 A symbol literal \code{\#\metavar{operator}} evaluates to an instance of \code{Symbol}
 representing that particular operator name.
-All occurences of \code{\#\metavar{operator}} evaluate to the same instance,
+All occurrences of \code{\#\metavar{operator}} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \LMHash{}
 A symbol literal \code{\#\_\id}, evaluates to an instance of \code{Symbol}
 representing the private identifier \code{\_\id} of the containing library.
-All occurences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
+All occurrences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
@@ -5249,7 +5348,7 @@ or if $T$ is a parameterized type which is not a class.
 It is a compile-time error if $T$ is a deferred type
 (\ref{staticTypes}).
 \commentary{
-For instance, $T$ can not be a type variable.
+In particular, $T$ must not be a type variable.
 }
 
 \LMHash{}
