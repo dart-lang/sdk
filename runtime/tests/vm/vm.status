@@ -83,6 +83,10 @@ dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time f
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 
+[ $runtime == vm && $mode == product && $compiler == dartk ]
+cc/GenKernelKernelReadAllBytecode: Crash
+cc/CorelibIsolateStartup: Timeout, Pass
+
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
 dart/snapshot_version_test: SkipByDesign # Spawns processes
