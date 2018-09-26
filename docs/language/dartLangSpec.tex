@@ -49,7 +49,7 @@
 % - Introduce a notion of lookup which is needed for superinvocations.
 % - Use new lookup concept to simplify specification of getter, setter, method
 %   lookup.
-% - Introduce several `Case< SomeTopic >` markers in order to improve
+% - Introduce several `Case<SomeTopic>` markers in order to improve
 %   readability.
 % - Reorganize several sections to specify static analysis first and then
 %   dynamic semantics; clarify many details along the way. The sections are:
@@ -59,6 +59,8 @@
 %   \ref{localVariableDeclaration}, and \ref{return}.
 % - Corrected error involving multiple uses of the same part in the same
 %   program such that it takes exports into account.
+% - Eliminate all references to checked and production mode, Dart 2 does
+%   not have modes.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -371,35 +373,66 @@ The run-time type of every object is represented as an instance of class \code{T
 
 \LMHash{}
 Dart programs may be statically checked.
-The static checker will report some violations of the type rules, but such violations do not abort compilation or preclude execution.
-
-\LMHash{}
-Dart programs may be executed in one of two modes: production mode or checked mode.
-In production mode, static type annotations (\ref{staticTypes}) have absolutely no effect on execution with the exception of reflection and structural type tests.
+Programs with compile-time errors do not have a specified dynamic semantics.
+This specification makes no attempt to answer additional questions
+about a library or program at the point
+where it is known to have a compile-time error.
 
 \commentary{
-Reflection, by definition, examines the program structure.
-If we provide reflective access to the type of a declaration, or to source code, it will inevitably produce results that depend on the types used in the underlying code.
-
-Type tests also examine the types in a program explicitly.
-Nevertheless, in most cases, these will not depend on type annotations.
-The exceptions to this rule are type tests involving function types.
-Function types are structural, and so depend on the types declared for their parameters and on their return types.
+However, tools may choose to support execution of some programs with errors.
+For instance, a compiler may compile certain constructs with errors such that
+a dynamic error will be raised if an attempt is made to
+execute such a construct,
+or an IDE integrated runtime may support opening
+an editor window when such a construct is executed,
+allowing developers to correct the error.
+It is expected that such features would amount to a natural extension of the
+dynamic semantics of Dart as specified here, but, as mentioned,
+this specification makes no attempt to specify exactly what that means.
 }
 
 \LMHash{}
-In checked mode, assignments are dynamically checked, and certain violations of the type system throw exceptions at run time.
+As specified in this document,
+dynamic checks are guaranteed to be performed in certain situations,
+and certain violations of the type system throw exceptions at run time.
+
+\commentary{
+An implementation is free to omit such checks whenever they are
+guaranteed to succeed, e.g., based on results from the static analysis.
+}
 
 \commentary{
 The coexistence between optional typing and reification is based on the following:
 \begin{enumerate}
-\item Reified type information reflects the types of objects at run time and may always be queried by dynamic typechecking constructs (the analogs of instanceOf, casts, typecase etc.\ in other languages).
-Reified type information includes class declarations, the run-time type (aka class) of an object, and type arguments to constructors.
-\item Static type annotations determine the types of variables and function declarations (including methods and constructors).
-\item Production mode respects optional typing.
-Static type annotations do not affect run-time behavior.
-\item Checked mode utilizes static type annotations and dynamic type information aggressively yet selectively to provide early error detection during development.
+\item
+  Reified type information reflects the types of objects at run time
+  and may always be queried by dynamic typechecking constructs
+  (the analogs of instanceOf, casts, typecase etc.\ in other languages).
+  Reified type information includes
+  access to instances of class \code{Type} representing types,
+  the run-time type (aka class) of an object,
+  and the actual values of type parameters
+  to constructors and generic function invocations.
+\item
+  Type annotations declare the types of
+  variables and functions (including methods and constructors).
+\item
+  %% TODO(eernst): Change when integrating instantiate-to-bounds.md.
+  Type annotations may be omitted, in which case they are generally
+  filled in with the type \DYNAMIC{}
+  (\ref{typeDynamic}).
 \end{enumerate}
+}
+
+%% TODO(eernst): Update when we add inference.
+\commentary{
+Dart as implemented includes extensive support for inference of omitted types.
+This specification makes the assumption that inference has taken place,
+and hence inferred types are considered to be present in the program already.
+However, in some cases no information is available
+to infer an omitted type annotation,
+and hence this specification still needs to specify how to deal with that.
+A future version of this specification will also specify type inference.
 }
 
 \LMHash{}
@@ -410,6 +443,10 @@ Libraries are units of encapsulation and may be mutually recursive.
 However they are not first class.
 To get multiple copies of a library running simultaneously, one needs to spawn an isolate.
 }
+
+\LMHash{}
+A dart program execution may occur with assertions enabled or disabled.
+The method used to enable or disable assertions is implementation specific.
 
 
 \subsection{Scoping}
@@ -854,9 +891,9 @@ will throw.
 }
 
 \LMHash{}
-In checked mode,
-it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type of the variable $v$
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not
+a subtype of the actual type of the variable $v$
 (\ref{actualTypeOfADeclaration}).
 
 
@@ -1938,10 +1975,10 @@ $e_i,\ i \in 1 .. p+q$,
 must be a potentially constant expression (\ref{constantConstructors}).
 
 \LMHash{}
-It is a dynamic error if an actual argument passed in an invocation of a redirecting generative constructor $k$
+It is a dynamic type error if an actual argument passed in an invocation of a redirecting generative constructor $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
-It is a dynamic error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
+It is a dynamic type error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
 is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of the redirectee.
@@ -2122,10 +2159,9 @@ proceeds as follows:
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
 Then, the instance variable $v$ of $i$ is bound to $o$.
-In checked mode,
-it is a dynamic type error if $o$ is not the null object
+It is a dynamic type error if $o$ is not the null object
 (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type
+and the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the instance variable $v$.
 
@@ -2184,7 +2220,10 @@ otherwise the return type is \code{$M$<$T_1, \ldots,\ T_n$>} where $T_1, \ldots,
 It is a compile-time error if $M$ is not the name of the immediately enclosing class.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if a factory returns a non-null object whose type is not a subtype of its actual (\ref{actualTypeOfADeclaration}) return type.
+It is a dynamic type error if a factory returns a non-null object
+whose type is not a subtype of its actual
+(\ref{actualTypeOfADeclaration})
+return type.
 
 \rationale{
 It seems useless to allow a factory to return the null object (\ref{null}).
@@ -2351,7 +2390,7 @@ assume that $k$ is a redirecting factory constructor
 and $k'$ is the redirectee of $k$.
 
 \LMHash{}
-It is a dynamic error if an actual argument passed in an invocation of $k$
+It is a dynamic type error if an actual argument passed in an invocation of $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
 
@@ -3916,13 +3955,10 @@ For example, If C is a class or typedef, C is a constant, and if C is imported w
 
 % null in all the expressions
 
-% designed so constants do not depend on check diode being on or not.
-
 \LMHash{}
 It is a compile-time error if an expression is required to be a constant expression but its evaluation would throw an exception.
 It is a compile-time error if an assertion is part of a compile-time constant constructor invocation and the assertion would throw an exception.
 
-% so, checked mode? analyzers? editor/development compilers?
 \commentary{
 Note that there is no requirement that every constant expression evaluate correctly.
 Only when a constant expression is required (e.g., to initialize a constant variable, or as a default value of a formal parameter, or as metadata) do we insist that a constant expression actually be evaluated successfully at compile time.
@@ -4524,7 +4560,9 @@ The result of the evaluation is $a$.
 \commentary{
 Note that this document does not specify an order in which the elements are set.
 This allows for parallel assignments into the list if an implementation so desires.
-The order can only be observed in checked mode (and may not be relied upon): if element $i$ is not a subtype of the element type of the list, a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
+The order can only be observed (and may not be relied upon):
+if element $i$ is not a subtype of the element type of the list,
+a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
 }
 
 \LMHash{}
@@ -4536,10 +4574,9 @@ is evaluated as
 \commentary{
 There is no restriction precluding nesting of list literals.
 It follows from the rules above that
-\code{<List<int\gtgt{}[[1, 2, 3], [4, 5, 6]]}
-is a list with type parameter
-\code{List<int>},
-containing two lists with type parameter \DYNAMIC{}.
+\code{<List<int>{}>[<int>[1, 2, 3], <int>[4, 5, 6]]}
+is a list with type parameter \code{List<int>},
+containing two lists with type parameter \code{int}.
 }
 
 \LMHash{}
@@ -4547,26 +4584,12 @@ The static type of a list literal of the form
 \code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
 or the form
 \code{<$E$>[$e_1, \ldots, e_n$]}
-is
-\code{List<E>}.
+is \code{List<$E$>}.
 The static type a list literal of the form
 \code{\CONST{} [$e_1, \ldots, e_n$]}
 or the form
 \code{[$e_1, \ldots, e_n$]}
-is
-\code{List<\DYNAMIC{}>}.
-
-\rationale{
-It is tempting to assume that the type of the list literal would be computed based on the types of its elements.
-However, for mutable lists this may be unwarranted.
-Even for constant lists, we found this behavior to be problematic.
-Since compile time is often actually run time, the run-time system must be able to perform a complex least upper bound computation to determine a reasonably precise type.
-It is better to leave this task to a tool in the IDE.
-It is also much more uniform (and therefore predictable and understandable) to insist that whenever types are unspecified they are assumed to be the unknown type \DYNAMIC{}.
-}
-
-%Invoking the getter \code{runtimeType} on a list literal returns the \code{Type} object that is the value of the expression \code{List}. The static type of a list literal is \code{List}.
-% what about generics?
+is \code{List<\DYNAMIC{}>}.
 
 
 \subsection{Maps}
@@ -5117,7 +5140,7 @@ If for any
 $j \in 1 .. n + k$
 the run-time type of $o_j$ is not a subtype of
 $[u_1/X_1, \ldots, u_m/X_m]S_j$,
-a dynamic error occurs.
+a dynamic type error occurs.
 
 \LMHash{}
 \Case{Non-loaded deferred constructors}
@@ -5868,11 +5891,19 @@ All of these remaining parameters are necessarily optional and thus have default
 
 \LMHash{}
 % Check the type arguments.
-In checked mode, it is a dynamic type error if $t_i$ is not a subtype of the actual bound (\ref{actualTypeOfADeclaration}) of the $i$th type argument of $f$, for actual type arguments $t_1, \ldots, t_r$.
+It is a dynamic type error if $t_i$ is not a subtype of the actual bound
+(\ref{actualTypeOfADeclaration})
+of the $i$th type argument of $f$, for actual type arguments $t_1, \ldots, t_r$.
 % Check the types of positional arguments.
-In checked mode, it is a dynamic type error if $o_i$ is not the null object (\ref{null}) and the actual type (\ref{actualTypeOfADeclaration}) of $p_i$ is not a supertype of the type of $o_i, i \in 1 .. m$.
+It is a dynamic type error if $o_i$ is not the null object (\ref{null})
+and the actual type
+(\ref{actualTypeOfADeclaration})
+of $p_i$ is not a supertype of the dynamic type of $o_i, i \in 1 .. m$.
 % Check the types of named arguments.
-In checked mode, it is a dynamic type error if $o_{m+j}$ is not the null object and the actual type (\ref{actualTypeOfADeclaration}) of $q_j$ is not a supertype of the type of $o_{m+j}, j \in 1 .. l$.
+It is a dynamic type error if $o_{m+j}$ is
+not the null object and the actual type
+(\ref{actualTypeOfADeclaration})
+of $q_j$ is not a supertype of the dynamic type of $o_{m+j}, j \in 1 .. l$.
 
 
 \subsubsection{Unqualified Invocation}
@@ -6986,8 +7017,10 @@ a compile-time error has occurred.
 Otherwise, the assignment is equivalent to the assignment \code{\THIS{}.$v$ = $e$}.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type (\ref{actualTypeOfADeclaration}) of $v$.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not a subtype of the actual type
+(\ref{actualTypeOfADeclaration})
+of $v$.
 
 \LMHash{}
 \Case{\code{$e_1$?.$v$ = $e_2$}}
@@ -7055,7 +7088,10 @@ Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked with arg
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o_2$ is not the null object (\ref{null}) and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
+It is a dynamic type error if $o_2$ is not the null object (\ref{null})
+and the dynamic type of $o_2$ is
+not a subtype of the actual type of $e_1.v$
+(\ref{actualTypeOfADeclaration}).
 
 \LMHash{}
 Let $T$ be the static type of $e_1$.
@@ -7103,8 +7139,10 @@ Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked 
 The value of the assignment expression is $o$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is
+not a subtype of the actual type of \code{$S$.$v$}
+(\ref{actualTypeOfADeclaration}).
 
 \LMHash{}
 \Case{\code{$e_1$[$e_2$] = $e_3$}}
@@ -8149,8 +8187,9 @@ Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to a value $v$.
+% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521.
 Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE.
+Otherwise, if the dynamic type of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE.
 Otherwise it evaluates to \FALSE.
 
 \commentary{
@@ -8207,10 +8246,11 @@ The {\em cast expression} ensures that an object is a member of a type.
 
 \LMHash{}
 The expression $e$ is evaluated to a value $v$.
+%% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521
 Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$.
-Otherwise, if $v$ is the null object (\ref{null}), the cast expression evaluates to $v$.
-In all other cases, a \code{CastError} is thrown.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not a subtype of $T$.
+Otherwise $e$ evaluates to $v$.
 
 \LMHash{}
 The static type of a cast expression \code{$e$ \AS{} $T$} is $T$.
@@ -8391,7 +8431,8 @@ It is also a compile-time error to assign to a final local variable
 It is a compile-time error if
 a local variable is referenced at a source code location that is before
 the end of its initializing expression, if any,
-and otherwise before the identifier which names the variable.
+and otherwise before the declaring occurrence of
+the identifier which names the variable.
 
 \commentary{
 The example below illustrates the expected behavior.
@@ -8476,7 +8517,7 @@ proceeds as follows:
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 Then, the variable $v$ is set to $o$.
-A dynamic error occurs
+A dynamic type error occurs
 if the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of $v$.
@@ -8739,7 +8780,7 @@ proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
-It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
+It is a dynamic type error if $o$ is not an instance of a class that implements \code{Stream}.
 It is a compile-time error if $D$ is empty and \id{} is a final variable.
 
 \LMHash{}
@@ -8915,7 +8956,11 @@ It is a compile-time error if the values of the expressions $e_k$ are not either
 
 \commentary{
 In other words, all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.
-Note that the values of the expressions are known at compile time, and are independent of any static type annotations.
+%% TODO(eernst): Update when we specify inference: const List<int> xs = [];
+%% may be a counter-example: The value is a list that "knows" it is a
+%% `List<int>` independently of the type annotation, but it wouldn't be a
+%% `List<int>` if that type annotation hadn't been there.
+Note that the values of the expressions are known at compile time, and are independent of any type annotations.
 }
 
 \LMHash{}
@@ -8961,7 +9006,8 @@ proceeds as follows:
 
 \LMHash{}
 The statement \code{\VAR{} \id{} = $e$;} is evaluated, where \id{} is a fresh variable.
-In checked mode, it is a run-time error if the value of $e$ is not an instance of the same class as the constants $e_1, \ldots, e_n$.
+It is a run-time error if the value of $e$ is
+not an instance of the same class as the constants $e_1, \ldots, e_n$.
 
 \commentary{
 Note that if there are no case clauses ($n = 0$), the type of $e$ does not matter.
@@ -9364,7 +9410,6 @@ Then the return statement returns the value $r$ (\ref{completion}).
 
 \LMHash{}
 Let $U$ be the run-time type of $r$.
-In checked mode:
 \begin{itemize}
 \item If the body of $f$ is marked \ASYNC{} (\ref{functions})
 it is a dynamic type error if $o$ is not the null object (\ref{null}),
@@ -9560,7 +9605,7 @@ First, the expression $e$ is evaluated to an object $o$.
 \LMHash{}
 If the immediately enclosing function $m$ is marked \code{\SYNC*} (\ref{functions}), then:
 \begin{enumerate}
-\item It is a dynamic error if the class of $o$ does not implement \code{Iterable}.
+\item It is a dynamic type error if the class of $o$ does not implement \code{Iterable}.
 Otherwise
 \item The method \code{iterator} is invoked upon $o$ returning an object $i$.
 \item \label{moveNext} The \code{moveNext} method of $i$ is invoked on it with no arguments.
@@ -9577,7 +9622,7 @@ The current call to \code{moveNext()} returns \TRUE.
 \LMHash{}
 If $m$ is marked \code{\ASYNC*} (\ref{functions}), then:
 \begin{itemize}
-\item It is a dynamic error if the class of $o$ does not implement \code{Stream}.
+\item It is a dynamic type error if the class of $o$ does not implement \code{Stream}.
 Otherwise
 \item The nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused.
 \item The $o$ stream is listened to, creating a subscription $s$, and for each event $x$, or error $e$ with stack trace $t$, of $s$:
@@ -9631,9 +9676,11 @@ Execution of an assert statement executes the assertion as described below
 and completes in the same way as the assertion.
 
 \LMHash{}
-In production mode an assertion has no effect
-and its execution immediately completes normally (\ref{completion}).
-In checked mode,
+When assertions are not enabled,
+execution of an assertion immediately completes normally
+(\ref{completion}).
+\commentary{That is, no subexpressions of the assertion are evaluated.}
+When assertions are enabled,
 execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}
@@ -9647,10 +9694,10 @@ Otherwise, $e$ is evaluated to an object $m$
 and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
 \LMHash{}
-It is a compile-time error if the type of $e$ may not be assigned to \code{bool}.
+It is a compile-time error if the type of $c$ may not be assigned to \code{bool}.
 
 \rationale{
-Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode.
+Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead when assertions are disabled.
 Also, in the absence of final methods, one could not prevent it being overridden (though there is no real harm in that).
 It cannot be viewed as a function call that is being optimized away because the arguments might have side effects.
 }
@@ -10302,9 +10349,8 @@ It is easy for tools to provide a sound type analysis if they choose, which may 
 \LMLabel{staticTypes}
 
 \LMHash{}
-Static type annotations are used in variable declarations (\ref{variables}) (including formal parameters (\ref{formalParameters})), in the return types of functions (\ref{functions}) and in the bounds of type variables.
-Static type annotations are used during static checking and when running programs in checked mode.
-They have no effect whatsoever in production mode.
+Type annotations are used in variable declarations (\ref{variables}) (including formal parameters (\ref{formalParameters})), in the return types of functions (\ref{functions}) and in the bounds of type variables.
+Type annotations are used during static checking and when running programs.
 
 \begin{grammar}
 <type> ::= <typeName> <typeArguments>?
@@ -10408,107 +10454,78 @@ Those situations where an expression does show that a variable has a type are me
 \subsection{Dynamic Type System}
 \LMLabel{dynamicTypeSystem}
 
-\LMHash{}
-A Dart implementation must support execution in both {\em production mode} and {\em checked mode}.
-Those dynamic checks specified as occurring specifically in checked mode must be performed if{}f the code is executed in checked mode.
-
-\commentary{
-Note that this is the case even if the deferred type belongs to a prefix that has already been loaded.
-This is regrettable, since it strongly discourages the use of type annotations that involve deferred types because Dart programmers use checked mode much of the time.
-
-In practice, many scenarios involving deferred loading involve deferred loading of classes that implement eagerly loaded interfaces, so the situation is often less onerous than it seems.
-The current semantics were adopted based on considerations of ease of implementation.
-
-Clearly, if a deferred type has not yet been loaded, it is impossible to do a correct subtype test involving it, and one would expect a dynamic failure, as is the case with type tests and casts.
-By the same token, one would expect checked mode to work seamlessly once a type had been loaded.
-We hope to adopt these semantics in the future; such a change would be upwardly compatible.
-}
+% \ref{classes} says that 'when a class name appears as a type,%
+% that name denotes the interface of the class. So we can say
+% that the dynamic type of an instance is a non-generic class or
+% a generic instantiation of a generic class.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if a deferred, malformed or malbounded (\ref{parameterizedTypes}) type is used in a subtype test.
-
-%In production mode, an undeclared type is treated as an instance of type \DYNAMIC{}.
+Let $o$ be an instance.
+The {\em dynamic type} of $o$ is the class which is specified
+for the situation where $o$ was obtained as a fresh instance
+(\ref{redirectingFactoryConstructors},
+\ref{lists}, \ref{maps}, \ref{new}, \ref{functionInvocation}).
 
 \commentary{
-Consider the following program:
+In particular, the dynamic type of an instance never changes.
+It is at times only specified that the given class implements
+a certain type, e.g., for a list literal.
+In these cases the dynamic type is implementation dependent,
+except of course that said subtype requirement must be satisfied.
+}
+
+\LMHash{}
+The dynamic types of a running Dart program are equivalent to
+the static types with regard to subtyping.
+
+\commentary{
+Certain dynamic type checks are performed during execution
+(\ref{variables},
+\ref{redirectingGenerativeConstructors},
+\ref{executionOfInitializerLists},
+\ref{factories},
+\ref{redirectingFactoryConstructors},
+\ref{lists},
+\ref{new},
+\ref{bindingActualsToFormals},
+\ref{ordinaryInvocation},
+\ref{assignment},
+\ref{typeCast},
+\ref{localVariableDeclaration},
+\ref{asynchronousFor-in},
+\ref{return},
+\ref{yieldEach},
+\ref{assert}).
+As specified in those locations,
+these dynamic checks are based on the dynamic types of instances,
+and the actual types of declarations
+(\ref{actualTypeOfADeclaration}).
+}
+
+\LMHash{}
+When types are reified as instances of the built-in class \code{Type},
+two \code{Type} objects are equal according to operator \syntax{`=='}
+if{}f the corresponding types are subtypes of each other.
+
+\commentary{
+For example, the \code{Type} objects for the types
+\DYNAMIC{} and \code{Object} are equal to each other
+and hence \code{dynamic\,==\,Object} must evaluate to \TRUE.
+No constraints are imposed on the built-in function \code{identical},
+so \code{identical(dynamic, Object)} may be \TRUE{} or \FALSE.
+
+Similarly, \code{Type} instances for distinct type alias declarations
+declaring a name for the same function type are equal:
 }
 
 \begin{dartCode}
-\TYPEDEF{} F(bool x);
-f(foo x) => x;
-main() \{
-  if (f is F) \{
-    print("yoyoma");
-  \}
+\TYPEDEF{} F = void Function<X>(X);
+\TYPEDEF{} G = void Function<Y>(Y);
+\\
+\VOID{} main() \{
+  assert(F == G);
 \}
 \end{dartCode}
-
-\commentary{
-The type of the formal parameter of \code{f} is \code{foo}, which is undeclared in the lexical scope.
-This will lead to a compile-time error.
-
-As another example take
-}
-
-\begin{dartCode}
-\VAR{} i;
-i j; // a variable j of type i (supposedly)
-main() \{
-     j = 'I am not an i';
-\}
-\end{dartCode}
-
-\commentary{
-Since $i$ is not a type, a compile-time error will be issue at the declaration of $j$.
-However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}.
-However, in checked mode, the implicit subtype test at the assignment will trigger an error at run time.
-}
-
-\commentary{
-Here is an example involving malbounded types:
-}
-
-\begin{dartCode}
-\CLASS{} I<T \EXTENDS{} num> \{\}
-\CLASS{} J \{\}
-
-\CLASS{} A<T> \IMPLEMENTS{} J, I<T> // compile-time error: T is not a subtype of num
-\{ ...
-\}
-\end{dartCode}
-
-\commentary{
-Given the declarations above, the following
-}
-
-\begin{dartCode}
-I x = \NEW{} A<String>();
-\end{dartCode}
-
-\commentary{
-will cause a dynamic type error in checked mode, because the assignment requires a subtype test A<String> <: I.
-To show that this holds, we need to show that A<String> $<<$ I<String>, but I<String> is a malbounded type, causing the dynamic error.
-No error is thrown in production mode.
-Note that
-}
-
-\begin{dartCode}
-J x = \NEW{} A<String>();
-\end{dartCode}
-
-\commentary{
-does not cause a dynamic error, as there is no need to test against \code{I<String>} in this case.
-Similarly, in production mode
-}
-
-\begin{dartCode}
-A x = \NEW{} A<String>();
-bool b = x is I;
-\end{dartCode}
-
-\commentary{
-\code{b} is bound to \TRUE, but in checked mode the second line causes a dynamic type error.
-}
 
 
 \subsection{Type Declarations}
@@ -10846,53 +10863,40 @@ Furthermore, if $F$ is a function type, $F << \FUNCTION{}$.
 \LMLabel{typeDynamic}
 
 \LMHash{}
-The type \DYNAMIC{} denotes the unknown type.
-
-\LMHash{}
-If no static type annotation has been provided the type system assumes the declaration has the unknown type.
-%% TODO(eernst): Change when adding specification of instantiate-to-bound.
-If a generic type is used but type arguments are not provided, then the type arguments default to the unknown type.
+The type \DYNAMIC{} is a static type which is a supertype of all other types,
+just like \code{Object},
+but it it differs from other types in that the static analysis
+assumes that every member access has a corresponding member
+with a signature that admits the given access.
 
 \commentary{
-%% TODO(eernst): Delete when adding specification of instantiate-to-bound.
-This means that given a generic declaration \code{$G$<$T_1, \ldots,\ T_n$>}, the type $G$ is equivalent to
-\code{$G$<$\DYNAMIC{}, \ldots,\ \DYNAMIC{}$>}.
+For instance,
+when the receiver in an ordinary method invocation has type \DYNAMIC{},
+any method name can be invoked,
+with any number of type arguments or none,
+with any number of positional arguments,
+and any set of named arguments,
+of any type,
+without error.
+Note that the invocation will still cause a compile-time error
+if one or more arguments or other subterms has an error.
 }
 
 \LMHash{}
-%% TODO(eernst): Rephrase to say that receivers of type `dynamic` _are treated as if_ this were the case.
-Type \DYNAMIC{} has methods for every possible identifier and arity, with every possible combination of named parameters.
-These methods all have \DYNAMIC{} as their return type, and their formal parameters all have type \DYNAMIC{}.
-Type \DYNAMIC{} has properties for every possible identifier.
-These properties all have type \DYNAMIC{}.
+% Inference is assumed to have taken place, so the type was not inferred.
+If no static type annotation has been provided,
+the type system considers declarations to have type \DYNAMIC{}.
+%% TODO(eernst): Change when adding specification of instantiate-to-bound.
+If a generic type is used but type arguments are not provided,
+the type arguments default to type \DYNAMIC{}.
 
-\rationale{
-%% TODO(eernst): Change this entire rationale when adding specification of instantiate-to-bound.
-
-From a usability perspective, we want to ensure that the checker does not issue errors everywhere an unknown type is used.
-The definitions above ensure that no secondary errors are reported when accessing an unknown type.
-
-The current rules say that missing type arguments are treated as if they were the type \DYNAMIC{}.
-An alternative is to consider them as meaning \code{Object}.
-This would lead to earlier error detection in checked mode, and more aggressive errors during static typechecking.
-For example:
-
-(1) \code{typedAPI(G<String> g)\{...\}}
-
-(2) \code{typedAPI(new G()); }
-
-Under the alternative rules, (2) would cause a run-time error in checked mode.
-This seems desirable from the perspective of error localization.
-However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
-
-(3) \code{typedAPI(new G<String>());}
-
-This forces users to write type information in their client code just because they are calling a typed API.
-We do not want to impose this on Dart programmers, some of which may be blissfully unaware of types in general, and genericity in particular.
-
-What of static checking? Surely we would want to flag (2) when users have explicitly asked for static typechecking? Yes, but the reality is that the Dart static checker is likely to be running in the background by default.
-Engineering teams typically desire a ``clean build'' free of errors and so the checker is designed to be extremely charitable.
-Other tools can interpret the type information more aggressively and warn about violations of conventional (and sound) static type discipline.
+\commentary{
+%% TODO(eernst): Amend when adding specification of instantiate-to-bound.
+This means that given a generic declaration
+\code{$G$<$P_1, \ldots,\ P_n$>$\ldots$},
+where $P_i$ is a formal type parameter declaration, $i \in 1 .. n$,
+the type $G$ is equivalent to
+\code{$G$<$\DYNAMIC{}, \ldots,\ \DYNAMIC{}$>}.
 }
 
 \LMHash{}
@@ -10902,6 +10906,12 @@ denotes the \DYNAMIC{} type.
 When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression,
 it evaluates to a \code{Type} object representing the \DYNAMIC{} type,
 even though \DYNAMIC{} is not a class.
+
+\commentary{
+This \code{Type} object must compare equal to the corresponding \code{Type}
+objects for \code{Object} and \VOID{}
+(\ref{dynamicTypeSystem}).
+}
 
 
 \subsection{Type FutureOr}
@@ -10997,7 +11007,8 @@ Likewise, passing the result of a void method as a parameter or assigning it to 
 On the other hand, it is possible to return the result of a void method from within a void method.
 One can also return the null object (\ref{null}); or a value of type \DYNAMIC{}.
 Returning any other result will cause a compile-time error.
-In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
+%% TODO(eernst): Correct this when integrating generalized-void.md.
+A dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
 }
 
 \commentary{
