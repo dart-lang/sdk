@@ -176,7 +176,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Api::InitOnce();
   NativeSymbolResolver::InitOnce();
   NOT_IN_PRODUCT(Profiler::InitOnce());
-  SemiSpace::InitOnce();
+  SemiSpace::Init();
   NOT_IN_PRODUCT(Metric::InitOnce());
   StoreBuffer::InitOnce();
   MarkingStack::InitOnce();
@@ -454,6 +454,7 @@ const char* Dart::Cleanup() {
   WaitForIsolateShutdown();
 
   IdleNotifier::Stop();
+
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
@@ -461,6 +462,10 @@ const char* Dart::Cleanup() {
   }
   delete thread_pool_;
   thread_pool_ = NULL;
+
+  Api::Cleanup();
+  delete predefined_handles_;
+  predefined_handles_ = NULL;
 
   // Disable creation of any new OSThread structures which means no more new
   // threads can do an EnterIsolate. This must come after isolate shutdown
@@ -485,12 +490,18 @@ const char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  PortMap::Cleanup();
   IdleNotifier::Cleanup();
-
   TargetCPUFeatures::Cleanup();
   MarkingStack::ShutDown();
   StoreBuffer::ShutDown();
-
+  MarkingStack::ShutDown();
+  Object::Cleanup();
+  SemiSpace::Cleanup();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Stubs are generated when not precompiled, clean them up.
+  StubCode::Cleanup();
+#endif
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -506,7 +517,7 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
                  UptimeMillis());
   }
-  NOT_IN_PRODUCT(CodeObservers::DeleteAll());
+  NOT_IN_PRODUCT(CodeObservers::Cleanup());
   if (FLAG_support_timeline) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",

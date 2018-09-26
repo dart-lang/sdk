@@ -57,6 +57,8 @@ class Metric {
   // Initialize and register a metric for the VM.
   void Init(const char* name, const char* description, Unit unit);
 
+  void CleanupInstance();
+
   virtual ~Metric();
 
 #ifndef PRODUCT
