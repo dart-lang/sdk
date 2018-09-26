@@ -281,6 +281,86 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
   EXPECT_EQ(24, value);
 }
 
+TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
+  // clang-format off
+  Dart_SourceFile sourcefiles[] = {
+      {
+          "file:///test-app.dart",
+          "import 'test-util.dart';\n"
+          "main() {\n"
+          "  var v = doWork();"
+          "  return v == 42 ? 1: v == null ? -1: 0;\n"
+          "}\n",
+      },
+      {
+          "file:///test-lib.dart",
+          "class State<T, U> {\n"
+          "  T t;\n"
+          "  U u;\n"
+          "  State(List l) {\n"
+          "    t = l[0] is T? l[0]: null;\n"
+          "    u = l[1] is U? l[1]: null;\n"
+          "  }\n"
+          "}\n",
+      },
+      {
+          "file:///test-util.dart",
+          "import 'test-lib.dart';\n"
+          "class MyAccountState extends State<int, String> {\n"
+          "  MyAccountState(List l): super(l) {}\n"
+          "  first() => t;\n"
+          "}\n"
+          "doWork() => new MyAccountState(<dynamic>[42, 'abc']).first();\n"
+      },
+      {
+          "file:///.packages", "untitled:/"
+      }};
+  // clang-format on
+
+  Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
+      sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
+      NULL /* resolver */, true /* finalize */, true /* incrementally */);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(1, value);
+
+  // clang-format off
+  Dart_SourceFile updated_sourcefiles[] = {
+      {
+          "file:///test-lib.dart",
+          "class State<U, T> {\n"
+          "  T t;\n"
+          "  U u;\n"
+          "  State(List l) {\n"
+          "    t = l[0] is T? l[0]: null;\n"
+          "    u = l[1] is U? l[1]: null;\n"
+          "  }\n"
+          "}\n",
+      }};
+  // clang-format on
+  {
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    char* error = TestCase::CompileTestScriptWithDFE(
+        "file:///test-app.dart",
+        sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
+    EXPECT(error == NULL);
+    EXPECT_NOTNULL(kernel_buffer);
+
+    lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
+    EXPECT_VALID(lib);
+  }
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(-1, value);
+}
+
 TEST_CASE(IsolateReload_BadClass) {
   const char* kScript =
       "class Foo {\n"
