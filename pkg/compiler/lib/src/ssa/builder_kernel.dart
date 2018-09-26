@@ -3377,7 +3377,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       MemberEntity element = sourceElement is ConstructorBodyEntity
           ? (sourceElement as ConstructorBodyEntity).constructor
           : sourceElement;
-      ;
+
       return globalInferenceResults
               .resultOfMember(element)
               .typeOfNewList(node) ??

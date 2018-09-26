@@ -422,7 +422,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
       var declarationList = new js.VariableDeclarationList(declarations)
           .withSourceInformation(sourceInformation);
-      ;
       insertStatementAtStart(new js.ExpressionStatement(declarationList));
     }
   }
