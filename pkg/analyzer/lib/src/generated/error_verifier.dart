@@ -5355,29 +5355,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_BOUND].
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    if (typeName.typeArguments == null) {
-      return;
-    }
     // prepare Type
     DartType type = typeName.type;
     if (type == null) {
       return;
     }
-    Element element = type.element;
-    if (element is ClassElement) {
+    // TODO(paulberry): handle the case where the type name is a typedef.
+    if (type is InterfaceType) {
+      var element = type.element;
       // prepare type parameters
       List<TypeParameterElement> parameterElements = element.typeParameters;
       List<DartType> parameterTypes = element.type.typeArguments;
-      List<DartType> arguments = (type as ParameterizedType).typeArguments;
+      List<DartType> arguments = type.typeArguments;
       // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeAnnotation> argumentNodes = typeName.typeArguments.arguments;
+      NodeList<TypeAnnotation> argumentNodes =
+          typeName.typeArguments?.arguments;
+      var typeArguments = type.typeArguments;
       int loopThroughIndex =
-          math.min(argumentNodes.length, parameterElements.length);
+          math.min(typeArguments.length, parameterElements.length);
       bool shouldSubstitute =
           arguments.length != 0 && arguments.length == parameterTypes.length;
       for (int i = 0; i < loopThroughIndex; i++) {
-        TypeAnnotation argumentNode = argumentNodes[i];
-        DartType argType = argumentNode.type;
+        DartType argType = typeArguments[i];
+        TypeAnnotation argumentNode =
+            argumentNodes != null && i < argumentNodes.length
+                ? argumentNodes[i]
+                : typeName;
         if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
           _errorReporter.reportTypeErrorForNode(
               CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
@@ -5399,6 +5402,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             } else {
               errorCode =
                   StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+            }
+            if (_shouldAllowSuperBoundedTypes(typeName)) {
+              var replacedType =
+                  (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
+              if (!identical(replacedType, argType) &&
+                  _typeSystem.isSubtypeOf(replacedType, boundType)) {
+                // Bound is satisfied under super-bounded rules, so we're ok.
+                continue;
+              }
             }
             _errorReporter.reportTypeErrorForNode(
                 errorCode, argumentNode, [argType, boundType]);
@@ -6296,6 +6308,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return identical(parent.constructorName, identifier);
     }
     return false;
+  }
+
+  /// Determines if the given [typeName] occurs in a context where super-bounded
+  /// types are allowed.
+  bool _shouldAllowSuperBoundedTypes(TypeName typeName) {
+    var parent = typeName.parent;
+    if (parent is ExtendsClause) return false;
+    if (parent is OnClause) return false;
+    if (parent is ClassTypeAlias) return false;
+    if (parent is WithClause) return false;
+    if (parent is ConstructorName) return false;
+    if (parent is ImplementsClause) return false;
+    return true;
   }
 
   /**

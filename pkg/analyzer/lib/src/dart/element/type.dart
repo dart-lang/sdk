@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -86,6 +87,24 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return this;
+    } else {
+      // In theory this should never happen, since we only need to do this
+      // replacement when checking super-boundedness of explicitly-specified
+      // types, or types produced by mixin inference or instantiate-to-bounds,
+      // and bottom can't occur in any of those cases.
+      assert(false,
+          'Attempted to check super-boundedness of a type including "bottom"');
+      // But just in case it does, return `dynamic` since that's similar to what
+      // we do with Null.
+      return typeProvider.objectType;
+    }
+  }
 
   @override
   BottomTypeImpl substitute2(
@@ -336,6 +355,16 @@ class DynamicTypeImpl extends TypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   DartType substitute2(
@@ -773,6 +802,32 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         typeSystem.instantiateToBounds(type),
         (DartType t, DartType s) => t.isAssignableTo(s),
         typeSystem.instantiateToBounds);
+  }
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var returnType = (this.returnType as TypeImpl)
+        .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
+    ParameterElement transformParameter(ParameterElement p) {
+      TypeImpl type = p.type;
+      var newType =
+          type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
+      if (identical(newType, type)) return p;
+      return new ParameterElementImpl.synthetic(
+          p.name,
+          newType,
+          // ignore: deprecated_member_use
+          p.parameterKind);
+    }
+
+    var parameters = _transformOrShare(this.parameters, transformParameter);
+    if (identical(returnType, this.returnType) &&
+        identical(parameters, this.parameters)) {
+      return this;
+    } else {
+      return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters);
+    }
   }
 
   @override
@@ -1992,6 +2047,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var typeArguments = _transformOrShare(
+        this.typeArguments,
+        (t) => (t as TypeImpl)
+            .replaceTopAndBottom(typeProvider, isCovariant: isCovariant));
+    if (identical(typeArguments, this.typeArguments)) {
+      return this;
+    } else {
+      return new InterfaceTypeImpl._(element, name, prunedTypedefs)
+        ..typeArguments = typeArguments;
+    }
+  }
+
+  @override
   InterfaceTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -2622,6 +2692,14 @@ abstract class TypeImpl implements DartType {
    */
   TypeImpl pruned(List<FunctionTypeAliasElement> prune);
 
+  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
+  /// `Null` and all contravariant occurrences of `Null` with `Object`.
+  ///
+  /// The boolean `isCovariant` indicates whether this type is in covariant or
+  /// contravariant position.
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true});
+
   @override
   DartType resolveToBound(DartType objectType) => this;
 
@@ -2865,6 +2943,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    return this;
+  }
+
+  @override
   DartType resolveToBound(DartType objectType) {
     if (element.bound == null) {
       return objectType;
@@ -2956,6 +3040,16 @@ class UndefinedTypeImpl extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -3017,6 +3111,16 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   VoidTypeImpl substitute2(

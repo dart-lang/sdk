@@ -246,6 +246,7 @@ issue34488_test/04: MissingCompileTimeError # Issue 34488
 issue34488_test/05: MissingCompileTimeError # Issue 34488
 issue34488_test/06: MissingCompileTimeError # Issue 34488
 issue34498_test: MissingCompileTimeError # Issue 34498
+issue34532_test: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33308

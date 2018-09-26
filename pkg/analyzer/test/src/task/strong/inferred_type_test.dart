@@ -486,7 +486,8 @@ void main() {
   }
 
   test_constructors_inferenceFBounded() async {
-    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER';
+    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER,'
+        'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
 class Clonable<T> {}
@@ -550,7 +551,8 @@ class NotA {}
 NotA myF() => null;
 
 main() {
-  var x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(myF);
+  var x = /*info:INFERRED_TYPE_ALLOCATION*/new
+      /*error:COULD_NOT_INFER,error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/C(myF);
 }
 ''');
     var x = findLocalVariable(unit, 'x');

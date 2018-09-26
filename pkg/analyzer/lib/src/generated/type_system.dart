@@ -2278,6 +2278,23 @@ class UnknownInferredType extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    // In theory this should never happen, since we only need to do this
+    // replacement when checking super-boundedness of explicitly-specified
+    // types, or types produced by mixin inference or instantiate-to-bounds, and
+    // the unknown type can't occur in any of those cases.
+    assert(
+        false, 'Attempted to check super-boundedness of a type including "?"');
+    // But just in case it does, behave similar to `dynamic`.
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {

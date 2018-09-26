@@ -160,6 +160,14 @@ LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t10: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t11: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_param_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t06: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t07: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t08: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t09: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t10: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t13: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t14: MissingCompileTimeError # Issue 34087
@@ -179,18 +187,23 @@ LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t05: Mi
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t06: MissingCompileTimeError # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t07: MissingCompileTimeError # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t04: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t05: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_named_extends_pos_l1_t06: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t04: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t05: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_pos_l1_t06: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_param_extends_neg_assign_l1_t10: CompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t04: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_param_extends_pos_l1_t05: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_pos_l1_t01: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t01: MissingCompileTimeError # Issue 33995
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t02: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t06: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t07: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t08: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t09: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t19: CompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 33995
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 33308
@@ -207,17 +220,8 @@ LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l2_t01: 
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t02: Crash # Issue 33599
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l2_t01: Crash # Issue 33599
-LanguageFeatures/Super-bounded-types/motivation_example_A01_t01: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/motivation_example_A01_t03: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/motivation_example_A01_t05: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t01: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t02: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t03: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t04: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t05: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t06: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t07: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError # Issue 32903
-LanguageFeatures/Super-bounded-types/static_analysis_A01_t09: CompileTimeError # Issue 32903
 LanguageFeatures/int-to-double/min_acceptable_values_t01: CompileTimeError # https://github.com/dart-lang/co19/issues/161
 LanguageFeatures/int-to-double/representation_t01: CompileTimeError # https://github.com/dart-lang/co19/issues/160

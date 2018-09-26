@@ -47,7 +47,9 @@ enum_syntax_test/06: MissingCompileTimeError
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
+f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification3_test: RuntimeError # Issue 29920
+f_bounded_quantification4_test: CompileTimeError # Issue 34583
 field_wierd_name_test: Crash
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: CompileTimeError
@@ -110,7 +112,6 @@ mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTim
 mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167

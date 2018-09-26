@@ -26,6 +26,8 @@ dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340
 enum_syntax_test/05: Fail # Issue 34341
 enum_syntax_test/06: Fail # Issue 34341
+f_bounded_quantification2_test: CompileTimeError # Issue 34583
+f_bounded_quantification4_test: CompileTimeError # Issue 34583
 forwarding_stub_tearoff_test: CompileTimeError # Issue 34329
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -72,7 +74,6 @@ issue31596_test: CompileTimeError # Issue #31596
 issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow, Pass
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
-mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test/01: MissingCompileTimeError

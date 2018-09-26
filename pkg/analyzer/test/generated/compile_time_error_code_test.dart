@@ -3159,6 +3159,23 @@ class A {
     verify([source]);
   }
 
+  test_instantiate_to_bounds_not_matching_bounds() async {
+    Source source = addSource('''
+class Foo<T> {}
+class Bar<T extends Foo<T>> {}
+class Baz extends Bar {}
+void main() {}
+''');
+    var result = await computeAnalysisResult(source);
+    // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>"
+    expect(result.unit.declaredElement.getType('Baz').supertype.toString(),
+        'Bar<Foo<dynamic>>');
+    // Therefore there should be an error, since Bar's type argument T is Foo,
+    // which doesn't extends Foo<T>.
+    assertErrors(
+        source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
   test_instantiateEnum_const() async {
     Source source = addSource(r'''
 enum E { ONE }
