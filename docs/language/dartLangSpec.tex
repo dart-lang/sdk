@@ -2571,17 +2571,35 @@ Static method declarations may conflict with other declarations
 \subsection{Superclasses}
 \LMLabel{superclasses}
 
+%% TODO(eernst): We need to say that the superclass which is obtained
+%% by mixin application is generic when $C$ is generic, or at least
+%% when one or more of $C$'s type variables are used by the classes
+%% in the \EXTENDS{} or \WITH{} clause of $C$. It says below that
+%% these clauses are in the type parameter scope of $C$, but that does
+%% not allow us to talk about the superclass as an actual, stand-alone
+%% class (unless we start defining nested classes, such that the
+%% superclass can be declared in that scope).
+
 \LMHash{}
-The superclass $S^\prime$ of a class $C$ that has a with clause \code{\WITH{} $M_1, \ldots,\ M_k$} and an extends clause \code{\EXTENDS{} $S$} is the application of mixin composition (\ref{mixins}) $M_k* \cdots * M_1$ to $S$. The name $S^\prime$ is a fresh identifier.
-If no \WITH{} clause is specified then the \EXTENDS{} clause of a class $C$ specifies its superclass.
+The superclass $S'$ of a class $C$ whose declaration has a with clause
+\code{\WITH{} $M_1, \ldots,\ M_k$}
+and an extends clause
+\code{\EXTENDS{} $S$}
+is the abstract class obtained by application of
+mixin composition (\ref{mixins}) $M_k* \cdots * M_1$ to $S$.
+The name $S'$ is a fresh identifier.
+If no \WITH{} clause is specified then the \EXTENDS{} clause of
+a class $C$ specifies its superclass.
 If no \EXTENDS{} clause is specified, then either:
 \begin{itemize}
 \item $C$ is \code{Object}, which has no superclass. OR
-\item Class $C$ is deemed to have an \EXTENDS{} clause of the form \code{\EXTENDS{} Object}, and the rules above apply.
+\item Class $C$ is deemed to have an \EXTENDS{} clause of the form
+\code{\EXTENDS{} Object}, and the rules above apply.
 \end{itemize}
 
 \LMHash{}
-It is a compile-time error to specify an \EXTENDS{} clause for class \code{Object}.
+It is a compile-time error to specify an \EXTENDS{} clause
+for class \code{Object}.
 
 \begin{grammar}
 <superclass> ::= \EXTENDS{} <type>
