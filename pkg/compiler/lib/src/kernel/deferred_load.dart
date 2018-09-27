@@ -38,12 +38,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   @override
   Iterable<ImportEntity> classImportsTo(
       ClassEntity element, LibraryEntity library) {
-    ClassDefinition definition = _elementMap.getClassDefinition(element);
-    if (definition.kind != ClassKind.regular) {
-      // You can't import closures.
-      return const <ImportEntity>[];
-    }
-    ir.Class node = definition.node;
+    ir.Class node = _elementMap.getClassNode(element);
     return _findImportsTo(node, node.name, node.enclosingLibrary, library);
   }
 
@@ -57,7 +52,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   @override
   Iterable<ImportEntity> memberImportsTo(
       Entity element, LibraryEntity library) {
-    ir.Member node = _elementMap.getMemberDefinition(element).node;
+    ir.Member node = _elementMap.getMemberNode(element);
     return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
   }
 
@@ -75,7 +70,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   @override
   void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
-    ir.Member node = _elementMap.getMemberDefinition(element).node;
+    ir.Member node = _elementMap.getMemberNode(element);
 
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better

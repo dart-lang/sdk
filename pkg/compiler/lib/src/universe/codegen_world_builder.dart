@@ -165,7 +165,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
-  final KernelToWorldBuilder _elementMap;
+  final JsToWorldBuilder _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
 
   final Set<DartType> _constTypeLiterals = new Set<DartType>();

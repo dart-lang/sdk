@@ -33,7 +33,6 @@ import '../js_model/locals.dart'
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
-import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';

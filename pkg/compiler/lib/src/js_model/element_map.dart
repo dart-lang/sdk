@@ -11,12 +11,12 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../ssa/type_builder.dart';
 import '../types/abstract_value_domain.dart';
@@ -312,6 +312,116 @@ ir.FunctionNode getFunctionNode(
     default:
   }
   return null;
+}
+
+// TODO(johnniwinther,efortuna): Add more when needed.
+// TODO(johnniwinther): Should we split regular into method, field, etc.?
+enum MemberKind {
+  // A regular member defined by an [ir.Node].
+  regular,
+  // A constructor whose initializer is defined by an [ir.Constructor] node.
+  constructor,
+  // A constructor whose body is defined by an [ir.Constructor] node.
+  constructorBody,
+  // A closure class `call` method whose body is defined by an
+  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
+  closureCall,
+  // A field corresponding to a captured variable in the closure. It does not
+  // have a corresponding ir.Node.
+  closureField,
+  // A method that describes the type of a function (in this case the type of
+  // the closure class. It does not have a corresponding ir.Node or a method
+  // body.
+  signature,
+  // A separated body of a generator (sync*/async/async*) function.
+  generatorBody,
+}
+
+/// Definition information for a [MemberEntity].
+abstract class MemberDefinition {
+  /// The defined member.
+  MemberEntity get member;
+
+  /// The kind of the defined member. This determines the semantics of [node].
+  MemberKind get kind;
+
+  /// The defining [ir.Node] for this member, if supported by its [kind].
+  ///
+  /// For a regular class this is the [ir.Class] node. For closure classes this
+  /// might be an [ir.FunctionExpression] node if needed.
+  ir.Node get node;
+
+  /// The canonical location of [member]. This is used for sorting the members
+  /// in the emitted code.
+  SourceSpan get location;
+}
+
+enum ClassKind {
+  regular,
+  closure,
+  // TODO(efortuna, johnniwinther): Record is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
+}
+
+/// A member directly defined by its [ir.Member] node.
+class RegularMemberDefinition implements MemberDefinition {
+  final MemberEntity member;
+  final ir.Member node;
+
+  RegularMemberDefinition(this.member, this.node);
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  MemberKind get kind => MemberKind.regular;
+
+  String toString() => 'RegularMemberDefinition(kind:$kind,member:$member,'
+      'node:$node,location:$location)';
+}
+
+/// The definition of a special kind of member
+class SpecialMemberDefinition implements MemberDefinition {
+  final MemberEntity member;
+  final ir.TreeNode node;
+  final MemberKind kind;
+
+  SpecialMemberDefinition(this.member, this.node, this.kind);
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  String toString() => 'SpecialMemberDefinition(kind:$kind,member:$member,'
+      'node:$node,location:$location)';
+}
+
+/// Definition information for a [ClassEntity].
+abstract class ClassDefinition {
+  /// The defined class.
+  ClassEntity get cls;
+
+  /// The kind of the defined class. This determines the semantics of [node].
+  ClassKind get kind;
+
+  /// The defining [ir.Node] for this class, if supported by its [kind].
+  ir.Node get node;
+
+  /// The canonical location of [cls]. This is used for sorting the classes
+  /// in the emitted code.
+  SourceSpan get location;
+}
+
+/// A class directly defined by its [ir.Class] node.
+class RegularClassDefinition implements ClassDefinition {
+  final ClassEntity cls;
+  final ir.Class node;
+
+  RegularClassDefinition(this.cls, this.node);
+
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  ClassKind get kind => ClassKind.regular;
+
+  String toString() => 'RegularClassDefinition(kind:$kind,cls:$cls,'
+      'node:$node,location:$location)';
 }
 
 /// Returns the initializer for [field].

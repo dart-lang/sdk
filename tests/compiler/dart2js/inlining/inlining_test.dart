@@ -12,7 +12,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';

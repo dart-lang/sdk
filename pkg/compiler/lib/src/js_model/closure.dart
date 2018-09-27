@@ -15,8 +15,7 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
-import '../kernel/element_map.dart';
-import '../kernel/env.dart';
+import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
 import '../ssa/type_builder.dart';
@@ -877,7 +876,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
   Entity get rootOfScope => enclosingClass;
 }
 
-class RecordClassData implements ClassData {
+class RecordClassData implements JClassData {
   @override
   final ClassDefinition definition;
 
@@ -894,7 +893,7 @@ class RecordClassData implements ClassData {
       this.definition, this.thisType, this.supertype, this.orderedTypeSet);
 
   @override
-  ClassData copy() => this;
+  JClassData copy() => this;
 
   @override
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) =>
@@ -972,7 +971,7 @@ class ClosureClassDefinition implements ClassDefinition {
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
-abstract class ClosureMemberData implements MemberData {
+abstract class ClosureMemberData implements JMemberData {
   final MemberDefinition definition;
   final InterfaceType memberThisType;
 
@@ -1035,7 +1034,7 @@ class ClosureFunctionData extends ClosureMemberData
   }
 }
 
-class ClosureFieldData extends ClosureMemberData implements FieldData {
+class ClosureFieldData extends ClosureMemberData implements JFieldData {
   DartType _type;
   ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
       : super(definition, memberThisType);

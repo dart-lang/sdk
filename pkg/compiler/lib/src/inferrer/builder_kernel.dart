@@ -15,7 +15,6 @@ import '../elements/types.dart';
 import '../js_backend/backend.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
-import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
