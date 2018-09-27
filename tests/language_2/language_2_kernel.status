@@ -390,6 +390,9 @@ map_literal3_test/03: MissingCompileTimeError
 [ $compiler != dart2analyzer && $fasta && !$strong ]
 super_call4_test/01: MissingCompileTimeError
 
+[ $compiler != dart2js && $compiler != dartdevk && $fasta ]
+const_native_factory_test: MissingCompileTimeError # Issue 29763
+
 [ $compiler != dart2js && $fasta ]
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
