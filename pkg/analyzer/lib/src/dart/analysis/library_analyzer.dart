@@ -320,8 +320,9 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
+    var inheritanceManager2 = new InheritanceManager2(typeSystem);
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        typeSystem, new InheritanceManager2(typeSystem), errorReporter);
+        typeSystem, inheritanceManager2, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -332,6 +333,7 @@ class LibraryAnalyzer {
         _libraryElement,
         _typeProvider,
         new InheritanceManager(_libraryElement),
+        inheritanceManager2,
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
   }

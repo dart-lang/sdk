@@ -5560,8 +5560,9 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Compute inheritance and override errors.
     //
     var typeSystem = libraryElement.context.typeSystem;
+    var inheritanceManager2 = new InheritanceManager2(typeSystem);
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        typeSystem, new InheritanceManager2(typeSystem), errorReporter);
+        typeSystem, inheritanceManager2, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -5572,6 +5573,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
+        inheritanceManager2,
         context.analysisOptions.enableSuperMixins,
         disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);

@@ -16,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -93,6 +93,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * The manager for the inheritance mappings.
    */
   final InheritanceManager _inheritanceManager;
+
+  /**
+   * The manager for the inheritance mappings.
+   */
+  final InheritanceManager2 _inheritanceManager2;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -305,8 +310,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, this.enableSuperMixins,
+  ErrorVerifier(
+      ErrorReporter errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this._inheritanceManager,
+      this._inheritanceManager2,
+      this.enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
@@ -1928,7 +1938,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             if (_checkForMixinSuperclassConstraints(mixinName, i)) {
               problemReported = true;
             }
-            if (_checkForMixinSuperInvokedMembers(i, mixinName, mixinElement)) {
+            if (_checkForMixinSuperInvokedMembers(
+                i, mixinName, mixinElement, mixinType)) {
               problemReported = true;
             }
           } else {
@@ -4273,19 +4284,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /// Check that the superclass of the given [mixinElement] at the given
   /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
   /// implementations of all the super-invoked members of the [mixinElement].
-  bool _checkForMixinSuperInvokedMembers(
-      int mixinIndex, TypeName mixinName, ClassElement mixinElement) {
-    ClassElementImpl mixinElementImpl = mixinElement is ClassElementHandle
-        ? mixinElement.actualElement
-        : mixinElement;
+  bool _checkForMixinSuperInvokedMembers(int mixinIndex, TypeName mixinName,
+      ClassElement mixinElement, InterfaceType mixinType) {
+    ClassElementImpl mixinElementImpl =
+        AbstractClassElementImpl.getImpl(mixinElement);
+    if (mixinElementImpl.superInvokedNames.isEmpty) {
+      return false;
+    }
+
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
+    Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
-      var superMember = enclosingType.lookUpInheritedMember(
-          name, _currentLibrary,
-          concrete: true,
-          startMixinIndex: mixinIndex,
-          setter: name.endsWith('='));
-      if (superMember == null) {
+      var nameObject = new Name(mixinLibraryUri, name);
+
+      var superMemberType = _inheritanceManager2.getMember(
+          enclosingType, nameObject,
+          forMixinIndex: mixinIndex, forSuper: true);
+
+      if (superMemberType == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -4294,10 +4310,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return true;
       }
 
-      var mixinMember =
-          _inheritanceManager.lookupInheritance(mixinElement, name);
-      var superMemberType = superMember.type;
-      var mixinMemberType = mixinMember?.type;
+      FunctionType mixinMemberType =
+          _inheritanceManager2.getMember(mixinType, nameObject);
+
       if (mixinMemberType != null &&
           !_typeSystem.isSubtypeOf(superMemberType, mixinMemberType)) {
         _errorReporter.reportErrorForNode(

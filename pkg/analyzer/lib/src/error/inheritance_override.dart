@@ -197,19 +197,13 @@ class InheritanceOverrideVerifier {
           continue;
         }
 
-        var concreteElement = type.lookUpInheritedMember(name.name, library,
-            concrete: true, thisType: true, setter: name.name.endsWith('='));
+        var concreteType = _inheritance.getMember(type, name, concrete: true);
 
         // TODO(scheglov) handle here instead of ErrorVerifier?
-        if (concreteElement == null) {
-          continue;
-        }
-        // TODO(scheglov) Why InterfaceType even returns statics?
-        if (concreteElement.isStatic) {
+        if (concreteType == null) {
           continue;
         }
 
-        var concreteType = concreteElement.type;
         var interfaceType = interfaceMembers.map[name];
 
         // The case when members have different kinds is reported in verifier.
@@ -231,7 +225,7 @@ class InheritanceOverrideVerifier {
             classNameNode,
             [
               name.name,
-              concreteElement.enclosingElement.name,
+              concreteType.element.enclosingElement.name,
               concreteType.displayName,
               interfaceType.element.enclosingElement.name,
               interfaceType.displayName
