@@ -688,7 +688,7 @@ class _CompilationMessage implements CompilationMessage {
 
   String get code => _original.code.name;
 
-  String get analyzerCode => _original.code.analyzerCode;
+  String get analyzerCode => _original.code.analyzerCodes?.first;
 
   SourceSpan get span {
     if (_original.charOffset == -1) {

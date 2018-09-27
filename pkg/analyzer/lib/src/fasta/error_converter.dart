@@ -569,7 +569,7 @@ class FastaErrorReporter {
         return;
       }
     }
-    reportByCode(code.analyzerCode, offset, length, message);
+    reportByCode(code.analyzerCodes?.first, offset, length, message);
   }
 
   void reportScannerError(

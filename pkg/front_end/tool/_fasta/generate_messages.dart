@@ -113,7 +113,7 @@ final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
 String compileTemplate(String name, int index, String template, String tip,
-    String analyzerCode, String severity) {
+    Object analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -312,9 +312,13 @@ String constant = '$buffer';
   if (index != null) {
     codeArguments.add('index: $index');
   } else if (analyzerCode != null) {
+    if (analyzerCode is String) {
+      analyzerCode = <String>[analyzerCode];
+    }
+    List<Object> codes = analyzerCode;
     // If "index:" is defined, then "analyzerCode:" should not be generated
     // in the front end. See comment in messages.yaml
-    codeArguments.add('analyzerCode: "$analyzerCode"');
+    codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
   }
   if (severity != null) {
     String severityEnumName = severityEnumNames[severity];

@@ -28,12 +28,12 @@ class Code<T> {
 
   final Template<T> template;
 
-  final String analyzerCode;
+  final List<String> analyzerCodes;
 
   final Severity severity;
 
   const Code(this.name, this.template,
-      {int index, this.analyzerCode, this.severity: Severity.error})
+      {int index, this.analyzerCodes, this.severity: Severity.error})
       : this.index = index ?? -1;
 
   String toString() => name;
@@ -66,12 +66,12 @@ class MessageCode extends Code<Null> implements Message {
 
   const MessageCode(String name,
       {int index,
-      String analyzerCode,
+      List<String> analyzerCodes,
       Severity severity: Severity.error,
       this.message,
       this.tip})
       : super(name, null,
-            index: index, analyzerCode: analyzerCode, severity: severity);
+            index: index, analyzerCodes: analyzerCodes, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 

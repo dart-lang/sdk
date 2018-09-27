@@ -2040,7 +2040,7 @@ class AstBuilder extends StackListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+    if (message.code.analyzerCodes == null && startToken is ErrorToken) {
       translateErrorToken(startToken, errorReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
@@ -2773,7 +2773,9 @@ class AstBuilder extends StackListener {
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
-        message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
+        (message.code.analyzerCodes
+                ?.contains('NON_PART_OF_DIRECTIVE_IN_PART') ??
+            false)) {
       message = messageDirectiveAfterDeclaration;
     }
     errorReporter.reportMessage(message, charOffset, length);
