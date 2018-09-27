@@ -292,31 +292,17 @@ abstract class JsToElementMapBase implements IrToElementMap {
           //
           // is encoded by CFE as
           //
-          //   abstract class M extends A with B, C {}
+          //   abstract class M extends A implements B, C {}
+          //   abstract class M extends A&B&C {}
           //
           // but we encode it as
           //
           //   abstract class M extends Object implements A, B, C {}
           //
-          // so we need to collect the non-Object superclasses and add them
-          // to the interfaces of M.
-
-          ir.Class superclass = node.superclass;
-          while (superclass != null) {
-            if (superclass.isAnonymousMixin) {
-              // Add second to last mixed in superclasses. `B` and `C` in the
-              // example above.
-              ir.DartType mixinType = typeEnvironment.hierarchy
-                  .getTypeAsInstanceOf(node.thisType, superclass.mixedInClass);
-              linkBuilder.addLast(getDartType(mixinType));
-            } else {
-              // Add first mixed in superclass. `A` in the example above.
-              ir.DartType mixinType = typeEnvironment.hierarchy
-                  .getTypeAsInstanceOf(node.thisType, superclass);
-              linkBuilder.addLast(getDartType(mixinType));
-              break;
-            }
-            superclass = superclass.superclass;
+          // so we need get the superclasses from the on-clause, A, B, and C,
+          // through [superclassConstraints].
+          for (ir.Supertype constraint in node.superclassConstraints()) {
+            linkBuilder.addLast(processSupertype(constraint));
           }
           // Set superclass to `Object`.
           supertype = _commonElements.objectType;

@@ -805,7 +805,9 @@ class Class extends NamedNode implements FileUriNode {
       previous = current;
       current = current.implementedTypes[0].classNode;
     }
-    return constraints..add(previous.implementedTypes[0]);
+    return constraints
+      ..add(
+          previous == this ? previous.supertype : previous.implementedTypes[0]);
   }
 
   /// The URI of the source file this class was loaded from.

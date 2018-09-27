@@ -289,7 +289,30 @@ abstract class KernelToElementMapBase implements IrToElementMap {
         InterfaceType supertype;
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
-        supertype = processSupertype(node.supertype);
+        if (node.isMixinDeclaration) {
+          // A mixin declaration
+          //
+          //   mixin M on A, B, C {}
+          //
+          // is encoded by CFE as
+          //
+          //   abstract class M extends A implements B, C {}
+          //   abstract class M extends A&B&C {}
+          //
+          // but we encode it as
+          //
+          //   abstract class M extends Object implements A, B, C {}
+          //
+          // so we need get the superclasses from the on-clause, A, B, and C,
+          // through [superclassConstraints].
+          for (ir.Supertype constraint in node.superclassConstraints()) {
+            linkBuilder.addLast(processSupertype(constraint));
+          }
+          // Set superclass to `Object`.
+          supertype = _commonElements.objectType;
+        } else {
+          supertype = processSupertype(node.supertype);
+        }
         if (supertype == _commonElements.objectType) {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeBasicData);

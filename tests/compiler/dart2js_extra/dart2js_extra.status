@@ -111,18 +111,6 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 js_interop_optional_arg_test: RuntimeError # Issue 31082
 js_interop_test: RuntimeError # Issue 31082
 
-[ $compiler == dart2js && !$fast_startup && !$host_checked ]
-supermixin/supermixin11_test: RuntimeError
-supermixin/supermixin14_test: RuntimeError
-supermixin/supermixin17_test: RuntimeError
-supermixin/supermixin18_test: RuntimeError
-
-[ $compiler == dart2js && $host_checked ]
-supermixin/supermixin11_test: Crash
-supermixin/supermixin14_test: Crash
-supermixin/supermixin17_test: Crash
-supermixin/supermixin18_test: Crash
-
 [ $compiler == dart2js && !$host_checked ]
 dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work with CFE yet.
 
