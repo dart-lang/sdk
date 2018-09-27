@@ -5169,6 +5169,7 @@ class ResolverVisitor extends ScopedVisitor {
           _overrideManager.exitScope();
         }
       }
+      node.accept(elementResolver);
     } else if (operatorType == TokenType.BAR_BAR) {
       InferenceContext.setType(leftOperand, typeProvider.boolType);
       InferenceContext.setType(rightOperand, typeProvider.boolType);
@@ -5182,13 +5183,17 @@ class ResolverVisitor extends ScopedVisitor {
           _overrideManager.exitScope();
         }
       }
+      node.accept(elementResolver);
     } else {
-      // TODO(leafp): Do downwards inference using the declared type
-      // of the binary operator for other cases.
       if (operatorType == TokenType.QUESTION_QUESTION) {
         InferenceContext.setTypeFromNode(leftOperand, node);
       }
       leftOperand?.accept(this);
+
+      // Call ElementResolver.visitBinaryExpression to resolve the user-defined
+      // operator method, if applicable.
+      node.accept(elementResolver);
+
       if (operatorType == TokenType.QUESTION_QUESTION) {
         // Set the right side, either from the context, or using the information
         // from the left side if it is more precise.
@@ -5198,10 +5203,15 @@ class ResolverVisitor extends ScopedVisitor {
           contextType = leftType;
         }
         InferenceContext.setType(rightOperand, contextType);
+      } else if (node.staticElement != null &&
+          node.staticElement.parameters.isNotEmpty) {
+        // If this is a user-defined operator, set the right operand context
+        // using the operator method's parameter type.
+        var rightParam = node.staticElement.parameters[0];
+        InferenceContext.setType(rightOperand, rightParam.type);
       }
       rightOperand?.accept(this);
     }
-    node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
   }
@@ -5823,6 +5833,20 @@ class ResolverVisitor extends ScopedVisitor {
       perBranchOverrides.add(elseOverrides);
       _overrideManager.mergeOverrides(perBranchOverrides);
     }
+    return null;
+  }
+
+  @override
+  Object visitIndexExpression(IndexExpression node) {
+    node.target?.accept(this);
+    node.accept(elementResolver);
+    var method = node.staticElement;
+    if (method != null && method.parameters.isNotEmpty) {
+      var indexParam = node.staticElement.parameters[0];
+      InferenceContext.setType(node.index, indexParam.type);
+    }
+    node.index?.accept(this);
+    node.accept(typeAnalyzer);
     return null;
   }
 

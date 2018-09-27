@@ -384,3 +384,14 @@ bool isBuiltinAnnotation(
 
 ClassElement getClass(AnalysisContext c, String uri, String name) =>
     c.computeLibraryElement(c.sourceFactory.forUri(uri)).getType(name);
+
+/// Returns the integer value for [node] as a [BigInt].
+///
+/// `node.value` should not be used directly as it depends on platform integers
+/// and may be `null` for some valid integer literals (in either an `int` or a
+/// `double` context)
+BigInt getLiteralBigIntValue(IntegerLiteral node) {
+  // TODO(jmesserly): workaround for #34360: Analyzer tree does not store
+  // the BigInt or double value, so we need to re-parse it from the token.
+  return BigInt.parse(node.literal.lexeme);
+}

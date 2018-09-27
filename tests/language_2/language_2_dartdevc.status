@@ -281,6 +281,8 @@ constants_test/05: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
+double_literals/double_literal_coercion_test: CompileTimeError # Issue 34357 - CFE needs to implement this
+double_literals/implicit_double_context_test: CompileTimeError # Issue 34357 - CFE needs to implement this
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 external_test/21: CompileTimeError

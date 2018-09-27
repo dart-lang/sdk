@@ -3537,6 +3537,7 @@ class CodeGenerator extends Object
     // TODO(sra): We should get here only for compiler bugs or weirdness due to
     // --unsafe-force-compile. Once those paths have been addressed, throw at
     // compile time.
+    assert(options.unsafeForceCompile);
     return runtimeCall('throwUnimplementedError((#, #, #))',
         [js.string('$lhs ='), _visitExpression(rhs), js.string(problem)]);
   }
@@ -4842,7 +4843,7 @@ class CodeGenerator extends Object
   int _asIntInRange(Expression expr, int low, int high) {
     expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
-      var value = _intValueForJS(expr);
+      var value = getLiteralBigIntValue(expr);
       if (value != null &&
           value >= BigInt.from(low) &&
           value <= BigInt.from(high)) {
@@ -4871,7 +4872,7 @@ class CodeGenerator extends Object
   bool _isDefinitelyNonNegative(Expression expr) {
     expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
-      var value = _intValueForJS(expr);
+      var value = getLiteralBigIntValue(expr);
       return value != null && value >= BigInt.from(0);
     }
     if (_nodeIsBitwiseOperation(expr)) return true;
@@ -5694,18 +5695,17 @@ class CodeGenerator extends Object
 
   @override
   visitIntegerLiteral(IntegerLiteral node) {
-    // TODO(jmesserly): this behaves differently if Analyzer/DDC are run on
-    // dart4web. In that case we may report an error from the analyzer side
-    // (because `int.tryParse` fails). We could harden this by always parsing
-    // from `node.literal.lexeme`, as done below.
-    var value = _intValueForJS(node);
-    if (value == null) {
-      assert(options.unsafeForceCompile);
-      value = BigInt.parse(node.literal.lexeme).toUnsigned(64);
-    }
-    // Report an error if the integer cannot be represented in a JS double.
+    var value = getLiteralBigIntValue(node);
+
+    // Report an error if the integer literal cannot be exactly represented in
+    // JS (because JS only has support for doubles).
+    //
+    // This applies regardless in an int or double context.
     var valueInJS = BigInt.from(value.toDouble());
     if (value != valueInJS) {
+      assert(node.staticType == intClass.type || options.unsafeForceCompile,
+          'int literals in double contexts should be checked by Analyzer.');
+
       var lexeme = node.literal.lexeme;
       var nearest = (lexeme.startsWith("0x") || lexeme.startsWith("0X"))
           ? '0x${valueInJS.toRadixString(16)}'
@@ -5714,28 +5714,6 @@ class CodeGenerator extends Object
           node.length, invalidJSInteger, [lexeme, nearest]));
     }
     return JS.LiteralNumber('$valueInJS');
-  }
-
-  /// Returns the integer value for [node].
-  BigInt _intValueForJS(IntegerLiteral node) {
-    // The Dart VM uses signed 64-bit integers, but dart4web supports unsigned
-    // 64-bit integer hex literals if they can be represented in JavaScript.
-    // So we need to reinterpret the value as an unsigned 64-bit integer.
-    //
-    // The current Dart 2.0 rules are:
-    //
-    // - A decimal literal (maybe including a leading minus) is allowed if its
-    //   numerical value is in the signed 64-bit range (-2^63..2^63-1).
-    // - A signed hexadecimal literal is allowed if its numerical value is in
-    //   the signed 64-bit ranged.
-    // - An unsigned hexadecimal literal is allowed if its numerical value is in
-    //   the *unsigned* 64-bit range (0..2^64-1).
-    //
-    // The decimal-vs-hex distinction has already been taken care of by
-    // Analyzer, so we're only concerned with ensuring those unsigned values are
-    // correctly interpreted.
-    var value = node.value;
-    return value != null ? BigInt.from(value).toUnsigned(64) : null;
   }
 
   @override

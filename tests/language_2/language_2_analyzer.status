@@ -21,7 +21,6 @@ const_cast2_test/none: CompileTimeError # failing-by-design: Not a const express
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 constructor_reference_test/27: MissingCompileTimeError # Issue 34403
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-double_literals/implicit_double_context_test: CompileTimeError # Needs triage, see Issue #34444
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340
 enum_syntax_test/05: Fail # Issue 34341
