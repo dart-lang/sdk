@@ -1494,11 +1494,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Member target = isSuper
         ? hierarchy.getDispatchTarget(cls, name, setter: isSetter)
         : hierarchy.getInterfaceMember(cls, name, setter: isSetter);
-    if (isSuper &&
-        target == null &&
-        library.loader.target.backendTarget.enableSuperMixins &&
-        classBuilder.isAbstract) {
-      target = hierarchy.getInterfaceMember(cls, name, setter: isSetter);
+    if (isSuper && target == null) {
+      if (classBuilder.cls.isMixinDeclaration ||
+          (library.loader.target.backendTarget.enableSuperMixins &&
+              classBuilder.isAbstract)) {
+        target = hierarchy.getInterfaceMember(cls, name, setter: isSetter);
+      }
     }
     return target;
   }

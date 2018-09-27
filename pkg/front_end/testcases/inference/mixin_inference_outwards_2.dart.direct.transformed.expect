@@ -1,3 +1,17 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:9: Error: '_A&M0&M1' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// class A extends M0<int> with M1, M2 {}
+//         ^
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:9: Error: '_A&M0&M1&M2' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// class A extends M0<int> with M1, M2 {}
+//         ^
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'A' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// class A extends M0<int> with M1, M2 {}
+//       ^
+
 library;
 import self as self;
 import "dart:core" as core;

@@ -23,10 +23,8 @@ abstract class ClassHierarchy {
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
-      if (!cls.isAnonymousMixin) {
-        // See https://github.com/dart-lang/sdk/issues/32091
-        throw "$cls can't implement both $a and $b";
-      }
+      // See https://github.com/dart-lang/sdk/issues/32091
+      throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
         onAmbiguousSupertypes, mixinInferrer)

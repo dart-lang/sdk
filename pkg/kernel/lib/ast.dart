@@ -794,17 +794,18 @@ class Class extends NamedNode implements FileUriNode {
     if (!isMixinDeclaration) return constraints;
 
     Class previous = this;
-    Class current = supertype.classNode;
+    Class current = superclass;
 
     // Otherwise we have a left-linear binary tree (subtrees are supertype and
     // mixedInType) of constraints, where all the interior nodes are anonymous
     // mixin applications.
     while (current != null && current.isAnonymousMixin) {
-      constraints.add(current.mixedInType);
+      assert(current.implementedTypes.length == 2);
+      constraints.add(current.implementedTypes[1]);
       previous = current;
-      current = current.supertype.classNode;
+      current = current.implementedTypes[0].classNode;
     }
-    return constraints..add(previous.supertype);
+    return constraints..add(previous.implementedTypes[0]);
   }
 
   /// The URI of the source file this class was loaded from.

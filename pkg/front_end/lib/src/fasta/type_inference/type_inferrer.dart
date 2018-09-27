@@ -1932,26 +1932,38 @@ class StrongModeMixinInferrer implements MixinInferrer {
     if (mixinSupertype.typeArguments.isEmpty) {
       // The supertype constraint isn't generic; it doesn't constrain anything.
     } else if (mixinSupertype.classNode.isAnonymousMixin) {
-      // We had a mixin M<X0, ..., Xn> with a superclass constraint of the form
-      // S0 with M0 where S0 and M0 each possibly have type arguments.  That has
-      // been compiled a named mixin application class of the form
+      // We have either a mixin declaration `mixin M<X0, ..., Xn> on S0, S1` or
+      // a VM-style super mixin `abstract class M<X0, ..., Xn> extends S0 with
+      // S1` where S0 and S1 are superclass constraints that possibly have type
+      // arguments.
       //
-      // class S0&M0<...> = S0 with M0;
-      // class M<X0, ..., Xn> extends S0&M0<...>
+      // It has been compiled by naming the superclass to either:
       //
-      // where the type parameters of S0&M0 are the X0, ..., Xn that occured
-      // free in S0 and M0.  Treat S0 and M0 as separate supertype constraints
-      // by recursively calling this algorithm.
+      // abstract class S0&S1<...> extends Object implements S0, S1 {}
+      // abstract class M<X0, ..., Xn> extends S0&S1<...> ...
       //
-      // In some back ends (e.g., the Dart VM) the mixin application classes
-      // themselves are all eliminated by translating them to normal classes.
-      // In that case, the mixin appears as the only interface in the
-      // introduced class:
+      // for a mixin declaration, or else:
       //
-      // class S0&M0<...> extends S0 implements M0 {}
+      // abstract class S0&S1<...> = S0 with S1;
+      // abstract class M<X0, ..., Xn> extends S0&S1<...>
+      //
+      // for a VM-style super mixin.  The type parameters of S0&S1 are the X0,
+      // ..., Xn that occured free in S0 and S1.  Treat S0 and S1 as separate
+      // supertype constraints by recursively calling this algorithm.
+      //
+      // In the Dart VM the mixin application classes themselves are all
+      // eliminated by translating them to normal classes.  In that case, the
+      // mixin appears as the only interface in the introduced class.  We
+      // support three forms for the superclass constraints:
+      //
+      // abstract class S0&S1<...> extends Object implements S0, S1 {}
+      // abstract class S0&S1<...> = S0 with S1;
+      // abstract class S0&S1<...> extends S0 implements S1 {}
       var mixinSuperclass = mixinSupertype.classNode;
       if (mixinSuperclass.mixedInType == null &&
-          mixinSuperclass.implementedTypes.length != 1) {
+          mixinSuperclass.implementedTypes.length != 1 &&
+          (mixinSuperclass.superclass != coreTypes.objectClass ||
+              mixinSuperclass.implementedTypes.length != 2)) {
         unexpected(
             'Compiler-generated mixin applications have a mixin or else '
             'implement exactly one type',
@@ -1961,11 +1973,21 @@ class StrongModeMixinInferrer implements MixinInferrer {
             mixinSuperclass.fileUri);
       }
       var substitution = Substitution.fromSupertype(mixinSupertype);
-      var s0 = substitution.substituteSupertype(mixinSuperclass.supertype);
-      var m0 = substitution.substituteSupertype(mixinSuperclass.mixedInType ??
-          mixinSuperclass.implementedTypes.first);
+      Supertype s0, s1;
+      if (mixinSuperclass.implementedTypes.length == 2) {
+        s0 = mixinSuperclass.implementedTypes[0];
+        s1 = mixinSuperclass.implementedTypes[1];
+      } else if (mixinSuperclass.implementedTypes.length == 1) {
+        s0 = mixinSuperclass.supertype;
+        s1 = mixinSuperclass.implementedTypes.first;
+      } else {
+        s0 = mixinSuperclass.supertype;
+        s1 = mixinSuperclass.mixedInType;
+      }
+      s0 = substitution.substituteSupertype(s0);
+      s1 = substitution.substituteSupertype(s1);
       generateConstraints(hierarchy, mixinClass, baseType, s0);
-      generateConstraints(hierarchy, mixinClass, baseType, m0);
+      generateConstraints(hierarchy, mixinClass, baseType, s1);
     } else {
       // Find the type U0 which is baseType as an instance of mixinSupertype's
       // class.
@@ -2028,11 +2050,10 @@ class StrongModeMixinInferrer implements MixinInferrer {
           return p;
         }
         assert(constraint == null || constraint.upper == constraint.lower);
+        bool exact =
+            constraint != null && constraint.upper != const UnknownType();
         return new TypeParameter(
-            p.name,
-            constraint == null || constraint.upper == const UnknownType()
-                ? p.bound
-                : constraint.upper);
+            p.name, exact ? constraint.upper : p.bound, p.defaultType);
       }).toList();
       // Bounds might mention the mixin class's type parameters so we have to
       // substitute them before calling instantiate to bounds.

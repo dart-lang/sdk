@@ -30,8 +30,6 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import '../../api_prototype/file_system.dart';
 
 import '../../base/instrumentation.dart'
@@ -801,16 +799,9 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
-    String name = cls.name;
-    TypeEnvironment env = new TypeEnvironment(coreTypes, hierarchy,
-        strongMode: target.strongMode);
-
-    if (cls.isAnonymousMixin) return;
-
-    if (env.isSubtypeOf(a.asInterfaceType, b.asInterfaceType)) return;
     addProblem(
         templateAmbiguousSupertypes.withArguments(
-            name, a.asInterfaceType, b.asInterfaceType),
+            cls.name, a.asInterfaceType, b.asInterfaceType),
         cls.fileOffset,
         noLength,
         cls.fileUri);
