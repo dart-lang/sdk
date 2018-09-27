@@ -18,9 +18,9 @@ class Driver {
 
   Completer serverConnected;
   Completer analysisComplete;
-  bool processAnalysisErrors;
-  int errorCount;
   bool verbose;
+  static const progressThreshold = 10;
+  int progressCount = progressThreshold;
 
   Future start(List<String> args) async {
     final options = Options.parse(args);
@@ -31,11 +31,12 @@ class Driver {
     }
     verbose = options.verbose;
 
+    EditDartfixResult result;
     await startServer(options);
     bool normalShutdown = false;
     try {
-      await performAnalysis(options);
-      await requestFixes(options);
+      await setupAnalysis(options);
+      result = await requestFixes(options);
       normalShutdown = true;
     } finally {
       try {
@@ -45,6 +46,9 @@ class Driver {
           rethrow;
         }
       }
+    }
+    if (result != null) {
+      applyFixes(result);
     }
   }
 
@@ -63,11 +67,7 @@ class Driver {
     });
   }
 
-  Future performAnalysis(Options options) async {
-    analysisComplete = new Completer();
-    processAnalysisErrors = true;
-    errorCount = 0;
-    outSink.writeln('Analyzing...');
+  Future setupAnalysis(Options options) async {
     verboseOut('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
         new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
@@ -77,29 +77,19 @@ class Driver {
           options.analysisRoots,
           const [],
         ).toJson());
-    await analysisComplete.future;
-    analysisComplete = null;
-    processAnalysisErrors = false;
-    verboseOut('Analysis complete.');
-    if (errorCount > 0) {
-      // TODO: Ask "Do you want to continue given # of errors?"
-    }
   }
 
-  Future requestFixes(Options options) async {
-    outSink.writeln('Calculating fixes...');
+  Future<EditDartfixResult> requestFixes(Options options) async {
+    outSink.write('Calculating fixes...');
+    verboseOut('');
+    analysisComplete = new Completer();
     Map<String, dynamic> json = await server.send(EDIT_REQUEST_DARTFIX,
         new EditDartfixParams(options.analysisRoots).toJson());
+    await analysisComplete.future;
+    analysisComplete = null;
+    resetProgress();
     ResponseDecoder decoder = new ResponseDecoder(null);
-    final result = EditDartfixResult.fromJson(decoder, 'result', json);
-    if (result.description.isNotEmpty) {
-      outSink.writeln('Recommended changes:');
-      for (String line in result.description) {
-        outSink.writeln(line);
-      }
-    } else {
-      outSink.writeln('No recommended changes.');
-    }
+    return EditDartfixResult.fromJson(decoder, 'result', json);
   }
 
   Future stopServer(Server server) async {
@@ -112,6 +102,31 @@ class Driver {
     await server.exitCode.timeout(timeout, onTimeout: () {
       return server.kill('server failed to exit');
     });
+  }
+
+  Future applyFixes(EditDartfixResult result) async {
+    // TODO(danrubel): Add flag to dartfix result indicating whether there
+    // were any errors detected that would compromise the suggested edits.
+    // If this flag is true, then the changes should not be applied
+    // or the user should be asked if they want to apply the changes.
+    if (!result.description.isNotEmpty) {
+      outSink.writeln('No recommended changes.');
+      return;
+    }
+    outSink.writeln('Recommended changes:');
+    List<String> sorted = new List.from(result.description)..sort();
+    for (String line in sorted) {
+      outSink.writeln(line);
+    }
+    // TODO(danrubel): Apply the fixes rather than displaying them.
+    outSink.writeln('=== Source edits:');
+    for (SourceFileEdit fileEdit in result.fixes) {
+      outSink.writeln(fileEdit.file);
+      for (SourceEdit sourceEdit in fileEdit.edits) {
+        outSink.writeln(
+            '  ${sourceEdit.offset} ${sourceEdit.length} ${sourceEdit.replacement}');
+      }
+    }
   }
 
   /**
@@ -144,10 +159,8 @@ class Driver {
 //            decoder, 'params', params));
 //        break;
       case ANALYSIS_NOTIFICATION_ERRORS:
-        if (processAnalysisErrors) {
-          onAnalysisErrors(
-              new AnalysisErrorsParams.fromJson(decoder, 'params', params));
-        }
+        onAnalysisErrors(
+            new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
 //      case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
 //        outOfTestExpect(params, isAnalysisFlushResultsParams);
@@ -223,15 +236,15 @@ class Driver {
   void onAnalysisErrors(AnalysisErrorsParams params) {
     List<AnalysisError> errors = params.errors;
     if (errors.isNotEmpty) {
+      resetProgress();
       outSink.writeln(params.file);
       for (AnalysisError error in errors) {
-        if (error.severity == AnalysisErrorSeverity.ERROR) {
-          ++errorCount;
-        }
         Location loc = error.location;
         outSink.writeln('  ${error.message}'
             ' at ${loc.startLine}:${loc.startColumn}');
       }
+    } else {
+      showProgress();
     }
   }
 
@@ -258,6 +271,20 @@ class Driver {
       verboseOut('Analysis complete');
       analysisComplete?.complete();
     }
+  }
+
+  void resetProgress() {
+    if (!verbose && progressCount >= progressThreshold) {
+      outSink.writeln();
+    }
+    progressCount = 0;
+  }
+
+  void showProgress() {
+    if (!verbose && progressCount % progressThreshold == 0) {
+      outSink.write('.');
+    }
+    ++progressCount;
   }
 
   void verboseOut(String message) {

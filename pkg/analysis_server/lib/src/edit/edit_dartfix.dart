@@ -1,10 +1,14 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,6 +18,8 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show SourceChange, SourceEdit, SourceFileEdit;
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
@@ -24,7 +30,22 @@ class EditDartFix {
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
 
+  List<String> descriptions;
+  SourceChange sourceChange;
+
   EditDartFix(this.server, this.request);
+
+  void addResult(String description, [SourceChange change]) {
+    assert(description != null && description.isNotEmpty);
+    descriptions.add(description);
+    if (change != null) {
+      for (SourceFileEdit fileEdit in change.edits) {
+        for (SourceEdit sourceEdit in fileEdit.edits) {
+          sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
+        }
+      }
+    }
+  }
 
   Future<Response> compute() async {
     final params = new EditDartfixParams.fromRequest(request);
@@ -53,7 +74,7 @@ class EditDartFix {
     final LintRule preferMixin = Registry.ruleRegistry['prefer_mixin'];
     if (preferMixin == null) {
       return new Response.serverError(
-          request, 'Missing PreferMixin lint', null);
+          request, 'Missing prefer_mixin lint', null);
     }
     final preferMixinFix = new PreferMixinFix(this);
     preferMixin.reporter = preferMixinFix;
@@ -123,11 +144,13 @@ class EditDartFix {
     }
 
     // Reporting
-    final descriptions = <String>[];
+    descriptions = <String>[];
+    sourceChange = new SourceChange('dartfix');
     for (LinterFix fix in fixes) {
-      fix.updateResponse(descriptions);
+      await fix.applyFix();
     }
-    return new EditDartfixResult(descriptions, []).toResponse(request.id);
+    return new EditDartfixResult(descriptions, sourceChange.edits)
+        .toResponse(request.id);
   }
 
   /// Return `true` if the path in within the set of `included` files
@@ -147,6 +170,29 @@ class EditDartFix {
     }
     return false;
   }
+}
+
+class EditDartFixAssistContext implements DartAssistContext {
+  @override
+  final AnalysisDriver analysisDriver;
+
+  @override
+  final int selectionLength;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final Source source;
+
+  @override
+  final CompilationUnit unit;
+
+  EditDartFixAssistContext(
+      EditDartFix dartFix, this.source, this.unit, AstNode node)
+      : analysisDriver = dartFix.server.getAnalysisDriver(source.fullName),
+        selectionOffset = node.offset,
+        selectionLength = 0;
 }
 
 abstract class LinterFix implements ErrorReporter {
@@ -198,7 +244,7 @@ abstract class LinterFix implements ErrorReporter {
     // ignored
   }
 
-  void updateResponse(List<String> descriptions);
+  void applyFix();
 }
 
 class PreferMixinFix extends LinterFix {
@@ -212,18 +258,44 @@ class PreferMixinFix extends LinterFix {
     TypeName type = node;
     Element element = type.name.staticElement;
     String path = element.source?.fullName;
-    if (dartFix.isIncluded(path)) {
-      // Only report classes that are `included`
+    if (path != null && dartFix.isIncluded(path)) {
       classesToConvert.add(element);
     }
   }
 
   @override
-  void updateResponse(List<String> descriptions) {
-    final sorted = classesToConvert.toList()
-      ..sort((c1, c2) => c1.name.compareTo(c2.name));
-    for (Element elem in sorted) {
-      descriptions.add('Convert class to mixin: ${elem.name}');
+  void applyFix() async {
+    for (Element elem in classesToConvert) {
+      await convertClassToMixin(elem);
+    }
+  }
+
+  void convertClassToMixin(Element elem) async {
+    String path = elem.source?.fullName;
+    AnalysisResult result = await dartFix.server.getAnalysisResult(path);
+
+    // TODO(danrubel): Verify that class can be converted
+    for (CompilationUnitMember declaration in result.unit.declarations) {
+      if (declaration is ClassOrMixinDeclaration &&
+          declaration.name.name == elem.name) {
+        AssistProcessor processor = new AssistProcessor(
+            new EditDartFixAssistContext(
+                dartFix, elem.source, result.unit, declaration.name));
+        List<Assist> assists =
+            await processor.compute(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
+        if (assists.isNotEmpty) {
+          for (Assist assist in assists) {
+            dartFix.addResult(
+                'Convert class to mixin: ${elem.name}', assist.change);
+          }
+        } else {
+          // TODO(danrubel): If assists is empty, then determine why
+          // assist could not be performed and report that in the description.
+          dartFix.addResult(
+              'Could not automatically convert ${elem.name} to a mixin'
+              ' because the class contains a constructor.');
+        }
+      }
     }
   }
 }

@@ -1506,12 +1506,13 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the files and directories for which edits should be suggested.
    *
-   *   If a request is made with path that is invalid, e.g. is not absolute and
-   *   normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
-   *   If a request is made for a file which does not exist, or which is not
-   *   currently subject to analysis (e.g. because it is not associated with
-   *   any analysis root specified to analysis.setAnalysisRoots), an error of
-   *   type FILE_NOT_ANALYZED will be generated.
+   *   If a request is made with a path that is invalid, e.g. is not absolute
+   *   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+   *   generated. If a request is made for a file which does not exist, or
+   *   which is not currently subject to analysis (e.g. because it is not
+   *   associated with any analysis root specified to
+   *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
+   *   generated.
    *
    * Returns
    *

@@ -109,7 +109,7 @@ class AssistProcessor {
     return _typeProvider;
   }
 
-  Future<List<Assist>> compute() async {
+  Future<List<Assist>> compute([AssistKind assistKind]) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
@@ -123,6 +123,13 @@ class AssistProcessor {
       return assists;
     }
 
+    // Calculate only specific assists for edit.dartFix
+    if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
+      await _addProposal_convertClassToMixin();
+      return assists;
+    }
+
+    // Calculate all assists
     await _addProposal_addTypeAnnotation_DeclaredIdentifier();
     await _addProposal_addTypeAnnotation_SimpleFormalParameter();
     await _addProposal_addTypeAnnotation_VariableDeclaration();
