@@ -307,6 +307,8 @@ class Isolate : public BaseIsolate {
                      const char* root_script_url = NULL,
                      const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
+
+  // If provided, the VM takes ownership of kernel_buffer.
   bool ReloadKernel(JSONStream* js,
                     bool force_reload,
                     const uint8_t* kernel_buffer = NULL,

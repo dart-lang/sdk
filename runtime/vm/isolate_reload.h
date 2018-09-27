@@ -135,6 +135,7 @@ class IsolateReloadContext {
   explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
+  // If kernel_buffer is provided, the VM takes ownership when Reload is called.
   void Reload(bool force_reload,
               const char* root_script_url = NULL,
               const char* packages_url = NULL,

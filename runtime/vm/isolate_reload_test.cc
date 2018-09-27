@@ -136,7 +136,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
-    free(const_cast<uint8_t*>(kernel_buffer));
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   result = Dart_IntegerToInt64(result, &value);
@@ -198,7 +197,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
-    free(const_cast<uint8_t*>(kernel_buffer));
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   result = Dart_IntegerToInt64(result, &value);
@@ -276,7 +274,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
-    free(const_cast<uint8_t*>(kernel_buffer));
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   result = Dart_IntegerToInt64(result, &value);

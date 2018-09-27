@@ -10,7 +10,6 @@ cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Pass, Crash # Issue 34599
 cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
@@ -105,8 +104,6 @@ cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give 
 cc/Service_Profile: Skip
 cc/GenKernelKernelLoadKernel: Skip  # Issue 34542.
 cc/GenKernelKernelReadAllBytecode: Skip  # Issue 34393.
-cc/IsolateReload_KernelIncrementalCompile: Crash # Issue 34599
-cc/IsolateReload_KernelIncrementalCompileGenerics: Crash # Issue 34599
 
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
