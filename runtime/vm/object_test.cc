@@ -3216,7 +3216,6 @@ ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 TEST_CASE(StackTraceFormat) {
-  Isolate* isolate = Isolate::Current();
   const char* kScriptChars =
       "void baz() {\n"
       "  throw 'MyException';\n"
@@ -3260,8 +3259,7 @@ TEST_CASE(StackTraceFormat) {
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
-  const char* lib_url =
-      isolate->use_dart_frontend() ? "file:///test-lib" : "test-lib";
+  const char* lib_url = "file:///test-lib";
   const size_t kBufferSize = 1024;
   char expected[kBufferSize];
   snprintf(expected, kBufferSize,

@@ -553,7 +553,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000007)
+#define DART_FLAGS_CURRENT_VERSION (0x00000008)
 
 typedef struct {
   int32_t version;
@@ -563,7 +563,6 @@ typedef struct {
   bool enable_error_on_bad_override;
   bool use_field_guards;
   bool use_osr;
-  bool use_dart_frontend;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;

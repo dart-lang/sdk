@@ -775,7 +775,6 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = flag;
   ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->use_dart_frontend = false;
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
 }
@@ -786,7 +785,6 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->isolate_flag = name();
   ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->use_dart_frontend = use_dart_frontend();
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
 }
@@ -817,7 +815,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
 
-  set_use_dart_frontend(api_flags.use_dart_frontend);
   set_should_load_vmservice(api_flags.load_vmservice_library);
 
   // Copy entry points list.

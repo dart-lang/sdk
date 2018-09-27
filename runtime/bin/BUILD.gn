@@ -645,13 +645,19 @@ dart_io("standalone_dart_io") {
 }
 
 gen_snapshot_action("generate_snapshot_bin") {
+  deps = [
+    "../vm:vm_platform",
+  ]
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
   vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
   isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  inputs = []
+  platform_dill = "$root_out_dir/vm_platform_strong.dill"
+  inputs = [
+    platform_dill,
+  ]
   outputs = [
     vm_snapshot_data,
     vm_snapshot_instructions,
@@ -668,6 +674,7 @@ gen_snapshot_action("generate_snapshot_bin") {
         rebase_path(isolate_snapshot_data, root_build_dir),
     "--isolate_snapshot_instructions=" +
         rebase_path(isolate_snapshot_instructions, root_build_dir),
+    rebase_path(platform_dill),
   ]
 }
 

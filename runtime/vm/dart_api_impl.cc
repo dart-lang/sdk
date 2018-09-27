@@ -1163,13 +1163,6 @@ Dart_CreateIsolateFromKernel(const char* script_uri,
                              void* callback_data,
                              char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  // Setup default flags in case none were passed.
-  Dart_IsolateFlags api_flags;
-  if (flags == NULL) {
-    Isolate::FlagsInitialize(&api_flags);
-    flags = &api_flags;
-  }
-  flags->use_dart_frontend = true;
   return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, kernel_buffer,
                        kernel_buffer_size, flags, callback_data, error);
 }
@@ -4982,61 +4975,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  if (::Dart_IsNull(resolved_url)) {
-    resolved_url = url;
-  }
-  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
-  if (resolved_url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, resolved_url, String);
-  }
-  Library& library = Library::Handle(Z, I->object_store()->root_library());
-  if (!library.IsNull()) {
-    const String& library_url = String::Handle(Z, library.url());
-    return Api::NewError("%s: A script has already been loaded from '%s'.",
-                         CURRENT_FUNC, library_url.ToCString());
-  }
-  if (line_offset < 0) {
-    return Api::NewError("%s: argument 'line_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  if (column_offset < 0) {
-    return Api::NewError("%s: argument 'column_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  Dart_Handle result;
-  if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
-  }
-
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  library = Library::New(url_str);
-  library.set_debuggable(true);
-  library.Register(T);
-  I->object_store()->set_root_library(library);
-
-  const Script& script =
-      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
-                                    RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, column_offset);
-  CompileSource(T, library, script, &result);
-  return result;
+  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5292,73 +5231,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  Dart_Handle result;
-  if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
-  }
-  if (::Dart_IsNull(resolved_url)) {
-    resolved_url = url;
-  }
-  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
-  if (resolved_url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, resolved_url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
-  if (line_offset < 0) {
-    return Api::NewError("%s: argument 'line_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  if (column_offset < 0) {
-    return Api::NewError("%s: argument 'column_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  Library& library = Library::Handle(Z, Library::LookupLibrary(T, url_str));
-  if (library.IsNull()) {
-    library = Library::New(url_str);
-    library.Register(T);
-  } else if (library.LoadInProgress() || library.Loaded() ||
-             library.LoadFailed()) {
-    // The source for this library has either been loaded or is in the
-    // process of loading.  Return an error.
-    return Api::NewError("%s: library '%s' has already been loaded.",
-                         CURRENT_FUNC, url_str.ToCString());
-  }
-  const Script& script =
-      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
-                                    RawScript::kLibraryTag));
-  script.SetLocationOffset(line_offset, column_offset);
-  CompileSource(T, library, script, &result);
-  // Propagate the error out right now.
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-
-  // If this is the dart:_builtin library, register it with the VM.
-  if (url_str.Equals("dart:_builtin")) {
-    I->object_store()->set_builtin_library(library);
-    Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-    if (::Dart_IsError(state)) {
-      return state;
-    }
-  }
-  return result;
+  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 

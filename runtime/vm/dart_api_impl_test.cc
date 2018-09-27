@@ -3593,7 +3593,6 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_asserts = true;
   api_flags.enable_error_on_bad_type = true;
   api_flags.enable_error_on_bad_override = true;
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   char* err;
   Dart_Isolate isolate =
       Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
@@ -5746,6 +5745,9 @@ static Dart_Handle library_handler(Dart_LibraryTag tag,
 }
 
 TEST_CASE(DartAPI_LoadScript) {
+  if (FLAG_use_dart_frontend) {
+    return;
+  }
   const char* kScriptChars =
       "main() {"
       "  return 12345;"
@@ -6732,13 +6734,10 @@ TEST_CASE(DartAPI_ImportLibrary3) {
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
     lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, NULL,
                                           true);
-    if (TestCase::UsingStrongMode()) {
-      EXPECT_ERROR(lib,
-                   "Compilation failed file:///test-lib:4:10:"
-                   " Error: Setter not found: 'foo'");
-      return;
-    }
-    EXPECT_VALID(lib);
+    EXPECT_ERROR(lib,
+                 "Compilation failed file:///test-lib:4:10:"
+                 " Error: Setter not found: 'foo'");
+    return;
   } else {
     Dart_Handle url = NewString(TestCase::url());
     Dart_Handle source = NewString(kScriptChars);

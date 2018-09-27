@@ -42,8 +42,7 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
   Library& lib = Thread::Current()->LibraryHandle();
   cls = function.Owner();
   lib = cls.library();
-  const bool can_use_pragma =
-      function.kernel_offset() > 0 && lib.IsAnyCoreLibrary();
+  const bool can_use_pragma = lib.IsAnyCoreLibrary();
   cls = Class::null();
   if (can_use_pragma) {
     Isolate* I = Isolate::Current();

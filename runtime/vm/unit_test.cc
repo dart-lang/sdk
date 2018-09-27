@@ -47,8 +47,6 @@ DEFINE_FLAG(bool,
             true,
             "Parse scripts with Dart-to-Kernel parser");
 
-DECLARE_FLAG(bool, strong);
-
 void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
   next_ = new KernelBufferList(kernel_buffer_, next_);
   kernel_buffer_ = kernel_buffer;
@@ -114,7 +112,6 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
@@ -132,16 +129,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
 }
 
 Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
-  if (FLAG_use_dart_frontend) {
-    return CreateIsolate(
-        platform_strong_dill, platform_strong_dill_size,
-        NULL, /* There is no instr buffer in case of dill buffers. */
-        name, data);
-  } else {
-    return CreateIsolate(bin::core_isolate_snapshot_data,
-                         0 /* Snapshots have length encoded within them. */,
-                         bin::core_isolate_snapshot_instructions, name, data);
-  }
+  return CreateIsolate(bin::core_isolate_snapshot_data,
+                       0 /* Snapshots have length encoded within them. */,
+                       bin::core_isolate_snapshot_instructions, name, data);
 }
 
 static const char* kPackageScheme = "package:";
@@ -247,10 +237,6 @@ static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
 bool TestCase::UsingDartFrontend() {
   return FLAG_use_dart_frontend;
-}
-
-bool TestCase::UsingStrongMode() {
-  return FLAG_strong;
 }
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,

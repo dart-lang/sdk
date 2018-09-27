@@ -1170,7 +1170,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+  if (TestCase::UsingDartFrontend()) {
     EXPECT_ERROR(lib, "importedIntFunc");
   } else {
     EXPECT_VALID(lib);
@@ -1703,32 +1703,10 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
   Dart_Handle error_handle = SimpleInvokeError(lib, "main");
 
   const char* error;
-  if (TestCase::UsingStrongMode()) {
-    error =
-        "file:///test-lib:8:12: Error: Too few positional"
-        " arguments: 1 required, 0 given.\n"
-        "  return f1();";
-  } else if (TestCase::UsingDartFrontend()) {
-    error =
-        "NoSuchMethodError: Closure call with mismatched arguments: function "
-        "'C.foo'\n"
-        "Receiver: Closure: (dynamic) => dynamic from Function 'foo': static.\n"
-        "Tried calling: C.foo()\n"
-        "Found: C.foo(dynamic) => dynamic\n"
-        "#0      Object.noSuchMethod "
-        "(dart:core/runtime/libobject_patch.dart:50:5)\n"
-        "#1      main (file:///test-lib:8:12)";
-  } else {
-    error =
-        "NoSuchMethodError: Closure call with mismatched arguments: function "
-        "'C.foo'\n"
-        "Receiver: Closure: (dynamic) => dynamic from Function 'foo': static.\n"
-        "Tried calling: C.foo()\n"
-        "Found: C.foo(dynamic) => dynamic\n"
-        "#0      Object.noSuchMethod "
-        "(dart:core-patch/dart:core/object_patch.dart:50)\n"
-        "#1      main (test-lib:8:12)";
-  }
+  error =
+      "file:///test-lib:8:12: Error: Too few positional"
+      " arguments: 1 required, 0 given.\n"
+      "  return f1();";
   EXPECT_ERROR(error_handle, error);
 }
 

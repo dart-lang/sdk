@@ -557,13 +557,6 @@ class Isolate : public BaseIsolate {
   }
 #endif  // !defined(PRODUCT)
 
-  bool use_dart_frontend() const {
-    return UseDartFrontEndBit::decode(isolate_flags_);
-  }
-  void set_use_dart_frontend(bool value) {
-    isolate_flags_ = UseDartFrontEndBit::update(value, isolate_flags_);
-  }
-
   RawError* PausePostRequest();
 
   uword user_tag() const { return user_tag_; }
@@ -886,7 +879,6 @@ class Isolate : public BaseIsolate {
   V(ResumeRequest)                                                             \
   V(HasAttemptedReload)                                                        \
   V(ShouldPausePostServiceRequest)                                             \
-  V(UseDartFrontEnd)                                                           \
   V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \

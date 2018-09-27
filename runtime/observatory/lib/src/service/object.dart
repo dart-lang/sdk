@@ -3534,6 +3534,10 @@ class Script extends HeapObject implements M.Script {
   ScriptLine getLine(int line) {
     assert(_loaded);
     assert(line >= 1);
+    var index = (line - lineOffset - 1);
+    if (lines.length < index) {
+      return null;
+    }
     return lines[line - lineOffset - 1];
   }
 

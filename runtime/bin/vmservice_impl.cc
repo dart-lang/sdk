@@ -170,6 +170,14 @@ bool VmService::LoadForGenPrecompiled(bool use_dart_frontend) {
   return true;
 }
 
+void VmService::SetNativeResolver() {
+  Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+  Dart_Handle library = Dart_LookupLibrary(url);
+  if (!Dart_IsError(library)) {
+    Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  }
+}
+
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool running_precompiled,

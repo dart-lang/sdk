@@ -272,9 +272,7 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
-extern const uint8_t* platform_dill;
 extern const uint8_t* platform_strong_dill;
-extern const intptr_t platform_dill_size;
 extern const intptr_t platform_strong_dill_size;
 
 class TesterState : public AllStatic {
@@ -347,7 +345,6 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
   static bool UsingDartFrontend();
-  static bool UsingStrongMode();
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,

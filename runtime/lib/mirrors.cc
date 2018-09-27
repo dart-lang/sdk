@@ -356,7 +356,10 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   args.SetAt(1, str);
   str = lib.url();
   const char* censored_libraries[] = {
-      "dart:_builtin", "dart:_vmservice", NULL,
+      "dart:_builtin",
+      "dart:_vmservice",
+      "dart:vmservice_io",
+      NULL,
   };
   for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
     if (str.Equals(censored_libraries[i])) {

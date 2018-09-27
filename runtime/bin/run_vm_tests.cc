@@ -275,23 +275,8 @@ static int Main(int argc, const char** argv) {
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  const char* error;
-  if (!start_kernel_isolate) {
-    int extra_argc = dart_argc + 3;
-    const char** extra_argv = new const char*[extra_argc];
-    for (intptr_t i = 0; i < dart_argc; i++) {
-      extra_argv[i] = dart_argv[i];
-    }
-    extra_argv[dart_argc] = "--no-strong";
-    extra_argv[dart_argc + 1] = "--no-reify_generic_functions";
-    extra_argv[dart_argc + 2] = "--no-sync-async";
-    error = Flags::ProcessCommandLineFlags(extra_argc, extra_argv);
-    delete[] extra_argv;
-    ASSERT(error == NULL);
-  } else {
-    error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-    ASSERT(error == NULL);
-  }
+  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  ASSERT(error == NULL);
 
   TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
   TesterState::create_callback = CreateIsolateAndSetup;

@@ -342,6 +342,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
     Builtin::SetNativeResolver(Builtin::kCLILibrary);
+    VmService::SetNativeResolver();
   }
   if (isolate_run_app_snapshot) {
     Dart_Handle result = Loader::ReloadNativeExtensions();
@@ -508,27 +509,23 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  char** error,
                                                  int* exit_code) {
   ASSERT(script_uri != NULL);
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
-  bool skip_library_load = true;
-  const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      app_isolate_snapshot_instructions;
-#else
-  // JIT: Service isolate uses the core libraries snapshot.
-  bool skip_library_load = false;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   Dart_Isolate isolate = NULL;
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, NULL);
+  bool skip_library_load = true;
+
 #if defined(DART_PRECOMPILED_RUNTIME)
+  // AOT: All isolates start from the app snapshot.
+  const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
+  const uint8_t* isolate_snapshot_instructions =
+      app_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolate(
       script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
       app_isolate_shared_data, app_isolate_shared_instructions, flags,
       isolate_data, error);
 #else
+  // JIT: Service isolate uses the core libraries snapshot.
+
   // Set the flag to load the vmservice library. If not set, the kernel
   // loader might skip loading it. This is flag is not relevant for the
   // non-kernel flow.
@@ -552,11 +549,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                            kernel_buffer_size, flags,
                                            isolate_data, error);
   } else {
-    *error = strdup("Platform kernel not available to create service isolate.");
+    *error = strdup("Platform file not available to create service isolate.");
     delete isolate_data;
     return NULL;
   }
-  skip_library_load = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
@@ -650,7 +646,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!isolate_run_app_snapshot) {
+  if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);

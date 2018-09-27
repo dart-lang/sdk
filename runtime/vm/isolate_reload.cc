@@ -600,7 +600,7 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   bool did_kernel_compilation = false;
   bool skip_reload = false;
-  if (isolate()->use_dart_frontend()) {
+  {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
@@ -671,10 +671,6 @@ void IsolateReloadContext::Reload(bool force_reload,
 
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
-  } else {
-    // Check to see which libraries have been modified.
-    modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
-    skip_reload = !modified_libs_->Contains(old_root_lib.index());
   }
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -687,7 +683,7 @@ void IsolateReloadContext::Reload(bool force_reload,
     // If we use the CFE and performed a compilation, we need to notify that
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
-    if (isolate()->use_dart_frontend() && did_kernel_compilation) {
+    if (did_kernel_compilation) {
       AcceptCompilation(thread);
     }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
@@ -741,7 +737,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   // for example, top level parse errors. We want to capture these errors while
   // propagating the UnwindError or an UnhandledException error.
 
-  if (isolate()->use_dart_frontend()) {
+  {
     const Object& tmp =
         kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
     if (!tmp.IsError()) {
@@ -766,16 +762,6 @@ void IsolateReloadContext::Reload(bool force_reload,
     } else {
       result = tmp.raw();
     }
-  } else {
-    TIR_Print("---- ENTERING TAG HANDLER\n");
-    TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-
-    Dart_Handle retval = (I->library_tag_handler())(
-        Dart_kScriptTag, Api::NewHandle(thread, packages_url.raw()),
-        Api::NewHandle(thread, root_lib_url.raw()));
-    result = Api::UnwrapHandle(retval);
-    TIR_Print("---- EXITED TAG HANDLER\n");
   }
   //
   // WEIRD CONTROL FLOW ENDS.

@@ -23,6 +23,8 @@ class VmService {
                     bool trace_loading,
                     bool deterministic);
 
+  static void SetNativeResolver();
+
   // Error message if startup failed.
   static const char* GetErrorMessage();
 
