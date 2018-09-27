@@ -746,6 +746,15 @@ void f() {}
     await assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  test_convertClassToMixin_abstract() async {
+    await resolveTestUnit('''
+abstract class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
   test_convertClassToMixin_extends_noSuper() async {
     await resolveTestUnit('''
 class A {}

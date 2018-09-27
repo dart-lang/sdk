@@ -494,8 +494,8 @@ class AssistProcessor {
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(
           range.startStart(
-              classDeclaration.classKeyword, classDeclaration.leftBracket),
-          (DartEditBuilder builder) {
+              classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
+              classDeclaration.leftBracket), (DartEditBuilder builder) {
         builder.write('mixin ');
         builder.write(classDeclaration.name.name);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
