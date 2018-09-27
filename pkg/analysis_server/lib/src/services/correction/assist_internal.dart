@@ -112,7 +112,7 @@ class AssistProcessor {
   Future<List<Assist>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    if (!setupCompute()) {
+    if (!_setupCompute()) {
       return assists;
     }
 
@@ -169,7 +169,7 @@ class AssistProcessor {
   }
 
   Future<List<Assist>> computeAssist(AssistKind assistKind) async {
-    if (!setupCompute()) {
+    if (!_setupCompute()) {
       return assists;
     }
 
@@ -212,21 +212,6 @@ class AssistProcessor {
       }
     }
     return null;
-  }
-
-  bool setupCompute() {
-    try {
-      utils = new CorrectionUtils(unit);
-    } catch (e) {
-      throw new CancelCorrectionException(exception: e);
-    }
-
-    bool success = true;
-    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
-    if (node == null) {
-      success = false;
-    }
-    return success;
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
@@ -3311,6 +3296,17 @@ class AssistProcessor {
    */
   String _getRangeText(SourceRange range) {
     return utils.getRangeText(range);
+  }
+
+  bool _setupCompute() {
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
+    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
+    return node != null;
   }
 
   Future<void> _swapParentAndChild(InstanceCreationExpression parent,
