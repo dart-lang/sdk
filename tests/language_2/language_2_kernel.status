@@ -736,6 +736,9 @@ vm/type_vm_test/30: MissingRuntimeError
 vm/type_vm_test/31: MissingRuntimeError
 vm/type_vm_test/32: MissingRuntimeError
 
+[ $compiler == dartkp && $system == windows ]
+disassemble_test: Pass, Slow
+
 [ $compiler == dartkp && $minified ]
 no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
 recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
@@ -1075,11 +1078,12 @@ deopt_inlined_function_lazy_test: Skip
 async_star_test/01: Crash
 async_star_test/05: Crash
 
-[ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
-enum_test: Crash
-
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/01: Pass, Crash
+enum_duplicate_test/01: Pass, Crash # Issue 34606
+enum_duplicate_test/02: Crash # Issue 34606
+enum_duplicate_test/none: Crash # Issue 34606
+enum_private_test/01: Crash # Issue 34606
+enum_test: Crash # Issue 34606
 
 [ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 deferred_not_loaded_check_test: CompileTimeError
