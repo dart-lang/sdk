@@ -31,6 +31,7 @@
   testPreInc(1),
   testSetIfNull(1),
   testThrow(0),
+  testTypedIfNotNull(1),
   testUnaryMinus(0)
 ],type=[inst:JSNull]
  */
@@ -61,6 +62,7 @@ main() {
   testAsGenericDynamic();
   testThrow();
   testIfNotNull(null);
+  testTypedIfNotNull(null);
   testIfNotNullSet(null);
   testIfNull(null);
   testSetIfNull(null);
@@ -310,19 +312,24 @@ testAsGenericDynamic() => null as GenericClass<dynamic, dynamic>;
  type=[inst:JSString]*/
 testThrow() => throw '';
 
-/*element: testIfNotNull:dynamic=[==,foo],type=[inst:JSNull]*/
+/*element: testIfNotNull:dynamic=[Object.==,foo],type=[inst:JSNull]*/
 testIfNotNull(o) => o?.foo;
 
-/*element: testIfNotNullSet:dynamic=[==,foo=],type=[inst:JSBool,inst:JSNull]*/
+/*element: testTypedIfNotNull:dynamic=[Class.==,Class.field],type=[inst:JSBool,inst:JSNull,param:Class]*/
+testTypedIfNotNull(Class o) => o?.field;
+
+/*element: testIfNotNullSet:dynamic=[Object.==,foo=],type=[inst:JSBool,inst:JSNull]*/
 testIfNotNullSet(o) => o?.foo = true;
 
-/*element: testIfNull:dynamic=[==],type=[inst:JSBool,inst:JSNull]*/
+/*element: testIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
 testIfNull(o) => o ?? true;
 
-/*element: testSetIfNull:dynamic=[==],type=[inst:JSBool,inst:JSNull]*/
+/*element: testSetIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
 testSetIfNull(o) => o ??= true;
 
-class Class {}
+class Class {
+  var field;
+}
 
 class GenericClass<X, Y> {}
 

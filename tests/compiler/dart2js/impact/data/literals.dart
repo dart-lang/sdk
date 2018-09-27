@@ -166,7 +166,7 @@ const complexSymbolField =
 /*strong.element: testComplexConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated,complexSymbolField],type=[impl:String,inst:JSBool,inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*element: testIfNullConstSymbol:dynamic=[==],static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSNull,inst:JSString,inst:Symbol]*/
+/*element: testIfNullConstSymbol:dynamic=[Null.==],static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSNull,inst:JSString,inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 /*element: testTypeLiteral:static=[createRuntimeType],type=[inst:Type,inst:TypeImpl,lit:Object]*/

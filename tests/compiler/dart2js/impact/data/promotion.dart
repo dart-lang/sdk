@@ -53,7 +53,7 @@ negativeDynamic(dynamic cls) {
   cls.method();
 }
 
-/*element: dynamicToString:dynamic=[toString(0)]*/
+/*element: dynamicToString:dynamic=[Object.toString(0)]*/
 dynamicToString(dynamic cls) {
   cls.toString();
 }
@@ -63,22 +63,22 @@ dynamicToStringWrong(dynamic cls) {
   cls.toString(null);
 }
 
-/*element: dynamicToStringTearOff:dynamic=[toString]*/
+/*element: dynamicToStringTearOff:dynamic=[Object.toString]*/
 dynamicToStringTearOff(dynamic cls) {
   cls.toString;
 }
 
-/*element: dynamicToEquals:dynamic=[==],type=[inst:JSNull]*/
+/*element: dynamicToEquals:dynamic=[Object.==],type=[inst:JSNull]*/
 dynamicToEquals(dynamic cls) {
   cls == null;
 }
 
-/*element: dynamicToHashCode:dynamic=[hashCode]*/
+/*element: dynamicToHashCode:dynamic=[Object.hashCode]*/
 dynamicToHashCode(dynamic cls) {
   cls.hashCode;
 }
 
-/*element: dynamicToNoSuchMethod:dynamic=[noSuchMethod(1)],type=[inst:JSNull]*/
+/*element: dynamicToNoSuchMethod:dynamic=[Object.noSuchMethod(1)],type=[inst:JSNull]*/
 dynamicToNoSuchMethod(dynamic cls) {
   cls.noSuchMethod(null);
 }
@@ -88,7 +88,7 @@ dynamicToNoSuchMethodWrong(dynamic cls) {
   cls.noSuchMethod();
 }
 
-/*element: dynamicToNoSuchMethodTearOff:dynamic=[noSuchMethod]*/
+/*element: dynamicToNoSuchMethodTearOff:dynamic=[Object.noSuchMethod]*/
 dynamicToNoSuchMethodTearOff(dynamic cls) {
   cls.noSuchMethod;
 }

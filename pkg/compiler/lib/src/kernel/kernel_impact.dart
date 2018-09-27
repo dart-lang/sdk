@@ -584,6 +584,8 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       typeArguments = _visitArguments(node.arguments);
     }
     ir.DartType receiverType = visitNode(node.receiver);
+    ir.DartType returnType = computeMethodInvocationType(node, receiverType);
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
     var receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
@@ -644,13 +646,16 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         }
       }
     }
-    return computeMethodInvocationType(node, receiverType);
+    return returnType;
   }
 
   @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) {
     Object constraint;
     ir.DartType receiverType = visitNode(node.receiver);
+    ir.DartType resultType = computePropertyGetType(node, receiverType);
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+
     DartType receiverDartType = elementMap.getDartType(receiverType);
     if (receiverDartType is InterfaceType) {
       constraint = new StrongModeConstraint(
@@ -684,16 +689,18 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       }
       impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
     }
-    return computePropertyGetType(node, receiverType);
+    return resultType;
   }
 
   @override
   ir.DartType visitPropertySet(ir.PropertySet node) {
     Object constraint;
-    DartType receiverType = elementMap.getDartType(visitNode(node.receiver));
-    if (receiverType is InterfaceType) {
+    ir.DartType receiverType = visitNode(node.receiver);
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    DartType receiverDartType = elementMap.getDartType(receiverType);
+    if (receiverDartType is InterfaceType) {
       constraint = new StrongModeConstraint(
-          commonElements, _nativeBasicData, receiverType.element);
+          commonElements, _nativeBasicData, receiverDartType.element);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.setter(elementMap.getName(node.name)),

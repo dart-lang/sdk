@@ -134,6 +134,11 @@ abstract class StaticTypeVisitor extends ir.Visitor<ir.DartType> {
     return visitNode(node.value);
   }
 
+  /// Computes the result type of the property access [node] on a receiver of
+  /// type [receiverType].
+  ///
+  /// If the `node.interfaceTarget` is `null` but matches an `Object` member
+  /// it is updated to target this member.
   ir.DartType computePropertyGetType(
       ir.PropertyGet node, ir.DartType receiverType) {
     ir.Member interfaceTarget = node.interfaceTarget;
@@ -209,9 +214,46 @@ abstract class StaticTypeVisitor extends ir.Visitor<ir.DartType> {
         typeEnvironment.isOverloadedArithmeticOperator(interfaceTarget);
   }
 
+  ir.Member _getMember(ir.Class cls, String name) {
+    for (ir.Member member in cls.members) {
+      if (member.name.name == name) return member;
+    }
+    throw fail("Member '$name' not found in $cls");
+  }
+
+  ir.Procedure _objectEquals;
+  ir.Procedure get objectEquals =>
+      _objectEquals ??= _getMember(typeEnvironment.objectType.classNode, '==');
+
+  /// Returns [receiverType] narrowed to enclosing class of [interfaceTarget].
+  ///
+  /// If [interfaceTarget] is `null` or `receiverType` is _not_ `dynamic` no
+  /// narrowing is performed.
+  ir.DartType narrowInstanceReceiver(
+      ir.Member interfaceTarget, ir.DartType receiverType) {
+    if (interfaceTarget != null && receiverType == const ir.DynamicType()) {
+      receiverType = interfaceTarget.enclosingClass.thisType;
+    }
+    return receiverType;
+  }
+
+  /// Computes the result type of the method invocation [node] on a receiver of
+  /// type [receiverType].
+  ///
+  /// If the `node.interfaceTarget` is `null` but matches an `Object` member
+  /// it is updated to target this member.
   ir.DartType computeMethodInvocationType(
       ir.MethodInvocation node, ir.DartType receiverType) {
     ir.Member interfaceTarget = node.interfaceTarget;
+    // TODO(34602): Remove when `interfaceTarget` is set on synthetic calls to
+    // ==.
+    if (interfaceTarget == null &&
+        node.name.name == '==' &&
+        node.arguments.types.isEmpty &&
+        node.arguments.positional.length == 1 &&
+        node.arguments.named.isEmpty) {
+      interfaceTarget = node.interfaceTarget = objectEquals;
+    }
     if (interfaceTarget != null) {
       if (isSpecialCasedBinaryOperator(interfaceTarget)) {
         ir.DartType argumentType = visitNode(node.arguments.positional[0]);
