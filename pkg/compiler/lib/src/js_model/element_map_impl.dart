@@ -199,10 +199,6 @@ abstract class JsToElementMapBase implements IrToElementMap {
     });
   }
 
-  void ensureClassMembers(ir.Class node) {
-    classes.getEnv(getClassInternal(node)).ensureMembers(this);
-  }
-
   MemberEntity lookupClassMember(IndexedClass cls, String name,
       {bool setter: false}) {
     assert(checkFamily(cls));
@@ -618,7 +614,6 @@ abstract class JsToElementMapBase implements IrToElementMap {
   bool _isSuperMixinApplication(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
-    env.ensureMembers(this);
     return env.isSuperMixinApplication;
   }
 
@@ -627,18 +622,6 @@ abstract class JsToElementMapBase implements IrToElementMap {
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     data.orderedTypeSet.supertypes.forEach(f);
-  }
-
-  void _forEachMixin(IndexedClass cls, void f(ClassEntity mixin)) {
-    assert(checkFamily(cls));
-    while (cls != null) {
-      JClassData data = classes.getData(cls);
-      _ensureSupertypes(cls, data);
-      if (data.mixedInType != null) {
-        f(data.mixedInType.element);
-      }
-      cls = data.supertype?.element;
-    }
   }
 
   void _forEachConstructor(IndexedClass cls, void f(ConstructorEntity member)) {
@@ -1108,7 +1091,7 @@ abstract class JsToElementMapBase implements IrToElementMap {
 }
 
 class JsElementEnvironment extends ElementEnvironment
-    implements KElementEnvironment, JElementEnvironment {
+    implements JElementEnvironment {
   final JsToElementMapBase elementMap;
 
   JsElementEnvironment(this.elementMap);
@@ -1246,11 +1229,6 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ConstantExpression getFieldConstantForTesting(FieldEntity field) {
-    return elementMap._getFieldConstantExpression(field);
-  }
-
-  @override
   DartType getUnaliasedType(DartType type) => type;
 
   @override
@@ -1295,11 +1273,6 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
     elementMap._forEachSupertype(cls, f);
-  }
-
-  @override
-  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
-    elementMap._forEachMixin(cls, f);
   }
 
   @override
@@ -1378,43 +1351,6 @@ class JsElementEnvironment extends ElementEnvironment
       failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
-  }
-
-  @override
-  bool isDeferredLoadLibraryGetter(MemberEntity member) {
-    // The front-end generates the getter of loadLibrary explicitly as code
-    // so there is no implicit representation based on a "loadLibrary" member.
-    return false;
-  }
-
-  @override
-  Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
-    assert(elementMap.checkFamily(library));
-    JLibraryData libraryData = elementMap.libraries.getData(library);
-    return libraryData.getMetadata(elementMap);
-  }
-
-  @override
-  Iterable<ImportEntity> getImports(covariant IndexedLibrary library) {
-    assert(elementMap.checkFamily(library));
-    JLibraryData libraryData = elementMap.libraries.getData(library);
-    return libraryData.getImports(elementMap);
-  }
-
-  @override
-  Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
-    assert(elementMap.checkFamily(cls));
-    JClassData classData = elementMap.classes.getData(cls);
-    return classData.getMetadata(elementMap);
-  }
-
-  @override
-  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
-      {bool includeParameterMetadata: false}) {
-    // TODO(redemption): Support includeParameterMetadata.
-    assert(elementMap.checkFamily(member));
-    JMemberData memberData = elementMap.members.getData(member);
-    return memberData.getMetadata(elementMap);
   }
 
   @override
@@ -1555,16 +1491,17 @@ class JsKernelToElementMap extends JsToElementMapBase
         libraryIndex < _elementMap.libraries.length;
         libraryIndex++) {
       IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
-      KLibraryEnv env = _elementMap.libraries.getEnv(oldLibrary);
+      KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
       IndexedLibrary newLibrary = convertLibrary(oldLibrary);
-      libraryMap[env.library] =
+      JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMembers);
+      libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
-              newLibrary,
-              data.convert(),
-              env.convert(_elementMap, liveMembers));
+              newLibrary, data.convert(), newEnv);
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
+      env.registerLibrary(newEnv);
     }
+    // TODO(johnniwinther): Filter unused classes.
     for (int classIndex = 0;
         classIndex < _elementMap.classes.length;
         classIndex++) {
@@ -1591,7 +1528,6 @@ class JsKernelToElementMap extends JsToElementMapBase
       typedefMap[data.node] = typedefs.register(
           newTypedef,
           new JTypedefData(
-              data.node,
               newTypedef,
               new TypedefType(
                   newTypedef,

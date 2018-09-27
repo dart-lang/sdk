@@ -92,9 +92,6 @@ class KLibraryEnv {
 
   KLibraryEnv(this.library);
 
-  KLibraryEnv.internal(
-      this.library, this._classMap, this._memberMap, this._setterMap);
-
   void _ensureClassMap() {
     if (_classMap == null) {
       _classMap = <String, KClassEnv>{};
@@ -164,22 +161,10 @@ class KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
-  ///
-  /// Currently all classes are copied.
-  // TODO(johnniwinther): Filter unused classes.
   JLibraryEnv convert(
       IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
-    Map<String, JClassEnv> classMap;
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
-    if (_classMap == null) {
-      classMap = const <String, JClassEnv>{};
-    } else {
-      classMap = <String, JClassEnv>{};
-      _classMap.forEach((String name, _) {
-        classMap[name] = null;
-      });
-    }
     if (_memberMap == null) {
       memberMap = const <String, ir.Member>{};
     } else {
@@ -202,16 +187,17 @@ class KLibraryEnv {
         }
       });
     }
-    return new JLibraryEnv.internal(library, classMap, memberMap, setterMap);
+    return new JLibraryEnv(library, memberMap, setterMap);
   }
 }
 
 class KLibraryData {
   final ir.Library library;
   Iterable<ConstantValue> _metadata;
+  // TODO(johnniwinther): Avoid direct access to [imports].
   Map<ir.LibraryDependency, ImportEntity> imports;
 
-  KLibraryData(this.library, [this.imports]);
+  KLibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(library.annotations);
@@ -238,6 +224,7 @@ class KLibraryData {
   }
 
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
+  // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
   JLibraryData convert() {
     return new JLibraryData(library, imports);
   }
@@ -604,8 +591,8 @@ class KClassEnvImpl implements KClassEnv {
         }
       });
     }
-    return new JClassEnvImpl.internal(cls, constructorMap, memberMap, setterMap,
-        members, _isSuperMixinApplication);
+    return new JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
+        _isSuperMixinApplication);
   }
 }
 

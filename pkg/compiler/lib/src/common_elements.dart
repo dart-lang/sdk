@@ -1949,6 +1949,9 @@ abstract class ElementEnvironment {
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
+  /// Returns the type of [field].
+  DartType getFieldType(FieldEntity field);
+
   /// Returns the 'unaliased' type of [type]. For typedefs this is the function
   /// type it is an alias of, for other types it is the type itself.
   ///
@@ -2024,7 +2027,4 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// This is the type used as the default type argument when no explicit type
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
-
-  /// Returns the type of [field].
-  DartType getFieldType(FieldEntity field);
 }

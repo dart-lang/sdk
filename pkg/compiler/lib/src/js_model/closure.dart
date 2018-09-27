@@ -893,13 +893,6 @@ class RecordClassData implements JClassData {
       this.definition, this.thisType, this.supertype, this.orderedTypeSet);
 
   @override
-  JClassData copy() => this;
-
-  @override
-  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) =>
-      const <ConstantValue>[];
-
-  @override
   bool get isMixinApplication => false;
 
   @override
@@ -976,11 +969,6 @@ abstract class ClosureMemberData implements JMemberData {
   final InterfaceType memberThisType;
 
   ClosureMemberData(this.definition, this.memberThisType);
-
-  @override
-  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap) {
-    return const <ConstantValue>[];
-  }
 
   @override
   InterfaceType getMemberThisType(JsToElementMap elementMap) {

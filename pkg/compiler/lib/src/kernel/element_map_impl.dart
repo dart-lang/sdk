@@ -565,6 +565,12 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     return data.rawType;
   }
 
+  DartType _getFieldType(IndexedField field) {
+    assert(checkFamily(field));
+    KFieldData data = members.getData(field);
+    return data.getFieldType(this);
+  }
+
   FunctionType _getFunctionType(IndexedFunction function) {
     assert(checkFamily(function));
     KFunctionData data = members.getData(function);
@@ -575,12 +581,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     assert(checkFamily(function));
     KFunctionData data = members.getData(function);
     return data.getFunctionTypeVariables(this);
-  }
-
-  DartType _getFieldType(IndexedField field) {
-    assert(checkFamily(field));
-    KFieldData data = members.getData(field);
-    return data.getFieldType(this);
   }
 
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable) {
@@ -613,13 +613,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     assert(checkFamily(cls));
     KClassEnv env = classes.getEnv(cls);
     return env.isUnnamedMixinApplication;
-  }
-
-  bool _isSuperMixinApplication(IndexedClass cls) {
-    assert(checkFamily(cls));
-    KClassEnv env = classes.getEnv(cls);
-    env.ensureMembers(this);
-    return env.isSuperMixinApplication;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
@@ -1743,7 +1736,7 @@ class KernelToElementMapImpl extends KernelToElementMapBase
 }
 
 class KernelElementEnvironment extends ElementEnvironment
-    implements KElementEnvironment, JElementEnvironment {
+    implements KElementEnvironment {
   final KernelToElementMapBase elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1791,27 +1784,8 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  bool isSuperMixinApplication(ClassEntity cls) {
-    return elementMap._isSuperMixinApplication(cls);
-  }
-
-  @override
-  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
-    if (!isMixinApplication(cls)) return null;
-    do {
-      cls = elementMap.getAppliedMixin(cls);
-    } while (isMixinApplication(cls));
-    return cls;
-  }
-
-  @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     return elementMap.getTypeVariableBound(typeVariable);
-  }
-
-  @override
-  DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
-    return elementMap._getTypeVariableDefaultType(typeVariable);
   }
 
   @override
@@ -1943,12 +1917,6 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachInjectedClassMember(
-      ClassEntity cls, void f(MemberEntity member)) {
-    elementMap.forEachInjectedClassMember(cls, f);
-  }
-
-  @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
     elementMap._forEachClassMember(cls, f);
@@ -1958,18 +1926,6 @@ class KernelElementEnvironment extends ElementEnvironment
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor)) {
     elementMap._forEachConstructor(cls, f);
-  }
-
-  @override
-  void forEachConstructorBody(
-      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
-    elementMap.forEachConstructorBody(cls, f);
-  }
-
-  @override
-  void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure)) {
-    elementMap.forEachNestedClosure(member, f);
   }
 
   @override
