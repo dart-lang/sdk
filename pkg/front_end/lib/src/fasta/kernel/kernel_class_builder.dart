@@ -1190,20 +1190,15 @@ abstract class KernelClassBuilder
   }
 
   // Computes the function type of a given redirection target. Returns [null] if
-  // the type of actual target could not be computed.
+  // the type of the target could not be computed.
   FunctionType computeRedirecteeType(KernelRedirectingFactoryBuilder factory,
       TypeEnvironment typeEnvironment) {
     ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
     FunctionNode target;
-    bool isConstructor = false;
-    Class targetClass; // Used when the redirection target is a constructor.
+    if (redirectionTarget.target == null) return null;
     if (redirectionTarget.target is KernelFunctionBuilder) {
       KernelFunctionBuilder targetBuilder = redirectionTarget.target;
       target = targetBuilder.function;
-      isConstructor = targetBuilder.isConstructor;
-      if (isConstructor) {
-        targetClass = targetBuilder.parent.target;
-      }
     } else if (redirectionTarget.target is DillMemberBuilder &&
         (redirectionTarget.target.isConstructor ||
             redirectionTarget.target.isFactory)) {
@@ -1218,12 +1213,9 @@ abstract class KernelClassBuilder
       //   class B implements A {}
       //
       target = targetBuilder.member.function;
-      isConstructor = targetBuilder.isConstructor;
-      if (isConstructor) {
-        targetClass = targetBuilder.member.enclosingClass;
-      }
     } else {
-      return null;
+      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
+          charOffset, fileUri);
     }
 
     List<DartType> typeArguments =
@@ -1277,32 +1269,13 @@ abstract class KernelClassBuilder
       return null;
     }
 
-    FunctionType redirecteeType;
-    // If the target is a constructor then we need to patch the return type of
-    // [targetFunctionType], because constructors always have return type to be
-    // "void", whereas the return type of a factory is its enclosing
-    // class. TODO(hillerstrom): It may be worthwhile to change the typing of
-    // constructors such that the return type is its enclosing class.
-    if (isConstructor) {
-      DartType returnType =
-          new InterfaceType(targetClass, typeArguments ?? const <DartType>[]);
-
-      redirecteeType = new FunctionType(
-          targetFunctionType.positionalParameters, returnType,
-          namedParameters: targetFunctionType.namedParameters,
-          typeParameters: targetFunctionType.typeParameters,
-          requiredParameterCount: targetFunctionType.requiredParameterCount);
-    } else {
-      redirecteeType = targetFunctionType;
-    }
-
     // Substitute if necessary.
-    redirecteeType = substitution == null
-        ? redirecteeType
-        : (substitution.substituteType(redirecteeType.withoutTypeParameters)
+    targetFunctionType = substitution == null
+        ? targetFunctionType
+        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
             as FunctionType);
 
-    return hasProblem ? null : redirecteeType;
+    return hasProblem ? null : targetFunctionType;
   }
 
   String computeRedirecteeName(ConstructorReferenceBuilder redirectionTarget) {
