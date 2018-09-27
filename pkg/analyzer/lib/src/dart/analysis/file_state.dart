@@ -136,7 +136,7 @@ class FileState {
   List<FileState> _libraryFiles;
   List<NameFilter> _exportFilters;
 
-  Set<FileState> _directReferencedFiles = new Set<FileState>();
+  Set<FileState> _directReferencedFiles;
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
 
@@ -332,7 +332,7 @@ class FileState {
 
       void appendReferenced(FileState file) {
         if (_transitiveFiles.add(file)) {
-          file._directReferencedFiles.forEach(appendReferenced);
+          file._directReferencedFiles?.forEach(appendReferenced);
         }
       }
 
@@ -524,12 +524,14 @@ class FileState {
     // If the set of directly referenced files of this file is changed,
     // then the transitive sets of files that include this file are also
     // changed. Reset these transitive sets.
-    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
-        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
-      for (FileState file in _fsState._uriToFile.values) {
-        if (file._transitiveFiles != null &&
-            file._transitiveFiles.contains(this)) {
-          file._transitiveFiles = null;
+    if (oldDirectReferencedFiles != null) {
+      if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+          !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+        for (FileState file in _fsState._uriToFile.values) {
+          if (file._transitiveFiles != null &&
+              file._transitiveFiles.contains(this)) {
+            file._transitiveFiles = null;
+          }
         }
       }
     }
