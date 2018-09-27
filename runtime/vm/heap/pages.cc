@@ -1313,8 +1313,12 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return after.CombinedCapacityInWords() >
-         (gc_threshold_in_words_ + heap_->new_space()->CapacityInWords());
+#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+  intptr_t headroom = 0;
+#else
+  intptr_t headroom = heap_->new_space()->CapacityInWords();
+#endif
+  return after.CombinedCapacityInWords() > (gc_threshold_in_words_ + headroom);
 }
 
 bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
