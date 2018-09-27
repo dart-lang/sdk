@@ -2135,13 +2135,19 @@ final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
  * edit.dartfix result
  *
  * {
- *   "description": List<String>
+ *   "descriptionOfFixes": List<String>
+ *   "otherRecommendations": List<String>
+ *   "hasErrors": bool
  *   "fixes": List<SourceFileEdit>
  * }
  */
-final Matcher isEditDartfixResult = new LazyMatcher(() => new MatchesJsonObject(
-    "edit.dartfix result",
-    {"description": isListOf(isString), "fixes": isListOf(isSourceFileEdit)}));
+final Matcher isEditDartfixResult =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix result", {
+          "descriptionOfFixes": isListOf(isString),
+          "otherRecommendations": isListOf(isString),
+          "hasErrors": isBool,
+          "fixes": isListOf(isSourceFileEdit)
+        }));
 
 /**
  * edit.format params

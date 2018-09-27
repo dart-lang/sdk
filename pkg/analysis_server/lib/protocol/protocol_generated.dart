@@ -6268,28 +6268,64 @@ class EditDartfixParams implements RequestParams {
  * edit.dartfix result
  *
  * {
- *   "description": List<String>
+ *   "descriptionOfFixes": List<String>
+ *   "otherRecommendations": List<String>
+ *   "hasErrors": bool
  *   "fixes": List<SourceFileEdit>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditDartfixResult implements ResponseResult {
-  List<String> _description;
+  List<String> _descriptionOfFixes;
+
+  List<String> _otherRecommendations;
+
+  bool _hasErrors;
 
   List<SourceFileEdit> _fixes;
 
   /**
    * A list of human readable changes made by applying the fixes.
    */
-  List<String> get description => _description;
+  List<String> get descriptionOfFixes => _descriptionOfFixes;
 
   /**
    * A list of human readable changes made by applying the fixes.
    */
-  void set description(List<String> value) {
+  void set descriptionOfFixes(List<String> value) {
     assert(value != null);
-    this._description = value;
+    this._descriptionOfFixes = value;
+  }
+
+  /**
+   * A list of human readable recommended changes that cannot be made
+   * automatically.
+   */
+  List<String> get otherRecommendations => _otherRecommendations;
+
+  /**
+   * A list of human readable recommended changes that cannot be made
+   * automatically.
+   */
+  void set otherRecommendations(List<String> value) {
+    assert(value != null);
+    this._otherRecommendations = value;
+  }
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended fixes that can be automatically applied.
+   */
+  bool get hasErrors => _hasErrors;
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended fixes that can be automatically applied.
+   */
+  void set hasErrors(bool value) {
+    assert(value != null);
+    this._hasErrors = value;
   }
 
   /**
@@ -6305,8 +6341,14 @@ class EditDartfixResult implements ResponseResult {
     this._fixes = value;
   }
 
-  EditDartfixResult(List<String> description, List<SourceFileEdit> fixes) {
-    this.description = description;
+  EditDartfixResult(
+      List<String> descriptionOfFixes,
+      List<String> otherRecommendations,
+      bool hasErrors,
+      List<SourceFileEdit> fixes) {
+    this.descriptionOfFixes = descriptionOfFixes;
+    this.otherRecommendations = otherRecommendations;
+    this.hasErrors = hasErrors;
     this.fixes = fixes;
   }
 
@@ -6316,12 +6358,30 @@ class EditDartfixResult implements ResponseResult {
       json = {};
     }
     if (json is Map) {
-      List<String> description;
-      if (json.containsKey("description")) {
-        description = jsonDecoder.decodeList(jsonPath + ".description",
-            json["description"], jsonDecoder.decodeString);
+      List<String> descriptionOfFixes;
+      if (json.containsKey("descriptionOfFixes")) {
+        descriptionOfFixes = jsonDecoder.decodeList(
+            jsonPath + ".descriptionOfFixes",
+            json["descriptionOfFixes"],
+            jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "description");
+        throw jsonDecoder.mismatch(jsonPath, "descriptionOfFixes");
+      }
+      List<String> otherRecommendations;
+      if (json.containsKey("otherRecommendations")) {
+        otherRecommendations = jsonDecoder.decodeList(
+            jsonPath + ".otherRecommendations",
+            json["otherRecommendations"],
+            jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "otherRecommendations");
+      }
+      bool hasErrors;
+      if (json.containsKey("hasErrors")) {
+        hasErrors =
+            jsonDecoder.decodeBool(jsonPath + ".hasErrors", json["hasErrors"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "hasErrors");
       }
       List<SourceFileEdit> fixes;
       if (json.containsKey("fixes")) {
@@ -6333,7 +6393,8 @@ class EditDartfixResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new EditDartfixResult(description, fixes);
+      return new EditDartfixResult(
+          descriptionOfFixes, otherRecommendations, hasErrors, fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
@@ -6349,7 +6410,9 @@ class EditDartfixResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["description"] = description;
+    result["descriptionOfFixes"] = descriptionOfFixes;
+    result["otherRecommendations"] = otherRecommendations;
+    result["hasErrors"] = hasErrors;
     result["fixes"] =
         fixes.map((SourceFileEdit value) => value.toJson()).toList();
     return result;
@@ -6366,8 +6429,11 @@ class EditDartfixResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditDartfixResult) {
-      return listEqual(
-              description, other.description, (String a, String b) => a == b) &&
+      return listEqual(descriptionOfFixes, other.descriptionOfFixes,
+              (String a, String b) => a == b) &&
+          listEqual(otherRecommendations, other.otherRecommendations,
+              (String a, String b) => a == b) &&
+          hasErrors == other.hasErrors &&
           listEqual(fixes, other.fixes,
               (SourceFileEdit a, SourceFileEdit b) => a == b);
     }
@@ -6377,7 +6443,9 @@ class EditDartfixResult implements ResponseResult {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, descriptionOfFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, otherRecommendations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
     hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

@@ -109,27 +109,13 @@ class AssistProcessor {
     return _typeProvider;
   }
 
-  Future<List<Assist>> compute([AssistKind assistKind]) async {
+  Future<List<Assist>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    try {
-      utils = new CorrectionUtils(unit);
-    } catch (e) {
-      throw new CancelCorrectionException(exception: e);
-    }
-
-    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
-    if (node == null) {
+    if (!setupCompute()) {
       return assists;
     }
 
-    // Calculate only specific assists for edit.dartFix
-    if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
-      await _addProposal_convertClassToMixin();
-      return assists;
-    }
-
-    // Calculate all assists
     await _addProposal_addTypeAnnotation_DeclaredIdentifier();
     await _addProposal_addTypeAnnotation_SimpleFormalParameter();
     await _addProposal_addTypeAnnotation_VariableDeclaration();
@@ -182,6 +168,18 @@ class AssistProcessor {
     return assists;
   }
 
+  Future<List<Assist>> computeAssist(AssistKind assistKind) async {
+    if (!setupCompute()) {
+      return assists;
+    }
+
+    // Calculate only specific assists for edit.dartFix
+    if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
+      await _addProposal_convertClassToMixin();
+    }
+    return assists;
+  }
+
   FunctionBody getEnclosingFunctionBody() {
     // TODO(brianwilkerson) Determine whether there is a reason why this method
     // isn't just "return node.getAncestor((node) => node is FunctionBody);"
@@ -214,6 +212,21 @@ class AssistProcessor {
       }
     }
     return null;
+  }
+
+  bool setupCompute() {
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
+    bool success = true;
+    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
+    if (node == null) {
+      success = false;
+    }
+    return success;
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,

@@ -30,21 +30,23 @@ class EditDartFix {
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
 
-  List<String> descriptions;
+  List<String> descriptionOfFixes;
+  List<String> otherRecommendations;
   SourceChange sourceChange;
 
   EditDartFix(this.server, this.request);
 
-  void addResult(String description, [SourceChange change]) {
-    assert(description != null && description.isNotEmpty);
-    descriptions.add(description);
-    if (change != null) {
-      for (SourceFileEdit fileEdit in change.edits) {
-        for (SourceEdit sourceEdit in fileEdit.edits) {
-          sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
-        }
+  void addFix(String description, SourceChange change) {
+    descriptionOfFixes.add(description);
+    for (SourceFileEdit fileEdit in change.edits) {
+      for (SourceEdit sourceEdit in fileEdit.edits) {
+        sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
       }
     }
+  }
+
+  void addRecommendation(String recommendation) {
+    otherRecommendations.add(recommendation);
   }
 
   Future<Response> compute() async {
@@ -113,6 +115,7 @@ class EditDartFix {
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
+    bool hasErrors = false;
     while (resources.isNotEmpty) {
       Resource res = resources.removeLast();
       if (res is Folder) {
@@ -127,6 +130,14 @@ class EditDartFix {
       AnalysisResult result = await server.getAnalysisResult(res.path);
       CompilationUnit unit = result?.unit;
       if (unit != null) {
+        if (!hasErrors) {
+          for (AnalysisError error in result.errors) {
+            if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+              hasErrors = true;
+              break;
+            }
+          }
+        }
         Source source = result.sourceFactory.forUri2(result.uri);
         for (Linter linter in linters) {
           linter.reporter.source = source;
@@ -144,12 +155,14 @@ class EditDartFix {
     }
 
     // Reporting
-    descriptions = <String>[];
+    descriptionOfFixes = <String>[];
+    otherRecommendations = <String>[];
     sourceChange = new SourceChange('dartfix');
     for (LinterFix fix in fixes) {
       await fix.applyFix();
     }
-    return new EditDartfixResult(descriptions, sourceChange.edits)
+    return new EditDartfixResult(descriptionOfFixes, otherRecommendations,
+            hasErrors, sourceChange.edits)
         .toResponse(request.id);
   }
 
@@ -281,17 +294,17 @@ class PreferMixinFix extends LinterFix {
         AssistProcessor processor = new AssistProcessor(
             new EditDartFixAssistContext(
                 dartFix, elem.source, result.unit, declaration.name));
-        List<Assist> assists =
-            await processor.compute(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
+        List<Assist> assists = await processor
+            .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
         if (assists.isNotEmpty) {
           for (Assist assist in assists) {
-            dartFix.addResult(
+            dartFix.addFix(
                 'Convert class to mixin: ${elem.name}', assist.change);
           }
         } else {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
-          dartFix.addResult(
+          dartFix.addRecommendation(
               'Could not automatically convert ${elem.name} to a mixin'
               ' because the class contains a constructor.');
         }

@@ -1516,9 +1516,19 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * description: List<String>
+   * descriptionOfFixes: List<String>
    *
    *   A list of human readable changes made by applying the fixes.
+   *
+   * otherRecommendations: List<String>
+   *
+   *   A list of human readable recommended changes that cannot be made
+   *   automatically.
+   *
+   * hasErrors: bool
+   *
+   *   True if the analyzed source contains errors that might impact the
+   *   correctness of the recommended fixes that can be automatically applied.
    *
    * fixes: List<SourceFileEdit>
    *

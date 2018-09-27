@@ -1958,12 +1958,27 @@
       </field>
     </params>
     <result>
-      <field name="description">
+      <field name="descriptionOfFixes">
         <list>
           <ref>String</ref>
         </list>
         <p>
           A list of human readable changes made by applying the fixes.
+        </p>
+      </field>
+      <field name="otherRecommendations">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of human readable recommended changes that cannot be made automatically.
+        </p>
+      </field>
+      <field name="hasErrors">
+        <ref>bool</ref>
+        <p>
+          True if the analyzed source contains errors that might impact the correctness
+          of the recommended fixes that can be automatically applied.
         </p>
       </field>
       <field name="fixes">

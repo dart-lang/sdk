@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show File;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analyzer_cli/src/fix/options.dart';
@@ -18,6 +20,7 @@ class Driver {
 
   Completer serverConnected;
   Completer analysisComplete;
+  bool dryRun;
   bool verbose;
   static const progressThreshold = 10;
   int progressCount = progressThreshold;
@@ -29,6 +32,7 @@ class Driver {
     if (options == null) {
       return null;
     }
+    dryRun = options.dryRun;
     verbose = options.verbose;
 
     EditDartfixResult result;
@@ -105,34 +109,76 @@ class Driver {
   }
 
   Future applyFixes(EditDartfixResult result) async {
-    // TODO(danrubel): Add flag to dartfix result indicating whether there
-    // were any errors detected that would compromise the suggested edits.
-    // If this flag is true, then the changes should not be applied
-    // or the user should be asked if they want to apply the changes.
-    if (!result.description.isNotEmpty) {
-      outSink.writeln('No recommended changes.');
+    showDescriptions(result.descriptionOfFixes, 'Recommended changes');
+    showDescriptions(result.otherRecommendations,
+        'Recommended changes that cannot not be automatically applied');
+    if (result.descriptionOfFixes.isEmpty) {
+      outSink.writeln('');
+      outSink.writeln(result.otherRecommendations.isNotEmpty
+          ? 'No recommended changes that cannot be automatically applied.'
+          : 'No recommended changes.');
       return;
     }
-    outSink.writeln('Recommended changes:');
-    List<String> sorted = new List.from(result.description)..sort();
-    for (String line in sorted) {
-      outSink.writeln(line);
-    }
-    // TODO(danrubel): Apply the fixes rather than displaying them.
-    outSink.writeln('=== Source edits:');
+    outSink.writeln('');
+    outSink.writeln('Files to be changed:');
     for (SourceFileEdit fileEdit in result.fixes) {
       outSink.writeln(fileEdit.file);
-      for (SourceEdit sourceEdit in fileEdit.edits) {
-        outSink.writeln(
-            '  ${sourceEdit.offset} ${sourceEdit.length} ${sourceEdit.replacement}');
+    }
+    if (dryRun || !(await confirmApplyChanges(result))) {
+      return;
+    }
+    for (SourceFileEdit fileEdit in result.fixes) {
+      final file = new File(fileEdit.file);
+      String code = await file.readAsString();
+      for (SourceEdit edit in fileEdit.edits) {
+        code = edit.apply(code);
+      }
+      await file.writeAsString(code);
+    }
+    outSink.writeln('Changes applied.');
+  }
+
+  void showDescriptions(List<String> descriptions, String title) {
+    if (descriptions.isNotEmpty) {
+      outSink.writeln('');
+      outSink.writeln('$title:');
+      List<String> sorted = new List.from(descriptions)..sort();
+      for (String line in sorted) {
+        outSink.writeln(line);
       }
     }
   }
 
-  /**
-   * Dispatch the notification named [event], and containing parameters
-   * [params], to the appropriate stream.
-   */
+  Future<bool> confirmApplyChanges(EditDartfixResult result) async {
+    outSink.writeln();
+    if (result.hasErrors) {
+      outSink.writeln('WARNING: The analyzed source contains errors'
+          ' that may affect the accuracy of these changes.');
+    }
+    const prompt = 'Would you like to apply these changes (y/n)? ';
+    outSink.write(prompt);
+    final response = new Completer<bool>();
+    final subscription = inputStream
+        .transform(utf8.decoder)
+        .transform(new LineSplitter())
+        .listen((String line) {
+      line = line.trim().toLowerCase();
+      if (line == 'y' || line == 'yes') {
+        response.complete(true);
+      } else if (line == 'n' || line == 'no') {
+        response.complete(false);
+      } else {
+        outSink.writeln('  Unrecognized response. Please type "yes" or "no".');
+        outSink.write(prompt);
+      }
+    });
+    bool applyChanges = await response.future;
+    await subscription.cancel();
+    return applyChanges;
+  }
+
+  /// Dispatch the notification named [event], and containing parameters
+  /// [params], to the appropriate stream.
   void dispatchNotification(String event, params) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
