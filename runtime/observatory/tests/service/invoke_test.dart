@@ -46,16 +46,13 @@ var tests = <IsolateTest>[
     await field.load();
     Instance banana = field.staticValue;
 
-    dynamic result = await isolate.invokeRpc("invoke", {
-      "receiverId": lib.id,
-      "selector": "libraryFunction",
-      "argumentIds": []
-    });
+    dynamic result = await isolate.invokeRpc("invoke",
+        {"targetId": lib.id, "selector": "libraryFunction", "argumentIds": []});
     print(result);
     expect(result.valueAsString, equals('foobar1'));
 
     result = await isolate.invokeRpc("invoke", {
-      "receiverId": cls.id,
+      "targetId": cls.id,
       "selector": "classFunction",
       "argumentIds": [apple.id]
     });
@@ -63,7 +60,7 @@ var tests = <IsolateTest>[
     expect(result.valueAsString, equals('foobar2apple'));
 
     result = await isolate.invokeRpc("invoke", {
-      "receiverId": instance.id,
+      "targetId": instance.id,
       "selector": "instanceFunction",
       "argumentIds": [apple.id, banana.id]
     });
@@ -72,14 +69,14 @@ var tests = <IsolateTest>[
 
     // Wrong arity.
     await expectError(() => isolate.invokeRpc("invoke", {
-          "receiverId": instance.id,
+          "targetId": instance.id,
           "selector": "instanceFunction",
           "argumentIds": [apple.id]
         }));
 
     // No such target.
     await expectError(() => isolate.invokeRpc("invoke", {
-          "receiverId": instance.id,
+          "targetId": instance.id,
           "selector": "functionDoesNotExist",
           "argumentIds": [apple.id]
         }));

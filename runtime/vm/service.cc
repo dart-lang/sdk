@@ -2259,9 +2259,9 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  const char* receiver_id = js->LookupParam("receiverId");
+  const char* receiver_id = js->LookupParam("targetId");
   if (receiver_id == NULL) {
-    PrintMissingParamError(js, "receiverId");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
   const char* selector_cstr = js->LookupParam("selector");
@@ -2285,7 +2285,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintSentinel(js, kExpiredSentinel);
     } else {
-      PrintInvalidParamError(js, "receiverId");
+      PrintInvalidParamError(js, "targetId");
     }
     return true;
   }
@@ -2369,7 +2369,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
   js->PrintError(kInvalidParams,
-                 "%s: invalid 'receiverId' parameter: "
+                 "%s: invalid 'targetId' parameter: "
                  "Cannot invoke against a VM-internal object",
                  js->method());
   return true;
