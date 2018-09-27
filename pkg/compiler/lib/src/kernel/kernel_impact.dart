@@ -16,8 +16,6 @@ import '../elements/types.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
 import '../js_backend/native_data.dart';
-import '../kernel/element_map.dart';
-import '../kernel/runtime_type_analysis.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -25,6 +23,8 @@ import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
+import 'element_map.dart';
+import 'runtime_type_analysis.dart';
 
 ResolutionImpact buildKernelImpact(
     ir.Member member,

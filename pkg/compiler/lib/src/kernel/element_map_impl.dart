@@ -50,7 +50,6 @@ import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
-import '../ssa/kernel_impact.dart';
 import '../universe/call_structure.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
@@ -61,6 +60,7 @@ import '../world.dart';
 import 'element_map.dart';
 import 'env.dart';
 import 'kelements.dart';
+import 'kernel_impact.dart';
 
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
