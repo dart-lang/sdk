@@ -18,6 +18,7 @@ class Driver {
 
   Completer serverConnected;
   Completer analysisComplete;
+  bool processAnalysisErrors;
   int errorCount;
   bool verbose;
 
@@ -64,6 +65,7 @@ class Driver {
 
   Future performAnalysis(Options options) async {
     analysisComplete = new Completer();
+    processAnalysisErrors = true;
     errorCount = 0;
     outSink.writeln('Analyzing...');
     verboseOut('Setup analysis');
@@ -76,6 +78,8 @@ class Driver {
           const [],
         ).toJson());
     await analysisComplete.future;
+    analysisComplete = null;
+    processAnalysisErrors = false;
     verboseOut('Analysis complete.');
     if (errorCount > 0) {
       // TODO: Ask "Do you want to continue given # of errors?"
@@ -84,15 +88,28 @@ class Driver {
 
   Future requestFixes(Options options) async {
     outSink.writeln('Calculating fixes...');
-    Map<String, dynamic> response = await server.send(EDIT_REQUEST_DARTFIX,
+    Map<String, dynamic> json = await server.send(EDIT_REQUEST_DARTFIX,
         new EditDartfixParams(options.analysisRoots).toJson());
-    print(response);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    final result = EditDartfixResult.fromJson(decoder, 'result', json);
+    if (result.description.isNotEmpty) {
+      outSink.writeln('Recommended changes:');
+      for (String line in result.description) {
+        outSink.writeln(line);
+      }
+    } else {
+      outSink.writeln('No recommended changes.');
+    }
   }
 
   Future stopServer(Server server) async {
     verboseOut('Stopping...');
-    await server.send(SERVER_REQUEST_SHUTDOWN, null);
-    await server.exitCode.timeout(const Duration(seconds: 5), onTimeout: () {
+    const timeout = const Duration(seconds: 5);
+    await server.send(SERVER_REQUEST_SHUTDOWN, null).timeout(timeout,
+        onTimeout: () {
+      // fall through to wait for exit.
+    });
+    await server.exitCode.timeout(timeout, onTimeout: () {
       return server.kill('server failed to exit');
     });
   }
@@ -108,11 +125,10 @@ class Driver {
         onServerConnected(
             new ServerConnectedParams.fromJson(decoder, 'params', params));
         break;
-//      case SERVER_NOTIFICATION_ERROR:
-//        outOfTestExpect(params, isServerErrorParams);
-//        _onServerError
-//            .add(new ServerErrorParams.fromJson(decoder, 'params', params));
-//        break;
+      case SERVER_NOTIFICATION_ERROR:
+        onServerError(
+            new ServerErrorParams.fromJson(decoder, 'params', params));
+        break;
       case SERVER_NOTIFICATION_STATUS:
         onServerStatus(
             new ServerStatusParams.fromJson(decoder, 'params', params));
@@ -128,8 +144,10 @@ class Driver {
 //            decoder, 'params', params));
 //        break;
       case ANALYSIS_NOTIFICATION_ERRORS:
-        onAnalysisErrors(
-            new AnalysisErrorsParams.fromJson(decoder, 'params', params));
+        if (processAnalysisErrors) {
+          onAnalysisErrors(
+              new AnalysisErrorsParams.fromJson(decoder, 'params', params));
+        }
         break;
 //      case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
 //        outOfTestExpect(params, isAnalysisFlushResultsParams);
@@ -222,10 +240,23 @@ class Driver {
     serverConnected.complete();
   }
 
+  void onServerError(ServerErrorParams params) async {
+    try {
+      await stopServer(server);
+    } catch (e) {
+      // ignored
+    }
+    final message = new StringBuffer('Server Error: ')..writeln(params.message);
+    if (params.stackTrace != null) {
+      message.writeln(params.stackTrace);
+    }
+    printAndFail(message.toString());
+  }
+
   void onServerStatus(ServerStatusParams params) {
     if (params.analysis != null && !params.analysis.isAnalyzing) {
       verboseOut('Analysis complete');
-      analysisComplete.complete();
+      analysisComplete?.complete();
     }
   }
 

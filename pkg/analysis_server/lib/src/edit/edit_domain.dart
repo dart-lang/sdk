@@ -262,15 +262,12 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future dartfix(Request request) async {
-    // TODO(danrubel): Fix only the included sources
-    //EditDartfixParams params = new EditDartfixParams.fromRequest(request);
-
     // TODO(danrubel): Add support for dartfix plugins
 
     //
     // Compute fixes
     //
-    var dartFix = new EditDartFix(request);
+    var dartFix = new EditDartFix(server, request);
     Response response = await dartFix.compute();
 
     server.sendResponse(response);
