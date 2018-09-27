@@ -47,4 +47,14 @@ main() {
     expect(() => reflect(f).setField(#x, 123), throws);
     expect(f.x, 3);
   });
+
+  test('generic function metadata', () {
+    // TODO(jmesserly): this test is not related to JS interop, but this is the
+    // only test we have for DDC's deprecated --emit-metadata flag.
+    expect(testGenericFunctionMetadata(42), int);
+    var testFn = testGenericFunctionMetadata;
+    expect(reflect(testFn).type.reflectedType, testFn.runtimeType); //# 01: ok
+  });
 }
+
+Type testGenericFunctionMetadata<T>(T _) => T;

@@ -30,7 +30,8 @@ html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # 
 html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/js_typed_interop_test: RuntimeError
-html/mirrors_js_typed_interop_test: Pass, Slow
+html/mirrors_js_typed_interop_test/01: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+html/mirrors_js_typed_interop_test/none: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 html/worker_api_test: SkipByDesign
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium

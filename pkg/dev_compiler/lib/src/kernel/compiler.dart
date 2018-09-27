@@ -2398,23 +2398,38 @@ class ProgramCompiler extends Object
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel = false}) {
-    var lazy = topLevel && !_typeIsLoaded(type);
+    var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
     var typeRep = visitFunctionType(type, lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
-  bool _typeIsLoaded(DartType type) {
+  /// Whether the expression for [type] can be evaluated at this point in the JS
+  /// module.
+  ///
+  /// Types cannot be evaluated if they depend on something that hasn't been
+  /// defined yet. For example:
+  ///
+  ///     C foo() => null;
+  ///     class C {}
+  ///
+  /// If we're emitting the type information for `foo`, we cannot refer to `C`
+  /// yet, so we must evaluate foo's type lazily.
+  bool _canEmitTypeAtTopLevel(DartType type) {
     if (type is InterfaceType) {
       return !_pendingClasses.contains(type.classNode) &&
-          type.typeArguments.every(_typeIsLoaded);
+          type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
     if (type is FunctionType) {
-      return (_typeIsLoaded(type.returnType) &&
-          type.positionalParameters.every(_typeIsLoaded) &&
-          type.namedParameters.every((n) => _typeIsLoaded(n.type)));
+      // Generic functions are always safe to emit, because they're lazy until
+      // type arguments are applied.
+      if (type.typeParameters.isNotEmpty) return true;
+
+      return (_canEmitTypeAtTopLevel(type.returnType) &&
+          type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
+          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type)));
     }
     if (type is TypedefType) {
-      return type.typeArguments.every(_typeIsLoaded);
+      return type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
     return true;
   }

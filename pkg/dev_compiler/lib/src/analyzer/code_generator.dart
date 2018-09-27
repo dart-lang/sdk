@@ -2745,16 +2745,31 @@ class CodeGenerator extends Object
     return ancestor == null;
   }
 
-  bool _typeIsLoaded(DartType type) {
+  /// Whether the expression for [type] can be evaluated at this point in the JS
+  /// module.
+  ///
+  /// Types cannot be evaluated if they depend on something that hasn't been
+  /// defined yet. For example:
+  ///
+  ///     C foo() => null;
+  ///     class C {}
+  ///
+  /// If we're emitting the type information for `foo`, we cannot refer to `C`
+  /// yet, so we must evaluate foo's type lazily.
+  bool _canEmitTypeAtTopLevel(DartType type) {
     if (type is FunctionType) {
-      return (_typeIsLoaded(type.returnType) &&
-          type.optionalParameterTypes.every(_typeIsLoaded) &&
-          type.namedParameterTypes.values.every(_typeIsLoaded) &&
-          type.normalParameterTypes.every(_typeIsLoaded) &&
-          type.typeFormals.every((t) => _typeIsLoaded(t.bound)));
+      // Generic functions are always safe to emit, because they're lazy until
+      // type arguments are applied.
+      if (type.typeFormals.isNotEmpty) return true;
+
+      return _canEmitTypeAtTopLevel(type.returnType) &&
+          type.optionalParameterTypes.every(_canEmitTypeAtTopLevel) &&
+          type.namedParameterTypes.values.every(_canEmitTypeAtTopLevel) &&
+          type.normalParameterTypes.every(_canEmitTypeAtTopLevel);
     }
     if (type.isDynamic || type.isVoid || type.isBottom) return true;
-    if (type is ParameterizedType && !type.typeArguments.every(_typeIsLoaded)) {
+    if (type is ParameterizedType &&
+        !type.typeArguments.every(_canEmitTypeAtTopLevel)) {
       return false;
     }
     return !_declarationNodes.containsKey(type.element);
@@ -2762,7 +2777,7 @@ class CodeGenerator extends Object
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel = false}) {
-    var lazy = topLevel && !_typeIsLoaded(type);
+    var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
     var typeRep = _emitFunctionType(type, lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
