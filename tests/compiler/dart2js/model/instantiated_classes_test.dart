@@ -71,8 +71,8 @@ void main() {
                   class Class extends B with A {}""", ["Class", "A"],
         ["Class", "A"]);
 
-    await test("""class A {}
-                  class Class implements A {
+    await test("""class A implements Class {}
+                  class Class {
                     factory Class() = A;
                   }""", ["A"], ["Class"]);
   }

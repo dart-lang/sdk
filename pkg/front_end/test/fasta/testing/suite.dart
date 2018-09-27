@@ -34,7 +34,7 @@ import 'package:testing/testing.dart'
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, FormattedMessage, Severity;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -102,6 +102,8 @@ class FastaContext extends ChainContext {
   final bool onlyCrashes;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
+  final Map<Component, StringBuffer> componentToProblems =
+      <Component, StringBuffer>{};
   final Uri platformBinaries;
   Uri platformUri;
   Component platform;
@@ -137,6 +139,7 @@ class FastaContext extends ChainContext {
     if (strongMode) {
       steps.add(const TypeCheck());
     }
+    steps.add(const EnsureNoErrors());
     if (fullCompile && !skipVm) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
@@ -146,6 +149,7 @@ class FastaContext extends ChainContext {
                 : ".outline.transformed.expect",
             updateExpectations: updateExpectations));
       }
+      steps.add(const EnsureNoErrors());
       steps.add(const WriteDill());
       steps.add(const Run());
     }
@@ -185,9 +189,14 @@ class FastaContext extends ChainContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..sdkRoot = sdk
-      ..packagesFileUri = packages);
+    var options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
+            throw problem.formatted;
+          }
+          ..sdkRoot = sdk
+          ..packagesFileUri = packages);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
@@ -264,7 +273,21 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
 
   Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
+    StringBuffer errors = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
+            if (errors.isNotEmpty) {
+              errors.write("\n\n");
+            }
+            errors.write(problem.formatted);
+            for (FormattedMessage c in context) {
+              errors.write("\n");
+              errors.write(c.formatted);
+            }
+          },
+        inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
@@ -309,6 +332,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
+      context.componentToProblems[p] = errors;
       return pass(p);
     });
   }
@@ -352,5 +376,19 @@ class TestVmTarget extends VmTarget {
           component, coreTypes, hierarchy, libraries,
           logger: logger);
     }
+  }
+}
+
+class EnsureNoErrors extends Step<Component, Component, FastaContext> {
+  const EnsureNoErrors();
+
+  String get name => "check errors";
+
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    StringBuffer buffer = context.componentToProblems[component];
+    return buffer.isEmpty
+        ? pass(component)
+        : fail(component, """Unexpected errors:\n$buffer""");
   }
 }

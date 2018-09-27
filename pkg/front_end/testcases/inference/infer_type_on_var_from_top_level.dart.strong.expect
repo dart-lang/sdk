@@ -1,3 +1,20 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//   a = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//   b = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//   c = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+
 library test;
 import self as self;
 import "dart:core" as core;

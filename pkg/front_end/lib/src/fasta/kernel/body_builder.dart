@@ -31,8 +31,7 @@ import '../parser.dart'
         offsetForToken,
         optional;
 
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unsupported;
+import '../problems.dart' show unexpected, unhandled, unsupported;
 
 import '../quote.dart'
     show
@@ -52,7 +51,13 @@ import '../scope.dart' show ProblemBuilder;
 import '../severity.dart' show Severity;
 
 import '../source/scope_listener.dart'
-    show JumpTargetKind, NullValue, ScopeListener;
+    show
+        FixedNullableList,
+        GrowableList,
+        JumpTargetKind,
+        NullValue,
+        ParserRecovery,
+        ScopeListener;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -70,7 +75,7 @@ import 'expression_generator.dart'
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         IndexedAccessGenerator,
-        LargeIntAccessGenerator,
+        IntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
         PrefixUseGenerator,
@@ -130,8 +135,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   final bool enableNative;
 
   final bool stringExpectedAfterNative;
-
-  final bool errorOnUnexactWebIntLiterals;
 
   /// Whether to ignore an unresolved reference to `main` within the body of
   /// `_getMainClosure` when compiling the current library.
@@ -226,8 +229,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString,
-        errorOnUnexactWebIntLiterals =
-            library.loader.target.backendTarget.errorOnUnexactWebIntLiterals,
         ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
@@ -323,10 +324,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement popBlock(int count, Token openBrace, Token closeBrace) {
-    List<Statement> statements =
-        new List<Statement>.filled(count, null, growable: true);
-    popList(count, statements);
-    return forest.block(openBrace, statements, closeBrace);
+    return forest.block(
+        openBrace,
+        const GrowableList<Statement>().pop(stack, count) ?? <Statement>[],
+        closeBrace);
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -387,8 +388,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
       wrapVariableInitializerInError(
-          variable, fasta.templateDuplicatedName, <LocatedMessage>[
-        fasta.templateDuplicatedNameCause
+          variable, fasta.templateDuplicatedDeclaration, <LocatedMessage>[
+        fasta.templateDuplicatedDeclarationCause
             .withArguments(name)
             .withLocation(uri, existing.charOffset, name.length)
       ]);
@@ -469,9 +470,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(
-            count, new List<Expression>.filled(count, null, growable: true)) ??
-        NullValue.Metadata);
+    if (count == 0) {
+      push(NullValue.Metadata);
+    } else {
+      push(const GrowableList<Expression>().pop(stack, count) ??
+          NullValue.Metadata /* Ignore parser recovery */);
+    }
   }
 
   @override
@@ -497,11 +501,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression initializer = pop();
       Identifier identifier = pop();
       String name = identifier.name;
-      FieldBuilder<Object> field;
+      Declaration declaration;
       if (classBuilder != null) {
-        field = classBuilder[name];
+        declaration = classBuilder[name];
       } else {
-        field = library[name];
+        declaration = library[name];
+      }
+      FieldBuilder<Object> field;
+      if (declaration.isField && declaration.next == null) {
+        field = declaration;
+      } else {
+        continue;
       }
       fields.add(field);
       if (initializer != null) {
@@ -1084,8 +1094,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List<Object> arguments = new List<Object>(count);
-    popList(count, arguments);
+    List<Object> arguments = count == 0
+        ? <Object>[]
+        : const FixedNullableList<Object>().pop(stack, count);
+    if (arguments == null) {
+      push(new ParserRecovery(beginToken.charOffset));
+      return;
+    }
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       Object node = arguments[i];
@@ -1726,7 +1741,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.literalString(value, token));
     } else {
       int count = 1 + interpolationCount * 2;
-      List<Object> parts = popList(count, new List<Object>(count));
+      List<Object> parts = const FixedNullableList<Object>().pop(stack, count);
+      if (parts == null) {
+        push(new ParserRecovery(endToken.charOffset));
+        return;
+      }
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -1801,15 +1820,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    int value = int.parse(token.lexeme, onError: (_) => null);
-    if (value == null) {
-      push(new LargeIntAccessGenerator(this, token));
-    } else {
-      if (errorOnUnexactWebIntLiterals) {
-        checkWebIntLiteralsErrorIfUnexact(value, token);
-      }
-      push(forest.literalInt(value, token));
-    }
+    push(IntAccessGenerator.parseIntLiteral(this, token));
   }
 
   @override
@@ -1975,14 +1986,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       push(variable);
     } else {
-      List<VariableDeclarationJudgment> variables = popList(
-          count,
-          new List<VariableDeclarationJudgment>.filled(count, null,
-              growable: true));
+      List<VariableDeclaration> variables =
+          const FixedNullableList<VariableDeclaration>().pop(stack, count);
       constantContext = pop();
       currentLocalVariableType = pop();
       currentLocalVariableModifiers = pop();
       List<Expression> annotations = pop();
+      if (variables == null) {
+        push(new ParserRecovery(endToken.charOffset));
+        return;
+      }
       if (annotations != null) {
         bool isFirstVariable = true;
         for (VariableDeclarationJudgment variable in variables) {
@@ -2195,8 +2208,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
     List<MapEntry> entries =
-        new List<MapEntry>.filled(count, null, growable: true);
-    popList(count, entries);
+        const GrowableList<MapEntry>().pop(stack, count) ?? <MapEntry>[];
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     DartType keyType;
     DartType valueType;
@@ -2255,7 +2267,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.literalSymbolSingluar(value, hashToken, part));
     } else {
       List<Identifier> parts =
-          popList(identifierCount, new List<Identifier>(identifierCount));
+          const FixedNullableList<Identifier>().pop(stack, identifierCount);
+      if (parts == null) {
+        push(new ParserRecovery(hashToken.charOffset));
+        return;
+      }
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
@@ -2295,6 +2311,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
+    } else if (name is ProblemBuilder) {
+      // TODO(ahe): Arguments could be passed here.
+      result = new KernelNamedTypeBuilder(name.name, null)
+        ..bind(new KernelInvalidTypeBuilder(
+            name.name,
+            name.message.withLocation(
+                name.fileUri, name.charOffset, name.name.length)));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -2320,10 +2343,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
         } else {
-          addProblem(fasta.templateDuplicatedName.withArguments(name),
-              builder.charOffset, name.length);
-          addProblem(fasta.templateDuplicatedNameCause.withArguments(name),
-              existing.charOffset, name.length);
+          reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }
       }
     }
@@ -2474,6 +2494,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       modifiers |= finalMask;
     }
     List<Expression> annotations = pop();
+    if (nameToken.isSynthetic) {
+      push(new ParserRecovery(nameToken.charOffset));
+      return;
+    }
     KernelFormalParameterBuilder parameter;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -2481,11 +2505,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ProcedureBuilder<TypeBuilder> member = this.member;
       parameter = member.getFormal(name.name);
       if (parameter == null) {
-        internalProblem(
-            fasta.templateInternalProblemNotFoundIn
-                .withArguments(name.name, "formals"),
-            offsetForToken(nameToken),
-            uri);
+        push(new ParserRecovery(nameToken.charOffset));
+        return;
       }
     } else {
       parameter = new KernelFormalParameterBuilder(null, modifiers,
@@ -2529,12 +2550,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
     List<KernelFormalParameterBuilder> parameters =
-        new List<KernelFormalParameterBuilder>(count);
-    popList(count, parameters);
-    for (KernelFormalParameterBuilder parameter in parameters) {
-      parameter.kind = kind;
+        const FixedNullableList<KernelFormalParameterBuilder>()
+            .pop(stack, count);
+    if (parameters == null) {
+      push(new ParserRecovery(offsetForToken(beginToken)));
+    } else {
+      for (KernelFormalParameterBuilder parameter in parameters) {
+        parameter.kind = kind;
+      }
+      push(parameters);
     }
-    push(parameters);
   }
 
   @override
@@ -2603,15 +2628,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       count--;
       optionalsCount = optionals.length;
     }
-    List<KernelFormalParameterBuilder> parameters;
-    if (count + optionalsCount > 0) {
-      parameters =
-          new List<KernelFormalParameterBuilder>(count + optionalsCount);
-      popList(count, parameters);
-      if (optionals != null) {
-        parameters.setRange(count, count + optionalsCount, optionals);
-      }
+    List<KernelFormalParameterBuilder> parameters =
+        const FixedNullableList<KernelFormalParameterBuilder>()
+            .popPadded(stack, count, optionalsCount);
+    if (optionals != null && parameters != null) {
+      parameters.setRange(count, count + optionalsCount, optionals);
     }
+    assert(parameters?.isNotEmpty ?? true);
     FormalParameters formals = new FormalParameters(parameters,
         offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
     constantContext = pop();
@@ -2653,7 +2676,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelFormalParameterBuilder exception;
     KernelFormalParameterBuilder stackTrace;
     List<Statement> compileTimeErrors;
-    if (catchParameters != null) {
+    if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters.parameters.length;
       if (parameterCount > 0) {
         exception = catchParameters.parameters[0];
@@ -2700,7 +2723,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<Statement> compileTimeErrors;
     if (catchCount != 0) {
       List<Object> catchBlocksAndErrors =
-          popList(catchCount * 2, new List<Object>(catchCount * 2));
+          const FixedNullableList<Object>().pop(stack, catchCount * 2);
       catchBlocks = new List<Catch>.filled(catchCount, null, growable: true);
       for (int i = 0; i < catchCount; i++) {
         catchBlocks[i] = catchBlocksAndErrors[i * 2];
@@ -2759,14 +2782,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (optional("-", token)) {
         operator = "unary-";
 
-        if (receiver is LargeIntAccessGenerator) {
-          int value = int.tryParse("-" + receiver.token.lexeme);
-          if (value != null) {
-            receiverValue = forest.literalInt(value, receiver.token);
-            if (errorOnUnexactWebIntLiterals) {
-              checkWebIntLiteralsErrorIfUnexact(value, token);
-            }
-          }
+        if (receiver is IntAccessGenerator) {
+          receiverValue = receiver.buildNegatedRead();
         }
       }
       bool isSuper = false;
@@ -3260,7 +3277,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count, new List<UnresolvedType<KernelTypeBuilder>>(count)));
+    push(const FixedNullableList<UnresolvedType<KernelTypeBuilder>>()
+            .pop(stack, count) ??
+        NullValue.TypeArguments);
   }
 
   @override
@@ -3309,10 +3328,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true)
-      ..fileOffset = offsetForToken(nameToken);
-    if (scope.local[variable.name] != null) {
-      addProblem(fasta.templateDuplicatedName.withArguments(variable.name),
-          name.charOffset, nameToken.length);
+      ..fileOffset = name.charOffset;
+    // TODO(ahe): Why are we looking up in local scope, but declaring in parent
+    // scope?
+    Declaration existing = scope.local[name.name];
+    if (existing != null) {
+      reportDuplicatedDeclaration(existing, name.name, name.charOffset);
     }
     push(new FunctionDeclarationJudgment(
         variable,
@@ -3579,13 +3600,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = new List<Label>(labelCount);
-    popList(labelCount, labels);
+    List<Label> labels =
+        const FixedNullableList<Label>().pop(stack, labelCount);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
-        new LabelTarget(labels, member, functionNestingLevel, token.charOffset);
-    for (Label label in labels) {
-      scope.declareLabel(label.name, target);
+        new LabelTarget(member, functionNestingLevel, token.charOffset);
+    if (labels != null) {
+      for (Label label in labels) {
+        scope.declareLabel(label.name, target);
+      }
     }
     push(target);
   }
@@ -3708,36 +3731,43 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     int count = labelCount + expressionCount;
-    List<Object> labelsAndExpressions = popList(count, new List<Object>(count));
-    List<Label> labels = <Label>[];
-    List<Expression> expressions = <Expression>[];
+    List<Object> labelsAndExpressions =
+        const FixedNullableList<Object>().pop(stack, count);
+    List<Label> labels = labelCount == 0 ? null : new List<Label>(labelCount);
+    List<Expression> expressions =
+        new List<Expression>.filled(expressionCount, null, growable: true);
+    int labelIndex = 0;
+    int expressionIndex = 0;
     if (labelsAndExpressions != null) {
       for (Object labelOrExpression in labelsAndExpressions) {
         if (labelOrExpression is Label) {
-          labels.add(labelOrExpression);
+          labels[labelIndex++] = labelOrExpression;
         } else {
-          expressions.add(labelOrExpression);
+          expressions[expressionIndex++] = labelOrExpression;
         }
       }
     }
     assert(scope == switchScope);
-    for (Label label in labels) {
-      String labelName = label.name;
-      if (scope.hasLocalLabel(labelName)) {
-        // TODO(ahe): Should validate this is a goto target.
-        if (!scope.claimLabel(labelName)) {
-          addProblem(
-              fasta.templateDuplicateLabelInSwitchStatement
-                  .withArguments(labelName),
-              label.charOffset,
-              labelName.length);
+    if (labels != null) {
+      for (Label label in labels) {
+        String labelName = label.name;
+        if (scope.hasLocalLabel(labelName)) {
+          // TODO(ahe): Should validate this is a goto target.
+          if (!scope.claimLabel(labelName)) {
+            addProblem(
+                fasta.templateDuplicateLabelInSwitchStatement
+                    .withArguments(labelName),
+                label.charOffset,
+                labelName.length);
+          }
+        } else {
+          scope.declareLabel(
+              labelName, createGotoTarget(firstToken.charOffset));
         }
-      } else {
-        scope.declareLabel(labelName, createGotoTarget(firstToken.charOffset));
       }
     }
     push(expressions);
-    push(labels);
+    push(labels ?? NullValue.Labels);
     enterLocalScope("switch case");
   }
 
@@ -3765,7 +3795,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(new SwitchCaseJudgment(expressions, expressionOffsets, block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
-    push(labels);
+    push(labels ?? NullValue.Labels);
   }
 
   @override
@@ -3794,10 +3824,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label> labels = pop();
       SwitchCase current = cases[i] = pop();
-      for (Label label in labels) {
-        JumpTarget target = switchScope.lookupLabel(label.name);
-        if (target != null) {
-          target.resolveGotos(forest, current);
+      if (labels != null) {
+        for (Label label in labels) {
+          JumpTarget target = switchScope.lookupLabel(label.name);
+          if (target != null) {
+            target.resolveGotos(forest, current);
+          }
         }
       }
     }
@@ -3956,7 +3988,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
     List<KernelTypeVariableBuilder> typeVariables =
-        popList(count, new List<KernelTypeVariableBuilder>(count));
+        const FixedNullableList<KernelTypeVariableBuilder>().pop(stack, count);
     enterFunctionTypeScope(typeVariables);
     push(typeVariables);
   }
@@ -4458,6 +4490,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void reportDuplicatedDeclaration(
+      Declaration existing, String name, int charOffset) {
+    List<LocatedMessage> context = existing.isSynthetic
+        ? null
+        : <LocatedMessage>[
+            fasta.templateDuplicatedDeclarationCause
+                .withArguments(name)
+                .withLocation(
+                    existing.fileUri, existing.charOffset, name.length)
+          ];
+    addProblem(fasta.templateDuplicatedDeclaration.withArguments(name),
+        charOffset, name.length,
+        context: context);
+  }
+
+  @override
   void debugEvent(String name) {
     // printEvent('BodyBuilder: $name');
   }
@@ -4484,26 +4532,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   bool isErroneousNode(TreeNode node) {
     return library.loader.handledErrors.isNotEmpty &&
         forest.isErroneousNode(node);
-  }
-
-  void checkWebIntLiteralsErrorIfUnexact(int value, Token token) {
-    BigInt asInt = new BigInt.from(value).toUnsigned(64);
-    BigInt asDouble = new BigInt.from(asInt.toDouble());
-    if (asInt != asDouble) {
-      String nearest;
-      if (token.lexeme.startsWith("0x") || token.lexeme.startsWith("0X")) {
-        nearest = '0x${asDouble.toRadixString(16)}';
-      } else {
-        nearest = '$asDouble';
-      }
-      library.addProblem(
-          fasta.templateWebLiteralCannotBeRepresentedExactly
-              .withArguments(token.lexeme, nearest),
-          token.charOffset,
-          token.charCount,
-          uri,
-          wasHandled: true);
-    }
   }
 
   @override
@@ -4610,8 +4638,6 @@ class JumpTarget extends Declaration {
 }
 
 class LabelTarget extends Declaration implements JumpTarget {
-  final List<Label> labels;
-
   @override
   final MemberBuilder parent;
 
@@ -4624,8 +4650,7 @@ class LabelTarget extends Declaration implements JumpTarget {
   @override
   final int charOffset;
 
-  LabelTarget(
-      this.labels, this.parent, this.functionNestingLevel, this.charOffset)
+  LabelTarget(this.parent, this.functionNestingLevel, this.charOffset)
       : breakTarget = new JumpTarget(
             JumpTargetKind.Break, functionNestingLevel, parent, charOffset),
         continueTarget = new JumpTarget(
@@ -4739,16 +4764,8 @@ class FormalParameters {
     for (KernelFormalParameterBuilder parameter in parameters) {
       Declaration existing = local[parameter.name];
       if (existing != null) {
-        helper.addProblem(
-            fasta.templateDuplicatedName.withArguments(parameter.name),
-            parameter.charOffset,
-            parameter.name.length,
-            context: <LocatedMessage>[
-              fasta.templateDuplicatedNameCause
-                  .withArguments(parameter.name)
-                  .withLocation(existing.fileUri, existing.charOffset,
-                      parameter.name.length)
-            ]);
+        helper.reportDuplicatedDeclaration(
+            existing, parameter.name, parameter.charOffset);
       } else {
         local[parameter.name] = parameter;
       }

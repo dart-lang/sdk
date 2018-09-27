@@ -8,7 +8,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
@@ -192,7 +192,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
       this._rtiSubstitutions, this._closedWorld, this._registry);
 
-  CommonElements get commonElements => _closedWorld.commonElements;
+  JCommonElements get commonElements => _closedWorld.commonElements;
 
   ConstantSystem get constantSystem => _closedWorld.constantSystem;
 
@@ -2400,6 +2400,11 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
       if (!instructions.isEmpty) {
         List<HInstruction> list = instructions.toList();
+        // Sort by instruction 'id' for more stable ordering under changes to
+        // unrelated source code. 'id' is a function of the operations of
+        // compiling the current method, whereas the ValueSet order is dependent
+        // hashCodes that are a function of the whole program.
+        list.sort((insn1, insn2) => insn1.id.compareTo(insn2.id));
         for (HInstruction instruction in list) {
           // Move the instruction to the current block.
           instruction.block.detach(instruction);
@@ -2416,6 +2421,10 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
           }
         }
       }
+      // TODO(sra): There are some non-gvn-able instructions that we could move,
+      // e.g. allocations. We should probably not move instructions that can
+      // directly or indirectly throw since the reported location might be in
+      // the 'wrong' branch.
     }
 
     // Don't try to merge instructions to a dominator if we have
@@ -2445,6 +2454,8 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
         if (input.block == block) {
           canBeMoved = false;
           break;
+          // TODO(sra): We could move trees of instructions provided we move the
+          // roots before the leaves.
         }
       }
       if (!canBeMoved) continue;

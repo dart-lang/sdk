@@ -52,7 +52,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // update declaration

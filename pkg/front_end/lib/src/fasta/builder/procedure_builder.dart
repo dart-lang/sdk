@@ -117,8 +117,10 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   }
 
   FormalParameterBuilder getFormal(String name) {
-    for (FormalParameterBuilder formal in formals) {
-      if (formal.name == name) return formal;
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.name == name) return formal;
+      }
     }
     return null;
   }

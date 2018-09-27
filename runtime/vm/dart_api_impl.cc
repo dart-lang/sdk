@@ -6368,8 +6368,7 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
+DART_EXPORT Dart_Handle Dart_Precompile() {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6388,7 +6387,7 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  const Error& error = Error::Handle(Precompiler::CompileAll());
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }

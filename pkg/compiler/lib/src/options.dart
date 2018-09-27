@@ -182,6 +182,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
+  /// Whether to omit as casts.
+  bool omitAsCasts = false;
+
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
@@ -294,6 +297,7 @@ class CompilerOptions implements DiagnosticOptions {
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)

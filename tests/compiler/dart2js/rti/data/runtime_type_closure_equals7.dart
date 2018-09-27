@@ -4,16 +4,14 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.element: method1a:needsArgs*/
-/*omit.element: method1a:needsArgs*/
+/*element: method1a:*/
 T method1a<T>() => null;
 
-/*strong.element: method1b:needsArgs*/
-/*omit.element: method1b:needsArgs*/
+/*element: method1b:*/
 T method1b<T>() => null;
 
 /*strong.element: method2:direct,explicit=[method2.T],needsArgs*/
-/*omit.element: method2:needsArgs*/
+/*omit.element: method2:*/
 T method2<T>(T t, String s) => t;
 
 /*strong.class: Class:*/

@@ -449,10 +449,7 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try using a generic function type (returnType 'Function(' parameters ')').");
 
-  static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode(
-      'INVALID_HEX_ESCAPE',
-      "An escape sequence starting with '\\x' "
-      "must be followed by 2 hexadecimal digits.");
+  static const ParserErrorCode INVALID_HEX_ESCAPE = _INVALID_HEX_ESCAPE;
 
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
       const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
@@ -463,8 +460,7 @@ class ParserErrorCode extends ErrorCode {
    * Parameters:
    * 0: the operator that is invalid
    */
-  static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode(
-      'INVALID_OPERATOR', "The string '{0}' isn't a user-definable operator.");
+  static const ParserErrorCode INVALID_OPERATOR = _INVALID_OPERATOR;
 
   /**
    * Parameters:
@@ -484,16 +480,10 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'sync' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
 
-  static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode(
-      'INVALID_UNICODE_ESCAPE',
-      "An escape sequence starting with '\\u' must be followed by 4 "
-      "hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE = _INVALID_UNICODE_ESCAPE;
 
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
-      const ParserErrorCode('LIBRARY_DIRECTIVE_NOT_FIRST',
-          "The library directive must appear before all other directives.",
-          correction:
-              "Try moving the library directive before any other directives.");
+      _LIBRARY_DIRECTIVE_NOT_FIRST;
 
   static const ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER =
       const ParserErrorCode('LOCAL_FUNCTION_DECLARATION_MODIFIER',
@@ -501,14 +491,10 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the modifier.");
 
   static const ParserErrorCode MISSING_ASSIGNABLE_SELECTOR =
-      const ParserErrorCode('MISSING_ASSIGNABLE_SELECTOR',
-          "Missing selector such as '.<identifier>' or '[0]'.",
-          correction: "Try adding a selector.");
+      _MISSING_ASSIGNABLE_SELECTOR;
 
   static const ParserErrorCode MISSING_ASSIGNMENT_IN_INITIALIZER =
-      const ParserErrorCode('MISSING_ASSIGNMENT_IN_INITIALIZER',
-          "Expected an assignment after the field name.",
-          correction: "Try adding an assignment to initialize the field.");
+      _MISSING_ASSIGNMENT_IN_INITIALIZER;
 
   static const ParserErrorCode MISSING_CATCH_OR_FINALLY = const ParserErrorCode(
       'MISSING_CATCH_OR_FINALLY',
@@ -527,11 +513,8 @@ class ParserErrorCode extends ErrorCode {
           'MISSING_CLOSING_PARENTHESIS', "The closing parenthesis is missing.",
           correction: "Try adding the closing parenthesis.");
 
-  static const ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode(
-      'MISSING_CONST_FINAL_VAR_OR_TYPE',
-      "Variables must be declared using the keywords 'const', 'final', 'var' or a type name.",
-      correction:
-          "Try adding the name of the type of the variable or the keyword 'var'.");
+  static const ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE =
+      _MISSING_CONST_FINAL_VAR_OR_TYPE;
 
   static const ParserErrorCode MISSING_ENUM_BODY = const ParserErrorCode(
       'MISSING_ENUM_BODY',
@@ -545,9 +528,7 @@ class ParserErrorCode extends ErrorCode {
               "remove the assignment operator.");
 
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW =
-      const ParserErrorCode(
-          'MISSING_EXPRESSION_IN_THROW', "Missing expression after 'throw'.",
-          correction: "Try using 'rethrow' to throw the caught exception.");
+      _MISSING_EXPRESSION_IN_THROW;
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode(
       'MISSING_FUNCTION_BODY', "A function body must be provided.",
@@ -571,13 +552,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MISSING_IDENTIFIER =
       const ParserErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");
 
-  static const ParserErrorCode MISSING_INITIALIZER =
-      const ParserErrorCode('MISSING_INITIALIZER', "Expected an initializer.");
+  static const ParserErrorCode MISSING_INITIALIZER = _MISSING_INITIALIZER;
 
-  static const ParserErrorCode MISSING_KEYWORD_OPERATOR = const ParserErrorCode(
-      'MISSING_KEYWORD_OPERATOR',
-      "Operator declarations must be preceeded by the keyword 'operator'.",
-      correction: "Try adding the keyword 'operator'.");
+  static const ParserErrorCode MISSING_KEYWORD_OPERATOR =
+      _MISSING_KEYWORD_OPERATOR;
 
   static const ParserErrorCode MISSING_METHOD_PARAMETERS =
       const ParserErrorCode('MISSING_METHOD_PARAMETERS',

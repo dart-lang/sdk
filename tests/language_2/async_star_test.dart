@@ -983,7 +983,7 @@ expectList(stream, list) {
 
 const MS = const Duration(milliseconds: 1);
 
-var getErrors = new StreamTransformer.fromHandlers(handleData: (data, sink) {
+StreamTransformer getErrors = new StreamTransformer.fromHandlers(handleData: (data, sink) {
   fail("Unexpected value");
 }, handleError: (e, s, sink) {
   sink.add(e);

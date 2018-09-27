@@ -31,7 +31,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
                            const ObjectPool& pool,
                            intptr_t from_index);
   RawCode* ReadBytecode(const ObjectPool& pool);
-  void ReadExceptionsTable(const Code& bytecode);
+  void ReadExceptionsTable(const Code& bytecode,
+                           bool has_exceptions_table = true);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
 
@@ -39,6 +40,14 @@ class BytecodeMetadataHelper : public MetadataHelper {
   ActiveClass* const active_class_;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
+};
+
+class BytecodeReader : public AllStatic {
+ public:
+  // Reads bytecode for the given function and sets its bytecode field.
+  // Returns error (if any), or null.
+  static RawError* ReadFunctionBytecode(Thread* thread,
+                                        const Function& function);
 };
 
 }  // namespace kernel

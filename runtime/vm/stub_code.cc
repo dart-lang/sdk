@@ -11,6 +11,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
+#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
@@ -96,7 +97,7 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   if (FLAG_enable_interpreter) {
     if (is_interpreted_frame) {
       // Recognize special marker set up by interpreter in entry frame.
-      return (pc & 2) != 0;
+      return Interpreter::IsEntryFrameMarker(pc);
     }
     {
       uword entry = StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint();

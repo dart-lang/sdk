@@ -24,7 +24,7 @@ runTestCase(Uri source) async {
 
   final coreTypes = new CoreTypes(component);
 
-  component = transformComponent(target, coreTypes, component, [],
+  component = transformComponent(target, coreTypes, component,
       new ExpressionPragmaAnnotationParser(coreTypes));
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);

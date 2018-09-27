@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -56,6 +60,13 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     newFile('/test/lib/test.dart', content: content);
   }
 
+  void assertConstructors(ClassElement class_, List<String> expected) {
+    expect(
+      class_.constructors.map((c) => c.toString()).toList(),
+      unorderedEquals(expected),
+    );
+  }
+
   void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
     expect(actual, same(expected));
@@ -94,6 +105,10 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   void assertElementTypeString(DartType type, String expected) {
     expect(type.toString(), expected);
+  }
+
+  void assertElementTypeStrings(List<DartType> types, List<String> expected) {
+    expect(types.map((t) => t.displayName).toList(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {

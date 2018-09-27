@@ -57,6 +57,31 @@ main() {
               '\n'
               'static method main() → dynamic {}\n'));
     });
+
+    test('compile exclude sources', () async {
+      var systemTempDir = Directory.systemTemp;
+      var file = new File('${systemTempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+
+      CompilerOptions optionsExcludeSources = options..embedSourceText = false;
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(optionsExcludeSources, file.uri);
+      Component component = await compiler.compile();
+
+      for (Source source in component.uriToSource.values) {
+        expect(source.source.length, equals(0));
+      }
+
+      final StringBuffer buffer = new StringBuffer();
+      new Printer(buffer, showExternal: false, showMetadata: true)
+          .writeLibraryFile(component.mainMethod.enclosingLibrary);
+      expect(
+          buffer.toString(),
+          equals('library;\n'
+              'import self as self;\n'
+              '\n'
+              'static method main() → dynamic {}\n'));
+    });
   });
 
   group('multiple kernels', () {

@@ -1,3 +1,50 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/invalid_cast.dart:22:60: Error: The list literal type 'dart.core::List<dart.core::Object>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//   List<int> a = <Object> /*@error=InvalidCastLiteralList*/ [];
+//                                                            ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:23:74: Error: The map literal type 'dart.core::Map<dart.core::Object, dart.core::String>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+// Change the type of the map literal or the context in which it is used.
+//   Map<int, String> b = <Object, String> /*@error=InvalidCastLiteralMap*/ {};
+//                                                                          ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:24:71: Error: The map literal type 'dart.core::Map<dart.core::int, dart.core::Object>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+// Change the type of the map literal or the context in which it is used.
+//   Map<int, String> c = <int, Object> /*@error=InvalidCastLiteralMap*/ {};
+//                                                                       ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:25:63: Error: The function expression type '(dart.core::int) → dart.core::int' isn't of expected type '(dart.core::Object) → dart.core::int'.
+// Change the type of the function expression or the context in which it is used.
+//   int Function(Object) d = /*@error=InvalidCastFunctionExpr*/ (int i) => i;
+//                                                               ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:28:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+// Change the type of the object being constructed or the context in which it is used.
+//   D g = new /*@error=InvalidCastNewExpr*/ C.nonFact();
+//                                           ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:29:43: Error: The constructor returns type '#lib1::C' that isn't of expected type '#lib1::D'.
+// Change the type of the object being constructed or the context in which it is used.
+//   D h = new /*@error=InvalidCastNewExpr*/ C.nonFact2();
+//                                           ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:31:45: Error: The static method has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the method or the context in which it is used.
+//       C. /*@error=InvalidCastStaticMethod*/ staticFunction;
+//                                             ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:33:50: Error: The top level function has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the function or the context in which it is used.
+//       j = /*@error=InvalidCastTopLevelFunction*/ topLevelFunction;
+//                                                  ^
+//
+// pkg/front_end/testcases/invalid_cast.dart:34:65: Error: The local function has type '(dart.core::int) → void' that isn't of expected type '(dart.core::Object) → void'.
+// Change the type of the function or the context in which it is used.
+//   void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;
+//                                                                 ^
+
 library;
 import self as self;
 import "dart:core" as core;

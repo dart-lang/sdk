@@ -165,18 +165,16 @@ static void WriteDepsFile(Dart_Isolate isolate) {
     success &= file->Print("%s ", dep);
     free(dep);
   }
-  if (Options::preview_dart_2()) {
-    if (kernel_isolate_is_running) {
-      Dart_KernelCompilationResult result = Dart_KernelListDependencies();
-      if (result.status != Dart_KernelCompilationStatus_Ok) {
-        ErrorExit(
-            kErrorExitCode,
-            "Error: Failed to fetch dependencies from kernel service: %s\n\n",
-            result.error);
-      }
-      success &= file->WriteFully(result.kernel, result.kernel_size);
-      free(result.kernel);
+  if (kernel_isolate_is_running) {
+    Dart_KernelCompilationResult result = Dart_KernelListDependencies();
+    if (result.status != Dart_KernelCompilationStatus_Ok) {
+      ErrorExit(
+          kErrorExitCode,
+          "Error: Failed to fetch dependencies from kernel service: %s\n\n",
+          result.error);
     }
+    success &= file->WriteFully(result.kernel, result.kernel_size);
+    free(result.kernel);
   }
   success &= file->Print("\n");
   if (!success) {
@@ -300,8 +298,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Options::preview_dart_2() && !isolate_run_app_snapshot &&
-      kernel_buffer == NULL && !Dart_IsKernelIsolate(isolate)) {
+  if (!isolate_run_app_snapshot && kernel_buffer == NULL &&
+      !Dart_IsKernelIsolate(isolate)) {
     if (!dfe.CanUseDartFrontend()) {
       const char* format = "Dart frontend unavailable to compile script %s.";
       intptr_t len = snprintf(NULL, 0, format, script_uri) + 1;
@@ -520,9 +518,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 #else
   // JIT: Service isolate uses the core libraries snapshot.
   bool skip_library_load = false;
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Dart_Isolate isolate = NULL;
@@ -540,36 +535,28 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
 
-  if (Options::preview_dart_2()) {
-    // If there is intention to use DFE, then we create the isolate
-    // from kernel only if we can.
-    const uint8_t* kernel_buffer = NULL;
-    intptr_t kernel_buffer_size = 0;
-    dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
-    if (kernel_buffer == NULL) {
-      dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
-    }
-
-    // TODO(sivachandra): When the platform program is unavailable, check if
-    // application kernel binary is self contained or an incremental binary.
-    // Isolate should be created only if it is a self contained kernel binary.
-    if (kernel_buffer != NULL) {
-      isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, kernel_buffer,
-                                             kernel_buffer_size, flags,
-                                             isolate_data, error);
-    } else {
-      *error =
-          strdup("Platform kernel not available to create service isolate.");
-      delete isolate_data;
-      return NULL;
-    }
-    skip_library_load = true;
-  } else {
-    isolate = Dart_CreateIsolate(
-        script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-        app_isolate_shared_data, app_isolate_shared_instructions, flags,
-        isolate_data, error);
+  // If there is intention to use DFE, then we create the isolate
+  // from kernel only if we can.
+  const uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
+  if (kernel_buffer == NULL) {
+    dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
   }
+
+  // TODO(sivachandra): When the platform program is unavailable, check if
+  // application kernel binary is self contained or an incremental binary.
+  // Isolate should be created only if it is a self contained kernel binary.
+  if (kernel_buffer != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, kernel_buffer,
+                                           kernel_buffer_size, flags,
+                                           isolate_data, error);
+  } else {
+    *error = strdup("Platform kernel not available to create service isolate.");
+    delete isolate_data;
+    return NULL;
+  }
+  skip_library_load = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
@@ -663,7 +650,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Options::preview_dart_2() && !isolate_run_app_snapshot) {
+  if (!isolate_run_app_snapshot) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);
@@ -891,7 +878,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   }
 
   Dart_Isolate isolate = NULL;
-  if (Options::preview_dart_2() && Options::gen_snapshot_kind() == kAppAOT) {
+  if (Options::gen_snapshot_kind() == kAppAOT) {
     isolate = IsolateSetupHelperAotCompilationDart2(
         script_name, "main", Options::package_root(), Options::packages_file(),
         &flags, &error, &exit_code);
@@ -935,12 +922,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       // the core snapshot.
       Platform::Exit(kErrorExitCode);
     }
-    if (Options::preview_dart_2()) {
-      Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                               isolate_data->resolved_packages_config());
-    } else {
-      Snapshot::GenerateScript(Options::snapshot_filename());
-    }
+    Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
+                             isolate_data->resolved_packages_config());
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
@@ -974,7 +957,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (Options::gen_snapshot_kind() == kAppAOT) {
-      result = Dart_Precompile(standalone_entry_points);
+      result = Dart_Precompile();
       CHECK_RESULT(result);
 
       if (Options::obfuscate() &&
@@ -1234,14 +1217,6 @@ void main(int argc, char** argv) {
     // Since we loaded the script anyway, save it.
     dfe.set_application_kernel_buffer(application_kernel_buffer,
                                       application_kernel_buffer_size);
-    // Since we saw a dill file, it means we have to turn on all the
-    // preview_dart_2 options.
-    if (Options::no_preview_dart_2()) {
-      Log::PrintErr(
-          "A kernel file is specified as the input, "
-          "--no-preview-dart-2 option is incompatible with it\n");
-      Platform::Exit(kErrorExitCode);
-    }
     Options::dfe()->set_use_dfe();
   }
 #endif
@@ -1262,9 +1237,8 @@ void main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  init_params.start_kernel_isolate = Options::preview_dart_2() &&
-                                     dfe.UseDartFrontend() &&
-                                     dfe.CanUseDartFrontend();
+  init_params.start_kernel_isolate =
+      dfe.UseDartFrontend() && dfe.CanUseDartFrontend();
 #else
   init_params.start_kernel_isolate = false;
 #endif

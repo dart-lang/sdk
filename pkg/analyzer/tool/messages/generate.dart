@@ -122,7 +122,7 @@ part of 'syntactic_errors.dart';
       out.writeln('const $className _$errorCode =');
       out.writeln('const $className(');
       out.writeln("'$errorCode',");
-      out.writeln('"${entry['template']}"');
+      out.writeln('r"${entry['template']}"');
       final tip = entry['tip'];
       if (tip is String) {
         out.writeln(',correction: "$tip"');
@@ -138,7 +138,7 @@ part of 'syntactic_errors.dart';
     for (Map entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
-      if (errorConverterSource.contains(errorCode)) {
+      if (errorConverterSource.contains('"$errorCode"')) {
         if (converterCount == 0) {
           print('');
           print('The following ParserErrorCodes could be removed'

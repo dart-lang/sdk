@@ -13,25 +13,31 @@ main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest_Driver extends NonErrorResolverTest {
+class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @override // Passes with driver
-  test_infer_mixin() => super.test_infer_mixin();
+  @override
+  @failingTest
+  test_constConstructorWithMixinWithField_withoutSuperMixins() {
+    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
+  }
 
-  @override // Passes with driver
-  test_infer_mixin_multiplyConstrained() =>
-      super.test_infer_mixin_multiplyConstrained();
+  @override
+  @failingTest
+  test_intLiteralInDoubleContext_const_exact() {
+    return super.test_intLiteralInDoubleContext_const_exact();
+  }
 
-  @override // Passes with driver
-  test_infer_mixin_with_substitution() =>
-      super.test_infer_mixin_with_substitution();
+  @override
+  @failingTest
+  test_null_callMethod() {
+    return super.test_null_callMethod();
+  }
 
-  @override // Passes with driver
-  test_infer_mixin_with_substitution_functionType() =>
-      super.test_infer_mixin_with_substitution_functionType();
-
-  @override // Passes with driver
-  test_issue_32394() => super.test_issue_32394();
+  @override
+  @failingTest
+  test_null_callOperator() {
+    return super.test_null_callOperator();
+  }
 }

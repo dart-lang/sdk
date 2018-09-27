@@ -7,6 +7,7 @@ library constant_expression_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/common_elements.dart' show KElementEnvironment;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
@@ -233,11 +234,11 @@ class C extends B {
         }),
   ]),
   const TestData('''
-class A<T> implements B {
+class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
 }
-class B<S> implements C {
+class B<S> implements C<Null> {
   const factory B({field1}) = A<B<S>>;
   const factory B.named() = A<S>;
 }
@@ -340,7 +341,8 @@ Future testData(TestData data) async {
   CompilationResult result =
       await runCompiler(memorySourceFiles: {'main.dart': source});
   Compiler compiler = result.compiler;
-  var elementEnvironment = compiler.frontendStrategy.elementEnvironment;
+  KElementEnvironment elementEnvironment =
+      compiler.frontendStrategy.elementEnvironment;
 
   MemoryEnvironment environment = new MemoryEnvironment(
       new KernelEvaluationEnvironment(
@@ -350,7 +352,7 @@ Future testData(TestData data) async {
   dynamic library = elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldEntity field = elementEnvironment.lookupLibraryMember(library, name);
-    dynamic constant = elementEnvironment.getFieldConstant(field);
+    dynamic constant = elementEnvironment.getFieldConstantForTesting(field);
     Expect.equals(
         data.kind,
         constant.kind,

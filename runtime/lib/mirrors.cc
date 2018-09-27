@@ -137,6 +137,10 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // hence do not have a token position, and therefore cannot be reparsed.
     has_extra_parameter_info = false;
   }
+  if (func.HasBytecode() && (func.kernel_offset() == 0)) {
+    // Anonymous closures in bytecode cannot be reparsed.
+    has_extra_parameter_info = false;
+  }
 
   Array& param_descriptor = Array::Handle();
   if (has_extra_parameter_info) {

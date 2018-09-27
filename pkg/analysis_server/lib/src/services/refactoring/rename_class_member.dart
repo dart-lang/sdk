@@ -86,20 +86,19 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(searchEngine, change, newName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        addDeclarationEdit(renameElement.getter);
-        addDeclarationEdit(renameElement.setter);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
-        addDeclarationEdit(renameElement);
+        processor.addDeclarationEdit(renameElement);
       }
     }
     // update references
-    addReferenceEdits(_validator.references);
+    processor.addReferenceEdits(_validator.references);
     // potential matches
     List<SearchMatch> nameMatches =
         await searchEngine.searchMemberReferences(oldName);

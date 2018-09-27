@@ -12,8 +12,8 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
   KernelAnnotationProcessor(this.elementMap, this._nativeBasicDataBuilder);
 
   void extractNativeAnnotations(LibraryEntity library) {
-    ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    CommonElements commonElements = elementMap.commonElements;
+    KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+    KCommonElements commonElements = elementMap.commonElements;
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       String annotationName;
@@ -34,7 +34,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
 
   String getJsInteropName(
       Spannable spannable, Iterable<ConstantValue> metadata) {
-    CommonElements commonElements = elementMap.commonElements;
+    KCommonElements commonElements = elementMap.commonElements;
     String annotationName;
     for (ConstantValue value in metadata) {
       String name = readAnnotationName(
@@ -61,8 +61,8 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
 
   void extractJsInteropAnnotations(LibraryEntity library) {
     DiagnosticReporter reporter = elementMap.reporter;
-    ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    CommonElements commonElements = elementMap.commonElements;
+    KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+    KCommonElements commonElements = elementMap.commonElements;
 
     String libraryName = getJsInteropName(
         library, elementEnvironment.getLibraryMetadata(library));
@@ -244,8 +244,8 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
   void processJsInteropAnnotations(
       NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder) {
     DiagnosticReporter reporter = elementMap.reporter;
-    ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    CommonElements commonElements = elementMap.commonElements;
+    KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+    KCommonElements commonElements = elementMap.commonElements;
 
     for (LibraryEntity library in elementEnvironment.libraries) {
       // Error checking for class inheritance must happen after the first pass

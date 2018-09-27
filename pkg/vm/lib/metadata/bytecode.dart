@@ -14,9 +14,18 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 /// In kernel binary, bytecode metadata is encoded as following:
 ///
 /// type BytecodeMetadata {
+///   UInt flags (HasExceptionsTable, HasNullableFields, HasClosures)
+///
 ///   ConstantPool constantPool
 ///   List<Byte> bytecodes
+///
+///   (optional, present if HasExceptionsTable)
 ///   ExceptionsTable exceptionsTable
+///
+///   (optional, present if HasNullableFields)
+///   List<CanonicalName> nullableFields
+///
+///   (optional, present if HasClosures)
 ///   List<ClosureBytecode> closures
 /// }
 ///
@@ -33,13 +42,27 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 /// pkg/vm/lib/bytecode/constant_pool.dart.
 ///
 class BytecodeMetadata {
+  static const hasExceptionsTableFlag = 1 << 0;
+  static const hasNullableFieldsFlag = 1 << 1;
+  static const hasClosuresFlag = 1 << 2;
+
   final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
+  final List<Reference> nullableFields;
   final List<ClosureBytecode> closures;
 
-  BytecodeMetadata(
-      this.constantPool, this.bytecodes, this.exceptionsTable, this.closures);
+  bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
+  bool get hasNullableFields => nullableFields.isNotEmpty;
+  bool get hasClosures => closures.isNotEmpty;
+
+  int get flags =>
+      (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
+      (hasNullableFields ? hasNullableFieldsFlag : 0) |
+      (hasClosures ? hasClosuresFlag : 0);
+
+  BytecodeMetadata(this.constantPool, this.bytecodes, this.exceptionsTable,
+      this.nullableFields, this.closures);
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
@@ -47,6 +70,7 @@ class BytecodeMetadata {
       "Bytecode {\n"
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable)}}\n"
       "$exceptionsTable"
+      "${nullableFields.isEmpty ? '' : 'Nullable fields: ${nullableFields.map((ref) => ref.asField).toList()}\n'}"
       "$constantPool"
       "${closures.join('\n')}";
 }
@@ -97,22 +121,44 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
 
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
+    sink.writeUInt30(metadata.flags);
     metadata.constantPool.writeToBinary(node, sink);
     sink.writeByteList(metadata.bytecodes);
-    metadata.exceptionsTable.writeToBinary(sink);
-    sink.writeUInt30(metadata.closures.length);
-    metadata.closures.forEach((c) => c.writeToBinary(sink));
+    if (metadata.hasExceptionsTable) {
+      metadata.exceptionsTable.writeToBinary(sink);
+    }
+    if (metadata.hasNullableFields) {
+      sink.writeUInt30(metadata.nullableFields.length);
+      metadata.nullableFields.forEach((ref) => sink
+          .writeCanonicalNameReference(getCanonicalNameOfMember(ref.asField)));
+    }
+    if (metadata.hasClosures) {
+      sink.writeUInt30(metadata.closures.length);
+      metadata.closures.forEach((c) => c.writeToBinary(sink));
+    }
   }
 
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
+    int flags = source.readUInt();
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
     final List<int> bytecodes = source.readByteList();
-    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
-    final List<ClosureBytecode> closures = new List<ClosureBytecode>.generate(
-        source.readUInt(), (_) => new ClosureBytecode.readFromBinary(source));
+    final exceptionsTable =
+        ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
+            ? new ExceptionsTable.readFromBinary(source)
+            : new ExceptionsTable();
+    final List<Reference> nullableFields =
+        ((flags & BytecodeMetadata.hasNullableFieldsFlag) != 0)
+            ? new List<Reference>.generate(source.readUInt(),
+                (_) => source.readCanonicalNameReference().getReference())
+            : const <Reference>[];
+    final List<ClosureBytecode> closures =
+        ((flags & BytecodeMetadata.hasClosuresFlag) != 0)
+            ? new List<ClosureBytecode>.generate(source.readUInt(),
+                (_) => new ClosureBytecode.readFromBinary(source))
+            : const <ClosureBytecode>[];
     return new BytecodeMetadata(
-        constantPool, bytecodes, exceptionsTable, closures);
+        constantPool, bytecodes, exceptionsTable, nullableFields, closures);
   }
 }

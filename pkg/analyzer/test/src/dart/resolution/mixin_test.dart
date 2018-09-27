@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -165,6 +169,10 @@ mixin M {}
     expect(element.typeParameters, isEmpty);
 
     expect(element.supertype, isNull);
+    expect(element.isAbstract, isTrue);
+    expect(element.isEnum, isFalse);
+    expect(element.isMixin, isTrue);
+    expect(element.isMixinApplication, isFalse);
     expect(element.type.isObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
@@ -914,6 +922,50 @@ abstract class X extends A with M {}
     ]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inNextMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M1 on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+mixin M2 on A {
+  void foo() {}
+}
+
+class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    ]);
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_inSameMixin() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void foo() {
+    super.foo();
+  }
+}
+
+class X extends A with M {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+    ]);
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_method() async {
     addTestFile(r'''
 abstract class A {
@@ -951,6 +1003,30 @@ mixin M2 on A {
 }
 
 class X extends A with M1, M2 {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inSuper_fromMixin() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M1 {
+  void foo() {}
+}
+
+class B extends A with M1 {}
+
+mixin M2 on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X extends B with M2 {}
 ''');
     await resolveTestFile();
     assertNoTestErrors();
@@ -1505,6 +1581,30 @@ mixin M implements A, B {}
     assertTestErrors([
       StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
     ]);
+  }
+
+  test_isMoreSpecificThan() async {
+    addTestFile(r'''
+mixin M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var element = findElement.mixin('M');
+    var type = element.type;
+    expect(type.isMoreSpecificThan(intType), isFalse);
+  }
+
+  test_lookUpMemberInInterfaces_Object() async {
+    addTestFile(r'''
+class Foo {}
+
+mixin UnhappyMixin on Foo {
+  String toString() => '$runtimeType';
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
   }
 
   test_metadata() async {

@@ -231,6 +231,15 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(ConstantPropagation);
   INVOKE_PASS(OptimisticallySpecializeSmiPhis);
   INVOKE_PASS(TypePropagation);
+#if defined(DART_PRECOMPILER)
+  if (mode == kAOT) {
+    // The extra call specialization pass in AOT is able to specialize more
+    // calls after ConstantPropagation, which removes unreachable code, and
+    // TypePropagation, which can infer more accurate types after removing
+    // unreachable code.
+    INVOKE_PASS(ApplyICData);
+  }
+#endif
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);

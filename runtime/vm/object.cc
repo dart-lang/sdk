@@ -13,6 +13,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
@@ -2042,26 +2043,31 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+  if (raw_obj->IsOldObject() && thread->is_marking()) {
+    // Black allocation. Prevents a data race between the mutator and concurrent
+    // marker on ARM and ARM64 (the marker may observe a publishing store of
+    // this object before the stores that initialize its slots), and helps the
+    // collection to finish sooner.
+    raw_obj->SetMarkBitUnsynchronized();
+    heap->old_space()->AllocateBlack(size);
+  }
   return raw_obj;
 }
 
-class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
+class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Thread* thread, RawObject* obj)
+  explicit WriteBarrierUpdateVisitor(Thread* thread, RawObject* obj)
       : ObjectPointerVisitor(thread->isolate()),
         thread_(thread),
         old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
   }
 
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** curr = first; curr <= last; ++curr) {
-      RawObject* raw_obj = *curr;
-      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        old_obj_->SetRememberedBit();
-        thread_->StoreBufferAddObject(old_obj_);
-        // Remembered this object. There is no need to continue searching.
-        return;
+  void VisitPointers(RawObject** from, RawObject** to) {
+    for (RawObject** slot = from; slot <= to; ++slot) {
+      RawObject* value = *slot;
+      if (value->IsHeapObject()) {
+        old_obj_->CheckHeapPointerStore(value, thread_);
       }
     }
   }
@@ -2070,7 +2076,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
   Thread* thread_;
   RawObject* old_obj_;
 
-  DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
+  DISALLOW_COPY_AND_ASSIGN(WriteBarrierUpdateVisitor);
 };
 
 bool Object::IsReadOnlyHandle() const {
@@ -2086,9 +2092,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   intptr_t size = orig.raw()->Size();
   RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
   NoSafepointScope no_safepoint;
-  // TODO(koda): This will trip when we start allocating black.
-  // Revisit code below at that point, to account for the new write barrier.
-  ASSERT(!(raw_clone->IsOldObject() && raw_clone->IsMarked()));
   // Copy the body of the original into the clone.
   uword orig_addr = RawObject::ToAddr(orig.raw());
   uword clone_addr = RawObject::ToAddr(raw_clone);
@@ -2100,11 +2103,8 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
     return raw_clone;
-  } else if (orig.raw()->IsOldObject() && !orig.raw()->IsRemembered()) {
-    // Old original doesn't need to be remembered, so neither does the clone.
-    return raw_clone;
   }
-  StoreBufferUpdateVisitor visitor(Thread::Current(), raw_clone);
+  WriteBarrierUpdateVisitor visitor(Thread::Current(), raw_clone);
   raw_clone->VisitPointers(&visitor);
   return raw_clone;
 }
@@ -5966,8 +5966,27 @@ bool Function::HasCode() const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::IsBytecodeAllowed(Zone* zone) const {
+  switch (kind()) {
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kMethodExtractor:
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kDynamicInvocationForwarder:
+    case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kIrregexpFunction:
+      return false;
+    case RawFunction::kImplicitStaticFinalGetter:
+      return kernel::IsFieldInitializer(*this, zone);
+    default:
+      return true;
+  }
+}
+
 void Function::AttachBytecode(const Code& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
   // Finish setting up code before activating it.
   value.set_owner(*this);
   StorePointer(&raw_ptr()->bytecode_, value.raw());
@@ -5975,7 +5994,7 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  if (!FLAG_use_bytecode_compiler) {
+  if (FLAG_enable_interpreter) {
     // Set the code entry_point to InterpretCall stub.
     SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
   }
@@ -6081,7 +6100,7 @@ void Function::set_unoptimized_code(const Code& value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 #endif
@@ -12466,7 +12485,8 @@ static RawObject* EvaluateCompiledExpressionHelper(
 
   const Function& callee = Function::Cast(result);
 
-  if (type_definitions.Length() == 0) {
+  // type_arguments is null if all type arguments are dynamic.
+  if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
     return DartEntry::InvokeFunction(callee, arguments);
   }
 
@@ -13301,6 +13321,51 @@ RawError* Library::CompileAll() {
   }
   return Error::null();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawError* Library::ReadAllBytecode() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      error = Compiler::ReadAllBytecode(cls);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      zone, Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode()) {
+      RawError* error =
+          kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
+      if (error != Error::null()) {
+        return error;
+      }
+    }
+  }
+  return Error::null();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 RawError* Library::ParseAll(Thread* thread) {
   Zone* zone = thread->zone();
@@ -15595,7 +15660,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 }
 
 const Code::Comments& Code::comments() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   Comments* comments = new Code::Comments(Array::Handle());
 #else
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
@@ -15604,7 +15669,7 @@ const Code::Comments& Code::comments() const {
 }
 
 void Code::set_comments(const Code::Comments& comments) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   UNREACHABLE();
 #else
   ASSERT(comments.comments_.IsOld());
@@ -15613,7 +15678,7 @@ void Code::set_comments(const Code::Comments& comments) const {
 }
 
 void Code::SetPrologueOffset(intptr_t offset) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   UNREACHABLE();
 #else
   ASSERT(offset >= 0);
@@ -15624,7 +15689,8 @@ void Code::SetPrologueOffset(intptr_t offset) const {
 }
 
 intptr_t Code::GetPrologueOffset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
+  UNREACHABLE();
   return -1;
 #else
   const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
@@ -15662,8 +15728,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
     result.set_is_alive(false);
-    result.set_comments(Comments::New(0));
-    result.set_compile_timestamp(0);
+    NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
+    NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -15777,15 +15843,14 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 #endif
 
+#ifndef PRODUCT
   const Code::Comments& comments = assembler->GetCodeComments();
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-#ifndef PRODUCT
   CodeCommentsWrapper comments_wrapper(comments);
   CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                            assembler->prologue_offset(), instrs.Size(),
                            optimized, &comments_wrapper);
-#endif
   code.set_comments(comments);
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
@@ -15796,6 +15861,7 @@ RawCode* Code::FinalizeCode(const char* name,
   }
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
+#endif
   return code.raw();
 }
 
@@ -16141,7 +16207,7 @@ void Code::DumpSourcePositions() const {
 }
 
 RawArray* Code::await_token_positions() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
   return Array::null();
 #else
   return raw_ptr()->await_token_positions_;

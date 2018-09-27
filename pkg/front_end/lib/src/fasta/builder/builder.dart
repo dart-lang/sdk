@@ -24,7 +24,7 @@ export 'declaration.dart' show Declaration;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 
-export 'enum_builder.dart' show EnumBuilder;
+export 'enum_builder.dart' show EnumBuilder, EnumConstantInfo;
 
 export 'field_builder.dart' show FieldBuilder;
 

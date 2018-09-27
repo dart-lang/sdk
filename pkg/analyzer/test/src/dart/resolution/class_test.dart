@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -92,6 +96,33 @@ abstract class B extends A {
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
   }
 
+  test_abstractSuperMemberReference_noSuchMethod() async {
+    setAnalysisOptions(enableSuperMixins: true);
+    addTestFile('''
+class A {
+  void foo();
+  noSuchMethod(im) {}
+}
+
+abstract class B {
+  void foo();
+  noSuchMethod(im) {}
+}
+
+class C extends A with B {
+  void bar() {
+    super.foo(); // ref
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertElement(
+      findNode.simple('foo(); // ref'),
+      findElement.method('foo', of: 'B'),
+    );
+  }
+
   test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
     addTestFile('''
 class A {
@@ -114,33 +145,6 @@ class C extends B {
     assertElement(
       findNode.simple('foo(); // ref'),
       findElement.method('foo', of: 'M'),
-    );
-  }
-
-  test_abstractSuperMemberReference_OK_noSuchMethod() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-class A {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-abstract class B {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-class C extends A with B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'B'),
     );
   }
 

@@ -353,6 +353,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--strong', ignoreOption),
     new OptionHandler(Flags.previewDart2, ignoreOption),
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
+    new OptionHandler(Flags.omitAsCasts, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
 

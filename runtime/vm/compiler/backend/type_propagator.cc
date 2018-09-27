@@ -938,7 +938,7 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  if (FLAG_use_bytecode_compiler &&
+  if (function.HasBytecode() &&
       graph_entry->parsed_function().node_sequence() == nullptr) {
     // TODO(alexmarkov): Consider adding node_sequence() and scope.
     return CompileType::Dynamic();

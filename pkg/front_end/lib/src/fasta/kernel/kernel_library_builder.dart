@@ -62,7 +62,11 @@ import '../import.dart' show Import;
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
-    show abstractMask, namedMixinApplicationMask, staticMask;
+    show
+        abstractMask,
+        mixinDeclarationMask,
+        namedMixinApplicationMask,
+        staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -79,6 +83,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         DynamicTypeBuilder,
+        EnumConstantInfo,
         FormalParameterBuilder,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -216,6 +221,11 @@ class KernelLibraryBuilder
     // library scope.
     Scope constructorScope = new Scope(constructors, null, null, "constructors",
         isModifiable: false);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
@@ -230,7 +240,8 @@ class KernelLibraryBuilder
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startCharOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
 
@@ -470,8 +481,7 @@ class KernelLibraryBuilder
             startCharOffset,
             charOffset,
             TreeNode.noOffset,
-            null,
-            mixin);
+            mixedInType: mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
@@ -691,22 +701,17 @@ class KernelLibraryBuilder
     }
   }
 
+  @override
   void addEnum(
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(
-        metadataCollector,
-        metadata,
-        name,
-        constantNamesAndOffsets,
-        this,
-        charOffset,
-        charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
+        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);
@@ -796,11 +801,24 @@ class KernelLibraryBuilder
       return;
     }
     if (cls != null) {
+      if (declaration.next != null) {
+        int count = 0;
+        Declaration current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        cls.name += "#$count";
+      }
       library.addClass(cls);
     } else if (member != null) {
-      library.addMember(member);
+      if (declaration.next == null) {
+        library.addMember(member);
+      }
     } else if (typedef != null) {
-      library.addTypedef(typedef);
+      if (declaration.next == null) {
+        library.addTypedef(typedef);
+      }
     }
   }
 

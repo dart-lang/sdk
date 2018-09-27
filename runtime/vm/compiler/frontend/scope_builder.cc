@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/kernel.h"               // For IsFieldInitializer.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -15,12 +16,6 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
-
-bool IsFieldInitializer(const Function& function, Zone* zone) {
-  return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         String::Handle(zone, function.name())
-             .StartsWith(Symbols::InitPrefix());
-}
 
 // Returns true if the given method can skip type checks for all arguments
 // that are not covariant or generic covariant in its implementation.

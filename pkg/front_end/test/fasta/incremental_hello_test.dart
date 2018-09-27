@@ -55,7 +55,7 @@ test({bool sdkFromSource}) async {
   final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
 
   final ProcessedOptions options =
-      new ProcessedOptions(optionBuilder, [helloDart]);
+      new ProcessedOptions(options: optionBuilder, inputs: [helloDart]);
 
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));

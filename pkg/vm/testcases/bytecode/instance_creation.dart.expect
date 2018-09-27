@@ -48,6 +48,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
+Nullable fields: [#lib::Base::t1, #lib::Base::t2]
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
@@ -559,6 +560,44 @@ ConstantPool {
   self::I::test_factory2();
   self::I::test_factory2(param: 42);
 }
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushInt              0
+  PushConstant         CP#2
+  IndirectStaticCall   2, CP#1
+  ReturnTOS
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgumentsForInstanceAllocation dart.core::_GrowableList [dart.core::String]
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::_GrowableList::', arg-desc CP#1
+}
+]static method foo6() → dynamic
+  return core::_GrowableList::•<core::String>(0);
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  Push                 FP[-5]
+  PushConstant         CP#2
+  IndirectStaticCall   2, CP#1
+  ReturnTOS
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgumentsForInstanceAllocation dart.core::_List [dart.core::int]
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::_List::', arg-desc CP#1
+}
+]static method foo7(core::int n) → dynamic
+  return core::_List::•<core::int>(n);
 [@vm.bytecode=
 Bytecode {
   Entry                0

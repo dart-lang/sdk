@@ -1006,8 +1006,6 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("new List", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }

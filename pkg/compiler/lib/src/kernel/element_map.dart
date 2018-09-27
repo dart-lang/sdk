@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../common_elements.dart';
+import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -21,14 +22,16 @@ import '../universe/selector.dart';
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMap {
-  ElementEnvironment get elementEnvironment;
+  KElementEnvironment get elementEnvironment;
   NativeBasicData get nativeBasicData;
 
   /// Access to the commonly used elements and types.
-  CommonElements get commonElements;
+  KCommonElements get commonElements;
 
   /// Access to the [DartTypes] object.
   DartTypes get types;
+
+  ir.TypeEnvironment get typeEnvironment;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);

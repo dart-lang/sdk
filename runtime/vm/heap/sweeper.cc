@@ -116,6 +116,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
+    old_space_->set_phase(PageSpace::kSweeping);
   }
 
   virtual void Run() {
@@ -156,6 +157,8 @@ class SweeperTask : public ThreadPool::Task {
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
+      ASSERT(old_space_->phase() == PageSpace::kSweeping);
+      old_space_->set_phase(PageSpace::kDone);
       ml.NotifyAll();
     }
   }

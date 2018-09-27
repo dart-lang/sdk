@@ -16,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -1101,6 +1102,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAssignmentToFinal(operand);
     }
     _checkForIntNotAssignable(operand);
+    _checkForUseOfVoidResult(operand);
     return super.visitPrefixExpression(node);
   }
 
@@ -1354,7 +1356,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
-      _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       if (!disableConflictingGenericsCheck) {
@@ -1927,7 +1928,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             if (_checkForMixinSuperclassConstraints(mixinName, i)) {
               problemReported = true;
             }
-            if (_checkForMixinSuperInvokedMembers(mixinName, mixinElement)) {
+            if (_checkForMixinSuperInvokedMembers(i, mixinName, mixinElement)) {
               problemReported = true;
             }
           } else {
@@ -2545,7 +2546,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         var oldType = interfaces[element];
         if (oldType == null) {
           interfaces[element] = type;
-        } else if (oldType != type) {
+        } else if (!oldType.isEquivalentTo(type)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
               node,
@@ -2731,7 +2732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       InstanceCreationExpression expression,
       TypeName typeName,
       InterfaceType type) {
-    if (type.element.isAbstract) {
+    if (type.element.isAbstract && !type.element.isMixin) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
         bool isImplicit =
@@ -4204,18 +4205,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Report the error [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] if
-   * appropriate.
-   */
-  void _checkForMixinHasNoConstructors(AstNode node) {
-    if (_enclosingClass.doesMixinLackConstructors) {
-      ErrorCode errorCode = CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS;
-      _errorReporter
-          .reportErrorForNode(errorCode, node, [_enclosingClass.supertype]);
-    }
-  }
-
-  /**
    * Verify that the given mixin has the 'Object' superclass. The [mixinName] is
    * the node to report problem on. The [mixinElement] is the mixing to
    * evaluate.
@@ -4281,15 +4270,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /// Check that the [_enclosingClass] has concrete implementations of all
-  /// the super-invoked members of the [mixinElement].
+  /// Check that the superclass of the given [mixinElement] at the given
+  /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
+  /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(
-      TypeName mixinName, ClassElementImpl mixinElement) {
+      int mixinIndex, TypeName mixinName, ClassElement mixinElement) {
+    ClassElementImpl mixinElementImpl = mixinElement is ClassElementHandle
+        ? mixinElement.actualElement
+        : mixinElement;
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
-    for (var name in mixinElement.superInvokedNames) {
+    for (var name in mixinElementImpl.superInvokedNames) {
       var superMember = enclosingType.lookUpInheritedMember(
           name, _currentLibrary,
-          concrete: true, setter: name.endsWith('='));
+          concrete: true,
+          stopMixinIndex: mixinIndex,
+          setter: name.endsWith('='));
       if (superMember == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
@@ -4487,10 +4482,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForNoDefaultSuperConstructorImplicit(
       ClassDeclaration declaration) {
-    // do nothing if mixin errors have already been reported for this class.
-    if (_enclosingClass.doesMixinLackConstructors) {
-      return;
-    }
     // do nothing if there is explicit constructor
     List<ConstructorElement> constructors = _enclosingClass.constructors;
     if (!constructors[0].isSynthetic) {
@@ -4513,9 +4504,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             [superUnnamedConstructor]);
         return;
       }
-      if (superUnnamedConstructor.isDefaultConstructor &&
-          _enclosingClass
-              .isSuperConstructorAccessible(superUnnamedConstructor)) {
+      if (superUnnamedConstructor.isDefaultConstructor) {
         return;
       }
     }
@@ -5491,10 +5480,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_enclosingClass == null) {
       return;
     }
-    // do nothing if mixin errors have already been reported for this class.
-    if (_enclosingClass.doesMixinLackConstructors) {
-      return;
-    }
 
     // Ignore if the constructor is not generative.
     if (constructor.factoryKeyword != null) {
@@ -5526,9 +5511,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
             constructor.returnType,
             [superUnnamedConstructor]);
-      } else if (!superUnnamedConstructor.isDefaultConstructor ||
-          !_enclosingClass
-              .isSuperConstructorAccessible(superUnnamedConstructor)) {
+      } else if (!superUnnamedConstructor.isDefaultConstructor) {
         Identifier returnType = constructor.returnType;
         SimpleIdentifier name = constructor.name;
         int offset = returnType.offset;
@@ -5822,7 +5805,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   void _checkMixinInference(
       NamedCompilationUnitMember node, WithClause withClause) {
-    if (withClause == null || !_options.enableSuperMixins) {
+    if (withClause == null) {
       return;
     }
     ClassElement classElement = node.declaredElement;
@@ -5832,11 +5815,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl.collectAllSupertypes(
         supertypesForMixinInference, supertype, type);
     for (var typeName in withClause.mixinTypes) {
-      var mixinElement = typeName.name.staticElement;
+      var mixinType = typeName.type;
+      var mixinElement = mixinType.element;
       if (mixinElement is ClassElement) {
         if (typeName.typeArguments == null) {
-          var mixinSupertypeConstraints =
-              _typeSystem.gatherMixinSupertypeConstraints(mixinElement);
+          var mixinSupertypeConstraints = _typeSystem
+              .gatherMixinSupertypeConstraintsForInference(mixinElement);
           if (mixinSupertypeConstraints.isNotEmpty) {
             var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
                 typeName,
@@ -5861,7 +5845,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
         }
         ClassElementImpl.collectAllSupertypes(
-            supertypesForMixinInference, mixinElement.type, type);
+            supertypesForMixinInference, mixinType, type);
       }
     }
   }

@@ -1977,22 +1977,62 @@ const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
     tip: r"""Try removing all but one prefix.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedDefinition =
+const Template<Message Function(String name)> templateDuplicatedDeclaration =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Duplicated definition of '#name'.""",
-        withArguments: _withArgumentsDuplicatedDefinition);
+        messageTemplate: r"""'#name' is already declared in this scope.""",
+        withArguments: _withArgumentsDuplicatedDeclaration);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedDefinition =
+const Code<Message Function(String name)> codeDuplicatedDeclaration =
     const Code<Message Function(String name)>(
-  "DuplicatedDefinition",
-  templateDuplicatedDefinition,
+        "DuplicatedDeclaration", templateDuplicatedDeclaration,
+        analyzerCode: "DUPLICATE_DEFINITION");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedDeclaration(String name) {
+  return new Message(codeDuplicatedDeclaration,
+      message: """'${name}' is already declared in this scope.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedDeclarationCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Previous declaration of '#name'.""",
+        withArguments: _withArgumentsDuplicatedDeclarationCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedDeclarationCause =
+    const Code<Message Function(String name)>(
+        "DuplicatedDeclarationCause", templateDuplicatedDeclarationCause,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedDeclarationCause(String name) {
+  return new Message(codeDuplicatedDeclarationCause,
+      message: """Previous declaration of '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedDeclarationUse =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't use '#name' because it is declared more than once.""",
+        withArguments: _withArgumentsDuplicatedDeclarationUse);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedDeclarationUse =
+    const Code<Message Function(String name)>(
+  "DuplicatedDeclarationUse",
+  templateDuplicatedDeclarationUse,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDefinition(String name) {
-  return new Message(codeDuplicatedDefinition,
-      message: """Duplicated definition of '${name}'.""",
+Message _withArgumentsDuplicatedDeclarationUse(String name) {
+  return new Message(codeDuplicatedDeclarationUse,
+      message: """Can't use '${name}' because it is declared more than once.""",
       arguments: {'name': name});
 }
 
@@ -2009,7 +2049,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedExport", templateDuplicatedExport,
-        analyzerCode: "AMBIGUOUS_EXPORT", severity: Severity.ignored);
+        analyzerCode: "AMBIGUOUS_EXPORT");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
@@ -2094,6 +2134,86 @@ Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedLibraryExport =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""A library with name '#name' is exported more than once.""",
+        withArguments: _withArgumentsDuplicatedLibraryExport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryExport =
+    const Code<Message Function(String name)>(
+        "DuplicatedLibraryExport", templateDuplicatedLibraryExport,
+        analyzerCode: "EXPORT_DUPLICATED_LIBRARY_NAMED");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryExport(String name) {
+  return new Message(codeDuplicatedLibraryExport,
+      message: """A library with name '${name}' is exported more than once.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedLibraryExportContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is also exported here.""",
+        withArguments: _withArgumentsDuplicatedLibraryExportContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryExportContext =
+    const Code<Message Function(String name)>("DuplicatedLibraryExportContext",
+        templateDuplicatedLibraryExportContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryExportContext(String name) {
+  return new Message(codeDuplicatedLibraryExportContext,
+      message: """'${name}' is also exported here.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedLibraryImport =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""A library with name '#name' is imported more than once.""",
+        withArguments: _withArgumentsDuplicatedLibraryImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryImport =
+    const Code<Message Function(String name)>(
+        "DuplicatedLibraryImport", templateDuplicatedLibraryImport,
+        analyzerCode: "IMPORT_DUPLICATED_LIBRARY_NAMED");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryImport(String name) {
+  return new Message(codeDuplicatedLibraryImport,
+      message: """A library with name '${name}' is imported more than once.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedLibraryImportContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is also imported here.""",
+        withArguments: _withArgumentsDuplicatedLibraryImportContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedLibraryImportContext =
+    const Code<Message Function(String name)>("DuplicatedLibraryImportContext",
+        templateDuplicatedLibraryImportContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedLibraryImportContext(String name) {
+  return new Message(codeDuplicatedLibraryImportContext,
+      message: """'${name}' is also imported here.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
@@ -2113,44 +2233,6 @@ Message _withArgumentsDuplicatedModifier(Token token) {
       message: """The modifier '${lexeme}' was already specified.""",
       tip: """Try removing all but one occurance of the modifier.""",
       arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedName =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is already declared in this scope.""",
-        withArguments: _withArgumentsDuplicatedName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedName =
-    const Code<Message Function(String name)>(
-        "DuplicatedName", templateDuplicatedName,
-        analyzerCode: "DUPLICATE_DEFINITION");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedName(String name) {
-  return new Message(codeDuplicatedName,
-      message: """'${name}' is already declared in this scope.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedNameCause =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Previous declaration of '#name'.""",
-        withArguments: _withArgumentsDuplicatedNameCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedNameCause =
-    const Code<Message Function(String name)>(
-        "DuplicatedNameCause", templateDuplicatedNameCause,
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNameCause(String name) {
-  return new Message(codeDuplicatedNameCause,
-      message: """Previous declaration of '${name}'.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2372,7 +2454,7 @@ const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedAnInitializer = const MessageCode(
     "ExpectedAnInitializer",
-    analyzerCode: "MISSING_INITIALIZER",
+    index: 36,
     message: r"""Expected an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2914,6 +2996,75 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     analyzerCode: "NON_SYNC_FACTORY",
     message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, int count)>
+    templateFactoryRedirecteeHasTooFewPositionalParameters =
+    const Template<Message Function(String name, int count)>(
+        messageTemplate:
+            r"""Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide.""",
+        tipTemplate: r"""Try redirecting to a different constructor.""",
+        withArguments:
+            _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count)>
+    codeFactoryRedirecteeHasTooFewPositionalParameters =
+    const Code<Message Function(String name, int count)>(
+        "FactoryRedirecteeHasTooFewPositionalParameters",
+        templateFactoryRedirecteeHasTooFewPositionalParameters,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
+    String name, int count) {
+  return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
+      message:
+          """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {'name': name, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        DartType
+            _type2)> templateFactoryRedirecteeInvalidReturnType = const Template<
+        Message Function(DartType _type, String name, DartType _type2)>(
+    messageTemplate:
+        r"""The return type '#type' of the constructor '#name' isn't a subtype of '#type2'.""",
+    tipTemplate: r"""Try redirecting to a different constructor.""",
+    withArguments: _withArgumentsFactoryRedirecteeInvalidReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name, DartType _type2)>
+    codeFactoryRedirecteeInvalidReturnType =
+    const Code<Message Function(DartType _type, String name, DartType _type2)>(
+        "FactoryRedirecteeInvalidReturnType",
+        templateFactoryRedirecteeInvalidReturnType,
+        analyzerCode: "REDIRECT_TO_INVALID_RETURN_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryRedirecteeInvalidReturnType(
+    DartType _type, String name, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeFactoryRedirecteeInvalidReturnType,
+      message:
+          """The return type '${type}' of the constructor '${name}' isn't a subtype of '${type2}'.""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {'type': _type, 'name': name, 'type2': _type2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
@@ -4626,7 +4777,7 @@ const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidHexEscape = const MessageCode(
     "InvalidHexEscape",
-    analyzerCode: "INVALID_HEX_ESCAPE",
+    index: 40,
     message:
         r"""An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.""");
 
@@ -4664,7 +4815,7 @@ const Template<Message Function(Token token)> templateInvalidOperator =
 const Code<Message Function(Token token)> codeInvalidOperator =
     const Code<Message Function(Token token)>(
         "InvalidOperator", templateInvalidOperator,
-        analyzerCode: "INVALID_OPERATOR");
+        index: 39);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidOperator(Token token) {
@@ -4712,7 +4863,7 @@ const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidUnicodeEscape = const MessageCode(
     "InvalidUnicodeEscape",
-    analyzerCode: "INVALID_UNICODE_ESCAPE",
+    index: 38,
     message:
         r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
@@ -4788,7 +4939,7 @@ const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
     "LibraryDirectiveNotFirst",
-    analyzerCode: "LIBRARY_DIRECTIVE_NOT_FIRST",
+    index: 37,
     message:
         r"""The library directive must appear before all other directives.""",
     tip: r"""Try moving the library directive before any other directives.""");
@@ -4950,7 +5101,7 @@ const Code<Null> codeMissingAssignableSelector =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingAssignableSelector = const MessageCode(
     "MissingAssignableSelector",
-    analyzerCode: "MISSING_ASSIGNABLE_SELECTOR",
+    index: 35,
     message: r"""Missing selector such as '.<identifier>' or '[0]'.""",
     tip: r"""Try adding a selector.""");
 
@@ -4961,7 +5112,7 @@ const Code<Null> codeMissingAssignmentInInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
     "MissingAssignmentInInitializer",
-    analyzerCode: "MISSING_ASSIGNMENT_IN_INITIALIZER",
+    index: 34,
     message: r"""Expected an assignment after the field name.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -4972,7 +5123,7 @@ const Code<Null> codeMissingConstFinalVarOrType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
     "MissingConstFinalVarOrType",
-    analyzerCode: "MISSING_CONST_FINAL_VAR_OR_TYPE",
+    index: 33,
     message:
         r"""Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
     tip:
@@ -5015,7 +5166,7 @@ const Code<Null> codeMissingExpressionInThrow = messageMissingExpressionInThrow;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingExpressionInThrow = const MessageCode(
     "MissingExpressionInThrow",
-    analyzerCode: "MISSING_EXPRESSION_IN_THROW",
+    index: 32,
     message: r"""Missing expression after 'throw'.""",
     tip:
         r"""Add an expression after 'throw' or use 'rethrow' to throw a caught exception""");
@@ -5125,7 +5276,7 @@ const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingOperatorKeyword = const MessageCode(
     "MissingOperatorKeyword",
-    analyzerCode: "MISSING_KEYWORD_OPERATOR",
+    index: 31,
     message:
         r"""Operator declarations must be preceeded by the keyword 'operator'.""",
     tip: r"""Try adding the keyword 'operator'.""");
@@ -6326,6 +6477,182 @@ const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
     message: r"""Redirecting constructors can't have a body.""",
     tip:
         r"""Try removing the body, or not making this a redirecting constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, DartType _type2)>
+    templateRedirectingFactoryIncompatibleTypeArgument =
+    const Template<Message Function(DartType _type, DartType _type2)>(
+        messageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
+        tipTemplate: r"""Try using a different type as argument.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryIncompatibleTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeRedirectingFactoryIncompatibleTypeArgument =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "RedirectingFactoryIncompatibleTypeArgument",
+        templateRedirectingFactoryIncompatibleTypeArgument,
+        analyzerCode: "TYPE_ARGUMENT_NOT_MATCHING_BOUNDS");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryIncompatibleTypeArgument,
+      message: """The type '${type}' doesn't extend '${type2}'.""",
+      tip: """Try using a different type as argument.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateRedirectingFactoryInvalidNamedParameterType = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2).""",
+        tipTemplate:
+            r"""Try changing either the type of the parameter or the redirection target.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryInvalidNamedParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeRedirectingFactoryInvalidNamedParameterType =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "RedirectingFactoryInvalidNamedParameterType",
+        templateRedirectingFactoryInvalidNamedParameterType,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryInvalidNamedParameterType,
+      message:
+          """The type of the named parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding named parameter type (${type2}).""",
+      tip: """Try changing either the type of the parameter or the redirection target.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateRedirectingFactoryInvalidPositionalParameterType = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2).""",
+        tipTemplate:
+            r"""Try changing either the type of the parameter or the redirection target.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryInvalidPositionalParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeRedirectingFactoryInvalidPositionalParameterType =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "RedirectingFactoryInvalidPositionalParameterType",
+        templateRedirectingFactoryInvalidPositionalParameterType,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
+      message:
+          """The type of parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding parameter type (${type2}).""",
+      tip: """Try changing either the type of the parameter or the redirection target.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateRedirectingFactoryMissingNamedParameter =
+    const Template<Message Function(String name, String name2)>(
+        messageTemplate:
+            r"""The constructor '#name' does not have a named parameter '#name2'.""",
+        tipTemplate:
+            r"""Try adding '#name2' as a named parameter to '#name'.""",
+        withArguments: _withArgumentsRedirectingFactoryMissingNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeRedirectingFactoryMissingNamedParameter =
+    const Code<Message Function(String name, String name2)>(
+        "RedirectingFactoryMissingNamedParameter",
+        templateRedirectingFactoryMissingNamedParameter,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryMissingNamedParameter(
+    String name, String name2) {
+  return new Message(codeRedirectingFactoryMissingNamedParameter,
+      message:
+          """The constructor '${name}' does not have a named parameter '${name2}'.""",
+      tip: """Try adding '${name2}' as a named parameter to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name, int count, String name2, int count2)>
+    templateRedirectingFactoryProvidesTooFewRequiredParameters = const Template<
+            Message Function(String name, int count, String name2, int count2)>(
+        messageTemplate:
+            r"""Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2').""",
+        tipTemplate: r"""Try redirecting to a different constructor.""",
+        withArguments:
+            _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count, String name2, int count2)>
+    codeRedirectingFactoryProvidesTooFewRequiredParameters = const Code<
+            Message Function(String name, int count, String name2, int count2)>(
+        "RedirectingFactoryProvidesTooFewRequiredParameters",
+        templateRedirectingFactoryProvidesTooFewRequiredParameters,
+        analyzerCode: "REDIRECT_TO_INVALID_FUNCTION_TYPE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
+    String name, int count, String name2, int count2) {
+  return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
+      message:
+          """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
+      tip: """Try redirecting to a different constructor.""",
+      arguments: {
+        'name': name,
+        'count': count,
+        'name2': name2,
+        'count2': count2
+      });
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;

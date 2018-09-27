@@ -154,7 +154,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
-  CommonElements get _commonElements => _elementMap.commonElements;
+  JCommonElements get _commonElements => _elementMap.commonElements;
 
   KernelToTypeInferenceMap get _typeInferenceMap =>
       _currentFrame.typeInferenceMap;
@@ -2066,7 +2066,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     DartType type = _elementMap.getDartType(node.type);
-    if (!node.isTypeError || options.implicitDowncastCheckPolicy.isEmitted) {
+    if ((!node.isTypeError && !options.omitAsCasts) ||
+        options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),

@@ -2311,6 +2311,17 @@ var b = new B();
     expect(_getTopLevelVarType(result.unit, 'b'), 'B');
   }
 
+  test_instantiateToBounds_invalid() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A<T extends B> {}
+class B<T extends A<B>> {}
+''');
+
+    driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+  }
+
   test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

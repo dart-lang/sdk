@@ -1037,8 +1037,11 @@ void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
 }
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
+#if defined(PRODUCT)
+  // No debugger: no var descriptors.
+#else
   // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
-  if (code.is_optimized() || FLAG_use_bytecode_compiler) {
+  if (code.is_optimized() || flow_graph().function().HasBytecode()) {
     // Optimized code does not need variable descriptors. They are
     // only stored in the unoptimized version.
     code.set_var_descriptors(Object::empty_var_descriptors());
@@ -1062,6 +1065,7 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
   code.set_var_descriptors(var_descs);
+#endif
 }
 
 void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {

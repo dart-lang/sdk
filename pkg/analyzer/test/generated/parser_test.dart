@@ -15470,6 +15470,29 @@ main() {
     expect(statement.rightBracket, isNotNull);
   }
 
+  void test_parseSwitchStatement_labeledCase2() {
+    SwitchStatement statement =
+        parseStatement('switch (a) {l1: case 0: l2: case 1: return;}');
+    assertNoErrors();
+    expect(statement.switchKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
+    expect(statement.members, hasLength(2));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(1));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+    }
+    {
+      List<Label> labels = statement.members[1].labels;
+      expect(labels, hasLength(1));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+    }
+    expect(statement.rightBracket, isNotNull);
+  }
+
   void test_parseSwitchStatement_labeledDefault() {
     var statement =
         parseStatement('switch (a) {l1: l2: l3: default:}') as SwitchStatement;
@@ -15486,6 +15509,29 @@ main() {
       expect(labels[0].label.inDeclarationContext(), isTrue);
       expect(labels[1].label.inDeclarationContext(), isTrue);
       expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
+    expect(statement.rightBracket, isNotNull);
+  }
+
+  void test_parseSwitchStatement_labeledDefault2() {
+    SwitchStatement statement =
+        parseStatement('switch (a) {l1: case 0: l2: default: return;}');
+    assertNoErrors();
+    expect(statement.switchKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
+    expect(statement.members, hasLength(2));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(1));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+    }
+    {
+      List<Label> labels = statement.members[1].labels;
+      expect(labels, hasLength(1));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
     }
     expect(statement.rightBracket, isNotNull);
   }

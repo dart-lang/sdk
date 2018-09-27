@@ -30,7 +30,6 @@
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
-#include "vm/json_writer.h"
 #include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/log.h"
 #include "vm/longjump.h"
@@ -93,11 +92,17 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
  public:
   explicit DartPrecompilationPipeline(Zone* zone,
                                       FieldTypeMap* field_map = NULL)
-      : zone_(zone), result_type_(CompileType::None()), field_map_(field_map) {}
+      : zone_(zone),
+        result_type_(CompileType::None()),
+        field_map_(field_map),
+        class_(Class::Handle(zone)),
+        fields_(Array::Handle(zone)),
+        field_(Field::Handle(zone)) {}
 
   virtual void FinalizeCompilation(FlowGraph* flow_graph) {
     if ((field_map_ != NULL) &&
         flow_graph->function().IsGenerativeConstructor()) {
+      const Function& constructor = flow_graph->function();
       for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
            !block_it.Done(); block_it.Advance()) {
         ForwardInstructionIterator it(block_it.Current());
@@ -112,33 +117,31 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
                           store->value()->Type()->ToCString());
               }
 #endif  // !PRODUCT
-              FieldTypePair* entry = field_map_->Lookup(&store->field());
-              if (entry == NULL) {
-                field_map_->Insert(FieldTypePair(
-                    &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
-                    store->value()->Type()->ToCid()));
-#ifndef PRODUCT
-                if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                  THR_Print(" initial type = %s\n",
-                            store->value()->Type()->ToCString());
-                }
-#endif  // !PRODUCT
-                continue;
-              }
-              CompileType type = CompileType::FromCid(entry->cid_);
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print(" old type = %s\n", type.ToCString());
-              }
-#endif  // !PRODUCT
-              type.Union(store->value()->Type());
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print(" new type = %s\n", type.ToCString());
-              }
-#endif  // !PRODUCT
-              entry->cid_ = type.ToCid();
+              RecordFieldStore(constructor, store->field(),
+                               store->value()->Type());
             }
+          }
+        }
+      }
+
+      // Final fields which were not initialized in this constructor are
+      // implicitly initialized with null.
+      class_ = flow_graph->function().Owner();
+      fields_ = class_.fields();
+      for (intptr_t i = 0; i < fields_.Length(); ++i) {
+        field_ ^= fields_.At(i);
+        if (!field_.is_static() && field_.is_final()) {
+          FieldTypePair* entry = field_map_->Lookup(&field_);
+          if ((entry == nullptr) ||
+              (entry->field_info.constructor != constructor.raw())) {
+#ifndef PRODUCT
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                THR_Print("Implicit initialization %s <- null\n",
+                          field_.ToCString());
+              }
+#endif  // !PRODUCT
+              CompileType null_type = CompileType::Null();
+              RecordFieldStore(constructor, field_, &null_type);
           }
         }
       }
@@ -158,12 +161,46 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
     result_type_ = result_type;
   }
 
+  void RecordFieldStore(const Function& constructor,
+                        const Field& field,
+                        CompileType* value_type) {
+    FieldTypePair* entry = field_map_->Lookup(&field);
+    if (entry == NULL) {
+      field_map_->Insert(
+          FieldTypePair(&Field::Handle(zone_, field.raw()),  // Re-wrap.
+                        value_type->ToCid(), constructor.raw()));
+#ifndef PRODUCT
+      if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+        THR_Print(" initial type = %s\n", value_type->ToCString());
+      }
+#endif  // !PRODUCT
+      return;
+    }
+    CompileType type = CompileType::FromCid(entry->field_info.cid);
+#ifndef PRODUCT
+    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+      THR_Print(" old type = %s\n", type.ToCString());
+    }
+#endif  // !PRODUCT
+    type.Union(value_type);
+#ifndef PRODUCT
+    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+      THR_Print(" new type = %s\n", type.ToCString());
+    }
+#endif  // !PRODUCT
+    entry->field_info.cid = type.ToCid();
+    entry->field_info.constructor = constructor.raw();
+  }
+
   CompileType result_type() { return result_type_; }
 
  private:
   Zone* zone_;
   CompileType result_type_;
   FieldTypeMap* field_map_;
+  Class& class_;
+  Array& fields_;
+  Field& field_;
 };
 
 class PrecompileParsedFunctionHelper : public ValueObject {
@@ -214,12 +251,11 @@ TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
   }
 }
 
-RawError* Precompiler::CompileAll(
-    Dart_QualifiedFunctionName embedder_entry_points[]) {
+RawError* Precompiler::CompileAll() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
-    precompiler.DoCompileAll(embedder_entry_points);
+    precompiler.DoCompileAll();
     return Error::null();
   } else {
     Thread* thread = Thread::Current();
@@ -259,8 +295,7 @@ Precompiler::Precompiler(Thread* thread)
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {}
 
-void Precompiler::DoCompileAll(
-    Dart_QualifiedFunctionName embedder_entry_points[]) {
+void Precompiler::DoCompileAll() {
   ASSERT(I->compilation_allowed());
 
   {
@@ -315,7 +350,7 @@ void Precompiler::DoCompileAll(
         CollectDynamicFunctionNames();
 
         // Start with the allocations and invocations that happen from C++.
-        AddRoots(embedder_entry_points);
+        AddRoots();
         AddAnnotatedRoots();
 
         // Compile newly found targets and add their callees until we reach a
@@ -481,198 +516,27 @@ void Precompiler::PrecompileConstructors() {
   FieldTypeMap::Iterator it(field_type_map_.GetIterator());
   for (FieldTypePair* current = it.Next(); current != NULL;
        current = it.Next()) {
-    const intptr_t cid = current->cid_;
-    current->field_->set_guarded_cid(cid);
-    current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    const intptr_t cid = current->field_info.cid;
+    current->field->set_guarded_cid(cid);
+    current->field->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
     // TODO(vegorov) we can actually compute the length in the same way we
     // compute cids.
-    current->field_->set_guarded_list_length(Field::kNoFixedLength);
+    current->field->set_guarded_list_length(Field::kNoFixedLength);
     if (FLAG_trace_precompiler) {
       THR_Print(
-          "Field %s <- Type %s\n", current->field_->ToCString(),
+          "Field %s <- Type %s\n", current->field->ToCString(),
           Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
     }
   }
 }
 
-static Dart_QualifiedFunctionName vm_entry_points[] = {
-    // Fields
-    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-};
-
-class PrecompilerEntryPointsPrinter : public ValueObject {
- public:
-  explicit PrecompilerEntryPointsPrinter(Zone* zone);
-
-  void AddInstantiatedClass(const Class& cls);
-  void AddEntryPoint(const Object& entry_point);
-
-  void Print();
-
- private:
-  Zone* zone() const { return zone_; }
-
-  void DescribeClass(JSONWriter* writer, const Class& cls);
-
-  Zone* zone_;
-  const GrowableObjectArray& instantiated_classes_;
-  const GrowableObjectArray& entry_points_;
-};
-
-PrecompilerEntryPointsPrinter::PrecompilerEntryPointsPrinter(Zone* zone)
-    : zone_(zone),
-      instantiated_classes_(GrowableObjectArray::Handle(
-          zone,
-          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
-                                              : GrowableObjectArray::null())),
-      entry_points_(GrowableObjectArray::Handle(
-          zone,
-          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
-                                              : GrowableObjectArray::null())) {}
-
-void PrecompilerEntryPointsPrinter::AddInstantiatedClass(const Class& cls) {
-  if (!FLAG_print_precompiler_entry_points) {
-    return;
-  }
-
-  if (!cls.is_abstract()) {
-    instantiated_classes_.Add(cls);
-  }
-}
-
-void PrecompilerEntryPointsPrinter::AddEntryPoint(const Object& entry_point) {
-  ASSERT(entry_point.IsFunction() || entry_point.IsField());
-
-  if (!FLAG_print_precompiler_entry_points) {
-    return;
-  }
-  entry_points_.Add(entry_point);
-}
-
-// Prints precompiler entry points as JSON.
-// The format is described in [entry_points_json.md].
-void PrecompilerEntryPointsPrinter::Print() {
-  if (!FLAG_print_precompiler_entry_points) {
-    return;
-  }
-
-  JSONWriter writer;
-
-  writer.OpenObject();
-
-  writer.OpenArray("roots");
-
-  for (intptr_t i = 0; i < instantiated_classes_.Length(); ++i) {
-    const Class& cls = Class::CheckedHandle(Z, instantiated_classes_.At(i));
-
-    writer.OpenObject();
-    DescribeClass(&writer, cls);
-    writer.PrintProperty("action", "create-instance");
-    writer.CloseObject();
-  }
-
-  for (intptr_t i = 0; i < entry_points_.Length(); ++i) {
-    const Object& entry_point = Object::Handle(Z, entry_points_.At(i));
-
-    if (entry_point.IsFunction()) {
-      const Function& func = Function::Cast(entry_point);
-
-      writer.OpenObject();
-      DescribeClass(&writer, Class::Handle(Z, func.Owner()));
-
-      String& name = String::Handle(Z);
-      if (func.IsGetterFunction() || func.IsImplicitGetterFunction() ||
-          (func.kind() == RawFunction::kImplicitStaticFinalGetter)) {
-        name = func.name();
-        name = Field::NameFromGetter(name);
-        name = String::ScrubName(name);
-        writer.PrintPropertyStr("name", name);
-        writer.PrintProperty("action", "get");
-      } else if (func.IsSetterFunction() || func.IsImplicitSetterFunction()) {
-        name = func.name();
-        name = Field::NameFromSetter(name);
-        name = String::ScrubName(name);
-        writer.PrintPropertyStr("name", name);
-        writer.PrintProperty("action", "set");
-      } else {
-        name = func.UserVisibleName();
-        writer.PrintPropertyStr("name", name);
-        writer.PrintProperty("action", "call");
-      }
-      writer.CloseObject();
-    } else {
-      const Field& field = Field::Cast(entry_point);
-      const Class& owner = Class::Handle(Z, field.Owner());
-      const String& name = String::Handle(Z, field.UserVisibleName());
-
-      {
-        writer.OpenObject();
-        DescribeClass(&writer, owner);
-        writer.PrintPropertyStr("name", name);
-        writer.PrintProperty("action", "get");
-        writer.CloseObject();
-      }
-
-      {
-        writer.OpenObject();
-        DescribeClass(&writer, owner);
-        writer.PrintPropertyStr("name", name);
-        writer.PrintProperty("action", "set");
-        writer.CloseObject();
-      }
-    }
-  }
-
-  writer.CloseArray();  // roots
-  writer.CloseObject();  // top-level
-
-  const char* contents = writer.ToCString();
-
-  Dart_FileOpenCallback file_open = Dart::file_open_callback();
-  Dart_FileWriteCallback file_write = Dart::file_write_callback();
-  Dart_FileCloseCallback file_close = Dart::file_close_callback();
-  if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
-    FATAL(
-        "Unable to print precompiler entry points:"
-        " file callbacks are not provided by embedder");
-  }
-
-  void* out_stream =
-      file_open(FLAG_print_precompiler_entry_points, /* write = */ true);
-  if (out_stream == NULL) {
-    FATAL1(
-        "Unable to print precompiler entry points:"
-        " failed to open file \"%s\" for writing",
-        FLAG_print_precompiler_entry_points);
-  }
-  file_write(contents, strlen(contents), out_stream);
-  file_close(out_stream);
-}
-
-void PrecompilerEntryPointsPrinter::DescribeClass(JSONWriter* writer,
-                                                  const Class& cls) {
-  const Library& library = Library::Handle(Z, cls.library());
-  writer->PrintPropertyStr("library", String::Handle(Z, library.url()));
-
-  if (!cls.IsTopLevel()) {
-    writer->PrintPropertyStr("class", String::Handle(Z, cls.ScrubbedName()));
-  }
-}
-
-void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
-  PrecompilerEntryPointsPrinter entry_points_printer(zone());
-
+void Precompiler::AddRoots() {
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
 
   AddSelector(Symbols::NoSuchMethod());
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
-
-  AddEntryPoints(vm_entry_points, &entry_points_printer);
-  AddEntryPoints(embedder_entry_points, &entry_points_printer);
-
-  entry_points_printer.Print();
 
   const Library& lib = Library::Handle(I->object_store()->root_library());
   if (lib.IsNull()) {
@@ -701,90 +565,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
                                                error.ToErrorCString()));
     Jump(Error::Handle(Z, ApiError::New(msg)));
     UNREACHABLE();
-  }
-}
-
-void Precompiler::AddEntryPoints(
-    Dart_QualifiedFunctionName entry_points[],
-    PrecompilerEntryPointsPrinter* entry_points_printer) {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Function& func = Function::Handle(Z);
-  Field& field = Field::Handle(Z);
-  String& library_uri = String::Handle(Z);
-  String& class_name = String::Handle(Z);
-  String& function_name = String::Handle(Z);
-
-  for (intptr_t i = 0; entry_points[i].library_uri != NULL; i++) {
-    library_uri = Symbols::New(thread(), entry_points[i].library_uri);
-    class_name = Symbols::New(thread(), entry_points[i].class_name);
-    function_name = Symbols::New(thread(), entry_points[i].function_name);
-
-    if (library_uri.raw() == Symbols::TopLevel().raw()) {
-      lib = I->object_store()->root_library();
-    } else {
-      lib = Library::LookupLibrary(T, library_uri);
-    }
-    if (lib.IsNull()) {
-      String& msg = String::Handle(
-          Z, String::NewFormatted("Cannot find entry point '%s'\n",
-                                  entry_points[i].library_uri));
-      Jump(Error::Handle(Z, ApiError::New(msg)));
-      UNREACHABLE();
-    }
-
-    if (class_name.raw() == Symbols::TopLevel().raw()) {
-      if (Library::IsPrivate(function_name)) {
-        function_name = lib.PrivateName(function_name);
-      }
-      func = lib.LookupLocalFunction(function_name);
-      field = lib.LookupLocalField(function_name);
-    } else {
-      if (Library::IsPrivate(class_name)) {
-        class_name = lib.PrivateName(class_name);
-      }
-      cls = lib.LookupLocalClass(class_name);
-      if (cls.IsNull()) {
-        String& msg = String::Handle(
-            Z, String::NewFormatted("Cannot find entry point '%s' '%s'\n",
-                                    entry_points[i].library_uri,
-                                    entry_points[i].class_name));
-        Jump(Error::Handle(Z, ApiError::New(msg)));
-        UNREACHABLE();
-      }
-
-      ASSERT(!cls.IsNull());
-      func = cls.LookupFunctionAllowPrivate(function_name);
-      field = cls.LookupFieldAllowPrivate(function_name);
-    }
-
-    if (func.IsNull() && field.IsNull()) {
-      String& msg = String::Handle(
-          Z, String::NewFormatted("Cannot find entry point '%s' '%s' '%s'\n",
-                                  entry_points[i].library_uri,
-                                  entry_points[i].class_name,
-                                  entry_points[i].function_name));
-      Jump(Error::Handle(Z, ApiError::New(msg)));
-      UNREACHABLE();
-    }
-
-    if (!func.IsNull()) {
-      AddFunction(func);
-      entry_points_printer->AddEntryPoint(func);
-      if (func.IsGenerativeConstructor()) {
-        // Allocation stubs are referenced from the call site of the
-        // constructor, not in the constructor itself. So compiling the
-        // constructor isn't enough for us to discover the class is
-        // instantiated if the class isn't otherwise instantiated from Dart
-        // code and only instantiated from C++.
-        AddInstantiatedClass(cls);
-        entry_points_printer->AddInstantiatedClass(cls);
-      }
-    }
-    if (!field.IsNull()) {
-      AddField(field);
-      entry_points_printer->AddEntryPoint(field);
-    }
   }
 }
 
@@ -1348,8 +1128,8 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
                                           parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
-    Code::Handle(func.unoptimized_code())
-        .set_var_descriptors(Object::empty_var_descriptors());
+    NOT_IN_PRODUCT(Code::Handle(func.unoptimized_code())
+                       .set_var_descriptors(Object::empty_var_descriptors()));
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
@@ -3044,7 +2824,6 @@ Obfuscator::~Obfuscator() {
 void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
   // Prevent renaming of classes and method names mentioned in the
   // entry points lists.
-  PreventRenaming(vm_entry_points);
   PreventRenaming(isolate->embedder_entry_points());
 
 // Prevent renaming of all pseudo-keywords and operators.

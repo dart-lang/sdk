@@ -94,7 +94,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 64);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
-  CHECK_OFFSET(Isolate::object_store_offset(), 28);
+  CHECK_OFFSET(Isolate::object_store_offset(), 20);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
 #endif
 #if defined(TARGET_ARCH_ARM64)
@@ -103,7 +103,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 112);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
-  CHECK_OFFSET(Isolate::object_store_offset(), 56);
+  CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
 #endif
 #undef CHECK_OFFSET
@@ -135,12 +135,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     FLAG_verify_gc_contains = true;
   }
 #endif
-
-  if (FLAG_use_bytecode_compiler) {
-    // Interpreter is not able to trigger compilation yet.
-    // TODO(alexmarkov): Revise
-    FLAG_enable_interpreter = false;
-  }
 
   if (FLAG_enable_interpreter) {
 #if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
@@ -494,6 +488,7 @@ const char* Dart::Cleanup() {
   IdleNotifier::Cleanup();
 
   TargetCPUFeatures::Cleanup();
+  MarkingStack::ShutDown();
   StoreBuffer::ShutDown();
 
   // Delete the current thread's TLS and set it's TLS to null.

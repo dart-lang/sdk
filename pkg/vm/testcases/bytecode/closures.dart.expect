@@ -496,6 +496,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
+Nullable fields: [#lib::B::foo]
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0

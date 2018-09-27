@@ -39,7 +39,6 @@ constructor_reference_test/27: MissingCompileTimeError # Issue https://github.co
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
 dynamic_prefix_core_test/01: MissingCompileTimeError
@@ -102,26 +101,54 @@ issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
+issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
+issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
+issue34498_test: MissingCompileTimeError # Issue 34500
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
-mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError   # https://github.com/dart-lang/sdk/issues/34167
-mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError   # https://github.com/dart-lang/sdk/issues/34164
-mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError    # Analyzer chooses wrong(?) super method.
-mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
-mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
+mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_06_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_08_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_09_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_invalid_11_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
+mixin_declaration/mixin_declaration_inference_valid_A00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A20_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A21_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A22_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A23_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A30_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A31_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_A42_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B03_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_B13_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C00_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C01_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C02_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C03_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C10_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C11_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
+mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
-mixin_super_constructor_named_test/01: CompileTimeError # See issue 15101
-mixin_super_constructor_positionals_test/01: CompileTimeError # See issue 15101
 mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -163,14 +190,13 @@ stacktrace_test: RuntimeError # Issue 29920
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test/01: MissingCompileTimeError
-super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
-super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
+super_no_such_method1_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
+super_no_such_method2_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
+super_no_such_method3_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
 super_operator_index5_test: RuntimeError # 33470
 super_operator_index7_test: RuntimeError # 33470
 super_operator_index8_test: RuntimeError # 33470
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
@@ -191,35 +217,28 @@ type_promotion_functions_test/12: CompileTimeError # Issue 30895
 type_promotion_functions_test/13: CompileTimeError # Issue 30895
 type_promotion_functions_test/14: CompileTimeError # Issue 30895
 type_promotion_functions_test/none: CompileTimeError # Issue 30895
-type_variable_scope_test/none: CompileTimeError
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
 void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/call_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/final_local_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
 void/void_type_usage_test/final_local_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/global_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/global_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/global_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/global_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/local_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/local_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/local_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/local_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/param_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/paren_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/paren_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/paren_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/paren_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/sync_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
@@ -266,7 +285,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 function_propagation_test: RuntimeError
@@ -300,7 +318,26 @@ issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-mixin_declaration/*: Skip # need flag on Kernel Class nodes.
+mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError, Crash # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError, Crash # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_11_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/04: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/06: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/07: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_superinvocation_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
+mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/04: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/06: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
+mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
+mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -351,8 +388,6 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null_no_such_method_test: CompileTimeError # Issue 31533
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
 regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.

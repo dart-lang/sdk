@@ -1,3 +1,9 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/ambiguous_exports.dart:7:1: Error: 'main' is exported from both 'pkg/front_end/testcases/hello.dart' and 'pkg/front_end/testcases/map.dart'.
+// export 'map.dart' show main;
+// ^
+
 library;
 import self as self;
 

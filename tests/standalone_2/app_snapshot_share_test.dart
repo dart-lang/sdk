@@ -37,10 +37,6 @@ void main(List<String> args) {
       '--platform=$buildDir/vm_platform_strong.dill',
       '-o',
       scriptPathDill,
-      '--entry-points',
-      '$buildDir/gen/runtime/bin/precompiler_entry_points.json',
-      '--entry-points',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
       scriptPath,
     ];
     runSync("pkg/vm/tool/gen_kernel${Platform.isWindows ? '.bat' : ''}", args);

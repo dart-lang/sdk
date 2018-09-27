@@ -36,7 +36,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
   final CompilerOptions _options;
-  final CommonElements _commonElements;
+  final JCommonElements _commonElements;
   final CodegenWorldBuilder _worldBuilder;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;

@@ -28,6 +28,7 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -208,6 +209,22 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
+    }
+
+    // When training a snapshot, in addition to training regular analysis
+    // (above), we train build mode as well.
+    if (options.trainSnapshot) {
+      // TODO(devoncarew): Iterate on this training to make it more
+      // representative of what we see internally; call into _buildModeAnalyze()
+      // with some appropriate options.
+      print('\nGenerating strong mode summary...');
+      final Stopwatch stopwatch = new Stopwatch()..start();
+
+      new SummaryBuilder.forSdk(options.dartSdkPath).build();
+      new SummaryBuilder.forSdk(options.dartSdkPath).build();
+      new SummaryBuilder.forSdk(options.dartSdkPath).build();
+
+      print('Done in ${stopwatch.elapsedMilliseconds} ms.');
     }
 
     if (analysisDriver != null) {
@@ -564,8 +581,9 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     // If we have the analysis driver, and the new analysis options are the
     // same, we can reuse this analysis driver.
     if (analysisDriver != null &&
-        _equalAnalysisOptions(
-            analysisDriver.analysisOptions, analysisOptions)) {
+        AnalysisOptions.signaturesEqual(
+            analysisDriver.analysisOptions.signature,
+            analysisOptions.signature)) {
       return;
     }
 
@@ -643,21 +661,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     return null;
-  }
-
-  /// Return whether [a] and [b] options are equal for the purpose of
-  /// command line analysis.
-  bool _equalAnalysisOptions(AnalysisOptions a, AnalysisOptions b) {
-    return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
-        a.enableSuperMixins == b.enableSuperMixins &&
-        a.enableTiming == b.enableTiming &&
-        a.generateImplicitErrors == b.generateImplicitErrors &&
-        a.generateSdkErrors == b.generateSdkErrors &&
-        a.hint == b.hint &&
-        a.lint == b.lint &&
-        AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
-        a.preserveComments == b.preserveComments &&
-        a.useFastaParser == b.useFastaParser;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {

@@ -1111,7 +1111,7 @@ class AstBuilder extends StackListener {
       if (variableOrDeclaration is! SimpleIdentifier) {
         // Parser has already reported the error.
         if (!leftParenthesis.next.isIdentifier) {
-          parser.rewriter.insertTokenAfter(
+          parser.rewriter.insertToken(
               leftParenthesis,
               new SyntheticStringToken(
                   TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
@@ -1305,15 +1305,37 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchCase");
 
     List<Statement> statements = popTypedList(statementCount);
-    List<SwitchMember> members = popTypedList(expressionCount) ?? [];
-    List<Label> labels = popTypedList(labelCount);
-    if (defaultKeyword != null) {
-      members.add(ast.switchDefault(
-          <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]));
+    List<SwitchMember> members;
+
+    if (labelCount == 0 && defaultKeyword == null) {
+      // Common situation: case with no default and no labels.
+      members = popTypedList<SwitchMember>(expressionCount) ?? [];
+    } else {
+      // Labels and case statements may be intertwined
+      if (defaultKeyword != null) {
+        SwitchDefault member = ast.switchDefault(
+            <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]);
+        while (peek() is Label) {
+          member.labels.insert(0, pop());
+          --labelCount;
+        }
+        members = new List<SwitchMember>(expressionCount + 1);
+        members[expressionCount] = member;
+      } else {
+        members = new List<SwitchMember>(expressionCount);
+      }
+      for (int index = expressionCount - 1; index >= 0; --index) {
+        SwitchMember member = pop();
+        while (peek() is Label) {
+          member.labels.insert(0, pop());
+          --labelCount;
+        }
+        members[index] = member;
+      }
+      assert(labelCount == 0);
     }
     if (members.isNotEmpty) {
       members.last.statements.addAll(statements);
-      members.first.labels.addAll(labels);
     }
     push(members);
   }
@@ -2813,6 +2835,11 @@ class AstBuilder extends StackListener {
   @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
+  }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
   }
 }
 

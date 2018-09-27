@@ -10,6 +10,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/timeline.h"
 
@@ -48,6 +49,15 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
+  const int kHasExceptionsTableFlag = 1 << 0;
+  const int kHasNullableFieldsFlag = 1 << 1;
+  const int kHasClosuresFlag = 1 << 2;
+
+  const intptr_t flags = helper_->reader_.ReadUInt();
+  const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
+  const bool has_nullable_fields = (flags & kHasNullableFieldsFlag) != 0;
+  const bool has_closures = (flags & kHasClosuresFlag) != 0;
+
   // Create object pool and read pool entries.
   const intptr_t obj_count = helper_->reader_.ReadListLength();
   const ObjectPool& pool =
@@ -68,30 +78,51 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   function.AttachBytecode(bytecode);
 
   // Read exceptions table.
-  ReadExceptionsTable(bytecode);
+  ReadExceptionsTable(bytecode, has_exceptions_table);
 
   if (FLAG_dump_kernel_bytecode) {
     KernelBytecodeDisassembler::Disassemble(function);
   }
 
+  // Initialization of fields with null literal is elided from bytecode.
+  // Record the corresponding stores if field guards are enabled.
+  if (has_nullable_fields) {
+    ASSERT(function.IsGenerativeConstructor());
+    const intptr_t num_fields = helper_->ReadListLength();
+    if (I->use_field_guards()) {
+      Field& field = Field::Handle(helper_->zone_);
+      for (intptr_t i = 0; i < num_fields; i++) {
+        NameIndex name_index = helper_->ReadCanonicalNameReference();
+        field = H.LookupFieldByKernelField(name_index);
+        field.RecordStore(Object::null_object());
+      }
+    } else {
+      for (intptr_t i = 0; i < num_fields; i++) {
+        helper_->SkipCanonicalNameReference();
+      }
+    }
+  }
+
   // Read closures.
-  Function& closure = Function::Handle(helper_->zone_);
-  Code& closure_bytecode = Code::Handle(helper_->zone_);
-  intptr_t num_closures = helper_->ReadListLength();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    intptr_t closure_index = helper_->ReadUInt();
-    ASSERT(closure_index < obj_count);
-    closure ^= pool.ObjectAt(closure_index);
+  if (has_closures) {
+    Function& closure = Function::Handle(helper_->zone_);
+    Code& closure_bytecode = Code::Handle(helper_->zone_);
+    const intptr_t num_closures = helper_->ReadListLength();
+    for (intptr_t i = 0; i < num_closures; i++) {
+      intptr_t closure_index = helper_->ReadUInt();
+      ASSERT(closure_index < obj_count);
+      closure ^= pool.ObjectAt(closure_index);
 
-    // Read closure bytecode and attach to closure function.
-    closure_bytecode = ReadBytecode(pool);
-    closure.AttachBytecode(closure_bytecode);
+      // Read closure bytecode and attach to closure function.
+      closure_bytecode = ReadBytecode(pool);
+      closure.AttachBytecode(closure_bytecode);
 
-    // Read closure exceptions table.
-    ReadExceptionsTable(closure_bytecode);
+      // Read closure exceptions table.
+      ReadExceptionsTable(closure_bytecode);
 
-    if (FLAG_dump_kernel_bytecode) {
-      KernelBytecodeDisassembler::Disassemble(closure);
+      if (FLAG_dump_kernel_bytecode) {
+        KernelBytecodeDisassembler::Disassemble(closure);
+      }
     }
   }
 }
@@ -579,13 +610,15 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
                                 pool);
 }
 
-void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
+void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode,
+                                                 bool has_exceptions_table) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadExceptionsTable");
 #endif  // !defined(PRODUCT)
 
-  const intptr_t try_block_count = helper_->reader_.ReadListLength();
+  const intptr_t try_block_count =
+      has_exceptions_table ? helper_->reader_.ReadListLength() : 0;
   if (try_block_count > 0) {
     const ObjectPool& pool =
         ObjectPool::Handle(helper_->zone_, bytecode.object_pool());
@@ -709,6 +742,57 @@ RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
     argc_tag = NativeArguments::ComputeArgcTag(function);
   }
   return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
+}
+
+RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
+                                               const Function& function) {
+  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!function.HasBytecode());
+  ASSERT(thread->sticky_error() == Error::null());
+
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    StackZone stack_zone(thread);
+    Zone* const zone = stack_zone.GetZone();
+    HANDLESCOPE(thread);
+    CompilerState compiler_state(thread);
+
+    const Script& script = Script::Handle(zone, function.script());
+    TranslationHelper translation_helper(thread);
+    translation_helper.InitFromScript(script);
+
+    KernelReaderHelper reader_helper(
+        zone, &translation_helper, script,
+        ExternalTypedData::Handle(zone, function.KernelData()),
+        function.KernelDataProgramOffset());
+    ActiveClass active_class;
+    TypeTranslator type_translator(&reader_helper, &active_class,
+                                   /* finalize= */ true);
+
+    BytecodeMetadataHelper bytecode_metadata_helper(
+        &reader_helper, &type_translator, &active_class);
+
+    // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+    // e.g. for type translation.
+    const Class& klass = Class::Handle(zone, function.Owner());
+    Function& outermost_function =
+        Function::Handle(zone, function.GetOutermostFunction());
+
+    ActiveClassScope active_class_scope(&active_class, &klass);
+    ActiveMemberScope active_member(&active_class, &outermost_function);
+    ActiveTypeParametersScope active_type_params(&active_class, function, zone);
+
+    bytecode_metadata_helper.ReadMetadata(function);
+
+    return Error::null();
+  } else {
+    StackZone stack_zone(thread);
+    Error& error = Error::Handle();
+    // We got an error during bytecode reading.
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
 }
 
 }  // namespace kernel

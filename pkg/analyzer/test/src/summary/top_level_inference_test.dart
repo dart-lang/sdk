@@ -697,7 +697,7 @@ var t1 = x;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-int t1;
+dynamic t1;
 ''');
   }
 

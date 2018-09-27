@@ -2376,6 +2376,7 @@ class Function : public Object {
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  bool IsBytecodeAllowed(Zone* zone) const;
   void AttachBytecode(const Code& bytecode) const;
   RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
   bool HasBytecode() const;
@@ -4100,6 +4101,10 @@ class Library : public Object {
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
   static RawError* ParseAll(Thread* thread);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Eagerly read all bytecode.
+  static RawError* ReadAllBytecode();
+#endif
 
 #if defined(DART_NO_SNAPSHOT)
   // Checks function fingerprints. Prints mismatches and aborts if
@@ -5121,7 +5126,7 @@ class Code : public Object {
   void set_comments(const Comments& comments) const;
 
   RawObject* return_address_metadata() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
     return NULL;
 #else
@@ -5162,7 +5167,7 @@ class Code : public Object {
   void DumpSourcePositions() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
     return NULL;
 #else
@@ -5170,7 +5175,7 @@ class Code : public Object {
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
@@ -5258,7 +5263,7 @@ class Code : public Object {
   const char* QualifiedName() const;
 
   int64_t compile_timestamp() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     return 0;
 #else
     return raw_ptr()->compile_timestamp_;
@@ -5324,7 +5329,7 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
     UNREACHABLE();
 #else
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
@@ -9292,8 +9297,9 @@ class WeakProperty : public Instance {
 
   static void Clear(RawWeakProperty* raw_weak) {
     ASSERT(raw_weak->ptr()->next_ == 0);
-    raw_weak->StorePointer(&(raw_weak->ptr()->key_), Object::null());
-    raw_weak->StorePointer(&(raw_weak->ptr()->value_), Object::null());
+    // This action is performed by the GC. No barrier.
+    raw_weak->ptr()->key_ = Object::null();
+    raw_weak->ptr()->value_ = Object::null();
   }
 
  private:

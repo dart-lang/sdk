@@ -80,6 +80,8 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   KernelTypeBuilder mixedInType;
 
+  bool isMixinDeclaration;
+
   SourceClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -94,8 +96,9 @@ class SourceClassBuilder extends KernelClassBuilder {
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      [ShadowClass cls,
-      this.mixedInType])
+      {Class cls,
+      this.mixedInType,
+      this.isMixinDeclaration = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -113,18 +116,23 @@ class SourceClassBuilder extends KernelClassBuilder {
     void buildBuilders(String name, Declaration declaration) {
       do {
         if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
+          if (fileUri != declaration.parent.fileUri) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+                charOffset, fileUri);
+          }
         } else if (declaration is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           Member field = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
         } else {
@@ -141,6 +149,7 @@ class SourceClassBuilder extends KernelClassBuilder {
         supertype?.buildSupertype(library, charOffset, fileUri);
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;

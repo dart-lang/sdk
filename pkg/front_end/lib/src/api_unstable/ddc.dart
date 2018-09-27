@@ -69,7 +69,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
     ..reportMessages = true;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
   return new InitializedCompilerState(options, processedOpts);
 }

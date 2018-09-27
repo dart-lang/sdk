@@ -81,10 +81,6 @@ static SnapshotKind snapshot_kind = kCore;
 // of a generic snapshot that contains only the corelibs).
 static char* app_script_name = NULL;
 
-// Global state that captures the entry point manifest files specified on the
-// command line.
-static CommandLineOptions* entry_points_files = NULL;
-
 // The environment provided through the command line using -D options.
 static dart::SimpleHashMap* environment = NULL;
 
@@ -138,8 +134,12 @@ BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
 #undef BOOL_OPTION_DEFINITION
 
 DEFINE_ENUM_OPTION(snapshot_kind, SnapshotKind, snapshot_kind);
-DEFINE_STRING_OPTION_CB(embedder_entry_points_manifest,
-                        { entry_points_files->AddArgument(value); });
+DEFINE_STRING_OPTION_CB(embedder_entry_points_manifest, {
+  Log::PrintErr(
+      "Option --embedder_entry_points_manifest is no longer supported."
+      " Use @pragma(\'vm:entry-point\') instead.\n");
+  exit(kErrorExitCode);
+});
 DEFINE_STRING_OPTION_CB(url_mapping,
                         { DartUtils::url_mapping->AddArgument(value); });
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
@@ -203,7 +203,6 @@ static void PrintUsage() {
 "--vm_snapshot_instructions=<output-file>                                    \n"
 "--isolate_snapshot_data=<output-file>                                       \n"
 "--isolate_snapshot_instructions=<output-file>                               \n"
-"{--embedder_entry_points_manifest=<input-file>}                             \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 " <dart-script-file>                                                         \n"
@@ -212,21 +211,9 @@ static void PrintUsage() {
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
 "--assembly=<output-file>                                                    \n"
-"{--embedder_entry_points_manifest=<input-file>}                             \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-script-file>                                                          \n"
-"                                                                            \n"
-"AOT snapshots require entry points manifest files, which list the places    \n"
-"in the Dart program the embedder calls from the C API (Dart_Invoke, etc).   \n"
-"Not specifying these may cause the tree shaker to remove them from the      \n"
-"program. The format of this manifest is as follows. Each line in the        \n"
-"manifest is a comma separated list of three elements. The first entry is    \n"
-"the library URI, the second entry is the class name and the final entry     \n"
-"the function name. The file must be terminated with a newline character.    \n"
-"                                                                            \n"
-"Example:                                                                    \n"
-"    dart:something,SomeClass,doSomething                                    \n"
 "                                                                            \n"
 "AOT snapshots can be obfuscated: that is all identifiers will be renamed    \n"
 "during compilation. This mode is enabled with --obfuscate flag. Mapping     \n"
@@ -776,300 +763,6 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
   return lib;
 }
 
-static void LoadEntryPoint(size_t lib_index,
-                           const Dart_QualifiedFunctionName* entry) {
-  if (strcmp(entry->library_uri, "::") == 0) {
-    return;  // Root library always loaded; can't `import '::';`.
-  }
-
-  Dart_Handle library_string = Dart_NewStringFromCString(entry->library_uri);
-  DART_CHECK_VALID(library_string);
-  Dart_Handle library = Dart_LookupLibrary(library_string);
-  // Embedder entry points may be setup in libraries that have not been
-  // explicitly loaded by the application script. In such cases, library lookup
-  // will fail. Manually load those libraries.
-  if (Dart_IsError(library)) {
-    static const uint32_t kLoadBufferMaxSize = 128;
-    char* load_buffer =
-        reinterpret_cast<char*>(calloc(kLoadBufferMaxSize, sizeof(char)));
-    snprintf(load_buffer, kLoadBufferMaxSize, "import '%s';",
-             DartUtils::GetStringValue(library_string));
-    Dart_Handle script_handle = Dart_NewStringFromCString(load_buffer);
-    memset(load_buffer, 0, kLoadBufferMaxSize);
-    snprintf(load_buffer, kLoadBufferMaxSize, "dart:_snapshot_%zu", lib_index);
-    Dart_Handle script_url = Dart_NewStringFromCString(load_buffer);
-    free(load_buffer);
-    Dart_Handle loaded =
-        Dart_LoadLibrary(script_url, Dart_Null(), script_handle, 0, 0);
-    DART_CHECK_VALID(loaded);
-
-    // Do a fresh lookup
-    library = Dart_LookupLibrary(library_string);
-  }
-
-  DART_CHECK_VALID(library);
-}
-
-static void ImportNativeEntryPointLibrariesIntoRoot(
-    const Dart_QualifiedFunctionName* entries) {
-  if (entries == NULL) {
-    return;
-  }
-
-  size_t index = 0;
-  while (true) {
-    Dart_QualifiedFunctionName entry = entries[index++];
-    if (entry.library_uri == NULL) {
-      // The termination sentinel has null members.
-      break;
-    }
-    if (strcmp(entry.library_uri, "::") != 0) {
-      Dart_Handle entry_library =
-          Dart_LookupLibrary(Dart_NewStringFromCString(entry.library_uri));
-      DART_CHECK_VALID(entry_library);
-      Dart_Handle import_result = Dart_LibraryImportLibrary(
-          entry_library, Dart_RootLibrary(), Dart_EmptyString());
-      DART_CHECK_VALID(import_result);
-    }
-  }
-}
-
-static void LoadEntryPoints(const Dart_QualifiedFunctionName* entries) {
-  if (entries == NULL) {
-    return;
-  }
-
-  // Setup native resolvers for all libraries found in the manifest.
-  size_t index = 0;
-  while (true) {
-    Dart_QualifiedFunctionName entry = entries[index++];
-    if (entry.library_uri == NULL) {
-      // The termination sentinel has null members.
-      break;
-    }
-    // Ensure library named in entry point is loaded.
-    LoadEntryPoint(index, &entry);
-  }
-}
-
-static void CleanupEntryPointItem(const Dart_QualifiedFunctionName* entry) {
-  if (entry == NULL) {
-    return;
-  }
-  // The allocation used for these entries is zero'ed. So even in error cases,
-  // references to some entries will be null. Calling this on an already cleaned
-  // up entry is programmer error.
-  free(const_cast<char*>(entry->library_uri));
-  free(const_cast<char*>(entry->class_name));
-  free(const_cast<char*>(entry->function_name));
-}
-
-static void CleanupEntryPointsCollection(Dart_QualifiedFunctionName* entries) {
-  if (entries == NULL) {
-    return;
-  }
-
-  size_t index = 0;
-  while (true) {
-    Dart_QualifiedFunctionName entry = entries[index++];
-    if (entry.library_uri == NULL) {
-      break;
-    }
-    CleanupEntryPointItem(&entry);
-  }
-  free(entries);
-}
-
-char* ParserErrorStringCreate(const char* format, ...) {
-  static const size_t kErrorBufferSize = 256;
-
-  char* error_buffer =
-      reinterpret_cast<char*>(calloc(kErrorBufferSize, sizeof(char)));
-  va_list args;
-  va_start(args, format);
-  vsnprintf(error_buffer, kErrorBufferSize, format, args);
-  va_end(args);
-
-  // In case of error, the buffer is released by the caller
-  return error_buffer;
-}
-
-const char* ParseEntryNameForIndex(uint8_t index) {
-  switch (index) {
-    case 0:
-      return "Library";
-    case 1:
-      return "Class";
-    case 2:
-      return "Function";
-    default:
-      return "Unknown";
-  }
-  return NULL;
-}
-
-static bool ParseEntryPointsManifestSingleLine(
-    const char* line,
-    Dart_QualifiedFunctionName* entry,
-    char** error) {
-  bool success = true;
-  size_t offset = 0;
-  for (uint8_t i = 0; i < 3; i++) {
-    const char* component = strchr(line + offset, i == 2 ? '\n' : ',');
-    if (component == NULL) {
-      success = false;
-      *error = ParserErrorStringCreate(
-          "Manifest entries must be comma separated and newline terminated. "
-          "Could not parse '%s' on line '%s'",
-          ParseEntryNameForIndex(i), line);
-      break;
-    }
-
-    int64_t chars_read = component - (line + offset);
-    if (chars_read <= 0) {
-      success = false;
-      *error =
-          ParserErrorStringCreate("There is no '%s' specified on line '%s'",
-                                  ParseEntryNameForIndex(i), line);
-      break;
-    }
-
-    if (entry != NULL) {
-      // These allocations are collected in |CleanupEntryPointsCollection|.
-      char* entry_item =
-          reinterpret_cast<char*>(calloc(chars_read + 1, sizeof(char)));
-      memmove(entry_item, line + offset, chars_read);
-
-      switch (i) {
-        case 0:  // library
-          entry->library_uri = entry_item;
-          break;
-        case 1:  // class
-          entry->class_name = entry_item;
-          break;
-        case 2:  // function
-          entry->function_name = entry_item;
-          break;
-        default:
-          free(entry_item);
-          success = false;
-          *error = ParserErrorStringCreate("Internal parser error\n");
-          break;
-      }
-    }
-
-    offset += chars_read + 1;
-  }
-  return success;
-}
-
-int64_t ParseEntryPointsManifestLines(FILE* file,
-                                      Dart_QualifiedFunctionName* collection) {
-  int64_t entries = 0;
-
-  static const int kManifestMaxLineLength = 1024;
-  char* line = reinterpret_cast<char*>(malloc(kManifestMaxLineLength));
-  size_t line_number = 0;
-  while (true) {
-    line_number++;
-    char* read_line = fgets(line, kManifestMaxLineLength, file);
-
-    if (read_line == NULL) {
-      if ((feof(file) != 0) && (ferror(file) != 0)) {
-        Log::PrintErr(
-            "Error while reading line number %zu. The manifest must be "
-            "terminated by a newline\n",
-            line_number);
-        entries = -1;
-      }
-      break;
-    }
-
-    if ((read_line[0] == '\n') || (read_line[0] == '#')) {
-      // Blank or comment line.
-      continue;
-    }
-
-    Dart_QualifiedFunctionName* entry =
-        collection != NULL ? collection + entries : NULL;
-
-    char* error_buffer = NULL;
-    if (!ParseEntryPointsManifestSingleLine(read_line, entry, &error_buffer)) {
-      CleanupEntryPointItem(entry);
-      Log::PrintErr("Parser error on line %zu: %s\n", line_number,
-                    error_buffer);
-      free(error_buffer);
-      entries = -1;
-      break;
-    }
-
-    entries++;
-  }
-
-  free(line);
-
-  return entries;
-}
-
-static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
-  // Total number of entries across all manifest files.
-  int64_t entry_count = 0;
-
-  // Parse the files once but don't store the results. This is done to first
-  // determine the number of entries in the manifest
-  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
-    const char* path = entry_points_files->GetArgument(i);
-
-    FILE* file = fopen(path, "r");
-
-    if (file == NULL) {
-      Log::PrintErr("Could not open entry points manifest file `%s`\n", path);
-      return NULL;
-    }
-
-    int64_t entries = ParseEntryPointsManifestLines(file, NULL);
-    fclose(file);
-
-    if (entries < 0) {
-      Log::PrintErr("Manifest file `%s` specified is invalid\n", path);
-      return NULL;
-    }
-
-    entry_count += entries;
-  }
-
-  // Allocate enough storage for the entries in the file plus a termination
-  // sentinel and parse it again to populate the allocation
-  Dart_QualifiedFunctionName* entries =
-      reinterpret_cast<Dart_QualifiedFunctionName*>(
-          calloc(entry_count + 1, sizeof(Dart_QualifiedFunctionName)));
-
-  int64_t parsed_entry_count = 0;
-  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
-    const char* path = entry_points_files->GetArgument(i);
-    FILE* file = fopen(path, "r");
-    parsed_entry_count +=
-        ParseEntryPointsManifestLines(file, &entries[parsed_entry_count]);
-    fclose(file);
-  }
-
-  ASSERT(parsed_entry_count == entry_count);
-
-  // The entries allocation must be explicitly cleaned up via
-  // |CleanupEntryPointsCollection|
-  return entries;
-}
-
-static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
-  Dart_QualifiedFunctionName* entries = ParseEntryPointsManifestFiles();
-  if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
-    Log::PrintErr(
-        "Could not find native embedder entry points during precompilation\n");
-    exit(kErrorExitCode);
-  }
-  return entries;
-}
-
 static void LoadCompilationTrace() {
   if ((load_compilation_trace_filename != NULL) &&
       (snapshot_kind == kCoreJIT)) {
@@ -1201,13 +894,12 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
   return std::unique_ptr<MappedMemory>(mapping);
 }
 
-static void CreateAndWritePrecompiledSnapshot(
-    Dart_QualifiedFunctionName* standalone_entry_points) {
+static void CreateAndWritePrecompiledSnapshot() {
   ASSERT(IsSnapshottingForPrecompilation());
   Dart_Handle result;
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile(standalone_entry_points);
+  result = Dart_Precompile();
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.
@@ -1352,6 +1044,10 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   return isolate;
 }
 
+static Dart_QualifiedFunctionName no_entry_points[] = {
+    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
+};
+
 static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
                                       intptr_t kernel_buffer_size) {
   ASSERT(SnapshotKindAllowedFromKernel());
@@ -1366,11 +1062,9 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
 
-  Dart_QualifiedFunctionName* entry_points = NULL;
   if (IsSnapshottingForPrecompilation()) {
-    entry_points = ParseEntryPointsManifestIfPresent();
     isolate_flags.obfuscate = obfuscate;
-    isolate_flags.entry_points = entry_points;
+    isolate_flags.entry_points = no_entry_points;
   }
 
   // We need to capture the vmservice library in the core snapshot, so load it
@@ -1418,11 +1112,9 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
         return kErrorExitCode;
       }
 
-      CreateAndWritePrecompiledSnapshot(entry_points);
+      CreateAndWritePrecompiledSnapshot();
 
       CreateAndWriteDependenciesFile();
-
-      CleanupEntryPointsCollection(entry_points);
 
       break;
     }
@@ -1455,10 +1147,6 @@ int main(int argc, char** argv) {
   // Initialize the URL mapping array.
   CommandLineOptions cmdline_url_mapping(argc);
   DartUtils::url_mapping = &cmdline_url_mapping;
-
-  // Initialize the entrypoints array.
-  CommandLineOptions entry_points_files_array(argc);
-  entry_points_files = &entry_points_files_array;
 
   // When running from the command line we assume that we are optimizing for
   // throughput, and therefore use a larger new gen semi space size and a faster
@@ -1594,9 +1282,6 @@ int main(int argc, char** argv) {
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
 
-  Dart_QualifiedFunctionName* entry_points =
-      ParseEntryPointsManifestIfPresent();
-
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
@@ -1662,7 +1347,7 @@ int main(int argc, char** argv) {
 
     if (IsSnapshottingForPrecompilation()) {
       flags.obfuscate = obfuscate;
-      flags.entry_points = entry_points;
+      flags.entry_points = no_entry_points;
     }
 
     Dart_Isolate isolate = NULL;
@@ -1689,16 +1374,9 @@ int main(int argc, char** argv) {
 
     ASSERT(kernel_buffer == NULL);
 
-    // Load any libraries named in the entry points. Do this before loading the
-    // user's script to ensure conditional imports see the embedder-specific
-    // dart: libraries.
-    LoadEntryPoints(entry_points);
-
     // Load the specified script.
     library = LoadSnapshotCreationScript(app_script_name);
     CHECK_RESULT(library);
-
-    ImportNativeEntryPointLibrariesIntoRoot(entry_points);
 
     // Ensure that we mark all libraries as loaded.
     result = Dart_FinalizeLoading(false);
@@ -1718,7 +1396,7 @@ int main(int argc, char** argv) {
         break;
       case kAppAOTBlobs:
       case kAppAOTAssembly:
-        CreateAndWritePrecompiledSnapshot(entry_points);
+        CreateAndWritePrecompiledSnapshot();
         break;
       default:
         UNREACHABLE();
@@ -1728,8 +1406,6 @@ int main(int argc, char** argv) {
 
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-
-    CleanupEntryPointsCollection(entry_points);
 
     Dart_EnterIsolate(UriResolverIsolateScope::isolate);
     Dart_ShutdownIsolate();

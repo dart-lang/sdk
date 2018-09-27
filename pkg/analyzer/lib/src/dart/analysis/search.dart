@@ -378,8 +378,6 @@ class Search {
    */
   Future<List<SubtypeResult>> subtypes(
       {ClassElement type, SubtypeResult subtype}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String name;
     String id;
     if (type != null) {
@@ -395,23 +393,14 @@ class Search {
     final List<SubtypeResult> results = [];
 
     // Note, this is a defensive copy.
-    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+    var files = _driver.fsState.getFilesSubtypingName(name)?.toList();
 
-    for (FileState file in knownFiles) {
-      if (file.subtypedNames.contains(name)) {
+    if (files != null) {
+      for (FileState file in files) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
         if (index != null) {
-          for (AnalysisDriverSubtype subtype in index.subtypes) {
-            if (subtype.supertypes.contains(id)) {
-              FileState library = file.library ?? file;
-              results.add(new SubtypeResult(
-                library.uriStr,
-                '${library.uriStr};${file.uriStr};${subtype.name}',
-                subtype.name,
-                subtype.members,
-              ));
-            }
-          }
+          var request = new _IndexRequest(index);
+          request.addSubtypes(id, results, file);
         }
       }
     }
@@ -986,6 +975,32 @@ class _IndexRequest {
   final AnalysisDriverUnitIndex index;
 
   _IndexRequest(this.index);
+
+  void addSubtypes(
+      String superIdString, List<SubtypeResult> results, FileState file) {
+    var superId = getStringId(superIdString);
+    if (superId == -1) {
+      return;
+    }
+
+    var superIndex = _findFirstOccurrence(index.supertypes, superId);
+    if (superIndex == -1) {
+      return;
+    }
+
+    var library = file.library ?? file;
+    for (; index.supertypes[superIndex] == superId; superIndex++) {
+      var subtype = index.subtypes[superIndex];
+      var name = index.strings[subtype.name];
+      var subId = '${library.uriStr};${file.uriStr};$name';
+      results.add(new SubtypeResult(
+        library.uriStr,
+        subId,
+        name,
+        subtype.members.map((m) => index.strings[m]).toList(),
+      ));
+    }
+  }
 
   /**
    * Return the [element]'s identifier in the [index] or `-1` if the

@@ -65,6 +65,9 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
     "The number of tasks to use for parallel compaction.")                     \
+  P(compilation_counter_threshold, int, 10,                                    \
+    "Function's usage-counter value before interpreted function is compiled, " \
+    "-1 means never")                                                          \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
@@ -114,7 +117,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
-  R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,       \
+  P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
   P(max_polymorphic_checks, int, 4,                                            \
@@ -138,9 +141,6 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
-  P(print_precompiler_entry_points, charp, NULL,                               \
-    "Print entry points and info about recognized methods used by "            \
-    "precompiler.")                                                            \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \

@@ -59,6 +59,12 @@ int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
+# These tests crash in mixed mode.
+[ $compiler == dartkb ]
+bigint_from_test: Pass, Crash # Please triage
+bigint_parse_radix_test: Pass, Crash # Please triage
+bigint_test: Pass, Crash, RuntimeError # Please triage
+
 [ $compiler == precompiler ]
 bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
@@ -400,6 +406,9 @@ string_from_environment3_test/05: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_test/01: MissingCompileTimeError
 
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
+
 # Sections for dartk and dartkp.
 #
 # Note: these sections are normalized so we can update them with automated
@@ -414,7 +423,7 @@ symbol_test/01: MissingCompileTimeError
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
-[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 || $compiler == dartkb ]
 bigint_parse_radix_test: Pass, Slow # Bigint computations are slow on simulated architectures.
 bigint_test: Pass, Slow, Timeout # Bigint computations are slow on simulated architectures.
 

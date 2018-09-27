@@ -483,7 +483,9 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
       [Uri initializeFrom])
-      : super(new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+      : super(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom);
 
   @override

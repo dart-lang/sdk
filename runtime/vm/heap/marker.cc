@@ -21,16 +21,29 @@
 
 namespace dart {
 
-class SkippedCodeFunctions : public ZoneAllocated {
+// Collects a list of RawFunction whose code_ or unoptimized_code_ slots were
+// treated as weak (not visited) during marking because they had low usage.
+// These slots (and the corresponding entry_point_ caches) must be cleared after
+// marking if the target RawCode were not otherwise marked. (--collect-code)
+class SkippedCodeFunctions {
  public:
   SkippedCodeFunctions() {}
 
-  void Add(RawFunction* func) { skipped_code_functions_.Add(func); }
+  void Add(RawFunction* func) {
+    // With concurrent mark, we hold raw pointers across safepoints.
+    ASSERT(func->IsOldObject());
+
+    skipped_code_functions_.Add(func);
+  }
 
   void DetachCode() {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
+    Thread* thread = Thread::Current();
+    StackZone zone(thread);  // For log prints.
+    HANDLESCOPE(thread);
+
     intptr_t unoptimized_code_count = 0;
     intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
@@ -81,7 +94,7 @@ class SkippedCodeFunctions : public ZoneAllocated {
   }
 
  private:
-  GrowableArray<RawFunction*> skipped_code_functions_;
+  MallocGrowableArray<RawFunction*> skipped_code_functions_;
 
   DISALLOW_COPY_AND_ASSIGN(SkippedCodeFunctions);
 };
@@ -110,6 +123,8 @@ class MarkerWorkList : public ValueObject {
       }
       marking_stack_->PushBlock(work_);
       work_ = new_work;
+      // Generated code appends to marking stacks; tell MemorySanitizer.
+      MSAN_UNPOISON(work_, sizeof(*work_));
     }
     return work_->Pop();
   }
@@ -132,6 +147,12 @@ class MarkerWorkList : public ValueObject {
     marking_stack_ = NULL;
   }
 
+  void AbandonWork() {
+    marking_stack_->PushBlock(work_);
+    work_ = NULL;
+    marking_stack_ = NULL;
+  }
+
  private:
   MarkingStack::Block* work_;
   MarkingStack* marking_stack_;
@@ -147,26 +168,36 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
 #ifndef PRODUCT
-        class_stats_count_(isolate->class_table()->NumCids()),
-        class_stats_size_(isolate->class_table()->NumCids()),
+        num_classes_(isolate->class_table()->Capacity()),
+        class_stats_count_(new intptr_t[num_classes_]),
+        class_stats_size_(new intptr_t[num_classes_]),
 #endif  // !PRODUCT
         page_space_(page_space),
         work_list_(marking_stack),
         delayed_weak_properties_(NULL),
         skipped_code_functions_(skipped_code_functions),
-        marked_bytes_(0) {
+        marked_bytes_(0),
+        marked_micros_(0) {
     ASSERT(thread_->isolate() == isolate);
 #ifndef PRODUCT
-    class_stats_count_.SetLength(isolate->class_table()->NumCids());
-    class_stats_size_.SetLength(isolate->class_table()->NumCids());
-    for (intptr_t i = 0; i < class_stats_count_.length(); ++i) {
+    for (intptr_t i = 0; i < num_classes_; i++) {
       class_stats_count_[i] = 0;
       class_stats_size_[i] = 0;
     }
 #endif  // !PRODUCT
   }
 
+  ~MarkingVisitorBase() {
+    delete skipped_code_functions_;
+#ifndef PRODUCT
+    delete[] class_stats_count_;
+    delete[] class_stats_size_;
+#endif  // !PRODUCT
+  }
+
   uintptr_t marked_bytes() const { return marked_bytes_; }
+  int64_t marked_micros() const { return marked_micros_; }
+  void AddMicros(int64_t micros) { marked_micros_ += micros; }
 
 #ifndef PRODUCT
   intptr_t live_count(intptr_t class_id) {
@@ -298,12 +329,12 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  void AbandonWork() { work_list_.AbandonWork(); }
+
  private:
   void PushMarked(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
-    ASSERT((FLAG_verify_gc_contains)
-               ? page_space_->Contains(RawObject::ToAddr(raw_obj))
-               : true);
+    ASSERT(raw_obj->IsOldObject());
 
     // Push the marked object on the marking stack.
     ASSERT(raw_obj->IsMarked());
@@ -312,8 +343,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   static bool TryAcquireMarkBit(RawObject* raw_obj) {
     // While it might seem this is redundant with TryAcquireMarkBit, we must
-    // do this check first to avoid attempting an AMO on the read-only
-    // vm-isolate or image pages.
+    // do this check first to avoid attempting an atomic::fetch_and on the
+    // read-only vm-isolate or image pages, which can fault even if there is no
+    // change in the value.
     if (raw_obj->IsMarked()) return false;
 
     if (!sync) {
@@ -330,6 +362,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
+    ASSERT(raw_obj->GetClassId() != kFreeListElement);
+
     if (!TryAcquireMarkBit(raw_obj)) {
       // Already marked.
       return;
@@ -340,8 +374,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
 #ifndef PRODUCT
   void UpdateLiveOld(intptr_t class_id, intptr_t size) {
-    // TODO(koda): Support growing the array once mutator runs concurrently.
-    ASSERT(class_id < class_stats_count_.length());
+    ASSERT(class_id < num_classes_);
     class_stats_count_[class_id] += 1;
     class_stats_size_[class_id] += size;
   }
@@ -349,14 +382,16 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   Thread* thread_;
 #ifndef PRODUCT
-  GrowableArray<intptr_t> class_stats_count_;
-  GrowableArray<intptr_t> class_stats_size_;
+  intptr_t num_classes_;
+  intptr_t* class_stats_count_;
+  intptr_t* class_stats_size_;
 #endif  // !PRODUCT
   PageSpace* page_space_;
   MarkerWorkList work_list_;
   RawWeakProperty* delayed_weak_properties_;
   SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
+  int64_t marked_micros_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
@@ -407,13 +442,13 @@ class MarkingWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
-void GCMarker::Prologue(Isolate* isolate) {
-  isolate->PrepareForGC();
+void GCMarker::Prologue() {
+  isolate_->ReleaseStoreBuffers();
 }
 
-void GCMarker::Epilogue(Isolate* isolate) {
+void GCMarker::Epilogue() {
   // Filter collected objects from the remembered set.
-  StoreBuffer* store_buffer = isolate->store_buffer();
+  StoreBuffer* store_buffer = isolate_->store_buffer();
   StoreBufferBlock* reading = store_buffer->Blocks();
   StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
   while (reading != NULL) {
@@ -440,15 +475,14 @@ void GCMarker::Epilogue(Isolate* isolate) {
   store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
 }
 
-void GCMarker::IterateRoots(Isolate* isolate,
-                            ObjectPointerVisitor* visitor,
+void GCMarker::IterateRoots(ObjectPointerVisitor* visitor,
                             intptr_t slice_index,
                             intptr_t num_slices) {
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessRoots");
-    isolate->VisitObjectPointers(visitor,
-                                 ValidationPolicy::kDontValidateFrames);
+    isolate_->VisitObjectPointers(visitor,
+                                  ValidationPolicy::kDontValidateFrames);
   }
   if ((slice_index == 1) || (num_slices <= 1)) {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
@@ -459,10 +493,10 @@ void GCMarker::IterateRoots(Isolate* isolate,
   // slices are empty.
 }
 
-void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
-  ApiState* state = isolate->api_state();
+void GCMarker::IterateWeakRoots(HandleVisitor* visitor) {
+  ApiState* state = isolate_->api_state();
   ASSERT(state != NULL);
-  isolate->VisitWeakPersistentHandles(visitor);
+  isolate_->VisitWeakPersistentHandles(visitor);
 }
 
 void GCMarker::ProcessWeakTables(PageSpace* page_space) {
@@ -499,13 +533,13 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
   }
 };
 
-void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
+void GCMarker::ProcessObjectIdTable() {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
-  ObjectIdRingClearPointerVisitor visitor(isolate);
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRingClearPointerVisitor visitor(isolate_);
+  ObjectIdRing* ring = isolate_->object_id_ring();
   ASSERT(ring != NULL);
   ring->VisitPointers(&visitor);
 #endif  // !PRODUCT
@@ -515,21 +549,17 @@ class MarkTask : public ThreadPool::Task {
  public:
   MarkTask(GCMarker* marker,
            Isolate* isolate,
-           Heap* heap,
-           PageSpace* page_space,
            MarkingStack* marking_stack,
            ThreadBarrier* barrier,
-           bool collect_code,
+           SyncMarkingVisitor* visitor,
            intptr_t task_index,
            intptr_t num_tasks,
            uintptr_t* num_busy)
       : marker_(marker),
         isolate_(isolate),
-        heap_(heap),
-        page_space_(page_space),
         marking_stack_(marking_stack),
         barrier_(barrier),
-        collect_code_(collect_code),
+        visitor_(visitor),
         task_index_(task_index),
         num_tasks_(num_tasks),
         num_busy_(num_busy) {}
@@ -539,21 +569,16 @@ class MarkTask : public ThreadPool::Task {
         Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
-      Thread* thread = Thread::Current();
-      TIMELINE_FUNCTION_GC_DURATION(thread, "MarkTask");
-      StackZone stack_zone(thread);
-      Zone* zone = stack_zone.GetZone();
-      SkippedCodeFunctions* skipped_code_functions =
-          collect_code_ ? new (zone) SkippedCodeFunctions() : NULL;
-      SyncMarkingVisitor visitor(isolate_, page_space_, marking_stack_,
-                                 skipped_code_functions);
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "MarkTask");
+      int64_t start = OS::GetCurrentMonotonicMicros();
+
       // Phase 1: Iterate over roots and drain marking stack in tasks.
-      marker_->IterateRoots(isolate_, &visitor, task_index_, num_tasks_);
+      marker_->IterateRoots(visitor_, task_index_, num_tasks_);
 
       bool more_to_mark = false;
       do {
         do {
-          visitor.DrainMarkingStack();
+          visitor_->DrainMarkingStack();
 
           // I can't find more work right now. If no other task is busy,
           // then there will never be more work (NB: 1 is *before* decrement).
@@ -583,7 +608,7 @@ class MarkTask : public ThreadPool::Task {
 #endif
         // Check if we have any pending properties with marked keys.
         // Those might have been marked by another marker.
-        more_to_mark = visitor.ProcessPendingWeakProperties();
+        more_to_mark = visitor_->ProcessPendingWeakProperties();
         if (more_to_mark) {
           // We have more work to do. Notify others.
           AtomicOperations::FetchAndIncrement(num_busy_);
@@ -607,11 +632,16 @@ class MarkTask : public ThreadPool::Task {
       barrier_->Sync();
 
       // Phase 3: Finalize results from all markers (detach code, etc.).
+      int64_t stop = OS::GetCurrentMonotonicMicros();
+      visitor_->AddMicros(stop - start);
       if (FLAG_log_marker_tasks) {
-        THR_Print("Task %" Pd " marked %" Pd " bytes.\n", task_index_,
-                  visitor.marked_bytes());
+        THR_Print("Task %" Pd " marked %" Pd " bytes in %" Pd64 " micros.\n",
+                  task_index_, visitor_->marked_bytes(),
+                  visitor_->marked_micros());
       }
-      marker_->FinalizeResultsFrom(&visitor);
+      marker_->FinalizeResultsFrom(visitor_);
+
+      delete visitor_;
     }
     Thread::ExitIsolateAsHelper(true);
 
@@ -622,11 +652,9 @@ class MarkTask : public ThreadPool::Task {
  private:
   GCMarker* marker_;
   Isolate* isolate_;
-  Heap* heap_;
-  PageSpace* page_space_;
   MarkingStack* marking_stack_;
   ThreadBarrier* barrier_;
-  bool collect_code_;
+  SyncMarkingVisitor* visitor_;
   const intptr_t task_index_;
   const intptr_t num_tasks_;
   uintptr_t* num_busy_;
@@ -634,11 +662,91 @@ class MarkTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(MarkTask);
 };
 
+class ConcurrentMarkTask : public ThreadPool::Task {
+ public:
+  ConcurrentMarkTask(GCMarker* marker,
+                     Isolate* isolate,
+                     PageSpace* page_space,
+                     SyncMarkingVisitor* visitor,
+                     intptr_t task_index,
+                     intptr_t num_tasks,
+                     Monitor* roots_monitor,
+                     intptr_t* root_tasks_remaining)
+      : marker_(marker),
+        isolate_(isolate),
+        page_space_(page_space),
+        visitor_(visitor),
+        task_index_(task_index),
+        num_tasks_(num_tasks),
+        roots_monitor_(roots_monitor),
+        root_tasks_remaining_(root_tasks_remaining) {
+#if defined(DEBUG)
+    MonitorLocker ml(page_space_->tasks_lock());
+    ASSERT(page_space_->phase() == PageSpace::kMarking);
+#endif
+  }
+
+  virtual void Run() {
+    bool result =
+        Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
+    ASSERT(result);
+    {
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMarkTask");
+      int64_t start = OS::GetCurrentMonotonicMicros();
+
+      marker_->IterateRoots(visitor_, task_index_, num_tasks_);
+      {
+        MonitorLocker ml(roots_monitor_);
+        (*root_tasks_remaining_)--;
+        ml.Notify();
+      }
+
+      visitor_->DrainMarkingStack();
+      int64_t stop = OS::GetCurrentMonotonicMicros();
+      visitor_->AddMicros(stop - start);
+      if (FLAG_log_marker_tasks) {
+        THR_Print("Task %" Pd " marked %" Pd " bytes in %" Pd64 " micros.\n",
+                  task_index_, visitor_->marked_bytes(),
+                  visitor_->marked_micros());
+      }
+    }
+
+    isolate_->ScheduleInterrupts(Thread::kVMInterrupt);
+    // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
+    Thread::ExitIsolateAsHelper(true);
+    // This marker task is done. Notify the original isolate.
+    {
+      MonitorLocker ml(page_space_->tasks_lock());
+      page_space_->set_tasks(page_space_->tasks() - 1);
+      page_space_->set_concurrent_marker_tasks(
+          page_space_->concurrent_marker_tasks() - 1);
+      ASSERT(page_space_->phase() == PageSpace::kMarking);
+      if (page_space_->concurrent_marker_tasks() == 0) {
+        page_space_->set_phase(PageSpace::kAwaitingFinalization);
+      }
+      ml.NotifyAll();
+    }
+  }
+
+ private:
+  GCMarker* marker_;
+  Isolate* isolate_;
+  PageSpace* page_space_;
+  SyncMarkingVisitor* visitor_;
+  const intptr_t task_index_;
+  const intptr_t num_tasks_;
+  Monitor* const roots_monitor_;
+  intptr_t* root_tasks_remaining_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConcurrentMarkTask);
+};
+
 template <class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
+    marked_micros_ += visitor->marked_micros();
 #ifndef PRODUCT
     // Class heap stats are not themselves thread-safe yet, so we update the
     // stats while holding stats_mutex_.
@@ -655,34 +763,116 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   visitor->Finalize();
 }
 
-void GCMarker::MarkObjects(Isolate* isolate,
-                           PageSpace* page_space,
-                           bool collect_code) {
-  Prologue(isolate);
-  // The API prologue/epilogue may create/destroy zones, so we must not
-  // depend on zone allocations surviving beyond the epilogue callback.
+intptr_t GCMarker::MarkedWordsPerMicro() const {
+  intptr_t marked_words_per_job_micro;
+  if (marked_micros_ == 0) {
+    marked_words_per_job_micro = marked_words();  // Prevent division by zero.
+  } else {
+    marked_words_per_job_micro = marked_words() / marked_micros_;
+  }
+  if (marked_words_per_job_micro == 0) {
+    marked_words_per_job_micro = 1;  // Prevent division by zero.
+  }
+  intptr_t jobs = FLAG_marker_tasks;
+  if (jobs == 0) {
+    jobs = 1;  // Marking on main thread is still one job.
+  }
+  return marked_words_per_job_micro * jobs;
+}
+
+GCMarker::GCMarker(Isolate* isolate, Heap* heap)
+    : isolate_(isolate),
+      heap_(heap),
+      marking_stack_(),
+      visitors_(),
+      marked_bytes_(0),
+      marked_micros_(0) {
+  visitors_ = new SyncMarkingVisitor*[FLAG_marker_tasks];
+  for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
+    visitors_[i] = NULL;
+  }
+}
+
+GCMarker::~GCMarker() {
+  // Cleanup in case isolate shutdown happens after starting the concurrent
+  // marker and before finalizing.
+  if (isolate_->marking_stack() != NULL) {
+    isolate_->DisableIncrementalBarrier();
+    for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
+      visitors_[i]->AbandonWork();
+      delete visitors_[i];
+    }
+  }
+  delete[] visitors_;
+}
+
+void GCMarker::StartConcurrentMark(PageSpace* page_space, bool collect_code) {
+  isolate_->EnableIncrementalBarrier(&marking_stack_);
+
+  const intptr_t num_tasks = FLAG_marker_tasks;
+
+  {
+    // Bulk increase task count before starting any task, instead of
+    // incrementing as each task is started, to prevent a task which
+    // races ahead from falsly beleiving it was the last task to complete.
+    MonitorLocker ml(page_space->tasks_lock());
+    ASSERT(page_space->phase() == PageSpace::kDone);
+    page_space->set_phase(PageSpace::kMarking);
+    page_space->set_tasks(page_space->tasks() + num_tasks);
+    page_space->set_concurrent_marker_tasks(
+        page_space->concurrent_marker_tasks() + num_tasks);
+  }
+
+  Monitor roots_monitor;
+  intptr_t root_tasks_remaining = num_tasks;
+  for (intptr_t i = 0; i < num_tasks; i++) {
+    ASSERT(visitors_[i] == NULL);
+    SkippedCodeFunctions* skipped_code_functions =
+        collect_code ? new SkippedCodeFunctions() : NULL;
+    visitors_[i] = new SyncMarkingVisitor(isolate_, page_space, &marking_stack_,
+                                          skipped_code_functions);
+
+    // Begin marking on a helper thread.
+    bool result = Dart::thread_pool()->Run(new ConcurrentMarkTask(
+        this, isolate_, page_space, visitors_[i], i, num_tasks, &roots_monitor,
+        &root_tasks_remaining));
+    ASSERT(result);
+  }
+
+  // Wait for roots to be marked before exiting safepoint.
+  MonitorLocker ml(&roots_monitor);
+  while (root_tasks_remaining > 0) {
+    ml.Wait();
+  }
+}
+
+void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
+  if (isolate_->marking_stack() != NULL) {
+    isolate_->DisableIncrementalBarrier();
+  }
+
+  Prologue();
   {
     Thread* thread = Thread::Current();
-    StackZone stack_zone(thread);
-    Zone* zone = stack_zone.GetZone();
-    MarkingStack marking_stack;
-    marked_bytes_ = 0;
     const int num_tasks = FLAG_marker_tasks;
     if (num_tasks == 0) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
+      int64_t start = OS::GetCurrentMonotonicMicros();
       // Mark everything on main thread.
       SkippedCodeFunctions* skipped_code_functions =
-          collect_code ? new (zone) SkippedCodeFunctions() : NULL;
-      UnsyncMarkingVisitor mark(isolate, page_space, &marking_stack,
+          collect_code ? new SkippedCodeFunctions() : NULL;
+      UnsyncMarkingVisitor mark(isolate_, page_space, &marking_stack_,
                                 skipped_code_functions);
-      IterateRoots(isolate, &mark, 0, 1);
+      IterateRoots(&mark, 0, 1);
       mark.DrainMarkingStack();
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
-        IterateWeakRoots(isolate, &mark_weak);
+        IterateWeakRoots(&mark_weak);
       }
       // All marking done; detach code, etc.
+      int64_t stop = OS::GetCurrentMonotonicMicros();
+      mark.AddMicros(stop - start);
       FinalizeResultsFrom(&mark);
     } else {
       ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
@@ -691,11 +881,23 @@ void GCMarker::MarkObjects(Isolate* isolate,
       uintptr_t num_busy = num_tasks;
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       for (intptr_t i = 0; i < num_tasks; ++i) {
+        SyncMarkingVisitor* visitor;
+        if (visitors_[i] != NULL) {
+          visitor = visitors_[i];
+          visitors_[i] = NULL;
+        } else {
+          SkippedCodeFunctions* skipped_code_functions =
+              collect_code ? new SkippedCodeFunctions() : NULL;
+          visitor = new SyncMarkingVisitor(
+              isolate_, page_space, &marking_stack_, skipped_code_functions);
+        }
+
         MarkTask* mark_task =
-            new MarkTask(this, isolate, heap_, page_space, &marking_stack,
-                         &barrier, collect_code, i, num_tasks, &num_busy);
+            new MarkTask(this, isolate_, &marking_stack_, &barrier, visitor, i,
+                         num_tasks, &num_busy);
         ThreadPool* pool = Dart::thread_pool();
-        pool->Run(mark_task);
+        bool result = pool->Run(mark_task);
+        ASSERT(result);
       }
       bool more_to_mark = false;
       do {
@@ -722,7 +924,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
-        IterateWeakRoots(isolate, &mark_weak);
+        IterateWeakRoots(&mark_weak);
       }
       barrier.Sync();
 
@@ -730,9 +932,9 @@ void GCMarker::MarkObjects(Isolate* isolate,
       barrier.Exit();
     }
     ProcessWeakTables(page_space);
-    ProcessObjectIdTable(isolate);
+    ProcessObjectIdTable();
   }
-  Epilogue(isolate);
+  Epilogue();
 }
 
 }  // namespace dart

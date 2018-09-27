@@ -15,6 +15,8 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/list_factory_specializer.dart'
+    as listFactorySpecializer;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -24,6 +26,9 @@ class VmTarget extends Target {
   Class _immutableList;
   Class _internalLinkedHashMap;
   Class _immutableMap;
+  Class _oneByteString;
+  Class _twoByteString;
+  Class _smi;
 
   VmTarget(this.flags);
 
@@ -73,6 +78,8 @@ class VmTarget extends Target {
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
     logger?.call("Transformed async methods");
+
+    listFactorySpecializer.transformLibraries(libraries, coreTypes);
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);
@@ -320,5 +327,32 @@ class VmTarget extends Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _immutableMap ??=
         coreTypes.index.getClass('dart:core', '_ImmutableMap');
+  }
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) {
+    const int bitsPerInt32 = 32;
+    const int smiBits32 = bitsPerInt32 - 2;
+    const int smiMin32 = -(1 << smiBits32);
+    const int smiMax32 = (1 << smiBits32) - 1;
+    if ((smiMin32 <= value) && (value <= smiMax32)) {
+      // Value fits into Smi on all platforms.
+      return _smi ??= coreTypes.index.getClass('dart:core', '_Smi');
+    }
+    // Otherwise, class could be either _Smi or _Mint depending on a platform.
+    return null;
+  }
+
+  @override
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
+    const int maxLatin1 = 0xff;
+    for (int i = 0; i < value.length; ++i) {
+      if (value.codeUnitAt(i) > maxLatin1) {
+        return _twoByteString ??=
+            coreTypes.index.getClass('dart:core', '_TwoByteString');
+      }
+    }
+    return _oneByteString ??=
+        coreTypes.index.getClass('dart:core', '_OneByteString');
   }
 }

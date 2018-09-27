@@ -386,7 +386,7 @@ abstract class Forest {
   Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Expression expression, String plainNameForRead);
 
-  Generator largeIntAccessGenerator(
+  Generator intAccessGenerator(
       ExpressionGeneratorHelper helper, Token location);
 
   Generator unresolvedNameGenerator(

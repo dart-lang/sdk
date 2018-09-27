@@ -1495,6 +1495,39 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Analyze the specified sources for recommended changes and return a set of
+   * suggested edits for those sources. These edits may include changes to
+   * sources outside the set of specified sources if a change in a specified
+   * source requires it.
+   *
+   * Parameters
+   *
+   * included: List<FilePath>
+   *
+   *   A list of the files and directories for which edits should be suggested.
+   *   If a request is made for a file which does not exist, or which is not
+   *   currently subject to analysis (e.g. because it is not associated with
+   *   any analysis root specified to analysis.setAnalysisRoots), an error of
+   *   type FORMAT_INVALID_FILE will be generated.
+   *
+   * Returns
+   *
+   * description: List<String>
+   *
+   *   A list of human readable changes made by applying the fixes.
+   *
+   * fixes: List<SourceFileEdit>
+   *
+   *   The suggested fixes.
+   */
+  Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
+    var params = new EditDartfixParams(included).toJson();
+    var result = await server.send("edit.dartfix", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditDartfixResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Return the set of fixes that are available for the errors at a given
    * offset in a given file.
    *

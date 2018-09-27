@@ -17,6 +17,7 @@ import '../builder/builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
+        EnumConstantInfo,
         FormalParameterBuilder,
         FunctionTypeBuilder,
         LibraryBuilder,
@@ -57,7 +58,8 @@ import '../fasta_codes.dart'
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
-        templateDuplicatedDefinition,
+        templateDuplicatedDeclaration,
+        templateDuplicatedDeclarationCause,
         templateMissingPartOf,
         templateNotAPrefixInTypeAnnotation,
         templatePartOfInLibrary,
@@ -178,7 +180,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
-            currentDeclaration.name == "operator",
+            currentDeclaration.name == "operator" ||
+            identical(name, "<syntax-error>"),
         "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
@@ -384,15 +387,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool hasInitializer);
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, T type, List<Object> fieldsInfo) {
-    for (int i = 0; i < fieldsInfo.length; i += 4) {
-      String name = fieldsInfo[i];
-      int charOffset = fieldsInfo[i + 1];
-      bool hasInitializer = fieldsInfo[i + 2] != null;
+      int modifiers, T type, List<FieldInfo> fieldInfos) {
+    for (FieldInfo info in fieldInfos) {
+      String name = info.name;
+      int charOffset = info.charOffset;
+      bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
-          type == null ? fieldsInfo[i + 2] : null;
+          type == null ? info.initializerTokenForInference : null;
       if (initializerTokenForInference != null) {
-        Token beforeLast = fieldsInfo[i + 3];
+        Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
       addField(documentationComment, metadata, modifiers, type, name,
@@ -435,7 +438,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset);
 
@@ -475,6 +478,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
+    if (name == null) {
+      unhandled("null", "name", charOffset, fileUri);
+    }
     if (currentDeclaration == libraryDeclaration) {
       if (declaration is MemberBuilder) {
         declaration.parent = this;
@@ -528,14 +534,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           return computeAmbiguousDeclaration(
               name, existing, member, charOffset);
         });
-    } else if (isDuplicatedDefinition(existing, declaration)) {
-      addProblem(templateDuplicatedDefinition.withArguments(name), charOffset,
-          noLength, fileUri);
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
+      addProblem(templateDuplicatedDeclaration.withArguments(name), charOffset,
+          name.length, fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
+                existing.fileUri, existing.charOffset, name.length)
+          ]);
     }
     return members[name] = declaration;
   }
 
-  bool isDuplicatedDefinition(Declaration existing, Declaration other) {
+  bool isDuplicatedDeclaration(Declaration existing, Declaration other) {
     if (existing == null) return false;
     Declaration next = existing.next;
     if (next == null) {
@@ -917,4 +927,14 @@ class DeclarationBuilder<T extends TypeBuilder> {
   Scope toScope(Scope parent) {
     return new Scope(members, setters, parent, name, isModifiable: false);
   }
+}
+
+class FieldInfo {
+  final String name;
+  final int charOffset;
+  final Token initializerTokenForInference;
+  final Token beforeLast;
+
+  const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
+      this.beforeLast);
 }

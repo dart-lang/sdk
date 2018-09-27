@@ -84,6 +84,7 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
 
 static void DeterministicModeHandler(bool value) {
   if (value) {
+    FLAG_marker_tasks = 0;                // Timing dependent.
     FLAG_background_compilation = false;  // Timing dependent.
     FLAG_collect_code = false;            // Timing dependent.
     FLAG_random_seed = 0x44617274;  // "Dart"
@@ -475,7 +476,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
 void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   if (priority >= Message::kOOBPriority) {
     // Handle out of band messages even if the mutator thread is busy.
-    I->ScheduleMessageInterrupts();
+    I->ScheduleInterrupts(Thread::kMessageInterrupt);
   }
   Dart_MessageNotifyCallback callback = I->message_notify_callback();
   if (callback) {
@@ -866,8 +867,6 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 // that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
     : BaseIsolate(),
-      store_buffer_(new StoreBuffer()),
-      heap_(NULL),
       user_tag_(0),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
@@ -875,6 +874,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       object_store_(NULL),
       class_table_(),
       single_step_(false),
+      store_buffer_(new StoreBuffer()),
+      marking_stack_(NULL),
+      heap_(NULL),
       isolate_flags_(0),
       background_compiler_(NULL),
 #if !defined(PRODUCT)
@@ -988,6 +990,7 @@ Isolate::~Isolate() {
   free(name_);
   delete store_buffer_;
   delete heap_;
+  ASSERT(marking_stack_ == NULL);
   delete object_store_;
   delete api_state_;
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1169,13 +1172,13 @@ void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
                         is_executable);
 }
 
-void Isolate::ScheduleMessageInterrupts() {
+void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   // We take the threads lock here to ensure that the mutator thread does not
   // exit the isolate while we are trying to schedule interrupts on it.
   MonitorLocker ml(threads_lock());
   Thread* mthread = mutator_thread();
   if (mthread != NULL) {
-    mthread->ScheduleInterrupts(Thread::kMessageInterrupt);
+    mthread->ScheduleInterrupts(interrupt_bits);
   }
 }
 
@@ -1874,12 +1877,15 @@ void Isolate::Shutdown() {
 
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
-    // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
+    // TODO(rmacnak): Interrupt tasks for faster shutdown.
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
     while (old_space->tasks() > 0) {
       ml.Wait();
     }
+    // Needs to happen before ~PageSpace so TLS and the thread registery are
+    // still valid.
+    old_space->AbandonMarkingForShutdown();
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -2015,8 +2021,22 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   }
 }
 
-void Isolate::PrepareForGC() {
-  thread_registry()->PrepareForGC();
+void Isolate::ReleaseStoreBuffers() {
+  thread_registry()->ReleaseStoreBuffers();
+}
+
+void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack) {
+  ASSERT(marking_stack_ == NULL);
+  marking_stack_ = marking_stack;
+  thread_registry()->AcquireMarkingStacks();
+  ASSERT(Thread::Current()->is_marking());
+}
+
+void Isolate::DisableIncrementalBarrier() {
+  thread_registry()->ReleaseMarkingStacks();
+  ASSERT(marking_stack_ != NULL);
+  marking_stack_ = NULL;
+  ASSERT(!Thread::Current()->is_marking());
 }
 
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {

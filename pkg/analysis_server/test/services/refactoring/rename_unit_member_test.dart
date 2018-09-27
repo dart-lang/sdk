@@ -367,6 +367,129 @@ main() {
 ''');
   }
 
+  test_createChange_ClassElement_flutterWidget() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  TestPageState createState() => new TestPageState();
+}
+
+class TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  NewPageState createState() => new NewPageState();
+}
+
+class NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  test_createChange_ClassElement_flutterWidget_privateBoth() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class _TestPage extends StatefulWidget {
+  const _TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<_TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('_TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, '_TestPage');
+    refactoring.newName = '_NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class _NewPage extends StatefulWidget {
+  const _NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<_NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  test_createChange_ClassElement_flutterWidget_privateState() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
   test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''

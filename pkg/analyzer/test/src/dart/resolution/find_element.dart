@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -93,6 +97,15 @@ class FindElement {
       }
     }
     fail('Not found top-level function: $name');
+  }
+
+  GenericTypeAliasElement genericTypeAlias(String name) {
+    for (var element in unitElement.functionTypeAliases) {
+      if (element is GenericTypeAliasElement && element.name == name) {
+        return element;
+      }
+    }
+    fail('Not found generic type alias: $name');
   }
 
   PropertyAccessorElement getter(String name, {String className}) {

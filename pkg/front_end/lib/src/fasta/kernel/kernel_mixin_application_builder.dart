@@ -27,7 +27,8 @@ class KernelMixinApplicationBuilder
 
   KernelMixinApplicationBuilder(
       KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
-      : super(supertype, mixins);
+      : assert(mixins != null),
+        super(supertype, mixins);
 
   @override
   InterfaceType build(LibraryBuilder library) {

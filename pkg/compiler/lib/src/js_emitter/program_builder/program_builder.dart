@@ -11,7 +11,7 @@ import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
-import '../../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../../deferred_load.dart'
     show DeferredLoadTask, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
@@ -61,8 +61,8 @@ part 'registry.dart';
 class ProgramBuilder {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
   final DeferredLoadTask _deferredLoadTask;
   final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;

@@ -362,10 +362,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
         return;
-      case "INVALID_HEX_ESCAPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_HEX_ESCAPE, offset, length);
-        return;
       case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);
@@ -373,10 +369,6 @@ class FastaErrorReporter {
       case "INVALID_MODIFIER_ON_SETTER":
         _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
             offset, length);
-        return;
-      case "INVALID_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_OPERATOR, offset, length, [lexeme()]);
         return;
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
@@ -386,22 +378,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
-      case "INVALID_UNICODE_ESCAPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_UNICODE_ESCAPE, offset, length);
-        return;
-      case "LIBRARY_DIRECTIVE_NOT_FIRST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
-        return;
-      case "MISSING_ASSIGNABLE_SELECTOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, offset, length);
-        return;
-      case "MISSING_ASSIGNMENT_IN_INITIALIZER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, offset, length);
-        return;
       case "MISSING_CATCH_OR_FINALLY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
@@ -410,17 +386,9 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CLASS_BODY, offset, length);
         return;
-      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
-        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
-        return;
-      case "MISSING_EXPRESSION_IN_THROW":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_EXPRESSION_IN_THROW, offset, length);
         return;
       case "MISSING_ENUM_BODY":
         errorReporter?.reportErrorForOffset(
@@ -441,14 +409,6 @@ class FastaErrorReporter {
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, offset, length);
-        return;
-      case "MISSING_INITIALIZER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_INITIALIZER, offset, length);
-        return;
-      case "MISSING_KEYWORD_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_KEYWORD_OPERATOR, offset, length);
         return;
       case "MISSING_METHOD_PARAMETERS":
         errorReporter?.reportErrorForOffset(

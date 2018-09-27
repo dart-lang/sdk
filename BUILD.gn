@@ -36,9 +36,6 @@ group("most") {
 group("runtime") {
   import("runtime/runtime_args.gni")
 
-  target_supports_aot = dart_target_arch == "arm" ||
-                        dart_target_arch == "arm64" || dart_target_arch == "x64"
-
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
@@ -53,9 +50,6 @@ group("runtime") {
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "utils/kernel-service:kernel-service",
   ]
-  if (target_supports_aot) {
-    deps += [ "runtime/bin:precompiler_entry_points_json" ]
-  }
 }
 
 group("runtime_kernel") {

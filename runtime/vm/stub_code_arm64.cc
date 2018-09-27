@@ -1066,10 +1066,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
@@ -1405,7 +1401,52 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
 #if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
-  __ Stop("Incremental barrier");
+  __ Push(R1);  // Spill.
+  __ Push(R2);  // Spill.
+  __ Push(R3);  // Spill.
+
+  // Atomically clear kOldAndNotMarkedBit.
+  // Note that we use 32 bit operations here to match the size of the
+  // background sweeper which is also manipulating this 32 bit word.
+  Label marking_retry, lost_race, marking_overflow;
+  ASSERT(Object::tags_offset() == 0);
+  __ sub(R3, TMP2, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ Bind(&marking_retry);
+  __ ldxr(R2, R3, kWord);
+  __ tbz(&lost_race, R2, RawObject::kOldAndNotMarkedBit);
+  __ AndImmediate(R2, R2, ~(1 << RawObject::kOldAndNotMarkedBit));
+  __ stxr(R1, R2, R3, kWord);
+  __ cbnz(&marking_retry, R1);
+
+  __ LoadFromOffset(R1, THR, Thread::marking_stack_block_offset());
+  __ LoadFromOffset(R2, R1, MarkingStackBlock::top_offset(), kUnsignedWord);
+  __ add(R3, R1, Operand(R2, LSL, kWordSizeLog2));
+  __ StoreToOffset(TMP2, R3, MarkingStackBlock::pointers_offset());
+  __ add(R2, R2, Operand(1));
+  __ StoreToOffset(R2, R1, MarkingStackBlock::top_offset(), kUnsignedWord);
+  __ CompareImmediate(R2, MarkingStackBlock::kSize);
+  __ Pop(R3);  // Unspill.
+  __ Pop(R2);  // Unspill.
+  __ Pop(R1);  // Unspill.
+  __ b(&marking_overflow, EQ);
+  __ ret();
+
+  __ Bind(&marking_overflow);
+  __ Push(CODE_REG);
+  __ ldr(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ mov(R0, THR);
+  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
+  __ LeaveCallRuntimeFrame();
+  __ Pop(CODE_REG);
+  __ ret();
+
+  __ Bind(&lost_race);
+  __ Pop(R3);  // Unspill.
+  __ Pop(R2);  // Unspill.
+  __ Pop(R1);  // Unspill.
+  __ ret();
 #endif
 }
 
@@ -1992,11 +2033,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter")
 #else
-  if (!FLAG_enable_interpreter) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
   __ SetPrologueOffset();
   __ EnterStubFrame();
 

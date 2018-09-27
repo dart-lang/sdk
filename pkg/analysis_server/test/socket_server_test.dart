@@ -117,6 +117,7 @@ class SocketServerTest {
         InstrumentationService.NULL_SERVICE,
         null,
         null,
+        null,
         null);
   }
 }

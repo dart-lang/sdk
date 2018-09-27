@@ -406,6 +406,20 @@ public interface AnalysisServer {
   public void diagnostic_getServerPort(GetServerPortConsumer consumer);
 
   /**
+   * {@code edit.dartfix}
+   *
+   * Analyze the specified sources for recommended changes and return a set of suggested edits for
+   * those sources. These edits may include changes to sources outside the set of specified sources
+   * if a change in a specified source requires it.
+   *
+   * @param included A list of the files and directories for which edits should be suggested. If a
+   *         request is made for a file which does not exist, or which is not currently subject to
+   *         analysis (e.g. because it is not associated with any analysis root specified to
+   *         analysis.setAnalysisRoots), an error of type FORMAT_INVALID_FILE will be generated.
+   */
+  public void edit_dartfix(List<String> included, DartfixConsumer consumer);
+
+  /**
    * {@code edit.format}
    *
    * Format the contents of a single file. The currently selected region of text is passed in so that

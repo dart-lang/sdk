@@ -319,6 +319,17 @@ bool isState(ClassElement element) {
 }
 
 /**
+ * Return `true` if the given [element] is a [ClassElement] that extends
+ * the Flutter class `StatefulWidget`.
+ */
+bool isStatefulWidgetDeclaration(Element element) {
+  if (element is ClassElement) {
+    return isExactlyStatefulWidgetType(element.supertype);
+  }
+  return false;
+}
+
+/**
  * Return `true` if the given [element] is the Flutter class `Widget`, or its
  * subtype.
  */

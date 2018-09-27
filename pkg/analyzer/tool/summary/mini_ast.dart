@@ -485,6 +485,11 @@ class MiniAstBuilder extends StackListener {
     List list = pop();
     return list != null ? new List<T>.from(list) : null;
   }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
+  }
 }
 
 /// Parser intended for use with [MiniAstBuilder].

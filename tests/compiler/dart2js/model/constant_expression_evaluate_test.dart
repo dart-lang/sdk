@@ -257,11 +257,11 @@ class D extends C {
         'field3=IntConstant(99)))'),
   ]),
   const TestData('redirect', '''
-class A<T> implements B {
+class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
 }
-class B<S> implements C {
+class B<S> implements C<Null> {
   const factory B({field1}) = A<B<S>>;
   const factory B.named() = A<S>;
 }
@@ -601,14 +601,14 @@ Future testData(TestData data) async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': source});
     Compiler compiler = result.compiler;
-    ElementEnvironment elementEnvironment =
+    KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     LibraryEntity library = elementEnvironment.mainLibrary;
     constants.forEach((String name, ConstantData data) {
       FieldEntity field = elementEnvironment.lookupLibraryMember(library, name);
       compiler.reporter.withCurrentElement(field, () {
         ConstantExpression constant =
-            elementEnvironment.getFieldConstant(field);
+            elementEnvironment.getFieldConstantForTesting(field);
 
         var expectedResults = data.expectedResults;
         if (expectedResults is String) {

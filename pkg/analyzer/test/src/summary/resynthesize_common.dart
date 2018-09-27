@@ -267,8 +267,8 @@ class Base {
   Base();
   Base.noArgs();
   Base.requiredArg(x);
-  Base.positionalArg([x]);
-  Base.namedArg({x});
+  Base.positionalArg([bool x = true]);
+  Base.namedArg({int x = 42});
   factory Base.fact() => null;
   factory Base.fact2() = Base.noArgs;
 }
@@ -286,6 +286,8 @@ class alias MixinApp extends Base with M {
   synthetic MixinApp() = Base;
   synthetic MixinApp.noArgs() = Base.noArgs;
   synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
+  synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
+  synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
   synthetic MixinApp.fact() = Base.fact;
   synthetic MixinApp.fact2() = Base.fact2;
 }

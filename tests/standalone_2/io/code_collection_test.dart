@@ -68,13 +68,14 @@ main(List<String> arguments) {
       Platform.script.toFilePath(),
       "--run"
     ]);
+    print("+ ${Platform.executable} ${args.join(' ')}");
     var pr = Process.runSync(Platform.executable, args);
 
+    print(pr.stderr);
     Expect.equals(0, pr.exitCode);
 
     // Code drops are logged with --log-code-drop. Look through stderr for the
     // message that foo's code was dropped.
-    print(pr.stderr);
     bool saw_foo2 = false;
     bool saw_detaching_foo = false;
     bool saw_foo3 = false;

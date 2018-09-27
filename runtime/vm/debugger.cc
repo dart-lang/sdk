@@ -319,6 +319,8 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(regis): Revise debugger functionality when running a mix of
+  // interpreted and compiled code.
   if (!FLAG_enable_interpreter || !function_.HasBytecode()) {
     function_.EnsureHasCompiledUnoptimizedCode();
   }

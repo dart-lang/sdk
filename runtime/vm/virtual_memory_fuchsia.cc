@@ -57,6 +57,17 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
+  if (is_executable) {
+    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+    // into memory as executable.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
+              zx_status_get_string(status));
+      return NULL;
+    }
+  }
+
   const uint32_t flags = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
                          (is_executable ? ZX_VM_PERM_EXECUTE : 0);
   uword address;
@@ -92,6 +103,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
   if (name != NULL) {
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
+  }
+
+  if (is_executable) {
+    // Add ZX_PERM_EXECUTE permission to VMO, so it can be mapped
+    // into memory as executable.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
+              zx_status_get_string(status));
+      return NULL;
+    }
   }
 
   const zx_vm_option_t options = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |

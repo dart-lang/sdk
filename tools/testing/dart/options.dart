@@ -220,6 +220,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         'shard', 'The index of this instance when running in sharded mode.',
         defaultsTo: 1, hide: true),
     new _Option.bool('help', 'Print list of options.', abbr: 'h'),
+    new _Option.int('repeat', 'How many times each test is run', defaultsTo: 1),
     new _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
     new _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
@@ -295,6 +296,7 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
+    new _Option('test_list', 'File containing a list of tests to be executed'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -370,6 +372,10 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+    // Dart1 mode has been deprecated.
+    if (arguments.contains("--no-preview-dart-2")) {
       return null;
     }
 
@@ -476,6 +482,12 @@ compiler.''',
       if (!configuration.containsKey(option.name)) {
         configuration[option.name] = option.defaultValue;
       }
+    }
+
+    // Fetch list of tests to run, if option is present.
+    if (configuration['test_list'] is String) {
+      configuration['test_list_contents'] =
+          File(configuration['test_list'] as String).readAsLinesSync();
     }
 
     return _createConfigurations(configuration);
@@ -600,7 +612,7 @@ compiler.''',
     if (runtimes.isEmpty) {
       if (compilers.isEmpty) {
         runtimes = [Runtime.vm];
-        compilers = [Compiler.none];
+        compilers = [Compiler.dartk];
       } else {
         // Pick a runtime for each compiler.
         runtimes.addAll(compilers.map((compiler) => compiler.defaultRuntime));
@@ -654,12 +666,14 @@ compiler.''',
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
                     builderTag: data["builder_tag"] as String,
-                    previewDart2: !(data["no_preview_dart_2"] as bool));
+                    previewDart2: true);
             var configuration = new TestConfiguration(
                 configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),
                 selectors: selectors,
+                testList: data["test_list_contents"] as List<String>,
                 appendLogs: data["append_logs"] as bool,
+                repeat: data["repeat"] as int,
                 batch: !(data["noBatch"] as bool),
                 batchDart2JS: data["dart2js_batch"] as bool,
                 copyCoreDumps: data["copy_coredumps"] as bool,
@@ -725,8 +739,13 @@ compiler.''',
 
     if (selectors == null) {
       if (configuration['suite_dir'] != null) {
-        var suitePath = new Path(configuration['suite_dir'] as String);
+        var suitePath = Path(configuration['suite_dir'] as String);
         selectors = [suitePath.filename];
+      } else if (configuration['test_list_contents'] != null) {
+        selectors = (configuration['test_list_contents'] as List<String>)
+            .map((t) => t.split('/').first)
+            .toSet()
+            .toList();
       } else {
         selectors = _defaultTestSelectors.toList();
       }

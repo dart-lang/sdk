@@ -128,9 +128,12 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    return FLAG_use_bytecode_compiler
-               ? -1
-               : EnvIndex(parsed_function().current_context_var());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (function().HasBytecode()) {
+      return -1;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    return EnvIndex(parsed_function().current_context_var());
   }
 
   intptr_t RawTypeArgumentEnvIndex() const {

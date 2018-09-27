@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/tabs.dart:9:8: Error: Getter not found: 'one'.
 // 	print(one);

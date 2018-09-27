@@ -169,7 +169,7 @@ class _ElementWriter {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
 
-    writeIf(e.isAbstract, 'abstract ');
+    writeIf(e.isAbstract && !e.isMixin, 'abstract ');
 
     if (e.isEnum) {
       buffer.write('enum ');

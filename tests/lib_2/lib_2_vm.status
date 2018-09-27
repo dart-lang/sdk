@@ -34,12 +34,19 @@ mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/redirecting_factory_test/01: RuntimeError
+mirrors/redirecting_factory_test/none: RuntimeError
 
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+
+[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm && !$strong ]
+mirrors/redirecting_factory_test/02: MissingCompileTimeError
+mirrors/redirecting_factory_test/03: MissingCompileTimeError
+mirrors/redirecting_factory_test/04: MissingCompileTimeError
 
 [ $compiler != dartk && $compiler != dartkb && $runtime == vm && !$strong ]
 mirrors/reflect_class_test/01: MissingCompileTimeError

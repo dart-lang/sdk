@@ -4,6 +4,12 @@
 
 import "package:expect/expect.dart";
 
+///////////////////////////////////////////////////////
+// Tests for inference of type arguments to mixins in
+// class definition mixin applications of the form
+// `class Foo = A with M`
+///////////////////////////////////////////////////////
+
 class I<X> {}
 
 class C0<T> extends I<T> {}
@@ -33,8 +39,7 @@ mixin M4<S, T> on I<S>, J<T> {
 // Inference of a single mixin from a super class works
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class A00 extends I<int> with M1 {
+mixin A00Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -42,7 +47,9 @@ class A00 extends I<int> with M1 {
 }
 
 // M1 is inferred as M1<int>
-class A01 extends C0<int> with M1 {
+class A00 = I<int> with M1, A00Mixin;
+
+mixin A01Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -50,19 +57,23 @@ class A01 extends C0<int> with M1 {
 }
 
 // M1 is inferred as M1<int>
-class A02 extends C1<int> with M1 {
+class A01 = C0<int> with M1, A01Mixin;
+
+mixin A02Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class A02 = C1<int> with M1, A02Mixin;
 
 ///////////////////////////////////////////////////////
 // Inference of a single mixin from another mixin works
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class B00 extends Object with I<int>, M1 {
+mixin B00Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -70,7 +81,9 @@ class B00 extends Object with I<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B01 extends Object with C1<int>, M1 {
+class B00 = Object with I<int>, M1, B00Mixin;
+
+mixin B01Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -78,7 +91,9 @@ class B01 extends Object with C1<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B02 extends I<int> with M0<int>, M1 {
+class B01 = Object with C1<int>, M1, B01Mixin;
+
+mixin B02Mixin on M0<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -86,20 +101,24 @@ class B02 extends I<int> with M0<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B03 extends Object with M2<int>, M1 {
+class B02 = I<int> with M0<int>, M1, B02Mixin;
+
+mixin B03Mixin on M2<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class B03 = Object with M2<int>, M1, B03Mixin;
 
 ///////////////////////////////////////////////////////
 // Inference of a single mixin from another mixin works
 // with the shorthand syntax
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class C00 with I<int>, M1 {
+mixin C00Mixin on M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -107,7 +126,9 @@ class C00 with I<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C01 with C1<int>, M1 {
+class C00 = Object with I<int>, M1, C00Mixin;
+
+mixin C01Mixin on C1<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -115,7 +136,9 @@ class C01 with C1<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C02 with I<int>, M0<int>, M1 {
+class C01 = Object with C1<int>, M1, C01Mixin;
+
+mixin C02Mixin on M0<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -123,19 +146,23 @@ class C02 with I<int>, M0<int>, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C03 with M2<int>, M1 {
+class C02 = Object with I<int>, M0<int>, M1, C02Mixin;
+
+mixin C03Mixin on M2<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class C03 = Object with M2<int>, M1, C03Mixin;
 
 ///////////////////////////////////////////////////////
 // Inference of two mixins from a super class works
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class A10 extends I<int> with M3, M1 {
+mixin A10Mixin on M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -143,7 +170,9 @@ class A10 extends I<int> with M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class A11 extends C0<int> with M3, M1 {
+class A10 = I<int> with M3, M1, A10Mixin;
+
+mixin A11Mixin on C0<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -151,19 +180,23 @@ class A11 extends C0<int> with M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class A12 extends C1<int> with M3, M1 {
+class A11 = C0<int> with M3, M1, A11Mixin;
+
+mixin A12Mixin on C1<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class A12 = C1<int> with M3, M1, A12Mixin;
 
 ///////////////////////////////////////////////////////
 // Inference of two mixins from another mixin works
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class B10 extends Object with I<int>, M3, M1 {
+mixin B10Mixin on I<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -171,7 +204,9 @@ class B10 extends Object with I<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B11 extends Object with C1<int>, M3, M1 {
+class B10 = Object with I<int>, M3, M1, B10Mixin;
+
+mixin B11Mixin on C1<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -179,7 +214,9 @@ class B11 extends Object with C1<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B12 extends I<int> with M0<int>, M3, M1 {
+class B11 = Object with C1<int>, M3, M1, B11Mixin;
+
+mixin B12Mixin on I<int>, M0<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -187,20 +224,24 @@ class B12 extends I<int> with M0<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class B13 extends Object with M2<int>, M3, M1 {
+class B12 = I<int> with M0<int>, M3, M1, B12Mixin;
+
+mixin B13Mixin on M2<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class B13 = Object with M2<int>, M3, M1, B13Mixin;
 
 ///////////////////////////////////////////////////////
 // Inference of a single mixin from another mixin works
 // with the shorthand syntax
 ///////////////////////////////////////////////////////
 
-// M1 is inferred as M1<int>
-class C10 with I<int>, M3, M1 {
+mixin C10Mixin on I<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -208,7 +249,9 @@ class C10 with I<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C11 with C1<int>, M3, M1 {
+class C10 = Object with I<int>, M3, M1, C10Mixin;
+
+mixin C11Mixin on C1<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -216,7 +259,9 @@ class C11 with C1<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C12 with I<int>, M0<int>, M3, M1 {
+class C11 = Object with C1<int>, M3, M1, C11Mixin;
+
+mixin C12Mixin on I<int>, M0<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -224,12 +269,17 @@ class C12 with I<int>, M0<int>, M3, M1 {
 }
 
 // M1 is inferred as M1<int>
-class C13 with M2<int>, M3, M1 {
+class C12 = Object with I<int>, M0<int>, M3, M1, C12Mixin;
+
+mixin C13Mixin on M2<int>, M3<int>, M1<int> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
   }
 }
+
+// M1 is inferred as M1<int>
+class C13 = Object with M2<int>, M3, M1, C13Mixin;
 
 
 ///////////////////////////////////////////////////////
@@ -237,8 +287,7 @@ class C13 with M2<int>, M3, M1 {
 ///////////////////////////////////////////////////////
 
 
-// M4 is inferred as M4<int, double>
-class A20 extends C2 with M4 {
+mixin A20Mixin on C2, M4<int, double> {
   void check() {
     // Verify that M4.S is exactly int
     int Function(int) f0 = this.value0;
@@ -248,17 +297,21 @@ class A20 extends C2 with M4 {
 }
 
 // M4 is inferred as M4<int, double>
-class A21 extends C3 with M2<int>, M4 {
+class A20 = C2 with M4, A20Mixin;
+
+mixin A21Mixin on C3, M2<int>, M4<int, double> {
   void check() {
     // Verify that M4.S is exactly int
     int Function(int) f0 = this.value0;
     // Verify that M4.T is exactly double
-    double Function(double) f1 = this.value0;
+    double Function(double) f1 = this.value1;
   }
 }
 
 // M4 is inferred as M4<int, double>
-class A22 extends C2 with M1, M4 {
+class A21 = C3 with M2<int>, M4, A21Mixin;
+
+mixin A22Mixin on C2, M1<int>, M4<int, double> {
   void check() {
     // Verify that M1.T is exactly int
     int Function(int) f = this.value;
@@ -269,15 +322,15 @@ class A22 extends C2 with M1, M4 {
   }
 }
 
+// M4 is inferred as M4<int, double>
+class A22 = C2 with M1, M4, A22Mixin;
+
 mixin _M5<T> on I<T> implements J<T> {}
 
 // Inference here puts J<int> in the superclass hierarchy
 class _A23 extends C0<int> with _M5 {}
 
-// Inference here should get J<int> for M4.T
-// if inference for _M5 is done first (correctly)
-// and otherwise J<dynamic>
-class A23 extends _A23 with M4 {
+mixin A23Mixin on _A23, M4<int, int> {
   void check() {
     // Verify that M4.S is exactly int
     int Function(int) f0 = this.value0;
@@ -285,6 +338,11 @@ class A23 extends _A23 with M4 {
     int Function(int) f1 = this.value1;
   }
 }
+
+// Inference here should get J<int> for M4.T
+// if inference for _A23 is done first (correctly)
+// and otherwise J<dynamic>
+class A23 = _A23 with M4, A23Mixin;
 
 ///////////////////////////////////////////////////////
 // Unconstrained parameters go to bounds
@@ -300,8 +358,7 @@ mixin M6<S, T extends S> on I<S> {
   T Function(T) get value1 => null;
 }
 
-// M5 is inferred as M5<int, String>
-class A30 extends C0<int> with M5 {
+mixin A30Mixin on C0<int>, M5<int, String> {
   void check() {
     // Verify that M5.S is exactly int
     int Function(int) f0 = this.value0;
@@ -310,8 +367,10 @@ class A30 extends C0<int> with M5 {
   }
 }
 
-// M6 is inferred as M6<int, int>
-class A31 extends C0<int> with M6 {
+// M5 is inferred as M5<int, String>
+class A30 = C0<int> with M5, A30Mixin;
+
+mixin A31Mixin on C0<int>, M6<int, int> {
   void check() {
     // Verify that M6.S is exactly int
     int Function(int) f0 = this.value0;
@@ -319,6 +378,9 @@ class A31 extends C0<int> with M6 {
     int Function(int) f1 = this.value1;
   }
 }
+
+// M6 is inferred as M6<int, int>
+class A31 = C0<int> with M6, A31Mixin;
 
 ///////////////////////////////////////////////////////
 // Non-trivial constraints should work
@@ -328,30 +390,19 @@ mixin M7<T> on I<List<T>> {
   T Function(T) get value0 => null;
 }
 
-mixin M8<T> on I<Iterable<T>> {
-  T Function(T) get value0 => null;
-}
-
 class A40<T> extends I<List<T>> {}
 
 class A41<T> extends A40<Map<T, T>> {}
 
-// M7 is inferred as M7<Map<int, int>>
-class A42 extends A41<int> with M7 {
+mixin A42Mixin on A41<int>, M7<Map<int, int>> {
   void check() {
     // Verify that M7.T is exactly Map<int, int>
     Map<int, int> Function(Map<int, int>) f1 = this.value0;
   }
 }
 
-// M8 is inferred as M8<Map<int, int>>
-class A43 extends A41<int> with M8 {
-  void check() {
-    // Verify that M8.T is exactly Map<int, int>
-    Map<int, int> Function(Map<int, int>) f1 = this.value0;
-  }
-}
-
+// M7 is inferred as M7<Map<int, int>>
+class A42 = A41<int> with M7, A42Mixin;
 
 void main() {
   Expect.type<M1<int>>(new A00()..check());
@@ -392,5 +443,4 @@ void main() {
   Expect.type<M6<int, int>>(new A31()..check());
 
   Expect.type<M7<Map<int, int>>>(new A42()..check());
-  Expect.type<M8<Map<int, int>>>(new A43()..check());
 }

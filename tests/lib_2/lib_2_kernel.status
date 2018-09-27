@@ -26,6 +26,7 @@ isolate/spawn_function_custom_class_test: Skip # Timeout
 html/*: Skip # TODO(ahe): Make dart:html available.
 isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
+mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
 
 [ $fasta ]
 mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
@@ -35,6 +36,8 @@ mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
+mirrors/redirecting_factory_test/01: CompileTimeError # Issue 33308
+mirrors/redirecting_factory_test/none: CompileTimeError # Issue 33308
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mint_maker_test: Timeout # Please triage.
@@ -64,6 +67,16 @@ isolate/browser/compute_this_script_browser_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
+
+# The failures below still need to be investigated and possibly fixed, or marked as skipped.
+[ $compiler == dartkb && $strong ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
+io/file_lock_test: Pass, Timeout # Please triage.
+isolate/isolate_complex_messages_test: Pass, Crash # Non-canonical type arguments.
+isolate/mandel_isolate_test: Pass, Timeout, Crash # Please triage.
+isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage.
+mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
+mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
@@ -98,8 +111,6 @@ mirrors/mirrors_nsm_mismatch_test: CompileTimeError
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError
 mirrors/mirrors_nsm_test/none: CompileTimeError
 mirrors/native_class_test: CompileTimeError
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
-mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
@@ -108,7 +119,6 @@ mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, 
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
@@ -183,9 +193,7 @@ mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source 
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
 mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
-mirrors/redirecting_factory_test/02: RuntimeError
 mirrors/redirecting_factory_test/none: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
@@ -197,7 +205,7 @@ mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
-mirrors/repeated_private_anon_mixin_app_test: RuntimeError
+mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError # Issue 31537
@@ -287,7 +295,6 @@ mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
 mirrors/mixin_members_test: RuntimeError
 mirrors/operator_test: RuntimeError
-mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/redirecting_factory_reflection_test: RuntimeError
 

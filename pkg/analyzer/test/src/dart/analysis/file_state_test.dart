@@ -588,6 +588,43 @@ part 'not-a2.dart';
     expect(files, [filePackageUri, fileFileUri]);
   }
 
+  test_getFilesSubtypingName() {
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+
+    provider.newFile(a, r'''
+class A {}
+class B extends A {}
+''');
+    provider.newFile(b, r'''
+class A {}
+class D implements A {}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    provider.newFile(b, r'''
+class C {}
+class D implements C {}
+''');
+    bFile.refresh();
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
+  }
+
   test_hasUri() {
     Uri uri = Uri.parse('package:aaa/foo.dart');
     String templatePath = _p('/aaa/lib/foo.dart');

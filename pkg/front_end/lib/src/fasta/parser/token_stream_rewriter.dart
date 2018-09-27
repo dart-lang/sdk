@@ -80,18 +80,6 @@ class TokenStreamRewriter {
     return newToken;
   }
 
-  /// Insert the chain of tokens starting at the [insertedToken] immediately
-  /// after the [previousToken]. Return the [previousToken].
-  Token insertTokenAfter(Token previousToken, Token insertedToken) {
-    Token afterToken = previousToken.next;
-    previousToken.setNext(insertedToken);
-
-    Token lastReplacement = _lastTokenInChain(insertedToken);
-    lastReplacement.setNext(afterToken);
-
-    return previousToken;
-  }
-
   /// Move [endGroup] (a synthetic `)`, `]`, or `}` token) and associated
   /// error token after [token] in the token stream and return [endGroup].
   Token moveSynthetic(Token token, Token endGroup) {

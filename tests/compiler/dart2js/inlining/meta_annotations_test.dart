@@ -38,7 +38,7 @@ main() {
     Compiler compiler = result.compiler;
     KClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
-    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     Expect.isNotNull(closedWorld.commonElements.metaNoInlineClass,
         'NoInlineClass is unresolved.');

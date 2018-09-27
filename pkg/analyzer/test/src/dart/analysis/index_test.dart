@@ -1014,27 +1014,20 @@ class Z implements E, D {
 }
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A']);
-      expect(X.members, ['field1', 'field2', 'getter1', 'method1', 'setter1']);
-    }
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(
-          Y.supertypes, ['dart:core;dart:core;Object', '$libP;B', '$libP;C']);
-      expect(Y.members, ['methodY']);
-    }
-
-    {
-      AnalysisDriverSubtype Z =
-          index.subtypes.singleWhere((t) => t.name == 'Z');
-      expect(Z.supertypes, ['$libP;D', '$libP;E']);
-      expect(Z.members, ['methodZ']);
-    }
+    _assertSubtype(0, 'dart:core;dart:core;Object', 'Y', ['methodY']);
+    _assertSubtype(
+      1,
+      '$libP;A',
+      'X',
+      ['field1', 'field2', 'getter1', 'method1', 'setter1'],
+    );
+    _assertSubtype(2, '$libP;B', 'Y', ['methodY']);
+    _assertSubtype(3, '$libP;C', 'Y', ['methodY']);
+    _assertSubtype(4, '$libP;D', 'Z', ['methodZ']);
+    _assertSubtype(5, '$libP;E', 'Z', ['methodZ']);
   }
 
   test_subtypes_classTypeAlias() async {
@@ -1052,19 +1045,16 @@ class X = A with B, C;
 class Y = A with B implements C, D;
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
-      expect(X.members, isEmpty);
-    }
+    expect(index.supertypes, hasLength(7));
+    expect(index.subtypes, hasLength(7));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C', '$libP;D']);
-      expect(Y.members, isEmpty);
-    }
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
+    _assertSubtype(6, '$libP;D', 'Y', []);
   }
 
   test_subtypes_dynamic() async {
@@ -1074,9 +1064,8 @@ class X extends dynamic {
 }
 ''');
 
-    AnalysisDriverSubtype X = index.subtypes.singleWhere((t) => t.name == 'X');
-    expect(X.supertypes, isEmpty);
-    expect(X.members, ['foo']);
+    expect(index.supertypes, isEmpty);
+    expect(index.subtypes, isEmpty);
   }
 
   test_subtypes_mixinDeclaration() async {
@@ -1095,17 +1084,15 @@ mixin X on A implements B, C {}
 mixin Y on A, B implements C;
 ''');
 
-    {
-      var X = index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
-      expect(X.members, isEmpty);
-    }
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
 
-    {
-      var Y = index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
-      expect(Y.members, isEmpty);
-    }
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
   }
 
   test_usedName_inLibraryIdentifier() async {
@@ -1213,6 +1200,14 @@ main() {
         'not found\n$element $expectedRelationKind at $expectedLocation');
   }
 
+  void _assertSubtype(
+      int i, String superEncoded, String subName, List<String> members) {
+    expect(index.strings[index.supertypes[i]], superEncoded);
+    var subtype = index.subtypes[i];
+    expect(index.strings[subtype.name], subName);
+    expect(_decodeStringList(subtype.members), members);
+  }
+
   void _assertUsedName(String name, IndexRelationKind kind,
       ExpectedLocation expectedLocation, bool isNot) {
     int nameId = _getStringId(name);
@@ -1231,6 +1226,10 @@ main() {
       return;
     }
     _failWithIndexDump('Not found $name $kind at $expectedLocation');
+  }
+
+  List<String> _decodeStringList(List<int> stringIds) {
+    return stringIds.map((i) => index.strings[i]).toList();
   }
 
   ExpectedLocation _expectedLocation(String search, bool isQualified,

@@ -8,9 +8,8 @@
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-bug31124: RuntimeError # Test has an intentional error
+bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 call: Fail # Test can't run.
-co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
@@ -20,14 +19,12 @@ inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031
 inference/future_then_explicit_future: Fail
-inference/generic_methods_infer_js_builtin: Fail
+inference/generic_methods_infer_js_builtin: RuntimeError # Test attempts to access platform-private library leading to NSM.
 inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property: Fail
 inference/infer_assign_to_property_custom: Fail
 inference/infer_type_cast: Fail
 inference/infer_typed_list_literal: Fail
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: RuntimeError
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # May be related to Issue 33479
@@ -99,8 +96,8 @@ redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactory
 redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 regress/issue_29975: Fail # Issue 29975.
-regress/issue_29976: RuntimeError # Issue 29976.
-regress/issue_29982: Fail # Issue 29982.
+regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
+regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error

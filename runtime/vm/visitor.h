@@ -38,7 +38,6 @@ class ObjectPointerVisitor {
 
  private:
   Isolate* isolate_;
-  NoSafepointScope no_safepoints_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

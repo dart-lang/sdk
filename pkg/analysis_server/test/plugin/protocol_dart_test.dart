@@ -507,7 +507,7 @@ mixin A {}
         expect(location.startColumn, 7);
       }
       expect(element.parameters, isNull);
-      expect(element.flags, 0);
+      expect(element.flags, Element.FLAG_ABSTRACT);
     }
   }
 

@@ -367,9 +367,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
             nativeUsage: true, globalDependency: true);
         break;
       case TypeUseKind.IS_CHECK:
-      case TypeUseKind.AS_CAST:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
+        break;
+      case TypeUseKind.AS_CAST:
+        if (!_options.omitAsCasts) {
+          _registerIsCheck(type);
+        }
         break;
       case TypeUseKind.IMPLICIT_CAST:
         if (_options.implicitDowncastCheckPolicy.isEmitted) {

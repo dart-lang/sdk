@@ -2122,6 +2122,28 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
     new MatchesJsonObject("diagnostic.getServerPort result", {"port": isInt}));
 
 /**
+ * edit.dartfix params
+ *
+ * {
+ *   "included": List<FilePath>
+ * }
+ */
+final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
+    "edit.dartfix params", {"included": isListOf(isFilePath)}));
+
+/**
+ * edit.dartfix result
+ *
+ * {
+ *   "description": List<String>
+ *   "fixes": List<SourceFileEdit>
+ * }
+ */
+final Matcher isEditDartfixResult = new LazyMatcher(() => new MatchesJsonObject(
+    "edit.dartfix result",
+    {"description": isListOf(isString), "fixes": isListOf(isSourceFileEdit)}));
+
+/**
  * edit.format params
  *
  * {

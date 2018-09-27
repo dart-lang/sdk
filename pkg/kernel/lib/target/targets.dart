@@ -127,7 +127,7 @@ abstract class Target {
 
   /// Whether a library is allowed to import a platform private library.
   ///
-  /// By default only `dart:*` libraries are allowed. May be overriden for
+  /// By default only `dart:*` libraries are allowed. May be overridden for
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       imported.scheme != "dart" ||
@@ -200,6 +200,9 @@ abstract class Target {
 
   Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 }
 
 class NoneTarget extends Target {

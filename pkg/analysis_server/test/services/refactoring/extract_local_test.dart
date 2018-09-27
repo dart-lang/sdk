@@ -52,6 +52,28 @@ main() {
         expectedMessage: "The name 'res' is already used in the scope.");
   }
 
+  test_checkInitialCondition_false_outOfRange_length() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoring(0, 1 << 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
+  test_checkInitialCondition_outOfRange_offset() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoring(-10, 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
   test_checkInitialConditions_assignmentLeftHandSize() async {
     await indexTestUnit('''
 main() {
@@ -68,8 +90,7 @@ main() {
 
   test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-main() {
-}
+void main() {}
 ''');
     _createRefactoringWithSuffix('main', '()');
     // check conditions
@@ -693,6 +714,24 @@ main() {
     // check guesses
     await refactoring.checkInitialConditions();
     expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
+  }
+
+  test_isAvailable_false_notPartOfFunction() async {
+    await indexTestUnit('''
+var v = 1 + 2;
+''');
+    _createRefactoringForString('1 + 2');
+    expect(refactoring.isAvailable(), isFalse);
+  }
+
+  test_isAvailable_true() async {
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    expect(refactoring.isAvailable(), isTrue);
   }
 
   test_occurrences_differentVariable() async {

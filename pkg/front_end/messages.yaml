@@ -385,16 +385,18 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
 
 MissingExpressionInThrow:
+  index: 32
   template: "Missing expression after 'throw'."
   tip: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
-  analyzerCode: MISSING_EXPRESSION_IN_THROW
+  analyzerCode: ParserErrorCode.MISSING_EXPRESSION_IN_THROW
   statement:
     - "throw;"
 
 MissingConstFinalVarOrType:
+  index: 33
   template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   tip: "Try adding the name of the type of the variable or the keyword 'var'."
-  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
+  analyzerCode: ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
   script:
     - "class C { static f; }"
 
@@ -897,15 +899,17 @@ InvalidCodePoint:
     - "'\\u{110000}'"
 
 InvalidHexEscape:
+  index: 40
   template: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
-  analyzerCode: INVALID_HEX_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_HEX_ESCAPE
   expression:
     - "'\\x0'"
     - "'\\x0y'"
 
 InvalidUnicodeEscape:
+  index: 38
   template: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
-  analyzerCode: INVALID_UNICODE_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE
   expression:
     - "'\\u'"
     - "'\\u0F'"
@@ -1573,8 +1577,23 @@ PrefixAfterCombinator:
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
-  severity: IGNORED
   analyzerCode: AMBIGUOUS_EXPORT
+  script:
+    lib1.dart: "class A {}"
+    lib2.dart: "class A {}"
+    main.dart: "export 'lib1.dart'; export 'lib2.dart';"
+
+DuplicatedLibraryExport:
+  template: "A library with name '#name' is exported more than once."
+  analyzerCode: EXPORT_DUPLICATED_LIBRARY_NAMED
+  script:
+    lib1.dart: "library foo;"
+    lib2.dart: "library foo;"
+    main.dart: "export 'lib1.dart'; export 'lib2.dart';"
+
+DuplicatedLibraryExportContext:
+  template: "'#name' is also exported here."
+  severity: CONTEXT
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
@@ -1583,6 +1602,18 @@ DuplicatedExportInType:
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: IGNORED
+
+DuplicatedLibraryImport:
+  template: "A library with name '#name' is imported more than once."
+  analyzerCode: IMPORT_DUPLICATED_LIBRARY_NAMED
+  script:
+    lib1.dart: "library foo;"
+    lib2.dart: "library foo;"
+    main.dart: "import 'lib1.dart'; import 'lib2.dart';"
+
+DuplicatedLibraryImportContext:
+  template: "'#name' is also imported here."
+  severity: CONTEXT
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -1884,9 +1915,10 @@ TypedefNotFunction:
   analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
 
 LibraryDirectiveNotFirst:
+  index: 37
   template: "The library directive must appear before all other directives."
   tip: "Try moving the library directive before any other directives."
-  analyzerCode: LIBRARY_DIRECTIVE_NOT_FIRST
+  analyzerCode: ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST
   script:
     - "class Foo{} library l;"
     - "import 'x.dart'; library l;"
@@ -2089,16 +2121,59 @@ TypeArgumentsOnTypeVariable:
   script:
     - "dynamic<T>(x) => 0"
 
-DuplicatedDefinition:
-  template: "Duplicated definition of '#name'."
-
-DuplicatedName:
+# Use this message when a duplicated declaration is introduced.  For example:
+#
+#    class C {} // First declaration (related information points here).
+#    class C {} // Duplicated declaration (error here).
+#    main() {
+#      new C(); // Use of duplicated declaration.
+#    }
+#
+# We follow the convention from C that a definition is the unique element that
+# provides the implementation of a name, and a declaration may not be unique
+# (for example, forward declaration). Using this terminology, one could argue
+# that a method that is abstract or external is a declaration, not a
+# definition. Similarly, imported names are declarations, not
+# definitions. Consequently, it is more convenient to use the word
+# "declaration" instead of "definition" as the former implies less.
+DuplicatedDeclaration:
   template: "'#name' is already declared in this scope."
   analyzerCode: DUPLICATE_DEFINITION
+  script: |
+    class C {} // First declaration (related information points here).
+    class C {} // Duplicated declaration (error here).
+    main() {
+      // The following line is commented out as it would lead to an extraneous
+      // diagnostic.
+      // new C(); // Use of duplicated declaration.
+    }
 
-DuplicatedNameCause:
+DuplicatedDeclarationCause:
   template: "Previous declaration of '#name'."
   severity: CONTEXT
+
+# Use this message when a duplicated declaration is used.
+DuplicatedDeclarationUse:
+  template: "Can't use '#name' because it is declared more than once."
+  script:
+    - main.dart: |
+        // This test can't pass as tests must produce only one error message.
+        class C {} // First declaration (related information points here).
+        class C {} // Duplicated declaration (error here).
+        main() {
+          new C(); // Use of duplicated declaration.
+        }
+    - main.dart: |
+        import 'lib1.dart';
+        import 'lib2.dart';
+
+        main() {
+          new C(); // Use of duplicated declaration.
+        }
+      lib1.dart: |
+        class C {}
+      lib2.dart: |
+        class C {}
 
 DuplicatedNamePreviouslyUsed:
   template: "Can't declare '#name' because it was already used in this scope."
@@ -2130,15 +2205,17 @@ EnumConstantSameNameAsEnclosing:
   analyzerCode: ENUM_CONSTANT_WITH_ENUM_NAME
 
 MissingOperatorKeyword:
+  index: 31
   template: "Operator declarations must be preceeded by the keyword 'operator'."
   tip: "Try adding the keyword 'operator'."
-  analyzerCode: MISSING_KEYWORD_OPERATOR
+  analyzerCode: ParserErrorCode.MISSING_KEYWORD_OPERATOR
   script:
     - "class C { +(x) {} }"
 
 InvalidOperator:
+  index: 39
   template: "The string '#lexeme' isn't a user-definable operator."
-  analyzerCode: INVALID_OPERATOR
+  analyzerCode: ParserErrorCode.INVALID_OPERATOR
   script:
     - "class C { void operator %=(x) {} }"
 
@@ -2380,15 +2457,17 @@ ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
 
 ExpectedAnInitializer:
+  index: 36
   template: "Expected an initializer."
-  analyzerCode: MISSING_INITIALIZER
+  analyzerCode: ParserErrorCode.MISSING_INITIALIZER
   script:
     - "class C { C() : {} }"
 
 MissingAssignmentInInitializer:
+  index: 34
   template: "Expected an assignment after the field name."
   tip: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: MISSING_ASSIGNMENT_IN_INITIALIZER
+  analyzerCode: ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER
   script:
     - "class C { C() : x(3) {} }"
 
@@ -2419,9 +2498,10 @@ IllegalAssignmentToNonAssignable:
     - "main(){ f()++; }"
 
 MissingAssignableSelector:
+  index: 35
   template: "Missing selector such as '.<identifier>' or '[0]'."
   tip: "Try adding a selector."
-  analyzerCode: MISSING_ASSIGNABLE_SELECTOR
+  analyzerCode: ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR
   script:
     - "main(){ ++f(); }"
 
@@ -2831,7 +2911,7 @@ DefaultValueInRedirectingFactoryConstructor:
     - >-
       class A {
         factory A.f({int x = 42}) = A.g;
-        A.g() {}
+        A.g({int x = 40}) {}
       }
 
 UntranslatableUri:
@@ -2856,3 +2936,82 @@ CantReadFile:
 PackagesFileFormat:
   template: "Problem in packages configuration file: #string"
   external: test/packages_format_error_test.dart
+
+FactoryRedirecteeInvalidReturnType:
+  template: "The return type '#type' of the constructor '#name' isn't a subtype of '#type2'."
+  tip: "Try redirecting to a different constructor."
+  analyzerCode: REDIRECT_TO_INVALID_RETURN_TYPE
+  script:
+    - >-
+      class A {
+        factory A() = B;
+      }
+      class B {
+        B();
+      }
+
+FactoryRedirecteeHasTooFewPositionalParameters:
+  template: "Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide."
+  tip: "Try redirecting to a different constructor."
+  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
+  script:
+    - >-
+      class A {
+        factory A.one(int x) = A.zero;
+        A.zero() {}
+      }
+
+RedirectingFactoryInvalidPositionalParameterType:
+  template: "The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2)."
+  tip: "Try changing either the type of the parameter or the redirection target."
+  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
+  script:
+    - >-
+      class A {
+        factory A.i(int x) = A.s;
+        A.s(String x) { }
+      }
+
+RedirectingFactoryMissingNamedParameter:
+  template: "The constructor '#name' does not have a named parameter '#name2'."
+  tip: "Try adding '#name2' as a named parameter to '#name'."
+  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
+  script:
+    - >-
+      class A {
+        factory A.f({int x}) = A.g;
+        A.g({int y}) { }
+      }
+
+RedirectingFactoryInvalidNamedParameterType:
+  template: "The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2)."
+  tip: "Try changing either the type of the parameter or the redirection target."
+  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
+  script:
+    - >-
+      class A {
+        factory A.f({int x}) = A.g;
+        A.g({String x}) { }
+      }
+
+RedirectingFactoryProvidesTooFewRequiredParameters:
+  template: "Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2')."
+  tip: "Try redirecting to a different constructor."
+  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
+  script:
+    - >-
+      class A {
+        factory A.f(int x) = A.g;
+        A.g(int x, int y) {}
+      }
+
+RedirectingFactoryIncompatibleTypeArgument:
+  template: "The type '#type' doesn't extend '#type2'."
+  tip: "Try using a different type as argument."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script:
+    - >-
+      class A<T extends int> {
+         factory A() = B<T, int>;
+      }
+      class B<T extends int, S extends String> implements A<T> {}

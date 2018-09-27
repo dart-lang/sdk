@@ -923,19 +923,35 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   **SP = result;
   pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
 
-  // It is legit to call the constructor of an error object, however a
-  // result of class UnhandledException must be propagated.
-  if (result->IsHeapObject() &&
-      result->GetClassId() == kUnhandledExceptionCid) {
-    (*SP)[0] = UnhandledException::RawCast(result)->ptr()->exception_;
-    (*SP)[1] = UnhandledException::RawCast(result)->ptr()->stacktrace_;
-    (*SP)[2] = 0;  // Space for result.
-    Exit(thread, *FP, *SP + 3, *pc);
-    NativeArguments args(thread, 2, *SP, *SP + 2);
-    if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
+  // If the result is an error (not a Dart instance), it must either be rethrown
+  // (in the case of an unhandled exception) or it must be returned to the
+  // caller of the interpreter to be propagated.
+  if (result->IsHeapObject()) {
+    const intptr_t result_cid = result->GetClassId();
+    if (result_cid == kUnhandledExceptionCid) {
+      (*SP)[0] = UnhandledException::RawCast(result)->ptr()->exception_;
+      (*SP)[1] = UnhandledException::RawCast(result)->ptr()->stacktrace_;
+      (*SP)[2] = 0;  // Space for result.
+      Exit(thread, *FP, *SP + 3, *pc);
+      NativeArguments args(thread, 2, *SP, *SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
+        return false;
+      }
+      UNREACHABLE();
+    }
+    if (RawObject::IsErrorClassId(result_cid)) {
+      // Unwind to entry frame.
+      fp_ = *FP;
+      pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+      while (!IsEntryFrameMarker(pc_)) {
+        fp_ = SavedCallerFP(fp_);
+        pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+      }
+      // Pop entry frame.
+      fp_ = SavedCallerFP(fp_);
+      special_[KernelBytecode::kExceptionSpecialIndex] = result;
       return false;
     }
-    UNREACHABLE();
   }
   return true;
 }
@@ -1509,7 +1525,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
   do {                                                                         \
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1537,7 +1553,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
   do {                                                                         \
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1616,7 +1632,7 @@ DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
 
   // Check if it is a fake PC marking the entry frame.
-  ASSERT((reinterpret_cast<uword>(*pc) & 2) == 0);
+  ASSERT(!IsEntryFrameMarker(reinterpret_cast<uword>(*pc)));
 
   // Restore SP, FP and PP.
   // Unoptimized frame SP is one below FrameArguments(...) because
@@ -2102,6 +2118,17 @@ RawObject* Interpreter::Call(RawFunction* function,
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);
       }
+    }
+    RawFunction* function = FrameFunction(FP);
+    int32_t counter = ++(function->ptr()->usage_counter_);
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
+                 counter >= FLAG_compilation_counter_threshold &&
+                 !Function::HasCode(function))) {
+      SP[1] = 0;  // Unused code result.
+      SP[2] = function;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
     }
     DISPATCH();
   }
@@ -3456,7 +3483,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
-    if ((reinterpret_cast<uword>(pc) & 2) != 0) {
+    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {
       // Pop entry frame.
       fp_ = SavedCallerFP(FP);
       // Restore exit frame info saved in entry frame.
@@ -4771,7 +4798,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     // Restore caller context as we are going to throw NoSuchMethod.
     pc = SavedCallerPC(FP);
 
-    const bool has_dart_caller = (reinterpret_cast<uword>(pc) & 2) == 0;
+    const bool has_dart_caller =
+        !IsEntryFrameMarker(reinterpret_cast<uword>(pc));
     const intptr_t argc = has_dart_caller ? KernelBytecode::DecodeArgc(pc[-1])
                                           : (reinterpret_cast<uword>(pc) >> 2);
     const intptr_t type_args_len =

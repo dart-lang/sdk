@@ -1,3 +1,8 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:1: Warning: Can't use type arguments with type variable 'T'.
+// Try removing the type arguments.
+
 library;
 import self as self;
 import "dart:core" as core;

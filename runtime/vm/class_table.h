@@ -214,6 +214,7 @@ class ClassTable {
   }
 
   intptr_t NumCids() const { return top_; }
+  intptr_t Capacity() const { return capacity_; }
 
   // Used to drop recently added classes.
   void SetNumCids(intptr_t num_cids) {

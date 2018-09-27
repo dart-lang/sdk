@@ -45,7 +45,6 @@ namespace bin {
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
   V(disable_exit, exit_disabled)                                               \
-  V(no_preview_dart_2, no_preview_dart_2)                                      \
   V(preview_dart_2, nop_option)
 
 // Boolean flags that have a short form.
@@ -111,8 +110,7 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static bool preview_dart_2() { return !no_preview_dart_2(); }
-  static void SetDart1Options(CommandLineOptions* vm_options);
+  static bool preview_dart_2() { return true; }
 
   static dart::SimpleHashMap* environment() { return environment_; }
 

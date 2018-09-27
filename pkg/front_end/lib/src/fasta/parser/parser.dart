@@ -488,7 +488,7 @@ class Parser {
       reportRecoverableError(next, fasta.messageTopLevelOperator);
       // Insert a synthetic identifier
       // and continue parsing as a top level function.
-      rewriter.insertTokenAfter(
+      rewriter.insertToken(
           next,
           new SyntheticStringToken(
               TokenType.IDENTIFIER,
@@ -1099,7 +1099,7 @@ class Parser {
           withKeyword, fasta.templateExpectedButGot.withArguments('with'));
       withKeyword =
           new SyntheticKeywordToken(Keyword.WITH, withKeyword.charOffset);
-      rewriter.insertTokenAfter(token, withKeyword);
+      rewriter.insertToken(token, withKeyword);
       if (!isValidTypeReference(withKeyword.next)) {
         rewriter.insertSyntheticIdentifier(withKeyword);
       }
@@ -1203,7 +1203,7 @@ class Parser {
               next.next.kind == IDENTIFIER_TOKEN) {
             // Looks like a missing comma
             Token comma = new SyntheticToken(TokenType.COMMA, next.charOffset);
-            token = rewriter.insertTokenAfter(token, comma).next;
+            token = rewriter.insertToken(token, comma);
             continue;
           } else {
             token = ensureCloseParen(token, begin);
@@ -1324,10 +1324,9 @@ class Parser {
       if (!optional('.', next)) {
         // Recover from a missing period by inserting one.
         next = rewriteAndRecover(
-                token,
-                fasta.templateExpectedButGot.withArguments('.'),
-                new SyntheticToken(TokenType.PERIOD, next.charOffset))
-            .next;
+            token,
+            fasta.templateExpectedButGot.withArguments('.'),
+            new SyntheticToken(TokenType.PERIOD, next.charOffset));
       }
       periodAfterThis = token = next;
       next = token.next;
@@ -1476,7 +1475,7 @@ class Parser {
       token = next;
     }
     if (parameterCount == 0) {
-      token = rewriteAndRecover(
+      rewriteAndRecover(
           token,
           fasta.messageEmptyOptionalParameterList,
           new SyntheticStringToken(
@@ -1527,7 +1526,7 @@ class Parser {
       token = next;
     }
     if (parameterCount == 0) {
-      token = rewriteAndRecover(
+      rewriteAndRecover(
           token,
           fasta.messageEmptyNamedParameterList,
           new SyntheticStringToken(
@@ -1971,10 +1970,8 @@ class Parser {
         if (!errorReported) {
           reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
         }
-        next = rewriter
-            .insertTokenAfter(token,
-                new SyntheticStringToken(TokenType.STRING, '', next.charOffset))
-            .next;
+        next = rewriter.insertToken(token,
+            new SyntheticStringToken(TokenType.STRING, '', next.charOffset));
       }
     }
     listener.handleStringPart(next);
@@ -2114,7 +2111,7 @@ class Parser {
               token = next;
               next = token.next;
               if (optional('(', next.next)) {
-                rewriter.insertTokenAfter(
+                rewriter.insertToken(
                     next,
                     new SyntheticStringToken(
                         TokenType.IDENTIFIER,
@@ -2423,33 +2420,48 @@ class Parser {
         // `this.<fieldname>=` is expected.
         reportRecoverableError(
             next, fasta.templateExpectedButGot.withArguments('.'));
-        rewriter.insertTokenAfter(
+        rewriter.insertToken(
             token, new SyntheticToken(TokenType.PERIOD, next.offset));
         token = rewriter.insertSyntheticIdentifier(token.next);
         next = token.next;
       }
       // Fall through to recovery
     } else if (next.isIdentifier) {
-      if (optional('=', next.next)) {
+      Token next2 = next.next;
+      if (optional('=', next2)) {
         return parseInitializerExpressionRest(token);
       }
-      // Fall through to recovery
+      // Recovery: If this looks like an expression,
+      // then fall through to insert the LHS and `=` of the assignment,
+      // otherwise insert an `=` and synthetic identifier.
+      if (!next2.isOperator && !optional('.', next2)) {
+        token = rewriter.insertToken(
+            next, new SyntheticToken(TokenType.EQ, next2.offset));
+        token = insertSyntheticIdentifier(token, IdentifierContext.expression,
+            message: fasta.messageMissingAssignmentInInitializer,
+            messageOnToken: next);
+        return parseInitializerExpressionRest(beforeExpression);
+      }
     } else {
-      // Recovery
-      insertSyntheticIdentifier(token, IdentifierContext.fieldInitializer,
+      // Recovery: Insert a synthetic assignment.
+      token = insertSyntheticIdentifier(
+          token, IdentifierContext.fieldInitializer,
           message: fasta.messageExpectedAnInitializer, messageOnToken: token);
+      token = rewriter.insertToken(
+          token, new SyntheticToken(TokenType.EQ, token.offset));
+      token = rewriter.insertSyntheticIdentifier(token);
       return parseInitializerExpressionRest(beforeExpression);
     }
-    // Recovery
-    // Insert a sythetic assignment to ensure that the expression is indeed
-    // an assignment. Failing to do so causes this test to fail:
+    // Recovery:
+    // Insert a synthetic identifier and assignment operator
+    // to ensure that the expression is indeed an assignment.
+    // Failing to do so causes this test to fail:
     // pkg/front_end/testcases/regress/issue_31192.dart
     // TODO(danrubel): Investigate better recovery.
     token = insertSyntheticIdentifier(
         beforeExpression, IdentifierContext.fieldInitializer,
         message: fasta.messageMissingAssignmentInInitializer);
-    rewriter.insertTokenAfter(
-        token, new SyntheticToken(TokenType.EQ, token.offset));
+    rewriter.insertToken(token, new SyntheticToken(TokenType.EQ, token.offset));
     return parseInitializerExpressionRest(beforeExpression);
   }
 
@@ -2516,11 +2528,12 @@ class Parser {
 
   Token insertBlock(Token token) {
     Token next = token.next;
-    Token replacement = link(
-        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset),
+    BeginToken beginGroup = rewriter.insertToken(token,
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset));
+    Token endGroup = rewriter.insertToken(beginGroup,
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, next.offset));
-    rewriter.insertTokenAfter(token, replacement);
-    return replacement;
+    beginGroup.endGroup = endGroup;
+    return beginGroup;
   }
 
   /// If the next token is a closing parenthesis, return it.
@@ -2554,7 +2567,7 @@ class Parser {
     if (optional(':', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
-    return rewriteAndRecover(token, message, newToken).next;
+    return rewriteAndRecover(token, message, newToken);
   }
 
   /// If the token after [token] is a not literal string,
@@ -2592,11 +2605,10 @@ class Parser {
   }
 
   /// Report an error at the token after [token] that has the given [message].
-  /// Insert the [newToken] after [token] and return [token].
+  /// Insert the [newToken] after [token] and return [newToken].
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
     reportRecoverableError(token.next, message);
-    rewriter.insertTokenAfter(token, newToken);
-    return token;
+    return rewriter.insertToken(token, newToken);
   }
 
   /// Replace the token after [token] with `[` followed by `]`
@@ -3289,10 +3301,8 @@ class Parser {
       // If `return` used instead of `=>`, then report an error and continue
       if (optional('return', next)) {
         reportRecoverableError(next, fasta.messageExpectedBody);
-        next = rewriter
-            .insertTokenAfter(next,
-                new SyntheticToken(TokenType.FUNCTION, next.next.charOffset))
-            .next;
+        next = rewriter.insertToken(
+            next, new SyntheticToken(TokenType.FUNCTION, next.next.charOffset));
         return parseExpressionFunctionBody(next, ofFunctionExpression);
       }
       // If there is a stray simple identifier in the function expression
@@ -4126,10 +4136,9 @@ class Parser {
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
         next = rewriteAndRecover(
-                token,
-                fasta.templateExpectedButGot.withArguments(','),
-                new SyntheticToken(TokenType.COMMA, next.offset))
-            .next;
+            token,
+            fasta.templateExpectedButGot.withArguments(','),
+            new SyntheticToken(TokenType.COMMA, next.offset));
       }
       token = next;
     }
@@ -4174,10 +4183,9 @@ class Parser {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
-                  token,
-                  fasta.templateExpectedButGot.withArguments(','),
-                  new SyntheticToken(TokenType.COMMA, next.offset))
-              .next;
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
         } else {
           reportRecoverableError(
               next, fasta.templateExpectedButGot.withArguments('}'));
@@ -4242,7 +4250,7 @@ class Parser {
       // TODO(danrubel): Improve this error message.
       reportRecoverableError(
           next, fasta.templateExpectedButGot.withArguments('['));
-      rewriter.insertTokenAfter(
+      rewriter.insertToken(
           token, new SyntheticToken(TokenType.INDEX, next.charOffset));
     }
     return parseLiteralListSuffix(token, constKeyword);
@@ -4607,10 +4615,9 @@ class Parser {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
-                  token,
-                  fasta.templateExpectedButGot.withArguments(','),
-                  new SyntheticToken(TokenType.COMMA, next.offset))
-              .next;
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
         } else {
           token = ensureCloseParen(token, begin);
           break;
@@ -5150,10 +5157,8 @@ class Parser {
     if (!optional('while', whileToken)) {
       reportRecoverableError(
           whileToken, fasta.templateExpectedButGot.withArguments('while'));
-      whileToken = rewriter
-          .insertTokenAfter(token,
-              new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset))
-          .next;
+      whileToken = rewriter.insertToken(token,
+          new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset));
     }
     token = parseParenthesizedCondition(whileToken);
     token = ensureSemicolon(token);
@@ -5238,7 +5243,7 @@ class Parser {
       // checking the next token as we are doing here.
       reportRecoverableError(
           throwToken.next, fasta.messageMissingExpressionInThrow);
-      rewriter.insertTokenAfter(
+      rewriter.insertToken(
           throwToken,
           new SyntheticStringToken(
               TokenType.STRING, '""', throwToken.next.charOffset, 0));
@@ -5708,7 +5713,7 @@ class Parser {
       next = next.next;
     } else {
       reportRecoverableError(next, fasta.messageMissingOperatorKeyword);
-      rewriter.insertTokenAfter(
+      rewriter.insertToken(
           beforeName, new SyntheticToken(Keyword.OPERATOR, next.offset));
     }
 
@@ -5803,7 +5808,7 @@ class Parser {
     reportRecoverableError(next, fasta.messageStackOverflow);
 
     next = new SyntheticToken(TokenType.SEMICOLON, token.offset);
-    rewriter.insertTokenAfter(token, next);
+    rewriter.insertToken(token, next);
     listener.handleEmptyStatement(next);
 
     while (notEofOrValue('}', next)) {
@@ -5814,22 +5819,22 @@ class Parser {
   }
 
   void reportRecoverableError(Token token, Message message) {
+    // Find a non-synthetic token on which to report the error.
+    token = findNonZeroLengthToken(token);
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
-      // Find a non-synthetic token on which to report the error.
-      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(message, token, token);
     }
   }
 
   void reportRecoverableErrorWithToken(
       Token token, Template<_MessageWithArgument<Token>> template) {
+    // Find a non-synthetic token on which to report the error.
+    token = findNonZeroLengthToken(token);
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
-      // Find a non-synthetic token on which to report the error.
-      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(
           template.withArguments(token), token, token);
     }

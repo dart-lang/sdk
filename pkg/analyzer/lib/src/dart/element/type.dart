@@ -1389,6 +1389,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         _typeArguments = _typeArgumentsComputer();
       } on RecursiveInstantiateToBounds {
         _hasTypeParameterReferenceInBound = true;
+        _typeArguments = new List<DartType>.filled(
+            element.typeParameters.length,
+            element.context.typeProvider.dynamicType);
       }
       _typeArgumentsComputer = null;
     }
@@ -1505,9 +1508,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     List<DartType> jArgs = j.typeArguments;
     List<DartType> jVars = jElement.type.typeArguments;
-    supertype = supertype.substitute2(jArgs, jVars);
-    if (supertype == i) {
-      return true;
+    if (supertype != null) {
+      supertype = supertype.substitute2(jArgs, jVars);
+      if (supertype == i) {
+        return true;
+      }
     }
     //
     // I is listed in the on clause of J.
@@ -1761,11 +1766,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false, bool setter: false}) {
+      {bool concrete: false, int stopMixinIndex, bool setter: false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
-        {bool acceptAbstract: false, bool includeType: true}) {
+        {bool acceptAbstract: false,
+        bool includeType: true,
+        int stopMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
       }
@@ -1782,15 +1789,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           if (!concrete || acceptAbstract || !result.isAbstract) {
             return result;
           }
-          ClassElementImpl elementImpl = type.element;
-          if (elementImpl.hasNoSuchMethod) {
-            return result;
-          }
         }
       }
 
-      for (InterfaceType mixin in type.mixins.reversed) {
-        var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+      var mixins = type.mixins;
+      for (var i = 0; i < mixins.length; i++) {
+        if (stopMixinIndex != null && i >= stopMixinIndex) {
+          break;
+        }
+        var result = lookUpImpl(mixins[i], acceptAbstract: acceptAbstract);
         if (result != null) {
           return result;
         }
@@ -1819,7 +1826,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return null;
     } else {
-      return lookUpImpl(this, includeType: false);
+      return lookUpImpl(
+        this,
+        includeType: false,
+        stopMixinIndex: stopMixinIndex,
+      );
     }
   }
 
@@ -2376,6 +2387,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (InterfaceType interfaceType in targetType.interfaces) {
       ExecutableElement member = _lookUpMemberInInterfaces(
           interfaceType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType constraint in targetType.superclassConstraints) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          constraint, true, library, visitedInterfaces, getMember);
       if (member != null) {
         return member;
       }

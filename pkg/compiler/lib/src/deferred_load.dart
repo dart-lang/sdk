@@ -8,7 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
+import 'common_elements.dart' show KElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
@@ -147,7 +147,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     allOutputUnits.add(mainOutputUnit);
   }
 
-  ElementEnvironment get elementEnvironment =>
+  KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -359,9 +359,13 @@ abstract class DeferredLoadTask extends CompilerTask {
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
             case TypeUseKind.IS_CHECK:
-            case TypeUseKind.AS_CAST:
             case TypeUseKind.CATCH_TYPE:
               _collectTypeDependencies(type, dependencies);
+              break;
+            case TypeUseKind.AS_CAST:
+              if (!compiler.options.omitAsCasts) {
+                _collectTypeDependencies(type, dependencies);
+              }
               break;
             case TypeUseKind.IMPLICIT_CAST:
               if (compiler.options.implicitDowncastCheckPolicy.isEmitted) {

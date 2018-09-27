@@ -715,7 +715,7 @@ class ClassElementForLink_Class extends ClassElementForLink
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
             var mixinSupertypeConstraints = context.typeSystem
-                .gatherMixinSupertypeConstraints(mixinElement);
+                .gatherMixinSupertypeConstraintsForInference(mixinElement);
             if (mixinSupertypeConstraints.isNotEmpty) {
               if (supertypesForMixinInference == null) {
                 supertypesForMixinInference = <InterfaceType>[];
@@ -1240,6 +1240,9 @@ abstract class CompilationUnitElementForLink
       // TODO(paulberry): what's the correct way to handle name conflicts?
       for (ClassElementForLink_Class type in types) {
         _containedNames[type.name] = type;
+      }
+      for (ClassElementForLink_Class mixin in mixins) {
+        _containedNames[mixin.name] = mixin;
       }
       for (ClassElementForLink_Enum enm in enums) {
         _containedNames[enm.name] = enm;
@@ -2351,6 +2354,17 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   @override
   bool get isStatic => unlinkedVariable.isStatic;
+
+  @override
+  DartType get type {
+    if (declaredType != null) {
+      return declaredType;
+    }
+    if (Linker._isPerformingVariableTypeInference && !isStatic) {
+      return DynamicTypeImpl.instance;
+    }
+    return inferredType;
+  }
 
   @override
   void set type(DartType inferredType) {
@@ -3584,6 +3598,11 @@ class Linker {
   /// library cycle while doing inference on the right hand sides of static and
   /// instance variables in that same cycle.
   static LibraryCycleForLink _initializerTypeInferenceCycle;
+
+  /// If a top-level or an instance variable type inference is in progress,
+  /// this flag it set to `true`.  It is used to prevent type inference for
+  /// other instance variables (when they don't have declared type).
+  static bool _isPerformingVariableTypeInference = false;
 
   /// Callback to ask the client for a [LinkedLibrary] for a
   /// dependency.
@@ -4952,11 +4971,13 @@ abstract class VariableElementForLink
         assert(Linker._initializerTypeInferenceCycle == null);
         Linker._initializerTypeInferenceCycle =
             compilationUnit.library.libraryCycleForLink;
+        Linker._isPerformingVariableTypeInference = true;
         try {
           new TypeInferenceDependencyWalker().walk(_typeInferenceNode);
           assert(_inferredType != null);
         } finally {
           Linker._initializerTypeInferenceCycle = null;
+          Linker._isPerformingVariableTypeInference = false;
         }
       } else if (compilationUnit.isInBuildUnit) {
         _inferredType = DynamicTypeImpl.instance;

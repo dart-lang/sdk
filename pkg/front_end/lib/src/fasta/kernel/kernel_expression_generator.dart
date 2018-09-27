@@ -31,6 +31,8 @@ import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
+import '../scope.dart' show AmbiguousBuilder;
+
 import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
@@ -45,7 +47,7 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
-        LargeIntAccessGenerator,
+        IntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         PrefixUseGenerator,
@@ -1296,7 +1298,7 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
     if (declaration is KernelClassBuilder) {
       KernelClassBuilder declaration = this.declaration;
       Declaration member = declaration.findStaticBuilder(
-          name.name, offsetForToken(token), uri, helper.library);
+          name.name, offsetForToken(send.token), uri, helper.library);
 
       Generator generator;
       if (member == null) {
@@ -1314,6 +1316,9 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
               token.charOffset,
               Constness.implicit);
         }
+      } else if (member is AmbiguousBuilder) {
+        return helper.buildProblem(
+            member.message, member.charOffset, name.name.length);
       } else {
         Declaration setter;
         if (member.isSetter) {
@@ -1390,9 +1395,8 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   }
 }
 
-class KernelLargeIntAccessGenerator extends KernelGenerator
-    with LargeIntAccessGenerator {
-  KernelLargeIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
+class KernelIntAccessGenerator extends KernelGenerator with IntAccessGenerator {
+  KernelIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
       : super(helper, token);
 
   @override

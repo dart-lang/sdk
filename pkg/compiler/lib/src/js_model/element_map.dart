@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../common_elements.dart';
+import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
@@ -28,7 +28,7 @@ import '../world.dart';
 /// global type inference and building the SSA graph for members.
 abstract class JsToElementMap {
   /// Access to the commonly used elements and types.
-  CommonElements get commonElements;
+  JCommonElements get commonElements;
 
   /// Access to the [DartTypes] object.
   DartTypes get types;
@@ -126,7 +126,7 @@ abstract class JsToElementMap {
   DartType getStaticType(ir.Expression node);
 
   /// [ElementEnvironment] for library, class and member lookup.
-  ElementEnvironment get elementEnvironment;
+  JElementEnvironment get elementEnvironment;
 
   /// Returns the list of [DartType]s corresponding to [types].
   List<DartType> getDartTypes(List<ir.DartType> types);

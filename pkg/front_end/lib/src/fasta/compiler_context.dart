@@ -8,8 +8,6 @@ import 'dart:async' show Future, Zone, runZoned;
 
 import 'package:kernel/ast.dart' show Source;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -124,18 +122,18 @@ class CompilerContext {
   /// Perform [action] in a [Zone] where [options] will be available as
   /// `CompilerContext.current.options`.
   static Future<T> runWithOptions<T>(
-      ProcessedOptions options, Future<T> action(CompilerContext c)) {
+      ProcessedOptions options, Future<T> action(CompilerContext c),
+      {bool errorOnMissingInput: true}) {
     return new CompilerContext(options)
         .runInContext<T>((CompilerContext c) async {
-      await options.validateOptions();
+      await options.validateOptions(errorOnMissingInput: errorOnMissingInput);
       return action(c);
     });
   }
 
   static Future<T> runWithDefaultOptions<T>(
       Future<T> action(CompilerContext c)) {
-    return new CompilerContext(new ProcessedOptions(new CompilerOptions()))
-        .runInContext<T>(action);
+    return new CompilerContext(new ProcessedOptions()).runInContext<T>(action);
   }
 
   static bool get enableColors {

@@ -7,6 +7,7 @@
 #include "vm/ast.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -636,18 +637,24 @@ static void UpdateTypeTestCache(
     }
     return;
   }
+  Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
-    if (FLAG_trace_type_checks) {
-      OS::PrintErr("UpdateTypeTestCache: instance is Smi\n");
+    if (FLAG_enable_interpreter) {
+      instance_class = Smi::Class();
+    } else {
+      if (FLAG_trace_type_checks) {
+        OS::PrintErr("UpdateTypeTestCache: instance is Smi, not updating\n");
+      }
+      return;
     }
-    return;
+  } else {
+    instance_class = instance.clazz();
   }
   // If the type is uninstantiated and refers to parent function type
   // parameters, the function_type_arguments have been canonicalized
   // when concatenated.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
-  const Class& instance_class = Class::Handle(zone, instance.clazz());
   auto& instance_class_id_or_function = Object::Handle(zone);
   auto& instance_type_arguments = TypeArguments::Handle(zone);
   auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
@@ -2146,9 +2153,15 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   ASSERT(!function.IsNull());
-  ASSERT(function.HasCode());
 
-  if (Compiler::CanOptimizeFunction(thread, function)) {
+  // If running with interpreter, do the unoptimized compilation first.
+  const bool unoptimized_compilation =
+      FLAG_enable_interpreter && !function.WasCompiled();
+
+  ASSERT(unoptimized_compilation || function.HasCode());
+
+  if (unoptimized_compilation ||
+      Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {

@@ -686,6 +686,12 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   return false;
 }
 
+bool IsFieldInitializer(const Function& function, Zone* zone) {
+  return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
+         String::Handle(zone, function.name())
+             .StartsWith(Symbols::InitPrefix());
+}
+
 }  // namespace kernel
 }  // namespace dart
 

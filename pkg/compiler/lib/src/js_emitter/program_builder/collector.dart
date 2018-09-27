@@ -12,8 +12,8 @@ part of dart2js.js_emitter.program_builder;
  */
 class Collector {
   final CompilerOptions _options;
-  final CommonElements _commonElements;
-  final ElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
@@ -116,7 +116,7 @@ class Collector {
 
   // Return the classes that are just helpers for the backend's type system.
   static Iterable<ClassEntity> getBackendTypeHelpers(
-      CommonElements commonElements) {
+      JCommonElements commonElements) {
     return <ClassEntity>[
       commonElements.jsMutableArrayClass,
       commonElements.jsFixedArrayClass,

@@ -13,7 +13,7 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -238,7 +238,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   CodegenRegistry get _registry => _work.registry;
 
-  CommonElements get _commonElements => _closedWorld.commonElements;
+  JCommonElements get _commonElements => _closedWorld.commonElements;
 
   ConstantSystem get _constantSystem => _closedWorld.constantSystem;
 

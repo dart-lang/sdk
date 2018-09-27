@@ -11,6 +11,8 @@ Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: Co
 Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/same_name_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
 Language/Types/Parameterized_Types/arity_mismatch_t07: CompileTimeError
@@ -62,6 +64,8 @@ LibTest/math/pow_A10_t01: CompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
+Language/Classes/Constructors/Factories/arguments_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Classes/Constructors/Factories/function_type_t01: CompileTimeError # Expects a warning but this is an error in Dart 2
 Language/Classes/Constructors/Generative_Constructors/static_type_t01: CompileTimeError
 Language/Classes/Constructors/name_t01: MissingCompileTimeError
 Language/Classes/Constructors/name_t02: MissingCompileTimeError
@@ -556,6 +560,7 @@ Language/Expressions/Instance_Creation/New/execution_t11: CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t13: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t01: CompileTimeError # Issue 33308
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_argument_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t01: CompileTimeError
@@ -917,7 +922,6 @@ Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t06: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t07: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t08: CompileTimeError
-Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/show_hide_t01: CompileTimeError
 Language/Libraries_and_Scripts/Exports/show_hide_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t02: CompileTimeError
@@ -1317,6 +1321,7 @@ LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: CompileTimeError
 LibTest/core/AssertionError/AssertionError_A01_t01: CompileTimeError
 LibTest/core/AssertionError/message_A01_t01: CompileTimeError
 LibTest/core/AssertionError/toString_A01_t01: CompileTimeError
+LibTest/core/Duration/Duration_A02_t01: CompileTimeError
 LibTest/core/FallThroughError/toString_A01_t02: CompileTimeError
 LibTest/core/Invocation/isAccessor_A01_t01: CompileTimeError
 LibTest/core/Invocation/isAccessor_A01_t02: CompileTimeError

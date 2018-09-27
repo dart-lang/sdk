@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/implicit_new.dart:18:18: Error: Method not found: 'Bar'.
 //   var y = prefix.Bar();

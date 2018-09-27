@@ -1,3 +1,12 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/bug30695.dart:11:3: Warning: Can't declare a member that conflicts with an inherited one.
+//   foo() => 42;
+//   ^
+// pkg/front_end/testcases/bug30695.dart:6:7: Warning: This is the inherited member.
+//   var foo = 42;
+//       ^
+
 library;
 import self as self;
 import "dart:core" as core;

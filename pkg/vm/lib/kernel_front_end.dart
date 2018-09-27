@@ -45,7 +45,6 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
 Future<Component> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
-    List<String> entryPoints,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool dropAST: false,
@@ -66,7 +65,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         component,
         options.strongMode,
         useGlobalTypeFlowAnalysis,
-        entryPoints,
         environmentDefines,
         enableAsserts,
         enableConstantEvaluation,
@@ -94,7 +92,6 @@ Future _runGlobalTransformations(
     Component component,
     bool strongMode,
     bool useGlobalTypeFlowAnalysis,
-    List<String> entryPoints,
     Map<String, String> environmentDefines,
     bool enableAsserts,
     bool enableConstantEvaluation,
@@ -122,7 +119,7 @@ Future _runGlobalTransformations(
 
     if (useGlobalTypeFlowAnalysis) {
       globalTypeFlow.transformComponent(
-          compilerOptions.target, coreTypes, component, entryPoints);
+          compilerOptions.target, coreTypes, component);
     } else {
       devirtualization.transformComponent(coreTypes, component);
     }
@@ -135,7 +132,8 @@ Future _runGlobalTransformations(
 /// be able to report compile-time errors.
 Future<T> runWithFrontEndCompilerContext<T>(Uri source,
     CompilerOptions compilerOptions, Component component, T action()) async {
-  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
+  final processedOptions =
+      new ProcessedOptions(options: compilerOptions, inputs: [source]);
 
   // Run within the context, so we have uri source tokens...
   return await CompilerContext.runWithOptions(processedOptions,

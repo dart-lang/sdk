@@ -32,8 +32,8 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Component transformComponent(Target target, CoreTypes coreTypes,
-    Component component, List<String> entryPoints,
+Component transformComponent(
+    Target target, CoreTypes coreTypes, Component component,
     [PragmaAnnotationParser matcher]) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
@@ -52,7 +52,7 @@ Component transformComponent(Target target, CoreTypes coreTypes,
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
       target, component, coreTypes, hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPoints, matcher: matcher);
+      matcher: matcher);
 
   Procedure main = component.mainMethod;
   final Selector mainSelector = new DirectSelector(main);

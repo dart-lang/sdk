@@ -9,6 +9,7 @@ import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
@@ -68,8 +69,8 @@ part 'no_such_method_resolver.dart';
 abstract class KernelToElementMapBase implements IrToElementMap {
   final CompilerOptions options;
   final DiagnosticReporter reporter;
-  CommonElements _commonElements;
-  ElementEnvironment _elementEnvironment;
+  CommonElementsImpl _commonElements;
+  KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
@@ -91,7 +92,7 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   KernelToElementMapBase(this.options, this.reporter, Environment environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _commonElements = new CommonElements(_elementEnvironment);
+    _commonElements = new CommonElementsImpl(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
@@ -101,10 +102,10 @@ abstract class KernelToElementMapBase implements IrToElementMap {
 
   DartTypes get types => _types;
 
-  ElementEnvironment get elementEnvironment => _elementEnvironment;
+  KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElements get commonElements => _commonElements;
+  CommonElementsImpl get commonElements => _commonElements;
 
   /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData;
@@ -130,10 +131,12 @@ abstract class KernelToElementMapBase implements IrToElementMap {
       } else if (spannable is IndexedClass &&
           spannable.classIndex < classes.length) {
         ClassData data = classes.getData(spannable);
+        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is IndexedMember &&
           spannable.memberIndex < members.length) {
         MemberData data = members.getData(spannable);
+        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is KLocalFunction) {
         return getSourceSpan(spannable.memberContext, currentElement);
@@ -284,7 +287,47 @@ abstract class KernelToElementMapBase implements IrToElementMap {
           return supertype;
         }
 
-        InterfaceType supertype = processSupertype(node.supertype);
+        InterfaceType supertype;
+        LinkBuilder<InterfaceType> linkBuilder =
+            new LinkBuilder<InterfaceType>();
+        if (node.isMixinDeclaration) {
+          // A mixin declaration
+          //
+          //   mixin M on A, B, C {}
+          //
+          // is encoded by CFE as
+          //
+          //   abstract class M extends A with B, C {}
+          //
+          // but we encode it as
+          //
+          //   abstract class M extends Object implements A, B, C {}
+          //
+          // so we need to collect the non-Object superclasses and add them
+          // to the interfaces of M.
+
+          ir.Class superclass = node.superclass;
+          while (superclass != null) {
+            if (superclass.isAnonymousMixin) {
+              // Add second to last mixed in superclasses. `B` and `C` in the
+              // example above.
+              ir.DartType mixinType = typeEnvironment.hierarchy
+                  .getTypeAsInstanceOf(node.thisType, superclass.mixedInClass);
+              linkBuilder.addLast(getDartType(mixinType));
+            } else {
+              // Add first mixed in superclass. `A` in the example above.
+              ir.DartType mixinType = typeEnvironment.hierarchy
+                  .getTypeAsInstanceOf(node.thisType, superclass);
+              linkBuilder.addLast(getDartType(mixinType));
+              break;
+            }
+            superclass = superclass.superclass;
+          }
+          // Set superclass to `Object`.
+          supertype = _commonElements.objectType;
+        } else {
+          supertype = processSupertype(node.supertype);
+        }
         if (supertype == _commonElements.objectType) {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeBasicData);
@@ -292,8 +335,6 @@ abstract class KernelToElementMapBase implements IrToElementMap {
         } else {
           data.supertype = supertype;
         }
-        LinkBuilder<InterfaceType> linkBuilder =
-            new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
           data.isMixinApplication = true;
           linkBuilder
@@ -709,20 +750,24 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     return data.imports[node];
   }
 
-  DartType getStaticType(ir.Expression node) {
+  ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
           new ir.CoreTypes(env.mainComponent),
           new ir.ClassHierarchy(env.mainComponent));
     }
+    return _typeEnvironment;
+  }
+
+  DartType getStaticType(ir.Expression node) {
     ir.TreeNode enclosingClass = node;
     while (enclosingClass != null && enclosingClass is! ir.Class) {
       enclosingClass = enclosingClass.parent;
     }
     try {
-      _typeEnvironment.thisType =
+      typeEnvironment.thisType =
           enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return getDartType(node.getStaticType(_typeEnvironment));
+      return getDartType(node.getStaticType(typeEnvironment));
     } catch (e) {
       // The static type computation crashes on type errors. Use `dynamic`
       // as static type.
@@ -1717,7 +1762,8 @@ class KernelToElementMapImpl extends KernelToElementMapBase
   }
 }
 
-class KernelElementEnvironment extends ElementEnvironment {
+class KernelElementEnvironment extends ElementEnvironment
+    implements KElementEnvironment, JElementEnvironment {
   final KernelToElementMapBase elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1855,7 +1901,7 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
+  ConstantExpression getFieldConstantForTesting(FieldEntity field) {
     return elementMap._getFieldConstantExpression(field);
   }
 
@@ -1930,8 +1976,7 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor),
-      {bool ensureResolved: true}) {
+      ClassEntity cls, void f(ConstructorEntity constructor)) {
     elementMap._forEachConstructor(cls, f);
   }
 
@@ -2128,9 +2173,9 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 
 class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final KernelToElementMapImpl elementMap;
-  final ElementEnvironment elementEnvironment;
+  final KElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
-  final CommonElements commonElements;
+  final KCommonElements commonElements;
   final NativeData nativeData;
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
@@ -2200,7 +2245,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
       this.elementMap, this.nativeBasicData, this.nativeDataBuilder);
 
   @override
-  ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
+  KElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
   @override
   CommonElements get commonElements => elementMap.commonElements;

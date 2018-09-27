@@ -1,3 +1,70 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:11:89: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42
+//                                                                                         ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:19:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:22:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:33:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//     List<int> l0 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[];
+//                                                             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:34:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//     List<int> l1 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[3];
+//                                                             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:36:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:35:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//     List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
+//                                                             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:39:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:38:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+// Change the type of the list literal or the context in which it is used.
+//     List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
+//                                                             ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:47:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:50:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                  ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:58:89: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+//                                                                                         ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:61:89: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+//       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
+//                                                                                         ^
+
 library test;
 import self as self;
 import "dart:core" as core;

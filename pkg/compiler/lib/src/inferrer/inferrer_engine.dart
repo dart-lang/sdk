@@ -1278,7 +1278,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   KernelTypeSystemStrategy(
       this._elementMap, this._globalLocalsMap, this._closureDataLookup);
 
-  ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  JElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
 
   @override
   bool checkClassEntity(ClassEntity cls) => true;

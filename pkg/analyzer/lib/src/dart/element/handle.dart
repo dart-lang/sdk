@@ -139,10 +139,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
       actualElement.getSetter(setterName);
 
   @override
-  bool isSuperConstructorAccessible(ConstructorElement constructor) =>
-      actualElement.isSuperConstructorAccessible(constructor);
-
-  @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
       actualElement.lookUpConcreteMethod(methodName, library);

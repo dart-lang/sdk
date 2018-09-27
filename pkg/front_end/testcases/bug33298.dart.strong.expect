@@ -1,3 +1,10 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/bug33298.dart:28:44: Error: The argument type '<T extends dart.core::Object = dynamic>(#lib1::C::call::T) → #lib1::C::call::T' can't be assigned to the parameter type '(dart.core::String) → dynamic'.
+// Try changing the type of the parameter, or casting the argument to '(dart.core::String) → dynamic'.
+//   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
+//                                            ^
+
 library;
 import self as self;
 import "dart:core" as core;

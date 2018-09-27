@@ -987,20 +987,16 @@ table AnalysisDriverResolvedUnit {
 table AnalysisDriverSubtype {
   /**
    * The names of defined instance members.
+   * They are indexes into [AnalysisDriverUnitError.strings] list.
    * The list is sorted in ascending order.
    */
-  members:[string] (id: 2);
+  members:[uint] (id: 1);
 
   /**
    * The name of the class.
+   * It is an index into [AnalysisDriverUnitError.strings] list.
    */
-  name:string (id: 0);
-
-  /**
-   * The identifiers of the direct supertypes.
-   * The list is sorted in ascending order.
-   */
-  supertypes:[string] (id: 1);
+  name:uint (id: 0);
 }
 
 /**
@@ -1089,7 +1085,15 @@ table AnalysisDriverUnitIndex {
   /**
    * The list of classes declared in the unit.
    */
-  subtypes:[AnalysisDriverSubtype] (id: 18);
+  subtypes:[AnalysisDriverSubtype] (id: 19);
+
+  /**
+   * The identifiers of supertypes of elements at corresponding indexes
+   * in [subtypes].  They are indexes into [strings] list. The list is sorted
+   * in ascending order.  There might be more than one element with the same
+   * value if there is more than one subtype of this supertype.
+   */
+  supertypes:[uint] (id: 18);
 
   /**
    * Each item of this list corresponds to the library URI of a unique library

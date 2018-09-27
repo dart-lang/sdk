@@ -56,7 +56,6 @@ Future runCompiler(Uri input, Uri output) async {
 
   final List<String> arguments = <String>[
     '--packages=${packagesFile.toFilePath()}',
-    '--no_preview_dart_2',
     '-c',
     compiler.toFilePath(),
     '--platform=${platformDill.toFilePath()}',

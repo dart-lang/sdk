@@ -12,10 +12,6 @@ mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTime
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
 mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
 
-[ $compiler == dart2analyzer ]
-double_literals/implicit_double_context_test: CompileTimeError # Needs triage, see Issue #34444
-mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
-
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
@@ -55,6 +51,7 @@ type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
 mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
 mixin_declaration/mixin_declaration_inference_invalid_10_test: MissingCompileTimeError, DartkCrash # https://github.com/dart-lang/sdk/issues/34165
+mixin_declaration/mixin_declaration_inference_invalid_11_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
@@ -226,6 +223,9 @@ map_literal7_test: RuntimeError # Requires strong mode
 
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
+
+[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign # Deprecating all Dart1 modes of execution
 
 [ $compiler == app_jit || $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == none || $compiler == precompiler ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34358

@@ -126,7 +126,6 @@ class FileState {
   Set<String> _definedClassMemberNames;
   Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
-  Set<String> _subtypedNames;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
@@ -270,14 +269,6 @@ class FileState {
     return _referencedNames ??= _driverUnlinkedUnit.referencedNames.toSet();
   }
 
-  /**
-   * The names which are used in `extends`, `with` or `implements` clauses in
-   * the file. Import prefixes and type arguments are not included.
-   */
-  Set<String> get subtypedNames {
-    return _subtypedNames ??= _driverUnlinkedUnit.subtypedNames.toSet();
-  }
-
   @visibleForTesting
   FileStateTestView get test => new FileStateTestView(this);
 
@@ -412,6 +403,8 @@ class FileState {
    * Return `true` if the API signature changed since the last refresh.
    */
   bool refresh({bool allowCached: false}) {
+    _invalidateCurrentUnresolvedData();
+
     {
       var rawFileState = _fsState._fileContentCache.get(path, allowCached);
       _content = rawFileState.content;
@@ -468,13 +461,6 @@ class FileState {
         new AnalysisDriverUnlinkedUnit.fromBuffer(unlinkedUnitBytes);
     _unlinked = _driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
-
-    // Invalidate unlinked information.
-    _definedTopLevelNames = null;
-    _definedClassMemberNames = null;
-    _referencedNames = null;
-    _subtypedNames = null;
-    _topLevelDeclarations = null;
 
     // Prepare API signature.
     bool apiSignatureChanged = _apiSignature != null &&
@@ -546,6 +532,16 @@ class FileState {
           file._transitiveFiles = null;
         }
       }
+    }
+
+    // Update mapping from subtyped names to files.
+    for (var name in _driverUnlinkedUnit.subtypedNames) {
+      var files = _fsState._subtypedNameToFiles[name];
+      if (files == null) {
+        files = new Set<FileState>();
+        _fsState._subtypedNameToFiles[name] = files;
+      }
+      files.add(this);
     }
 
     // Return whether the API signature changed.
@@ -641,6 +637,25 @@ class FileState {
     }
 
     return _fsState.getFileForUri(absoluteUri);
+  }
+
+  /**
+   * Invalidate any data that depends on the current unlinked data of the file,
+   * because [refresh] is going to recompute the unlinked data.
+   */
+  void _invalidateCurrentUnresolvedData() {
+    // Invalidate unlinked information.
+    _definedTopLevelNames = null;
+    _definedClassMemberNames = null;
+    _referencedNames = null;
+    _topLevelDeclarations = null;
+
+    if (_driverUnlinkedUnit != null) {
+      for (var name in _driverUnlinkedUnit.subtypedNames) {
+        var files = _fsState._subtypedNameToFiles[name];
+        files?.remove(this);
+      }
+    }
   }
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
@@ -764,6 +779,11 @@ class FileSystemState {
    * Mapping from a part to the libraries it is a part of.
    */
   final Map<FileState, List<FileState>> _partToLibraries = {};
+
+  /**
+   * The map of subtyped names to files where these names are subtyped.
+   */
+  final Map<String, Set<FileState>> _subtypedNameToFiles = {};
 
   /**
    * The value of this field is incremented when the set of files is updated.
@@ -902,6 +922,14 @@ class FileSystemState {
   }
 
   /**
+   * Return files where the given [name] is subtyped, i.e. used in `extends`,
+   * `with` or `implements` clauses.
+   */
+  Set<FileState> getFilesSubtypingName(String name) {
+    return _subtypedNameToFiles[name];
+  }
+
+  /**
    * Return `true` if there is a URI that can be resolved to the [path].
    *
    * When a file exists, but for the URI that corresponds to the file is
@@ -940,6 +968,7 @@ class FileSystemState {
     _pathToFiles.clear();
     _pathToCanonicalFile.clear();
     _partToLibraries.clear();
+    _subtypedNameToFiles.clear();
   }
 
   /**

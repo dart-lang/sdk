@@ -38,6 +38,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -338,6 +339,8 @@ class AnalysisServer {
    */
   DiagnosticServer diagnosticServer;
 
+  final DetachableFileSystemManager detachableFileSystemManager;
+
   /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
@@ -347,12 +350,17 @@ class AnalysisServer {
    * exceptions to show up in unit tests, but it should be set to false when
    * running a full analysis server.
    */
-  AnalysisServer(this.channel, this.resourceProvider, this.options,
-      this.sdkManager, this.instrumentationService,
-      {this.diagnosticServer,
-      ResolverProvider fileResolverProvider: null,
-      ResolverProvider packageResolverProvider: null})
-      : notificationManager =
+  AnalysisServer(
+    this.channel,
+    this.resourceProvider,
+    this.options,
+    this.sdkManager,
+    this.instrumentationService, {
+    this.diagnosticServer,
+    ResolverProvider fileResolverProvider: null,
+    ResolverProvider packageResolverProvider: null,
+    this.detachableFileSystemManager: null,
+  }) : notificationManager =
             new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
 
@@ -1006,7 +1014,7 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  Future<void> shutdown() async {
+  Future<void> shutdown() {
     running = false;
 
     if (options.analytics != null) {
@@ -1017,12 +1025,18 @@ class AnalysisServer {
       });
     }
 
+    if (options.enableUXExperiment2) {
+      detachableFileSystemManager?.dispose();
+    }
+
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
     new Future(() {
       instrumentationService.shutdown();
       channel.close();
     });
+
+    return new Future.value();
   }
 
   /**
@@ -1147,7 +1161,7 @@ class AnalysisServer {
     return flutterServices[service]?.contains(file) ?? false;
   }
 
-  _scheduleAnalysisImplementedNotification() async {
+  Future<void> _scheduleAnalysisImplementedNotification() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
@@ -1190,6 +1204,19 @@ class AnalysisServerOptions {
    * Whether to enable parsing via the Fasta parser.
    */
   bool useFastaParser = true;
+
+  /**
+   * User Experience, Experiment #1. This experiment changes the notion of
+   * what analysis roots are and priority files: the analysis root is set to be
+   * the priority files' containing directory.
+   */
+  bool enableUXExperiment1 = false;
+
+  /**
+   * User Experience, Experiment #2. This experiment introduces the notion of an
+   * intermittent file system.
+   */
+  bool enableUXExperiment2 = false;
 }
 
 /**

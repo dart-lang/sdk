@@ -21,92 +21,109 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
-    defineReflectiveTests(CompileTimeErrorCodeSpecTest);
   });
 }
 
 @reflectiveTest
-class CompileTimeErrorCodeSpecTest extends ResolverTestCase {
-  test_constWithTypeParameters_direct() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<T>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
+class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
+  @override
+  @failingTest
+  test_awaitInWrongContext_sync() {
+    return super.test_awaitInWrongContext_sync();
   }
 
-  test_constWithTypeParameters_indirect() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<List<T>>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
+  @override
+  @failingTest
+  test_constEvalThrowsException() {
+    return super.test_constEvalThrowsException();
   }
 
-  test_invalidTypeArgumentInConstList() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <E>[];
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
-    verify([source]);
+  @override
+  @failingTest
+  test_genericFunctionTypeArgument_typedef() {
+    return super.test_genericFunctionTypeArgument_typedef();
   }
 
-  test_invalidTypeArgumentInConstMap() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <String, E>{};
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
-    verify([source]);
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_async() {
+    return super.test_invalidIdentifierInAsync_async();
   }
 
-  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
-    Source source = addSource(r'''
-class A {}
-class C = A with String, num;''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [
-        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    }
-    verify([source]);
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_await() {
+    return super.test_invalidIdentifierInAsync_await();
+  }
+
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_yield() {
+    return super.test_invalidIdentifierInAsync_yield();
+  }
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_typeParametersSupplied() {
+    return super.test_mixinInference_noMatchingClass_typeParametersSupplied();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() {
+    return super.test_mixinInference_recursiveSubtypeCheck();
+  }
+
+  @override
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck_new_syntax() {
+    return super.test_mixinInference_recursiveSubtypeCheck_new_syntax();
+  }
+
+  @override
+  @failingTest
+  test_mixinOfNonClass() {
+    return super.test_mixinOfNonClass();
+  }
+
+  @override
+  @failingTest
+  test_objectCannotExtendAnotherClass() {
+    return super.test_objectCannotExtendAnotherClass();
+  }
+
+  @override
+  @failingTest
+  test_superInitializerInObject() {
+    return super.test_superInitializerInObject();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_async() {
+    return super.test_yieldEachInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_sync() {
+    return super.test_yieldEachInNonGenerator_sync();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_async() {
+    return super.test_yieldInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_sync() {
+    return super.test_yieldInNonGenerator_sync();
   }
 }
 
-@reflectiveTest
-class CompileTimeErrorCodeTest extends ResolverTestCase {
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
+class CompileTimeErrorCodeTestBase extends ResolverTestCase {
   disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
     // There is an interface conflict here due to a loop in the class
     // hierarchy leading to an infinite set of implemented types; this loop
@@ -526,7 +543,6 @@ f() sync* {
     verify([source]);
   }
 
-  @failingTest
   test_awaitInWrongContext_sync() async {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -1078,7 +1094,6 @@ const C = a.m;''');
     verify([source]);
   }
 
-  @failingTest
   test_constEvalThrowsException() async {
     Source source = addSource(r'''
 class C {
@@ -1505,28 +1520,6 @@ main() {
     verify([source]);
   }
 
-  test_constWithNonConst_with() async {
-    Source source = addSource(r'''
-class B {
-  const B();
-}
-class C = B with M;
-class M {}
-const x = const C();
-main() {
-  print(x);
-}
-''');
-    await computeAnalysisResult(source);
-    // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
-    // redundant and ought to be suppressed.
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONST,
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
-    verify([source]);
-  }
-
   test_constWithNonConstantArgument_annotation() async {
     Source source = addSource(r'''
 class A {
@@ -1580,6 +1573,34 @@ void f() {
     await computeAnalysisResult(source2);
     assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
     verify([source1]);
+  }
+
+  test_constWithTypeParameters_direct() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<T>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_constWithTypeParameters_indirect() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<List<T>>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
   }
 
   test_constWithUndefinedConstructor() async {
@@ -2471,7 +2492,6 @@ main() { new C().f<S Function<S>(S)>(null); }''');
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_typedef() async {
     // TODO(mfairhurst) diagnose these parse errors to give the correct error
     Source source = addSource(r'''
@@ -3363,7 +3383,6 @@ class A {
     // no verify() call, "B" is not resolved
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_async() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3377,7 +3396,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_await() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3391,7 +3409,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_invalidIdentifierInAsync_yield() async {
     // TODO(brianwilkerson) Report this error.
     Source source = addSource(r'''
@@ -3611,6 +3628,32 @@ class B extends A {
     verify([source]);
   }
 
+  test_invalidTypeArgumentInConstList() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>[];
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <String, E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    verify([source]);
+  }
+
   test_invalidUri_export() async {
     Source source = addSource("export 'ht:';");
     await computeAnalysisResult(source);
@@ -3816,93 +3859,6 @@ class C = B with a.A;'''
     ]);
   }
 
-  test_mixinHasNoConstructors_mixinApp() async {
-    Source source = addSource(r'''
-class B {
-  B({x});
-}
-class M {}
-class C = B with M;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
-    verify([source]);
-  }
-
-  test_mixinHasNoConstructors_mixinClass() async {
-    Source source = addSource(r'''
-class B {
-  B({x});
-}
-class M {}
-class C extends B with M {}
-''');
-    // Note: the implicit call from C's default constructor to B() should not
-    // generate a further error (despite the fact that it's not forwarded),
-    // since CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job
-    // of explaining the probem to the user.
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
-    verify([source]);
-  }
-
-  test_mixinHasNoConstructors_mixinClass_explicitSuperCall() async {
-    Source source = addSource(r'''
-class B {
-  B({x});
-}
-class M {}
-class C extends B with M {
-  C() : super();
-}
-''');
-    // Note: the explicit call from C() to B() should not generate a further
-    // error (despite the fact that it's not forwarded), since
-    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
-    // explaining the error to the user.
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
-    verify([source]);
-  }
-
-  test_mixinHasNoConstructors_mixinClass_implicitSuperCall() async {
-    Source source = addSource(r'''
-class B {
-  B({x});
-}
-class M {}
-class C extends B with M {
-  C();
-}
-''');
-    // Note: the implicit call from C() to B() should not generate a further
-    // error (despite the fact that it's not forwarded), since
-    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
-    // explaining the error to the user.
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
-    verify([source]);
-  }
-
-  test_mixinHasNoConstructors_mixinClass_namedSuperCall() async {
-    Source source = addSource(r'''
-class B {
-  B.named({x});
-}
-class M {}
-class C extends B with M {
-  C() : super.named();
-}
-''');
-    // Note: the explicit call from C() to B.named() should not generate a
-    // further error (despite the fact that it's not forwarded), since
-    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
-    // explaining the error to the user.
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
-    verify([source]);
-  }
-
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3927,6 +3883,29 @@ class B {}
 class M1 implements A<B> {}
 class M2<T> extends A<T> {}
 class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_inPreviousMixin_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M1 implements A<B> {}
+mixin M2<T> on A<T> {}
+class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends A<int> with M {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -3962,6 +3941,30 @@ class C = Object with M;
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
   }
 
+  test_mixinInference_noMatchingClass_namedMixinApplication_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C = Object with M;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
+  }
+
+  test_mixinInference_noMatchingClass_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
+  }
+
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -3970,6 +3973,17 @@ class C = Object with M;
 abstract class A<T> {}
 class B {}
 class M<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass_noSuperclassConstraint_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> {}
 class C extends Object with M {}
 ''');
     await computeAnalysisResult(source);
@@ -3987,10 +4001,22 @@ class M<T> extends A<T> {}
 class C extends Object with M<int> {}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
   }
 
-  @failingTest // Does not work with old task model
+  test_mixinInference_noMatchingClass_typeParametersSupplied_new_syntax() async {
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+mixin M<T> on A<T> {}
+class C extends Object with M<int> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE]);
+  }
+
   test_mixinInference_recursiveSubtypeCheck() async {
     // See dartbug.com/32353 for a detailed explanation.
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -4021,6 +4047,41 @@ abstract class ForwardingDirectory<T extends Directory>
 abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins =
+        analysisResult.unit.declaredElement.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
+  }
+
+  test_mixinInference_recursiveSubtypeCheck_new_syntax() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+mixin ForwardingDirectory<T extends Directory>
+    on ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+mixin DirectoryAddOnsMixin implements Directory {}
 ''');
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -4165,7 +4226,26 @@ class C = A with String;''');
     verify([source]);
   }
 
-  @failingTest
+  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
+    Source source = addSource(r'''
+class A {}
+class C = A with String, num;''');
+    await computeAnalysisResult(source);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    }
+    verify([source]);
+  }
+
   test_mixinOfNonClass() async {
     // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
     Source source = addSource(r'''
@@ -4324,208 +4404,6 @@ class B extends A {
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_MixinAppWithDirectSuperCall() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {
-  C(x) : super();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {
-  C();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_MixinAppWithNamedSuperCall() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B.named({x});
-  B.named2(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {
-  C(x) : super.named();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
-    // Don't verify since call to super.named() can't be resolved.
-  }
-
-  test_noDefaultSuperConstructorExplicit_mixinAppWithOptionalParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B([x]);
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {
-  C();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_MixinWithDirectSuperCall() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.other();
-}
-class C extends B with M {
-  C(x) : super();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_mixinWithNamedParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named();
-}
-class C extends B with M {
-  C();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorExplicit_MixinWithNamedSuperCall() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B.named({x});
-  B.other();
-}
-class C extends B with M {
-  C(x) : super.named();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
-    // Don't verify since call to super.named() can't be resolved.
-  }
-
-  test_noDefaultSuperConstructorExplicit_mixinWithOptionalParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B([x]);
-  B.other();
-}
-class C extends B with M {
-  C();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_mixinAppWithNamedParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_mixinAppWithOptionalParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B([x]);
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_mixinWithNamedParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.other();
-}
-class C extends B with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
-    verify([source]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam() async {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B([x]);
-  B.other();
-}
-class C extends B with M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -5201,7 +5079,6 @@ class B extends A {
     verify([source]);
   }
 
-  @failingTest
   test_objectCannotExtendAnotherClass() async {
     Source source = addSource(r'''
 ''');
@@ -6181,7 +6058,6 @@ f() {
     // no verify(), 'super.y' is not resolved
   }
 
-  @failingTest
   test_superInitializerInObject() async {
     Source source = addSource(r'''
 ''');
@@ -6725,7 +6601,6 @@ f() sync* {
     verify([source]);
   }
 
-  @failingTest
   test_yieldEachInNonGenerator_async() async {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
@@ -6738,7 +6613,6 @@ f() async {
     verify([source]);
   }
 
-  @failingTest
   test_yieldEachInNonGenerator_sync() async {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
@@ -6751,7 +6625,6 @@ f() {
     verify([source]);
   }
 
-  @failingTest
   test_yieldInNonGenerator_async() async {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.
@@ -6764,7 +6637,6 @@ f() async {
     verify([source]);
   }
 
-  @failingTest
   test_yieldInNonGenerator_sync() async {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.

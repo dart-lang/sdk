@@ -484,7 +484,7 @@ void Dwarf::WriteLines() {
   Print(".Llineheader_start:\n");
 
   u1(1);   // 4. minimum_instruction_length
-  u1(0);   // 5. default_is_stmt
+  u1(1);   // 5. default_is_stmt (true for compatibility with dsymutil).
   u1(0);   // 6. line_base
   u1(1);   // 7. line_range
   u1(13);  // 8. opcode_base (12 standard opcodes in Dwarf 2)

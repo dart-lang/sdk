@@ -31,6 +31,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
+Nullable fields: [#lib::A::foo1, #lib::A::foo2]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3
   [1] = Reserved
@@ -69,6 +70,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
+Nullable fields: [#lib::A::foo2, #lib::A::foo4]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3
   [1] = Reserved

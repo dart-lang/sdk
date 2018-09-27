@@ -74,6 +74,7 @@ main() {
         expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
         expect(options.previewDart2, isTrue);
+        expect(options.trainSnapshot, isFalse);
       });
 
       test('batch', () {
@@ -241,6 +242,12 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
         expect(options.previewDart2, isTrue);
+      });
+
+      test('--train-snapshot', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--train-snapshot', 'foo.dart']);
+        expect(options.trainSnapshot, isTrue);
       });
     });
   });

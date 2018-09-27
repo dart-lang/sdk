@@ -78,12 +78,34 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
-void ThreadRegistry::PrepareForGC() {
+void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
-      thread->PrepareForGC();
+      thread->ReleaseStoreBuffer();
+    }
+    thread = thread->next_;
+  }
+}
+
+void ThreadRegistry::AcquireMarkingStacks() {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackAcquire();
+    }
+    thread = thread->next_;
+  }
+}
+
+void ThreadRegistry::ReleaseMarkingStacks() {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackRelease();
     }
     thread = thread->next_;
   }

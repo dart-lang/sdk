@@ -169,6 +169,8 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
 
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
+
 /**
  * Parses all loaded functions in the current isolate..
  *

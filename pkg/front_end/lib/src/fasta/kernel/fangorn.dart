@@ -44,7 +44,7 @@ import 'kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelLargeIntAccessGenerator,
+        KernelIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPrefixUseGenerator,
@@ -491,7 +491,8 @@ class Fangorn extends Forest {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new BlockJudgment(statement.declarations)
+      return new BlockJudgment(
+          new List<Statement>.from(statement.declarations, growable: true))
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
       return new BlockJudgment(<Statement>[statement])
@@ -696,9 +697,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  KernelLargeIntAccessGenerator largeIntAccessGenerator(
+  KernelIntAccessGenerator intAccessGenerator(
       ExpressionGeneratorHelper helper, Token token) {
-    return new KernelLargeIntAccessGenerator(helper, token);
+    return new KernelIntAccessGenerator(helper, token);
   }
 
   @override

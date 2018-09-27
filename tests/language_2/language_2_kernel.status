@@ -56,7 +56,6 @@ deferred_static_seperate_test: RuntimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 example_constructor_test: RuntimeError
-export_ambiguous_main_test: Crash
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
@@ -95,7 +94,6 @@ mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
-mixin_declaration/mixin_declaration_syntax_test: CompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -219,7 +217,6 @@ mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
-mixin_declaration/mixin_declaration_syntax_test: CompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -232,19 +229,12 @@ const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
 const_constructor_mixin3_test: CompileTimeError # Issue 33644.
 const_constructor_mixin_test: CompileTimeError # Issue 33644.
-const_types_test/34: MissingCompileTimeError # Issue 31590
-const_types_test/39: MissingCompileTimeError # Issue 31590
 constructor_reference_test/27: MissingCompileTimeError # Issue 34403
-default_factory2_test/01: MissingCompileTimeError # Issue 31590
-default_factory_test/01: MissingCompileTimeError # Issue 31590
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
-factory4_test/00: MissingCompileTimeError # Issue 31590
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
@@ -255,10 +245,10 @@ issue34488_test/03: MissingCompileTimeError # Issue 34488
 issue34488_test/04: MissingCompileTimeError # Issue 34488
 issue34488_test/05: MissingCompileTimeError # Issue 34488
 issue34488_test/06: MissingCompileTimeError # Issue 34488
+issue34498_test: MissingCompileTimeError # Issue 34498
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33308
 malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33308
-malbounded_redirecting_factory_test/02: MissingCompileTimeError # Issue 33308
 malbounded_redirecting_factory_test/03: MissingCompileTimeError # Issue 33308
 malbounded_redirecting_factory_test/04: MissingCompileTimeError # Issue 33308
 malbounded_redirecting_factory_test/05: MissingCompileTimeError # Issue 33308
@@ -271,7 +261,6 @@ malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/00: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/01: MissingCompileTimeError # Issue 33308
 malbounded_type_test_test/02: MissingCompileTimeError # Issue 33308
-mixin_declaration/mixin_declaration_inference_valid_classes_test: CompileTimeError, DartkCrash, Crash # https://github.com/dart-lang/sdk/issues/34165
 mixin_invalid_bound2_test/02: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/03: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound2_test/04: MissingCompileTimeError # Issue 33308
@@ -341,13 +330,9 @@ type_variable_bounds_test/03: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/04: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/05: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/06: MissingCompileTimeError # Issue 33308
-type_variable_bounds_test/11: MissingCompileTimeError # Issue 33308
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
-export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
@@ -426,6 +411,8 @@ assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 
 [ $compiler == dartkb && $runtime == vm && $strong ]
+async_star_test/03: Pass, RuntimeError # Please triage
+async_star_test/04: Pass, RuntimeError # Please triage
 compile_time_constant_o_test/01: Pass
 compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
@@ -689,8 +676,6 @@ null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
 parser_quirks_test: CompileTimeError # Issue 31533
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: SkipByDesign
 regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
@@ -777,7 +762,6 @@ constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -1139,7 +1123,6 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 async_return_types_test/nestedFuture: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
-default_factory2_test/01: Fail
 malbounded_redirecting_factory_test/03: Fail
 malbounded_redirecting_factory_test/04: Fail
 malbounded_type_test_test/03: Fail
@@ -1149,8 +1132,6 @@ mixin_invalid_bound2_test/09: Fail
 mixin_invalid_bound2_test/10: Fail
 mixin_invalid_bound_test/06: Fail
 mixin_invalid_bound_test/07: Fail
-redirecting_factory_infinite_steps_test/01: Fail
-redirecting_factory_malbounded_test/01: Fail
 regress_30339_test: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 
@@ -1255,8 +1236,6 @@ no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 parser_quirks_test: CompileTimeError # Issue 31533
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError, CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1303,8 +1282,7 @@ assertion_initializer_const_error2_test/cc10: Pass # Works in --checked mode but
 
 [ $fasta && $strong ]
 issue18628_2_test/01: MissingCompileTimeError
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
+redirecting_factory_bounds_test/02: MissingCompileTimeError # Related to issue 33308
 type_promotion_logical_and_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]
@@ -1503,7 +1481,6 @@ dynamic_prefix_core_test/01: MissingCompileTimeError
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
-export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 factory1_test/00: MissingCompileTimeError
@@ -2144,4 +2121,3 @@ mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_supertype_compatible_test/none: CompileTimeError
-mixin_declaration/mixin_declaration_syntax_test: CompileTimeError
