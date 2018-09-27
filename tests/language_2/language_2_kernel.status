@@ -325,6 +325,9 @@ type_variable_bounds_test/03: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/04: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/05: MissingCompileTimeError # Issue 33308
 type_variable_bounds_test/06: MissingCompileTimeError # Issue 33308
+typedef_check_bounds_generic_test: MissingCompileTimeError
+typedef_check_bounds_test: MissingCompileTimeError
+typedef_check_bounds_unused_test: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.

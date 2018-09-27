@@ -212,6 +212,9 @@ type_promotion_functions_test/12: CompileTimeError # Issue 30895
 type_promotion_functions_test/13: CompileTimeError # Issue 30895
 type_promotion_functions_test/14: CompileTimeError # Issue 30895
 type_promotion_functions_test/none: CompileTimeError # Issue 30895
+typedef_check_bounds_generic_test: MissingCompileTimeError
+typedef_check_bounds_test: MissingCompileTimeError
+typedef_check_bounds_unused_test: MissingCompileTimeError
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
