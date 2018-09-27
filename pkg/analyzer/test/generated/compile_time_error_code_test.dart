@@ -2651,14 +2651,11 @@ class C = B with M implements a.A;'''
     await computeAnalysisResult(source);
     if (enableNewAnalysisDriver) {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
       ]);
     } else {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
       ]);
@@ -2734,14 +2731,11 @@ class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
     if (enableNewAnalysisDriver) {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
       ]);
     } else {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
       ]);
@@ -4270,16 +4264,11 @@ class C = A with String, num;''');
     await computeAnalysisResult(source);
     if (enableNewAnalysisDriver) {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        CompileTimeErrorCode.INVALID_OVERRIDE,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
       ]);
     } else {
       assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        CompileTimeErrorCode.INVALID_OVERRIDE,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
       ]);

@@ -38,6 +38,9 @@ class InheritanceManager2 {
   /// Cached implemented members for [InterfaceType].
   final Map<InterfaceType, Map<Name, FunctionType>> _implemented = {};
 
+  /// Cached member implemented in the mixin.
+  final Map<InterfaceType, Map<Name, FunctionType>> _mixinMembers = {};
+
   InheritanceManager2(this._typeSystem);
 
   /// Return the interface of the given [type].  It might include private
@@ -299,12 +302,51 @@ class InheritanceManager2 {
     }
 
     // Mixins override the nominal superclass and previous mixins.
-    type.mixins.forEach(addMembers);
+    for (var mixin in type.mixins) {
+      var superImplemented = _getImplementedInMixin(mixin);
+      implemented.addAll(superImplemented);
+    }
 
     // This type overrides everything from its actual superclass.
     addMembers(type);
 
     _implemented[type] = implemented;
+    return implemented;
+  }
+
+  /// TODO(scheglov) This repeats a lot of code from [_getImplemented].
+  Map<Name, FunctionType> _getImplementedInMixin(InterfaceType type) {
+    var implemented = _mixinMembers[type];
+    if (implemented != null) {
+      return implemented;
+    }
+
+    _mixinMembers[type] = const {};
+    implemented = <Name, FunctionType>{};
+
+    var libraryUri = type.element.librarySource.uri;
+
+    void addMember(ExecutableElement member) {
+      if (!member.isAbstract && !member.isStatic) {
+        var name = new Name(libraryUri, member.name);
+        implemented[name] = member.type;
+      }
+    }
+
+    void addMembers(InterfaceType type) {
+      type.methods.forEach(addMember);
+      type.accessors.forEach(addMember);
+    }
+
+    for (var mixin in type.mixins) {
+      var superImplemented = _getImplementedInMixin(mixin);
+      implemented.addAll(superImplemented);
+    }
+
+    // This type overrides everything from its actual superclass.
+    addMembers(type);
+
+    _mixinMembers[type] = implemented;
     return implemented;
   }
 }

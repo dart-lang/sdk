@@ -1482,7 +1482,9 @@ class M {}
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
     ]);
   }
 
@@ -1539,7 +1541,6 @@ class C extends C {
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
       StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
     ]);
   }
 

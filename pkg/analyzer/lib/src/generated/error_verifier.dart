@@ -37,24 +37,6 @@ import 'package:analyzer/src/task/dart.dart';
  */
 class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
-   * Static final string with value `"getter "` used in the construction of the
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and
-   * similar, error code messages.
-   *
-   * See [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  static String _GETTER_SPACE = "getter ";
-
-  /**
-   * Static final string with value `"setter "` used in the construction of the
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and
-   * similar, error code messages.
-   *
-   * See [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  static String _SETTER_SPACE = "setter ";
-
-  /**
    * The error reporter by which errors will be reported.
    */
   final ErrorReporter _errorReporter;
@@ -1006,7 +988,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForWrongNumberOfParametersForOperator(node);
         _checkForNonVoidReturnTypeForOperator(node);
       }
-      _checkForConcreteClassWithAbstractMember(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
@@ -1359,7 +1340,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForNonAbstractClassInheritsAbstractMember(node.name);
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
@@ -2446,38 +2426,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given [method] declaration is abstract only if the
-   * enclosing class is also abstract.
-   *
-   * See [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER].
-   */
-  void _checkForConcreteClassWithAbstractMember(MethodDeclaration method) {
-    if (method.isAbstract &&
-        _enclosingClass != null &&
-        !_enclosingClass.isAbstract) {
-      SimpleIdentifier nameNode = method.name;
-      String memberName = nameNode.name;
-      ExecutableElement overriddenMember;
-      if (method.isGetter) {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteGetter(
-            memberName, _currentLibrary);
-      } else if (method.isSetter) {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteSetter(
-            memberName, _currentLibrary);
-      } else {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteMethod(
-            memberName, _currentLibrary);
-      }
-      if (overriddenMember == null && !_enclosingClass.hasNoSuchMethod) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            nameNode,
-            [memberName, _enclosingClass.displayName]);
-      }
-    }
-  }
-
-  /**
    * Verify that the [_enclosingClass] does not have a method and getter pair
    * with the same name on, via inheritance.
    *
@@ -3072,13 +3020,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Verify that the given [typeName] does not extend, implement or mixin
    * classes such as 'num' or 'String'.
    *
-   * See [_checkForExtendsDisallowedClass],
-   * [_checkForExtendsDisallowedClassInTypeAlias],
-   * [_checkForImplementsClauseErrorCodes],
-   * [_checkForAllMixinErrorCodes],
-   * [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS],
-   * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS], and
-   * [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS].
+   * TODO(scheglov) Remove this method, when all inheritance / override
+   * is concentrated. We keep it for now only because we need to know when
+   * inheritance is completely wrong, so that we don't need to check anything
+   * else.
    */
   bool _checkForExtendsOrImplementsDisallowedClass(
       TypeName typeName, ErrorCode errorCode) {
@@ -3090,36 +3035,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    DartType superType = typeName.type;
-    for (InterfaceType disallowedType
-        in _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT) {
-      if (superType != null && superType == disallowedType) {
-        // if the violating type happens to be 'num', we need to rule out the
-        // case where the enclosing class is 'int' or 'double'
-        if (superType == _typeProvider.numType) {
-          AstNode grandParent = typeName.parent.parent;
-          // Note: this is a corner case that won't happen often, so adding a
-          // field currentClass (see currentFunction) to ErrorVerifier isn't
-          // worth if for this case, but if the field currentClass is added,
-          // then this message should become a to-do to not lookup the
-          // grandparent node.
-          if (grandParent is ClassDeclaration) {
-            ClassElement classElement = grandParent.declaredElement;
-            DartType classType = classElement.type;
-            if (classType != null &&
-                (classType == _intType ||
-                    classType == _typeProvider.doubleType)) {
-              return false;
-            }
-          }
-        }
-        // otherwise, report the error
-        _errorReporter.reportErrorForNode(
-            errorCode, typeName, [disallowedType.displayName]);
-        return true;
-      }
-    }
-    return false;
+    return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
   }
 
   /**
@@ -4528,98 +4444,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
         [superType.displayName, _enclosingClass.displayName]);
-  }
-
-  /**
-   * Check that the given class declaration overrides all members required by
-   * its superclasses and interfaces. The [classNameNode] is the
-   * [SimpleIdentifier] to be used if there is a violation, this is either the
-   * named from the [ClassDeclaration] or from the [ClassTypeAlias].
-   *
-   * See [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR], and
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS].
-   */
-  void _checkForNonAbstractClassInheritsAbstractMember(
-      SimpleIdentifier classNameNode) {
-    if (_enclosingClass.isAbstract) {
-      return;
-    } else if (_enclosingClass.hasNoSuchMethod) {
-      return;
-    }
-
-    Set<ExecutableElement> missingOverrides = computeMissingOverrides(
-        _typeProvider, _typeSystem, _inheritanceManager, _enclosingClass);
-    if (missingOverrides.isEmpty) {
-      return;
-    }
-
-    List<String> missingOverrideNames = <String>[];
-    for (ExecutableElement element in missingOverrides) {
-      Element enclosingElement = element.enclosingElement;
-      String prefix = StringUtilities.EMPTY;
-      if (element is PropertyAccessorElement) {
-        if (element.isGetter) {
-          prefix = _GETTER_SPACE;
-          // "getter "
-        } else {
-          prefix = _SETTER_SPACE;
-          // "setter "
-        }
-      }
-      String newStrMember;
-      if (enclosingElement != null) {
-        newStrMember =
-            "$prefix'${enclosingElement.displayName}.${element.displayName}'";
-      } else {
-        newStrMember = "$prefix'${element.displayName}'";
-      }
-      missingOverrideNames.add(newStrMember);
-    }
-    missingOverrideNames.sort();
-
-    if (missingOverrideNames.length == 1) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          classNameNode,
-          [missingOverrideNames[0]]);
-    } else if (missingOverrideNames.length == 2) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          classNameNode,
-          [missingOverrideNames[0], missingOverrideNames[1]]);
-    } else if (missingOverrideNames.length == 3) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-          classNameNode, [
-        missingOverrideNames[0],
-        missingOverrideNames[1],
-        missingOverrideNames[2]
-      ]);
-    } else if (missingOverrideNames.length == 4) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-          classNameNode, [
-        missingOverrideNames[0],
-        missingOverrideNames[1],
-        missingOverrideNames[2],
-        missingOverrideNames[3]
-      ]);
-    } else {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode
-              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-          classNameNode,
-          [
-            missingOverrideNames[0],
-            missingOverrideNames[1],
-            missingOverrideNames[2],
-            missingOverrideNames[3],
-            missingOverrideNames.length - 4
-          ]);
-    }
   }
 
   /**

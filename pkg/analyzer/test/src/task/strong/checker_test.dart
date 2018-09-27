@@ -3110,7 +3110,7 @@ class B {
 
 class C = Object with B;
 
-class D extends Object with C implements A {}
+class /*error:INVALID_OVERRIDE*/D extends Object with C implements A {}
     ''');
   }
 
