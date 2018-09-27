@@ -958,43 +958,29 @@ class CallSiteInliner : public ValueObject {
         InlineExitCollector* exit_collector =
             new (Z) InlineExitCollector(caller_graph_, call);
         FlowGraph* callee_graph;
-        if (UseKernelFrontEndFor(parsed_function)) {
-          Code::EntryKind entry_kind = Code::EntryKind::kNormal;
-          if (StaticCallInstr* instr = call_data->call->AsStaticCall()) {
-            entry_kind = instr->entry_kind();
-          } else if (InstanceCallInstr* instr =
-                         call_data->call->AsInstanceCall()) {
-            entry_kind = instr->entry_kind();
-          } else if (PolymorphicInstanceCallInstr* instr =
-                         call_data->call->AsPolymorphicInstanceCall()) {
-            entry_kind = instr->instance_call()->entry_kind();
-          } else if (ClosureCallInstr* instr =
-                         call_data->call->AsClosureCall()) {
-            entry_kind = instr->entry_kind();
-          }
-          kernel::FlowGraphBuilder builder(
-              parsed_function, ic_data_array, /* not building var desc */ NULL,
-              exit_collector,
-              /* optimized = */ true, Compiler::kNoOSRDeoptId,
-              caller_graph_->max_block_id() + 1,
-              entry_kind == Code::EntryKind::kUnchecked);
-          {
-            CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
-            callee_graph = builder.BuildGraph();
+        Code::EntryKind entry_kind = Code::EntryKind::kNormal;
+        if (StaticCallInstr* instr = call_data->call->AsStaticCall()) {
+          entry_kind = instr->entry_kind();
+        } else if (InstanceCallInstr* instr =
+                       call_data->call->AsInstanceCall()) {
+          entry_kind = instr->entry_kind();
+        } else if (PolymorphicInstanceCallInstr* instr =
+                       call_data->call->AsPolymorphicInstanceCall()) {
+          entry_kind = instr->instance_call()->entry_kind();
+        } else if (ClosureCallInstr* instr = call_data->call->AsClosureCall()) {
+          entry_kind = instr->entry_kind();
+        }
+        kernel::FlowGraphBuilder builder(
+            parsed_function, ic_data_array, /* not building var desc */ NULL,
+            exit_collector,
+            /* optimized = */ true, Compiler::kNoOSRDeoptId,
+            caller_graph_->max_block_id() + 1,
+            entry_kind == Code::EntryKind::kUnchecked);
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
+          callee_graph = builder.BuildGraph();
 
-            CalleeGraphValidator::Validate(callee_graph);
-          }
-        } else {
-          FlowGraphBuilder builder(*parsed_function, *ic_data_array,
-                                   /* not building var desc */ NULL,
-                                   exit_collector, Compiler::kNoOSRDeoptId);
-          builder.SetInitialBlockId(caller_graph_->max_block_id());
-          {
-            CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
-            callee_graph = builder.BuildGraph();
-
-            CalleeGraphValidator::Validate(callee_graph);
-          }
+          CalleeGraphValidator::Validate(callee_graph);
         }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
@@ -1368,10 +1354,6 @@ class CallSiteInliner : public ValueObject {
     *in_cache = false;
     ParsedFunction* parsed_function =
         new (Z) ParsedFunction(thread(), function);
-    if (!UseKernelFrontEndFor(parsed_function)) {
-      Parser::ParseFunction(parsed_function);
-      parsed_function->AllocateVariables();
-    }
     return parsed_function;
   }
 

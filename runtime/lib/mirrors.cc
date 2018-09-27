@@ -149,11 +149,8 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
     Object& result = Object::Handle();
-    if (func.kernel_offset() > 0) {
-      result = kernel::BuildParameterDescriptor(func);
-    } else {
-      result = Parser::ParseFunctionParameters(func);
-    }
+    ASSERT(func.kernel_offset() > 0);
+    result = kernel::BuildParameterDescriptor(func);
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();

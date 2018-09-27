@@ -349,6 +349,36 @@ cc/SourcePosition_Switch: SkipByDesign
 cc/SourcePosition_TryCatchFinally: SkipByDesign
 cc/SourcePosition_While: SkipByDesign
 cc/SourcePosition_WhileContinueBreak: SkipByDesign
+cc/CompileFunctionOnHelperThread: SkipByDesign
+cc/CompileFunction: SkipByDesign
+cc/InvokeDynamic_CompileError: SkipByDesign
+cc/InvokeStatic_CompileError: SkipByDesign
+cc/DartEntry: SkipByDesign
+cc/FindCodeObject: SkipByDesign
+cc/Parser_TopLevel: SkipByDesign
+cc/DartDynamicResolve: SkipByDesign
+cc/DartStaticResolve: SkipByDesign
+cc/AllocateNewObjectCodegen: SkipByDesign
+cc/InstanceCallCodegen: SkipByDesign
+cc/StaticCallCodegen: SkipByDesign
+cc/SimpleReturnCodegen: SkipByDesign
+cc/SmiReturnCodegen: SkipByDesign
+cc/SimpleStaticCallCodegen: SkipByDesign
+cc/StaticCallReturnParameterCodegen: SkipByDesign
+cc/StaticCallReturnParameterCodegen: SkipByDesign
+cc/StaticCallSmiParamSumCodegen: SkipByDesign
+cc/SmiAddCodegen: SkipByDesign
+cc/GenericAddCodegen: SkipByDesign
+cc/SmiBinaryOpCodegen: SkipByDesign
+cc/BoolNotCodegen: SkipByDesign
+cc/BoolAndCodegen: SkipByDesign
+cc/BinaryOpCodegen: SkipByDesign
+cc/SmiUnaryOpCodegen: SkipByDesign
+cc/DoubleUnaryOpCodegen: SkipByDesign
+cc/ParseClassDefinition: SkipByDesign
+cc/CompileScript: SkipByDesign
+cc/DartAPI_LoadLibraryPatch_1: SkipByDesign
+cc/StackMapCodegen: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
