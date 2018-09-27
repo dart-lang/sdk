@@ -4,6 +4,13 @@
 
 ### Language
 
+### Core library changes
+
+#### `dart:core`
+
+*   Made `Uri` parsing more permissive about `[` and `]` occurring
+    in the path, query or fragment, and `#` occurring in fragment.
+
 ### Dart VM
 
 ### Tool Changes
@@ -12,6 +19,25 @@
 
 #### Other Tools
 
+## 2.1.0-dev.6.0
+
+## 2.1.0-dev.5.0
+
+### Core library changes
+
+#### `dart:core`
+
+*   Exported `Future` and `Stream` from `dart:core`.
+*   Added operators `&`, `|` and `^` to `bool`.
+
+#### `dart:async`
+
+*   Fix a bug where calling `stream.take(0).drain(value)` would not correctly
+    forward the `value` through the returned `Future`.
+*   Add a `StreamTransformer.fromBind` constructor.
+
+## 2.1.0-dev.4.0
+
 ### Core library changes
 
 #### `dart:core`
@@ -19,19 +45,15 @@
 *   Added missing methods to `UnmodifiableMapMixin`. Some maps intended to
     be unmodifiable incorrectly allowed new methods added in Dart 2 to
     succeed.
-*   Exported `Future` and `Stream` from `dart:core`.
-*   Added operators `&`, `|` and `^` to `bool`.
-*   Made `Uri` parsing more permissive about `[` and `]` occurring
-    in the path, query or fragment, and `#` occurring in fragment.
 
-#### `dart:async`
+## 2.1.0-dev.3.1
 
-*   Fix a bug where calling `stream.take(0).drain(value)` would not correctly
-    forward the `value` through the returned `Future`.
+### Tool Changes
 
-#### `dart:async`
+#### dartanalyzer
 
-*   Add a `StreamTransformer.fromBind` constructor.
+* Fix a bug in analyzer by cherry-picking commit
+  bd9645abad40d14c8cd9197dfb5c9cc45b20e9d6
 
 ## 2.1.0-dev.3.0
 
