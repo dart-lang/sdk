@@ -602,13 +602,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genJumpIfFalse(bool negated, Label dest) {
-    asm.emitPushTrue();
     if (negated) {
-      asm.emitIfEqStrictTOS(); // if ((!condition) == true) ...
+      asm.emitJumpIfTrue(dest);
     } else {
-      asm.emitIfNeStrictTOS(); // if (condition != true) ...
+      asm.emitJumpIfFalse(dest);
     }
-    asm.emitJump(dest); // ... then jump dest
   }
 
   void _genJumpIfTrue(bool negated, Label dest) {
@@ -737,9 +735,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     Label done = new Label();
 
     _genLoadVar(member.function.positionalParameters[0]);
-    asm.emitPushNull();
-    asm.emitIfNeStrictTOS();
-    asm.emitJump(done);
+    asm.emitJumpIfNotNull(done);
 
     asm.emitPushFalse();
     _genReturnTOS();
@@ -867,8 +863,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
     asm.emitStoreLocal(locals.functionTypeArgsVarIndexInFrame);
     asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
-    asm.emitIfEqStrictTOS();
-    asm.emitJump(noDelayedTypeArgs);
+    asm.emitJumpIfEqStrict(noDelayedTypeArgs);
 
     // There are non-empty delayed type arguments, and they are stored
     // into function type args variable already.
@@ -1219,8 +1214,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // if (switch_var != 0) goto continuationLabel
     _genPushInt(0);
-    asm.emitIfNeStrictTOS();
-    asm.emitJump(continuationLabel);
+    asm.emitJumpIfNeStrict(continuationLabel);
 
     // Proceed to normal entry.
   }
@@ -1247,10 +1241,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (i != yieldPoints.length - 1) {
         asm.emitPush(switchVarIndexInFrame);
         _genPushInt(index);
-        asm.emitIfEqStrictTOS();
+        asm.emitJumpIfEqStrict(yieldPoints[i]);
+      } else {
+        asm.emitJump(yieldPoints[i]);
       }
-
-      asm.emitJump(yieldPoints[i]);
     }
   }
 
@@ -1704,17 +1698,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final isOR = (node.operator == '||');
 
     bool negated = _genCondition(node.left);
-    asm.emitPushTrue();
     if (negated != isOR) {
       // OR: if (condition == true)
       // AND: if ((!condition) == true)
-      asm.emitIfEqStrictTOS();
+      asm.emitJumpIfTrue(shortCircuit);
     } else {
       // OR: if ((!condition) != true)
       // AND: if (condition != true)
-      asm.emitIfNeStrictTOS();
+      asm.emitJumpIfFalse(shortCircuit);
     }
-    asm.emitJump(shortCircuit);
 
     negated = _genCondition(node.right);
     if (negated) {
@@ -2717,8 +2709,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
       // if (:exception != null) rethrow (:exception, :stack_trace)
       final Label cont = new Label();
-      asm.emitIfEqNull(exceptionParam);
-      asm.emitJump(cont);
+      asm.emitPush(exceptionParam);
+      asm.emitJumpIfNull(cont);
 
       asm.emitPush(exceptionParam);
       asm.emitPush(stackTraceParam);

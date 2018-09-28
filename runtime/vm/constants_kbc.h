@@ -124,6 +124,16 @@ namespace dart {
 //    arguments is not zero.
 //    Target is specified as offset from the PC of the jump instruction.
 //
+//  - JumpIfEqStrict target; JumpIfNeStrict target
+//
+//    Jump to the given target if SP[-1] is the same (JumpIfEqStrict) /
+//    not the same (JumpIfNeStrict) object as SP[0].
+//
+//  - JumpIfTrue target; JumpIfFalse target
+//  - JumpIfNull target; JumpIfNotNull target
+//
+//    Jump to the given target if SP[0] is true/false/null/not null.
+//
 //  - Return R; ReturnTOS
 //
 //    Return to the caller using either a value from the given register or a
@@ -839,6 +849,12 @@ namespace dart {
   V(Jump,                                  T, tgt, ___, ___)                   \
   V(JumpIfNoAsserts,                       T, tgt, ___, ___)                   \
   V(JumpIfNotZeroTypeArgs,                 T, tgt, ___, ___)                   \
+  V(JumpIfEqStrict,                        T, tgt, ___, ___)                   \
+  V(JumpIfNeStrict,                        T, tgt, ___, ___)                   \
+  V(JumpIfTrue,                            T, tgt, ___, ___)                   \
+  V(JumpIfFalse,                           T, tgt, ___, ___)                   \
+  V(JumpIfNull,                            T, tgt, ___, ___)                   \
+  V(JumpIfNotNull,                         T, tgt, ___, ___)                   \
   V(Return,                                A, reg, ___, ___)                   \
   V(ReturnTOS,                             0, ___, ___, ___)                   \
   V(Move,                                A_X, reg, xeg, ___)                   \
@@ -1133,6 +1149,24 @@ class KernelBytecode {
 
   DART_FORCE_INLINE static bool IsTrap(KBCInstr instr) {
     return DecodeOpcode(instr) == KernelBytecode::kTrap;
+  }
+
+  DART_FORCE_INLINE static bool IsJumpOpcode(KBCInstr instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kJump:
+      case KernelBytecode::kJumpIfNoAsserts:
+      case KernelBytecode::kJumpIfNotZeroTypeArgs:
+      case KernelBytecode::kJumpIfEqStrict:
+      case KernelBytecode::kJumpIfNeStrict:
+      case KernelBytecode::kJumpIfTrue:
+      case KernelBytecode::kJumpIfFalse:
+      case KernelBytecode::kJumpIfNull:
+      case KernelBytecode::kJumpIfNotNull:
+        return true;
+
+      default:
+        return false;
+    }
   }
 
   DART_FORCE_INLINE static bool IsCallOpcode(KBCInstr instr) {

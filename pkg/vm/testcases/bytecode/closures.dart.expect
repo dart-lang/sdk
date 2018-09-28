@@ -367,8 +367,7 @@ Closure CP#10 {
   LoadFieldTOS         CP#3
   StoreLocal           r0
   PushConstant         CP#5
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfEqStrict       L1
   CheckFunctionTypeArgs 0, 2
   Jump                 L2
 L1:
@@ -420,8 +419,7 @@ Closure CP#0 {
   LoadFieldTOS         CP#3
   StoreLocal           r0
   PushConstant         CP#5
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfEqStrict       L1
   CheckFunctionTypeArgs 0, 2
   Jump                 L2
 L1:
@@ -690,9 +688,7 @@ Closure CP#0 {
   PushInt              5
   InstanceCall         2, CP#8
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r0
   PushInt              4
   StoreContextVar      1
@@ -840,9 +836,7 @@ L2:
   PushInt              10
   InstanceCall         2, CP#4
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r2
   Allocate             CP#10
   StoreLocal           r3
@@ -1001,9 +995,7 @@ L2:
   CheckStack
   Push                 r2
   InstanceCall         1, CP#2
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   AllocateContext      1
   PopLocal             r0
   Push                 r0
@@ -1517,8 +1509,7 @@ Closure CP#0 {
   LoadFieldTOS         CP#3
   StoreLocal           r0
   PushConstant         CP#5
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfEqStrict       L1
   CheckFunctionTypeArgs 0, 2
   Jump                 L2
 L1:

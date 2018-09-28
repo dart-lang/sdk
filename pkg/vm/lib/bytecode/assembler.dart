@@ -179,6 +179,30 @@ class BytecodeAssembler {
         _encodeT(Opcode.kJumpIfNotZeroTypeArgs, label.jumpOperand(offset)));
   }
 
+  void emitJumpIfEqStrict(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfEqStrict, label.jumpOperand(offset)));
+  }
+
+  void emitJumpIfNeStrict(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfNeStrict, label.jumpOperand(offset)));
+  }
+
+  void emitJumpIfTrue(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfTrue, label.jumpOperand(offset)));
+  }
+
+  void emitJumpIfFalse(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfFalse, label.jumpOperand(offset)));
+  }
+
+  void emitJumpIfNull(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfNull, label.jumpOperand(offset)));
+  }
+
+  void emitJumpIfNotNull(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfNotNull, label.jumpOperand(offset)));
+  }
+
   void patchJump(int pos, int rt) {
     final Opcode opcode = Opcode.values[_getOpcodeAt(pos)];
     assert(isJump(opcode));

@@ -31,9 +31,6 @@ namespace kernel {
   M(EntryFixed)                                                                \
   M(EntryOptional)                                                             \
   M(Frame)                                                                     \
-  M(IfEqNull)                                                                  \
-  M(IfEqStrictTOS)                                                             \
-  M(IfNeStrictTOS)                                                             \
   M(IndirectStaticCall)                                                        \
   M(InstanceCall)                                                              \
   M(InstantiateType)                                                           \
@@ -41,6 +38,12 @@ namespace kernel {
   M(Jump)                                                                      \
   M(JumpIfNoAsserts)                                                           \
   M(JumpIfNotZeroTypeArgs)                                                     \
+  M(JumpIfEqStrict)                                                            \
+  M(JumpIfNeStrict)                                                            \
+  M(JumpIfTrue)                                                                \
+  M(JumpIfFalse)                                                               \
+  M(JumpIfNull)                                                                \
+  M(JumpIfNotNull)                                                             \
   M(LoadConstant)                                                              \
   M(LoadContextParent)                                                         \
   M(LoadContextVar)                                                            \
@@ -180,7 +183,7 @@ class BytecodeFlowGraphBuilder {
   Value* Pop();
   ArgumentArray GetArguments(int count);
   void PropagateStackState(intptr_t target_pc);
-  void BuildIfStrictCompare(Token::Kind cmp_kind);
+  void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
 

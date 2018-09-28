@@ -17,9 +17,7 @@ L2:
   InstanceCall         1, CP#1
   InstanceCall         2, CP#3
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
@@ -68,17 +66,13 @@ L3:
   PushInt              0
   InstanceCall         2, CP#1
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#3
   InstanceCall         2, CP#4
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Jump                 L1
 L2:
   Push                 r0
@@ -136,16 +130,12 @@ L4:
   InstanceCall         1, CP#2
   InstanceCall         2, CP#4
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r1
   PushInt              0
   InstanceCall         2, CP#5
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Jump                 L3
 L2:
   Push                 r0
@@ -205,9 +195,7 @@ L2:
   InstanceCall         1, CP#1
   InstanceCall         2, CP#3
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
@@ -270,9 +258,7 @@ L1:
   InstanceCall         1, CP#5
   InstanceCall         2, CP#6
   AssertBoolean        0
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r0
   ReturnTOS
   PushNull
@@ -310,9 +296,7 @@ L2:
   CheckStack
   Push                 r1
   InstanceCall         1, CP#2
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r1
   InstanceCall         1, CP#3
   PopLocal             r2
@@ -357,9 +341,7 @@ L2:
   CheckStack
   Push                 r2
   InstanceCall         1, CP#2
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Push                 r2
   InstanceCall         1, CP#3
   PopLocal             r3

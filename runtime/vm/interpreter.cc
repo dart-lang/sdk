@@ -1419,6 +1419,9 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 // Fetch next operation from PC, increment program counter and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc++)
 
+// Load target of a jump instruction into PC.
+#define LOAD_JUMP_TARGET() pc += ((static_cast<int32_t>(op) >> 8) - 1)
+
 // Define entry point that handles bytecode Name with the given operand format.
 #define BYTECODE(Name, Operands)                                               \
   BYTECODE_HEADER(Name, DECLARE_##Operands, DECODE_##Operands)
@@ -2302,19 +2305,19 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(PushNull, 0);
-    *++SP = Object::null();
+    *++SP = null_value;
     DISPATCH();
   }
 
   {
     BYTECODE(PushTrue, 0);
-    *++SP = Object::bool_true().raw();
+    *++SP = true_value;
     DISPATCH();
   }
 
   {
     BYTECODE(PushFalse, 0);
-    *++SP = Object::bool_false().raw();
+    *++SP = false_value;
     DISPATCH();
   }
 
@@ -4497,16 +4500,14 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(Jump, 0);
-    const int32_t target = static_cast<int32_t>(op) >> 8;
-    pc += (target - 1);
+    LOAD_JUMP_TARGET();
     DISPATCH();
   }
 
   {
     BYTECODE(JumpIfNoAsserts, 0);
     if (!thread->isolate()->asserts()) {
-      const int32_t target = static_cast<int32_t>(op) >> 8;
-      pc += (target - 1);
+      LOAD_JUMP_TARGET();
     }
     DISPATCH();
   }
@@ -4514,8 +4515,61 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(JumpIfNotZeroTypeArgs, 0);
     if (InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) != 0) {
-      const int32_t target = static_cast<int32_t>(op) >> 8;
-      pc += (target - 1);
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfEqStrict, 0);
+    SP -= 2;
+    if (SP[1] == SP[2]) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfNeStrict, 0);
+    SP -= 2;
+    if (SP[1] != SP[2]) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfTrue, 0);
+    SP -= 1;
+    if (SP[1] == true_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfFalse, 0);
+    SP -= 1;
+    if (SP[1] == false_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfNull, 0);
+    SP -= 1;
+    if (SP[1] == null_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfNotNull, 0);
+    SP -= 1;
+    if (SP[1] != null_value) {
+      LOAD_JUMP_TARGET();
     }
     DISPATCH();
   }

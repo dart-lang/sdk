@@ -13,21 +13,15 @@ Bytecode {
   Push                 r1
   PushInt              1
   InstanceCall         2, CP#1
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              2
   InstanceCall         2, CP#2
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Push                 r1
   PushInt              3
   InstanceCall         2, CP#3
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L3
+  JumpIfTrue           L3
   Jump                 L4
 L1:
   PushInt              11
@@ -89,39 +83,27 @@ Bytecode {
   Push                 r1
   PushInt              1
   InstanceCall         2, CP#1
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              2
   InstanceCall         2, CP#2
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              3
   InstanceCall         2, CP#3
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              4
   InstanceCall         2, CP#4
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Push                 r1
   PushInt              5
   InstanceCall         2, CP#5
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Push                 r1
   PushInt              6
   InstanceCall         2, CP#6
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Jump                 L3
 L1:
   PushInt              11
@@ -188,39 +170,27 @@ Bytecode {
   Push                 r1
   PushInt              1
   InstanceCall         2, CP#1
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              2
   InstanceCall         2, CP#2
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              3
   InstanceCall         2, CP#3
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r1
   PushInt              4
   InstanceCall         2, CP#4
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Push                 r1
   PushInt              5
   InstanceCall         2, CP#5
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Push                 r1
   PushInt              6
   InstanceCall         2, CP#6
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Jump                 L3
 L1:
   PushInt              11

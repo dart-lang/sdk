@@ -47,6 +47,10 @@ library vm.bytecode.dbc;
 //
 // 14. AssertAssignable is modified to expect arguments in same order as runtime
 //     call: instance, type, instantiator type args, function type args, name.
+//
+// 15. JumpIfEqStrict, JumpIfNeStrict, JumpIfTrue, JumpIfFalse,
+//     JumpIfNull, JumpIfNotNull instructions added.
+//
 
 enum Opcode {
   kTrap,
@@ -60,6 +64,12 @@ enum Opcode {
   kJump,
   kJumpIfNoAsserts,
   kJumpIfNotZeroTypeArgs,
+  kJumpIfEqStrict,
+  kJumpIfNeStrict,
+  kJumpIfTrue,
+  kJumpIfFalse,
+  kJumpIfNull,
+  kJumpIfNotNull,
   kReturn,
   kReturnTOS,
   kMove,
@@ -309,6 +319,18 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kJumpIfNoAsserts: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfNotZeroTypeArgs: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfEqStrict: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNeStrict: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfTrue: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfFalse: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNull: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNotNull: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kReturn: const Format(
       Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),

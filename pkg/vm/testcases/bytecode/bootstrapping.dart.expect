@@ -121,9 +121,7 @@ Bytecode {
   PushNull
   InstanceCall         2, CP#2
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   Allocate             CP#3
   StoreLocal           r1
   Push                 r1
@@ -308,9 +306,7 @@ Bytecode {
   PushNull
   InstanceCall         2, CP#2
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   PushConstant         CP#3
   PushStatic           CP#3
   PushNull
@@ -325,9 +321,7 @@ L1:
 L2:
   Push                 r0
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L3
+  JumpIfFalse          L3
   PushConstant         CP#3
   PushStatic           CP#3
   InstanceCall         1, CP#6
@@ -453,9 +447,7 @@ Bytecode {
   PushConstant         CP#1
   InstanceCall         2, CP#3
   AssertBoolean        0
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#4
@@ -469,9 +461,7 @@ L1:
 L2:
   Push                 r1
   AssertBoolean        0
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L3
+  JumpIfTrue           L3
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#6
@@ -485,9 +475,7 @@ L3:
 L4:
   Push                 r0
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L5
+  JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#9

@@ -78,8 +78,7 @@ Closure CP#9 {
   LoadContextVar       5
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      7
@@ -104,8 +103,8 @@ Try #0 start:
   PushNull
   ReturnTOS
 L4:
-  IfEqNull             r2
-  Jump                 L2
+  Push                 r2
+  JumpIfNull           L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -392,8 +391,7 @@ Closure CP#3 {
   LoadContextVar       2
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   PopLocal             r6
 Try #0 start:
@@ -602,8 +600,7 @@ Closure CP#3 {
   LoadContextVar       6
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      8
@@ -628,8 +625,8 @@ Try #0 start:
   PushNull
   ReturnTOS
 L6:
-  IfEqNull             r2
-  Jump                 L2
+  Push                 r2
+  JumpIfNull           L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -657,8 +654,8 @@ L2:
   PushNull
   ReturnTOS
 L7:
-  IfEqNull             r2
-  Jump                 L3
+  Push                 r2
+  JumpIfNull           L3
   Push                 r2
   Push                 r3
   Throw                1
@@ -712,8 +709,7 @@ L1:
   PopLocal             r4
   Push                 r5
   PushInt              1
-  IfEqStrictTOS
-  Jump                 L6
+  JumpIfEqStrict       L6
   Jump                 L7
 
 }
@@ -898,8 +894,7 @@ Closure CP#3 {
   LoadContextVar       5
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      7
@@ -929,9 +924,7 @@ L6:
   PushInt              10
   InstanceCall         2, CP#8
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Push                 r4
   LoadContextParent
   LoadContextParent
@@ -947,9 +940,7 @@ L5:
   LoadContextVar       1
   StoreLocal           r8
   InstanceCall         1, CP#10
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L3
+  JumpIfFalse          L3
   AllocateContext      1
   StoreLocal           r5
   Push                 r5
@@ -1015,8 +1006,8 @@ L5:
   PushNull
   ReturnTOS
 L11:
-  IfEqNull             r2
-  Jump                 L4
+  Push                 r2
+  JumpIfNull           L4
   Push                 r2
   Push                 r3
   Throw                1
@@ -1068,9 +1059,7 @@ L8:
   PushInt              10
   InstanceCall         2, CP#20
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L7
+  JumpIfFalse          L7
   Push                 r4
   Push                 r4
   LoadContextVar       0
@@ -1347,8 +1336,7 @@ Closure CP#3 {
   LoadContextVar       7
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      9
@@ -1403,8 +1391,8 @@ Try #2 start:
   PushNull
   ReturnTOS
 L13:
-  IfEqNull             r2
-  Jump                 L2
+  Push                 r2
+  JumpIfNull           L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -1444,9 +1432,7 @@ Try #2 handler:
   PushConstant         CP#12
   InstanceCall         2, CP#13
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L4
+  JumpIfFalse          L4
   Push                 r4
   LoadContextParent
   PushInt              42
@@ -1484,8 +1470,8 @@ L4:
   PushNull
   ReturnTOS
 L14:
-  IfEqNull             r2
-  Jump                 L6
+  Push                 r2
+  JumpIfNull           L6
   Push                 r2
   Push                 r3
   Throw                1
@@ -1562,8 +1548,8 @@ Try #1 handler:
   PushNull
   ReturnTOS
 L15:
-  IfEqNull             r2
-  Jump                 L8
+  Push                 r2
+  JumpIfNull           L8
   Push                 r2
   Push                 r3
   Throw                1
@@ -1633,8 +1619,8 @@ L5:
   PushNull
   ReturnTOS
 L16:
-  IfEqNull             r2
-  Jump                 L10
+  Push                 r2
+  JumpIfNull           L10
   Push                 r2
   Push                 r3
   Throw                1
@@ -1701,8 +1687,8 @@ L7:
   PushNull
   ReturnTOS
 L17:
-  IfEqNull             r2
-  Jump                 L11
+  Push                 r2
+  JumpIfNull           L11
   Push                 r2
   Push                 r3
   Throw                1
@@ -1768,20 +1754,16 @@ L1:
   PopLocal             r4
   Push                 r5
   PushInt              1
-  IfEqStrictTOS
-  Jump                 L13
+  JumpIfEqStrict       L13
   Push                 r5
   PushInt              2
-  IfEqStrictTOS
-  Jump                 L14
+  JumpIfEqStrict       L14
   Push                 r5
   PushInt              3
-  IfEqStrictTOS
-  Jump                 L15
+  JumpIfEqStrict       L15
   Push                 r5
   PushInt              4
-  IfEqStrictTOS
-  Jump                 L16
+  JumpIfEqStrict       L16
   Jump                 L17
 
 }
@@ -1930,8 +1912,7 @@ Closure CP#6 {
   LoadContextVar       4
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      6
@@ -1982,8 +1963,8 @@ Try #1 start:
   PushNull
   ReturnTOS
 L7:
-  IfEqNull             r2
-  Jump                 L2
+  Push                 r2
+  JumpIfNull           L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -2361,8 +2342,7 @@ Closure CP#3 {
   LoadContextVar       5
   StoreLocal           r5
   PushInt              0
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
   StoreContextVar      7
@@ -2388,8 +2368,8 @@ Try #0 start:
   PushNull
   ReturnTOS
 L6:
-  IfEqNull             r2
-  Jump                 L3
+  Push                 r2
+  JumpIfNull           L3
   Push                 r2
   Push                 r3
   Throw                1
@@ -2399,9 +2379,7 @@ L3:
   PushInt              42
   InstanceCall         2, CP#10
   AssertBoolean        0
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   PushInt              0
   PushInt              0
   PushNull

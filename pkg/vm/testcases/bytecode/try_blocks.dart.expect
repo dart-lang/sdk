@@ -79,9 +79,7 @@ Try #0 handler:
   Push                 r0
   PushConstant         CP#3
   InstanceCall         2, CP#5
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   PushConstant         CP#6
   PushConstant         CP#7
   IndirectStaticCall   1, CP#1
@@ -91,9 +89,7 @@ L2:
   Push                 r0
   PushConstant         CP#8
   InstanceCall         2, CP#9
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L3
+  JumpIfFalse          L3
   Push                 r0
   PopLocal             r2
   PushNull
@@ -118,9 +114,7 @@ L3:
   Push                 r0
   PushConstant         CP#13
   InstanceCall         2, CP#14
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L4
+  JumpIfFalse          L4
   Push                 r0
   PopLocal             r2
   Push                 r1
@@ -442,9 +436,7 @@ Try #0 handler:
   Push                 r2
   PushConstant         CP#28
   InstanceCall         2, CP#30
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Push                 r2
   PopLocal             r4
   PushNull
@@ -537,9 +529,7 @@ Try #2 start:
   Drop1
   Push                 FP[-5]
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -585,9 +575,9 @@ L4:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 38, handler 38, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 2, end 36, handler 36, needs-stack-trace, types [CP#3]
   try-index 1, outer 0, start 2, end 7, handler 7, needs-stack-trace, types [CP#3]
-  try-index 2, outer 0, start 12, end 26, handler 26, types [CP#3]
+  try-index 2, outer 0, start 12, end 24, handler 24, types [CP#3]
 }
 ConstantPool {
   [0] = String 'try 1 > try 2'
@@ -636,17 +626,13 @@ L5:
   PushInt              10
   InstanceCall         2, CP#1
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
 Try #0 start:
   Push                 r0
   PushInt              5
   InstanceCall         2, CP#2
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Jump                 L3
 L2:
   Jump                 L4
@@ -684,7 +670,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 12, end 21, handler 21, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#3]
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -725,15 +711,11 @@ Bytecode {
   Push                 r2
   PushInt              1
   InstanceCall         2, CP#1
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r2
   PushInt              2
   InstanceCall         2, CP#2
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Jump                 L3
 L1:
   Push                 r0
@@ -851,8 +833,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 25, end 91, handler 91, needs-stack-trace, types [CP#25]
-  try-index 1, outer 0, start 34, end 61, handler 61, needs-stack-trace, types [CP#25]
+  try-index 0, outer -1, start 21, end 87, handler 87, needs-stack-trace, types [CP#25]
+  try-index 1, outer 0, start 30, end 57, handler 57, needs-stack-trace, types [CP#25]
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []

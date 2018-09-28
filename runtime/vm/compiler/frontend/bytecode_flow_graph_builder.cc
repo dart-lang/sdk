@@ -1030,11 +1030,8 @@ void BytecodeFlowGraphBuilder::BuildJumpIfNotZeroTypeArgs() {
   code_ = Fragment(code_.entry, is_zero);
 }
 
-void BytecodeFlowGraphBuilder::BuildIfStrictCompare(Token::Kind cmp_kind) {
+void BytecodeFlowGraphBuilder::BuildJumpIfStrictCompare(Token::Kind cmp_kind) {
   ASSERT((cmp_kind == Token::kEQ) || (cmp_kind == Token::kNE));
-
-  // TODO(alexmarkov): revise If* bytecodes to include Jump
-  // (and maybe comparison to true/false)
 
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -1051,11 +1048,6 @@ void BytecodeFlowGraphBuilder::BuildIfStrictCompare(Token::Kind cmp_kind) {
   TargetEntryInstr* else_entry =
       (cmp_kind == Token::kEQ) ? ne_branch : eq_branch;
 
-  // The next bytecode instruction should be a Jump.
-  ++pc_;
-  bytecode_instr_ = InstructionAt(pc_, KernelBytecode::kJump);
-  ASSERT(jump_targets_.Lookup(pc_) == nullptr);
-
   const intptr_t target_pc = pc_ + DecodeOperandT().value();
   JoinEntryInstr* join = jump_targets_.Lookup(target_pc);
   ASSERT(join != nullptr);
@@ -1067,18 +1059,32 @@ void BytecodeFlowGraphBuilder::BuildIfStrictCompare(Token::Kind cmp_kind) {
   code_ = Fragment(else_entry);
 }
 
-void BytecodeFlowGraphBuilder::BuildIfEqStrictTOS() {
-  BuildIfStrictCompare(Token::kEQ);
+void BytecodeFlowGraphBuilder::BuildJumpIfEqStrict() {
+  BuildJumpIfStrictCompare(Token::kEQ);
 }
 
-void BytecodeFlowGraphBuilder::BuildIfNeStrictTOS() {
-  BuildIfStrictCompare(Token::kNE);
+void BytecodeFlowGraphBuilder::BuildJumpIfNeStrict() {
+  BuildJumpIfStrictCompare(Token::kNE);
 }
 
-void BytecodeFlowGraphBuilder::BuildIfEqNull() {
-  LoadLocal(DecodeOperandA());
+void BytecodeFlowGraphBuilder::BuildJumpIfTrue() {
+  code_ += B->Constant(Bool::True());
+  BuildJumpIfStrictCompare(Token::kEQ);
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfFalse() {
+  code_ += B->Constant(Bool::False());
+  BuildJumpIfStrictCompare(Token::kEQ);
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfNull() {
   code_ += B->NullConstant();
-  BuildIfEqStrictTOS();
+  BuildJumpIfStrictCompare(Token::kEQ);
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfNotNull() {
+  code_ += B->NullConstant();
+  BuildJumpIfStrictCompare(Token::kNE);
 }
 
 void BytecodeFlowGraphBuilder::BuildDrop1() {
@@ -1243,11 +1249,8 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     GraphEntryInstr* graph_entry) {
   for (intptr_t pc = 0; pc < bytecode_length_; ++pc) {
     const KBCInstr instr = raw_bytecode_[pc];
-    const KernelBytecode::Opcode opcode = KernelBytecode::DecodeOpcode(instr);
 
-    if ((opcode == KernelBytecode::kJump) ||
-        (opcode == KernelBytecode::kJumpIfNoAsserts) ||
-        (opcode == KernelBytecode::kJumpIfNotZeroTypeArgs)) {
+    if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
     }
