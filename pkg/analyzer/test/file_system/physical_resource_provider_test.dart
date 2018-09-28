@@ -531,13 +531,6 @@ class FolderTest extends _BaseTest {
 
 @reflectiveTest
 class PhysicalResourceProviderTest extends _BaseTest {
-  test_getFolder_trailingSeparator() {
-    String path = tempPath;
-    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
-    Folder folder = provider.getFolder('$path${pathos.separator}');
-    expect(folder.path, path);
-  }
-
   test_getModificationTimes() async {
     PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
     String path = join(tempPath, 'file1.txt');
