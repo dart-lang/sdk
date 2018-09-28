@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
@@ -15,7 +16,6 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/directory.h"
-#include "bin/embedded_dart_io.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"

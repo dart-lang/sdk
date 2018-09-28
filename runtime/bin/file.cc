@@ -8,11 +8,11 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/embedded_dart_io.h"
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
 #include "bin/typed_data_utils.h"
 #include "bin/utils.h"
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/globals.h"

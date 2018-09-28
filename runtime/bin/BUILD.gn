@@ -621,21 +621,21 @@ template("dart_io") {
   }
 }
 
-dart_io("embedded_dart_io") {
+dart_io("dart_io_api") {
   extra_configs = [ "..:dart_maybe_product_config" ]
   extra_sources = [
     "builtin_nolib.cc",
-    "embedded_dart_io.cc",
-    "embedded_dart_io.h",
+    "dart_io_api_impl.cc",
+    "../include/bin/dart_io_api.h",
   ]
 }
 
-dart_io("embedded_dart_io_product") {
+dart_io("dart_io_api_product") {
   extra_configs = [ "..:dart_product_config" ]
   extra_sources = [
     "builtin_nolib.cc",
-    "embedded_dart_io.cc",
-    "embedded_dart_io.h",
+    "dart_io_api_impl.cc",
+    "../include/bin/dart_io_api.h",
   ]
 }
 

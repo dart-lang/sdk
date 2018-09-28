@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/embedded_dart_io.h"
+#include "include/bin/dart_io_api.h"
 
 #include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
+#include "bin/io_natives.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/thread.h"
@@ -43,6 +44,16 @@ void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
 
 bool GetEntropy(uint8_t* buffer, intptr_t length) {
   return Crypto::GetRandomBytes(length, buffer);
+}
+
+Dart_NativeFunction LookupIONative(Dart_Handle name,
+                                   int argument_count,
+                                   bool* auto_setup_scope) {
+  return IONativeLookup(name, argument_count, auto_setup_scope);
+}
+
+const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf) {
+  return IONativeSymbol(nf);
 }
 
 }  // namespace bin

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_EMBEDDED_DART_IO_H_
-#define RUNTIME_BIN_EMBEDDED_DART_IO_H_
+#ifndef RUNTIME_INCLUDE_BIN_DART_IO_API_H_
+#define RUNTIME_INCLUDE_BIN_DART_IO_API_H_
 
 #include "include/dart_tools_api.h"
 
@@ -43,7 +43,18 @@ void GetIOEmbedderInformation(Dart_EmbedderInformation* info);
 // Dart_InitializeParams.entropy_source.
 bool GetEntropy(uint8_t* buffer, intptr_t length);
 
+// Performs a lookup of the I/O Dart_NativeFunction with a specified 'name' and
+// 'argument_count'. Returns NULL if no I/O native function with a matching
+// name and parameter count is found.
+Dart_NativeFunction LookupIONative(Dart_Handle name,
+                                   int argument_count,
+                                   bool* auto_setup_scope);
+
+// Returns the symbol for I/O native function 'nf'. Returns NULL if 'nf' is not
+// a valid I/O native function.
+const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf);
+
 }  // namespace bin
 }  // namespace dart
 
-#endif  // RUNTIME_BIN_EMBEDDED_DART_IO_H_
+#endif  // RUNTIME_INCLUDE_BIN_DART_IO_API_H_
