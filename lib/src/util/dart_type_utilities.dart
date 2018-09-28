@@ -103,37 +103,37 @@ class DartTypeUtilities {
       expression?.unParenthesized is NullLiteral;
 
   static PropertyAccessorElement lookUpGetter(MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpGetter(node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpInheritedConcreteGetter(
           MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpInheritedConcreteGetter(
               node.name.name, node.declaredElement.library);
 
   static MethodElement lookUpInheritedConcreteMethod(MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpInheritedConcreteMethod(
               node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpInheritedConcreteSetter(
           MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpInheritedConcreteSetter(
               node.name.name, node.declaredElement.library);
 
   static MethodElement lookUpInheritedMethod(MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpInheritedMethod(node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpSetter(MethodDeclaration node) =>
-      (node.parent as ClassDeclaration)
+      (node.parent as ClassOrMixinDeclaration)
           .declaredElement
           .lookUpSetter(node.name.name, node.declaredElement.library);
 
@@ -187,6 +187,20 @@ class DartTypeUtilities {
     return true;
   }
 
+  static bool overridesMethod(MethodDeclaration node) {
+    final name = node.declaredElement.name;
+    final ClassOrMixinDeclaration clazz = node.parent;
+    final classElement = clazz.declaredElement;
+    final library = classElement.library;
+    return classElement.allSupertypes
+        .map(node.isGetter
+            ? (InterfaceType t) => t.lookUpGetter
+            : node.isSetter
+                ? (InterfaceType t) => t.lookUpSetter
+                : (InterfaceType t) => t.lookUpMethod)
+        .any((lookUp) => lookUp(name, library) != null);
+  }
+
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
   /// predicate returns true, if not provided, all is included.
@@ -226,20 +240,6 @@ class DartTypeUtilities {
           leftElement.supertype != rightElement.supertype;
     }
     return false;
-  }
-
-  static bool overridesMethod(MethodDeclaration node) {
-    final name = node.declaredElement.name;
-    final ClassDeclaration clazz = node.parent;
-    final classElement = clazz.declaredElement;
-    final library = classElement.library;
-    return classElement.allSupertypes
-        .map(node.isGetter
-            ? (InterfaceType t) => t.lookUpGetter
-            : node.isSetter
-                ? (InterfaceType t) => t.lookUpSetter
-                : (InterfaceType t) => t.lookUpMethod)
-        .any((lookUp) => lookUp(name, library) != null);
   }
 }
 
