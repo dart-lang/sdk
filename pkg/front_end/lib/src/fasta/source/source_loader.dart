@@ -1006,16 +1006,6 @@ class SourceLoader<L> extends Loader<L> {
         isTopLevel: isTopLevel);
   }
 
-  Expression throwCompileConstantError(Expression error) {
-    return target.backendTarget.throwCompileConstantError(coreTypes, error);
-  }
-
-  Expression buildProblem(Message message, int offset, int length, Uri uri) {
-    String text = target.context
-        .format(message.withLocation(uri, offset, length), Severity.error);
-    return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
-  }
-
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
       {List<LocatedMessage> context}) {

@@ -25,7 +25,6 @@ class CoreTypes {
       'Type',
       'Function',
       'Invocation',
-      '_ConstantExpressionError',
       'FallThroughError',
     ],
     'dart:_internal': [
@@ -65,8 +64,6 @@ class CoreTypes {
   Procedure _listUnmodifiableConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
-  Constructor _constantExpressionErrorDefaultConstructor;
-  Procedure _constantExpressionErrorThrow;
   Constructor _duplicatedFieldInitializerErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
@@ -417,16 +414,6 @@ class CoreTypes {
 
   Class get typeClass {
     return _typeClass ??= index.getClass('dart:core', 'Type');
-  }
-
-  Constructor get constantExpressionErrorDefaultConstructor {
-    return _constantExpressionErrorDefaultConstructor ??=
-        index.getMember('dart:core', '_ConstantExpressionError', '');
-  }
-
-  Member get constantExpressionErrorThrow {
-    return _constantExpressionErrorThrow ??=
-        index.getMember('dart:core', '_ConstantExpressionError', '_throw');
   }
 
   Constructor get duplicatedFieldInitializerErrorDefaultConstructor {

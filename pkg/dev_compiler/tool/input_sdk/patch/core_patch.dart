@@ -729,12 +729,6 @@ class StackTrace {
   }
 }
 
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
-}
-
 // TODO(jmesserly): this class is supposed to be obsolete in Strong Mode, but
 // the front-end crashes without it
 class _DuplicatedFieldInitializerError {

@@ -1,24 +1,3 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: '+' is not a prefix operator.
-// Try removing '+'.
-//     use(+super);
-//         ^
-//
-// pkg/front_end/testcases/rasta/issue_000041.dart:7:10: Error: Can't use 'super' as an expression.
-// To delegate a constructor to a super constructor, put the super call as an initializer.
-//     use(+super);
-//          ^^^^^
-//
-// pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: Getter not found: ''.
-//     use(+super);
-//         ^
-//
-// pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: The getter '' isn't defined for the class '#lib1::C'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named ''.
-//     use(+super);
-//         ^
-
 // Unhandled errors:
 //
 // pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: '+' is not a prefix operator.
@@ -39,7 +18,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method test() → dynamic {
-    self::use((let final dynamic #t1 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: The getter '' isn't defined for the class '#lib1::C'.
+    self::use((let final self::C #t1 = this in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: The getter '' isn't defined for the class '#lib1::C'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named ''.
     use(+super);
         ^").+(invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:10: Error: Can't use 'super' as an expression.

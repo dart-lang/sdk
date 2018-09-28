@@ -1386,9 +1386,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (constantContext != ConstantContext.none) {
-      // TODO(ahe): Use [error] below instead of building a compile-time error,
-      // should be:
-      //    return library.loader.throwCompileConstantError(error, charOffset);
       return buildProblem(message, charOffset, noLength, context: context)
           .desugared;
     } else {
@@ -4083,9 +4080,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Message message, int charOffset, int length,
       {List<LocatedMessage> context}) {
     addProblem(message, charOffset, length, wasHandled: true, context: context);
-    return new SyntheticExpressionJudgment(library.loader
-        .throwCompileConstantError(
-            library.loader.buildProblem(message, charOffset, length, uri)));
+    String text = library.loader.target.context
+        .format(message.withLocation(uri, charOffset, length), Severity.error);
+    return new SyntheticExpressionJudgment(
+        new InvalidExpression(text)..fileOffset = charOffset);
   }
 
   @override

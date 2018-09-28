@@ -339,11 +339,6 @@ class _CompileTimeError {
   _CompileTimeError(this._errorMsg);
 }
 
-class _ConstantExpressionError {
-  const _ConstantExpressionError();
-  external _throw(error);
-}
-
 class AbstractClassInstantiationError {
   AbstractClassInstantiationError(String className);
 }

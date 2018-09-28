@@ -9,7 +9,7 @@
 //   const C() : this.x;
 //               ^^^^
 //
-// pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Warning: Setter not found: ''.
+// pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Setter not found: ''.
 //   const C() : this.x;
 //               ^
 

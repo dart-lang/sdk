@@ -100,7 +100,7 @@ rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail
-rasta/bad_explicit_super_constructor: Fail
+rasta/bad_explicit_super_constructor: RuntimeError
 rasta/bad_implicit_super_constructor: Fail
 rasta/bad_interpolation: Fail
 rasta/bad_redirection: Fail
@@ -133,12 +133,12 @@ rasta/issue_000026: Fail
 rasta/issue_000031: Fail
 rasta/issue_000032: Fail
 rasta/issue_000033: Fail
-rasta/issue_000034: Fail
+rasta/issue_000034: RuntimeError
 rasta/issue_000035: Fail
 rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Fail
-rasta/issue_000041: Fail
+rasta/issue_000041: RuntimeError
 rasta/issue_000042: Fail
 rasta/issue_000043: Fail
 rasta/issue_000044: Fail

@@ -577,14 +577,6 @@ class CyclicInitializationError extends Error {
       : "Reading static variable '$variableName' during its initialization";
 }
 
-/// Used by Fasta to throw a compile-time error in a way that is compatible
-/// with compile-time constant evaluation.
-class _ConstantExpressionError {
-  const _ConstantExpressionError();
-
-  external _throw(error);
-}
-
 /// Used by Fasta to wrap constant expressions so an illegal constant expression
 /// will throw an error.
 class _ConstantHelper {
