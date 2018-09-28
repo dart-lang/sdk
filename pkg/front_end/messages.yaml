@@ -2203,6 +2203,10 @@ DuplicatedDeclarationCause:
   template: "Previous declaration of '#name'."
   severity: CONTEXT
 
+DuplicatedDeclarationSyntheticCause:
+  template: "Previous declaration of '#name' is implied by this definition."
+  severity: CONTEXT
+
 # Use this message when a duplicated declaration is used.
 DuplicatedDeclarationUse:
   template: "Can't use '#name' because it is declared more than once."

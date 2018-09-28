@@ -84,30 +84,30 @@
 // pkg/front_end/testcases/duplicated_declarations.dart:83:3: Error: '_name' is already declared in this scope.
 //   _name,
 //   ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of '_name'.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of '_name' is implied by this definition.
 // enum AnotherEnum {
-//      ^^^^^
+//      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:84:3: Error: 'index' is already declared in this scope.
 //   index,
 //   ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'index'.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'index' is implied by this definition.
 // enum AnotherEnum {
-//      ^^^^^
+//      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:85:3: Error: 'toString' is already declared in this scope.
 //   toString,
 //   ^^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'toString'.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'toString' is implied by this definition.
 // enum AnotherEnum {
-//      ^^^^^^^^
+//      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:86:3: Error: 'values' is already declared in this scope.
 //   values,
 //   ^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'values'.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'values' is implied by this definition.
 // enum AnotherEnum {
-//      ^^^^^^
+//      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:57:19: Error: Type 'C' not found.
 // class Sub extends C {

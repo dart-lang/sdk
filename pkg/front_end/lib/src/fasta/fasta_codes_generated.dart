@@ -2088,6 +2088,32 @@ Message _withArgumentsDuplicatedDeclarationCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDuplicatedDeclarationSyntheticCause = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Previous declaration of '#name' is implied by this definition.""",
+    withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedDeclarationSyntheticCause =
+    const Code<Message Function(String name)>(
+        "DuplicatedDeclarationSyntheticCause",
+        templateDuplicatedDeclarationSyntheticCause,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedDeclarationSyntheticCause(String name) {
+  return new Message(codeDuplicatedDeclarationSyntheticCause,
+      message:
+          """Previous declaration of '${name}' is implied by this definition.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDeclarationUse =
     const Template<Message Function(String name)>(
         messageTemplate:

@@ -34,6 +34,7 @@ import '../fasta_codes.dart'
         messageNoUnnamedConstructorInObject,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
+        templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
@@ -170,12 +171,19 @@ class KernelEnumBuilder extends SourceClassBuilder
         EnumConstantInfo enumConstantInfo = enumConstantInfos[i];
         List<MetadataBuilder> metadata = enumConstantInfo.metadata;
         String name = enumConstantInfo.name;
-        int charOffset = enumConstantInfo.charOffset;
         String documentationComment = enumConstantInfo.documentationComment;
         MemberBuilder existing = members[name];
         if (existing != null) {
-          List<LocatedMessage> context = existing.isSynthetic
-              ? null
+          // The existing declaration is synthetic if it has the same
+          // charOffset as the enclosing enum.
+          bool isSynthetic = existing.charOffset == charOffset;
+          List<LocatedMessage> context = isSynthetic
+              ? <LocatedMessage>[
+                  templateDuplicatedDeclarationSyntheticCause
+                      .withArguments(name)
+                      .withLocation(
+                          parent.fileUri, charOffset, className.length)
+                ]
               : <LocatedMessage>[
                   templateDuplicatedDeclarationCause
                       .withArguments(name)
@@ -183,13 +191,13 @@ class KernelEnumBuilder extends SourceClassBuilder
                           parent.fileUri, existing.charOffset, name.length)
                 ];
           parent.addProblem(templateDuplicatedDeclaration.withArguments(name),
-              charOffset, name.length, parent.fileUri,
+              enumConstantInfo.charOffset, name.length, parent.fileUri,
               context: context);
           enumConstantInfos[i] = null;
         } else if (name == className) {
           parent.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
-              charOffset,
+              enumConstantInfo.charOffset,
               name.length,
               parent.fileUri);
         }
@@ -199,7 +207,7 @@ class KernelEnumBuilder extends SourceClassBuilder
             name,
             constMask | staticMask,
             parent,
-            charOffset,
+            enumConstantInfo.charOffset,
             null,
             true);
         metadataCollector?.setDocumentationComment(
