@@ -709,7 +709,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(identifier, this,
           message: fasta.messageMissingOperatorKeyword,
           messageOnToken: identifier);
-    } else if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>']) ||
+    } else if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>', '}']) ||
         looksLikeStartOfNextClassMember(identifier)) {
       return parser.insertSyntheticIdentifier(token, this);
     } else if (!identifier.isKeywordOrIdentifier) {

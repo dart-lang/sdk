@@ -98,6 +98,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
           expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 21, 2)
         ]);
   }
+
+  void test_partialNamedConstructor() {
+    parseCompilationUnit('class C { C. }', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
+    ]);
+  }
 }
 
 /**
