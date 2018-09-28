@@ -2382,8 +2382,14 @@ static const MethodParameter* evaluate_params[] = {
 static bool IsAlpha(char c) {
   return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
+static bool IsAlphaOrDollar(char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '$');
+}
 static bool IsAlphaNum(char c) {
   return (c >= '0' && c <= '9') || IsAlpha(c);
+}
+static bool IsAlphaNumOrDollar(char c) {
+  return (c >= '0' && c <= '9') || IsAlphaOrDollar(c);
 }
 static bool IsWhitespace(char c) {
   return c <= ' ';
@@ -2409,8 +2415,8 @@ static bool ParseScope(const char* scope,
     if (*c == '}') return true;
 
     const char* name = c;
-    if (!IsAlpha(*c)) return false;
-    while (IsAlphaNum(*c)) {
+    if (!IsAlphaOrDollar(*c)) return false;
+    while (IsAlphaNumOrDollar(*c)) {
       c++;
     }
     names->Add(zone->MakeCopyOfStringN(name, c - name));
