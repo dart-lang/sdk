@@ -164,7 +164,26 @@ def NotifyBuildDone(build_config, success, start):
     os.system(command)
 
 
-def RunGN(target_os, mode, arch):
+def GenerateBuildfilesIfNeeded():
+  if os.path.exists(utils.GetBuildDir(HOST_OS)):
+    return True
+  command = [
+    'python',
+    os.path.join(DART_ROOT, 'tools', 'generate_buildfiles.py')
+  ]
+  print ("Running " + ' '.join(command))
+  process = subprocess.Popen(command)
+  process.wait()
+  if process.returncode != 0:
+    print ("Tried to generate missing buildfiles, but failed. "
+           "Try running manually:\n\t$ " + ' '.join(command))
+    return False
+  return True
+
+
+def RunGNIfNeeded(out_dir, target_os, mode, arch):
+  if os.path.isfile(os.path.join(out_dir, 'args.gn')):
+    return
   gn_os = 'host' if target_os == HOST_OS else target_os
   gn_command = [
     'python',
@@ -179,11 +198,6 @@ def RunGN(target_os, mode, arch):
   if process.returncode != 0:
     print ("Tried to run GN, but it failed. Try running it manually: \n\t$ " +
            ' '.join(gn_command))
-
-
-def ShouldRunGN(out_dir):
-  return (not os.path.exists(out_dir) or
-          not os.path.isfile(os.path.join(out_dir, 'args.gn')))
 
 
 def UseGoma(out_dir):
@@ -234,8 +248,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
   using_goma = False
   # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
   # gn.py manually.
-  if ShouldRunGN(out_dir):
-    RunGN(target_os, mode, arch)
+  RunGNIfNeeded(out_dir, target_os, mode, arch)
   command = ['ninja', '-C', out_dir]
   if options.verbose:
     command += ['-v']
@@ -289,6 +302,9 @@ def Main():
     targets = ['all']
   else:
     targets = args
+
+  if not GenerateBuildfilesIfNeeded():
+    return 1
 
   # Build all targets for each requested configuration.
   configs = []

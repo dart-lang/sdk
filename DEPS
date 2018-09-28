@@ -475,8 +475,4 @@ hooks = [
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
-  {
-    "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/generate_buildfiles.py"],
-  },
 ]
