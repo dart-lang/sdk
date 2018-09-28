@@ -1141,8 +1141,7 @@ class ElementResolverTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
     Source source = new FileSource(resourceProvider.getFile("/test.dart"));
-    CompilationUnitElementImpl unit =
-        new CompilationUnitElementImpl("test.dart");
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;

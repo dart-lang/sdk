@@ -960,13 +960,15 @@ void set test(_) {}
     CompilationUnitElement unitElement1 = partUnits
         .singleWhere((u) => resolutionMap
             .elementDeclaredByCompilationUnit(u)
-            .name
+            .source
+            .fullName
             .endsWith('part1.dart'))
         .declaredElement;
     CompilationUnitElement unitElement2 = partUnits
         .singleWhere((u) => resolutionMap
             .elementDeclaredByCompilationUnit(u)
-            .name
+            .source
+            .fullName
             .endsWith('part2.dart'))
         .declaredElement;
     PropertyAccessorElement getter = unitElement1.accessors[0];

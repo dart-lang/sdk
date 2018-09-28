@@ -915,19 +915,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
     if (isVisibleForTemplate(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
     if (isVisibleForTesting(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
   }
 

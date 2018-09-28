@@ -1173,7 +1173,7 @@ class InheritanceManagerTest {
         resourceProvider: resourceProvider);
     Source source = new FileSource(resourceProvider.getFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
-        new CompilationUnitElementImpl("test.dart");
+        new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");

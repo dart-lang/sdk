@@ -1537,7 +1537,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     }
     Source source = new FileSource(resourceProvider.getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
-        new CompilationUnitElementImpl("lib.dart");
+        new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary =

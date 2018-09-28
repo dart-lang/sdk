@@ -2299,7 +2299,8 @@ class FixProcessor {
         showNames.addAll(showCombinator.shownNames);
         showNames.add(name);
         // prepare library name - unit name or 'dart:name' for SDK library
-        String libraryName = libraryElement.definingCompilationUnit.displayName;
+        String libraryName =
+            libraryElement.definingCompilationUnit.source.uri.toString();
         if (libraryElement.isInSdk) {
           libraryName = libraryElement.source.shortName;
         }

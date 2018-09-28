@@ -599,7 +599,7 @@ class ResolverTestCase extends EngineTestCase {
             new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
-            new CompilationUnitElementImpl(fileName);
+            new CompilationUnitElementImpl();
         compilationUnit.source = createNamedSource(fileName);
         compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
@@ -607,7 +607,7 @@ class ResolverTestCase extends EngineTestCase {
       }
     }
     CompilationUnitElementImpl compilationUnit =
-        new CompilationUnitElementImpl(fileName);
+        new CompilationUnitElementImpl();
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(

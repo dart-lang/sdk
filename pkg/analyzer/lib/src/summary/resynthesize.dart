@@ -326,7 +326,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
             new LibraryElementImpl(context, '', -1, 0);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
-            new CompilationUnitElementImpl(librarySource.shortName);
+            new CompilationUnitElementImpl();
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
@@ -1189,8 +1189,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         libraryResynthesizer.library,
         _resynthesizerContext,
         unlinkedUnit,
-        unlinkedPart,
-        unitSource?.shortName);
+        unlinkedPart);
 
     {
       List<int> lineStarts = unlinkedUnit.lineStarts;

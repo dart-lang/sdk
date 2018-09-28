@@ -102,8 +102,7 @@ class AnalysisContextFactory {
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
@@ -181,8 +180,7 @@ class AnalysisContextFactory {
     //
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         coreContext, AstTestFactory.libraryIdentifier2(["dart", "async"]));
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     coreContext.setContents(asyncSource, "");
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
@@ -275,8 +273,7 @@ class AnalysisContextFactory {
     //
     // dart:html
     //
-    CompilationUnitElementImpl htmlUnit =
-        new CompilationUnitElementImpl("html_dartium.dart");
+    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl();
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
     htmlUnit.librarySource = htmlUnit.source = htmlSource;
@@ -337,8 +334,7 @@ class AnalysisContextFactory {
     //
     // dart:math
     //
-    CompilationUnitElementImpl mathUnit =
-        new CompilationUnitElementImpl("math.dart");
+    CompilationUnitElementImpl mathUnit = new CompilationUnitElementImpl();
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.librarySource = mathUnit.source = mathSource;

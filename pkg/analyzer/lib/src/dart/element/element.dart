@@ -1385,24 +1385,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * Initialize a newly created compilation unit element to have the given
    * [name].
    */
-  CompilationUnitElementImpl(String name)
+  CompilationUnitElementImpl()
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
-        super(name, -1);
+        super(null, -1);
 
   /**
    * Initialize using the given serialized information.
    */
-  CompilationUnitElementImpl.forSerialized(
-      LibraryElementImpl enclosingLibrary,
-      this.resynthesizerContext,
-      this._unlinkedUnit,
-      this._unlinkedPart,
-      String name)
+  CompilationUnitElementImpl.forSerialized(LibraryElementImpl enclosingLibrary,
+      this.resynthesizerContext, this._unlinkedUnit, this._unlinkedPart)
       : super.forSerialized(null) {
     _enclosingElement = enclosingLibrary;
-    _name = name;
     _nameOffset = -1;
   }
 

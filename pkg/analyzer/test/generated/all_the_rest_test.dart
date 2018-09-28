@@ -663,7 +663,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
   }
 
   ElementBuilder _makeBuilder(ElementHolder holder) =>
-      new ElementBuilder(holder, new CompilationUnitElementImpl('test.dart'));
+      new ElementBuilder(holder, new CompilationUnitElementImpl());
 }
 
 @reflectiveTest

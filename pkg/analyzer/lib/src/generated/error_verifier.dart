@@ -2078,8 +2078,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive, [
           name,
-          prevElement.library.definingCompilationUnit.displayName,
-          element.library.definingCompilationUnit.displayName
+          prevElement.library.definingCompilationUnit.source.uri,
+          element.library.definingCompilationUnit.source.uri
         ]);
         return;
       } else {
@@ -2917,8 +2917,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (!name.isEmpty) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-            prevLibrary.definingCompilationUnit.displayName,
-            exportedLibrary.definingCompilationUnit.displayName,
+            prevLibrary.definingCompilationUnit.source.uri.toString(),
+            exportedLibrary.definingCompilationUnit.source.uri.toString(),
             name
           ]);
         }
@@ -3499,8 +3499,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (prevLibrary != nodeLibrary && !name.isEmpty) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-          prevLibrary.definingCompilationUnit.displayName,
-          nodeLibrary.definingCompilationUnit.displayName,
+          prevLibrary.definingCompilationUnit.source.uri,
+          nodeLibrary.definingCompilationUnit.source.uri,
           name
         ]);
       }
@@ -5967,7 +5967,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
-        return library.definingCompilationUnit.displayName;
+        return library.definingCompilationUnit.source.uri.toString();
       }
     }
     List<String> indirectSources = new List<String>();
@@ -5977,15 +5977,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         for (LibraryElement exportedLibrary
             in importedLibrary.exportedLibraries) {
           if (identical(exportedLibrary, library)) {
-            indirectSources
-                .add(importedLibrary.definingCompilationUnit.displayName);
+            indirectSources.add(
+                importedLibrary.definingCompilationUnit.source.uri.toString());
           }
         }
       }
     }
     int indirectCount = indirectSources.length;
     StringBuffer buffer = new StringBuffer();
-    buffer.write(library.definingCompilationUnit.displayName);
+    buffer.write(library.definingCompilationUnit.source.uri.toString());
     if (indirectCount > 0) {
       buffer.write(" (via ");
       if (indirectCount > 1) {

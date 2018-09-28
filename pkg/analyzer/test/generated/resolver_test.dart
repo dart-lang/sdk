@@ -1300,8 +1300,7 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType stringType = _classElement("String", objectType).type;
     InterfaceType symbolType = _classElement("Symbol", objectType).type;
     InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
     coreUnit.types = <ClassElement>[
       boolType.element,
       doubleType.element,
@@ -1316,8 +1315,7 @@ class TypeProviderImplTest extends EngineTestCase {
       symbolType.element,
       typeType.element
     ];
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
       futureType.element,
       futureOrType.element,
@@ -1431,8 +1429,7 @@ class TypeResolverVisitorTest extends ParserTestCase {
         new FileSource(resourceProvider.getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstTestFactory.libraryIdentifier2(["lib"]));
-    element.definingCompilationUnit =
-        new CompilationUnitElementImpl("lib.dart");
+    element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
@@ -1454,7 +1451,7 @@ A f([A p = const A()]) {
 }
 A V = new A();
 ''');
-    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    var unitElement = new CompilationUnitElementImpl();
     ClassElementImpl A = ElementFactory.classElement2('A');
 
     // Build API elements.
@@ -2324,7 +2321,7 @@ A v = new A();
   void _resolveTypeModeLocal(
       String code, AstNode getNodeToResolve(CompilationUnit unit)) {
     CompilationUnit unit = parseCompilationUnit2(code);
-    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    var unitElement = new CompilationUnitElementImpl();
 
     // Build API elements.
     {

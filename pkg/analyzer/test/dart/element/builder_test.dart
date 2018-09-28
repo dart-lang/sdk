@@ -216,7 +216,7 @@ class C {
   @override
   void setUp() {
     super.setUp();
-    compilationUnitElement = new CompilationUnitElementImpl('test.dart');
+    compilationUnitElement = new CompilationUnitElementImpl();
   }
 
   void test_metadata_localVariableDeclaration() {
@@ -2681,7 +2681,7 @@ abstract class _BaseTest extends ParserTestCase {
   }
 
   void setUp() {
-    compilationUnitElement = new CompilationUnitElementImpl('test.dart');
+    compilationUnitElement = new CompilationUnitElementImpl();
   }
 
   void _assertVisibleRange(LocalElement element, int offset, int end) {
