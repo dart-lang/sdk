@@ -8,10 +8,10 @@ import 'package:meta/dart2js.dart';
 /*class: A:checkedInstance*/
 class A {}
 
-/*class: B:checks=[$isA]*/
+/*class: B:checks=[$isA],indirectInstance*/
 class B implements A {}
 
-/*class: C:checks=[]*/
+/*class: C:checks=[],indirectInstance*/
 class C extends B {}
 
 /*class: D:checks=[],instance*/

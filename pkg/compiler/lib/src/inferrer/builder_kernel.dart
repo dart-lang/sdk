@@ -1677,8 +1677,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _markThisAsExposed();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name);
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
     if (member == null) {
@@ -1700,9 +1700,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _markThisAsExposed();
 
     TypeInformation rhsType = visit(node.value);
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget,
-        setter: true);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
@@ -1720,8 +1719,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _markThisAsExposed();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _memberData.typeOfSend(node);

@@ -365,12 +365,10 @@ abstract class KernelToElementMapBase implements IrToElementMap {
     throw new UnsupportedError("Unexpected member: $node");
   }
 
-  MemberEntity getSuperMember(
-      MemberEntity context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false}) {
-    if (target != null && !target.isAbstract && target.isInstanceMember) {
-      return getMember(target);
-    }
+    // We can no longer trust the interface target of the super access since it
+    // might be a member that we have cloned.
     ClassEntity cls = context.enclosingClass;
     assert(
         cls != null,

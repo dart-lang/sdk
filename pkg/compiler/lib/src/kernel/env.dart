@@ -440,7 +440,8 @@ class KClassEnvImpl implements KClassEnv {
       for (ir.Field field in cls.mixedInClass.mixin.fields) {
         if (field.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new SuperCloner(getSubstitutionMap(cls.mixedInType));
+          cloneVisitor ??= new CloneVisitor(
+              typeSubstitution: getSubstitutionMap(cls.mixedInType));
           cls.addMember(cloneVisitor.clone(field));
           continue;
         }
@@ -449,7 +450,8 @@ class KClassEnvImpl implements KClassEnv {
       for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
         if (procedure.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new SuperCloner(getSubstitutionMap(cls.mixedInType));
+          cloneVisitor ??= new CloneVisitor(
+              typeSubstitution: getSubstitutionMap(cls.mixedInType));
           cls.addMember(cloneVisitor.clone(procedure));
           continue;
         }
@@ -923,31 +925,5 @@ class KTypeVariableData {
 
   JTypeVariableData copy() {
     return new JTypeVariableData(node);
-  }
-}
-
-class SuperCloner extends CloneVisitor {
-  SuperCloner(Map<ir.TypeParameter, ir.DartType> typeSubstitution)
-      : super(typeSubstitution: typeSubstitution, cloneAnnotations: true);
-
-  @override
-  visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
-    // We ensure that we re-resolve the target by setting the interface target
-    // to `null`.
-    return new ir.SuperMethodInvocation(node.name, clone(node.arguments));
-  }
-
-  @override
-  visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    // We ensure that we re-resolve the target by setting the interface target
-    // to `null`.
-    return new ir.SuperPropertyGet(node.name);
-  }
-
-  @override
-  visitSuperPropertySet(ir.SuperPropertySet node) {
-    // We ensure that we re-resolve the target by setting the interface target
-    // to `null`.
-    return new ir.SuperPropertySet(node.name, clone(node.value), null);
   }
 }

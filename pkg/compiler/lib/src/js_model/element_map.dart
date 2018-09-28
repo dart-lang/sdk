@@ -78,12 +78,7 @@ abstract class JsToElementMap {
 
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
-  ///
-  /// The IR doesn't always resolve super accesses to the corresponding
-  /// [target]. If not, the target is computed using [name] and [setter] from
-  /// the enclosing class of [context].
-  MemberEntity getSuperMember(
-      MemberEntity context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a

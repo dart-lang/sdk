@@ -1583,8 +1583,9 @@ class Namer {
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
+      String className = member.enclosingClass.name.replaceAll('&', '_');
       String invocationName = operatorNameToIdentifier(member.name);
-      return "super\$${member.enclosingClass.name}\$$invocationName";
+      return "super\$${className}\$$invocationName";
     });
   }
 

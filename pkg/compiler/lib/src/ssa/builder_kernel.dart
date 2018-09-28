@@ -3020,9 +3020,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.value.accept(this);
     HInstruction value = pop();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget,
-        setter: true);
+    MemberEntity member = _elementMap
+        .getSuperMember(_currentFrame.member, node.name, setter: true);
     if (member == null) {
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
           <HInstruction>[value], const <DartType>[], sourceInformation);
@@ -4545,8 +4544,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_currentFrame.member, node.name);
     if (member == null) {
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
           const <HInstruction>[], const <DartType>[], sourceInformation);
@@ -4565,8 +4564,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_currentFrame.member, node.name);
     if (member == null) {
       Selector selector = _elementMap.getSelector(node);
       List<DartType> typeArguments = <DartType>[];

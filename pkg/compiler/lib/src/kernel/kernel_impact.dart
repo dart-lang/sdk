@@ -470,9 +470,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     return super.visitStaticSet(node);
   }
 
-  void handleSuperInvocation(ir.Name name, ir.Node target, ir.Node arguments) {
+  void handleSuperInvocation(ir.Name name, ir.Node arguments) {
     FunctionEntity method =
-        elementMap.getSuperMember(currentMember, name, target, setter: false);
+        elementMap.getSuperMember(currentMember, name, setter: false);
     _visitArguments(arguments);
     if (method != null) {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
@@ -506,13 +506,13 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   ir.DartType visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     // TODO(johnniwinther): Should we support this or always use the
     // [MixinFullResolution] transformer?
-    handleSuperInvocation(node.name, node.interfaceTarget, node.arguments);
+    handleSuperInvocation(node.name, node.arguments);
     return super.visitSuperMethodInvocation(node);
   }
 
   void handleSuperGet(ir.Name name, ir.Member target) {
     MemberEntity member =
-        elementMap.getSuperMember(currentMember, name, target, setter: false);
+        elementMap.getSuperMember(currentMember, name, setter: false);
     if (member != null) {
       if (member.isFunction) {
         impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
@@ -544,7 +544,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
   void handleSuperSet(ir.Name name, ir.Node target, ir.Node value) {
     MemberEntity member =
-        elementMap.getSuperMember(currentMember, name, target, setter: true);
+        elementMap.getSuperMember(currentMember, name, setter: true);
     if (member != null) {
       if (member.isField) {
         impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
