@@ -896,6 +896,11 @@ class DietListener extends StackListener {
       Declaration nearestDeclaration;
       int minDistance = -1;
       do {
+        // [distance] will always be non-negative as we ensure [token] is
+        // always at the beginning of the declaration. The minimum distance
+        // will often be larger than 0, for example, in a class declaration
+        // where [token] will point to `abstract` or `class`, but the
+        // declaration's offset points to the name of the class.
         int distance = declaration.charOffset - offset;
         if (distance >= 0) {
           if (minDistance == -1 || distance < minDistance) {
