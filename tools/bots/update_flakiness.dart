@@ -43,8 +43,7 @@ ${parser.usage}""");
       final Map<String, dynamic> testData =
           data.putIfAbsent(name, () => <String, dynamic>{});
       testData["name"] = name;
-      final List<String> outcomes =
-          testData.putIfAbsent("outcomes", () => <String>[]);
+      final outcomes = testData.putIfAbsent("outcomes", () => []);
       if (!outcomes.contains(result["result"])) {
         outcomes.add(result["result"]);
         outcomes..sort();
