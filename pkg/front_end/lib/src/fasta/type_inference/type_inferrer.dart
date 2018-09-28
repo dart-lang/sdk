@@ -35,6 +35,7 @@ import 'package:kernel/ast.dart'
         PropertyGet,
         PropertySet,
         ReturnStatement,
+        Statement,
         StaticGet,
         SuperMethodInvocation,
         SuperPropertyGet,
@@ -450,37 +451,28 @@ abstract class TypeInferrer {
   Uri get uri;
 
   /// Performs full type inference on the given field initializer.
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body);
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper, kernel.Initializer initializer);
+  void inferInitializer(InferenceHelper helper, kernel.Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations);
 
   /// Performs type inference on the given metadata annotations keeping the
   /// existing helper if possible.
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations);
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations);
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType);
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -500,35 +492,27 @@ class TypeInferrerDisabled extends TypeInferrer {
   Uri get uri => null;
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer) {}
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body) {}
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {}
 
   @override
-  void inferInitializer<Expression, Statement, Initializer, Type>(
+  void inferInitializer(
       InferenceHelper helper, kernel.Initializer initializer) {}
 
   @override
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations) {}
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations) {}
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {}
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType) {}
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -1130,14 +1114,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  DartType inferExpression<Expression, Statement, Initializer, Type>(
+  DartType inferExpression(
       kernel.Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed});
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
@@ -1156,15 +1138,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
-      ShadowField field, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body) {
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
@@ -1175,17 +1153,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  ExpressionInferenceResult
-      inferInvocation<Expression, Statement, Initializer, Type>(
-          DartType typeContext,
-          int offset,
-          FunctionType calleeType,
-          DartType returnType,
-          ArgumentsJudgment arguments,
-          {bool isOverloadedArithmeticOperator: false,
-          DartType receiverType,
-          bool skipTypeArgumentInference: false,
-          bool isConst: false}) {
+  ExpressionInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, DartType returnType, ArgumentsJudgment arguments,
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false}) {
     lastInferredSubstitution = null;
     lastCalleeType = null;
     var calleeTypeParameters = calleeType.typeParameters;
@@ -1355,12 +1328,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return new ExpressionInferenceResult(null, inferredType);
   }
 
-  ExpressionInferenceResult
-      inferLocalFunction<Expression, Statement, Initializer, Type>(
-          FunctionNode function,
-          DartType typeContext,
-          int fileOffset,
-          DartType returnContext) {
+  ExpressionInferenceResult inferLocalFunction(FunctionNode function,
+      DartType typeContext, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
@@ -1503,7 +1472,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
@@ -1513,8 +1482,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations) {
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {
     if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
       // parent.  This is necessary in case any of the annotations need to get
@@ -1532,18 +1500,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  ExpressionInferenceResult
-      inferMethodInvocation<Expression, Statement, Initializer, Type>(
-          kernel.Expression expression,
-          kernel.Expression receiver,
-          int fileOffset,
-          bool isImplicitCall,
-          DartType typeContext,
-          {VariableDeclaration receiverVariable,
-          MethodInvocation desugaredInvocation,
-          Object interfaceMember,
-          Name methodName,
-          Arguments arguments}) {
+  ExpressionInferenceResult inferMethodInvocation(
+      kernel.Expression expression,
+      kernel.Expression receiver,
+      int fileOffset,
+      bool isImplicitCall,
+      DartType typeContext,
+      {VariableDeclaration receiverVariable,
+      MethodInvocation desugaredInvocation,
+      Object interfaceMember,
+      Name methodName,
+      Arguments arguments}) {
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
@@ -1606,10 +1573,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType) {
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType) {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);
@@ -1621,7 +1586,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  void inferPropertyGet<Expression, Statement, Initializer, Type>(
+  void inferPropertyGet(
       ExpressionJudgment expression,
       ExpressionJudgment receiver,
       int fileOffset,
@@ -1682,8 +1647,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement<Expression, Statement, Initializer, Type>(
-      Statement statement);
+  void inferStatement(Statement statement);
 
   /// Performs the type inference steps necessary to instantiate a tear-off
   /// (if necessary).
@@ -2074,7 +2038,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
 }
 
 /// The result of an expression inference.
-class ExpressionInferenceResult<Expression> {
+class ExpressionInferenceResult {
   final Expression expression;
   final DartType type;
 
