@@ -83,7 +83,7 @@ struct FrameLayout {
   }
 
   // Called to initialize the stack frame layout during startup.
-  static void InitOnce();
+  static void Init();
 };
 
 extern FrameLayout compiler_frame_layout;

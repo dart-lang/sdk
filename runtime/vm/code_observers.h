@@ -53,7 +53,7 @@ class CodeObserver {
 
 class CodeObservers : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
 
   static void Register(CodeObserver* observer);
 

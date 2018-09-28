@@ -43,7 +43,7 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-void StubCode::InitOnce() {
+void StubCode::Init() {
   // Stubs will be loaded from the snapshot.
   UNREACHABLE();
 }
@@ -58,7 +58,7 @@ void StubCode::Cleanup() {
   code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
   entries_[k##name##Index] = new StubEntry(code);
 
-void StubCode::InitOnce() {
+void StubCode::Init() {
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);

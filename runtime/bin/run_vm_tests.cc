@@ -282,7 +282,7 @@ static int Main(int argc, const char** argv) {
   TesterState::create_callback = CreateIsolateAndSetup;
   TesterState::cleanup_callback = CleanupIsolate;
 
-  error = Dart::InitOnce(
+  error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
       CleanupIsolate /* cleanup */, NULL /* thread_exit */,

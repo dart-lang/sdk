@@ -478,7 +478,7 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
   return scope;
 }
 
-void Api::InitOnce() {
+void Api::Init() {
   if (api_native_key_ == kUnsetThreadLocalKey) {
     api_native_key_ = OSThread::CreateThreadLocal();
   }
@@ -1002,12 +1002,12 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::InitOnce(
-      params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create, params->shutdown, params->cleanup, params->thread_exit,
-      params->file_open, params->file_read, params->file_write,
-      params->file_close, params->entropy_source, params->get_service_assets,
-      params->start_kernel_isolate);
+  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
+                    params->create, params->shutdown, params->cleanup,
+                    params->thread_exit, params->file_open, params->file_read,
+                    params->file_write, params->file_close,
+                    params->entropy_source, params->get_service_assets,
+                    params->start_kernel_isolate);
 }
 
 DART_EXPORT char* Dart_Cleanup() {

@@ -76,10 +76,10 @@ class TimelineStream {
 class Timeline : public AllStatic {
  public:
   // Initialize timeline system. Not thread safe.
-  static void InitOnce();
+  static void Init();
 
-  // Shutdown timeline system. Not thread safe.
-  static void Shutdown();
+  // Cleanup timeline system. Not thread safe.
+  static void Cleanup();
 
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder();

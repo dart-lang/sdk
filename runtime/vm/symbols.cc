@@ -204,7 +204,7 @@ const String& Symbols::Token(Token::Kind token) {
   return *symbol_handles_[token_id];
 }
 
-void Symbols::InitOnce(Isolate* vm_isolate) {
+void Symbols::Init(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
@@ -250,7 +250,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   vm_isolate->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
+void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());

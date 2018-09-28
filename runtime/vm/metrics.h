@@ -44,18 +44,18 @@ class Metric {
 
   Metric();
 
-  static void InitOnce();
+  static void Init();
 
   static void Cleanup();
 
   // Initialize and register a metric for an isolate.
-  void Init(Isolate* isolate,
-            const char* name,
-            const char* description,
-            Unit unit);
+  void InitInstance(Isolate* isolate,
+                    const char* name,
+                    const char* description,
+                    Unit unit);
 
   // Initialize and register a metric for the VM.
-  void Init(const char* name, const char* description, Unit unit);
+  void InitInstance(const char* name, const char* description, Unit unit);
 
   void CleanupInstance();
 

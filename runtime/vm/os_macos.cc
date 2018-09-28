@@ -302,7 +302,7 @@ void OS::PrintErr(const char* format, ...) {
 #endif
 }
 
-void OS::InitOnce() {
+void OS::Init() {
   // See https://github.com/dart-lang/sdk/issues/29539
   // This is a workaround for a macos bug, we eagerly call localtime_r so that
   // libnotify is initialized early before any fork happens.
@@ -319,7 +319,7 @@ void OS::InitOnce() {
   }
 }
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();

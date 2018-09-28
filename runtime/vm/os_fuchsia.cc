@@ -253,14 +253,14 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
+void OS::Init() {
   auto environment_services = std::make_shared<component::Services>();
   auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
   environment_services->Bind(std::move(env_service_root));
   environment_services->ConnectToService(tz.NewRequest());
 }
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();

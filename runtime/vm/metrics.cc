@@ -30,10 +30,10 @@ Metric::Metric()
       value_(0),
       next_(NULL) {}
 
-void Metric::Init(Isolate* isolate,
-                  const char* name,
-                  const char* description,
-                  Unit unit) {
+void Metric::InitInstance(Isolate* isolate,
+                          const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
   ASSERT(next_ == NULL);
   ASSERT(name != NULL);
@@ -44,7 +44,9 @@ void Metric::Init(Isolate* isolate,
   RegisterWithIsolate();
 }
 
-void Metric::Init(const char* name, const char* description, Unit unit) {
+void Metric::InitInstance(const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
   ASSERT(next_ == NULL);
   ASSERT(name != NULL);
@@ -306,9 +308,9 @@ int64_t MetricPeakRSS::Value() const {
 VM_METRIC_LIST(VM_METRIC_VARIABLE);
 #undef VM_METRIC_VARIABLE
 
-void Metric::InitOnce() {
+void Metric::Init() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable##_.Init(name, NULL, Metric::unit);
+  vm_metric_##variable##_.InitInstance(name, NULL, Metric::unit);
   VM_METRIC_LIST(VM_METRIC_INIT);
 #undef VM_METRIC_INIT
 }

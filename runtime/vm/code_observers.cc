@@ -56,7 +56,7 @@ void CodeObservers::Cleanup() {
   observers_ = NULL;
 }
 
-void CodeObservers::InitOnce() {
+void CodeObservers::Init() {
   if (mutex_ == NULL) {
     mutex_ = new Mutex();
   }

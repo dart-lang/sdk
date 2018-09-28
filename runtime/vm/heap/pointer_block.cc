@@ -27,7 +27,7 @@ template <int BlockSize>
 Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
 
 template <int BlockSize>
-void BlockStack<BlockSize>::InitOnce() {
+void BlockStack<BlockSize>::Init() {
   global_empty_ = new List();
   if (global_mutex_ == NULL) {
     global_mutex_ = new Mutex();
@@ -35,7 +35,7 @@ void BlockStack<BlockSize>::InitOnce() {
 }
 
 template <int BlockSize>
-void BlockStack<BlockSize>::ShutDown() {
+void BlockStack<BlockSize>::Cleanup() {
   delete global_empty_;
   global_empty_ = NULL;
 }

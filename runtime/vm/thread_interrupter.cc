@@ -59,11 +59,14 @@ Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
-void ThreadInterrupter::InitOnce() {
+void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  monitor_ = new Monitor();
+  if (monitor_ == NULL) {
+    monitor_ = new Monitor();
+  }
   ASSERT(monitor_ != NULL);
   initialized_ = true;
+  shutdown_ = false;
 }
 
 void ThreadInterrupter::Startup() {
@@ -94,7 +97,7 @@ void ThreadInterrupter::Startup() {
   }
 }
 
-void ThreadInterrupter::Shutdown() {
+void ThreadInterrupter::Cleanup() {
   {
     MonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -114,6 +117,7 @@ void ThreadInterrupter::Shutdown() {
   ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
   interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
+  initialized_ = false;
 
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter shut down.\n");

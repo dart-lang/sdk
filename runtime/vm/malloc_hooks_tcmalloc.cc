@@ -260,7 +260,7 @@ void MallocHooksState::TearDown() {
   address_map_ = NULL;
 }
 
-void MallocHooks::InitOnce() {
+void MallocHooks::Init() {
   if (!FLAG_profiler_native_memory || MallocHooks::Active()) {
     return;
   }
@@ -278,7 +278,7 @@ void MallocHooks::InitOnce() {
   ASSERT(success);
 }
 
-void MallocHooks::TearDown() {
+void MallocHooks::Cleanup() {
   if (!FLAG_profiler_native_memory || !MallocHooks::Active()) {
     return;
   }

@@ -21,7 +21,8 @@ VM_UNIT_TEST_CASE(Metric_Simple) {
     Metric metric;
 
     // Initialize metric.
-    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kCounter);
+    metric.InitInstance(Isolate::Current(), "a.b.c", "foobar",
+                        Metric::kCounter);
     EXPECT_EQ(0, metric.value());
     metric.increment();
     EXPECT_EQ(1, metric.value());
@@ -51,7 +52,7 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
     HANDLESCOPE(thread);
     MyMetric metric;
 
-    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
+    metric.InitInstance(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
     // value is still the default value.
     EXPECT_EQ(0, metric.value());
     // Call LeakyValue to confirm that Value returns constant 99.

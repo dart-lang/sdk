@@ -1036,7 +1036,7 @@ Isolate::~Isolate() {
   }
 }
 
-void Isolate::InitOnce() {
+void Isolate::InitVM() {
   create_callback_ = NULL;
   if (isolates_list_monitor_ == NULL) {
     isolates_list_monitor_ = new Monitor();
@@ -1045,16 +1045,16 @@ void Isolate::InitOnce() {
   EnableIsolateCreation();
 }
 
-Isolate* Isolate::Init(const char* name_prefix,
-                       const Dart_IsolateFlags& api_flags,
-                       bool is_vm_isolate) {
+Isolate* Isolate::InitIsolate(const char* name_prefix,
+                              const Dart_IsolateFlags& api_flags,
+                              bool is_vm_isolate) {
   Isolate* result = new Isolate(api_flags);
   ASSERT(result != NULL);
 
 #if !defined(PRODUCT)
 // Initialize metrics.
 #define ISOLATE_METRIC_INIT(type, variable, name, unit)                        \
-  result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
+  result->metric_##variable##_.InitInstance(result, name, NULL, Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)

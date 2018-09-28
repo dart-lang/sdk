@@ -136,7 +136,7 @@ static void DeleteThread(void* thread) {
   delete reinterpret_cast<OSThread*>(thread);
 }
 
-void OSThread::InitOnce() {
+void OSThread::Init() {
   // Allocate the global OSThread lock.
   if (thread_list_lock_ == NULL) {
     thread_list_lock_ = new Mutex();

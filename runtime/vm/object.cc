@@ -456,7 +456,7 @@ void Object::InitNull(Isolate* isolate) {
   }
 }
 
-void Object::InitOnce(Isolate* isolate) {
+void Object::Init(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
@@ -937,7 +937,7 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(extractor_parameter_names_->IsArray());
 }
 
-void Object::FinishInitOnce(Isolate* isolate) {
+void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
   // canonical type of kDynamicCid/kVoidCid need to be set in this
   // method, which is called after StubCode::InitOnce().
@@ -15295,7 +15295,7 @@ bool ICData::IsUsedAt(intptr_t i) const {
   return true;
 }
 
-void ICData::InitOnce() {
+void ICData::Init() {
   for (int i = 0; i <= kCachedICDataMaxArgsTestedWithoutExactnessTracking;
        i++) {
     cached_icdata_arrays_
@@ -15304,6 +15304,12 @@ void ICData::InitOnce() {
   }
   cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx] =
       ICData::NewNonCachedEmptyICDataArray(1, true);
+}
+
+void ICData::Cleanup() {
+  for (int i = 0; i < kCachedICDataArrayCount; ++i) {
+    cached_icdata_arrays_[i] = NULL;
+  }
 }
 
 RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,

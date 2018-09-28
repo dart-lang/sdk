@@ -276,7 +276,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   return handler->isolate();
 }
 
-void PortMap::InitOnce() {
+void PortMap::Init() {
   if (mutex_ == NULL) {
     mutex_ = new Mutex();
   }

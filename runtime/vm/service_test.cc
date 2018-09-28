@@ -795,7 +795,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 static void EnableProfiler() {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
 }
 

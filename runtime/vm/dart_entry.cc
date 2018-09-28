@@ -502,9 +502,16 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   return descriptor.raw();
 }
 
-void ArgumentsDescriptor::InitOnce() {
+void ArgumentsDescriptor::Init() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] = NewNonCached(/*type_args_len=*/0, i, false);
+  }
+}
+
+void ArgumentsDescriptor::Cleanup() {
+  for (int i = 0; i < kCachedDescriptorCount; i++) {
+    // Don't free pointers to RawArray objects managed by the VM.
+    cached_args_descriptors_[i] = NULL;
   }
 }
 

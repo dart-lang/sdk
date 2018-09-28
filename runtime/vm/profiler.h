@@ -50,9 +50,9 @@ struct ProfilerCounters {
 
 class Profiler : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void InitAllocationSampleBuffer();
-  static void Shutdown();
+  static void Cleanup();
 
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
@@ -353,7 +353,7 @@ class Sample {
     set_metadata(cid);
   }
 
-  static void InitOnce();
+  static void Init();
 
   static intptr_t instance_size() { return instance_size_; }
 

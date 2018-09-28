@@ -460,8 +460,8 @@ class Object {
 
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
-  static void InitOnce(Isolate* isolate);
-  static void FinishInitOnce(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void FinishInit(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
   static void FinalizeReadOnlyObject(RawObject* object);
 
@@ -2088,7 +2088,10 @@ class ICData : public Object {
                         TokenPosition token_pos) const;
 
   // Initialize the preallocated empty ICData entry arrays.
-  static void InitOnce();
+  static void Init();
+
+  // Clear the preallocated empty ICData entry arrays.
+  static void Cleanup();
 
   // We cache ICData with 0, 1, 2 arguments tested without exactness
   // tracking and with 1 argument tested with exactness tracking.

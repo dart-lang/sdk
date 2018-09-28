@@ -801,10 +801,10 @@ class Isolate : public BaseIsolate {
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
-  static void InitOnce();
-  static Isolate* Init(const char* name_prefix,
-                       const Dart_IsolateFlags& api_flags,
-                       bool is_vm_isolate = false);
+  static void InitVM();
+  static Isolate* InitIsolate(const char* name_prefix,
+                              const Dart_IsolateFlags& api_flags,
+                              bool is_vm_isolate = false);
 
   // The isolates_list_monitor_ should be held when calling Kill().
   void KillLocked(LibMsgId msg_id);

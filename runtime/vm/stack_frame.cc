@@ -60,7 +60,7 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
                              : (variable_index + param_end_from_fp);
 }
 
-void FrameLayout::InitOnce() {
+void FrameLayout::Init() {
   compiler_frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
 }

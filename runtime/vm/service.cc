@@ -3761,7 +3761,7 @@ static const MethodParameter* enable_profiler_params[] = {
 static bool EnableProfiler(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
   PrintSuccess(js);
   return true;

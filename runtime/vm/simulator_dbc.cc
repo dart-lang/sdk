@@ -507,7 +507,7 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
 IntrinsicHandler Simulator::intrinsics_[Simulator::kIntrinsicCount];
 
 // Synchronization primitives support.
-void Simulator::InitOnce() {
+void Simulator::Init() {
   for (intptr_t i = 0; i < kIntrinsicCount; i++) {
     intrinsics_[i] = 0;
   }

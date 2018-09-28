@@ -184,6 +184,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
       ""
     }};
   // clang-format on
+
   {
     const uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;

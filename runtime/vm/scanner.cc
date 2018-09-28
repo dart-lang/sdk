@@ -896,7 +896,7 @@ void Scanner::ScanTo(intptr_t token_index) {
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
 }
 
-void Scanner::InitOnce() {
+void Scanner::Init() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   for (int i = 0; i < kNumLowercaseChars; i++) {
     keywords_char_offset_[i] = Token::kNumKeywords;

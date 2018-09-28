@@ -63,11 +63,11 @@ SampleBuffer* Profiler::sample_buffer_ = NULL;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
 ProfilerCounters Profiler::counters_;
 
-void Profiler::InitOnce() {
+void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
   SetSamplePeriod(FLAG_profile_period);
   SetSampleDepth(FLAG_max_profile_depth);
-  Sample::InitOnce();
+  Sample::Init();
   if (!FLAG_profiler) {
     return;
   }
@@ -76,7 +76,7 @@ void Profiler::InitOnce() {
   Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
-  ThreadInterrupter::InitOnce();
+  ThreadInterrupter::Init();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
@@ -89,12 +89,12 @@ void Profiler::InitAllocationSampleBuffer() {
   }
 }
 
-void Profiler::Shutdown() {
+void Profiler::Cleanup() {
   if (!FLAG_profiler) {
     return;
   }
   ASSERT(initialized_);
-  ThreadInterrupter::Shutdown();
+  ThreadInterrupter::Cleanup();
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   // TODO(30309): Free the sample buffer on platforms that use a signal-based
   // thread interrupter.
@@ -128,7 +128,7 @@ void Profiler::SetSamplePeriod(intptr_t period) {
 intptr_t Sample::pcs_length_ = 0;
 intptr_t Sample::instance_size_ = 0;
 
-void Sample::InitOnce() {
+void Sample::Init() {
   pcs_length_ = kSampleSize;
   instance_size_ = sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
 }

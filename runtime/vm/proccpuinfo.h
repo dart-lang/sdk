@@ -14,7 +14,7 @@ namespace dart {
 
 class ProcCpuInfo : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void Cleanup();
   static bool FieldContains(const char* field, const char* search_string);
   static const char* ExtractField(const char* field);

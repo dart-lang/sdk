@@ -5529,7 +5529,7 @@ void Deserializer::ReadVMSnapshot() {
   // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
   heap_->old_space()->AbandonBumpAllocation();
 
-  Symbols::InitOnceFromSnapshot(isolate());
+  Symbols::InitFromSnapshot(isolate());
 
   Object::set_vm_isolate_snapshot_object_table(refs);
 

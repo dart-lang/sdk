@@ -709,8 +709,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   return result;
 }
 
-void Simulator::InitOnce() {
-}
+void Simulator::Init() {}
 
 Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   // Setup simulator support first. Some of this information is needed to
