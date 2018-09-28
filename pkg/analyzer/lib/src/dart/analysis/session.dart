@@ -84,6 +84,9 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _uriConverter ??= new DriverBasedUriConverter(_driver);
   }
 
+  @deprecated
+  driver.AnalysisDriver getDriver() => _driver;
+
   @override
   Future<ErrorsResult> getErrors(String path) {
     _checkConsistency();
