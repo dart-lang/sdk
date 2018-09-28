@@ -123,7 +123,7 @@ CompletionSuggestion createLocalFieldSuggestion(
  */
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassDeclaration classDecl,
+    {ClassOrMixinDeclaration classDecl,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
     protocol.Element element}) {
   if (id == null) {

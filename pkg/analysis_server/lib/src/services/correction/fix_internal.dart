@@ -2909,7 +2909,8 @@ class FixProcessor {
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
         AstNode root = node.getAncestor((node) =>
-            node.parent is ClassDeclaration || node.parent is CompilationUnit);
+            node.parent is ClassOrMixinDeclaration ||
+            node.parent is CompilationUnit);
         references = findLocalElementReferences(root, element);
       }
     }

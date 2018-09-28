@@ -1115,6 +1115,7 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // may be () in prefix expression
+    AstNode node = this.node;
     if (node is ParenthesizedExpression && node.parent is PrefixExpression) {
       node = node.parent;
     }
@@ -1325,7 +1326,7 @@ class AssistProcessor {
       // rename field
       builder.addSimpleReplacement(range.node(nameNode), '_$name');
       // update references in constructors
-      ClassDeclaration classDeclaration = fieldDeclaration.parent;
+      ClassOrMixinDeclaration classDeclaration = fieldDeclaration.parent;
       for (ClassMember member in classDeclaration.members) {
         if (member is ConstructorDeclaration) {
           for (FormalParameter parameter in member.parameters.parameters) {
