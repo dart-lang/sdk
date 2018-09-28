@@ -507,7 +507,9 @@
             "corelib_2",
             "lib_2",
             "standalone_2"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "vm bytecode compiler tests",
@@ -518,7 +520,9 @@
             "corelib_2",
             "lib_2",
             "standalone_2"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "vm interpreter tests",
@@ -529,7 +533,9 @@
             "corelib_2",
             "lib_2",
             "standalone_2"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },
