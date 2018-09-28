@@ -48,6 +48,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _INVALID_UNICODE_ESCAPE,
   _INVALID_OPERATOR,
   _INVALID_HEX_ESCAPE,
+  _EXPECTED_INSTEAD,
 ];
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
@@ -64,6 +65,9 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
+
+const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
+    'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",

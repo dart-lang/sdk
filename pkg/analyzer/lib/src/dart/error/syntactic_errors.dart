@@ -253,6 +253,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXPECTED_TOKEN =
       const ParserErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
 
+  static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
+
   static const ParserErrorCode EXPECTED_TYPE_NAME =
       const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
 

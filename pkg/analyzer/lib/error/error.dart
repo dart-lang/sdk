@@ -378,6 +378,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EXPECTED_CASE_OR_DEFAULT,
   ParserErrorCode.EXPECTED_CLASS_MEMBER,
   ParserErrorCode.EXPECTED_EXECUTABLE,
+  ParserErrorCode.EXPECTED_INSTEAD,
   ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
   ParserErrorCode.EXPECTED_STRING_LITERAL,
   ParserErrorCode.EXPECTED_TOKEN,

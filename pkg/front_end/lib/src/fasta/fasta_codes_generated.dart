@@ -2759,6 +2759,25 @@ Message _withArgumentsExpectedIdentifier(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedInstead =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected '#string' instead of this.""",
+        withArguments: _withArgumentsExpectedInstead);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedInstead =
+    const Code<Message Function(String string)>(
+        "ExpectedInstead", templateExpectedInstead,
+        index: 41);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedInstead(String string) {
+  return new Message(codeExpectedInstead,
+      message: """Expected '${string}' instead of this.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedNamedArgument = messageExpectedNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

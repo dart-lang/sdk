@@ -209,7 +209,7 @@ ExpectedStatement:
   statement: "void;"
 
 ExpectedButGot:
-  # Also see ExpectedAfterButGot
+  # Also see ExpectedAfterButGot and ExpectedInstead
   template: "Expected '#string' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
@@ -220,7 +220,7 @@ ExpectedButGot:
     - "main() => foo(x: 1 y: 2);"
 
 ExpectedAfterButGot:
-  # Also see ExpectedButGot
+  # Also see ExpectedButGot and ExpectedInstead
   template: "Expected '#string' after this."
   # This is an alternative to ExpectedButGot when it's better for the error to be
   # associated with the last consumed token rather than the token being parsed.
@@ -243,6 +243,29 @@ ExpectedAfterButGot:
   analyzerCode: EXPECTED_TOKEN
   script:
     - "main() { return true }"
+
+ExpectedInstead:
+  # Also see ExpectedButGot and ExpectedAfterButGot
+  index: 41
+  template: "Expected '#string' instead of this."
+  # This is an alternative to ExpectedButGot when the last consumed token
+  # should be replaced with a different token.
+  #
+  # For example, this is ok...
+  #
+  #    mixin Foo extends Bar {
+  #              ^^^^^^^
+  #              Expected 'on' before this
+  #
+  # but this is easier for the user...
+  #
+  #    mixin Foo extends Bar {
+  #              ^^^^^^^
+  #              Expected 'on' instead of this
+  #
+  analyzerCode: ParserErrorCode.EXPECTED_INSTEAD
+  script:
+    - "mixin A extends B { }"
 
 MultipleLibraryDirectives:
   index: 27

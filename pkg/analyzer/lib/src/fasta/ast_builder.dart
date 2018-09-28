@@ -1857,7 +1857,7 @@ class AstBuilder extends StackListener {
     WithClause withClause = pop(NullValue.WithClause);
     ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     ClassDeclaration declaration = declarations.last;
-    if (extendsClause != null && !extendsClause.extendsKeyword.isSynthetic) {
+    if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
       }

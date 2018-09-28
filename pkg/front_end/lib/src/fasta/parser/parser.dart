@@ -1753,6 +1753,14 @@ class Parser {
       // and generate the same events as in the parseClassHeader method above.
       recoveryListener.clear();
 
+      if (token.next.isKeywordOrIdentifier &&
+          const ['extend', 'on'].contains(token.next.lexeme)) {
+        reportRecoverableError(
+            token.next, fasta.templateExpectedInstead.withArguments('extends'));
+        token = token.next;
+        rewriter.insertToken(token,
+            new SyntheticKeywordToken(Keyword.EXTENDS, token.next.charOffset));
+      }
       token = parseClassExtendsOpt(token);
 
       if (recoveryListener.extendsKeyword != null) {
@@ -1901,6 +1909,15 @@ class Parser {
       // During recovery, clauses are parsed in the same order and
       // generate the same events as in the parseMixinHeaderOpt method above.
       recoveryListener.clear();
+
+      if (token.next.isKeywordOrIdentifier &&
+          const ['extend', 'extends'].contains(token.next.lexeme)) {
+        reportRecoverableError(
+            token.next, fasta.templateExpectedInstead.withArguments('on'));
+        token = token.next;
+        rewriter.insertToken(token,
+            new SyntheticKeywordToken(Keyword.ON, token.next.charOffset));
+      }
       token = parseMixinOnOpt(token);
 
       if (recoveryListener.onKeyword != null) {
