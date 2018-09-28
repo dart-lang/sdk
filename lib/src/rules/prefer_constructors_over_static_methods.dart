@@ -76,7 +76,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     final returnType = node.returnType?.type;
     if (node.isStatic &&
-        returnType == (node.parent as ClassDeclaration).declaredElement.type &&
+        returnType ==
+            (node.parent as ClassOrMixinDeclaration).declaredElement.type &&
         _hasNewInvocation(returnType, node.body)) {
       rule.reportLint(node.name);
     }
