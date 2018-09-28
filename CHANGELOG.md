@@ -1,3 +1,7 @@
+# 0.1.65
+
+* fix cast exceptions related to mixin support
+
 # 0.1.64
 
 * fixes to better support mixins
