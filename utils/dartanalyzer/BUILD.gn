@@ -22,9 +22,11 @@ analyzer_files = exec_script("../../tools/list_dart_files.py",
 application_snapshot("generate_dartanalyzer_snapshot") {
   main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
   training_args = [
-    "--dart-sdk=" + rebase_path("../../sdk/"),
-    "--train-snapshot",
-    rebase_path("../../tests/language/first_test.dart")
+    "--help",
+    # TODO(34616): This is broken on Fuchsia.
+    # "--dart-sdk=" + rebase_path("../../sdk/"),
+    # "--train-snapshot",
+    # rebase_path("../../tests/language/first_test.dart")
   ]
   name = "dartanalyzer"
 }

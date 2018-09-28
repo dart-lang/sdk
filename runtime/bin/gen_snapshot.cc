@@ -114,7 +114,6 @@ static const char* kSnapshotKindNames[] = {
   V(shared_instructions, shared_instructions_filename)                         \
   V(reused_instructions, reused_instructions_filename)                         \
   V(assembly, assembly_filename)                                               \
-  V(script_snapshot, script_snapshot_filename)                                 \
   V(dependencies, dependencies_filename)                                       \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(package_root, commandline_package_root)                                    \
@@ -159,7 +158,7 @@ static bool IsSnapshottingForPrecompilation() {
 // clang-format off
 static void PrintUsage() {
   Log::PrintErr(
-"Usage: gen_snapshot [<vm-flags>] [<options>] [<dart-script-file>]           \n"
+"Usage: gen_snapshot [<vm-flags>] [<options>] <dart-kernel-file>             \n"
 "                                                                            \n"
 "Common options:                                                             \n"
 "--package_root=<path>                                                       \n"
@@ -181,21 +180,14 @@ static void PrintUsage() {
 "--snapshot_kind=core                                                        \n"
 "--vm_snapshot_data=<output-file>                                            \n"
 "--isolate_snapshot_data=<output-file>                                       \n"
-"[<dart-script-file>]                                                        \n"
+"[<dart-kernel-file>]                                                        \n"
 "                                                                            \n"
-"Writes a snapshot of <dart-script-file> to the specified snapshot files.    \n"
-"If no <dart-script-file> is passed, a generic snapshot of all the corelibs  \n"
+"Writes a snapshot of <dart-kernel-file> to the specified snapshot files.    \n"
+"If no <dart-kernel-file> is passed, a generic snapshot of all the corelibs  \n"
 "is created.                                                                 \n"
 "                                                                            \n"
-"To create a script snapshot with respect to a given core snapshot:          \n"
-"--snapshot_kind=script                                                      \n"
-"--vm_snapshot_data=<input-file>                                             \n"
-"--isolate_snapshot_data=<input-file>                                        \n"
-"--script_snapshot=<output-file>                                             \n"
-"<dart-script-file>                                                          \n"
-"                                                                            \n"
-"Writes a snapshot of <dart-script-file> to the specified snapshot files.    \n"
-"If no <dart-script-file> is passed, a generic snapshot of all the corelibs  \n"
+"Writes a snapshot of <dart-kernel-file> to the specified snapshot files.    \n"
+"If no <dart-kernel-file> is passed, a generic snapshot of all the corelibs  \n"
 "is created.                                                                 \n"
 "                                                                            \n"
 "To create an AOT application snapshot as blobs suitable for loading with    \n"
@@ -207,7 +199,7 @@ static void PrintUsage() {
 "--isolate_snapshot_instructions=<output-file>                               \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
-" <dart-script-file>                                                         \n"
+" <dart-kernel-file>                                                         \n"
 "                                                                            \n"
 "To create an AOT application snapshot as assembly suitable for compilation  \n"
 "as a static or dynamic library:                                             \n"
@@ -215,7 +207,7 @@ static void PrintUsage() {
 "--assembly=<output-file>                                                    \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
-"<dart-script-file>                                                          \n"
+"<dart-kernel-file>                                                          \n"
 "                                                                            \n"
 "AOT snapshots can be obfuscated: that is all identifiers will be renamed    \n"
 "during compilation. This mode is enabled with --obfuscate flag. Mapping     \n"
@@ -332,7 +324,7 @@ static int ParseArguments(int argc,
             "Building an AOT snapshot as blobs requires specifying output "
             "files for --vm_snapshot_data, --vm_snapshot_instructions, "
             "--isolate_snapshot_data and --isolate_snapshot_instructions and a "
-            "Dart script.\n\n");
+            "kernel file.\n\n");
         return -1;
       }
       break;
@@ -341,16 +333,16 @@ static int ParseArguments(int argc,
       if ((assembly_filename == NULL) || (*script_name == NULL)) {
         Log::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
-            "an output file for --assembly and a Dart script.\n\n");
+            "an output file for --assembly and a kernel file.\n\n");
         return -1;
       }
       break;
     }
     case kVMAOTAssembly: {
-      if ((assembly_filename == NULL) || (*script_name != NULL)) {
+      if ((assembly_filename == NULL) || (*script_name == NULL)) {
         Log::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
-            "an output file for --assembly and a Dart script.\n\n");
+            "an output file for --assembly and a kernel file.\n\n");
         return -1;
       }
       break;
@@ -884,6 +876,13 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
       LoadCompilationTrace();
       CreateAndWriteAppJITSnapshot();
       break;
+    case kVMAOTAssembly: {
+      File* file = OpenFile(assembly_filename);
+      RefCntReleaseScope<File> rs(file);
+      result = Dart_CreateVMAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+      CHECK_RESULT(result);
+      break;
+    }
     default:
       UNREACHABLE();
   }
