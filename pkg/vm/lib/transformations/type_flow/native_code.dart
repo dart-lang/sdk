@@ -24,6 +24,10 @@ abstract class EntryPointsListener {
 
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
+
+  /// Record the fact that given member is called via interface selector
+  /// (not dynamically, and not from `this`).
+  void recordMemberCalledViaInterfaceSelector(Member target);
 }
 
 abstract class ParsedPragma {}

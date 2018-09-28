@@ -200,6 +200,8 @@ bool NeedsDynamicInvocationForwarder(const Function& function);
 
 bool IsFieldInitializer(const Function& function, Zone* zone);
 
+bool IsTearOffTaken(const Function& function, Zone* zone);
+
 }  // namespace kernel
 }  // namespace dart
 

@@ -23,6 +23,7 @@ import 'utils.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
+import '../../metadata/procedure_attributes.dart';
 import '../../metadata/unreachable.dart';
 
 const bool kDumpAllSummaries =
@@ -112,14 +113,18 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
+  final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final DartType _intType;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
+        _procedureAttributesMetadata =
+            new ProcedureAttributesMetadataRepository(),
         _intType = _typeFlowAnalysis.environment.intType {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
+    component.addMetadataRepository(_procedureAttributesMetadata);
   }
 
   InferredType _convertType(Type type) {
@@ -204,6 +209,15 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         }
 
         // TODO(alexmarkov): figure out how to pass receiver type.
+      }
+
+      if (member.isInstanceMember &&
+          !(member is Procedure && member.isGetter)) {
+        final attrs = new ProcedureAttributesMetadata(
+            hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
+            hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
+            hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
+        _procedureAttributesMetadata.mapping[member] = attrs;
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);

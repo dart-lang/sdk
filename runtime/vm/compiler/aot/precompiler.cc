@@ -1157,7 +1157,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
           }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
-          if (IsSent(selector2)) {
+          if (IsSent(selector2) && kernel::IsTearOffTaken(function, Z)) {
             // Closurization.
             // Function is foo and somewhere get:foo is called.
             function2 = function.ImplicitClosureFunction();

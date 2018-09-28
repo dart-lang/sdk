@@ -122,9 +122,8 @@ Future _runGlobalTransformations(
           compilerOptions.target, coreTypes, component);
     } else {
       devirtualization.transformComponent(coreTypes, component);
+      no_dynamic_invocations_annotator.transformComponent(component);
     }
-
-    no_dynamic_invocations_annotator.transformComponent(component);
   }
 }
 

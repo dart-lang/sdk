@@ -692,6 +692,26 @@ bool IsFieldInitializer(const Function& function, Zone* zone) {
              .StartsWith(Symbols::InitPrefix());
 }
 
+bool IsTearOffTaken(const Function& function, Zone* zone) {
+  const Script& script = Script::Handle(zone, function.script());
+  TranslationHelper translation_helper(Thread::Current());
+  translation_helper.InitFromScript(script);
+
+  KernelReaderHelper reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, function.KernelData()),
+      function.KernelDataProgramOffset());
+
+  ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper(
+      &reader_helper);
+
+  ProcedureAttributesMetadata attrs =
+      procedure_attributes_metadata_helper.GetProcedureAttributes(
+          function.kernel_offset());
+
+  return attrs.has_tearoff_uses;
+}
+
 }  // namespace kernel
 }  // namespace dart
 

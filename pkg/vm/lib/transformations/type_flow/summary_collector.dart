@@ -640,6 +640,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final args = _visitArguments(receiver, node.arguments);
     assertx(node.target is! Field);
     assertx(!node.target.isGetter && !node.target.isSetter);
+    if (receiver is! ThisExpression) {
+      // Conservatively record direct invocations with non-this receiver
+      // as being done via interface selectors.
+      _entryPointsListener.recordMemberCalledViaInterfaceSelector(node.target);
+    }
     return _makeCall(node, new DirectSelector(node.target), args);
   }
 
@@ -648,6 +653,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final receiver = _visit(node.receiver);
     final args = new Args<TypeExpr>([receiver]);
     final target = node.target;
+    // No need to record this invocation as performed via interface selector as
+    // PropertyGet invocations are not tracked at all.
     return _makeCall(
         node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
   }
@@ -659,6 +666,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final args = new Args<TypeExpr>([receiver, value]);
     final target = node.target;
     assertx((target is Field) || ((target is Procedure) && target.isSetter));
+    if (receiver is! ThisExpression) {
+      // Conservatively record direct invocations with non-this receiver
+      // as being done via interface selectors.
+      _entryPointsListener.recordMemberCalledViaInterfaceSelector(target);
+    }
     _makeCall(
         node, new DirectSelector(target, callKind: CallKind.PropertySet), args);
     return value;
@@ -755,14 +767,21 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       // Call via field.
       final fieldValue = _makeCall(
           node,
-          new InterfaceSelector(target, callKind: CallKind.PropertyGet),
+          (node.receiver is ThisExpression)
+              ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
+              : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
           new Args<TypeExpr>([receiver]));
       _makeCall(
           null, DynamicSelector.kCall, new Args.withReceiver(args, fieldValue));
       return _staticType(node);
     } else {
       // TODO(alexmarkov): overloaded arithmetic operators
-      return _makeCall(node, new InterfaceSelector(target), args);
+      return _makeCall(
+          node,
+          (node.receiver is ThisExpression)
+              ? new VirtualSelector(target)
+              : new InterfaceSelector(target),
+          args);
     }
   }
 
@@ -775,8 +794,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return _makeCall(
           node, new DynamicSelector(CallKind.PropertyGet, node.name), args);
     }
-    return _makeCall(node,
-        new InterfaceSelector(target, callKind: CallKind.PropertyGet), args);
+    return _makeCall(
+        node,
+        (node.receiver is ThisExpression)
+            ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
+            : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
+        args);
   }
 
   @override
@@ -790,8 +813,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           node, new DynamicSelector(CallKind.PropertySet, node.name), args);
     } else {
       assertx((target is Field) || ((target is Procedure) && target.isSetter));
-      _makeCall(node,
-          new InterfaceSelector(target, callKind: CallKind.PropertySet), args);
+      _makeCall(
+          node,
+          (node.receiver is ThisExpression)
+              ? new VirtualSelector(target, callKind: CallKind.PropertySet)
+              : new InterfaceSelector(target, callKind: CallKind.PropertySet),
+          args);
     }
     return value;
   }
@@ -1202,6 +1229,9 @@ class EmptyEntryPointsListener implements EntryPointsListener {
     final classId = (_classIds[c] ??= new IntClassId(++_classIdCounter));
     return new ConcreteType(classId, c.rawType);
   }
+
+  @override
+  void recordMemberCalledViaInterfaceSelector(Member target) {}
 }
 
 class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
