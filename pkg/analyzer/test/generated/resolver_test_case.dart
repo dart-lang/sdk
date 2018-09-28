@@ -560,8 +560,10 @@ class ResolverTestCase extends EngineTestCase {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() =>
-      createTestLibrary(AnalysisContextFactory.contextWithCore(), "test");
+  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
+      AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider),
+      "test");
 
   /**
    * Create a source object representing a file with the given [fileName] and
@@ -583,7 +585,7 @@ class ResolverTestCase extends EngineTestCase {
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
-    String fileName = "/test/$libraryName.dart";
+    String fileName = resourceProvider.convertPath("/test/$libraryName.dart");
     Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -44,7 +43,8 @@ class AnalysisContextFactory {
    * system.
    */
   static InternalAnalysisContext contextWithCore(
-      {UriResolver contributedResolver, ResourceProvider resourceProvider}) {
+      {UriResolver contributedResolver,
+      MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context, contributedResolver, resourceProvider);
   }
@@ -56,7 +56,7 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndOptions(
       AnalysisOptions options,
-      {ResourceProvider resourceProvider}) {
+      {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context, null, resourceProvider);
@@ -70,7 +70,7 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndPackages(
       Map<String, String> packages,
-      {ResourceProvider resourceProvider}) {
+      {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(
         context, new TestPackageUriResolver(packages), resourceProvider);
@@ -85,10 +85,9 @@ class AnalysisContextFactory {
   static InternalAnalysisContext initContextWithCore(
       InternalAnalysisContext context,
       [UriResolver contributedResolver,
-      ResourceProvider resourceProvider]) {
-    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+      MemoryResourceProvider resourceProvider]) {
     DartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
-        resourceProvider, '/fake/sdk');
+        resourceProvider, resourceProvider.convertPath('/fake/sdk'));
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)

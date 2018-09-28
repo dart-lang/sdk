@@ -273,7 +273,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -293,7 +294,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_prefixedAndNonPrefixed() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName);
@@ -333,7 +335,8 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
