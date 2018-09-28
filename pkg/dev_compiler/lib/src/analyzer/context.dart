@@ -137,7 +137,7 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
         ContextBuilder(resourceProvider, null, null, options: builderOptions);
 
     return PackageMapUriResolver(resourceProvider,
-        builder.convertPackagesToMap(builder.createPackageMap('')));
+        builder.convertPackagesToMap(builder.createPackageMap(path.current)));
   }
 
   return [ResourceUriResolver(resourceProvider), packageResolver()];

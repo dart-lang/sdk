@@ -47,9 +47,7 @@ class BazelFileUriResolverTest extends _BaseTest {
 
   void test_resolveAbsolute_folder() {
     Source source = _resolvePath('/workspace');
-    expect(source, isNotNull);
-    expect(source.exists(), isFalse);
-    expect(source.fullName, _p('/workspace'));
+    expect(source, isNull);
   }
 
   void test_resolveAbsolute_generated_file_exists_one() {

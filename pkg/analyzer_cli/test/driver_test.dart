@@ -531,17 +531,23 @@ var b = new B();
           .existsSync();
     }
 
+    String makeAbsoluteAndNormalized(String result) {
+      result = path.absolute(result);
+      result = path.normalize(result);
+      return result;
+    }
+
     // Usually the sdk directory is the parent of the parent of the "dart"
     // executable.
     Directory executableParent = new File(Platform.executable).parent;
     Directory executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
-      return executableGrandparent.path;
+      return makeAbsoluteAndNormalized(executableGrandparent.path);
     }
     // During build bot execution, the sdk directory is simply the parent of the
     // "dart" executable.
     if (isSuitable(executableParent.path)) {
-      return executableParent.path;
+      return makeAbsoluteAndNormalized(executableParent.path);
     }
     // If neither of those are suitable, assume we are running locally within the
     // SDK project (e.g. within an IDE).  Find the build output directory and
@@ -555,7 +561,7 @@ var b = new B();
           if (subdir is Directory) {
             String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
             if (isSuitable(candidateSdkDir)) {
-              return candidateSdkDir;
+              return makeAbsoluteAndNormalized(candidateSdkDir);
             }
           }
         }

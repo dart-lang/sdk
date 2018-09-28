@@ -116,7 +116,7 @@ quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
           expect(uri, isNull);
         });
         test('Non-package URI', () {
-          var testResolver = new CustomUriResolver(uriPath: 'test_uri');
+          var testResolver = new CustomUriResolver(uriPath: '/test.dart');
           String uri = resolvePackageUri(config: '''
 unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 ''', uri: 'custom:custom.dart', customResolver: testResolver);

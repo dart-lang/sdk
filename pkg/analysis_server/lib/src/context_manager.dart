@@ -31,6 +31,7 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -1759,9 +1760,10 @@ class PackagesFileDisposition extends FolderDisposition {
     if (packageMap == null) {
       packageMap = <String, List<Folder>>{};
       if (packages != null) {
+        var pathContext = resourceProvider.pathContext;
         packages.asMap().forEach((String name, Uri uri) {
           if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-            var path = resourceProvider.pathContext.fromUri(uri);
+            String path = fileUriToNormalizedPath(pathContext, uri);
             packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
           }
         });

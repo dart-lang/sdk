@@ -35,8 +35,7 @@ class ExplicitSourceResolver extends UriResolver {
     JavaFile file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileBasedSource(file, actualUri);
     }
@@ -413,8 +412,8 @@ class PackageUriResolver extends UriResolver {
             String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
             if (sourceUri.startsWith(pkgCanonicalUri)) {
               String relPath = sourceUri.substring(pkgCanonicalUri.length);
-              return Uri
-                  .parse("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
+              return Uri.parse(
+                  "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
           } catch (e) {}
         }

@@ -556,8 +556,7 @@ class ExplicitSourceResolver extends UriResolver {
     File file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileSource(file, actualUri);
     }

@@ -32,6 +32,7 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
@@ -194,8 +195,9 @@ class ContextBuilder {
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     if (packages != null && packages != Packages.noPackages) {
+      var pathContext = resourceProvider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
-        String path = resourceProvider.pathContext.fromUri(uri);
+        String path = fileUriToNormalizedPath(pathContext, uri);
         folderMap[packageName] = [resourceProvider.getFolder(path)];
       });
     }
@@ -543,8 +545,9 @@ class ContextBuilder {
   void resolveSymbolicLinks(Map<String, Uri> map) {
     Context pathContext = resourceProvider.pathContext;
     for (String packageName in map.keys) {
-      Folder folder =
-          resourceProvider.getFolder(pathContext.fromUri(map[packageName]));
+      var uri = map[packageName];
+      String path = fileUriToNormalizedPath(pathContext, uri);
+      Folder folder = resourceProvider.getFolder(path);
       String folderPath = resolveSymbolicLink(folder);
       // Add a '.' so that the URI is suitable for resolving relative URI's
       // against it.

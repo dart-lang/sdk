@@ -2236,7 +2236,8 @@ class _DiscoverAvailableFilesTask {
       var dartSdk = driver._sourceFactory.dartSdk;
       if (dartSdk != null) {
         for (var sdkLibrary in dartSdk.sdkLibraries) {
-          files.add(sdkLibrary.path);
+          var file = dartSdk.mapDartUri(sdkLibrary.shortName).fullName;
+          files.add(file);
         }
       }
 
