@@ -1799,10 +1799,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 
     const String& getter_name =
         String::Handle(zone, Field::GetterName(target_name));
+    ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ArgumentsDescriptor args_desc(orig_arguments_desc);
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
@@ -1815,7 +1815,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
         CheckResultError(getter_result);
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
-        orig_arguments.SetAt(0, getter_result);
+        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
         const Object& call_result = Object::Handle(
             zone,
             DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
