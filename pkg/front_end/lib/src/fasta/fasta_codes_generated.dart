@@ -2966,7 +2966,7 @@ const Code<Null> codeExternalAfterConst = messageExternalAfterConst;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalAfterConst = const MessageCode(
     "ExternalAfterConst",
-    analyzerCodes: <String>["EXTERNAL_AFTER_CONST"],
+    index: 46,
     message:
         r"""The modifier 'external' should be before the modifier 'const'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -2977,7 +2977,7 @@ const Code<Null> codeExternalAfterFactory = messageExternalAfterFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalAfterFactory = const MessageCode(
     "ExternalAfterFactory",
-    analyzerCodes: <String>["EXTERNAL_AFTER_FACTORY"],
+    index: 47,
     message:
         r"""The modifier 'external' should be before the modifier 'factory'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -2988,7 +2988,7 @@ const Code<Null> codeExternalAfterStatic = messageExternalAfterStatic;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalAfterStatic = const MessageCode(
     "ExternalAfterStatic",
-    analyzerCodes: <String>["EXTERNAL_AFTER_STATIC"],
+    index: 48,
     message:
         r"""The modifier 'external' should be before the modifier 'static'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -3062,7 +3062,7 @@ const Code<Null> codeExternalField = messageExternalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalField = const MessageCode("ExternalField",
-    analyzerCodes: <String>["EXTERNAL_FIELD"],
+    index: 50,
     message: r"""Fields can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -3072,7 +3072,7 @@ const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalMethodWithBody = const MessageCode(
     "ExternalMethodWithBody",
-    analyzerCodes: <String>["EXTERNAL_METHOD_WITH_BODY"],
+    index: 49,
     message: r"""An external or native method can't have a body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3628,7 +3628,7 @@ const Code<Null> codeIllegalAssignmentToNonAssignable =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
     "IllegalAssignmentToNonAssignable",
-    analyzerCodes: <String>["ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE"],
+    index: 45,
     message: r"""Illegal assignment to non-assignable expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3752,7 +3752,7 @@ const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeExtends = const MessageCode(
     "ImplementsBeforeExtends",
-    analyzerCodes: <String>["IMPLEMENTS_BEFORE_EXTENDS"],
+    index: 44,
     message: r"""The extends clause must be before the implements clause.""",
     tip: r"""Try moving the extends clause before the implements clause.""");
 
@@ -3762,7 +3762,7 @@ const Code<Null> codeImplementsBeforeOn = messageImplementsBeforeOn;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeOn = const MessageCode(
     "ImplementsBeforeOn",
-    analyzerCodes: <String>["IMPLEMENTS_BEFORE_ON"],
+    index: 43,
     message: r"""The on clause must be before the implements clause.""",
     tip: r"""Try moving the on clause before the implements clause.""");
 
@@ -3772,7 +3772,7 @@ const Code<Null> codeImplementsBeforeWith = messageImplementsBeforeWith;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeWith = const MessageCode(
     "ImplementsBeforeWith",
-    analyzerCodes: <String>["IMPLEMENTS_BEFORE_WITH"],
+    index: 42,
     message: r"""The with clause must be before the implements clause.""",
     tip: r"""Try moving the with clause before the implements clause.""");
 

@@ -295,21 +295,24 @@ WithBeforeExtends:
   script: "class B {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
+  index: 44
   template: "The extends clause must be before the implements clause."
   tip: "Try moving the extends clause before the implements clause."
-  analyzerCode: IMPLEMENTS_BEFORE_EXTENDS
+  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS
   script: "class A implements B extends C {}"
 
 ImplementsBeforeOn:
+  index: 43
   template: "The on clause must be before the implements clause."
   tip: "Try moving the on clause before the implements clause."
-  analyzerCode: IMPLEMENTS_BEFORE_ON
+  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_ON
   script: "mixin A implements B on C {}"
 
 ImplementsBeforeWith:
+  index: 42
   template: "The with clause must be before the implements clause."
   tip: "Try moving the with clause before the implements clause."
-  analyzerCode: IMPLEMENTS_BEFORE_WITH
+  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_WITH
   script: "class A extends B implements C with D {}"
 
 ImplementsRepeated:
@@ -599,23 +602,26 @@ DuplicatedModifier:
     - "class C { var var m; }"
 
 ExternalAfterConst:
+  index: 46
   template: "The modifier 'external' should be before the modifier 'const'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: EXTERNAL_AFTER_CONST
+  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_CONST
   script:
     - "class C { const external C(); }"
 
 ExternalAfterFactory:
+  index: 47
   template: "The modifier 'external' should be before the modifier 'factory'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: EXTERNAL_AFTER_FACTORY
+  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_FACTORY
   script:
     - "class C { factory external C(); }"
 
 ExternalAfterStatic:
+  index: 48
   template: "The modifier 'external' should be before the modifier 'static'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: EXTERNAL_AFTER_STATIC
+  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_STATIC
   script:
     - "class C { static external f(); }"
 
@@ -639,9 +645,10 @@ ExternalFactoryWithBody:
     - "class C { external factory C() {} }"
 
 ExternalField:
+  index: 50
   template: "Fields can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_FIELD
+  analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
     - "class C { external var f; }"
 
@@ -1963,8 +1970,9 @@ ExternalEnum:
 
 ExternalMethodWithBody:
   # TODO(danrubel): remove reference to `native` once support has been removed
+  index: 49
   template: "An external or native method can't have a body."
-  analyzerCode: EXTERNAL_METHOD_WITH_BODY
+  analyzerCode: ParserErrorCode.EXTERNAL_METHOD_WITH_BODY
   script:
     - "class C {external foo() {}}"
     - "class C {foo() native {}}"
@@ -2570,8 +2578,9 @@ CannotAssignToSuper:
   analyzerCode: NOT_AN_LVALUE
 
 IllegalAssignmentToNonAssignable:
+  index: 45
   template: "Illegal assignment to non-assignable expression."
-  analyzerCode: ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+  analyzerCode: ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
   script:
     - "main(){ f()++; }"
 

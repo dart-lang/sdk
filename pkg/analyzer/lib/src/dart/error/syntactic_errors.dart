@@ -264,20 +264,11 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving the export directives before the part directives.");
 
-  static const ParserErrorCode EXTERNAL_AFTER_CONST = const ParserErrorCode(
-      'EXTERNAL_AFTER_CONST',
-      "The modifier 'external' should be before the modifier 'const'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_CONST = _EXTERNAL_AFTER_CONST;
 
-  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = const ParserErrorCode(
-      'EXTERNAL_AFTER_FACTORY',
-      "The modifier 'external' should be before the modifier 'factory'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _EXTERNAL_AFTER_FACTORY;
 
-  static const ParserErrorCode EXTERNAL_AFTER_STATIC = const ParserErrorCode(
-      'EXTERNAL_AFTER_STATIC',
-      "The modifier 'external' should be before the modifier 'static'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_STATIC = _EXTERNAL_AFTER_STATIC;
 
   static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
@@ -289,9 +280,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
 
-  static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode(
-      'EXTERNAL_FIELD', "Fields can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_FIELD = _EXTERNAL_FIELD;
 
   static const ParserErrorCode EXTERNAL_GETTER_WITH_BODY =
       const ParserErrorCode(
@@ -300,10 +289,7 @@ class ParserErrorCode extends ErrorCode {
               "removing the keyword 'external'.");
 
   static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY =
-      const ParserErrorCode('EXTERNAL_METHOD_WITH_BODY',
-          "An external or native method can't have a body.",
-          correction: "Try removing the body of the method, or "
-              "removing the keyword 'external'.");
+      _EXTERNAL_METHOD_WITH_BODY;
 
   static const ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY =
       const ParserErrorCode('EXTERNAL_OPERATOR_WITH_BODY',
@@ -397,24 +383,14 @@ class ParserErrorCode extends ErrorCode {
           "removing the keyword 'get' to define a method rather than a getter.");
 
   static const ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE =
-      const ParserErrorCode('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
-          "Illegal assignment to non-assignable expression.");
+      _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE;
 
   static const ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS =
-      const ParserErrorCode('IMPLEMENTS_BEFORE_EXTENDS',
-          "The extends clause must be before the implements clause.",
-          correction:
-              "Try moving the extends clause before the implements clause.");
+      _IMPLEMENTS_BEFORE_EXTENDS;
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_ON = const ParserErrorCode(
-      'IMPLEMENTS_BEFORE_ON',
-      "The on clause must be before the implements clause.",
-      correction: "Try moving the on clause before the implements clause.");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_ON = _IMPLEMENTS_BEFORE_ON;
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
-      'IMPLEMENTS_BEFORE_WITH',
-      "The with clause must be before the implements clause.",
-      correction: "Try moving the with clause before the implements clause.");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = _IMPLEMENTS_BEFORE_WITH;
 
   static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;

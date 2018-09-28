@@ -202,29 +202,9 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "EXTERNAL_AFTER_CONST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
-        return;
-      case "EXTERNAL_AFTER_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_FACTORY, offset, length);
-        return;
-      case "EXTERNAL_AFTER_STATIC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
-        return;
       case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
-      case "EXTERNAL_FIELD":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_FIELD, offset, length);
-        return;
-      case "EXTERNAL_METHOD_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, offset, length);
         return;
       case "EXTERNAL_TYPEDEF":
         errorReporter?.reportErrorForOffset(
@@ -279,12 +259,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
         return;
-      case "ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
-            offset,
-            length);
-        return;
       case "ILLEGAL_CHARACTER":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
@@ -309,18 +283,6 @@ class FastaErrorReporter {
       case "INVALID_LITERAL_IN_CONFIGURATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);
-        return;
-      case "IMPLEMENTS_BEFORE_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
-        return;
-      case "IMPLEMENTS_BEFORE_ON":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPLEMENTS_BEFORE_ON, offset, length);
-        return;
-      case "IMPLEMENTS_BEFORE_WITH":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
         return;
       case "IMPORT_OF_NON_LIBRARY":
         errorReporter?.reportErrorForOffset(
