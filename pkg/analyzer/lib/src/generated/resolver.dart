@@ -83,7 +83,7 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        InterfaceType type = _getType(element, node.typeArguments);
+        InterfaceType type = getType(typeSystem, element, node.typeArguments);
         ConstructorElement constructorElement =
             type.lookUpConstructor(null, definingLibrary);
         methodName.staticElement = element;
@@ -120,7 +120,7 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(element, typeArguments);
+          InterfaceType type = getType(typeSystem, element, typeArguments);
           constructorElement =
               type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
@@ -150,7 +150,8 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(prefixedElement, node.typeArguments);
+          InterfaceType type =
+              getType(typeSystem, prefixedElement, node.typeArguments);
           ConstructorElement constructorElement =
               type.lookUpConstructor(null, definingLibrary);
           methodName.staticElement = element;
@@ -186,7 +187,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = _getType(element, typeArguments);
+            InterfaceType type = getType(typeSystem, element, typeArguments);
             constructorElement =
                 type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
@@ -214,7 +215,8 @@ class AstRewriteVisitor extends ScopedVisitor {
 
   /// Return the type of the given class [element] after substituting any type
   /// arguments from the list of [typeArguments] for the class' type parameters.
-  DartType _getType(ClassElement element, TypeArgumentList typeArguments) {
+  static InterfaceType getType(TypeSystem typeSystem, ClassElement element,
+      TypeArgumentList typeArguments) {
     DartType type = element.type;
     List<TypeParameterElement> typeParameters = element.typeParameters;
     if (typeArguments != null &&

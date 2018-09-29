@@ -5103,7 +5103,13 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   CompilationUnitElementForLink _unit;
 
   @override
+  LibraryElement get library => _unit.library;
+
+  @override
   TypeProvider get typeProvider => _unit.library._linker.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => _unit.library._linker._typeSystem;
 
   @override
   DartType buildType(ElementImpl context, EntityRef type) =>
