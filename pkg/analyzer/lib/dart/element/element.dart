@@ -1349,6 +1349,7 @@ abstract class FieldElement
   /**
    * Returns `true` if this field can be overridden in strong mode.
    */
+  @deprecated
   bool get isVirtual;
 
   @override

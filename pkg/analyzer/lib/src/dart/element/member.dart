@@ -246,6 +246,7 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
 

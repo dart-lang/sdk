@@ -4359,6 +4359,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.STATIC, isStatic);
   }
 
+  @deprecated
   @override
   bool get isVirtual => true;
 

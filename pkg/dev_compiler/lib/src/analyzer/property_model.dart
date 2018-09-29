@@ -131,8 +131,6 @@ class _LibraryVirtualFieldModel {
 
   /// Returns true if a field inside this library is virtual.
   bool isVirtual(FieldElement field) {
-    // If the field was marked non-virtual, we know for sure.
-    if (!field.isVirtual) return false;
     if (field.isStatic) return false;
 
     var type = field.enclosingElement;
