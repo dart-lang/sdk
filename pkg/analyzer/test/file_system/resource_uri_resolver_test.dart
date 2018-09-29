@@ -42,7 +42,9 @@ class ResourceUriResolverTest {
   void test_resolveAbsolute_folder() {
     var uri = provider.pathContext.toUri(provider.convertPath('/folder'));
     Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
+    expect(source, isNotNull);
+    expect(source.exists(), isFalse);
+    expect(source.fullName, provider.convertPath('/folder'));
   }
 
   void test_resolveAbsolute_notFile_dartUri() {

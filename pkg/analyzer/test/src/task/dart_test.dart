@@ -895,7 +895,7 @@ library lib;
 part '$invalidUri';
 '''
     });
-    expect(libraryElement.parts, isEmpty);
+    expect(libraryElement.parts, hasLength(1));
   }
 
   test_perform_isLaunchable_inDefiningUnit() {

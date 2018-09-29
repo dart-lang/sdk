@@ -27,11 +27,8 @@ class ResourceUriResolver extends UriResolver {
       return null;
     }
     String path = fileUriToNormalizedPath(_provider.pathContext, uri);
-    Resource resource = _provider.getResource(path);
-    if (resource is File) {
-      return resource.createSource(actualUri ?? uri);
-    }
-    return null;
+    File file = _provider.getFile(path);
+    return file.createSource(actualUri ?? uri);
   }
 
   @override

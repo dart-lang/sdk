@@ -7417,9 +7417,9 @@ unit: b.dart
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
 library my.lib;
-part '<unresolved>';
+part '';
 --------------------
-unit: null
+unit: foo
 
 ''');
   }
