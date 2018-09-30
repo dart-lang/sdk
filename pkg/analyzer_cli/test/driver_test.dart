@@ -99,6 +99,8 @@ class BaseTest {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
   }) async {
+    options = _p(options);
+
     driver = new Driver(isTesting: true);
     var cmd = <String>[];
     if (options != null) {
@@ -141,6 +143,23 @@ class BaseTest {
     String uriPrefix = fileSpec.substring(0, uriPrefixLength);
     String relativePath = fileSpec.substring(uriPrefixLength);
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
+  }
+
+  /**
+   * Convert the given posix [filePath] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String _p(String filePath) {
+    if (filePath == null) {
+      return null;
+    }
+    if (path.style == path.windows.style) {
+      filePath =
+          filePath.replaceAll(path.posix.separator, path.windows.separator);
+    }
+    return filePath;
   }
 }
 
@@ -499,7 +518,10 @@ var b = new B();
       {String uri,
       List<String> additionalArgs: const [],
       String dartSdkSummaryPath}) async {
+    path = _p(path);
+
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+    var options = _p('data/options_tests_project/' + optionsFileName);
 
     List<String> args = <String>[];
     if (dartSdkSummaryPath != null) {
@@ -517,8 +539,7 @@ var b = new B();
     uri ??= 'file:///test_file.dart';
     String source = '$uri|$path';
 
-    await drive(source,
-        args: args, options: 'data/options_tests_project/$optionsFileName');
+    await drive(source, args: args, options: options);
   }
 
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
