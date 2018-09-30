@@ -174,14 +174,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
     AnalysisResult result = await server.getAnalysisResult(filePath);
 
-    if (result == null || !result.exists) {
-      if (server.onNoAnalysisCompletion != null) {
-        String completionId = (_nextCompletionId++).toString();
-        await server.onNoAnalysisCompletion(
-            request, this, params, performance, completionId);
-        return;
-      }
-    } else {
+    if (result != null && result.exists) {
       if (offset < 0 || offset > result.content.length) {
         server.sendResponse(new Response.invalidParameter(
             request,

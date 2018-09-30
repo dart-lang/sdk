@@ -372,12 +372,6 @@ abstract class ContextManagerCallbacks {
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
 
   /**
-   * Called when the context manager changes the folder with which a context is
-   * associated. Currently this is mostly FYI, and used only in tests.
-   */
-  void moveContext(Folder from, Folder to);
-
-  /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
    * a list of the files which will be "orphaned" by removing this context
    * (they will no longer be analyzed by any context).

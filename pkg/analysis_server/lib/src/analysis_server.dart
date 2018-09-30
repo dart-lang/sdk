@@ -77,30 +77,6 @@ import 'package:watcher/watcher.dart';
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
 /**
- * Enum representing reasons why analysis might be done for a given file.
- */
-class AnalysisDoneReason {
-  /**
-   * Analysis of the file completed successfully.
-   */
-  static const AnalysisDoneReason COMPLETE =
-      const AnalysisDoneReason._('COMPLETE');
-
-  /**
-   * Analysis of the file was aborted because the context was removed.
-   */
-  static const AnalysisDoneReason CONTEXT_REMOVED =
-      const AnalysisDoneReason._('CONTEXT_REMOVED');
-
-  /**
-   * Textual description of this [AnalysisDoneReason].
-   */
-  final String text;
-
-  const AnalysisDoneReason._(this.text);
-}
-
-/**
  * Instances of the class [AnalysisServer] implement a server that listens on a
  * [CommunicationChannel] for analysis requests and process them.
  */
@@ -178,7 +154,7 @@ class AnalysisServer {
   /**
    * The object used to manage the SDK's known to this server.
    */
-  DartSdkManager sdkManager;
+  final DartSdkManager sdkManager;
 
   /**
    * The instrumentation service that is to be used by this analysis server.
@@ -212,7 +188,7 @@ class AnalysisServer {
   /**
    * Performance information before initial analysis is complete.
    */
-  ServerPerformance performanceDuringStartup = new ServerPerformance();
+  final ServerPerformance performanceDuringStartup = new ServerPerformance();
 
   /**
    * Performance information after initial analysis is complete
@@ -242,11 +218,6 @@ class AnalysisServer {
    * The controller that is notified when analysis is started.
    */
   StreamController<bool> _onAnalysisStartedController;
-
-  /**
-   * The controller that is notified when a single file has been analyzed.
-   */
-  StreamController<ChangeNotice> _onFileAnalyzedController;
 
   /**
    * The content overlay for all analysis drivers.
@@ -294,38 +265,8 @@ class AnalysisServer {
   /**
    * The controller for [onAnalysisSetChanged].
    */
-  StreamController _onAnalysisSetChangedController =
+  final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
-
-  /**
-   * This exists as a temporary stopgap for plugins, until the official plugin
-   * API is complete.
-   */
-  StreamController<String> _onFileAddedController;
-
-  /**
-   * This exists as a temporary stopgap for plugins, until the official plugin
-   * API is complete.
-   */
-  StreamController<String> _onFileChangedController;
-
-  /**
-   * This exists as a temporary stopgap for plugins, until the official plugin
-   * API is complete.
-   */
-  Function onResultErrorSupplementor;
-
-  /**
-   * This exists as a temporary stopgap for plugins, until the official plugin
-   * API is complete.
-   */
-  Function onNoAnalysisResult;
-
-  /**
-   * This exists as a temporary stopgap for plugins, until the official plugin
-   * API is complete.
-   */
-  Function onNoAnalysisCompletion;
 
   /**
    * The set of the files that are currently priority.
@@ -337,7 +278,7 @@ class AnalysisServer {
    * to start an http diagnostics server or return the port for an existing
    * server.
    */
-  DiagnosticServer diagnosticServer;
+  final DiagnosticServer diagnosticServer;
 
   final DetachableFileSystemManager detachableFileSystemManager;
 
@@ -411,11 +352,6 @@ class AnalysisServer {
     contextManager.callbacks = contextManagerCallbacks;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
-    _onFileAnalyzedController = new StreamController.broadcast();
-    // temporary plugin support:
-    _onFileAddedController = new StreamController.broadcast();
-    // temporary plugin support:
-    _onFileChangedController = new StreamController.broadcast();
     running = true;
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
@@ -511,25 +447,6 @@ class AnalysisServer {
   }
 
   /**
-   * The stream that is notified when a single file has been added. This exists
-   * as a temporary stopgap for plugins, until the official plugin API is
-   * complete.
-   */
-  Stream get onFileAdded => _onFileAddedController.stream;
-
-  /**
-   * The stream that is notified when a single file has been analyzed.
-   */
-  Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
-
-  /**
-   * The stream that is notified when a single file has been changed. This
-   * exists as a temporary stopgap for plugins, until the official plugin API is
-   * complete.
-   */
-  Stream get onFileChanged => _onFileChangedController.stream;
-
-  /**
    * Return the total time the server's been alive.
    */
   Duration get uptime {
@@ -551,17 +468,6 @@ class AnalysisServer {
    */
   void error(argument) {
     running = false;
-  }
-
-  /**
-   * If the given notice applies to a file contained within an analysis root,
-   * notify interested parties that the file has been (at least partially)
-   * analyzed.
-   */
-  void fileAnalyzed(ChangeNotice notice) {
-    if (contextManager.isInAnalysisRoot(notice.source.fullName)) {
-      _onFileAnalyzedController.add(notice);
-    }
   }
 
   /**
@@ -641,19 +547,6 @@ class AnalysisServer {
 
     nd.AnalysisDriver driver = getAnalysisDriver(path);
     return driver?.getCachedResult(path);
-  }
-
-  /**
-   * Return the [nd.AnalysisDriver] for the "innermost" context whose associated
-   * folder is or contains the given path.  ("innermost" refers to the nesting
-   * of contexts, so if there is a context for path /foo and a context for
-   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-   * the context for /foo/bar.)
-   *
-   * If no context contains the given path, `null` is returned.
-   */
-  nd.AnalysisDriver getContainingDriver(String path) {
-    return contextManager.getDriverFor(path);
   }
 
   /**
@@ -778,15 +671,6 @@ class AnalysisServer {
           stackTrace,
           fatal: true);
     });
-  }
-
-  /**
-   * Returns `true` if there is a subscription for the given [service] and
-   * [file].
-   */
-  bool hasAnalysisSubscription(AnalysisService service, String file) {
-    Set<String> files = analysisServices[service];
-    return files != null && files.contains(file);
   }
 
   /**
@@ -1078,9 +962,6 @@ class AnalysisServer {
         driver.changeFile(file);
       });
 
-      // temporary plugin support:
-      _onFileChangedController.add(file);
-
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
@@ -1153,6 +1034,10 @@ class AnalysisServer {
     return null;
   }
 
+  /**
+   * Returns `true` if there is a subscription for the given [service] and
+   * [file].
+   */
   bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
     return analysisServices[service]?.contains(file) ?? false;
   }
@@ -1217,15 +1102,6 @@ class AnalysisServerOptions {
    * intermittent file system.
    */
   bool enableUXExperiment2 = false;
-}
-
-/**
- * A [PriorityChangeEvent] indicates the set the priority files has changed.
- */
-class PriorityChangeEvent {
-  final Source firstSource;
-
-  PriorityChangeEvent(this.firstSource);
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -1386,13 +1262,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     if (analysisDriver != null) {
       changeSet.addedSources.forEach((source) {
         analysisDriver.addFile(source.fullName);
-        // temporary plugin support:
-        analysisServer._onFileAddedController.add(source.fullName);
       });
       changeSet.changedSources.forEach((source) {
         analysisDriver.changeFile(source.fullName);
-        // temporary plugin support:
-        analysisServer._onFileChangedController.add(source.fullName);
       });
       changeSet.removedSources.forEach((source) {
         analysisDriver.removeFile(source.fullName);
@@ -1442,13 +1314,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
     return builder;
-  }
-
-  @override
-  void moveContext(Folder from, Folder to) {
-    // There is nothing to do.
-    // This method is mostly for tests.
-    // Context managers manage folders and contexts themselves.
   }
 
   @override
@@ -1562,7 +1427,7 @@ class ServerPerformance {
    * The creation time and the time when performance information
    * started to be recorded here.
    */
-  int startTime = new DateTime.now().millisecondsSinceEpoch;
+  final int startTime = new DateTime.now().millisecondsSinceEpoch;
 
   /**
    * The number of requests.
@@ -1608,49 +1473,27 @@ class ServerPerformanceStatistics {
   /**
    * The [PerformanceTag] for `package:analysis_server`.
    */
-  static PerformanceTag server = new PerformanceTag('server');
-
-  /**
-   * The [PerformanceTag] for time spent in [ExecutionDomainHandler].
-   */
-  static PerformanceTag executionNotifications =
-      new PerformanceTag('executionNotifications');
-
-  /**
-   * The [PerformanceTag] for time spent performing a _DartIndexOperation.
-   */
-  static PerformanceTag indexOperation = new PerformanceTag('indexOperation');
-
-  /**
-   * The [PerformanceTag] for time spent between calls to
-   * AnalysisServer.performOperation when the server is not idle.
-   */
-  static PerformanceTag intertask = new PerformanceTag('intertask');
+  static final PerformanceTag server = new PerformanceTag('server');
 
   /**
    * The [PerformanceTag] for time spent between calls to
    * AnalysisServer.performOperation when the server is idle.
    */
-  static PerformanceTag idle = new PerformanceTag('idle');
+  static final PerformanceTag idle = new PerformanceTag('idle');
 
   /**
    * The [PerformanceTag] for time spent in
    * PerformAnalysisOperation._sendNotices.
    */
-  static PerformanceTag notices = server.createChild('notices');
+  static final PerformanceTag notices = server.createChild('notices');
 
   /**
    * The [PerformanceTag] for time spent in server communication channels.
    */
-  static PerformanceTag serverChannel = server.createChild('channel');
+  static final PerformanceTag serverChannel = server.createChild('channel');
 
   /**
    * The [PerformanceTag] for time spent in server request handlers.
    */
-  static PerformanceTag serverRequests = server.createChild('requests');
-
-  /**
-   * The [PerformanceTag] for time spent in split store microtasks.
-   */
-  static PerformanceTag splitStore = new PerformanceTag('splitStore');
+  static final PerformanceTag serverRequests = server.createChild('requests');
 }
