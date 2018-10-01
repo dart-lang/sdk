@@ -57,11 +57,10 @@ void _fail(String message) {
 @reflectiveTest
 class AbstractContextManagerTest extends ContextManagerTest {
   void test_contextsInAnalysisRoot_nestedContext() {
-    String subProjPath = path.posix.join(projPath, 'subproj');
+    String subProjPath = join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(
-        path.posix.join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = path.posix.join(subProjPath, 'file.dart');
+    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really are contexts for both the main project and
@@ -194,11 +193,10 @@ test_pack:lib/''');
   }
 
   void test_isInAnalysisRoot_inNestedContext() {
-    String subProjPath = path.posix.join(projPath, 'subproj');
+    String subProjPath = join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(
-        path.posix.join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = path.posix.join(subProjPath, 'file.dart');
+    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really is a context for the subproject.
@@ -221,14 +219,14 @@ test_pack:lib/''');
 
   test_packagesFolder_areAnalyzed() {
     // create a context with a pubspec.yaml file
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // create a file in the "packages" folder
-    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
+    String filePath1 = join(projPath, 'packages', 'file1.dart');
     File file1 = resourceProvider.newFile(filePath1, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
-    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
+    String filePath2 = join(projPath, 'packages', 'file2.dart');
     File file2 = resourceProvider.newFile(filePath2, 'contents');
     return pumpEventQueue().then((_) {
       expect(callbacks.currentFilePaths,
@@ -264,7 +262,7 @@ test_pack:lib/''');
 
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
-    String packagespecFile = path.posix.join(projPath, '.packages');
+    String packagespecFile = join(projPath, '.packages');
     resourceProvider.newFile(packagespecFile, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
@@ -308,7 +306,7 @@ test_pack:lib/''');
 
   test_refresh_folder_with_pubspec() {
     // create a context with a pubspec.yaml file
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
@@ -498,10 +496,11 @@ test_pack:lib/''');
 
   void test_setRoots_addFolderWithPackagespec() {
     String packagespecPath = join(projPath, '.packages');
-    resourceProvider.newFile(packagespecPath,
-        'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
+    var testLib = convertPath('/home/somebody/.pub/cache/unittest-0.9.9/lib');
+    var testLibUri = resourceProvider.pathContext.toUri(testLib);
+    resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    File mainFile = resourceProvider.newFile(join(libPath, 'main.dart'), '');
+    File mainFile = newFile('$libPath/main.dart', content: '');
     Source source = mainFile.createSource();
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -514,17 +513,15 @@ test_pack:lib/''');
     Source resolvedSource =
         sourceFactory.resolveUri(source, 'package:unittest/unittest.dart');
     expect(resolvedSource, isNotNull);
-    expect(
-        resolvedSource.fullName,
-        equals(convertPath(
-            '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
+    expect(resolvedSource.fullName, convertPath('$testLib/unittest.dart'));
   }
 
   void test_setRoots_addFolderWithPackagespecAndPackageRoot() {
     // The package root should take priority.
-    String packagespecPath = path.posix.join(projPath, '.packages');
-    resourceProvider.newFile(packagespecPath,
-        'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
+    String packagespecPath = join(projPath, '.packages');
+    var testLib = convertPath('/home/somebody/.pub/cache/unittest-0.9.9/lib');
+    var testLibUri = resourceProvider.pathContext.toUri(testLib);
+    resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
     String packageRootPath = '/package/root/';
     manager.setRoots(<String>[projPath], <String>[],
         <String, String>{projPath: packageRootPath});
@@ -533,7 +530,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPubspec() {
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -542,8 +539,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPubspec_andPackagespec() {
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
-    String packagespecPath = path.posix.join(projPath, '.packages');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
+    String packagespecPath = join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     resourceProvider.newFile(packagespecPath, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -587,14 +584,14 @@ test_pack:lib/''');
     String subProjectA_file = convertPath('$subProjectA/bin/a.dart');
     String subProjectB_file = convertPath('$subProjectB/bin/b.dart');
     // create files
-    resourceProvider.newFile('$subProjectA/pubspec.yaml', 'pubspec');
-    resourceProvider.newFile('$subProjectB/pubspec.yaml', 'pubspec');
-    resourceProvider.newFile('$subProjectA/.packages', '');
-    resourceProvider.newFile('$subProjectB/.packages', '');
+    newFile('$subProjectA/pubspec.yaml', content: 'pubspec');
+    newFile('$subProjectB/pubspec.yaml', content: 'pubspec');
+    newFile('$subProjectA/.packages', content: '');
+    newFile('$subProjectB/.packages', content: '');
 
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subProjectA_file, 'library a;');
-    resourceProvider.newFile(subProjectB_file, 'library b;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subProjectA_file, content: 'library a;');
+    newFile(subProjectB_file, content: 'library b;');
 
     // set roots
     manager.setRoots(<String>[root], <String>[], <String, String>{});
@@ -927,7 +924,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_noContext_inDotFolder() {
-    String pubspecPath = path.posix.join(projPath, '.pub', 'pubspec.yaml');
+    String pubspecPath = join(projPath, '.pub', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -952,7 +949,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_packagesFolder_hasContext() {
-    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'packages', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -986,7 +983,7 @@ test_pack:lib/''');
 
   void test_setRoots_removeFolderWithPackagespec() {
     // create a pubspec
-    String pubspecPath = path.posix.join(projPath, '.packages');
+    String pubspecPath = join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, '');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1036,7 +1033,7 @@ test_pack:lib/''');
 
   void test_setRoots_removeFolderWithPubspec() {
     // create a pubspec
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1118,7 +1115,7 @@ test_pack:lib/''');
     // empty folder initially
     expect(callbacks.currentFilePaths, isEmpty);
     // add link
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
     // the link was ignored
     return pumpEventQueue().then((_) {
