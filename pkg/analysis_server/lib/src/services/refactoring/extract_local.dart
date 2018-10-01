@@ -219,9 +219,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   /**
    * Checks if [selectionRange] selects [Expression] which can be extracted, and
    * location of this [Expression] in AST allows extracting.

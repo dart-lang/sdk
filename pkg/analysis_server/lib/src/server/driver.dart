@@ -449,7 +449,6 @@ class Driver implements ServerStarter {
     socketServer = new SocketServer(
         analysisServerOptions,
         new DartSdkManager(defaultSdkPath, true),
-        defaultSdk,
         instrumentationService,
         diagnosticServer,
         fileResolverProvider,

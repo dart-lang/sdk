@@ -80,7 +80,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final int selectionLength;
   SourceRange selectionRange;
   CorrectionUtils utils;
-  Set<Source> librariesToImport = new Set<Source>();
+  final Set<Source> librariesToImport = new Set<Source>();
 
   String returnType = '';
   String variableType;
@@ -95,18 +95,19 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /**
    * The map of local names to their visibility ranges.
    */
-  Map<String, List<SourceRange>> _localNames = <String, List<SourceRange>>{};
+  final Map<String, List<SourceRange>> _localNames =
+      <String, List<SourceRange>>{};
 
   /**
    * The set of names that are referenced without any qualifier.
    */
-  Set<String> _unqualifiedNames = new Set<String>();
+  final Set<String> _unqualifiedNames = new Set<String>();
 
-  Set<String> _excludedNames = new Set<String>();
+  final Set<String> _excludedNames = new Set<String>();
   List<RefactoringMethodParameter> _parameters = <RefactoringMethodParameter>[];
-  Map<String, RefactoringMethodParameter> _parametersMap =
+  final Map<String, RefactoringMethodParameter> _parametersMap =
       <String, RefactoringMethodParameter>{};
-  Map<String, List<SourceRange>> _parameterReferencesMap =
+  final Map<String, List<SourceRange>> _parameterReferencesMap =
       <String, List<SourceRange>>{};
   bool _hasAwait = false;
   DartType _returnType;
@@ -402,9 +403,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   bool isAvailable() {
     return !_checkSelection().hasFatalError;
   }
-
-  @override
-  bool requiresPreview() => false;
 
   /**
    * Adds a new reference to the parameter with the given name.
@@ -1319,7 +1317,7 @@ class _Occurrence {
   final SourceRange range;
   final bool isSelection;
 
-  Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
+  final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
   _Occurrence(this.range, this.isSelection);
 }
@@ -1367,7 +1365,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
 class _SourcePattern {
   final List<DartType> parameterTypes = <DartType>[];
   String normalizedSource;
-  Map<String, String> originalToPatternNames = {};
+  final Map<String, String> originalToPatternNames = {};
 
   bool isCompatible(_SourcePattern other) {
     if (other.normalizedSource != normalizedSource) {

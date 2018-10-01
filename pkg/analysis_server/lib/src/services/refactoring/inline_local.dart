@@ -168,9 +168,6 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     return new Future.value(change);
   }
 
-  @override
-  bool requiresPreview() => false;
-
   bool _isVariableDeclaredInStatement() {
     if (_variableNode == null) {
       return false;

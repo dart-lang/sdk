@@ -37,7 +37,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   ClassElement classBuildContext;
   ClassElement classKey;
-  ClassElement classStatefulWidget;
   ClassElement classStatelessWidget;
   ClassElement classWidget;
   PropertyAccessorElement accessorRequired;
@@ -168,9 +167,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
     AstNode node = new NodeLocator(offset, offset + length)
@@ -265,7 +261,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     classBuildContext = await getClass('BuildContext');
     classKey = await getClass('Key');
     classStatelessWidget = await getClass('StatelessWidget');
-    classStatefulWidget = await getClass('StatefulWidget');
     classWidget = await getClass('Widget');
 
     accessorRequired = await getAccessor('package:meta/meta.dart', 'required');

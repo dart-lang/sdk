@@ -401,12 +401,6 @@ abstract class Refactoring {
    * Returns the [Change] to apply to perform this refactoring.
    */
   Future<SourceChange> createChange();
-
-  /**
-   * Returs `true` if the [Change] created by refactoring may be unsafe,
-   * so we want user to review the [Change] to ensure that he understands it.
-   */
-  bool requiresPreview();
 }
 
 /**

@@ -94,9 +94,6 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   Future<void> _updateElementDeclaration(Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

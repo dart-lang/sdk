@@ -209,8 +209,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Expression _methodExpression;
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
-  List<_ReferenceProcessor> _referenceProcessors = [];
-  Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
+  final List<_ReferenceProcessor> _referenceProcessors = [];
+  final Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
   InlineMethodRefactoringImpl(
       this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
@@ -310,9 +310,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() {
     return new Future.value(change);
   }
-
-  @override
-  bool requiresPreview() => false;
 
   Future<FunctionDeclaration> _computeFunctionDeclaration() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -801,12 +798,12 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   /**
    * The [SourceRange] of the element body.
    */
-  SourceRange bodyRange;
+  final SourceRange bodyRange;
 
   /**
    * The [_SourcePart] to record reference into.
    */
-  _SourcePart result;
+  final _SourcePart result;
 
   int offset;
 

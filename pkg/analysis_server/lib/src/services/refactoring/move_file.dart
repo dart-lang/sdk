@@ -11,8 +11,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:path/path.dart' as pathos;
@@ -94,8 +94,23 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return changeBuilder.sourceChange;
   }
 
-  @override
-  bool requiresPreview() => false;
+  /**
+   * Computes the URI to use to reference [newFile] from [reference].
+   */
+  String _computeNewUri(SourceReference reference) {
+    String refDir = pathContext.dirname(reference.file);
+    // try to keep package: URI
+    // if (_isPackageReference(reference)) {
+    //   Source newSource = new NonExistingSource(
+    //       newFile, pathos.toUri(newFile), UriKind.FILE_URI);
+    //   Uri restoredUri = context.sourceFactory.restoreUri(newSource);
+    //   if (restoredUri != null) {
+    //     return restoredUri.toString();
+    //   }
+    // }
+    // if no package: URI, prepare relative
+    return _getRelativeUri(newFile, refDir);
+  }
 
   String _getRelativeUri(String path, String from) {
     String uri = pathContext.relative(path, from: from);
@@ -143,23 +158,5 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     for (UriReferencedElement element in elements) {
       _updateUriReference(builder, element, oldDir, newDir);
     }
-  }
-
-  /**
-   * Computes the URI to use to reference [newFile] from [reference].
-   */
-  String _computeNewUri(SourceReference reference) {
-    String refDir = pathContext.dirname(reference.file);
-    // try to keep package: URI
-    // if (_isPackageReference(reference)) {
-    //   Source newSource = new NonExistingSource(
-    //       newFile, pathos.toUri(newFile), UriKind.FILE_URI);
-    //   Uri restoredUri = context.sourceFactory.restoreUri(newSource);
-    //   if (restoredUri != null) {
-    //     return restoredUri.toString();
-    //   }
-    // }
-    // if no package: URI, prepare relative
-    return _getRelativeUri(newFile, refDir);
   }
 }
