@@ -72,18 +72,6 @@ class InheritedReferenceContributor extends DartCompletionContributor
         resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
   }
 
-  List<CompletionSuggestion> computeSuggestionsForClass(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
-    }
-    containingLibrary = request.libraryElement;
-
-    return _computeSuggestionsForClass2(classElement, request,
-        skipChildClass: skipChildClass);
-  }
-
   _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
       {bool isFunctionalArgument: false}) {
     OpType opType = request.opType;

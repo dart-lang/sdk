@@ -259,12 +259,12 @@ class _SuggestionBuilder {
    * Note: the enumerated values stored in this map are intended to be bitwise
    * compared.
    */
-  Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
 
   /**
    * Map from completion identifier to completion suggestion
    */
-  Map<String, CompletionSuggestion> _suggestionMap =
+  final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
   _SuggestionBuilder(this.containingLibrary);

@@ -18,13 +18,6 @@ export 'package:analysis_server/src/provisional/completion/completion_core.dart'
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 /**
- * An object used to instantiate a [DartCompletionContributor] instance
- * for each 'completion.getSuggestions' request.
- * Contributors should *not* be cached between requests.
- */
-typedef DartCompletionContributor DartCompletionContributorFactory();
-
-/**
  * An object used to produce completions
  * at a specific location within a Dart file.
  *

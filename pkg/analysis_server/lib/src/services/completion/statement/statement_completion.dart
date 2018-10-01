@@ -151,8 +151,6 @@ class StatementCompletionProcessor {
 
   LineInfo get lineInfo => statementContext.lineInfo;
 
-  int get requestLine => lineInfo.getLocation(selectionOffset).lineNumber;
-
   int get selectionOffset => statementContext.selectionOffset;
 
   Source get source => statementContext.unitElement.source;

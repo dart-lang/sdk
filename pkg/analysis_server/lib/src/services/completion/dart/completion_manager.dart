@@ -196,7 +196,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   Expression dotTarget;
 
   @override
-  Source librarySource;
+  final Source librarySource;
 
   @override
   CompletionTarget target;

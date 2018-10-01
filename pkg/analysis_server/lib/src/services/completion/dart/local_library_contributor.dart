@@ -27,8 +27,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final OpType optype;
   CompletionSuggestionKind kind;
   final String prefix;
-  List<String> showNames;
-  List<String> hiddenNames;
 
   /**
    * The set of libraries that have been, or are currently being, visited.
