@@ -102,11 +102,6 @@ class FileState {
   final Uri uri;
 
   /**
-   * The absolute file URI of the file.
-   */
-  final Uri fileUri;
-
-  /**
    * The [Source] of the file with the [uri].
    */
   final Source source;
@@ -150,13 +145,12 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.fileUri, this.source)
+  FileState._(this._fsState, this.path, this.uri, this.source)
       : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
-        fileUri = null,
         source = null,
         _exists = true {
     _apiSignature = new Uint8List(16);
@@ -830,7 +824,7 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = new FileState._(this, null, null, null, null);
+      _unresolvedFile = new FileState._(this, null, null, null);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -858,8 +852,7 @@ class FileSystemState {
       }
       // Create a new file.
       FileSource uriSource = new FileSource(resource, uri);
-      file = new FileState._(
-          this, path, uri, _absolutePathToFileUri(path), uriSource);
+      file = new FileState._(this, path, uri, uriSource);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -899,8 +892,7 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
-      file = new FileState._(
-          this, path, uri, _absolutePathToFileUri(path), source);
+      file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
@@ -971,18 +963,6 @@ class FileSystemState {
     _pathToCanonicalFile.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
-  }
-
-  /**
-   * A specialized version of package:path context.toUri(). This assumes the
-   * path is absolute as does a performant conversion to a file: uri.
-   */
-  Uri _absolutePathToFileUri(String path) {
-    if (path.contains(r'\')) {
-      return new Uri(scheme: 'file', path: path.replaceAll(r'\', '/'));
-    } else {
-      return new Uri(scheme: 'file', path: path);
-    }
   }
 
   void _addFileWithPath(String path, FileState file) {
