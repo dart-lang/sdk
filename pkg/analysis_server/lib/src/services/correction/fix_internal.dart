@@ -36,8 +36,8 @@ import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -1954,12 +1954,8 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
-    List<ExecutableElement> elements = ErrorVerifier.computeMissingOverrides(
-            typeProvider,
-            typeSystem,
-            new InheritanceManager(unitLibraryElement),
-            targetClassElement)
-        .toList();
+    List<ExecutableElement> elements =
+        InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
     elements.sort((Element a, Element b) {
       int names = compareStrings(a.displayName, b.displayName);

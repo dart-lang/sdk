@@ -59,6 +59,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         objectType.methods.length + objectType.accessors.length;
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_accessor_extends() {
     // class A { int get g; }
     // class B extends A {}
@@ -77,6 +78,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], same(getterG));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_accessor_implements() {
     // class A { int get g; }
     // class B implements A {}
@@ -96,6 +98,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], isNull);
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_accessor_with() {
     // class A { int get g; }
     // class B extends Object with A {}
@@ -115,6 +118,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], same(getterG));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
@@ -123,6 +127,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_method_extends() {
     // class A { int g(); }
     // class B extends A {}
@@ -142,6 +147,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodM));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_method_implements() {
     // class A { int g(); }
     // class B implements A {}
@@ -161,6 +167,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], isNull);
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_method_with() {
     // class A { int g(); }
     // class B extends Object with A {}
@@ -180,6 +187,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodM));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromClasses_method_with_two_mixins() {
     // class A1 { int m(); }
     // class A2 { int m(); }
@@ -711,6 +719,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[methodName], same(methodM4));
   }
 
+  @deprecated
   void test_getMembersInheritedFromClasses_field_indirectWith() {
     // class A { int f; }
     // class B extends A {}

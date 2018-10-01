@@ -99,6 +99,7 @@ class InheritanceManager {
    * passed [ClassElement]'s superclass hierarchy, and the associated executable
    * element.
    */
+  @deprecated
   Map<String, ExecutableElement> getMembersInheritedFromClasses(
           ClassElement classElt) =>
       _computeClassChainLookupMap(classElt, new HashSet<ClassElement>());

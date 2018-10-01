@@ -15,6 +15,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
 class InheritanceOverrideVerifier {
+  static const _missingOverridesKey = 'missingOverrides';
+
   final StrongTypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager2 _inheritance;
@@ -66,6 +68,12 @@ class InheritanceOverrideVerifier {
         ).verify();
       }
     }
+  }
+
+  /// Returns [ExecutableElement]s that are in the interface of the given
+  /// class, but don't have concrete implementations.
+  static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
+    return node.name.getProperty(_missingOverridesKey) ?? const [];
   }
 }
 
@@ -411,6 +419,11 @@ class _ClassVerifier {
     if (elements == null) {
       return;
     }
+
+    classNameNode.setProperty(
+      InheritanceOverrideVerifier._missingOverridesKey,
+      elements,
+    );
 
     var descriptions = <String>[];
     for (ExecutableElement element in elements) {
