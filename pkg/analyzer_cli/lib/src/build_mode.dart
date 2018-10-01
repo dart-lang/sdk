@@ -450,6 +450,8 @@ class BuildMode extends Object with HasContextMixin {
       }
       Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
       String path = sourceFile.substring(pipeIndex + 1);
+      path = resourceProvider.pathContext.absolute(path);
+      path = resourceProvider.pathContext.normalize(path);
       uriToFileMap[uri] = resourceProvider.getFile(path);
     }
     return uriToFileMap;
