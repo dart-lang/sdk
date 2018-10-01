@@ -2322,6 +2322,33 @@ class B<T extends A<B>> {}
     await waitForIdleWithoutExceptions();
   }
 
+  test_issue34619() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class C {
+  final Set<String> f = new Set<String>();
+
+  @override
+  List<int> foo() {}
+}
+''');
+
+    driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+
+    // Update the file in a
+    provider.updateFile(a, r'''
+class C {
+  final Set<String> f = a + b + c;
+
+  @override
+  List<int> foo() {}
+}
+''');
+    driver.changeFile(a);
+    await waitForIdleWithoutExceptions();
+  }
+
   test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

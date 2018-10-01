@@ -308,6 +308,48 @@ class C {
 ''');
   }
 
+  test_class_field_withType_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  int a = 2;
+  const C();
+}
+''');
+  }
+
+  test_class_field_withType_static_final_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  static final int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  static final int a = 2;
+  const C();
+}
+''');
+  }
+
+  test_class_field_withType_static_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  static int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  static int a = 2;
+  const C();
+}
+''');
+  }
+
   test_class_implements() async {
     await assertNotSameSignature(r'''
 class A {}

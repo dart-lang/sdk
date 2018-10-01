@@ -6780,13 +6780,17 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_invalid_typeParameter_asPrefix() {
-    var c = serializeClassText('''
+    var variable = serializeClassText('''
 class C<T> {
   final f = T.k;
 }
-''');
-    assertUnlinkedConst(c.fields[0].initializer.bodyExpr,
-        isValidConst: false, operators: []);
+''').fields[0];
+    if (containsNonConstExprs) {
+      assertUnlinkedConst(variable.initializer.bodyExpr,
+          isValidConst: false, operators: []);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
   }
 
   test_expr_invokeMethod_instance() {
@@ -7110,38 +7114,33 @@ class C {
     checkDocumentationComment(variable.documentationComment, text);
   }
 
-  test_field_final() {
-    UnlinkedVariable variable =
-        serializeClassText('class C { final int i = 0; }').fields[0];
-    expect(variable.isFinal, isTrue);
-    expect(variable.inheritsCovariantSlot, 0);
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedExprOperation.pushInt], ints: [0]);
-  }
-
   test_field_final_notConstExpr() {
     UnlinkedVariable variable = serializeClassText(r'''
 class C {
-  final int f = 1 + m();
+  final f = 1 + m();
   static int m() => 42;
 }''').fields[0];
     expect(variable.isFinal, isTrue);
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.invokeMethodRef,
-      UnlinkedExprOperation.add,
-    ], ints: [
-      1,
-      0,
-      0,
-      0
-    ], strings: [], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, 'm',
-              expectedKind: ReferenceKind.method,
-              prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
-              ])
-    ]);
+    if (containsNonConstExprs) {
+      assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.invokeMethodRef,
+        UnlinkedExprOperation.add,
+      ], ints: [
+        1,
+        0,
+        0,
+        0
+      ], strings: [], referenceValidators: [
+        (EntityRef r) => checkTypeRef(r, null, 'm',
+                expectedKind: ReferenceKind.method,
+                prefixExpectations: [
+                  new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+                ])
+      ]);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
   }
 
   test_field_final_typeParameter() {
@@ -7150,10 +7149,14 @@ class C<T> {
   final f = <T>[];
 }''').fields[0];
     expect(variable.isFinal, isTrue);
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedExprOperation.makeTypedList],
-        ints: [0],
-        referenceValidators: [(EntityRef r) => checkParamTypeRef(r, 1)]);
+    if (containsNonConstExprs) {
+      assertUnlinkedConst(variable.initializer.bodyExpr,
+          operators: [UnlinkedExprOperation.makeTypedList],
+          ints: [0],
+          referenceValidators: [(EntityRef r) => checkParamTypeRef(r, 1)]);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
   }
 
   test_field_formal_param_inferred_type_explicit() {
@@ -7226,6 +7229,127 @@ class C<T> {
     expect(v.inferredTypeSlot, 0);
   }
 
+  test_field_initializer_constConstructor_typed() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  int x = 0;
+  const C();
+}
+''').fields[0];
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
+  }
+
+  test_field_initializer_final_constConstructor_typed() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  final int x = 0;
+  const C();
+}
+''').fields[0];
+    expect(variable.initializer.bodyExpr, isNotNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_final_constConstructor_untyped() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  final x = 0;
+  const C();
+}
+''').fields[0];
+    expect(variable.initializer.bodyExpr, isNotNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_final_typed() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { final int x = 0; }').fields[0];
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_final_untyped() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { final x = 0; }').fields[0];
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_static_constConstructor_typed() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static int x = 0;
+  const C();
+}
+''').fields[0];
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_static_constConstructor_untyped() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static var x = 0;
+  const C();
+}
+''').fields[0];
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_static_final_constConstructor_typed() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static final int x = 0;
+  const C();
+}
+''').fields[0];
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_static_final_constConstructor_untyped() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static final x = 0;
+  const C();
+}
+''').fields[0];
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_initializer_typed() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { int x = 0; }').fields[0];
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
+  }
+
+  test_field_initializer_untyped() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { var x = 0; }').fields[0];
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
+    expect(variable.inheritsCovariantSlot, isNot(0));
+  }
+
   test_field_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
@@ -7263,17 +7387,6 @@ class C<T> {
       expect(variable.initializer.bodyExpr, isNull);
     }
     expect(variable.inheritsCovariantSlot, 0);
-  }
-
-  test_field_untyped() {
-    UnlinkedVariable variable =
-        serializeClassText('class C { var x = 0; }').fields[0];
-    if (containsNonConstExprs) {
-      expect(variable.initializer.bodyExpr, isNotNull);
-    } else {
-      expect(variable.initializer.bodyExpr, isNull);
-    }
-    expect(variable.inheritsCovariantSlot, isNot(0));
   }
 
   test_fully_linked_references_follow_other_references() {
@@ -9827,20 +9940,6 @@ var v;''';
     checkDynamicTypeRef(variable.type);
   }
 
-  test_variable_final_top_level() {
-    UnlinkedVariable variable =
-        serializeVariableText('final int i = 0;', variableName: 'i');
-    expect(variable.isFinal, isTrue);
-    expect(variable.initializer.bodyExpr, isNull);
-  }
-
-  test_variable_final_top_level_untyped() {
-    if (skipFullyLinkedData) return;
-    UnlinkedVariable variable = serializeVariableText('final v = 0;');
-    var typeRef = getTypeRefForSlot(variable.inferredTypeSlot);
-    checkLinkedTypeRef(typeRef, 'dart:core', 'int');
-  }
-
   test_variable_implicit_dynamic() {
     UnlinkedVariable variable = serializeVariableText('var v;');
     expect(variable.type, isNull);
@@ -9861,6 +9960,31 @@ var v;''';
     expect(v.inferredTypeSlot, 0);
   }
 
+  test_variable_initializer() {
+    UnlinkedVariable variable =
+        serializeVariableText('int i = 0;', variableName: 'i');
+    expect(variable.initializer.bodyExpr, isNull);
+  }
+
+  test_variable_initializer_final() {
+    UnlinkedVariable variable =
+        serializeVariableText('final int i = 0;', variableName: 'i');
+    expect(variable.isFinal, isTrue);
+    expect(variable.initializer.bodyExpr, isNull);
+  }
+
+  test_variable_initializer_final_untyped() {
+    if (skipFullyLinkedData) return;
+    UnlinkedVariable variable = serializeVariableText('final v = 0;');
+    var typeRef = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'int');
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
+  }
+
   test_variable_initializer_literal() {
     UnlinkedVariable variable = serializeVariableText('var v = 42;');
     UnlinkedExecutable initializer = variable.initializer;
@@ -9873,6 +9997,18 @@ var v;''';
   test_variable_initializer_noInitializer() {
     UnlinkedVariable variable = serializeVariableText('var v;');
     expect(variable.initializer, isNull);
+  }
+
+  test_variable_initializer_untyped() {
+    if (skipFullyLinkedData) return;
+    UnlinkedVariable variable = serializeVariableText('var v = 0;');
+    var typeRef = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, 'dart:core', 'int');
+    if (containsNonConstExprs) {
+      expect(variable.initializer.bodyExpr, isNotNull);
+    } else {
+      expect(variable.initializer.bodyExpr, isNull);
+    }
   }
 
   test_variable_initializer_withLocals() {
