@@ -431,7 +431,9 @@ class Driver implements ServerStarter {
     InstrumentationService instrumentationService =
         new InstrumentationService(instrumentationServer);
     instrumentationService.logVersion(
-        _readUuid(instrumentationService),
+        trainDirectory != null
+            ? 'training-0'
+            : _readUuid(instrumentationService),
         analysisServerOptions.clientId,
         analysisServerOptions.clientVersion,
         AnalysisServer.VERSION,
