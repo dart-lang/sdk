@@ -22,6 +22,8 @@ class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
+  TranslationHelper(Thread* thread, Heap::Space space);
+
   virtual ~TranslationHelper() {}
 
   void Reset();

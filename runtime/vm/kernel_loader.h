@@ -21,8 +21,10 @@ class KernelLoader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelLoader* loader, Thread* thread)
-      : TranslationHelper(thread), loader_(loader) {}
+  BuildingTranslationHelper(KernelLoader* loader,
+                            Thread* thread,
+                            Heap::Space space)
+      : TranslationHelper(thread, space), loader_(loader) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
