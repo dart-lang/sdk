@@ -216,12 +216,6 @@ f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/14: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/15: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/17: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/18: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/20: MissingCompileTimeError # Issue 33308
-instantiate_to_bounds_super_bounded_test/21: MissingCompileTimeError # Issue 33308
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
 issue34488_test/01: MissingCompileTimeError # Issue 34488
