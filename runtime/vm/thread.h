@@ -464,6 +464,9 @@ class Thread : public BaseThread {
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
+  bool bump_allocate() const { return bump_allocate_; }
+  void set_bump_allocate(bool b) { bump_allocate_ = b; }
+
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
     return no_handle_scope_depth_;
@@ -867,6 +870,7 @@ class Thread : public BaseThread {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+  bool bump_allocate_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;

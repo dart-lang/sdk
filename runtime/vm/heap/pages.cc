@@ -454,6 +454,12 @@ void PageSpace::ReleaseDataLock() {
   freelist_[HeapPage::kData].mutex()->Unlock();
 }
 
+#if defined(DEBUG)
+bool PageSpace::CurrentThreadOwnsDataLock() {
+  return freelist_[HeapPage::kData].mutex()->IsOwnedByCurrentThread();
+}
+#endif
+
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);

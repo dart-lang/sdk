@@ -10,6 +10,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
+#include "vm/heap/heap.h"
 #include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -198,6 +199,13 @@ KernelLoader::KernelLoader(Program* program)
 
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
+  Thread* thread = Thread::Current();
+
+  // The kernel loader is about to allocate a bunch of new libraries, classes,
+  // and functions into old space. Force growth, and use of the bump allocator
+  // instead of freelists.
+  BumpAllocateScope bfgScope(thread);
+
   if (program->is_single_program()) {
     KernelLoader loader(program);
     return Object::Handle(loader.LoadProgram(process_pending_classes));
@@ -207,7 +215,6 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   GrowableArray<intptr_t> subprogram_file_starts;
   index_programs(&reader, &subprogram_file_starts);
 
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Library& library = Library::Handle(zone);
   // Create "fake programs" for each sub-program.

@@ -2059,7 +2059,15 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
 
-  uword address = heap->Allocate(size, space);
+  uword address;
+
+  if (thread->bump_allocate() && (space == Heap::kOld)) {
+    DEBUG_ASSERT(heap->old_space()->CurrentThreadOwnsDataLock());
+    address = heap->old_space()->TryAllocateDataBumpLocked(
+        size, PageSpace::kForceGrowth);
+  } else {
+    address = heap->Allocate(size, space);
+  }
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.

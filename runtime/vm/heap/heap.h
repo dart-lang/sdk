@@ -431,6 +431,22 @@ class WritableVMIsolateScope : StackResource {
   ~WritableVMIsolateScope();
 };
 
+// This scope forces heap growth, forces use of the bump allocator, and
+// takes the page lock. It is useful e.g. at program startup when allocating
+// many objects into old gen (like libraries, classes, and functions).
+class BumpAllocateScope : StackResource {
+ public:
+  explicit BumpAllocateScope(Thread* thread);
+  ~BumpAllocateScope();
+
+ private:
+  // This is needed to avoid a GC while we hold the page lock, which would
+  // trigger a deadlock.
+  NoHeapGrowthControlScope no_growth_control_;
+
+  DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HEAP_HEAP_H_
