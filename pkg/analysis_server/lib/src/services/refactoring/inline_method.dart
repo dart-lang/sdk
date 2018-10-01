@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -188,7 +189,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
   final AstProvider astProvider;
-  final CompilationUnit unit;
+  final ResolveResult resolveResult;
   final int offset;
   ResolvedUnitCache _unitCache;
   CorrectionUtils utils;
@@ -212,9 +213,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.astProvider, this.unit, this.offset) {
-    _unitCache = new ResolvedUnitCache(astProvider, unit);
-    utils = new CorrectionUtils(unit);
+      this.searchEngine, this.astProvider, this.resolveResult, this.offset) {
+    _unitCache = new ResolvedUnitCache(astProvider, resolveResult.unit);
+    utils =
+        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
 
   @override
@@ -355,7 +357,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(resolveResult.unit);
     if (node is! SimpleIdentifier) {
       return fatalStatus;
     }

@@ -85,6 +85,18 @@ class EditDomainHandler extends AbstractRequestHandler {
     _newRefactoringManager();
   }
 
+  Future dartfix(Request request) async {
+    // TODO(danrubel): Add support for dartfix plugins
+
+    //
+    // Compute fixes
+    //
+    var dartFix = new EditDartFix(server, request);
+    Response response = await dartFix.compute();
+
+    server.sendResponse(response);
+  }
+
   Response format(Request request) {
     server.options.analytics?.sendEvent('edit', 'format');
 
@@ -259,18 +271,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
-  }
-
-  Future dartfix(Request request) async {
-    // TODO(danrubel): Add support for dartfix plugins
-
-    //
-    // Compute fixes
-    //
-    var dartFix = new EditDartFix(server, request);
-    Response response = await dartFix.compute();
-
-    server.sendResponse(response);
   }
 
   Future getPostfixCompletion(Request request) async {
@@ -613,22 +613,20 @@ class EditDomainHandler extends AbstractRequestHandler {
     {
       var analysisResult = await server.getAnalysisResult(file);
       if (analysisResult != null) {
-        // TODO(scheglov) Update other refactorings to use ResolveResult.
-        var unit = analysisResult.unit;
         // Try EXTRACT_LOCAL_VARIABLE.
         if (new ExtractLocalRefactoring(analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
         // Try EXTRACT_METHOD.
-        if (new ExtractMethodRefactoring(
-                searchEngine, server.getAstProvider(file), unit, offset, length)
+        if (new ExtractMethodRefactoring(searchEngine,
+                server.getAstProvider(file), analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_METHOD);
         }
         // Try EXTRACT_WIDGETS.
         if (new ExtractWidgetRefactoring(
-                searchEngine, analysisResult.session, unit, offset, length)
+                searchEngine, analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
@@ -971,35 +969,34 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        refactoring = new ExtractMethodRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset, length);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        refactoring = new ExtractMethodRefactoring(searchEngine,
+            server.getAstProvider(file), analysisResult, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_WIDGET) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        var analysisSession = server.getAnalysisDriver(file).currentSession;
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new ExtractWidgetRefactoring(
-            searchEngine, analysisSession, unit, offset, length);
+            searchEngine, analysisResult, offset, length);
         feedback = new ExtractWidgetFeedback();
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new InlineLocalRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset);
+            searchEngine, server.getAstProvider(file), analysisResult, offset);
       }
     }
     if (kind == RefactoringKind.INLINE_METHOD) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new InlineMethodRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset);
+            searchEngine, server.getAstProvider(file), analysisResult, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {

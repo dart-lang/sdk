@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -28,13 +28,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ExtractWidgetRefactoringImpl extends RefactoringImpl
     implements ExtractWidgetRefactoring {
   final SearchEngine searchEngine;
+  final ResolveResult resolveResult;
   final AnalysisSessionHelper sessionHelper;
-  final CompilationUnit unit;
   final int offset;
   final int length;
 
-  CompilationUnitElement unitElement;
-  LibraryElement libraryElement;
   CorrectionUtils utils;
 
   ClassElement classBuildContext;
@@ -73,12 +71,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// and [_method] parameters.
   List<_Parameter> _parameters = [];
 
-  ExtractWidgetRefactoringImpl(this.searchEngine, AnalysisSession session,
-      this.unit, this.offset, this.length)
-      : sessionHelper = new AnalysisSessionHelper(session) {
-    unitElement = unit.declaredElement;
-    libraryElement = unitElement.library;
-    utils = new CorrectionUtils(unit);
+  ExtractWidgetRefactoringImpl(
+      this.searchEngine, this.resolveResult, this.offset, this.length)
+      : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
+    utils =
+        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
 
   @override
@@ -126,7 +123,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      visitLibraryTopLevelElements(libraryElement, (element) {
+      visitLibraryTopLevelElements(resolveResult.libraryElement, (element) {
         if (hasDisplayName(element, name)) {
           String message = format(
               "Library already declares {0} with name '{1}'.",
@@ -144,9 +141,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String file = unitElement.source.fullName;
     var changeBuilder = new DartChangeBuilder(sessionHelper.session);
-    await changeBuilder.addFileEdit(file, (builder) {
+    await changeBuilder.addFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
         builder.addReplacement(range.node(_expression), (builder) {
           _writeWidgetInstantiation(builder);
@@ -177,7 +173,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+    AstNode node = new NodeLocator(offset, offset + length)
+        .searchWithin(resolveResult.unit);
 
     // Treat single ReturnStatement as its expression.
     if (node is ReturnStatement) {

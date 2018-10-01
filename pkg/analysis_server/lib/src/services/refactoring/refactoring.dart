@@ -22,7 +22,6 @@ import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -146,11 +145,11 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   factory ExtractMethodRefactoring(
       SearchEngine searchEngine,
       AstProvider astProvider,
-      CompilationUnit unit,
+      ResolveResult resolveResult,
       int selectionOffset,
       int selectionLength) {
-    return new ExtractMethodRefactoringImpl(
-        searchEngine, astProvider, unit, selectionOffset, selectionLength);
+    return new ExtractMethodRefactoringImpl(searchEngine, astProvider,
+        resolveResult, selectionOffset, selectionLength);
   }
 
   /**
@@ -244,9 +243,9 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    * Returns a new [ExtractWidgetRefactoring] instance.
    */
   factory ExtractWidgetRefactoring(SearchEngine searchEngine,
-      AnalysisSession session, CompilationUnit unit, int offset, int length) {
+      ResolveResult resolveResult, int offset, int length) {
     return new ExtractWidgetRefactoringImpl(
-        searchEngine, session, unit, offset, length);
+        searchEngine, resolveResult, offset, length);
   }
 
   /**
@@ -280,9 +279,9 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns a new [InlineLocalRefactoring] instance.
    */
   factory InlineLocalRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, CompilationUnit unit, int offset) {
+      AstProvider astProvider, ResolveResult resolveResult, int offset) {
     return new InlineLocalRefactoringImpl(
-        searchEngine, astProvider, unit, offset);
+        searchEngine, astProvider, resolveResult, offset);
   }
 
   /**
@@ -304,9 +303,9 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * Returns a new [InlineMethodRefactoring] instance.
    */
   factory InlineMethodRefactoring(SearchEngine searchEngine,
-      AstProvider astProvider, CompilationUnit unit, int offset) {
+      AstProvider astProvider, ResolveResult resolveResult, int offset) {
     return new InlineMethodRefactoringImpl(
-        searchEngine, astProvider, unit, offset);
+        searchEngine, astProvider, resolveResult, offset);
   }
 
   /**
