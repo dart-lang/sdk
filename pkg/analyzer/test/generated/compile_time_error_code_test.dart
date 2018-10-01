@@ -1511,12 +1511,7 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
-    // ought to be suppressed.
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONST,
-      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     verify([source]);
   }
 
@@ -1542,11 +1537,8 @@ class A {
 }
 f(p) { return const A(p); }''');
     await computeAnalysisResult(source);
-    // TODO(paulberry): the error INVALID_CONSTANT is redundant and ought to be
-    // suppressed.
     assertErrors(source, [
       CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
-      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
     verify([source]);
   }

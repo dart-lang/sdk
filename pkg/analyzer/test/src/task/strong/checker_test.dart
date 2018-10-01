@@ -156,7 +156,7 @@ class B extends A {
   const B(Object a) : super(/*info:DOWN_CAST_IMPLICIT*/a);
 }
 void foo(Object o) {
-  var a = const A(/*info:DOWN_CAST_IMPLICIT, error:CONST_WITH_NON_CONSTANT_ARGUMENT, error:INVALID_CONSTANT*/o);
+  var a = const A(/*info:DOWN_CAST_IMPLICIT, error:CONST_WITH_NON_CONSTANT_ARGUMENT*/o);
 }
 ''');
   }

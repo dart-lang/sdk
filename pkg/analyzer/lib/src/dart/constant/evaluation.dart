@@ -1576,6 +1576,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * given error [code].
    */
   void _error(AstNode node, ErrorCode code) {
+    if (code == null) {
+      var parent = node?.parent;
+      var parent2 = parent?.parent;
+      if (parent is ArgumentList &&
+          parent2 is InstanceCreationExpression &&
+          parent2.isConst) {
+        code = CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT;
+      } else {
+        code = CompileTimeErrorCode.INVALID_CONSTANT;
+      }
+    }
     _errorReporter.reportErrorForNode(
         code ?? CompileTimeErrorCode.INVALID_CONSTANT, node);
   }

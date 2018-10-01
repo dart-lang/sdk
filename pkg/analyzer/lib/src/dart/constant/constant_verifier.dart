@@ -135,9 +135,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             constantVisitor,
             _errorReporter);
       }
+      return null;
+    } else {
+      return super.visitInstanceCreationExpression(node);
     }
-    _validateInstanceCreationArguments(node);
-    return super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -601,21 +602,6 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     for (Expression argument in argumentList.arguments) {
       _validateInitializerExpression(parameterElements, argument);
     }
-  }
-
-  /// Validate that if the passed instance creation is 'const' then all its
-  /// arguments are constant expressions.
-  ///
-  /// @param node the instance creation evaluate
-  void _validateInstanceCreationArguments(InstanceCreationExpression node) {
-    if (!node.isConst) {
-      return;
-    }
-    ArgumentList argumentList = node.argumentList;
-    if (argumentList == null) {
-      return;
-    }
-    _validateConstantArguments(argumentList);
   }
 }
 
