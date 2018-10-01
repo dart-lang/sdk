@@ -1,3 +1,7 @@
+# 0.1.66
+
+* broadened SDK version constraint
+
 # 0.1.65
 
 * fix cast exceptions related to mixin support
