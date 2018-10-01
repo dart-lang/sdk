@@ -1340,7 +1340,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
@@ -3543,27 +3542,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * For each class declaration, this method is called which verifies that all
-   * inherited members are inherited consistently.
-   *
-   * See [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE].
-   */
-  void _checkForInconsistentMethodInheritance() {
-    // Ensure that the inheritance manager has a chance to generate all errors
-    // we may care about, note that we ensure that the interfaces data since
-    // there are no errors.
-    _inheritanceManager.getMembersInheritedFromInterfaces(_enclosingClass);
-    Set<AnalysisError> errors = _inheritanceManager.getErrors(_enclosingClass);
-    if (errors == null || errors.isEmpty) {
-      return;
-    }
-    for (AnalysisError error in errors) {
-      _errorReporter.reportError(error);
-    }
-    return;
-  }
-
-  /**
    * Check for a type mis-match between the iterable expression and the
    * assigned variable in a for-in statement.
    */
@@ -5712,7 +5690,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(

@@ -3462,7 +3462,7 @@ class LibraryElementInBuildUnit
 
   /// Get the inheritance manager for this library (creating it if necessary).
   InheritanceManager get inheritanceManager =>
-      _inheritanceManager ??= new InheritanceManager(this, ignoreErrors: true);
+      _inheritanceManager ??= new InheritanceManager(this);
 
   @override
   LibraryCycleForLink get libraryCycleForLink {

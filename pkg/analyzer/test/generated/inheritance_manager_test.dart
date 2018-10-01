@@ -4,11 +4,8 @@
 
 library analyzer.test.generated.inheritance_manager_test;
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -25,7 +22,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_context_factory.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -79,8 +75,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[getterName], same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_accessor_implements() {
@@ -100,8 +94,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject);
     expect(mapB[getterName], isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_accessor_with() {
@@ -121,8 +113,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[getterName], same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
@@ -131,7 +121,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromClasses(classA);
     expect(mapA.length, _numOfMembersInObject);
-    _assertNoErrors(classA);
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_extends() {
@@ -151,8 +140,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[methodName], same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_implements() {
@@ -172,8 +159,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject);
     expect(mapB[methodName], isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_with() {
@@ -193,8 +178,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[methodName], same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromClasses_method_with_two_mixins() {
@@ -215,9 +198,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     expect(mapB[methodName], same(methodA2M));
-    _assertNoErrors(classA1);
-    _assertNoErrors(classA2);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() {
@@ -236,8 +216,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[getterName], same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_implements() {
@@ -257,8 +235,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[getterName], same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_accessor_with() {
@@ -278,8 +254,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[getterName], same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_field_indirectWith() {
@@ -303,9 +277,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapC, hasLength(_numOfMembersInObject + 2));
     expect(mapC[fieldName], same(fieldF.getter));
     expect(mapC['$fieldName='], same(fieldF.setter));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
-    _assertNoErrors(classC);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
@@ -314,7 +285,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject);
-    _assertNoErrors(classA);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_extends() {
@@ -333,8 +303,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[methodName], same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_implements() {
@@ -354,8 +322,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[methodName], same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_with() {
@@ -375,8 +341,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
     expect(mapB.length, _numOfMembersInObject + 1);
     expect(mapB[methodName], same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_union_differentNames() {
@@ -400,7 +364,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject + 2);
     expect(mapA[methodName1], same(methodM1));
     expect(mapA[methodName2], same(methodM2));
-    _assertNoErrors(classA);
   }
 
   void
@@ -426,7 +389,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     syntheticAccessor = ElementFactory.getterElement(
         accessorName, false, _typeProvider.intType);
     expect(mapA[accessorName].type, syntheticAccessor.type);
-    _assertNoErrors(classA);
   }
 
   void
@@ -462,7 +424,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [_typeProvider.numType]);
     expect(mapA[methodName].type, syntheticMethod.type);
-    _assertNoErrors(classA);
   }
 
   void
@@ -489,7 +450,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         accessorName, false, _typeProvider.numType);
     syntheticAccessor.returnType = VoidTypeImpl.instance;
     expect(mapA["$accessorName="].type, syntheticAccessor.type);
-    _assertNoErrors(classA);
   }
 
   void
@@ -530,7 +490,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     syntheticAccessor =
         ElementFactory.getterElement(accessorName, false, classC.type);
     expect(mapD[accessorName].type, syntheticAccessor.type);
-    _assertNoErrors(classD);
   }
 
   void
@@ -586,7 +545,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [classA.type]);
     expect(mapD[methodName].type, syntheticMethod.type);
-    _assertNoErrors(classD);
   }
 
   void
@@ -628,7 +586,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         ElementFactory.setterElement(accessorName, false, classA.type);
     syntheticAccessor.returnType = VoidTypeImpl.instance;
     expect(mapD["$accessorName="].type, syntheticAccessor.type);
-    _assertNoErrors(classD);
   }
 
   void
@@ -656,7 +613,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     expect(mapA[methodName], same(methodM2));
-    _assertNoErrors(classA);
   }
 
   void
@@ -702,7 +658,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     expect(mapA[methodName], same(methodM3));
-    _assertNoErrors(classA);
   }
 
   void
@@ -754,7 +709,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     expect(mapA[methodName], same(methodM4));
-    _assertNoErrors(classA);
   }
 
   void test_getMembersInheritedFromClasses_field_indirectWith() {
@@ -776,9 +730,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     Map<String, ExecutableElement> mapC =
         _inheritanceManager.getMembersInheritedFromClasses(classC);
     expect(mapC, hasLength(_numOfMembersInObject));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
-    _assertNoErrors(classC);
   }
 
   void test_lookupInheritance_interface_getter() {
@@ -791,8 +742,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_interface_method() {
@@ -805,8 +754,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_interface_setter() {
@@ -819,8 +766,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_interface_staticMember() {
@@ -833,15 +778,12 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_interfaces_infiniteLoop() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_interfaces_infiniteLoop2() {
@@ -850,8 +792,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classA.interfaces = <InterfaceType>[classB.type];
     classB.interfaces = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_interfaces_union2() {
@@ -872,9 +812,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         same(methodM1));
     expect(_inheritanceManager.lookupInheritance(classA, methodName2),
         same(methodM2));
-    _assertNoErrors(classI1);
-    _assertNoErrors(classI2);
-    _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_mixin_getter() {
@@ -887,8 +824,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.mixins = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_mixin_method() {
@@ -901,8 +836,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.mixins = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_mixin_setter() {
@@ -915,8 +848,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classB.mixins = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_mixin_staticMember() {
@@ -929,14 +860,11 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_noMember() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     expect(_inheritanceManager.lookupInheritance(classA, "a"), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_superclass_getter() {
@@ -948,15 +876,12 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_infiniteLoop() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.supertype = classA.type;
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_superclass_infiniteLoop2() {
@@ -965,8 +890,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classA.supertype = classB.type;
     classB.supertype = classA.type;
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_method() {
@@ -978,8 +901,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_setter() {
@@ -991,8 +912,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_staticMember() {
@@ -1004,8 +923,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupMember_getter() {
@@ -1015,7 +932,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     expect(_inheritanceManager.lookupMember(classA, getterName), same(getterG));
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_getter_static() {
@@ -1025,7 +941,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     expect(_inheritanceManager.lookupMember(classA, getterName), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_method() {
@@ -1035,7 +950,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), same(methodM));
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_method_static() {
@@ -1046,13 +960,11 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_noMember() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     expect(_inheritanceManager.lookupMember(classA, "a"), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_setter() {
@@ -1063,7 +975,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classA.accessors = <PropertyAccessorElement>[setterS];
     expect(_inheritanceManager.lookupMember(classA, "$setterName="),
         same(setterS));
-    _assertNoErrors(classA);
   }
 
   void test_lookupMember_setter_static() {
@@ -1073,7 +984,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         ElementFactory.setterElement(setterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     expect(_inheritanceManager.lookupMember(classA, setterName), isNull);
-    _assertNoErrors(classA);
   }
 
   void test_lookupOverrides_noParentClasses() {
@@ -1084,7 +994,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     classA.methods = <MethodElement>[methodM];
     expect(
         _inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
-    _assertNoErrors(classA);
   }
 
   void test_lookupOverrides_overrideBaseClass() {
@@ -1100,8 +1009,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     List<ExecutableElement> overrides =
         _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupOverrides_overrideInterface() {
@@ -1118,8 +1025,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     List<ExecutableElement> overrides =
         _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
   }
 
   void test_lookupOverrides_overrideTwoInterfaces() {
@@ -1140,26 +1045,6 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     List<ExecutableElement> overrides =
         _inheritanceManager.lookupOverrides(classC, methodName);
     expect(overrides, unorderedEquals([methodMinA, methodMinB]));
-    _assertNoErrors(classA);
-    _assertNoErrors(classB);
-    _assertNoErrors(classC);
-  }
-
-  void _assertErrors(ClassElement classElt,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    HashSet<AnalysisError> actualErrors =
-        _inheritanceManager.getErrors(classElt);
-    if (actualErrors != null) {
-      for (AnalysisError error in actualErrors) {
-        errorListener.onError(error);
-      }
-    }
-    errorListener.assertErrorsWithCodes(expectedErrorCodes);
-  }
-
-  void _assertNoErrors(ClassElement classElt) {
-    _assertErrors(classElt);
   }
 
   /**

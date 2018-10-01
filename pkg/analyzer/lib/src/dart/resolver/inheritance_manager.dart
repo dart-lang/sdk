@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -47,29 +46,12 @@ class InheritanceManager {
   Map<ClassElement, Map<String, ExecutableElement>> _interfaceLookup;
 
   /**
-   * A map between each visited [ClassElement] and the set of [AnalysisError]s found on
-   * the class element.
-   */
-  Map<ClassElement, Set<AnalysisError>> _errorsInClassElement =
-      new HashMap<ClassElement, Set<AnalysisError>>();
-
-  /**
-   * Indicates whether errors should be ignored.
-   *
-   * When this bool is `true`, we skip the logic that figures out which error
-   * to report; this avoids a crash when the inheritance manager is used in the
-   * context of summary linking (where there is not enough information available
-   * to determine error locations).
-   */
-  final bool ignoreErrors;
-
-  /**
    * Initialize a newly created inheritance manager.
    *
    * @param library the library element context that the inheritance mappings are being generated
    */
   InheritanceManager(LibraryElement library,
-      {bool includeAbstractFromSuperclasses: false, this.ignoreErrors: false}) {
+      {bool includeAbstractFromSuperclasses: false}) {
     this._library = library;
     _includeAbstractFromSuperclasses = includeAbstractFromSuperclasses;
     _classLookup = new HashMap<ClassElement, Map<String, ExecutableElement>>();
@@ -85,17 +67,6 @@ class InheritanceManager {
   void set libraryElement(LibraryElement library) {
     this._library = library;
   }
-
-  /**
-   * Return the set of [AnalysisError]s found on the passed [ClassElement], or
-   * `null` if there are none.
-   *
-   * @param classElt the class element to query
-   * @return the set of [AnalysisError]s found on the passed [ClassElement], or
-   *         `null` if there are none
-   */
-  Set<AnalysisError> getErrors(ClassElement classElt) =>
-      _errorsInClassElement[classElt];
 
   /**
    * Get and return a mapping between the set of all string names of the members inherited from the
