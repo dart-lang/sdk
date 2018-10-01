@@ -30,7 +30,7 @@ class StaticMemberContributor extends DartCompletionContributor {
         // Gracefully degrade if the library could not be determined
         // e.g. detached part file or source change
         if (containingLibrary == null) {
-          return EMPTY_LIST;
+          return const <CompletionSuggestion>[];
         }
 
         _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
@@ -38,7 +38,7 @@ class StaticMemberContributor extends DartCompletionContributor {
         return builder.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 

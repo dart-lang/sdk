@@ -65,7 +65,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         return visitor.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 

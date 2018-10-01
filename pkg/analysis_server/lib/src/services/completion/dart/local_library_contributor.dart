@@ -193,13 +193,13 @@ class LocalLibraryContributor extends DartCompletionContributor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<CompilationUnitElement> libraryUnits =
         request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     OpType optype = (request as DartCompletionRequestImpl).opType;

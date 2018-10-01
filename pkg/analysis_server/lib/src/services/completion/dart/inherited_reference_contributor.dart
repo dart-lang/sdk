@@ -60,12 +60,12 @@ class InheritedReferenceContributor extends DartCompletionContributor
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     ClassDeclaration classDecl = _enclosingClass(request.target);
     if (classDecl == null || classDecl.declaredElement == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
     containingLibrary = request.libraryElement;
     return _computeSuggestionsForClass2(

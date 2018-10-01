@@ -38,7 +38,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   List<CompletionSuggestion> _buildSuggestions(

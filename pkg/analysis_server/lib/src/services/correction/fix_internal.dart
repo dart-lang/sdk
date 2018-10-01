@@ -90,7 +90,7 @@ class DefaultFixContributor extends DartFixContributor {
       List<Fix> fixAllFixes = await _computeFixAllFixes(context, fixes);
       return new List.from(fixes)..addAll(fixAllFixes);
     } on CancelCorrectionException {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
   }
 
@@ -105,14 +105,14 @@ class DefaultFixContributor extends DartFixContributor {
     // - return if no fixes
     // - return if no other analysis errors
     if (fixes.isEmpty || allAnalysisErrors.length < 2) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
 
     // Remove any analysis errors that don't have the expected error code name
     allAnalysisErrors
         .removeWhere((e) => analysisError.errorCode.name != e.errorCode.name);
     if (allAnalysisErrors.length < 2) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
 
     // A map between each FixKind and the List of associated fixes

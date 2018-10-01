@@ -22,7 +22,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     await null;
     AstNode node = request.target.containingNode;
     if (node is! FieldFormalParameter) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // If this is a constructor declaration
@@ -30,7 +30,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     ConstructorDeclaration constructorDecl =
         node.getAncestor((p) => p is ConstructorDeclaration);
     if (constructorDecl == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Compute the list of fields already referenced in the constructor

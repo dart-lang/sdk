@@ -13,8 +13,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-export 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show EMPTY_LIST;
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 /**

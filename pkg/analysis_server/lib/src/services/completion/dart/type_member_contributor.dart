@@ -28,23 +28,23 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Recompute the target since resolution may have changed it
     Expression expression = request.dotTarget;
     if (expression == null || expression.isSynthetic) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
       Element elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
       if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
     }
 
@@ -100,7 +100,7 @@ class TypeMemberContributor extends DartCompletionContributor {
       builder.buildSuggestions(type, containingMethodName);
       return builder.suggestions.toList();
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 

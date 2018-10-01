@@ -60,7 +60,7 @@ class DartCompletionManager implements CompletionContributor {
     await null;
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     CompletionPerformance performance =
@@ -70,7 +70,7 @@ class DartCompletionManager implements CompletionContributor {
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     SourceRange range =
