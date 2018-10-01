@@ -201,11 +201,6 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();
 
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bfgScope(thread);
-
   if (program->is_single_program()) {
     KernelLoader loader(program);
     return Object::Handle(loader.LoadProgram(process_pending_classes));
