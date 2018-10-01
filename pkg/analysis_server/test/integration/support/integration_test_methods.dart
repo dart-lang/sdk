@@ -395,6 +395,7 @@ abstract class IntegrationTestMixin {
    *   reachable from a given file, clients can check for its presence in the
    *   resulting key set.
    */
+  @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
     var params = new AnalysisGetReachableSourcesParams(file).toJson();

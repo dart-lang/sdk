@@ -165,22 +165,10 @@ public class RequestErrorCode {
   public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version 1.0.
-   */
-  public static final String UNANALYZED_PRIORITY_FILES = "UNANALYZED_PRIORITY_FILES";
-
-  /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
    * current configuration.
    */
   public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
-
-  /**
-   * The analysis server was requested to perform an action on a source that does not exist.
-   */
-  public static final String UNKNOWN_SOURCE = "UNKNOWN_SOURCE";
 
   /**
    * The analysis server was requested to perform an action which is not supported.

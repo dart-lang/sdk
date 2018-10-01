@@ -605,7 +605,7 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getReachableSources" deprecated="true">
     <p>
       Return the transitive closure of reachable sources for a given file.
     </p>
@@ -4203,31 +4203,11 @@
         </p>
       </value>
       <value>
-        <code>UNANALYZED_PRIORITY_FILES</code>
-        <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
-        </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
-      </value>
-      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </value>
-      <value>
-        <code>UNKNOWN_SOURCE</code>
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </value>
       <value>

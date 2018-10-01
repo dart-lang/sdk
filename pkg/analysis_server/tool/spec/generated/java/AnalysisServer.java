@@ -138,6 +138,8 @@ public interface AnalysisServer {
    * generated.
    *
    * @param file The file for which reachable source information is being requested.
+   *
+   * @deprecated
    */
   public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
 

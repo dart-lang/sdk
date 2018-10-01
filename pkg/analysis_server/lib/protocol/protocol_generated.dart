@@ -15904,9 +15904,7 @@ class RequestError implements HasToJson {
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  *
@@ -16096,28 +16094,11 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are
-   * not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
-   */
-  static const RequestErrorCode UNANALYZED_PRIORITY_FILES =
-      const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
-
-  /**
    * A request was received which the analysis server does not recognize, or
    * cannot handle in its current configuration.
    */
   static const RequestErrorCode UNKNOWN_REQUEST =
       const RequestErrorCode._("UNKNOWN_REQUEST");
-
-  /**
-   * The analysis server was requested to perform an action on a source that
-   * does not exist.
-   */
-  static const RequestErrorCode UNKNOWN_SOURCE =
-      const RequestErrorCode._("UNKNOWN_SOURCE");
 
   /**
    * The analysis server was requested to perform an action which is not
@@ -16159,9 +16140,7 @@ class RequestErrorCode implements Enum {
     SERVER_ERROR,
     SORT_MEMBERS_INVALID_FILE,
     SORT_MEMBERS_PARSE_ERRORS,
-    UNANALYZED_PRIORITY_FILES,
     UNKNOWN_REQUEST,
-    UNKNOWN_SOURCE,
     UNSUPPORTED_FEATURE
   ];
 
@@ -16224,12 +16203,8 @@ class RequestErrorCode implements Enum {
         return SORT_MEMBERS_INVALID_FILE;
       case "SORT_MEMBERS_PARSE_ERRORS":
         return SORT_MEMBERS_PARSE_ERRORS;
-      case "UNANALYZED_PRIORITY_FILES":
-        return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
-      case "UNKNOWN_SOURCE":
-        return UNKNOWN_SOURCE;
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }

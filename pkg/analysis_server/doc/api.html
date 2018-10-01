@@ -245,7 +245,7 @@ a:focus, a:hover {
 <li><a href="#request_analysis.getHover">analysis.getHover</a></li>
 <li><a href="#request_analysis.getLibraryDependencies">analysis.getLibraryDependencies</a></li>
 <li><a href="#request_analysis.getNavigation">analysis.getNavigation</a></li>
-<li><a href="#request_analysis.getReachableSources">analysis.getReachableSources</a></li>
+<li><a class="deprecated" href="#request_analysis.getReachableSources">analysis.getReachableSources</a></li>
 <li><a href="#request_analysis.reanalyze">analysis.reanalyze</a></li>
 <li><a href="#request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></li>
 <li><a href="#request_analysis.setGeneralSubscriptions">analysis.setGeneralSubscriptions</a></li>
@@ -762,7 +762,7 @@ a:focus, a:hover {
           A list of the navigation regions within the requested region of
           the file.
         </p>
-      </dd></dl></dd><dt class="request"><a name="request_analysis.getReachableSources">analysis.getReachableSources</a></dt><dd><div class="box"><pre>request: {
+      </dd></dl></dd><dt class="request deprecated"><a name="request_analysis.getReachableSources">analysis.getReachableSources</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getReachableSources"
   "params": {
@@ -4358,29 +4358,12 @@ a:focus, a:hover {
           An "edit.sortMembers" request specified a Dart file that has
           scan or parse errors.
         </p>
-      </dd><dt class="value">UNANALYZED_PRIORITY_FILES</dt><dd>
-        
-        <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
-        </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        
       </dd><dt class="value">UNKNOWN_REQUEST</dt><dd>
         
         <p>
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </dd><dt class="value">UNKNOWN_SOURCE</dt><dd>
-        
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </dd><dt class="value">UNSUPPORTED_FEATURE</dt><dd>
         
