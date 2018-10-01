@@ -261,8 +261,8 @@ void HostCPUFeatures::Cleanup() {
 
 #else
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
 #if defined(TARGET_ARCH_ARM_5TE)
