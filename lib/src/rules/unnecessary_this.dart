@@ -62,6 +62,7 @@ class UnnecessaryThis extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry) {
     var visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
+    registry.addConstructorFieldInitializer(this, visitor);
   }
 }
 
@@ -74,6 +75,13 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
             rule.reporter.source,
             node.declaredElement.library.context.typeProvider,
             AnalysisErrorListener.NULL_LISTENER);
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (node.thisKeyword != null) {
+      rule.reportLintForToken(node.thisKeyword);
+    }
+  }
 
   @override
   visitThisExpression(ThisExpression node) {
@@ -90,6 +98,7 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
           nameScope.lookup(parent.methodName, definingLibrary));
       localElement = parent.methodName.staticElement;
     }
+
     // Error in code
     if (localElement == null) {
       return null;

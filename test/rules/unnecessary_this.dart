@@ -38,9 +38,13 @@ class A {
   num x, y;
 
   A(num x, num y) {
-    this.x = x;
-    this.y = y;
+    this.x = x; // OK
+    this.y = y; // OK
   }
+
+  A.c1(num x, num y)
+      : x = x, // OK
+        this.y = y; // LINT
 
   A.bar(this.x, this.y);
 
