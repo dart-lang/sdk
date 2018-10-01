@@ -208,6 +208,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodA2M));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() {
     // class A { int get g; }
     // class B extends A {}
@@ -226,6 +227,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], same(getterG));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_accessor_implements() {
     // class A { int get g; }
     // class B implements A {}
@@ -245,6 +247,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], same(getterG));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_accessor_with() {
     // class A { int get g; }
     // class B extends Object with A {}
@@ -264,6 +267,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[getterName], same(getterG));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_field_indirectWith() {
     // class A { int f; }
     // class B extends A {}
@@ -287,6 +291,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapC['$fieldName='], same(fieldF.setter));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
@@ -295,6 +300,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA.length, _numOfMembersInObject);
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_method_extends() {
     // class A { int g(); }
     // class B extends A {}
@@ -313,6 +319,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodM));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_method_implements() {
     // class A { int g(); }
     // class B implements A {}
@@ -332,6 +339,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodM));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_method_with() {
     // class A { int g(); }
     // class B extends Object with A {}
@@ -351,6 +359,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapB[methodName], same(methodM));
   }
 
+  @deprecated
   void test_getMapOfMembersInheritedFromInterfaces_union_differentNames() {
     // class I1 { int m1(); }
     // class I2 { int m2(); }
@@ -374,6 +383,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[methodName2], same(methodM2));
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
@@ -399,6 +409,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[accessorName].type, syntheticAccessor.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
@@ -434,6 +445,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[methodName].type, syntheticMethod.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
@@ -460,6 +472,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA["$accessorName="].type, syntheticAccessor.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
@@ -500,6 +513,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapD[accessorName].type, syntheticAccessor.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
@@ -555,6 +569,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapD[methodName].type, syntheticMethod.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
@@ -596,6 +611,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapD["$accessorName="].type, syntheticAccessor.type);
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
@@ -623,6 +639,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[methodName], same(methodM2));
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
@@ -668,6 +685,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(mapA[methodName], same(methodM3));
   }
 
+  @deprecated
   void
       test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }

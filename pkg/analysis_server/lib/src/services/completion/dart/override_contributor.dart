@@ -12,7 +12,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -38,17 +38,18 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
+    var inheritance = new InheritanceManager2(
+        request.result.libraryElement.context.typeSystem);
+
     // Generate a collection of inherited members
     ClassElement classElem = classDecl.declaredElement;
-    InheritanceManager manager = new InheritanceManager(classElem.library);
-    Map<String, ExecutableElement> map =
-        manager.getMembersInheritedFromInterfaces(classElem);
-    List<String> memberNames = _computeMemberNames(map, classElem);
+    var interface = inheritance.getInterface(classElem.type).map;
+    var namesToOverride = _namesToOverride(classElem, interface.keys);
 
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (String memberName in memberNames) {
-      ExecutableElement element = map[memberName];
+    for (Name name in namesToOverride) {
+      ExecutableElement element = interface[name].element;
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
@@ -126,22 +127,6 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a list containing the names of all of the inherited but not
-   * implemented members of the class represented by the given [element].
-   * The [map] is used to find all of the members that are inherited.
-   */
-  List<String> _computeMemberNames(
-      Map<String, ExecutableElement> map, ClassElement element) {
-    List<String> memberNames = <String>[];
-    for (String memberName in map.keys) {
-      if (!_hasMember(element, memberName)) {
-        memberNames.add(memberName);
-      }
-    }
-    return memberNames;
-  }
-
-  /**
    * If the target looks like a partial identifier inside a class declaration
    * then return that identifier, otherwise return `null`.
    */
@@ -207,5 +192,20 @@ class OverrideContributor implements DartCompletionContributor {
       }
     }
     return false;
+  }
+
+  /**
+   * Return a list containing the subset of [interfaceNames] that are not
+   * defined yet in the given [classElement].
+   */
+  List<Name> _namesToOverride(
+      ClassElement classElement, Iterable<Name> interfaceNames) {
+    var notDefinedNames = <Name>[];
+    for (var name in interfaceNames) {
+      if (!_hasMember(classElement, name.name)) {
+        notDefinedNames.add(name);
+      }
+    }
+    return notDefinedNames;
   }
 }

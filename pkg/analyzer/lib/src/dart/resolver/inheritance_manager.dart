@@ -109,6 +109,7 @@ class InheritanceManager {
    * passed [ClassElement]'s interface hierarchy, and the associated executable
    * element.
    */
+  @deprecated
   Map<String, ExecutableElement> getMembersInheritedFromInterfaces(
           ClassElement classElt) =>
       _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>());
