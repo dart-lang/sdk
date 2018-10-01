@@ -978,6 +978,7 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
 
 BumpAllocateScope::BumpAllocateScope(Thread* thread) : StackResource(thread) {
   ASSERT(!thread->bump_allocate());
+  thread->heap()->WaitForMarkerTasks(thread);
   thread->heap()->old_space()->AcquireDataLock();
   thread->set_bump_allocate(true);
 }
