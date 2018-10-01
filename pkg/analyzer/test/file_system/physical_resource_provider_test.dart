@@ -142,7 +142,8 @@ class FileTest extends _BaseTest {
   }
 
   void test_readAsBytesSync_doesNotExist() {
-    File file = PhysicalResourceProvider.INSTANCE.getResource('/test.bin');
+    path = join(tempPath, 'doesNotExist.txt');
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
     expect(() {
       file.readAsBytesSync();
     }, throwsA(_isFileSystemException));

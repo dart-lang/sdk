@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -183,7 +183,7 @@ main() {
 }
 
 @reflectiveTest
-class StaticTypeAnalyzerTest extends EngineTestCase {
+class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -1525,7 +1525,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * Create the analyzer used by the tests.
    */
   StaticTypeAnalyzer _createAnalyzer({bool strongMode: false}) {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     InternalAnalysisContext context;
     if (strongMode) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -1535,7 +1534,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
     }
-    Source source = new FileSource(resourceProvider.getFile("/lib.dart"));
+    Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =

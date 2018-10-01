@@ -58,10 +58,11 @@ rules:
   }
 
   void _performParseTask(String content) {
+    var path = resourceProvider.convertPath('/test.yaml');
     if (content == null) {
-      source = resourceProvider.getFile('/test.yaml').createSource();
+      source = resourceProvider.getFile(path).createSource();
     } else {
-      source = newSource('/test.yaml', content);
+      source = newSource(path, content);
     }
     computeResult(source, YAML_DOCUMENT, matcher: isParseYamlTask);
   }

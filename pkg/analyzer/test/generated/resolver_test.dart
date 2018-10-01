@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1378,7 +1378,8 @@ class TypeProviderImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class TypeResolverVisitorTest extends ParserTestCase {
+class TypeResolverVisitorTest extends ParserTestCase
+    with ResourceProviderMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -1422,11 +1423,9 @@ class TypeResolverVisitorTest extends ParserTestCase {
 
   void setUp({bool shouldSetElementSupertypes: false}) {
     _listener = new GatheringErrorListener();
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
-    Source librarySource =
-        new FileSource(resourceProvider.getFile("/lib.dart"));
+    Source librarySource = new FileSource(getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstTestFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl();
@@ -1462,10 +1461,9 @@ A V = new A();
 
     // Resolve API types.
     {
-      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
-      var source = resourceProvider.getFile('/test.dart').createSource();
+      var source = getFile('/test.dart').createSource();
       var libraryElement = new LibraryElementImpl.forNode(context, null)
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
@@ -2333,10 +2331,9 @@ A v = new A();
     LibraryScope libraryScope;
     TypeResolverVisitor visitor;
     {
-      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
-      var source = resourceProvider.getFile('/test.dart').createSource();
+      var source = getFile('/test.dart').createSource();
       var libraryElement = new LibraryElementImpl.forNode(context, null)
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);

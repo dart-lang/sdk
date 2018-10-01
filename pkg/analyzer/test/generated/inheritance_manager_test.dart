@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,7 +34,7 @@ main() {
 }
 
 @reflectiveTest
-class InheritanceManagerTest {
+class InheritanceManagerTest extends Object with ResourceProviderMixin {
   /**
    * The type provider used to access the types.
    */
@@ -1168,10 +1168,9 @@ class InheritanceManagerTest {
    * @return the inheritance manager that was created
    */
   InheritanceManager _createInheritanceManager() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     AnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
-    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
+    Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
