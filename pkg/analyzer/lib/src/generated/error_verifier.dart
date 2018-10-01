@@ -5177,12 +5177,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type == null) {
       return;
     }
-    // TODO(paulberry): handle the case where the type name is a typedef.
-    if (type is InterfaceType) {
+    if (type is ParameterizedType) {
       var element = type.element;
       // prepare type parameters
-      List<TypeParameterElement> parameterElements = element.typeParameters;
-      List<DartType> parameterTypes = element.type.typeArguments;
+      List<TypeParameterElement> parameterElements;
+      if (element is ClassElement) {
+        parameterElements = element.typeParameters;
+      } else if (element is GenericTypeAliasElement) {
+        parameterElements = element.typeParameters;
+      } else if (element is GenericFunctionTypeElement) {
+        // TODO(paulberry): it seems like either this case or the one above
+        // should be unnecessary.
+        FunctionTypeAliasElement typedefElement = element.enclosingElement;
+        parameterElements = typedefElement.typeParameters;
+      } else {
+        // There are no other kinds of parameterized types.
+        throw new UnimplementedError(
+            'Unexpected element associated with parameterized type: '
+            '${element.runtimeType}');
+      }
+      var parameterTypes =
+          parameterElements.map<DartType>((p) => p.type).toList();
       List<DartType> arguments = type.typeArguments;
       // iterate over each bounded type parameter and corresponding argument
       NodeList<TypeAnnotation> argumentNodes =

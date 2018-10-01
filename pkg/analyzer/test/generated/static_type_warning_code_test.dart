@@ -88,15 +88,6 @@ main() {
 ''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-typedef F<T extends A>();
-F<B> fff;
-''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
-  }
-
   fail_undefinedEnumConstant() async {
     // We need a way to set the parseEnum flag in the parser to true.
     await assertErrorsInCode(r'''
@@ -1155,6 +1146,15 @@ class B extends A {}
 class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
+''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+F<B> fff;
 ''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 

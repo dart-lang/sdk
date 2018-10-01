@@ -77,6 +77,7 @@ Language/Functions/generator_return_type_t06: MissingCompileTimeError # Issue 32
 Language/Generics/scope_t03: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t02: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t03: Crash # Issue 29388
+Language/Generics/syntax_t04: CompileTimeError # Bad test
 Language/Libraries_and_Scripts/Exports/implicit_hide_t01: MissingStaticWarning # Issue #34302
 Language/Libraries_and_Scripts/Imports/implicit_hide_t01: MissingStaticWarning # Issue #34302
 Language/Libraries_and_Scripts/Imports/implicit_hide_t02: MissingStaticWarning # Issue #34302
@@ -178,6 +179,7 @@ LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t19: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t20: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t21: MissingCompileTimeError # Issue 34087
+LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: CompileTimeError # Bad test
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t01: MissingCompileTimeError # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l3_t02: MissingCompileTimeError # Issue 33152, 33477
 LanguageFeatures/Instantiate-to-bound/class/custom_extends_neg_assign_l4_t01: MissingCompileTimeError # Issue 33152, 33477
@@ -209,17 +211,17 @@ LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: Mis
 LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 33308
 LanguageFeatures/Instantiate-to-bound/mixin/mixin_neg_l1_t02: MissingCompileTimeError # Issue 33596
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_neg_l1_t03: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_neg_l2_t01: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_pos_l2_t01: CompileTimeError # Bad test
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l1_t03: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_neg_l2_t01: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_optparam_extends_pos_l2_t01: CompileTimeError # Bad test
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_neg_l2_t01: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_param_extends_pos_l2_t01: CompileTimeError # Bad test
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t02: Crash # Issue 33599
-LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t04: MissingCompileTimeError # Issue 33597
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l2_t01: Crash # Issue 33599
+LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_pos_l2_t01: CompileTimeError # Bad test
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t02: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t05: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError # Issue 32903

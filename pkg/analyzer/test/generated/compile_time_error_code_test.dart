@@ -6282,8 +6282,10 @@ typedef A B();''');
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     Source source = addSource("typedef A<T extends A<int>>();");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+    ]);
     verify([source]);
   }
 

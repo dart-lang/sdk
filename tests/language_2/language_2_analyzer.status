@@ -133,9 +133,6 @@ type_promotion_functions_test/13: CompileTimeError
 type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_variable_static_context_negative_test: Fail # Issue 12161
-typedef_check_bounds_generic_test: MissingCompileTimeError
-typedef_check_bounds_test: MissingCompileTimeError
-typedef_check_bounds_unused_test: MissingCompileTimeError
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/reflect_core_vm_test: CompileTimeError # Issue 33994
