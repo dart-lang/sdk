@@ -8,6 +8,8 @@ import 'package:kernel/ast.dart' show Constant, DartType;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
 import '../scanner/token.dart' show Token;
 
 import 'severity.dart' show Severity;
@@ -125,12 +127,14 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return message.compareTo(message);
   }
 
-  FormattedMessage withFormatting(String formatted, int line, int column) {
-    return new FormattedMessage(this, formatted, line, column);
+  FormattedMessage withFormatting(String formatted, int line, int column,
+      Severity severity, List<FormattedMessage> relatedInformation) {
+    return new FormattedMessage(
+        this, formatted, line, column, severity, relatedInformation);
   }
 }
 
-class FormattedMessage {
+class FormattedMessage implements DiagnosticMessage {
   final LocatedMessage locatedMessage;
 
   final String formatted;
@@ -139,8 +143,13 @@ class FormattedMessage {
 
   final int column;
 
-  const FormattedMessage(
-      this.locatedMessage, this.formatted, this.line, this.column);
+  @override
+  final Severity severity;
+
+  final List<FormattedMessage> relatedInformation;
+
+  const FormattedMessage(this.locatedMessage, this.formatted, this.line,
+      this.column, this.severity, this.relatedInformation);
 
   Code get code => locatedMessage.code;
 
@@ -149,6 +158,29 @@ class FormattedMessage {
   String get tip => locatedMessage.tip;
 
   Map<String, dynamic> get arguments => locatedMessage.arguments;
+
+  Uri get uri => locatedMessage.uri;
+
+  int get charOffset => locatedMessage.charOffset;
+
+  int get length => locatedMessage.length;
+
+  @override
+  Iterable<String> get ansiFormatted sync* {
+    yield formatted;
+    for (FormattedMessage m in relatedInformation) {
+      yield m.formatted;
+    }
+  }
+
+  @override
+  Iterable<String> get plainTextFormatted {
+    // TODO(ahe): Implement this correctly.
+    return ansiFormatted;
+  }
+
+  @override
+  int get index => code.index;
 }
 
 String relativizeUri(Uri uri) {

@@ -16,6 +16,8 @@ import 'byte_store.dart' show ByteStore, NullByteStore;
 
 import 'compilation_message.dart' show CompilationMessage;
 
+import 'diagnostic_message.dart' show DiagnosticMessageHandler;
+
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
@@ -23,6 +25,8 @@ import 'standard_file_system.dart' show StandardFileSystem;
 export '../fasta/fasta_codes.dart' show FormattedMessage;
 
 export '../fasta/severity.dart' show Severity;
+
+export 'diagnostic_message.dart' show DiagnosticMessage;
 
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
@@ -59,6 +63,8 @@ class CompilerOptions {
   ErrorHandler onError;
 
   ProblemHandler onProblem;
+
+  DiagnosticMessageHandler onDiagnostic;
 
   /// Whether messages should be reported using the compiler's internal
   /// reporting mechanism.

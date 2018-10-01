@@ -198,26 +198,38 @@ class ProcessedOptions {
         (_raw.reportMessages ?? (_raw.onError == null));
   }
 
-  FormattedMessage format(LocatedMessage message, Severity severity) {
+  FormattedMessage format(
+      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
     String formatted =
         command_line_reporting.format(message, severity, location: location);
-    return message.withFormatting(
-        formatted, location?.line ?? -1, location?.column ?? -1);
+    List<FormattedMessage> formattedContext;
+    if (context != null && context.isNotEmpty) {
+      formattedContext = new List<FormattedMessage>(context.length);
+      for (int i = 0; i < context.length; i++) {
+        formattedContext[i] = format(context[i], Severity.context, null);
+      }
+    }
+    return message.withFormatting(formatted, location?.line ?? -1,
+        location?.column ?? -1, severity, formattedContext);
   }
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context}) {
     context ??= const <LocatedMessage>[];
-    if (_raw.onProblem != null) {
+    if (_raw.onDiagnostic != null) {
+      _raw.onDiagnostic(format(message, severity, context));
+      return;
+    } else if (_raw.onProblem != null) {
       List<FormattedMessage> formattedContext =
           new List<FormattedMessage>(context.length);
       for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], severity);
+        formattedContext[i] = format(context[i], severity, null);
       }
-      _raw.onProblem(format(message, severity), severity, formattedContext);
+      _raw.onProblem(
+          format(message, severity, null), severity, formattedContext);
       if (command_line_reporting.shouldThrowOn(severity)) {
         throw new DebugAbort(
             message.uri, message.charOffset, severity, StackTrace.current);
