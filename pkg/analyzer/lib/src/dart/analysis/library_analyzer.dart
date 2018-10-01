@@ -576,8 +576,10 @@ class LibraryAnalyzer {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
+    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, errorListener));
+        source, _typeProvider, errorListener,
+        nameScope: libraryScope));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -588,7 +590,6 @@ class LibraryAnalyzer {
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
 
-    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: libraryScope));
