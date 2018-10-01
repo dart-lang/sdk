@@ -74,18 +74,19 @@ abstract class TestRunner {
 class TestRunnerJIT implements TestRunner {
   TestRunnerJIT(Map<String, String> e, String top, String mode) {
     tag = TestRunner.getTag(mode);
-    env = Map<String, String>.from(e);
-    env['PATH'] = "$top/out/$tag:${env['PATH']}";
+    dart = '$top/out/$tag/dart';
+    env = e;
   }
   String description() {
     return "JIT-${tag}";
   }
 
   TestResult run(String fileName) {
-    return runCommand(['dart', fileName], env);
+    return runCommand(['$dart', fileName], env);
   }
 
   String tag;
+  String dart;
   Map<String, String> env;
 }
 
@@ -93,8 +94,9 @@ class TestRunnerJIT implements TestRunner {
 class TestRunnerAOT implements TestRunner {
   TestRunnerAOT(Map<String, String> e, String top, String mode) {
     tag = TestRunner.getTag(mode);
+    precompiler = '$top/pkg/vm/tool/precompiler2';
+    dart = '$top/pkg/vm/tool/dart_precompiled_runtime2';
     env = Map<String, String>.from(e);
-    env['PATH'] = "$top/pkg/vm/tool:${env['PATH']}";
     env['DART_CONFIGURATION'] = tag;
   }
   String description() {
@@ -102,35 +104,38 @@ class TestRunnerAOT implements TestRunner {
   }
 
   TestResult run(String fileName) {
-    TestResult result = runCommand(['precompiler2', fileName, 'snapshot'], env);
+    TestResult result = runCommand(['$precompiler', fileName, 'snapshot'], env);
     if (result.code != ResultCode.success) {
       return result;
     }
-    return runCommand(['dart_precompiled_runtime2', 'snapshot'], env);
+    return runCommand(['$dart', 'snapshot'], env);
   }
 
   String tag;
+  String precompiler;
+  String dart;
   Map<String, String> env;
 }
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerJS implements TestRunner {
   TestRunnerJS(Map<String, String> e, String top, String mode) {
-    env = Map<String, String>.from(e);
-    env['PATH'] = "$top/out/ReleaseX64/dart-sdk/bin:${env['PATH']}";
+    dart2js = '$top/out/ReleaseX64/dart-sdk/bin/dart2js';
+    env = e;
   }
   String description() {
     return "Dart2JS";
   }
 
   TestResult run(String fileName) {
-    TestResult result = runCommand(['dart2js', fileName], env);
+    TestResult result = runCommand(['$dart2js', fileName], env);
     if (result.code != ResultCode.success) {
       return result;
     }
     return runCommand(['nodejs', 'out.js'], env);
   }
 
+  String dart2js;
   Map<String, String> env;
 }
 
