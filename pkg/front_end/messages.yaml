@@ -987,23 +987,11 @@ UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   tip: "Try adding a backslash (\\) to escape the '$'."
   analyzerCode: UNEXPECTED_DOLLAR_IN_STRING
-  script:
-    - >
-      main() {
-        return '$';
-      }
-    - >
-      main() {
-        return "$";
-      }
-    - >
-      main() {
-        return '''$''';
-      }
-    - >
-      main() {
-        return """$""";
-      }
+  expression:
+    - "'$'"
+    - '"$"'
+    - "'''$'''"
+    - '"""$"""'
 
 UnexpectedToken:
   template: "Unexpected token '#lexeme'."
@@ -1030,7 +1018,7 @@ UnsupportedPrefixPlus:
   template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
   analyzerCode: MISSING_IDENTIFIER
-  script: "main() => +2;  // No longer a valid way to write '2'"
+  expression: "+2" # No longer a valid way to write '2'
 
 UnterminatedComment:
   template: "Comment starting with '/*' must end with '*/'."
@@ -3120,3 +3108,7 @@ RedirectingFactoryIncompatibleTypeArgument:
          factory A() = B<T, int>;
       }
       class B<T extends int, S extends String> implements A<T> {}
+
+SyntheticToken:
+  template: "This couldn't be parsed."
+  frontendInternal: true

@@ -117,7 +117,6 @@ EnumConstantSameNameAsEnclosing/example: Fail
 EnumInstantiation/example: Fail
 EqualityCannotBeEqualityOperand/script1: Fail
 EqualityCannotBeEqualityOperand/script2: Fail
-ExpectedAnInitializer/script1: Fail
 ExpectedBlock/script: Fail
 ExpectedBlockToSkip/script: Fail
 ExpectedButGot/script1: Fail
@@ -331,6 +330,7 @@ SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
+SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
@@ -347,16 +347,11 @@ TypeVariableInStaticContext/declaration3: Fail # Unfortunate message from outlin
 TypeVariableInStaticContext/declaration4: Fail # Unfortunate message from outline phase.
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
-UnexpectedDollarInString/script1: Fail
-UnexpectedDollarInString/script2: Fail
-UnexpectedDollarInString/script3: Fail
-UnexpectedDollarInString/script4: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
-UnsupportedPrefixPlus/script: Fail
 UnterminatedString/script2: Fail
 UnterminatedString/script4: Fail
 UnterminatedString/script5: Fail

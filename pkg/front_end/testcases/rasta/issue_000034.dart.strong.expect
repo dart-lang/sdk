@@ -8,10 +8,6 @@
 // pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Can't access 'this' in a field initializer.
 //   const C() : this.x;
 //               ^^^^
-//
-// pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Setter not found: ''.
-//   const C() : this.x;
-//               ^
 
 // Unhandled errors:
 //
@@ -26,7 +22,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   const constructor •() → self::C
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Setter not found: ''.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: This couldn't be parsed.
   const C() : this.x;
               ^"
     ;

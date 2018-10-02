@@ -7389,6 +7389,13 @@ const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
     tip: r"""Try removing all but one default case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSyntheticToken = messageSyntheticToken;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSyntheticToken = const MessageCode("SyntheticToken",
+    message: r"""This couldn't be parsed.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateThisAccessInFieldInitializer =
     const Template<Message Function(String name)>(

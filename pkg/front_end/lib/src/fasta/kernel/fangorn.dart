@@ -47,6 +47,7 @@ import 'kernel_expression_generator.dart'
         KernelIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelParserErrorGenerator,
         KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
@@ -112,6 +113,7 @@ import 'forest.dart'
         Forest,
         Generator,
         LoadLibraryBuilder,
+        Message,
         PrefixBuilder,
         PrefixUseGenerator,
         TypeDeclarationBuilder,
@@ -750,6 +752,12 @@ class Fangorn extends Forest {
       bool isUnresolved) {
     return new KernelUnexpectedQualifiedUseGenerator(
         helper, token, prefixGenerator, isUnresolved);
+  }
+
+  @override
+  KernelParserErrorGenerator parserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message) {
+    return new KernelParserErrorGenerator(helper, token, message);
   }
 }
 

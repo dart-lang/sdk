@@ -50,6 +50,7 @@ import 'expression_generator.dart'
         IntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
+        ParserErrorGenerator,
         PrefixUseGenerator,
         PropertyAccessGenerator,
         ReadOnlyAccessGenerator,
@@ -1562,6 +1563,16 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
 
   KernelUnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, this.prefixGenerator, this.isUnresolved)
+      : super(helper, token);
+}
+
+class KernelParserErrorGenerator extends KernelGenerator
+    with ParserErrorGenerator {
+  @override
+  final Message message;
+
+  KernelParserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.message)
       : super(helper, token);
 }
 

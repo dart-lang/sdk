@@ -36,7 +36,11 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
 
+import '../fasta_codes.dart' show Message;
+
 import '../scanner.dart' show Token;
+
+export '../fasta_codes.dart' show Message;
 
 export 'body_builder.dart' show Operator;
 
@@ -410,6 +414,9 @@ abstract class Forest {
 
   Generator unexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, Generator prefixGenerator, bool isUnresolved);
+
+  Generator parserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message);
 
   // TODO(ahe): Remove this method when all users are moved here.
   Arguments castArguments(Arguments arguments) {

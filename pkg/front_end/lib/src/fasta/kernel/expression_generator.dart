@@ -19,6 +19,7 @@ import '../fasta_codes.dart'
         messageIllegalAssignmentToNonAssignable,
         messageInvalidInitializer,
         messageNotAConstantExpression,
+        noLength,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
@@ -127,7 +128,8 @@ abstract class ExpressionGenerator {
       {int offset,
       bool voidContext,
       Procedure interfaceTarget,
-      bool isPreIncDec});
+      bool isPreIncDec,
+      bool isPostIncDec});
 
   /// Returns a [Expression] representing a pre-increment or pre-decrement of
   /// the generator.
@@ -871,6 +873,9 @@ abstract class ErroneousExpressionGenerator implements Generator {
 abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   factory UnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
+    if (name.name.isEmpty) {
+      unhandled("empty", "name", offsetForToken(token), helper.uri);
+    }
     return helper.forest.unresolvedNameGenerator(helper, token, name);
   }
 
@@ -1252,5 +1257,99 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
   void printOn(StringSink sink) {
     sink.write(", prefixGenerator: ");
     prefixGenerator.printOn(sink);
+  }
+}
+
+abstract class ParserErrorGenerator implements Generator {
+  factory ParserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message) {
+    return helper.forest.parserErrorGenerator(helper, token, message);
+  }
+
+  Message get message => null;
+
+  @override
+  String get plainNameForRead => "#parser-error";
+
+  @override
+  String get debugName => "ParserErrorGenerator";
+
+  @override
+  void printOn(StringSink sink) {}
+
+  SyntheticExpressionJudgment buildProblem() {
+    return helper.buildProblem(message, offsetForToken(token), noLength,
+        suppressMessage: true);
+  }
+
+  Expression buildSimpleRead() => buildProblem();
+
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    return buildProblem();
+  }
+
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext}) {
+    return buildProblem();
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset,
+      bool voidContext,
+      Procedure interfaceTarget,
+      bool isPreIncDec,
+      bool isPostIncDec}) {
+    return buildProblem();
+  }
+
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return buildProblem();
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return buildProblem();
+  }
+
+  Expression makeInvalidRead() => buildProblem();
+
+  Expression makeInvalidWrite(Expression value) => buildProblem();
+
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    return helper.buildInvalidInitializer(buildProblem().desugared);
+  }
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    return buildProblem();
+  }
+
+  Expression buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    return buildProblem();
+  }
+
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+    KernelNamedTypeBuilder result =
+        new KernelNamedTypeBuilder(token.lexeme, null);
+    result.bind(result.buildInvalidType(
+        message.withLocation(uri, offsetForToken(token), noLength)));
+    return result;
+  }
+
+  Expression qualifiedLookup(Token name) {
+    return buildProblem();
+  }
+
+  Expression invokeConstructor(
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
+    return buildProblem();
   }
 }

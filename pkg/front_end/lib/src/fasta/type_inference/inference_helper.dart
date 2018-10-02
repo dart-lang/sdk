@@ -11,7 +11,7 @@ import '../kernel/kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 abstract class InferenceHelper {
   SyntheticExpressionJudgment buildProblem(
       Message message, int charOffset, int length,
-      {List<LocatedMessage> context});
+      {List<LocatedMessage> context, bool suppressMessage});
 
   LocatedMessage checkArgumentsForType(
       FunctionType function, Arguments arguments, int offset);
