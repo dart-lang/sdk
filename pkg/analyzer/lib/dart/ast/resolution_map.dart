@@ -167,6 +167,13 @@ abstract class ResolutionMap {
    * either this node corresponds to a list of declarations or if the AST
    * structure has not been resolved.
    */
+  ClassElement elementDeclaredByMixinDeclaration(MixinDeclaration node);
+
+  /**
+   * Return the element associated with the declaration [node], or `null` if
+   * either this node corresponds to a list of declarations or if the AST
+   * structure has not been resolved.
+   */
   VariableElement elementDeclaredByVariableDeclaration(
       VariableDeclaration node);
 

@@ -75,8 +75,10 @@ class TypeMemberContributor extends DartCompletionContributor {
       }
     }
     String containingMethodName;
+    List<InterfaceType> mixins;
     if (expression is SuperExpression && type is InterfaceType) {
       // Suggest members from superclass if target is "super"
+      mixins = (type as InterfaceType).mixins;
       type = (type as InterfaceType).superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
@@ -97,7 +99,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Build the suggestions
     if (type is InterfaceType) {
       _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
-      builder.buildSuggestions(type, containingMethodName);
+      builder.buildSuggestions(type, containingMethodName, mixins: mixins);
       return builder.suggestions.toList();
     }
     return const <CompletionSuggestion>[];
@@ -276,12 +278,16 @@ class _SuggestionBuilder {
    * If the 'dot' completion is a super expression, then [containingMethodName]
    * is the name of the method in which the completion is requested.
    */
-  void buildSuggestions(InterfaceType type, String containingMethodName) {
+  void buildSuggestions(InterfaceType type, String containingMethodName,
+      {List<InterfaceType> mixins}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
     List<InterfaceType> types = _getTypeOrdering(type);
+    if (mixins != null) {
+      types.addAll(mixins);
+    }
     for (InterfaceType targetType in types) {
       for (MethodElement method in targetType.methods) {
         // Exclude static methods when completion on an instance
