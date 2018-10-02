@@ -1876,6 +1876,43 @@
           "arguments": ["linux-x64-benchmark"]
         }
       ]
+    },
+    {
+      "builders": ["fuzz-linux"],
+      "meta": {
+        "description": "This configuration is used for fuzz testing."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=x64,simarm64",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart 32bit",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=ia32,simarm",
+            "runtime"
+          ]
+        },
+        {
+          "name": "make a fuzz",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tools/dartfuzz/dartfuzz_test.dart",
+            "--no-show-stats",
+            "--repeat",
+            "100"
+          ]
+        }
+      ]
     }
   ]
 }
