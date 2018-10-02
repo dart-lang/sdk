@@ -93,6 +93,9 @@ class _ClassVerifier {
   final TypeName superclass;
   final WithClause withClause;
 
+  /// The list of all superinterfaces, collected so far.
+  final List<InterfaceType> allSuperinterfaces = [];
+
   _ClassVerifier({
     this.typeSystem,
     this.typeProvider,
@@ -109,16 +112,11 @@ class _ClassVerifier {
             AbstractClassElementImpl.getImpl(classNameNode.staticElement);
 
   void verify() {
-    ClassElementImpl element =
-        AbstractClassElementImpl.getImpl(classNameNode.staticElement);
-    LibraryElement library = element.library;
-    InterfaceTypeImpl type = element.type;
-
     if (_checkDirectSuperTypes()) {
       return;
     }
 
-    var allSuperinterfaces = <InterfaceType>[];
+    InterfaceTypeImpl type = classElement.type;
 
     // Add all superinterfaces of the direct supertype.
     if (type.superclass != null) {
@@ -136,7 +134,7 @@ class _ClassVerifier {
     var mixinNodes = withClause?.mixinTypes;
     var mixinTypes = type.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
-      _checkDeclaredMembers(allSuperinterfaces, mixinNodes[i], mixinTypes[i]);
+      _checkDeclaredMembers(mixinNodes[i], mixinTypes[i]);
       ClassElementImpl.collectAllSupertypes(
           allSuperinterfaces, mixinTypes[i], null);
     }
@@ -149,19 +147,17 @@ class _ClassVerifier {
 
     // Check the members if the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
+    var libraryUri = library.source.uri;
     for (var member in members) {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
           FieldElement fieldElement = field.declaredElement;
-          _checkDeclaredMember(
-              allSuperinterfaces, fieldList, fieldElement.getter);
-          _checkDeclaredMember(
-              allSuperinterfaces, fieldList, fieldElement.setter);
+          _checkDeclaredMember(fieldList, libraryUri, fieldElement.getter);
+          _checkDeclaredMember(fieldList, libraryUri, fieldElement.setter);
         }
       } else if (member is MethodDeclaration) {
-        _checkDeclaredMember(
-            allSuperinterfaces, member, member.declaredElement);
+        _checkDeclaredMember(member, libraryUri, member.declaredElement);
       }
     }
 
@@ -173,8 +169,7 @@ class _ClassVerifier {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
-    if (!element.isAbstract) {
-      var libraryUri = library.source.uri;
+    if (!classElement.isAbstract) {
       List<ExecutableElement> inheritedAbstractMembers = null;
 
       for (var name in interfaceMembers.map.keys) {
@@ -187,7 +182,7 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteType == null) {
-          if (!element.hasNoSuchMethod) {
+          if (!classElement.hasNoSuchMethod) {
             if (!_reportConcreteClassWithAbstractMember(name.name)) {
               inheritedAbstractMembers ??= [];
               inheritedAbstractMembers.add(interfaceType.element);
@@ -229,35 +224,36 @@ class _ClassVerifier {
   }
 
   /// Check that the given [member] is a valid override of the corresponding
-  /// instance members in each of [allSuperinterfaces].
+  /// instance members in each of [allSuperinterfaces].  The [libraryUri] is
+  /// the URI of the library containing the [member].
   void _checkDeclaredMember(
-    List<InterfaceType> allSuperinterfaces,
     AstNode node,
+    Uri libraryUri,
     ExecutableElement member,
   ) {
     if (member == null) return;
     if (member.isStatic) return;
 
-    var name = member.name;
-    for (var supertype in allSuperinterfaces) {
-      var superMember = _getInstanceMember(supertype, name);
-      if (superMember != null && superMember.isAccessibleIn(member.library)) {
+    var name = new Name(libraryUri, member.name);
+    for (var superType in allSuperinterfaces) {
+      var superMemberType = inheritance.getInterface(superType).map[name];
+      if (superMemberType != null) {
         // The case when members have different kinds is reported in verifier.
         // TODO(scheglov) Do it here?
-        if (member.kind != superMember.kind) {
+        if (member.kind != superMemberType.element.kind) {
           continue;
         }
 
-        if (!typeSystem.isOverrideSubtypeOf(member.type, superMember.type)) {
+        if (!typeSystem.isOverrideSubtypeOf(member.type, superMemberType)) {
           reporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             node,
             [
-              name,
+              name.name,
               member.enclosingElement.name,
               member.type.displayName,
-              superMember.enclosingElement.name,
-              superMember.type.displayName
+              superMemberType.element.enclosingElement.name,
+              superMemberType.displayName
             ],
           );
         }
@@ -267,16 +263,13 @@ class _ClassVerifier {
 
   /// Check that instance members of [type] are valid overrides of the
   /// corresponding instance members in each of [allSuperinterfaces].
-  void _checkDeclaredMembers(
-    List<InterfaceType> allSuperinterfaces,
-    AstNode node,
-    InterfaceTypeImpl type,
-  ) {
+  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type) {
+    var libraryUri = type.element.library.source.uri;
     for (var method in type.methods) {
-      _checkDeclaredMember(allSuperinterfaces, node, method);
+      _checkDeclaredMember(node, libraryUri, method);
     }
     for (var accessor in type.accessors) {
-      _checkDeclaredMember(allSuperinterfaces, node, accessor);
+      _checkDeclaredMember(node, libraryUri, accessor);
     }
   }
 
@@ -346,23 +339,6 @@ class _ClassVerifier {
       }
     }
     return hasError;
-  }
-
-  /// Return the instance member given the [name], defined in the [type],
-  /// or `null` if the [type] does not define a member with the [name], or
-  /// if it is not an instance member.
-  ExecutableElement _getInstanceMember(InterfaceType type, String name) {
-    ExecutableElement result;
-    if (name.endsWith('=')) {
-      name = name.substring(0, name.length - 1);
-      result = type.getSetter(name);
-    } else {
-      result = type.getMethod(name) ?? type.getGetter(name);
-    }
-    if (result != null && result.isStatic) {
-      result = null;
-    }
-    return result;
   }
 
   /// We identified that the current non-abstract class does not have the
