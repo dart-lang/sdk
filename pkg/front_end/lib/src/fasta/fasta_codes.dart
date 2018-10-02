@@ -168,8 +168,10 @@ class FormattedMessage implements DiagnosticMessage {
   @override
   Iterable<String> get ansiFormatted sync* {
     yield formatted;
-    for (FormattedMessage m in relatedInformation) {
-      yield m.formatted;
+    if (relatedInformation != null) {
+      for (FormattedMessage m in relatedInformation) {
+        yield m.formatted;
+      }
     }
   }
 
