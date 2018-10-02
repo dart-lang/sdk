@@ -39,10 +39,11 @@ import 'package:front_end/src/dependency_walker.dart';
  * Analyzer of a single library.
  */
 class LibraryAnalyzer {
-  final AnalysisOptions _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
+  final InheritanceManager2 _inheritance;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -69,7 +70,8 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._library)
-      : _typeProvider = _context.typeProvider;
+      : _inheritance = new InheritanceManager2(_context.typeSystem),
+        _typeProvider = _context.typeProvider;
 
   /**
    * Compute analysis results for all units of the library.
@@ -210,15 +212,12 @@ class LibraryAnalyzer {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
 
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        _libraryElement,
-        includeAbstractFromSuperclasses: true);
-
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
+        errorReporter, _typeProvider, _libraryElement,
         typeSystem: _context.typeSystem));
 
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+    unit.accept(
+        new OverrideVerifier(_inheritance, _libraryElement, errorReporter));
 
     new ToDoFinder(errorReporter).findIn(unit);
 
@@ -296,14 +295,12 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
-    var typeSystem = new StrongTypeSystemImpl(_typeProvider,
-        implicitCasts: options.implicitCasts,
-        declarationCasts: options.declarationCasts,
-        nonnullableTypes: options.nonnullableTypes);
-
-    CodeChecker checker =
-        new CodeChecker(_typeProvider, typeSystem, errorListener, options);
+    CodeChecker checker = new CodeChecker(
+      _typeProvider,
+      _context.typeSystem,
+      errorListener,
+      _analysisOptions,
+    );
     checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
@@ -321,9 +318,8 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceManager2 = new InheritanceManager2(typeSystem);
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        typeSystem, inheritanceManager2, errorReporter);
+        _context.typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -334,7 +330,7 @@ class LibraryAnalyzer {
         _libraryElement,
         _typeProvider,
         new InheritanceManager(_libraryElement),
-        inheritanceManager2,
+        _inheritance,
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
   }
