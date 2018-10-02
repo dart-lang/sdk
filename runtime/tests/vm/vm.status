@@ -65,6 +65,9 @@ cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 dart/appjit_determinism_test: Pass, Fail # Issue 31427 - Lingering non-determinism.
 
+[ $arch == ia32 ]
+dart/appjit_determinism_test: Pass, Fail # Issue 34638 - Flaky.
+
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
 
