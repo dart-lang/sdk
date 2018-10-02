@@ -4614,8 +4614,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  String constructorNameForDiagnostics(String name, {String className}) {
-    className ??= classBuilder.name;
+  String constructorNameForDiagnostics(String name,
+      {String className, bool isSuper: false}) {
+    if (className == null) {
+      Class cls = classBuilder.cls;
+      if (isSuper) {
+        cls = cls.superclass;
+        while (cls.isMixinApplication) {
+          cls = cls.superclass;
+        }
+      }
+      className = cls.name;
+    }
     return name.isEmpty ? className : "$className.$name";
   }
 }

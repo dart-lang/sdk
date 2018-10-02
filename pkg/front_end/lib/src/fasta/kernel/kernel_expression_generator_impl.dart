@@ -115,20 +115,28 @@ class ThisAccessGenerator extends KernelGenerator {
   Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
-    LocatedMessage argMessage;
+    LocatedMessage message;
     if (constructor != null) {
-      argMessage = helper.checkArgumentsForFunction(
+      message = helper.checkArgumentsForFunction(
           constructor.function, arguments, offset, <TypeParameter>[]);
+    } else {
+      String fullName =
+          helper.constructorNameForDiagnostics(name.name, isSuper: isSuper);
+      message = (isSuper
+              ? templateSuperclassHasNoConstructor
+              : templateConstructorNotFound)
+          .withArguments(fullName)
+          .withLocation(uri, offsetForToken(token), lengthForToken(token));
     }
-    if (constructor == null || argMessage != null) {
+    if (message != null) {
       return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
           helper.throwNoSuchMethodError(
               forest.literalNull(null)..fileOffset = offset,
-              helper.constructorNameForDiagnostics(name.name),
+              helper.constructorNameForDiagnostics(name.name, isSuper: isSuper),
               arguments,
               offset,
               isSuper: isSuper,
-              message: argMessage)));
+              message: message)));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);

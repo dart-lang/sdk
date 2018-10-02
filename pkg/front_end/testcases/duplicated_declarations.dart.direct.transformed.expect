@@ -97,7 +97,7 @@ class C extends core::Object {
 }
 class Sub extends core::Object {
   constructor •() → self::Sub
-    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Sub, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[null]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Object, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[null]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
   method m() → dynamic
     return super.m();

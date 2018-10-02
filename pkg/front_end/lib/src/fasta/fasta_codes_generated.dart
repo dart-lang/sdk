@@ -7341,6 +7341,31 @@ const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateSuperclassHasNoConstructor =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no constructor named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoConstructor =
+    const Code<Message Function(String name)>(
+        "SuperclassHasNoConstructor", templateSuperclassHasNoConstructor,
+        analyzerCodes: <String>[
+          "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER",
+          "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT"
+        ],
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  return new Message(codeSuperclassHasNoConstructor,
+      message: """Superclass has no constructor named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

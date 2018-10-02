@@ -2510,6 +2510,30 @@ SuperclassHasNoMethod:
   severity: ERROR_LEGACY_WARNING
   analyzerCode: UNDEFINED_SUPER_METHOD
 
+SuperclassHasNoConstructor:
+  template: "Superclass has no constructor named '#name'."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode:
+    - UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+    - UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+  script:
+    - |
+      class Super {
+        Super._();
+      }
+
+      class Sub extends Super {
+        Sub() : super();
+      }
+    - |
+      class Super {
+        Super._();
+      }
+
+      class Sub extends Super {
+        Sub.foo() : super.foo();
+      }
+
 SuperclassHasNoDefaultConstructor:
   template: "The superclass, '#name', has no unnamed constructor that takes no arguments."
   analyzerCode: NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
