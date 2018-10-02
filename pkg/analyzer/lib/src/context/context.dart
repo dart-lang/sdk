@@ -289,9 +289,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
-            ? this._options.nonnullableTypes != options.nonnullableTypes
-            : false) ||
-        ((options is AnalysisOptionsImpl)
             ? this._options.implicitDynamic != options.implicitDynamic
             : false) ||
         this._options.enableSuperMixins != options.enableSuperMixins ||
@@ -320,7 +317,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       this._options.strongModeHints = options.strongModeHints;
       this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
-      this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
       this._options.isMixinSupportEnabled = options.isMixinSupportEnabled;
     }

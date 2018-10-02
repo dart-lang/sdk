@@ -621,15 +621,6 @@ class CodeChecker extends RecursiveAstVisitor {
     VariableElement variableElement = node == null
         ? null
         : resolutionMap.elementDeclaredByVariableDeclaration(node);
-    if (!node.isConst &&
-        !node.isFinal &&
-        node.initializer == null &&
-        rules.isNonNullableType(variableElement?.type)) {
-      _recordMessage(
-          node,
-          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, variableElement?.type]);
-    }
     AstNode parent = node.parent;
     if (variableElement != null &&
         parent is VariableDeclarationList &&
@@ -735,19 +726,6 @@ class CodeChecker extends RecursiveAstVisitor {
         true) {
       _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
-  }
-
-  /// Checks if the assignment is valid with respect to non-nullable types.
-  /// Returns `false` if a nullable expression is assigned to a variable of
-  /// non-nullable type and `true` otherwise.
-  bool _checkNonNullAssignment(
-      Expression expression, DartType to, DartType from) {
-    if (rules.isNonNullableType(to) && rules.isNullableType(from)) {
-      _recordMessage(
-          expression, StaticTypeWarningCode.INVALID_ASSIGNMENT, [from, to]);
-      return false;
-    }
-    return true;
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,
@@ -1062,8 +1040,6 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _needsImplicitCast(Expression expr, DartType to,
       {DartType from, bool isDeclarationCast: false}) {
     from ??= _getExpressionType(expr);
-
-    if (!_checkNonNullAssignment(expr, to, from)) return false;
 
     // Void is considered Top, but may only be *explicitly* cast.
     if (from.isVoid) return null;

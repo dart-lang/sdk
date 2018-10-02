@@ -153,15 +153,6 @@ class FastaParserTestCase extends Object
     // Lazy assignment operators are always enabled
   }
 
-  @override
-  set enableNnbd(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): non-null-by-default syntax is not supported by
-      // Fasta.
-      throw new UnimplementedError();
-    }
-  }
-
   set enableOptionalNewAndConst(bool enable) {
     // ignored
   }

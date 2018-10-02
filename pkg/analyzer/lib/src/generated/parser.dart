@@ -204,12 +204,6 @@ class Parser {
   int _errorListenerLock = 0;
 
   /**
-   * A flag indicating whether the parser is to parse the non-nullable modifier
-   * in type names.
-   */
-  bool _enableNnbd = false;
-
-  /**
    * A flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
@@ -307,20 +301,6 @@ class Parser {
    */
   @deprecated
   void set enableAssertInitializer(bool enable) {}
-
-  /**
-   * Return `true` if the parser is to parse the non-nullable modifier in type
-   * names.
-   */
-  bool get enableNnbd => _enableNnbd;
-
-  /**
-   * Set whether the parser is to parse the non-nullable modifier in type names
-   * to match the given [enable] flag.
-   */
-  void set enableNnbd(bool enable) {
-    _enableNnbd = enable;
-  }
 
   /**
    * Return `true` if the parser should parse instance creation expressions that
@@ -2889,7 +2869,6 @@ class Parser {
   ExtendsClause parseExtendsClause() {
     Token keyword = getAndAdvance();
     TypeName superclass = parseTypeName(false);
-    _mustNotBeNullable(superclass, ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS);
     return astFactory.extendsClause(keyword, superclass);
   }
 
@@ -3631,7 +3610,6 @@ class Parser {
     List<TypeName> interfaces = <TypeName>[];
     do {
       TypeName typeName = parseTypeName(false);
-      _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS);
       interfaces.add(typeName);
     } while (_optional(TokenType.COMMA));
     return astFactory.implementsClause(keyword, interfaces);
@@ -4352,10 +4330,6 @@ class Parser {
           _reportErrorForToken(
               ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword);
         }
-        Token question = null;
-        if (enableNnbd && _matches(TokenType.QUESTION)) {
-          question = getAndAdvance();
-        }
         return astFactory.functionTypedFormalParameter2(
             comment: commentAndMetadata.comment,
             metadata: commentAndMetadata.metadata,
@@ -4364,8 +4338,7 @@ class Parser {
             identifier: astFactory.simpleIdentifier(identifier.token,
                 isDeclaration: true),
             typeParameters: typeParameters,
-            parameters: parameters,
-            question: question);
+            parameters: parameters);
       } else {
         return astFactory.fieldFormalParameter2(
             comment: commentAndMetadata.comment,
@@ -5305,10 +5278,6 @@ class Parser {
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
-    if (_matches(TokenType.QUESTION)) {
-      _reportErrorForCurrentToken(ParserErrorCode.NULLABLE_TYPE_PARAMETER);
-      _advance();
-    }
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeAnnotation bound = parseTypeNotVoid(false);
@@ -5564,7 +5533,6 @@ class Parser {
     List<TypeName> types = <TypeName>[];
     do {
       TypeName typeName = parseTypeName(false);
-      _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_WITH);
       types.add(typeName);
     } while (_optional(TokenType.COMMA));
     return astFactory.withClause(withKeyword, types);
@@ -5886,28 +5854,6 @@ class Parser {
   }
 
   /**
-   * Clone all token starting from the given [token] up to the end of the token
-   * stream, and return the first token in the new token stream.
-   */
-  Token _cloneTokens(Token token) {
-    if (token == null) {
-      return null;
-    }
-    token = token is CommentToken ? token.parent : token;
-    Token head = new Token.eof(-1);
-    Token current = head;
-    while (token.type != TokenType.EOF) {
-      Token clone = token.copy();
-      current.setNext(clone);
-      current = clone;
-      token = token.next;
-    }
-    Token tail = new Token.eof(0);
-    current.setNext(tail);
-    return head.next;
-  }
-
-  /**
    * Convert the given [method] declaration into the nearest valid top-level
    * function declaration (that is, the function declaration that most closely
    * captures the components of the given method declaration).
@@ -6196,23 +6142,6 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token could be the question mark in a
-   * condition expression. The current token is assumed to be a question mark.
-   */
-  bool _isConditionalOperator() {
-    void parseOperation(Parser parser) {
-      parser.parseExpressionWithoutCascade();
-    }
-
-    Token token = _skip(_currentToken.next, parseOperation);
-    if (token == null || !_tokenMatches(token, TokenType.COLON)) {
-      return false;
-    }
-    token = _skip(token.next, parseOperation);
-    return token != null;
-  }
-
-  /**
    * Return `true` if the given [character] is a valid hexadecimal digit.
    */
   bool _isHexDigit(int character) =>
@@ -6412,16 +6341,6 @@ class Parser {
    */
   bool _matchesKeyword(Keyword keyword) =>
       _tokenMatchesKeyword(_currentToken, keyword);
-
-  /**
-   * Report an error with the given [errorCode] if the given [typeName] has been
-   * marked as nullable.
-   */
-  void _mustNotBeNullable(TypeName typeName, ParserErrorCode errorCode) {
-    if (typeName.question != null) {
-      _reportErrorForToken(errorCode, typeName.question);
-    }
-  }
 
   /**
    * If the current token has the given [type], then advance to the next token
@@ -7528,13 +7447,7 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
     }
     TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-    Token question = null;
-    if (enableNnbd && _matches(TokenType.QUESTION)) {
-      if (!inExpression || !_isConditionalOperator()) {
-        question = getAndAdvance();
-      }
-    }
-    return astFactory.typeName(typeName, typeArguments, question: question);
+    return astFactory.typeName(typeName, typeArguments);
   }
 
   /**
@@ -7697,39 +7610,6 @@ class Parser {
     }
     _reportError(new AnalysisError(_source, token.offset,
         math.max(token.length, 1), errorCode, arguments));
-  }
-
-  /**
-   * Execute the given [parseOperation] in a temporary parser whose current
-   * token has been set to the given [startToken]. If the parse does not
-   * generate any errors or exceptions, then return the token following the
-   * matching portion of the token stream. Otherwise, return `null`.
-   *
-   * Note: This is an extremely inefficient way of testing whether the tokens in
-   * the token stream match a given production. It should not be used for
-   * production code.
-   */
-  Token _skip(Token startToken, parseOperation(Parser parser)) {
-    BooleanErrorListener listener = new BooleanErrorListener();
-    Parser parser = new Parser(_source, listener);
-    parser._currentToken = _cloneTokens(startToken);
-    parser._enableNnbd = _enableNnbd;
-    parser._enableOptionalNewAndConst = _enableOptionalNewAndConst;
-    parser._inAsync = _inAsync;
-    parser._inGenerator = _inGenerator;
-    parser._inInitializer = _inInitializer;
-    parser._inLoop = _inLoop;
-    parser._inSwitch = _inSwitch;
-    parser._parseFunctionBodies = _parseFunctionBodies;
-    try {
-      parseOperation(parser);
-    } catch (exception) {
-      return null;
-    }
-    if (listener.errorReported) {
-      return null;
-    }
-    return parser._currentToken;
   }
 
   /**

@@ -371,9 +371,6 @@ class _Parser2 extends ParserAdapter {
   @override
   bool enableUriInPartOf = true;
 
-  @override
-  bool enableNnbd = false;
-
   factory _Parser2(Source source, AnalysisErrorListener errorListener,
       {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);

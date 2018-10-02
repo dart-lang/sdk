@@ -3728,18 +3728,6 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
   void set parameters(FormalParameterList parameters);
 
   /**
-   * Return the question mark marking this as a nullable type, or `null` if
-   * the type is non-nullable.
-   */
-  Token get question;
-
-  /**
-   * Return the question mark marking this as a nullable type to the given
-   * [question].
-   */
-  void set question(Token question);
-
-  /**
    * Return the return type of the function, or `null` if the function does not
    * have a return type.
    */
@@ -5284,18 +5272,6 @@ abstract class NamedType extends TypeAnnotation {
    * Set the name of the type to the given [identifier].
    */
   void set name(Identifier identifier);
-
-  /**
-   * Return the question mark marking this as a nullable type, or `null` if
-   * the type is non-nullable.
-   */
-  Token get question;
-
-  /**
-   * Return the question mark marking this as a nullable type to the given
-   * [question].
-   */
-  void set question(Token question);
 
   /**
    * Set the type being named to the given [type].

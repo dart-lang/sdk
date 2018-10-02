@@ -395,9 +395,6 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   bool get implicitCasts => true;
 
   @override
-  List<String> get nonnullableTypes => AnalysisOptionsImpl.NONNULLABLE_TYPES;
-
-  @override
   bool get previewDart2 => true;
 
   @override

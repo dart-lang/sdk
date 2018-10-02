@@ -5440,8 +5440,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
           typeProvider,
           new StrongTypeSystemImpl(typeProvider,
               implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
+              declarationCasts: options.declarationCasts),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);

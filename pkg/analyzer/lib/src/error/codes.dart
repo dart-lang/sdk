@@ -2992,17 +2992,6 @@ class StaticTypeWarningCode extends ErrorCode {
           "The operands of the '{0}' operator must be assignable to 'bool'.");
 
   /**
-   * Parameters:
-   * 0: the name of the variable
-   * 1: the type of the variable
-   */
-  static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
-      const StaticTypeWarningCode('NON_NULLABLE_FIELD_NOT_INITIALIZED',
-          "Variable '{0}' of non-nullable type '{1}' must be initialized.",
-          correction: "Try adding an initializer to the declaration, or "
-              "making the variable nullable by adding a '?' after the type name.");
-
-  /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>,
    * 1 &lt;= i &lt;= n</i> does not denote a type in the enclosing lexical scope.
    */

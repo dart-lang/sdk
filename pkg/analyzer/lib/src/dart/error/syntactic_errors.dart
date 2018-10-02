@@ -700,25 +700,6 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all of the normal parameters before the optional parameters.");
 
-  static const ParserErrorCode NULLABLE_TYPE_IN_EXTENDS = const ParserErrorCode(
-      'NULLABLE_TYPE_IN_EXTENDS',
-      "A nullable type can't be used in an extends clause.",
-      correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_IN_IMPLEMENTS =
-      const ParserErrorCode('NULLABLE_TYPE_IN_IMPLEMENTS',
-          "A nullable type can't be used in an implements clause.",
-          correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_IN_WITH = const ParserErrorCode(
-      'NULLABLE_TYPE_IN_WITH',
-      "A nullable type can't be used in a with clause.",
-      correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_PARAMETER = const ParserErrorCode(
-      'NULLABLE_TYPE_PARAMETER', "Type parameters can't be nullable.",
-      correction: "Try removing the '?' from the type name.");
-
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       const ParserErrorCode('POSITIONAL_AFTER_NAMED_ARGUMENT',
           "Positional arguments must occur before named arguments.",
