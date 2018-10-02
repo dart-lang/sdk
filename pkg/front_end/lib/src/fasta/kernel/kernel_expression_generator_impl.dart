@@ -124,7 +124,7 @@ class ThisAccessGenerator extends KernelGenerator {
       return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
           helper.throwNoSuchMethodError(
               forest.literalNull(null)..fileOffset = offset,
-              name.name,
+              helper.constructorNameForDiagnostics(name.name),
               arguments,
               offset,
               isSuper: isSuper,

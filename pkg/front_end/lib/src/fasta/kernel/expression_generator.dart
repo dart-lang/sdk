@@ -245,7 +245,8 @@ abstract class Generator implements ExpressionGenerator {
     return new InvalidConstructorInvocationJudgment(
         helper.throwNoSuchMethodError(
             forest.literalNull(token),
-            name == "" ? plainNameForRead : "${plainNameForRead}.$name",
+            helper.constructorNameForDiagnostics(name,
+                className: plainNameForRead),
             arguments,
             nameToken.charOffset),
         null,

@@ -850,14 +850,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
-        String name = initialTarget.enclosingClass.name;
-        if (initialTarget.name.name != "") {
-          name += ".${initialTarget.name.name}";
-        }
+        String name = constructorNameForDiagnostics(initialTarget.name.name,
+            className: initialTarget.enclosingClass.name);
         // TODO(dmitryas): Report this error earlier.
         replacementNode = buildProblem(
                 fasta.templateCyclicRedirectingFactoryConstructors
-                    .withArguments(initialTarget.name.name),
+                    .withArguments(name),
                 initialTarget.fileOffset,
                 name.length)
             .desugared;
@@ -4565,6 +4563,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       types[i] = buildDartType(unresolvedTypes[i]);
     }
     return types;
+  }
+
+  @override
+  String constructorNameForDiagnostics(String name, {String className}) {
+    className ??= classBuilder.name;
+    return name.isEmpty ? className : "$className.$name";
   }
 }
 

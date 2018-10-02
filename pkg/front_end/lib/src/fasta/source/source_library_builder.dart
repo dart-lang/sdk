@@ -535,11 +535,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
               name, existing, member, charOffset);
         });
     } else if (isDuplicatedDeclaration(existing, declaration)) {
-      addProblem(templateDuplicatedDeclaration.withArguments(name), charOffset,
-          name.length, fileUri,
+      String fullName = name;
+      if (isConstructor) {
+        if (name.isEmpty) {
+          fullName = currentDeclaration.name;
+        } else {
+          fullName = "${currentDeclaration.name}.$name";
+        }
+      }
+      addProblem(templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset, fullName.length, fileUri,
           context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
-                existing.fileUri, existing.charOffset, name.length)
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing.fileUri, existing.charOffset, fullName.length)
           ]);
     }
     return members[name] = declaration;

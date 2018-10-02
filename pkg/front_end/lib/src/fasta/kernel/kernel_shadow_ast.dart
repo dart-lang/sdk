@@ -686,8 +686,12 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
       // initializing formals of a constructor required us to infer the
       // corresponding field type which required us to know the type of the
       // constructor.
-      var name = target.enclosingClass.name;
-      if (target.name.name != '') name += '.${target.name.name}';
+      String name = target.enclosingClass.name;
+      if (target.name.name.isNotEmpty) {
+        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
+        // instead. However, `inferrer.helper` may be null.
+        name += ".${target.name.name}";
+      }
       library.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(name),
           target.fileOffset,

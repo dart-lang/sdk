@@ -28,10 +28,10 @@
 // main() {
 // ^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: '' is already declared in this scope.
+// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
-// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Error: Previous declaration of ''.
+// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Error: Previous declaration of 'C'.
 //   C(a);
 //   ^
 //

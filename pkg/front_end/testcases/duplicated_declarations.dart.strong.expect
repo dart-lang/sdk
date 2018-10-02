@@ -28,10 +28,10 @@
 // main() {
 // ^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: '' is already declared in this scope.
+// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
-// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Error: Previous declaration of ''.
+// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Error: Previous declaration of 'C'.
 //   C(a);
 //   ^
 //
@@ -172,7 +172,7 @@
 // main() {
 // ^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: '' is already declared in this scope.
+// pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
 //
@@ -262,7 +262,7 @@ class C extends core::Object {
 }
 class Sub extends core::Object {
   constructor •() → self::Sub
-    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[null]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
+    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Sub, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[null]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
   method m() → dynamic
     return super.m();
