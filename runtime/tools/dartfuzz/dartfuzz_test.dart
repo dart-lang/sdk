@@ -14,6 +14,23 @@ const debug = false;
 const sigkill = 9;
 const timeout = 30; // in seconds
 
+// Supported modes.
+const List<String> modes = [
+  'jit-debug-ia32',
+  'jit-debug-x64',
+  'jit-debug-arm32',
+  'jit-debug-arm64',
+  'aot-debug-x64',
+  'aot-debug-arm64',
+  'jit-ia32',
+  'jit-x64',
+  'jit-arm32',
+  'jit-arm64',
+  'aot-x64',
+  'aot-arm64',
+  'js'
+];
+
 // Exit code of running a test.
 enum ResultCode { success, timeout, error }
 
@@ -53,7 +70,7 @@ abstract class TestRunner {
     if (mode.startsWith('jit')) return new TestRunnerJIT(env, top, mode);
     if (mode.startsWith('aot')) return new TestRunnerAOT(env, top, mode);
     if (mode.startsWith('js')) return new TestRunnerJS(env, top, mode);
-    throw ('unknown mode: $mode');
+    throw ('unknown runner in mode: $mode');
   }
 
   // Convert mode to tag.
@@ -284,6 +301,34 @@ class DartFuzzTest {
   int numDivergences;
 }
 
+// Picks a mode (command line or random).
+String getMode(String mode, String other) {
+  // Random when not set.
+  if (mode == null || mode == '') {
+    // Pick a mode at random (not JS), different from other.
+    Random rand = new Random();
+    do {
+      mode = modes[rand.nextInt(modes.length - 1)];
+    } while (mode == other);
+  }
+  // Verify mode.
+  if (modes.contains(mode)) {
+    return mode;
+  }
+  throw ('unknown mode: $mode');
+}
+
+// Picks a top directory (command line, environment, or current).
+String getTop(String top) {
+  if (top == null || top == '') {
+    top = Platform.environment['DART_TOP'];
+  }
+  if (top == null || top == '') {
+    top = Directory.current.path;
+  }
+  return top;
+}
+
 /// Main driver for a fuzz testing session.
 main(List<String> arguments) {
   // Set up argument parser.
@@ -293,29 +338,21 @@ main(List<String> arguments) {
         negatable: true, help: 'only report true divergences', defaultsTo: true)
     ..addFlag('show-stats',
         negatable: true, help: 'show session statistics', defaultsTo: true)
-    ..addOption('dart-top',
-        help: 'explicit value for \$DART_TOP', defaultsTo: '')
-    ..addOption('mode1', help: 'execution mode 1', defaultsTo: 'jit-x64')
-    ..addOption('mode2', help: 'execution mode 2', defaultsTo: 'aot-x64');
+    ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
+    ..addOption('mode1', help: 'execution mode 1')
+    ..addOption('mode2', help: 'execution mode 2');
 
   // Start fuzz testing session.
   try {
-    final env = Platform.environment;
     final results = parser.parse(arguments);
     final repeat = int.parse(results['repeat']);
     final trueDivergence = results['true-divergence'];
     final showStats = results['show-stats'];
-    final mode1 = results['mode1'];
-    final mode2 = results['mode2'];
-    var top = results['dart-top'];
-    if (top == null || top == '') {
-      top = env['DART_TOP'];
-    }
-    if (top == null || top == '') {
-      top = Directory.current.path;
-    }
-    final session = new DartFuzzTest(
-        env, repeat, trueDivergence, showStats, top, mode1, mode2);
+    final mode1 = getMode(results['mode1'], null);
+    final mode2 = getMode(results['mode2'], mode1);
+    final top = getTop(results['dart-top']);
+    final session = new DartFuzzTest(Platform.environment, repeat,
+        trueDivergence, showStats, top, mode1, mode2);
     if (!session.runSession()) {
       exitCode = 1;
     }

@@ -54,6 +54,8 @@ where
         aot-[debug-]arm64 = Dart AOT (simarm64)
         js                = dart2js + JS
 
+If no modes are given, a random JIT and/or AOT combination is used.
+
 This fuzz testing tool must have access to the top of a Dart SDK
 development tree (DART_TOP) in which all proper binaries have been
 built already (for example, testing jit-ia32 will invoke the binary
