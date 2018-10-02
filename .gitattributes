@@ -3,11 +3,11 @@
 *.cc text eol=lf
 *.cpp text eol=lf
 *.h text eol=lf
+*.dart text eol=lf
 
 # Explicitly declare text files we want to be normalized.
 *.gyp text
 *.gypi text
-*.dart text
 *.mk text
 *.Makefile text
 *.md text
