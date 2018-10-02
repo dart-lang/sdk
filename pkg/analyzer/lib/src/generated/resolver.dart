@@ -880,8 +880,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         return;
       }
       ClassElement definingClass = element.enclosingElement;
-      ClassDeclaration accessingClass =
-          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
+      ClassOrMixinDeclaration accessingClass = identifier
+          .getAncestor((AstNode node) => node is ClassOrMixinDeclaration);
       if (_hasTypeOrSuperType(
           accessingClass?.declaredElement, definingClass.type)) {
         return;
@@ -3952,6 +3952,13 @@ class OverrideVerifier extends RecursiveAstVisitor {
         }
       }
     }
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    _currentInterface = _inheritance.getInterface(node.declaredElement.type);
+    super.visitMixinDeclaration(node);
+    _currentInterface = null;
   }
 
   /// Return `true` if the [member] overrides a member from the superinterface.
