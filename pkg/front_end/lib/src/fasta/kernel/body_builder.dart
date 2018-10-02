@@ -1343,62 +1343,60 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       bool isGetter: false,
       bool isSetter: false,
       bool isStatic: false,
-      LocatedMessage argMessage}) {
-    Message message;
+      LocatedMessage message}) {
+    int length = name.length;
+    int periodIndex = name.lastIndexOf(".");
+    if (periodIndex != -1) {
+      length -= periodIndex + 1;
+    }
     Name kernelName = new Name(name, library.library);
     List<LocatedMessage> context;
     if (candidate != null) {
       Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
-      Message message;
+      Message contextMessage;
       int length = noLength;
       if (offset == -1 && candidate is Constructor) {
         offset = candidate.enclosingClass.fileOffset;
-        message = fasta.templateCandidateFoundIsDefaultConstructor
+        contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
       } else {
         length = name.length;
-        message = fasta.messageCandidateFound;
+        contextMessage = fasta.messageCandidateFound;
       }
-      context = [message.withLocation(uri, offset, length)];
+      context = [contextMessage.withLocation(uri, offset, length)];
     }
-
-    if (isGetter) {
-      message = warnUnresolvedGet(kernelName, charOffset,
-          isSuper: isSuper,
-          reportWarning: constantContext == ConstantContext.none,
-          context: context);
-    } else if (isSetter) {
-      message = warnUnresolvedSet(kernelName, charOffset,
-          isSuper: isSuper,
-          reportWarning: constantContext == ConstantContext.none,
-          context: context);
-    } else {
-      if (argMessage != null) {
-        message = argMessage.messageObject;
-        charOffset = argMessage.charOffset;
-        addProblemErrorIfConst(message, charOffset, argMessage.length,
-            context: context);
+    if (message == null) {
+      if (isGetter) {
+        message = warnUnresolvedGet(kernelName, charOffset,
+                isSuper: isSuper, reportWarning: false, context: context)
+            .withLocation(uri, charOffset, length);
+      } else if (isSetter) {
+        message = warnUnresolvedSet(kernelName, charOffset,
+                isSuper: isSuper, reportWarning: false, context: context)
+            .withLocation(uri, charOffset, length);
       } else {
         message = warnUnresolvedMethod(kernelName, charOffset,
-            isSuper: isSuper,
-            reportWarning: constantContext == ConstantContext.none,
-            context: context);
+                isSuper: isSuper, reportWarning: false, context: context)
+            .withLocation(uri, charOffset, length);
       }
     }
-    if (constantContext != ConstantContext.none) {
-      return buildProblem(message, charOffset, noLength, context: context)
-          .desugared;
-    } else {
-      Expression error = library.loader.instantiateNoSuchMethodError(
+    if (!library.loader.target.strongMode &&
+        constantContext == ConstantContext.none) {
+      addProblem(message.messageObject, message.charOffset, message.length,
+          wasHandled: true, context: context);
+      return new Throw(library.loader.instantiateNoSuchMethodError(
           receiver, name, forest.castArguments(arguments), charOffset,
           isMethod: !isGetter && !isSetter,
           isGetter: isGetter,
           isSetter: isSetter,
           isStatic: isStatic,
-          isTopLevel: !isStatic && !isSuper);
-      return new Throw(error);
+          isTopLevel: !isStatic && !isSuper));
     }
+    return buildProblem(
+            message.messageObject, message.charOffset, message.length,
+            context: context)
+        .desugared;
   }
 
   @override
@@ -2977,7 +2975,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             arguments,
             charOffset,
             candidate: target,
-            argMessage: argMessage);
+            message: argMessage);
         if (target is Constructor) {
           return new InvalidConstructorInvocationJudgment(
               error, target, arguments)

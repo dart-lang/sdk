@@ -1,13 +1,3 @@
-// Unhandled errors:
-//
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:61: Error: Getter not found: 'x'.
-// var /*@topType=B*/ b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
-//                                                             ^
-//
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Getter not found: 'x'.
-//   /*error:UNDEFINED_IDENTIFIER*/ x
-//                                  ^
-
 library test;
 import self as self;
 import "dart:core" as core;
@@ -26,8 +16,12 @@ class B extends self::A {
     ;
 }
 static field self::A a = new self::A::•();
-static field self::B b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
-static field core::List<dynamic> c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))];
+static field self::B b = new self::B::•(invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:61: Error: Getter not found: 'x'.
+var /*@topType=B*/ b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
+                                                            ^");
+static field core::List<dynamic> c1 = <dynamic>[invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Getter not found: 'x'.
+  /*error:UNDEFINED_IDENTIFIER*/ x
+                                 ^"];
 static field core::List<dynamic> c2 = const <dynamic>[];
 static field core::Map<dynamic, dynamic> d = <dynamic, dynamic>{"a": "b"};
 static field self::A e = let final self::A #t1 = new self::A::•() in let final core::int #t2 = #t1.{self::A::x} = 3 in #t1;

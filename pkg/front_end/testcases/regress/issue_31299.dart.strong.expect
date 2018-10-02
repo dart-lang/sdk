@@ -14,11 +14,6 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_31299.dart:18:12: Error: Too many positional arguments: 0 allowed, but 2 found.
-// Try removing the extra positional arguments.
-//   new A.foo(1, 2);
-//            ^
-//
 // pkg/front_end/testcases/regress/issue_31299.dart:15:14: Error: Too few positional arguments: 2 required, 0 given.
 //   new A().foo();
 //              ^
@@ -42,6 +37,9 @@ static method test() → dynamic {
   new self::A::•().{self::A::foo}();
   new self::A::•().{self::A::foo}(1, 2);
   new self::A::foo();
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[1, 2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  invalid-expression "pkg/front_end/testcases/regress/issue_31299.dart:18:12: Error: Too many positional arguments: 0 allowed, but 2 found.
+Try removing the extra positional arguments.
+  new A.foo(1, 2);
+           ^";
 }
 static method main() → dynamic {}

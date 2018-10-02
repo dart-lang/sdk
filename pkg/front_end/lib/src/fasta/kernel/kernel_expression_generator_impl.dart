@@ -128,7 +128,7 @@ class ThisAccessGenerator extends KernelGenerator {
               arguments,
               offset,
               isSuper: isSuper,
-              argMessage: argMessage)));
+              message: argMessage)));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);

@@ -27,6 +27,7 @@ default_values: Fail
 duplicated_declarations: TypeCheckError
 dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
+expressions: RuntimeError
 external: Fail
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 fallthrough: Fail
