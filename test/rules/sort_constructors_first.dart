@@ -19,3 +19,13 @@ abstract class C {
   C(); //LINT
   C.named(); //LINT
 }
+
+abstract class D {
+  final a;
+  D(); //LINT
+}
+
+abstract class E {
+  static final a;
+  E(); //LINT
+}

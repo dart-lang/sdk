@@ -6,16 +6,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Sort constructor declarations before method declarations.';
+const _desc = r'Sort constructor declarations before other members.';
 
 const _details = r'''
 
-**DO** sort constructor declarations before method declarations.
+**DO** sort constructor declarations before other members.
 
 **GOOD:**
 ```
 abstract class Animation<T> {
-  const Animation();
+  const Animation(this.value);
+  double value;
   void addListener(VoidCallback listener);
 }
 ```
@@ -23,6 +24,7 @@ abstract class Animation<T> {
 **BAD:**
 ```
 abstract class Visitor {
+  double value;
   visitSomething(Something s);
   Visitor();
 }
@@ -56,15 +58,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     List<ClassMember> members = node.members.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
-    bool seenMethod = false;
+    bool other = false;
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
-        if (seenMethod) {
+        if (other) {
           rule.reportLint(member.returnType);
         }
-      }
-      if (member is MethodDeclaration) {
-        seenMethod = true;
+      } else {
+        other = true;
       }
     }
   }
