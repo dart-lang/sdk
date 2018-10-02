@@ -42,7 +42,6 @@ group("runtime") {
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
@@ -64,7 +63,6 @@ group("runtime_kernel") {
 
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
   ]

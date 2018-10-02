@@ -856,35 +856,6 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   if (tag == Dart_kCanonicalizeUrl) {
     // These will be handled internally.
     return url;
-  } else if (tag == Dart_kImportTag) {
-    Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
-    if (id == Builtin::kInvalidLibrary) {
-      return DartUtils::NewError(
-          "The built-in library '%s' is not available"
-          " on the stand-alone VM.\n",
-          url_string);
-    }
-    return Builtin::LoadLibrary(url, id);
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
-    if (id == Builtin::kInvalidLibrary) {
-      return DartUtils::NewError(
-          "The built-in library '%s' is not available"
-          " on the stand-alone VM. Trying to load"
-          " '%s'.\n",
-          library_url_string, url_string);
-    }
-    // Prepend the library URI to form a unique script URI for the part.
-    intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
-    char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
-    snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
-    Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
-    Dart_Handle result =
-        Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                        Builtin::PartSource(id, part_uri), 0, 0);
-    free(part_uri);
-    return result;
   }
   // All cases should have been handled above.
   UNREACHABLE();

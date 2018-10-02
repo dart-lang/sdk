@@ -121,7 +121,7 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    // Set flags affecting runtime accordingly for dart_bootstrap.
+    // Set flags affecting runtime accordingly for gen_snapshot.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.

@@ -140,9 +140,6 @@ enum SerializeState {
 
 // Structure capturing the raw snapshot.
 //
-// TODO(turnidge): Remove this class once the snapshot does not have a
-// header anymore.  This is pending on making the embedder pass in the
-// length of their snapshot.
 class Snapshot {
  public:
   enum Kind {
@@ -150,7 +147,7 @@ class Snapshot {
     kFullJIT,  // Full + JIT code
     kFullAOT,  // Full + AOT code
     kMessage,  // A partial snapshot used only for isolate messaging.
-    kNone,     // dart_bootstrap/gen_snapshot
+    kNone,     // gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);

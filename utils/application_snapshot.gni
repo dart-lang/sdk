@@ -184,6 +184,7 @@ template("aot_assembly") {
     aot_vm_args = invoker.vm_args
   }
   main_dart = invoker.main_dart
+  aot_vm_args = aot_vm_args + [ rebase_path("$main_dart") ]
   name = target_name
   if (defined(invoker.name)) {
     name = invoker.name
@@ -205,11 +206,10 @@ template("aot_assembly") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
-  dart_bootstrap_action(target_name) {
+  gen_snapshot_action(target_name) {
     deps = extra_deps
     depfile = "$output.d"
 
-    script = main_dart
     inputs = extra_inputs
 
     outputs = [
@@ -221,8 +221,8 @@ template("aot_assembly") {
     vm_args = [
       "--deterministic",
       "--packages=$dot_packages",
-      "--snapshot-kind=app-aot",
-      "--snapshot=$abs_output",
+      "--snapshot-kind=app-aot-assembly",
+      "--assembly=$abs_output",
     ] + aot_vm_args
 
     args = []

@@ -651,21 +651,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String exec;
     if (_isAndroid) {
       if (_isArm) {
-        exec = "$buildDir/clang_x86/dart_bootstrap";
+        exec = "$buildDir/clang_x86/gen_snapshot";
       } else if (_configuration.architecture == Architecture.arm64) {
-        exec = "$buildDir/clang_x64/dart_bootstrap";
+        exec = "$buildDir/clang_x64/gen_snapshot";
       }
     } else {
-      exec = "$buildDir/dart_bootstrap";
+      exec = "$buildDir/gen_snapshot";
     }
 
     final args = <String>[];
-    args.add("--snapshot-kind=app-aot");
     if (_configuration.useBlobs) {
-      args.add("--snapshot=$tempDir/out.aotsnapshot");
-      args.add("--use-blobs");
+      args.add("--snapshot-kind=app-aot-blobs");
+      args.add("--blobs_container_filename=$tempDir/out.aotsnapshot");
     } else {
-      args.add("--snapshot=$tempDir/out.S");
+      args.add("--snapshot-kind=app-aot-assembly");
+      args.add("--assembly=$tempDir/out.S");
     }
 
     if (_isAndroid && _isArm) {

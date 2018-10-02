@@ -38,6 +38,15 @@ class Snapshot {
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
   static AppSnapshot* TryReadAppSnapshot(const char* script_name);
+  static void WriteAppSnapshot(const char* filename,
+                               uint8_t* vm_data_buffer,
+                               intptr_t vm_data_size,
+                               uint8_t* vm_instructions_buffer,
+                               intptr_t vm_instructions_size,
+                               uint8_t* isolate_data_buffer,
+                               intptr_t isolate_data_size,
+                               uint8_t* isolate_instructions_buffer,
+                               intptr_t isolate_instructions_size);
 
  private:
   DISALLOW_ALLOCATION();

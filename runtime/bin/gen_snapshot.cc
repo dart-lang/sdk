@@ -22,6 +22,7 @@
 #include "bin/log.h"
 #include "bin/options.h"
 #include "bin/platform.h"
+#include "bin/snapshot_utils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -112,7 +113,9 @@ static const char* kSnapshotKindNames[] = {
   V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
   V(shared_data, shared_data_filename)                                         \
   V(shared_instructions, shared_instructions_filename)                         \
+  V(shared_blobs, shared_blobs_filename)                                       \
   V(reused_instructions, reused_instructions_filename)                         \
+  V(blobs_container_filename, blobs_container_filename)                        \
   V(assembly, assembly_filename)                                               \
   V(dependencies, dependencies_filename)                                       \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
@@ -315,16 +318,35 @@ static int ParseArguments(int argc,
       break;
     }
     case kAppAOTBlobs: {
-      if ((vm_snapshot_data_filename == NULL) ||
-          (vm_snapshot_instructions_filename == NULL) ||
-          (isolate_snapshot_data_filename == NULL) ||
-          (isolate_snapshot_instructions_filename == NULL) ||
-          (*script_name == NULL)) {
+      if (*script_name == NULL) {
+        Log::PrintErr(
+            "Building an AOT snapshot as blobs requires specifying "
+            " a kernel file.\n\n");
+        return -1;
+      }
+      if ((blobs_container_filename == NULL) &&
+          ((vm_snapshot_data_filename == NULL) ||
+           (vm_snapshot_instructions_filename == NULL) ||
+           (isolate_snapshot_data_filename == NULL) ||
+           (isolate_snapshot_instructions_filename == NULL))) {
         Log::PrintErr(
             "Building an AOT snapshot as blobs requires specifying output "
+            "file for --blobs_container_filename or "
             "files for --vm_snapshot_data, --vm_snapshot_instructions, "
-            "--isolate_snapshot_data and --isolate_snapshot_instructions and a "
-            "kernel file.\n\n");
+            "--isolate_snapshot_data and --isolate_snapshot_instructions.\n\n");
+        return -1;
+      }
+      if ((blobs_container_filename != NULL) &&
+          ((vm_snapshot_data_filename != NULL) ||
+           (vm_snapshot_instructions_filename != NULL) ||
+           (isolate_snapshot_data_filename != NULL) ||
+           (isolate_snapshot_instructions_filename != NULL))) {
+        Log::PrintErr(
+            "Building an AOT snapshot as blobs requires specifying output "
+            "file for --blobs_container_filename or "
+            "files for --vm_snapshot_data, --vm_snapshot_instructions, "
+            "--isolate_snapshot_data and --isolate_snapshot_instructions"
+            " not both.\n\n");
         return -1;
       }
       break;
@@ -440,11 +462,20 @@ class DependenciesFileWriter : public ValueObject {
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
       case kCoreJIT:
-      case kAppAOTBlobs:
         WriteDependenciesWithTarget(vm_snapshot_data_filename);
         // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
+        break;
+      case kAppAOTBlobs:
+        if (blobs_container_filename != NULL) {
+          WriteDependenciesWithTarget(blobs_container_filename);
+        } else {
+          WriteDependenciesWithTarget(vm_snapshot_data_filename);
+          // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
+          // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
+          // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
+        }
         break;
       default:
         UNREACHABLE();
@@ -692,13 +723,29 @@ static void CreateAndWritePrecompiledSnapshot() {
     const uint8_t* shared_instructions = NULL;
     std::unique_ptr<MappedMemory> mapped_shared_data;
     std::unique_ptr<MappedMemory> mapped_shared_instructions;
-    if (shared_data_filename != NULL) {
-      mapped_shared_data =
-          MapFile(shared_data_filename, File::kReadOnly, &shared_data);
-    }
-    if (shared_instructions_filename != NULL) {
-      mapped_shared_instructions = MapFile(
-          shared_instructions_filename, File::kReadOnly, &shared_instructions);
+    if (shared_blobs_filename != NULL) {
+      AppSnapshot* shared_blobs = NULL;
+      Log::PrintErr("Shared blobs in gen_snapshot are for testing only.\n");
+      shared_blobs = Snapshot::TryReadAppSnapshot(shared_blobs_filename);
+      if (shared_blobs == NULL) {
+        Log::PrintErr("Failed to load: %s\n", shared_blobs_filename);
+        Dart_ExitScope();
+        Dart_ShutdownIsolate();
+        exit(kErrorExitCode);
+      }
+      const uint8_t* ignored;
+      shared_blobs->SetBuffers(&ignored, &ignored, &shared_data,
+                               &shared_instructions);
+    } else {
+      if (shared_data_filename != NULL) {
+        mapped_shared_data =
+            MapFile(shared_data_filename, File::kReadOnly, &shared_data);
+      }
+      if (shared_instructions_filename != NULL) {
+        mapped_shared_instructions =
+            MapFile(shared_instructions_filename, File::kReadOnly,
+                    &shared_instructions);
+      }
     }
 
     uint8_t* vm_snapshot_data_buffer = NULL;
@@ -717,15 +764,24 @@ static void CreateAndWritePrecompiledSnapshot() {
         &isolate_snapshot_instructions_size, shared_data, shared_instructions);
     CHECK_RESULT(result);
 
-    WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
-              vm_snapshot_data_size);
-    WriteFile(vm_snapshot_instructions_filename,
-              vm_snapshot_instructions_buffer, vm_snapshot_instructions_size);
-    WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
-              isolate_snapshot_data_size);
-    WriteFile(isolate_snapshot_instructions_filename,
-              isolate_snapshot_instructions_buffer,
-              isolate_snapshot_instructions_size);
+    if (blobs_container_filename != NULL) {
+      Snapshot::WriteAppSnapshot(
+          blobs_container_filename, vm_snapshot_data_buffer,
+          vm_snapshot_data_size, vm_snapshot_instructions_buffer,
+          vm_snapshot_instructions_size, isolate_snapshot_data_buffer,
+          isolate_snapshot_data_size, isolate_snapshot_instructions_buffer,
+          isolate_snapshot_instructions_size);
+    } else {
+      WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+                vm_snapshot_data_size);
+      WriteFile(vm_snapshot_instructions_filename,
+                vm_snapshot_instructions_buffer, vm_snapshot_instructions_size);
+      WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+                isolate_snapshot_data_size);
+      WriteFile(isolate_snapshot_instructions_filename,
+                isolate_snapshot_instructions_buffer,
+                isolate_snapshot_instructions_size);
+    }
   }
 
   // Serialize obfuscation map if requested.

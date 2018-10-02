@@ -270,15 +270,15 @@ static bool WriteInt64(File* file, int64_t size) {
   return file->WriteFully(&size, sizeof(size));
 }
 
-static void WriteAppSnapshot(const char* filename,
-                             uint8_t* vm_data_buffer,
-                             intptr_t vm_data_size,
-                             uint8_t* vm_instructions_buffer,
-                             intptr_t vm_instructions_size,
-                             uint8_t* isolate_data_buffer,
-                             intptr_t isolate_data_size,
-                             uint8_t* isolate_instructions_buffer,
-                             intptr_t isolate_instructions_size) {
+void Snapshot::WriteAppSnapshot(const char* filename,
+                                uint8_t* vm_data_buffer,
+                                intptr_t vm_data_size,
+                                uint8_t* vm_instructions_buffer,
+                                intptr_t vm_instructions_size,
+                                uint8_t* isolate_data_buffer,
+                                intptr_t isolate_data_size,
+                                uint8_t* isolate_instructions_buffer,
+                                intptr_t isolate_instructions_size) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);

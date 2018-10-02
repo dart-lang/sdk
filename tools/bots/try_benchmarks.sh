@@ -83,7 +83,7 @@ for command; do
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
-      out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
@@ -132,7 +132,7 @@ for command; do
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/dart_bootstrap
+      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/gen_snapshot
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -183,7 +183,7 @@ for command; do
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
-      out/ReleaseIA32/dart_bootstrap \
+      out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       third_party/d8/linux/ia32/d8 \
@@ -230,7 +230,6 @@ EOF
   elif [ "$command" = linux-x64-build ]; then
     ./tools/build.py --mode=release --arch=x64 create_sdk
     ./tools/build.py --mode=release --arch=x64 runtime
-    ./tools/build.py --mode=release --arch=x64 dart_bootstrap
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
     ./tools/build.py --mode=release --arch=simdbc64 runtime
     ./tools/build.py --mode=release --arch=x64 runtime_kernel
@@ -246,7 +245,7 @@ EOF
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
-      out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
@@ -297,7 +296,7 @@ EOF
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_bootstrap
+      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/gen_snapshot
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -367,7 +366,7 @@ EOF
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
-      out/ReleaseX64/dart_bootstrap \
+      out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64/d8 \
