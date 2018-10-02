@@ -4,7 +4,7 @@
 
 library dart2js.kernel.element_map;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;

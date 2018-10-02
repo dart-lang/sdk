@@ -8,7 +8,7 @@ library compiler.kernel.front_end_adapter;
 
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/front_end.dart' as fe;
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../../compiler_new.dart' as api;
 
@@ -77,26 +77,33 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// Report a [message] received from the front-end, using dart2js's
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
-    DiagnosticReporter reporter, fe.CompilationMessage message) {
+    DiagnosticReporter reporter, fe.DiagnosticMessage message) {
   MessageKind kind = MessageKind.GENERIC;
   Spannable span;
-  if (message.span != null) {
-    span = new SourceSpan(message.span.start.sourceUrl,
-        message.span.start.offset, message.span.end.offset);
+  String text;
+  if (message is fe.FormattedMessage) {
+    if (message.uri != null && message.charOffset != -1) {
+      int offset = message.charOffset;
+      span = new SourceSpan(message.uri, offset, offset + message.length);
+    } else {
+      span = NO_LOCATION_SPANNABLE;
+    }
+    text = message.message;
   } else {
-    span = NO_LOCATION_SPANNABLE;
+    throw new UnimplementedError(
+        "Unhandled diagnostic message: ${message.runtimeType}");
   }
   switch (message.severity) {
     case fe.Severity.internalProblem:
-      throw message.message;
+      throw text;
     case fe.Severity.error:
-      reporter.reportErrorMessage(span, kind, {'text': message.message});
+      reporter.reportErrorMessage(span, kind, {'text': text});
       break;
     case fe.Severity.warning:
-      reporter.reportWarningMessage(span, kind, {'text': message.message});
+      reporter.reportWarningMessage(span, kind, {'text': text});
       break;
     case fe.Severity.context:
-      reporter.reportInfo(span, kind, {'text': message.message});
+      reporter.reportInfo(span, kind, {'text': text});
       break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');

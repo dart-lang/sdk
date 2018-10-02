@@ -4,7 +4,6 @@
 
 library dart2js.js_model.env;
 
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';

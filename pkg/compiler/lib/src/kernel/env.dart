@@ -4,7 +4,9 @@
 
 library dart2js.kernel.env;
 
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir
+    show RedirectingFactoryBody;
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';

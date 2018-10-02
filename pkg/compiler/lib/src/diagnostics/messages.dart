@@ -14,7 +14,8 @@
 /// location of the existing element.
 library dart2js.messages;
 
-import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
+import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
+
 import 'generated/shared_messages.dart' as shared_messages;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../commandline_options.dart';
@@ -728,13 +729,10 @@ class Message {
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
   static String convertToString(value) {
-    if (value is ErrorToken) {
-      // Shouldn't happen.
-      return value.assertionMessage.message;
-    } else if (value is Token) {
-      value = value.lexeme;
-    } else if (value is ConstantExpression) {
+    if (value is ConstantExpression) {
       value = value.toDartText();
+    } else {
+      value = tokenToString(value);
     }
     return '$value';
   }

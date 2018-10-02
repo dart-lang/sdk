@@ -5,7 +5,7 @@
 import 'dart:math' as math;
 import 'dart:collection' show Queue;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/names.dart';

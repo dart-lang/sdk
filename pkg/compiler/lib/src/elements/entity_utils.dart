@@ -4,7 +4,7 @@
 
 library entity_utils;
 
-import 'package:front_end/src/fasta/scanner.dart'
+import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
 import 'entities.dart';

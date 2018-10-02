@@ -47,7 +47,6 @@
   },
   "pkg/compiler/lib/src/diagnostics/messages.dart": {
     "Dynamic access of 'template'.": 1,
-    "Dynamic access of 'lexeme'.": 1,
     "Dynamic invocation of 'toDartText'.": 1
   },
   "pkg/compiler/lib/src/diagnostics/source_span.dart": {

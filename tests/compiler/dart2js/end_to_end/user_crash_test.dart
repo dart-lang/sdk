@@ -47,7 +47,7 @@ main() {
         templateCantReadFile.withArguments(entryPoint, EXCEPTION);
     List<String> expectedLines = [
       "Error: ${cantReadFile.message}",
-      "${entryPoint}:\nError: ${messageMissingMain.message}",
+      "Error: ${messageMissingMain.message}",
     ];
     test('Throw in input provider',
         await run(memorySourceFiles: new CrashingMap()),
