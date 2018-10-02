@@ -614,7 +614,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           uriTranslator.translate(importUri, false) != fileUri) {
         return true;
       }
-      if (builders[importUri]?.isSynthetic == true) return true;
+      if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
     }
 

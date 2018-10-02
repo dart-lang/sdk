@@ -1073,6 +1073,8 @@ class SourceLoader<L> extends Loader<L> {
   }
 }
 
+/// A minimal implementation of dart:core that is sufficient to create an
+/// instance of [CoreTypes] and compile a program.
 const String defaultDartCoreSource = """
 import 'dart:_internal';
 import 'dart:async';
@@ -1128,6 +1130,8 @@ class _SyncIterator {
 }
 """;
 
+/// A minimal implementation of dart:async that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 

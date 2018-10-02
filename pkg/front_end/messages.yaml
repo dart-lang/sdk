@@ -2042,13 +2042,24 @@ PartOfTwice:
   tip: "Try removing all but one of the part-of directives."
   analyzerCode: ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES
   script:
-    main.dart: |
-      part "part.dart";
-      main() {}
-    other.dart: ""
-    part.dart: |
-      part of "other.dart";
-      part of "main.dart";
+    - main.dart: |
+        part "part.dart";
+        main() {}
+      other.dart: ""
+      part.dart: |
+        part of "other.dart";
+        part of "main.dart";
+    - main.dart: |
+        part of "lib.dart";
+        part of "lib.dart";
+        main() {}
+      lib.dart: |
+        part "main.dart";
+    - main.dart: |
+        part "part.dart";
+      part.dart: |
+        part of "main.dart";
+        part of "main.dart";
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
