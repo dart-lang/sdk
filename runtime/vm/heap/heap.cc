@@ -836,8 +836,8 @@ void Heap::RecordAfterGC(GCType type) {
          (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled() &&
-      !ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
-    ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
+      !Isolate::IsVMInternalIsolate(isolate())) {
+    ServiceEvent event(isolate(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
   }
