@@ -26,6 +26,7 @@ const Code<Message Function(String name)> codeAbstractClassInstantiation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractClassInstantiation(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeAbstractClassInstantiation,
       message: """The class '${name}' is abstract and can't be instantiated.""",
       arguments: {'name': name});
@@ -71,6 +72,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeAbstractRedirectedClassInstantiation,
       message:
           """Factory redirects to class '${name}', which is abstract and can't be instantiated.""",
@@ -92,6 +94,7 @@ const Code<Message Function(String name)> codeAccessError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAccessError(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeAccessError,
       message: """Access error: '${name}'.""", arguments: {'name': name});
 }
@@ -114,6 +117,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousSupertypes(
     String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -297,6 +301,8 @@ const Code<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaCycleNonSimplicity(
     String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeBoundIssueViaCycleNonSimplicity,
       message:
           """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2}'.""",
@@ -323,6 +329,7 @@ const Code<Message Function(String name)> codeBoundIssueViaLoopNonSimplicity =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaLoopNonSimplicity(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeBoundIssueViaLoopNonSimplicity,
       message:
           """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables.""",
@@ -349,6 +356,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeBoundIssueViaRawTypeWithNonSimpleBounds,
       message:
           """Generic type '${name}' can't be used without type arguments in a type variable bound.""",
@@ -382,6 +390,7 @@ const Code<Message Function(String name)> codeBreakTargetOutsideFunction =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBreakTargetOutsideFunction(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeBreakTargetOutsideFunction,
       message: """Can't break to '${name}' in a different function.""",
       arguments: {'name': name});
@@ -458,6 +467,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeCandidateFoundIsDefaultConstructor,
       message:
           """The class '${name}' has a constructor that takes no arguments.""",
@@ -501,6 +511,7 @@ const Code<Message Function(String string)> codeCannotReadSdkSpecification =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCannotReadSdkSpecification(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCannotReadSdkSpecification,
       message: """Unable to read the 'libraries.json' specification file:
   ${string}.""", arguments: {'string': string});
@@ -546,6 +557,7 @@ const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToCircularity(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCantInferTypeDueToCircularity,
       message:
           """Can't infer the type of '${string}': circularity found during type inference.""",
@@ -572,6 +584,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCantInferTypeDueToInconsistentOverrides,
       message:
           """Can't infer the type of '${string}': overridden members must all have the same type.""",
@@ -594,6 +607,7 @@ const Code<Message Function(Uri uri_, String string)> codeCantReadFile =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantReadFile(Uri uri_, String string) {
   String uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCantReadFile,
       message: """Error when reading '${uri}': ${string}""",
       arguments: {'uri': uri_, 'string': string});
@@ -742,6 +756,7 @@ const Code<Message Function(String name)> codeConflictsWithConstructor =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithConstructor,
       message: """Conflicts with constructor '${name}'.""",
       arguments: {'name': name});
@@ -762,6 +777,7 @@ const Code<Message Function(String name)> codeConflictsWithFactory =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithFactory(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithFactory,
       message: """Conflicts with factory '${name}'.""",
       arguments: {'name': name});
@@ -781,6 +797,7 @@ const Code<Message Function(String name)> codeConflictsWithMember =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithMember,
       message: """Conflicts with member '${name}'.""",
       arguments: {'name': name});
@@ -802,6 +819,7 @@ const Code<Message Function(String name)> codeConflictsWithMemberWarning =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithMemberWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithMemberWarning,
       message: """Conflicts with member '${name}'.""",
       arguments: {'name': name});
@@ -821,6 +839,7 @@ const Code<Message Function(String name)> codeConflictsWithSetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithSetter,
       message: """Conflicts with setter '${name}'.""",
       arguments: {'name': name});
@@ -842,6 +861,7 @@ const Code<Message Function(String name)> codeConflictsWithSetterWarning =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithSetterWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithSetterWarning,
       message: """Conflicts with setter '${name}'.""",
       arguments: {'name': name});
@@ -862,6 +882,7 @@ const Code<Message Function(String name)> codeConflictsWithTypeVariable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConflictsWithTypeVariable,
       message: """Conflicts with type variable '${name}'.""",
       arguments: {'name': name});
@@ -1020,6 +1041,7 @@ const Code<Message Function(String name)> codeConstEvalDeferredLibrary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDeferredLibrary(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConstEvalDeferredLibrary,
       message:
           """'${name}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
@@ -1084,6 +1106,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeConstEvalFailedAssertionWithMessage,
       message: """This assertion failed with message: ${string}""",
       arguments: {'string': string});
@@ -1116,6 +1139,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidBinaryOperandType(
     String string, Constant _constant, DartType _type, DartType _type2) {
+  if (string.isEmpty) throw 'No string provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -1163,6 +1187,7 @@ const Code<Message Function(String string, Constant _constant)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation(
     String string, Constant _constant) {
+  if (string.isEmpty) throw 'No string provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -1194,6 +1219,7 @@ const Code<Message Function(String name)> codeConstEvalInvalidStaticInvocation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStaticInvocation(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConstEvalInvalidStaticInvocation,
       message:
           """The invocation of '${name}' is not allowed within a const context.""",
@@ -1299,6 +1325,9 @@ const Code<Message Function(String string, String string2, String string3)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNegativeShift(
     String string, String string2, String string3) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  if (string3.isEmpty) throw 'No string provided';
   return new Message(codeConstEvalNegativeShift,
       message:
           """Binary operator '${string}' on '${string2}' requires non-negative operand, but was '${string3}'.""",
@@ -1323,6 +1352,7 @@ const Code<Message Function(String string)> codeConstEvalNonConstantLiteral =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNonConstantLiteral(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeConstEvalNonConstantLiteral,
       message:
           """Can't have a non-constant ${string} literal within a const context.""",
@@ -1349,6 +1379,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeConstEvalNonConstantVariableGet,
       message:
           """The variable '${string}' is not a constant, only constant expressions are allowed.""",
@@ -1375,6 +1406,8 @@ const Code<Message Function(String string, String string2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalZeroDivisor(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeConstEvalZeroDivisor,
       message:
           """Binary operator '${string}' on '${string2}' requires non-zero divisor, but divisor was '0'.""",
@@ -1424,6 +1457,7 @@ const Code<Message Function(String name)> codeConstFieldWithoutInitializer =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstFieldWithoutInitializer(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConstFieldWithoutInitializer,
       message: """The const variable '${name}' must be initialized.""",
       tip:
@@ -1478,6 +1512,7 @@ const Code<Message Function(String name)> codeConstructorNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConstructorNotFound,
       message: """Couldn't find constructor '${name}'.""",
       arguments: {'name': name});
@@ -1551,6 +1586,7 @@ const Code<Message Function(String name)> codeConstructorWithWrongNameContext =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorWithWrongNameContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeConstructorWithWrongNameContext,
       message: """The name of the enclosing class is '${name}'.""",
       arguments: {'name': name});
@@ -1592,6 +1628,7 @@ const Code<Message Function(String name)> codeContinueTargetOutsideFunction =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsContinueTargetOutsideFunction(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeContinueTargetOutsideFunction,
       message: """Can't continue at '${name}' in a different function.""",
       arguments: {'name': name});
@@ -1627,6 +1664,8 @@ const Code<Message Function(String string, String string2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCouldNotParseUri(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeCouldNotParseUri,
       message: """Couldn't parse URI '${string}':
   ${string2}.""", arguments: {'string': string, 'string2': string2});
@@ -1696,6 +1735,8 @@ const Code<Message Function(String name, String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCycleInTypeVariables(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCycleInTypeVariables,
       message: """Type '${name}' is a bound of itself via '${string}'.""",
       tip:
@@ -1719,6 +1760,8 @@ const Code<Message Function(String name, String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicClassHierarchy(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCyclicClassHierarchy,
       message: """'${name}' is a supertype of itself via '${string}'.""",
       arguments: {'name': name, 'string': string});
@@ -1741,6 +1784,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeCyclicRedirectingFactoryConstructors,
       message: """Cyclic definition of factory '${name}'.""",
       arguments: {'name': name});
@@ -1760,6 +1804,7 @@ const Code<Message Function(String name)> codeCyclicTypedef =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicTypedef(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeCyclicTypedef,
       message: """The typedef '${name}' has a reference to itself.""",
       arguments: {'name': name});
@@ -1809,6 +1854,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDefaultValueInRedirectingFactoryConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDefaultValueInRedirectingFactoryConstructor,
       message:
           """Can't have a default value here because any default values of '${name}' would be used instead.""",
@@ -1845,6 +1891,7 @@ const Code<Message Function(String name)> codeDeferredPrefixDuplicated =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredPrefixDuplicated(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDeferredPrefixDuplicated,
       message:
           """Can't use the name '${name}' for a deferred library, as the name is used elsewhere.""",
@@ -1866,6 +1913,7 @@ const Code<Message Function(String name)> codeDeferredPrefixDuplicatedCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDeferredPrefixDuplicatedCause,
       message: """'${name}' is used here.""", arguments: {'name': name});
 }
@@ -1899,6 +1947,7 @@ Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
   new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
   String type = '$buffer';
 
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDeferredTypeAnnotation,
       message:
           """The type '${type}' is deferred loaded via prefix '${name}' and can't be used as a type annotation.""",
@@ -1931,8 +1980,13 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDillOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
+  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeDillOutlineSummary,
       message:
@@ -1967,6 +2021,7 @@ const Code<Message Function(String name)> codeDirectCycleInTypeVariables =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDirectCycleInTypeVariables(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDirectCycleInTypeVariables,
       message: """Type '${name}' can't use itself as a bound.""",
       tip:
@@ -1989,6 +2044,7 @@ const Code<Message Function(String name)> codeDirectCyclicClassHierarchy =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDirectCyclicClassHierarchy(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDirectCyclicClassHierarchy,
       message: """'${name}' can't use itself as a supertype.""",
       arguments: {'name': name});
@@ -2032,6 +2088,7 @@ const Code<Message Function(String name)> codeDuplicateLabelInSwitchStatement =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicateLabelInSwitchStatement,
       message:
           """The label '${name}' was already used in this switch statement.""",
@@ -2062,6 +2119,7 @@ const Code<Message Function(String name)> codeDuplicatedDeclaration =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedDeclaration,
       message: """'${name}' is already declared in this scope.""",
       arguments: {'name': name});
@@ -2082,6 +2140,7 @@ const Code<Message Function(String name)> codeDuplicatedDeclarationCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedDeclarationCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedDeclarationCause,
       message: """Previous declaration of '${name}'.""",
       arguments: {'name': name});
@@ -2107,6 +2166,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedDeclarationSyntheticCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedDeclarationSyntheticCause,
       message:
           """Previous declaration of '${name}' is implied by this definition.""",
@@ -2129,6 +2189,7 @@ const Code<Message Function(String name)> codeDuplicatedDeclarationUse =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedDeclarationUse(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedDeclarationUse,
       message: """Can't use '${name}' because it is declared more than once.""",
       arguments: {'name': name});
@@ -2151,6 +2212,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedExport,
@@ -2175,6 +2237,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedExportInType,
@@ -2199,6 +2262,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedImport,
@@ -2224,6 +2288,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedImportInType,
@@ -2246,6 +2311,7 @@ const Code<Message Function(String name)> codeDuplicatedLibraryExport =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedLibraryExport(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedLibraryExport,
       message: """A library with name '${name}' is exported more than once.""",
       arguments: {'name': name});
@@ -2266,6 +2332,7 @@ const Code<Message Function(String name)> codeDuplicatedLibraryExportContext =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedLibraryExportContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedLibraryExportContext,
       message: """'${name}' is also exported here.""",
       arguments: {'name': name});
@@ -2286,6 +2353,7 @@ const Code<Message Function(String name)> codeDuplicatedLibraryImport =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedLibraryImport(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedLibraryImport,
       message: """A library with name '${name}' is imported more than once.""",
       arguments: {'name': name});
@@ -2306,6 +2374,7 @@ const Code<Message Function(String name)> codeDuplicatedLibraryImportContext =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedLibraryImportContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedLibraryImportContext,
       message: """'${name}' is also imported here.""",
       arguments: {'name': name});
@@ -2351,6 +2420,7 @@ const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedNamePreviouslyUsed,
       message:
           """Can't declare '${name}' because it was already used in this scope.""",
@@ -2374,6 +2444,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedNamePreviouslyUsedCause,
       message: """Previous use of '${name}'.""", arguments: {'name': name});
 }
@@ -2392,6 +2463,7 @@ const Code<Message Function(String name)> codeDuplicatedNamedArgument =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedNamedArgument(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedNamedArgument,
       message: """Duplicated named argument '${name}'.""",
       arguments: {'name': name});
@@ -2411,6 +2483,7 @@ const Code<Message Function(String name)> codeDuplicatedParameterName =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterName(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedParameterName,
       message: """Duplicated parameter name '${name}'.""",
       arguments: {'name': name});
@@ -2431,6 +2504,7 @@ const Code<Message Function(String name)> codeDuplicatedParameterNameCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterNameCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeDuplicatedParameterNameCause,
       message: """Other parameter named '${name}'.""",
       arguments: {'name': name});
@@ -2482,6 +2556,7 @@ const Code<Message Function(String name)> codeEnumConstantSameNameAsEnclosing =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeEnumConstantSameNameAsEnclosing,
       message:
           """Name of enum constant '${name}' can't be the same as the enum's own name.""",
@@ -2541,6 +2616,7 @@ const Code<Message Function(String string)> codeExpectedAfterButGot =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedAfterButGot(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedAfterButGot,
       message: """Expected '${string}' after this.""",
       arguments: {'string': string});
@@ -2597,6 +2673,7 @@ const Code<Message Function(String string)> codeExpectedButGot =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedButGot(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedButGot,
       message: """Expected '${string}' before this.""",
       arguments: {'string': string});
@@ -2772,6 +2849,7 @@ const Code<Message Function(String string)> codeExpectedInstead =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedInstead(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedInstead,
       message: """Expected '${string}' instead of this.""",
       arguments: {'string': string});
@@ -2844,6 +2922,7 @@ const Code<Message Function(String string)> codeExpectedToken =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedToken(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedToken,
       message: """Expected to find '${string}'.""",
       arguments: {'string': string});
@@ -2902,6 +2981,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeExportHidesExport,
@@ -2934,6 +3014,7 @@ const Code<Message Function(String name)> codeExtendingEnum =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingEnum(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeExtendingEnum,
       message: """'${name}' is an enum and can't be extended or implemented.""",
       arguments: {'name': name});
@@ -2954,6 +3035,7 @@ const Code<Message Function(String name)> codeExtendingRestricted =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingRestricted(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeExtendingRestricted,
       message:
           """'${name}' is restricted and can't be extended or implemented.""",
@@ -3135,6 +3217,8 @@ const Code<Message Function(String name, int count)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
     String name, int count) {
+  if (name.isEmpty) throw 'No name provided';
+  if (count == null) throw 'No count provided';
   return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
       message:
           """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
@@ -3172,6 +3256,7 @@ Message _withArgumentsFactoryRedirecteeInvalidReturnType(
   new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
   String type = '$buffer';
 
+  if (name.isEmpty) throw 'No name provided';
   buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
   String type2 = '$buffer';
@@ -3209,6 +3294,7 @@ const Code<Message Function(String name)> codeFastaCLIArgumentRequired =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFastaCLIArgumentRequired(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFastaCLIArgumentRequired,
       message: """Expected value after '${name}'.""",
       arguments: {'name': name});
@@ -3333,6 +3419,7 @@ const Code<Message Function(String name)> codeFinalFieldNotInitialized =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldNotInitialized(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFinalFieldNotInitialized,
       message: """Final field '${name}' is not initialized.""",
       tip:
@@ -3362,6 +3449,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldNotInitializedByConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFinalFieldNotInitializedByConstructor,
       message:
           """Final field '${name}' is not initialized by this constructor.""",
@@ -3389,6 +3477,7 @@ const Code<Message Function(String name)> codeFinalFieldWithoutInitializer =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldWithoutInitializer(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFinalFieldWithoutInitializer,
       message: """The final variable '${name}' must be initialized.""",
       tip:
@@ -3415,6 +3504,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitialized(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFinalInstanceVariableAlreadyInitialized,
       message:
           """'${name}' is a final instance variable that has already been initialized.""",
@@ -3440,6 +3530,7 @@ const Code<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
     String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeFinalInstanceVariableAlreadyInitializedCause,
       message: """'${name}' was initialized here.""",
       arguments: {'name': name});
@@ -3607,6 +3698,7 @@ const Code<Message Function(String name)> codeGetterNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGetterNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeGetterNotFound,
       message: """Getter not found: '${name}'.""", arguments: {'name': name});
 }
@@ -3676,6 +3768,7 @@ const Code<Message Function(String name)> codeIllegalMixin =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixin(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeIllegalMixin,
       message: """The type '${name}' can't be mixed in.""",
       arguments: {'name': name});
@@ -3697,6 +3790,7 @@ const Code<Message Function(String name)> codeIllegalMixinDueToConstructors =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructors(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeIllegalMixinDueToConstructors,
       message:
           """Can't use '${name}' as a mixin because it has constructors.""",
@@ -3721,6 +3815,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeIllegalMixinDueToConstructorsCause,
       message: """This constructor prevents using '${name}' as a mixin.""",
       arguments: {'name': name});
@@ -3800,6 +3895,8 @@ const Code<Message Function(String name, int count)> codeImplementsRepeated =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplementsRepeated(String name, int count) {
+  if (name.isEmpty) throw 'No name provided';
+  if (count == null) throw 'No count provided';
   return new Message(codeImplementsRepeated,
       message: """'${name}' can only be implemented once.""",
       tip: """Try removing ${count} of the occurrences.""",
@@ -3825,6 +3922,7 @@ const Code<Message Function(String name)> codeImplementsSuperClass =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplementsSuperClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeImplementsSuperClass,
       message:
           """'${name}' can't be used in both 'extends' and 'implements' clauses.""",
@@ -3891,6 +3989,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeImportHidesImport,
@@ -3949,6 +4048,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillNotSelfContained(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInitializeFromDillNotSelfContained,
       message:
           """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
@@ -3977,6 +4077,8 @@ const Code<Message Function(String string, String string2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblem(
     String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeInitializeFromDillUnknownProblem,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't. Error message was '${string2}'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
@@ -4010,6 +4112,7 @@ const Code<Message Function(String name)> codeInitializerForStaticField =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializerForStaticField(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInitializerForStaticField,
       message: """'${name}' isn't an instance field of this class.""",
       arguments: {'name': name});
@@ -4033,6 +4136,7 @@ const Code<Message Function(String name)> codeInitializerOutsideConstructor =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializerOutsideConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInitializerOutsideConstructor,
       message:
           """Only constructors can have initializers, and '${name}' is not a constructor.""",
@@ -4065,6 +4169,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializingFormalTypeMismatch(
     String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -4179,6 +4284,7 @@ const Code<Message Function(String name, Uri uri_)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemConstructorNotFound(
     String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   return new Message(codeInternalProblemConstructorNotFound,
       message: """No constructor named '${name}' in '${uri}'.""",
@@ -4202,6 +4308,7 @@ const Code<Message Function(String string)> codeInternalProblemContextSeverity =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemContextSeverity(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemContextSeverity,
       message: """Non-context message has context severity: ${string}""",
       arguments: {'string': string});
@@ -4223,6 +4330,8 @@ const Code<Message Function(String name, String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemDebugAbort(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemDebugAbort,
       message: """Compilation aborted due to fatal '${name}' at:
 ${string}""", arguments: {'name': name, 'string': string});
@@ -4264,6 +4373,7 @@ const Code<Message Function(String name)> codeInternalProblemNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInternalProblemNotFound,
       message: """Couldn't find '${name}'.""", arguments: {'name': name});
 }
@@ -4284,6 +4394,8 @@ const Code<Message Function(String name, String name2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeInternalProblemNotFoundIn,
       message: """Couldn't find '${name}' in '${name2}'.""",
       arguments: {'name': name, 'name2': name2});
@@ -4316,6 +4428,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInternalProblemPrivateConstructorAccess,
       message: """Can't access private constructor '${name}'.""",
       arguments: {'name': name});
@@ -4348,6 +4461,8 @@ const Code<Message Function(String name, String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemStackNotEmpty,
       message: """${name}.stack isn't empty:
   ${string}""", arguments: {'name': name, 'string': string});
@@ -4370,6 +4485,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInternalProblemSuperclassNotFound,
       message: """Superclass not found '${name}'.""",
       arguments: {'name': name});
@@ -4391,6 +4507,8 @@ const Code<Message Function(String string, String string2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemUnexpected,
       message: """Expected '${string}', but got '${string2}'.""",
       arguments: {'string': string, 'string2': string2});
@@ -4412,6 +4530,8 @@ const Code<Message Function(String string, String string2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnhandled(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemUnhandled,
       message: """Unhandled ${string} in ${string2}.""",
       arguments: {'string': string, 'string2': string2});
@@ -4432,6 +4552,7 @@ const Code<Message Function(String string)> codeInternalProblemUnimplemented =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnimplemented(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemUnimplemented,
       message: """Unimplemented ${string}.""", arguments: {'string': string});
 }
@@ -4451,6 +4572,7 @@ const Code<Message Function(String name)> codeInternalProblemUnsupported =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnsupported(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInternalProblemUnsupported,
       message: """Unsupported operation: '${name}'.""",
       arguments: {'name': name});
@@ -4493,6 +4615,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemVerificationError(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInternalProblemVerificationError,
       message: """Verification of the generated program failed:
 ${string}""", arguments: {'string': string});
@@ -4571,6 +4694,7 @@ const Code<Message Function(String name)> codeInvalidBreakTarget =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidBreakTarget(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInvalidBreakTarget,
       message: """Can't break to '${name}'.""", arguments: {'name': name});
 }
@@ -4884,6 +5008,7 @@ const Code<Message Function(String name)> codeInvalidContinueTarget =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidContinueTarget(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInvalidContinueTarget,
       message: """Can't continue at '${name}'.""", arguments: {'name': name});
 }
@@ -4959,6 +5084,7 @@ const Code<Message Function(Uri uri_, String string)> codeInvalidPackageUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
   String uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeInvalidPackageUri,
       message: """Invalid package URI '${uri}':
   ${string}.""", arguments: {'uri': uri_, 'string': string});
@@ -5021,6 +5147,7 @@ const Code<Message Function(String name)> codeInvokeNonFunction =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvokeNonFunction(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeInvokeNonFunction,
       message: """'${name}' isn't a function or method and can't be invoked.""",
       arguments: {'name': name});
@@ -5043,6 +5170,7 @@ const Code<Message Function(String name)> codeLabelNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLabelNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeLabelNotFound,
       message: """Can't find label '${name}'.""",
       tip:
@@ -5125,6 +5253,7 @@ const Code<Message Function(String name, Uri uri_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   return new Message(codeLocalDefinitionHidesExport,
       message: """Local definition of '${name}' hides export from '${uri}'.""",
@@ -5148,6 +5277,7 @@ const Code<Message Function(String name, Uri uri_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   return new Message(codeLocalDefinitionHidesImport,
       message: """Local definition of '${name}' hides import from '${uri}'.""",
@@ -5199,6 +5329,7 @@ const Code<Message Function(String name)> codeMethodNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMethodNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeMethodNotFound,
       message: """Method not found: '${name}'.""", arguments: {'name': name});
 }
@@ -5261,6 +5392,7 @@ const Code<Message Function(int count)> codeMissingExplicitTypeArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingExplicitTypeArguments(int count) {
+  if (count == null) throw 'No count provided';
   return new Message(codeMissingExplicitTypeArguments,
       message: """No type arguments provided, ${count} possible.""",
       arguments: {'count': count});
@@ -5315,6 +5447,7 @@ const Code<Message Function(String name)> codeMissingImplementationCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeMissingImplementationCause,
       message: """'${name}' is defined here.""", arguments: {'name': name});
 }
@@ -5349,6 +5482,8 @@ const Code<Message Function(String name, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract(
     String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeMissingImplementationNotAbstract,
       message:
           """The non-abstract class '${name}' is missing implementations for these members:
@@ -5464,6 +5599,8 @@ const Code<Message Function(String name, String name2, DartType _type)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinInferenceNoMatchingClass(
     String name, String name2, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -5598,6 +5735,7 @@ const Code<Message Function(String name)> codeNoSuchNamedParameter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNoSuchNamedParameter(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeNoSuchNamedParameter,
       message: """No named parameter with the name '${name}'.""",
       arguments: {'name': name});
@@ -5634,6 +5772,7 @@ const Code<Message Function(String character, int codePoint)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonAsciiIdentifier(String character, int codePoint) {
+  if (character.runes.length != 1) throw "Not a character '${character}'";
   String unicode =
       "U+${codePoint.toRadixString(16).toUpperCase().padLeft(4, '0')}";
   return new Message(codeNonAsciiIdentifier,
@@ -5728,6 +5867,7 @@ const Code<Message Function(String name)> codeNonSimpleBoundViaReference =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonSimpleBoundViaReference(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeNonSimpleBoundViaReference,
       message: """Bound of this variable references raw type '${name}'.""",
       arguments: {'name': name});
@@ -5751,6 +5891,7 @@ const Code<Message Function(String name)> codeNonSimpleBoundViaVariable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonSimpleBoundViaVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeNonSimpleBoundViaVariable,
       message:
           """Bound of this variable references variable '${name}' from the same declaration.""",
@@ -5787,6 +5928,8 @@ const Code<Message Function(String name, String name2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeNotAPrefixInTypeAnnotation,
       message:
           """'${name}.${name2}' can't be used as a type because '${name}' doesn't refer to an import prefix.""",
@@ -5807,6 +5950,7 @@ const Code<Message Function(String name)> codeNotAType =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAType(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeNotAType,
       message: """'${name}' isn't a type.""", arguments: {'name': name});
 }
@@ -5833,6 +5977,7 @@ const Code<Message Function(String string)> codeNotConstantExpression =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotConstantExpression(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeNotConstantExpression,
       message: """${string} is not a constant expression.""",
       arguments: {'string': string});
@@ -5868,6 +6013,7 @@ const Code<Message Function(String name)> codeOperatorMinusParameterMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorMinusParameterMismatch(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeOperatorMinusParameterMismatch,
       message: """Operator '${name}' should have zero or one parameter.""",
       tip:
@@ -5891,6 +6037,7 @@ const Code<Message Function(String name)> codeOperatorParameterMismatch0 =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorParameterMismatch0(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeOperatorParameterMismatch0,
       message: """Operator '${name}' shouldn't have any parameters.""",
       arguments: {'name': name});
@@ -5912,6 +6059,7 @@ const Code<Message Function(String name)> codeOperatorParameterMismatch1 =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorParameterMismatch1(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeOperatorParameterMismatch1,
       message: """Operator '${name}' should have exactly one parameter.""",
       arguments: {'name': name});
@@ -5933,6 +6081,7 @@ const Code<Message Function(String name)> codeOperatorParameterMismatch2 =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorParameterMismatch2(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeOperatorParameterMismatch2,
       message: """Operator '${name}' should have exactly two parameters.""",
       arguments: {'name': name});
@@ -5961,6 +6110,7 @@ const Code<Message Function(String name)> codeOverriddenMethodCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverriddenMethodCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeOverriddenMethodCause,
       message: """This is the overridden method ('${name}').""",
       arguments: {'name': name});
@@ -5987,6 +6137,8 @@ const Code<Message Function(String name, String name2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerNamedArguments(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeOverrideFewerNamedArguments,
       message:
           """The method '${name}' has fewer named arguments than those of overridden method '${name2}'.""",
@@ -6016,6 +6168,8 @@ const Code<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerPositionalArguments(
     String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeOverrideFewerPositionalArguments,
       message:
           """The method '${name}' has fewer positional arguments than those of overridden method '${name2}'.""",
@@ -6046,6 +6200,9 @@ const Code<Message Function(String name, String name2, String name3)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchNamedParameter(
     String name, String name2, String name3) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
+  if (name3.isEmpty) throw 'No name provided';
   return new Message(codeOverrideMismatchNamedParameter,
       message:
           """The method '${name}' doesn't have the named parameter '${name2}' of overridden method '${name3}'.""",
@@ -6073,6 +6230,8 @@ const Code<Message Function(String name, String name2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeOverrideMoreRequiredArguments,
       message:
           """The method '${name}' has more required arguments than those of overridden method '${name2}'.""",
@@ -6108,6 +6267,8 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchParameter(
     String name, String name2, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -6154,6 +6315,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchReturnType(
     String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -6192,6 +6354,8 @@ const Code<Message Function(String name, String name2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeOverrideTypeVariablesMismatch,
       message:
           """Declared type variables of '${name}' doesn't match those on overridden method '${name2}'.""",
@@ -6215,6 +6379,7 @@ const Code<Message Function(String name, Uri uri_)> codePackageNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPackageNotFound(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   return new Message(codePackageNotFound,
       message: """Could not resolve the package '${name}' in '${uri}'.""",
@@ -6236,6 +6401,7 @@ const Code<Message Function(String string)> codePackagesFileFormat =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPackagesFileFormat(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codePackagesFileFormat,
       message: """Problem in packages configuration file: ${string}""",
       arguments: {'string': string});
@@ -6328,6 +6494,8 @@ const Code<Message Function(Uri uri_, String name, String name2)>
 Message _withArgumentsPartOfLibraryNameMismatch(
     Uri uri_, String name, String name2) {
   String uri = relativizeUri(uri_);
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codePartOfLibraryNameMismatch,
       message:
           """Using '${uri}' as part of '${name}' but its 'part of' declaration says '${name2}'.""",
@@ -6429,6 +6597,7 @@ const Code<Message Function(Uri uri_, Uri uri2_, String name)>
 Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codePartOfUseUri,
       message:
           """Using '${uri}' as part of '${uri2}' but its 'part of' declaration says '${name}'.""",
@@ -6516,6 +6685,7 @@ const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
   String uri = relativizeUri(uri_);
   return new Message(codePatchInjectionFailed,
       message: """Can't inject '${name}' into '${uri}'.""",
@@ -6657,6 +6827,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
     String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -6696,6 +6867,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
     String name, DartType _type, DartType _type2) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -6734,6 +6906,8 @@ const Code<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryMissingNamedParameter(
     String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeRedirectingFactoryMissingNamedParameter,
       message:
           """The constructor '${name}' does not have a named parameter '${name2}'.""",
@@ -6763,6 +6937,10 @@ const Code<Message Function(String name, int count, String name2, int count2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
     String name, int count, String name2, int count2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (count == null) throw 'No count provided';
+  if (name2.isEmpty) throw 'No name provided';
+  if (count2 == null) throw 'No count provided';
   return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
       message:
           """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
@@ -6803,6 +6981,7 @@ const Code<Message Function(String name)> codeRedirectionTargetNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectionTargetNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeRedirectionTargetNotFound,
       message: """Redirection constructor target not found: '${name}'""",
       arguments: {'name': name});
@@ -6941,6 +7120,7 @@ const Code<Message Function(String name)> codeSetterNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSetterNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSetterNotFound,
       message: """Setter not found: '${name}'.""", arguments: {'name': name});
 }
@@ -6992,8 +7172,13 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceBodySummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
+  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceBodySummary,
       message:
@@ -7038,8 +7223,13 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
+  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceOutlineSummary,
       message:
@@ -7170,6 +7360,7 @@ const Code<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSuperclassHasNoDefaultConstructor,
       message:
           """The superclass, '${name}', has no unnamed constructor that takes no arguments.""",
@@ -7191,6 +7382,7 @@ const Code<Message Function(String name)> codeSuperclassHasNoGetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoGetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSuperclassHasNoGetter,
       message: """Superclass has no getter named '${name}'.""",
       arguments: {'name': name});
@@ -7211,6 +7403,7 @@ const Code<Message Function(String name)> codeSuperclassHasNoMethod =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoMethod(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSuperclassHasNoMethod,
       message: """Superclass has no method named '${name}'.""",
       arguments: {'name': name});
@@ -7231,6 +7424,7 @@ const Code<Message Function(String name)> codeSuperclassHasNoSetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSuperclassHasNoSetter,
       message: """Superclass has no setter named '${name}'.""",
       arguments: {'name': name});
@@ -7255,6 +7449,7 @@ const Code<Message Function(String name)> codeSuperclassMethodArgumentMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSuperclassMethodArgumentMismatch,
       message:
           """Superclass doesn't have a method named '${name}' with matching arguments.""",
@@ -7283,6 +7478,7 @@ const Code<Message Function(String name)> codeSupertypeIsIllegal =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsIllegal(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSupertypeIsIllegal,
       message: """The type '${name}' can't be used as supertype.""",
       arguments: {'name': name});
@@ -7303,6 +7499,7 @@ const Code<Message Function(String name)> codeSupertypeIsTypeVariable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeSupertypeIsTypeVariable,
       message: """The type variable '${name}' can't be used as supertype.""",
       arguments: {'name': name});
@@ -7411,6 +7608,7 @@ const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisAccessInFieldInitializer(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeThisAccessInFieldInitializer,
       message:
           """Can't access 'this' in a field initializer to read '${name}'.""",
@@ -7452,6 +7650,7 @@ const Code<Message Function(String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisOrSuperAccessInFieldInitializer(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeThisOrSuperAccessInFieldInitializer,
       message: """Can't access '${string}' in a field initializer.""",
       arguments: {'string': string});
@@ -7477,6 +7676,8 @@ const Code<Message Function(int count, int count2)> codeTooFewArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments(int count, int count2) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
   return new Message(codeTooFewArguments,
       message:
           """Too few positional arguments: ${count} required, ${count2} given.""",
@@ -7504,6 +7705,8 @@ const Code<Message Function(int count, int count2)> codeTooManyArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments(int count, int count2) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
   return new Message(codeTooManyArguments,
       message:
           """Too many positional arguments: ${count} allowed, but ${count2} found.""",
@@ -7546,6 +7749,7 @@ const Code<Message Function(int count)> codeTypeArgumentMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentMismatch(int count) {
+  if (count == null) throw 'No count provided';
   return new Message(codeTypeArgumentMismatch,
       message: """Expected ${count} type arguments.""",
       arguments: {'count': count});
@@ -7568,6 +7772,7 @@ const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeTypeArgumentsOnTypeVariable,
       message: """Can't use type arguments with type variable '${name}'.""",
       tip: """Try removing the type arguments.""",
@@ -7589,6 +7794,7 @@ const Code<Message Function(String name)> codeTypeNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeTypeNotFound,
       message: """Type '${name}' not found.""", arguments: {'name': name});
 }
@@ -7618,6 +7824,7 @@ const Code<Message Function(String name)> codeTypeVariableDuplicatedNameCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeTypeVariableDuplicatedNameCause,
       message: """The other type variable named '${name}'.""",
       arguments: {'name': name});
@@ -7694,6 +7901,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedGetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUndefinedGetter(String name, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -7729,6 +7937,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedMethod =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUndefinedMethod(String name, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -7764,6 +7973,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedSetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUndefinedSetter(String name, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
   NameSystem nameSystem = new NameSystem();
   StringBuffer buffer;
   buffer = new StringBuffer();
@@ -7824,6 +8034,7 @@ const Code<Message Function(String string, Token token)> codeUnmatchedToken =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnmatchedToken(String string, Token token) {
+  if (string.isEmpty) throw 'No string provided';
   String lexeme = token.lexeme;
   return new Message(codeUnmatchedToken,
       message: """Can't find '${string}' to match '${lexeme}'.""",
@@ -7853,6 +8064,8 @@ const Code<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
     String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
   return new Message(codeUnresolvedPrefixInTypeAnnotation,
       message:
           """'${name}.${name2}' can't be used as a type because '${name}' isn't defined.""",
@@ -7874,6 +8087,7 @@ const Code<Message Function(String string)> codeUnspecified =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnspecified(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeUnspecified,
       message: """${string}""", arguments: {'string': string});
 }
@@ -7934,6 +8148,8 @@ const Code<Message Function(String string, String string2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnterminatedString(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeUnterminatedString,
       message: """String starting with ${string} must end with ${string2}.""",
       arguments: {'string': string, 'string2': string2});
@@ -7980,6 +8196,7 @@ const Code<Message Function(String name)> codeUseOfDeprecatedIdentifier =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUseOfDeprecatedIdentifier(String name) {
+  if (name.isEmpty) throw 'No name provided';
   return new Message(codeUseOfDeprecatedIdentifier,
       message: """'${name}' is deprecated.""", arguments: {'name': name});
 }
@@ -8026,6 +8243,8 @@ const Code<Message Function(String string, String string2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
     String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeWebLiteralCannotBeRepresentedExactly,
       message:
           """The integer literal ${string} can't be represented exactly in JavaScript.""",

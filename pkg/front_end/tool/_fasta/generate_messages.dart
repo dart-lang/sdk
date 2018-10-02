@@ -160,6 +160,8 @@ StringBuffer buffer;""");
     switch (name) {
       case "character":
         parameters.add("String character");
+        conversions.add("if (character.runes.length != 1)"
+            "throw \"Not a character '\${character}'\";");
         arguments.add("'character': character");
         break;
 
@@ -175,16 +177,19 @@ StringBuffer buffer;""");
 
       case "name":
         parameters.add("String name");
+        conversions.add("if (name.isEmpty) throw 'No name provided';");
         arguments.add("'name': name");
         break;
 
       case "name2":
         parameters.add("String name2");
+        conversions.add("if (name2.isEmpty) throw 'No name provided';");
         arguments.add("'name2': name2");
         break;
 
       case "name3":
         parameters.add("String name3");
+        conversions.add("if (name3.isEmpty) throw 'No name provided';");
         arguments.add("'name3': name3");
         break;
 
@@ -202,16 +207,19 @@ StringBuffer buffer;""");
 
       case "string":
         parameters.add("String string");
+        conversions.add("if (string.isEmpty) throw 'No string provided';");
         arguments.add("'string': string");
         break;
 
       case "string2":
         parameters.add("String string2");
+        conversions.add("if (string2.isEmpty) throw 'No string provided';");
         arguments.add("'string2': string2");
         break;
 
       case "string3":
         parameters.add("String string3");
+        conversions.add("if (string3.isEmpty) throw 'No string provided';");
         arguments.add("'string3': string3");
         break;
 
@@ -257,11 +265,13 @@ String type2 = '$buffer';
 
       case "count":
         parameters.add("int count");
+        conversions.add("if (count == null) throw 'No count provided';");
         arguments.add("'count': count");
         break;
 
       case "count2":
         parameters.add("int count2");
+        conversions.add("if (count2 == null) throw 'No count provided';");
         arguments.add("'count2': count2");
         break;
 
@@ -280,18 +290,21 @@ String constant = '$buffer';
 
       case "num1":
         parameters.add("num _num1");
+        conversions.add("if (_num1 == null) throw 'No number provided';");
         conversions.add("String num1 = ${format('_num1')};");
         arguments.add("'num1': _num1");
         break;
 
       case "num2":
         parameters.add("num _num2");
+        conversions.add("if (_num2 == null) throw 'No number provided';");
         conversions.add("String num2 = ${format('_num2')};");
         arguments.add("'num2': _num2");
         break;
 
       case "num3":
         parameters.add("num _num3");
+        conversions.add("if (_num3 == null) throw 'No number provided';");
         conversions.add("String num3 = ${format('_num3')};");
         arguments.add("'num3': _num3");
         break;
