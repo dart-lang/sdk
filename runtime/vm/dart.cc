@@ -531,6 +531,7 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
   MallocHooks::Cleanup();
+  Flags::Cleanup();
   return NULL;
 }
 

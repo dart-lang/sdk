@@ -281,6 +281,8 @@ static int Main(int argc, const char** argv) {
   TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
   TesterState::create_callback = CreateIsolateAndSetup;
   TesterState::cleanup_callback = CleanupIsolate;
+  TesterState::argv = dart_argv;
+  TesterState::argc = dart_argc;
 
   error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,

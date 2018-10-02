@@ -41,6 +41,8 @@ const uint8_t* TesterState::vm_snapshot_data = NULL;
 Dart_IsolateCreateCallback TesterState::create_callback = NULL;
 Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
 Dart_IsolateCleanupCallback TesterState::cleanup_callback = NULL;
+const char** TesterState::argv = NULL;
+int TesterState::argc = 0;
 
 DEFINE_FLAG(bool,
             use_dart_frontend,

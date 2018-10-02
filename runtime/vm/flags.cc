@@ -177,6 +177,11 @@ bool Flags::IsSet(const char* name) {
          (flag->bool_ptr_ != NULL) && (*flag->bool_ptr_ == true);
 }
 
+void Flags::Cleanup() {
+  ASSERT(initialized_);
+  initialized_ = false;
+}
+
 void Flags::AddFlag(Flag* flag) {
   ASSERT(!initialized_);
   if (num_flags_ == capacity_) {

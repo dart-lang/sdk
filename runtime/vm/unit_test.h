@@ -281,6 +281,8 @@ class TesterState : public AllStatic {
   static Dart_IsolateCreateCallback create_callback;
   static Dart_IsolateShutdownCallback shutdown_callback;
   static Dart_IsolateCleanupCallback cleanup_callback;
+  static const char** argv;
+  static int argc;
 };
 
 class KernelBufferList {

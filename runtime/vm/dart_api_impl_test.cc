@@ -29,6 +29,7 @@ DECLARE_FLAG(bool, use_dart_frontend);
 #ifndef PRODUCT
 
 UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
+  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == NULL);
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
