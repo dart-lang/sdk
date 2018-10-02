@@ -177,6 +177,11 @@ void ImageWriter::DumpInstructionsSizes() {
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
+    if (data.code_->IsNull()) {
+      // TODO(34650): Type testing stubs are added to the serializer without
+      // their Code.
+      continue;
+    }
     owner = data.code_->owner();
     js.OpenObject();
     if (owner.IsFunction()) {
