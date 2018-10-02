@@ -38,8 +38,11 @@ def BuildOptions():
   result.add_option("-j",
       type=int,
       help='Ninja -j option for Goma builds.',
-      metavar=1000,
       default=1000)
+  result.add_option("-l",
+      type=int,
+      help='Ninja -l option for Goma builds.',
+      default=64)
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
       metavar='[all,debug,release,product]',
@@ -256,6 +259,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
     if options.no_start_goma or EnsureGomaStarted(out_dir):
       using_goma = True
       command += [('-j%s' % str(options.j))]
+      command += [('-l%s' % str(options.l))]
     else:
       # If we couldn't ensure that goma is started, let the build start, but
       # slowly so we can see any helpful error messages that pop out.
