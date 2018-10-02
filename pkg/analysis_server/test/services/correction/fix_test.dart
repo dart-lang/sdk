@@ -345,6 +345,40 @@ main() async {
     }
   }
 
+  test_addAsync_blockFunctionBody_getter() async {
+    await resolveTestUnit('''
+int get foo => null;
+int f() {
+  await foo;
+  return 1;
+}
+''');
+    List<AnalysisError> errors = await _computeErrors();
+    expect(errors, hasLength(2));
+    AnalysisError error = errors.firstWhere(
+        (e) => e.errorCode == CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+        orElse: () => null);
+    List<Fix> fixes = await _computeFixes(error);
+    // has exactly one fix
+    expect(fixes, hasLength(1));
+    Fix fix = fixes[0];
+    expect(fix.kind, DartFixKind.ADD_ASYNC);
+    // apply to "file"
+    List<SourceFileEdit> fileEdits = fix.change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+    // verify
+    expect(resultCode, '''
+import \'dart:async\';
+
+int get foo => null;
+Future<int> f() async {
+  await foo;
+  return 1;
+}
+''');
+  }
+
   test_addAsync_closure() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;

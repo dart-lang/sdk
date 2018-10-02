@@ -308,6 +308,10 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
       await _addFix_addAsync();
     }
+    if (errorCode == CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE &&
+        error.message.indexOf("'await'") >= 0) {
+      await _addFix_addAsync();
+    }
     if (errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE) {
       await _addFix_changeToNearestPreciseValue();
     }
