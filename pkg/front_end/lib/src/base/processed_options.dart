@@ -226,7 +226,7 @@ class ProcessedOptions {
       List<FormattedMessage> formattedContext =
           new List<FormattedMessage>(context.length);
       for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], severity, null);
+        formattedContext[i] = format(context[i], Severity.context, null);
       }
       _raw.onProblem(
           format(message, severity, null), severity, formattedContext);

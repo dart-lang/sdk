@@ -4,7 +4,7 @@
 // Try providing type arguments to 'Hest' here.
 // class Fisk<TypeY extends Hest, TypeZ extends Hest> {}
 //            ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_for_each.dart:9:12: Error: Bound of this variable references variable 'TypeX' from the same declaration.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_for_each.dart:9:12: Context: Bound of this variable references variable 'TypeX' from the same declaration.
 // class Hest<TypeX extends Hest<TypeX>> {}
 //            ^^^^^
 //
@@ -12,7 +12,7 @@
 // Try providing type arguments to 'Hest' here.
 // class Fisk<TypeY extends Hest, TypeZ extends Hest> {}
 //                                ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_for_each.dart:9:12: Error: Bound of this variable references variable 'TypeX' from the same declaration.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_for_each.dart:9:12: Context: Bound of this variable references variable 'TypeX' from the same declaration.
 // class Hest<TypeX extends Hest<TypeX>> {}
 //            ^^^^^
 

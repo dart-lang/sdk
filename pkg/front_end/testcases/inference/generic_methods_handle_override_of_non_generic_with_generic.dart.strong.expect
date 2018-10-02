@@ -3,7 +3,7 @@
 // pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:46: Error: Declared type variables of 'D::m' doesn't match those on overridden method 'C::m'.
 //   T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
 //                                              ^
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:24: Error: This is the overridden method ('m').
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:24: Context: This is the overridden method ('m').
 //   /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
 //                        ^
 //
@@ -11,14 +11,14 @@
 // Change to a supertype of dynamic (or, for a covariant parameter, a subtype).
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:24: Error: This is the overridden method ('m').
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:24: Context: This is the overridden method ('m').
 //   /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
 //                        ^
 //
 // pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:17:46: Error: Declared type variables of 'D::g' doesn't match those on overridden method 'C::g'.
 //   T /*@error=OverrideTypeVariablesMismatch*/ g<T>(
 //                                              ^
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Error: This is the overridden method ('g').
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
 //   dynamic g(int x) => x;
 //           ^
 //
@@ -26,7 +26,7 @@
 // Change to a supertype of dart.core::int (or, for a covariant parameter, a subtype).
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Error: This is the overridden method ('g').
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
 //   dynamic g(int x) => x;
 //           ^
 

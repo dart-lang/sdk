@@ -7,14 +7,14 @@
 // pkg/front_end/testcases/named_function_scope.dart:33:49: Error: Can't declare 'V' because it was already used in this scope.
 //     var /*@error=DuplicatedNamePreviouslyUsed*/ V;
 //                                                 ^
-// pkg/front_end/testcases/named_function_scope.dart:31:52: Error: Previous use of 'V'.
+// pkg/front_end/testcases/named_function_scope.dart:31:52: Context: Previous use of 'V'.
 //     /*@context=DuplicatedNamePreviouslyUsedCause*/ V  v;
 //                                                    ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:38:49: Error: Can't declare 'V' because it was already used in this scope.
 //     var /*@error=DuplicatedNamePreviouslyUsed*/ V = null;
 //                                                 ^
-// pkg/front_end/testcases/named_function_scope.dart:36:52: Error: Previous use of 'V'.
+// pkg/front_end/testcases/named_function_scope.dart:36:52: Context: Previous use of 'V'.
 //     /*@context=DuplicatedNamePreviouslyUsedCause*/ V  v;
 //                                                    ^
 //
@@ -25,14 +25,14 @@
 // pkg/front_end/testcases/named_function_scope.dart:48:9: Error: Can't declare 'T' because it was already used in this scope.
 //         T() {};
 //         ^
-// pkg/front_end/testcases/named_function_scope.dart:45:9: Error: Previous use of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:45:9: Context: Previous use of 'T'.
 //         T
 //         ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:54:47: Error: Can't declare 'V' because it was already used in this scope.
 //     V /*@error=DuplicatedNamePreviouslyUsed*/ V;
 //                                               ^
-// pkg/front_end/testcases/named_function_scope.dart:54:5: Error: Previous use of 'V'.
+// pkg/front_end/testcases/named_function_scope.dart:54:5: Context: Previous use of 'V'.
 //     V /*@error=DuplicatedNamePreviouslyUsed*/ V;
 //     ^
 //
@@ -43,35 +43,35 @@
 // pkg/front_end/testcases/named_function_scope.dart:62:9: Error: 'T' is already declared in this scope.
 //         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //         ^
-// pkg/front_end/testcases/named_function_scope.dart:62:52: Error: Previous declaration of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:62:52: Context: Previous declaration of 'T'.
 //         T< /*@context=DuplicatedDeclarationCause*/ T>() {};
 //                                                    ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:67:47: Error: Can't declare 'T' because it was already used in this scope.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
 //                                               ^
-// pkg/front_end/testcases/named_function_scope.dart:66:5: Error: Previous use of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:66:5: Context: Previous use of 'T'.
 //     T t;
 //     ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:71:47: Error: Can't declare 'T' because it was already used in this scope.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
 //                                               ^
-// pkg/front_end/testcases/named_function_scope.dart:71:5: Error: Previous use of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:71:5: Context: Previous use of 'T'.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
 //     ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:76:47: Error: Can't declare 'T' because it was already used in this scope.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
 //                                               ^
-// pkg/front_end/testcases/named_function_scope.dart:75:5: Error: Previous use of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:75:5: Context: Previous use of 'T'.
 //     T t;
 //     ^
 //
 // pkg/front_end/testcases/named_function_scope.dart:80:47: Error: Can't declare 'T' because it was already used in this scope.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
 //                                               ^
-// pkg/front_end/testcases/named_function_scope.dart:80:5: Error: Previous use of 'T'.
+// pkg/front_end/testcases/named_function_scope.dart:80:5: Context: Previous use of 'T'.
 //     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
 //     ^
 //

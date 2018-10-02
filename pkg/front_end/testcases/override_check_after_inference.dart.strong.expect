@@ -4,7 +4,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //   void f(B /*@error=OverrideTypeMismatchParameter*/ x) {}
 //                                                     ^
-// pkg/front_end/testcases/override_check_after_inference.dart:16:8: Error: This is the overridden method ('f').
+// pkg/front_end/testcases/override_check_after_inference.dart:16:8: Context: This is the overridden method ('f').
 //   void f(x) {} // Inferred type: (A) -> void
 //        ^
 

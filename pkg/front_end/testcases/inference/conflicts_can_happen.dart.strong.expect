@@ -14,7 +14,7 @@
 // Change to a subtype of test::I1.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Error: This is the overridden method ('a').
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is the overridden method ('a').
 //   final I1 a = null;
 //            ^
 //
@@ -22,7 +22,7 @@
 // Change to a subtype of test::I2.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Error: This is the overridden method ('a').
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is the overridden method ('a').
 //   final I2 a = null;
 //            ^
 //
@@ -30,7 +30,7 @@
 // Change to a subtype of test::I2.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Error: This is the overridden method ('a').
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is the overridden method ('a').
 //   final I2 a = null;
 //            ^
 //
@@ -38,7 +38,7 @@
 // Change to a subtype of test::I1.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Error: This is the overridden method ('a').
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is the overridden method ('a').
 //   final I1 a = null;
 //            ^
 

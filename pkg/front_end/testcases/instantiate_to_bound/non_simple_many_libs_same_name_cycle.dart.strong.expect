@@ -4,10 +4,10 @@
 // Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
 // class Hest<TypeX extends lib.Hest> {}
 //       ^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:11:12: Error: Bound of this variable references raw type 'Hest'.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:11:12: Context: Bound of this variable references raw type 'Hest'.
 // class Hest<TypeX extends lib.Hest> {}
 //            ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib.dart:16:12: Error: Bound of this variable references raw type 'Hest'.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib.dart:16:12: Context: Bound of this variable references raw type 'Hest'.
 // class Hest<TypeY extends lib.Hest> {}
 //            ^^^^^
 

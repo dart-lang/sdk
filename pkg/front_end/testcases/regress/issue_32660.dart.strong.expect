@@ -10,7 +10,7 @@
 //
 // class C extends A implements B {
 //       ^
-// pkg/front_end/testcases/regress/issue_32660.dart:10:3: Error: 'foo' is defined here.
+// pkg/front_end/testcases/regress/issue_32660.dart:10:3: Context: 'foo' is defined here.
 //   foo(int x, {int y}) => y;
 //   ^^^
 //
@@ -24,7 +24,7 @@
 //
 // class E extends D {
 //       ^
-// pkg/front_end/testcases/regress/issue_32660.dart:25:3: Error: 'foo' is defined here.
+// pkg/front_end/testcases/regress/issue_32660.dart:25:3: Context: 'foo' is defined here.
 //   foo(int x, {int y});
 //   ^^^
 

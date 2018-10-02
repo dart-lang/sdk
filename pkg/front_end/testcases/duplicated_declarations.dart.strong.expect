@@ -3,63 +3,63 @@
 // pkg/front_end/testcases/duplicated_declarations.dart:7:9: Error: 'Typedef' is already declared in this scope.
 // typedef Typedef = Object Function();
 //         ^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:5:9: Error: Previous declaration of 'Typedef'.
+// pkg/front_end/testcases/duplicated_declarations.dart:5:9: Context: Previous declaration of 'Typedef'.
 // typedef Typedef = void Function();
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:11:16: Error: 'OldTypedef' is already declared in this scope.
 // typedef Object OldTypedef();
 //                ^^^^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:9:14: Error: Previous declaration of 'OldTypedef'.
+// pkg/front_end/testcases/duplicated_declarations.dart:9:14: Context: Previous declaration of 'OldTypedef'.
 // typedef void OldTypedef();
 //              ^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:15:5: Error: 'field' is already declared in this scope.
 // var field = "2nd";
 //     ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:13:5: Error: Previous declaration of 'field'.
+// pkg/front_end/testcases/duplicated_declarations.dart:13:5: Context: Previous declaration of 'field'.
 // var field = "1st";
 //     ^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:21:1: Error: 'main' is already declared in this scope.
 // main() {
 // ^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:17:1: Error: Previous declaration of 'main'.
+// pkg/front_end/testcases/duplicated_declarations.dart:17:1: Context: Previous declaration of 'main'.
 // main() {
 // ^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:33:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
-// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Error: Previous declaration of 'C'.
+// pkg/front_end/testcases/duplicated_declarations.dart:32:3: Context: Previous declaration of 'C'.
 //   C(a);
 //   ^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:36:7: Error: 'field' is already declared in this scope.
 //   var field = "2nd";
 //       ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:34:7: Error: Previous declaration of 'field'.
+// pkg/front_end/testcases/duplicated_declarations.dart:34:7: Context: Previous declaration of 'field'.
 //   var field = "1st";
 //       ^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:42:3: Error: 'm' is already declared in this scope.
 //   m() {
 //   ^
-// pkg/front_end/testcases/duplicated_declarations.dart:38:3: Error: Previous declaration of 'm'.
+// pkg/front_end/testcases/duplicated_declarations.dart:38:3: Context: Previous declaration of 'm'.
 //   m() {
 //   ^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:50:10: Error: 's' is already declared in this scope.
 //   static s() {
 //          ^
-// pkg/front_end/testcases/duplicated_declarations.dart:46:10: Error: Previous declaration of 's'.
+// pkg/front_end/testcases/duplicated_declarations.dart:46:10: Context: Previous declaration of 's'.
 //   static s() {
 //          ^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:62:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/duplicated_declarations.dart:31:7: Error: Previous declaration of 'C'.
+// pkg/front_end/testcases/duplicated_declarations.dart:31:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
@@ -70,42 +70,42 @@
 // pkg/front_end/testcases/duplicated_declarations.dart:69:3: Error: 'a' is already declared in this scope.
 //   a,
 //   ^
-// pkg/front_end/testcases/duplicated_declarations.dart:68:3: Error: Previous declaration of 'a'.
+// pkg/front_end/testcases/duplicated_declarations.dart:68:3: Context: Previous declaration of 'a'.
 //   a,
 //   ^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:73:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:66:6: Error: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/duplicated_declarations.dart:66:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:83:3: Error: '_name' is already declared in this scope.
 //   _name,
 //   ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of '_name' is implied by this definition.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Context: Previous declaration of '_name' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:84:3: Error: 'index' is already declared in this scope.
 //   index,
 //   ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'index' is implied by this definition.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Context: Previous declaration of 'index' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:85:3: Error: 'toString' is already declared in this scope.
 //   toString,
 //   ^^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'toString' is implied by this definition.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Context: Previous declaration of 'toString' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:86:3: Error: 'values' is already declared in this scope.
 //   values,
 //   ^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Error: Previous declaration of 'values' is implied by this definition.
+// pkg/front_end/testcases/duplicated_declarations.dart:79:6: Context: Previous declaration of 'values' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //

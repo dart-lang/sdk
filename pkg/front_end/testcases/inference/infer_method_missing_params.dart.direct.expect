@@ -3,7 +3,7 @@
 // pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:61: Warning: The method 'C::f' has more required arguments than those of overridden method 'B::f'.
 //   /*@topType=int*/ /*@error=OverrideMoreRequiredArguments*/ f(
 //                                                             ^
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:17:7: Warning: This is the overridden method ('f').
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:17:7: Context: This is the overridden method ('f').
 //   int f(int x);
 //       ^
 

@@ -4,7 +4,7 @@
 // Try providing type arguments to 'Hest' here.
 // class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
 //               ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:8:12: Error: Bound of this variable references variable 'TypeX' from the same declaration.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:8:12: Context: Bound of this variable references variable 'TypeX' from the same declaration.
 // class Hest<TypeX extends Hest<TypeX>> {}
 //            ^^^^^
 //
@@ -12,7 +12,7 @@
 // Try providing type arguments to 'Fisk' here.
 // class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
 //               ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:10:12: Error: Bound of this variable references variable 'TypeY' from the same declaration.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:10:12: Context: Bound of this variable references variable 'TypeY' from the same declaration.
 // class Fisk<TypeY extends Fisk<TypeY>> {}
 //            ^^^^^
 

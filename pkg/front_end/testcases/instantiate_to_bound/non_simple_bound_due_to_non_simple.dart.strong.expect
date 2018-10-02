@@ -4,7 +4,7 @@
 // Try providing type arguments to 'A' here.
 // class B<TypeU extends A> {}
 //         ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_non_simple.dart:10:16: Error: Bound of this variable references variable 'TypeT' from the same declaration.
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_non_simple.dart:10:16: Context: Bound of this variable references variable 'TypeT' from the same declaration.
 // class A<TypeT, TypeS extends TypeT> {}
 //                ^^^^^
 
