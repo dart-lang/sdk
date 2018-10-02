@@ -1045,6 +1045,9 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   MethodElement staticElement;
 
+  @override
+  FunctionType staticInvokeType;
+
   /**
    * Initialize a newly created binary expression.
    */
@@ -1093,23 +1096,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   void set rightOperand(Expression expression) {
     _rightOperand = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
-  ParameterElement get _staticParameterElementForRightOperand {
-    if (staticElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   @override
@@ -4163,7 +4149,11 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
       }
     } else if (parent is BinaryExpressionImpl) {
       if (identical(parent.rightOperand, this)) {
-        return parent._staticParameterElementForRightOperand;
+        var parameters = parent.staticInvokeType?.parameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0];
+        }
+        return null;
       }
     } else if (parent is AssignmentExpressionImpl) {
       if (identical(parent.rightHandSide, this)) {

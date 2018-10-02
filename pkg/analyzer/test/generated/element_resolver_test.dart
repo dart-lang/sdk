@@ -11,13 +11,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -312,7 +312,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * The type provider used to access the types.
    */
-  TestTypeProvider _typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * The library containing the code being resolved.
@@ -382,8 +382,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
   void setUp() {
     super.setUp();
     _listener = new GatheringErrorListener();
-    _typeProvider = new TestTypeProvider();
-    _resolver = _createResolver();
+    _createResolver();
   }
 
   test_lookUpMethodInInterfaces() async {
@@ -1136,18 +1135,21 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * Create and return the resolver used by the tests.
    */
-  ElementResolver _createResolver() {
+  void _createResolver() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
+    _typeProvider = context.typeProvider;
+
+    var inheritance = new InheritanceManager2(context.typeSystem);
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
-        _definingLibrary, source, _typeProvider, _listener,
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(_definingLibrary));
-    return _visitor.elementResolver;
+    _resolver = _visitor.elementResolver;
   }
 
   /**

@@ -3816,10 +3816,14 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   /// resolution. The [nameScope] is the scope used to resolve identifiers in
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on the [definingLibrary].
-  InstanceFieldResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  InstanceFieldResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : super(inheritance, definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   /// Resolve the instance fields in the given compilation unit [node].
@@ -3996,10 +4000,14 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
   /// create the type analyzer.  If `null` or unspecified, a type analyzer of
   /// type [StaticTypeAnalyzer] will be created.
-  PartialResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  PartialResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : super(inheritance, definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   @override
@@ -4152,6 +4160,11 @@ class ResolverErrorCode extends ErrorCode {
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor {
+  /**
+   * The manager for the inheritance mappings.
+   */
+  final InheritanceManager2 inheritance;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -4217,8 +4230,12 @@ class ResolverVisitor extends ScopedVisitor {
   /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
   /// create the type analyzer.  If `null` or unspecified, a type analyzer of
   /// type [StaticTypeAnalyzer] will be created.
-  ResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  ResolverVisitor(
+      this.inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope,
       bool propagateTypes: true,
       reportConstEvaluationErrors: true})
@@ -4606,12 +4623,14 @@ class ResolverVisitor extends ScopedVisitor {
           contextType = leftType;
         }
         InferenceContext.setType(rightOperand, contextType);
-      } else if (node.staticElement != null &&
-          node.staticElement.parameters.isNotEmpty) {
-        // If this is a user-defined operator, set the right operand context
-        // using the operator method's parameter type.
-        var rightParam = node.staticElement.parameters[0];
-        InferenceContext.setType(rightOperand, rightParam.type);
+      } else {
+        var invokeType = node.staticInvokeType;
+        if (invokeType != null && invokeType.parameters.isNotEmpty) {
+          // If this is a user-defined operator, set the right operand context
+          // using the operator method's parameter type.
+          var rightParam = invokeType.parameters[0];
+          InferenceContext.setType(rightOperand, rightParam.type);
+        }
       }
       rightOperand?.accept(this);
     }

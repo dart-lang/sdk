@@ -368,8 +368,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
       return null;
     }
-    ExecutableElement staticMethodElement = node.staticElement;
-    DartType staticType = _computeStaticReturnType(staticMethodElement);
+    DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
     staticType = _typeSystem.refineBinaryExpressionType(
         node.leftOperand.staticType,
         node.operator.type,

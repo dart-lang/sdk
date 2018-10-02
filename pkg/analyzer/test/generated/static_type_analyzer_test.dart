@@ -8,7 +8,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -557,9 +559,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitBinaryExpression_slash() {
     // 2 / 2
-    BinaryExpression node = AstTestFactory.binaryExpression(
+    BinaryExpressionImpl node = AstTestFactory.binaryExpression(
         _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "/");
+    node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
@@ -574,12 +577,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
-    BinaryExpression node = AstTestFactory.binaryExpression(
+    BinaryExpressionImpl node = AstTestFactory.binaryExpression(
         AstTestFactory.asExpression(
             AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA)),
         TokenType.PLUS,
         _resolvedDouble(2.0));
     node.staticElement = operator;
+    node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), same(typeA));
     _listener.assertNoErrors();
   }
@@ -1534,6 +1538,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
       context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
     }
+    var inheritance = new InheritanceManager2(context.typeSystem);
     Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();
@@ -1544,7 +1549,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
-        definingLibrary, source, _typeProvider, _listener,
+        inheritance, definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary));
     _visitor.overrideManager.enterScope();
     return _visitor.typeAnalyzer;

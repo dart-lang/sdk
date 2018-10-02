@@ -64,6 +64,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -453,6 +454,9 @@ abstract class ClassElementForLink extends Object
 
   @override
   LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  Source get librarySource => library.source;
 
   @override
   List<MethodElementForLink> get methods;
@@ -2107,6 +2111,9 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  bool get isAbstract => serializedExecutable.isAbstract;
+
+  @override
   bool get isGenerator => serializedExecutable.isGenerator;
 
   @override
@@ -2241,8 +2248,9 @@ class ExprTypeComputer {
       nameScope = new ClassScope(
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
+    var inheritance = new InheritanceManager2(linker.typeSystem);
     var resolverVisitor = new ResolverVisitor(
-        library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener,
         nameScope: nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
@@ -2253,7 +2261,7 @@ class ExprTypeComputer {
         library, source, typeProvider, errorListener,
         nameScope: nameScope);
     var partialResolverVisitor = new PartialResolverVisitor(
-        library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener,
         nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
@@ -4294,6 +4302,9 @@ class PropertyAccessorElementForLink_Variable extends Object
 
   @override
   Element get enclosingElement => variable.enclosingElement;
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isGetter => !isSetter;

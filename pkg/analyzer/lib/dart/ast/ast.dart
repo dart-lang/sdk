@@ -874,6 +874,17 @@ abstract class BinaryExpression extends Expression
    * [expression].
    */
   void set rightOperand(Expression expression);
+
+  /**
+   * The function type of the invocation, or `null` if the AST structure has
+   * not been resolved, or if the invocation could not be resolved.
+   */
+  FunctionType get staticInvokeType;
+
+  /**
+   * Sets the function type of the invocation.
+   */
+  void set staticInvokeType(FunctionType value);
 }
 
 /**

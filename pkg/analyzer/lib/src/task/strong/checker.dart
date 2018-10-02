@@ -227,24 +227,18 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     if (op.isUserDefinableOperator) {
-      var element = node.staticElement;
-      if (element == null) {
+      var invokeType = node.staticInvokeType;
+      if (invokeType == null) {
         // Dynamic invocation
         // TODO(vsm): Move this logic to the resolver?
         if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
           _recordDynamicInvoke(node, node.leftOperand);
         }
       } else {
-        // Method invocation.
-        if (element is MethodElement) {
-          var type = element.type;
-          // Analyzer should enforce number of parameter types, but check in
-          // case we have erroneous input.
-          if (type.normalParameterTypes.isNotEmpty) {
-            checkArgument(node.rightOperand, type.normalParameterTypes[0]);
-          }
-        } else {
-          // TODO(vsm): Assert that the analyzer found an error here?
+        // Analyzer should enforce number of parameter types, but check in
+        // case we have erroneous input.
+        if (invokeType.normalParameterTypes.isNotEmpty) {
+          checkArgument(node.rightOperand, invokeType.normalParameterTypes[0]);
         }
       }
     } else {
