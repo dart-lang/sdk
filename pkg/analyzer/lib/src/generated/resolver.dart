@@ -3897,39 +3897,28 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor {
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager2 _inheritance;
-
-  /// The library being verified.
-  final LibraryElement _library;
-
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
-  /// The interface of the current class.
-  Interface _currentInterface;
+  /// The inheritance manager used to find overridden methods.
+  final InheritanceManager _manager;
 
   /// Initialize a newly created verifier to look for inappropriate uses of the
   /// override annotation.
   ///
   /// @param errorReporter the error reporter used to report errors
   /// @param manager the inheritance manager used to find overridden methods
-  OverrideVerifier(this._inheritance, this._library, this._errorReporter);
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-    _currentInterface = _inheritance.getInterface(node.declaredElement.type);
-    super.visitClassDeclaration(node);
-    _currentInterface = null;
-  }
+  OverrideVerifier(this._errorReporter, this._manager);
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      FieldElement fieldElement = field.declaredElement;
-      if (fieldElement.hasOverride) {
-        if (!_isOverride(fieldElement.getter) &&
-            !_isOverride(fieldElement.setter)) {
+      VariableElement fieldElement = field.declaredElement;
+      if (fieldElement is FieldElement && _isOverride(fieldElement)) {
+        PropertyAccessorElement getter = fieldElement.getter;
+        PropertyAccessorElement setter = fieldElement.setter;
+        if (!(getter != null && _getOverriddenMember(getter) != null ||
+            setter != null && _getOverriddenMember(setter) != null)) {
           _errorReporter.reportErrorForNode(
               HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, field.name);
         }
@@ -3940,8 +3929,8 @@ class OverrideVerifier extends RecursiveAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.declaredElement;
-    if (element.hasOverride) {
-      if (!_isOverride(element)) {
+    if (_isOverride(element)) {
+      if (_getOverriddenMember(element) == null) {
         if (element is MethodElement) {
           _errorReporter.reportErrorForNode(
               HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name);
@@ -3958,21 +3947,30 @@ class OverrideVerifier extends RecursiveAstVisitor {
     }
   }
 
-  @override
-  visitMixinDeclaration(MixinDeclaration node) {
-    _currentInterface = _inheritance.getInterface(node.declaredElement.type);
-    super.visitMixinDeclaration(node);
-    _currentInterface = null;
+  /// Return the member that overrides the given member.
+  ///
+  /// @param member the member that overrides the returned member
+  /// @return the member that overrides the given member
+  ExecutableElement _getOverriddenMember(ExecutableElement member) {
+    LibraryElement library = member.library;
+    if (library == null) {
+      return null;
+    }
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return _manager.lookupInheritance(classElement, member.name);
   }
 
-  /// Return `true` if the [member] overrides a member from the superinterface.
-  bool _isOverride(ExecutableElement member) {
-    if (member == null) {
-      return false;
-    }
-    var name = new Name(_library.source.uri, member.name);
-    return _currentInterface.superInterface.containsKey(name);
-  }
+  /// Return `true` if the given element has an override annotation associated
+  /// with it.
+  ///
+  /// @param element the element being tested
+  /// @return `true` if the element has an override annotation associated with
+  ///         it
+  bool _isOverride(Element element) => element != null && element.hasOverride;
 }
 
 /// An AST visitor that is used to resolve the some of the nodes within a single

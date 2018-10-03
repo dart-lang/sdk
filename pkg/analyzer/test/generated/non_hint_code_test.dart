@@ -47,6 +47,42 @@ Future<Object> f() async {}
     verify([source]);
   }
 
+  test_deadCode_afterForEachWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (var x in [1]) {
+      if (x == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deadCode_afterForWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (int i = 0; i < 7; i++) {
+      if (i == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_deadCode_afterTryCatch() async {
     Source source = addSource('''
 main() {
@@ -230,42 +266,6 @@ f() {
   }
   int a = 1;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_deadCode_afterForEachWithBreakLabel() async {
-    Source source = addSource('''
-f() {
-  named: {
-    for (var x in [1]) {
-      if (x == null)
-        break named;
-    }
-    return;
-  }
-  print('not dead');
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_deadCode_afterForWithBreakLabel() async {
-    Source source = addSource('''
-f() {
-  named: {
-    for (int i = 0; i < 7; i++) {
-      if (i == null)
-        break named;
-    }
-    return;
-  }
-  print('not dead');
-}
-''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -718,6 +718,29 @@ class B extends A {
   @override
   int get m => 1;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  @FailingTest(
+      reason: 'We should not use types here. '
+          'There is a member in a superinterface, so we override something.')
+  test_overrideOnNonOverridingMethod_dontUseInterface() async {
+    Source source = addSource(r'''
+abstract class A {
+  void foo(int _);
+}
+
+abstract class B {
+  void foo(double _);
+}
+
+abstract class X implements A, B {
+  @override
+  void foo(Object _) {}
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

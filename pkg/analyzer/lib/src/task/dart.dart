@@ -2855,15 +2855,15 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    InheritanceManager2 inheritanceManager2 =
-        new InheritanceManager2(libraryElement.context.typeSystem);
+    InheritanceManager inheritanceManager = new InheritanceManager(
+        libraryElement,
+        includeAbstractFromSuperclasses: true);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, typeProvider, libraryElement,
         typeSystem: typeSystem));
-    unit.accept(new OverrideVerifier(
-        inheritanceManager2, libraryElement, errorReporter));
+    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);
     //

@@ -31,9 +31,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/summary/link.dart';
 
 /**
  * Analyzer of a single library.
@@ -216,8 +216,10 @@ class LibraryAnalyzer {
         errorReporter, _typeProvider, _libraryElement,
         typeSystem: _context.typeSystem));
 
-    unit.accept(
-        new OverrideVerifier(_inheritance, _libraryElement, errorReporter));
+    unit.accept(new OverrideVerifier(
+        errorReporter,
+        new InheritanceManager(_libraryElement,
+            includeAbstractFromSuperclasses: true)));
 
     new ToDoFinder(errorReporter).findIn(unit);
 
