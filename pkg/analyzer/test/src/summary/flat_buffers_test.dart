@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:front_end/src/base/flat_buffers.dart';
+import 'package:analyzer/src/summary/flat_buffers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
