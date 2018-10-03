@@ -164,6 +164,10 @@ class ConstantsTransformer extends Transformer {
   visitTypedef(Typedef node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
+      transformList(node.typeParameters, this, node);
+      transformList(node.typeParametersOfFunctionType, this, node);
+      transformList(node.positionalParameters, this, node);
+      transformList(node.namedParameters, this, node);
     });
     return node;
   }
@@ -206,6 +210,7 @@ class ConstantsTransformer extends Transformer {
         i < positionalParameterCount;
         ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
+      transformAnnotations(variable.annotations, variable);
       if (variable.initializer != null) {
         variable.initializer =
             tryEvaluateAndTransformWithContext(variable, variable.initializer)
@@ -213,6 +218,7 @@ class ConstantsTransformer extends Transformer {
       }
     }
     for (final VariableDeclaration variable in node.namedParameters) {
+      transformAnnotations(variable.annotations, variable);
       if (variable.initializer != null) {
         variable.initializer =
             tryEvaluateAndTransformWithContext(variable, variable.initializer)

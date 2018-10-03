@@ -347,7 +347,7 @@ class TreeShaker {
       }
       _usedClasses.add(c);
       visitIterable(c.supers, typeVisitor);
-      visitList(c.typeParameters, typeVisitor);
+      transformList(c.typeParameters, _pass1, c);
       transformList(c.annotations, _pass1, c);
       // Preserve NSM forwarders. They are overlooked by TFA / tree shaker
       // as they are abstract and don't have a body.
@@ -387,9 +387,9 @@ class TreeShaker {
       }
 
       if (func != null) {
-        visitList(func.typeParameters, typeVisitor);
-        visitList(func.positionalParameters, typeVisitor);
-        visitList(func.namedParameters, typeVisitor);
+        transformList(func.typeParameters, _pass1, func);
+        transformList(func.positionalParameters, _pass1, func);
+        transformList(func.namedParameters, _pass1, func);
         func.returnType.accept(typeVisitor);
       }
 
@@ -400,7 +400,10 @@ class TreeShaker {
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
       transformList(typedef.annotations, _pass1, typedef);
-      visitList(typedef.typeParameters, typeVisitor);
+      transformList(typedef.typeParameters, _pass1, typedef);
+      transformList(typedef.typeParametersOfFunctionType, _pass1, typedef);
+      transformList(typedef.positionalParameters, _pass1, typedef);
+      transformList(typedef.namedParameters, _pass1, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }

@@ -4964,11 +4964,13 @@ class TypeParameter extends TreeNode {
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     bound.accept(v);
     defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     bound = v.visitDartType(bound);
     if (defaultType != null) {
       defaultType = v.visitDartType(defaultType);
