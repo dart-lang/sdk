@@ -111,6 +111,11 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // operator can be used as a method name
     parseCompilationUnit('class C { static operator(x) => x; }');
   }
+
+  void test_yieldAsLabel() {
+    // yield can be used as a label
+    parseCompilationUnit('main() { yield: break yield; }');
+  }
 }
 
 /**
