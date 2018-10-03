@@ -10,7 +10,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <lib/fdio/private.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -194,18 +193,19 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
                                uint32_t events,
                                uint64_t key) {
   LOG_INFO("IOHandle::AsyncWait: fd = %ld\n", fd_);
-  // The call to __fdio_fd_to_io() in the DescriptorInfo constructor may have
-  // returned NULL. If it did, propagate the problem up to Dart.
+  // The call to fdio_unsafe_fd_to_io() in the DescriptorInfo constructor may
+  // have returned NULL. If it did, propagate the problem up to Dart.
   if (fdio_ == NULL) {
-    LOG_ERR("__fdio_fd_to_io(%ld) returned NULL\n", fd_);
+    LOG_ERR("fdio_unsafe_fd_to_io(%ld) returned NULL\n", fd_);
     return false;
   }
 
   zx_handle_t handle;
   zx_signals_t signals;
-  __fdio_wait_begin(fdio_, events, &handle, &signals);
+  fdio_unsafe_wait_begin(fdio_, events, &handle, &signals);
   if (handle == ZX_HANDLE_INVALID) {
-    LOG_ERR("fd = %ld __fdio_wait_begin returned an invalid handle\n", fd_);
+    LOG_ERR("fd = %ld fdio_unsafe_wait_begin returned an invalid handle\n",
+            fd_);
     return false;
   }
 
@@ -248,7 +248,7 @@ void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
 uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
   MutexLocker ml(mutex_);
   uint32_t events = 0;
-  __fdio_wait_end(fdio_, observed, &events);
+  fdio_unsafe_wait_end(fdio_, observed, &events);
   return events;
 }
 

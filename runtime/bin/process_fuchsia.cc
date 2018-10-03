@@ -11,7 +11,6 @@
 #include <fcntl.h>
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
-#include <lib/fdio/private.h>
 #include <lib/fdio/spawn.h>
 #include <lib/fdio/util.h>
 #include <poll.h>
