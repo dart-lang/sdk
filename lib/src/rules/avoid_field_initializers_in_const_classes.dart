@@ -99,17 +99,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
-    if (node
-        .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
-        .declaredElement
-        .constructors
-        .every((e) => !e.isConst)) {
-      return;
-    }
-
-    for (final variable in node.fields.variables) {
-      if (variable.initializer != null) {
-        rule.reportLint(variable);
+    AstNode parent = node.parent;
+    if (parent is ClassDeclaration) {
+      if (parent.declaredElement.constructors.every((e) => !e.isConst)) {
+        return;
+      }
+      for (final variable in node.fields.variables) {
+        if (variable.initializer != null) {
+          rule.reportLint(variable);
+        }
       }
     }
   }
