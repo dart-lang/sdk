@@ -1706,6 +1706,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return true;
         }
       }
+      if (element.isMixin) {
+        for (InterfaceType constraint in superclassConstraints) {
+          if ((constraint as InterfaceTypeImpl)
+              .isMoreSpecificThan(type, withDynamic, visitedElements)) {
+            return true;
+          }
+        }
+      }
       // If a type I includes an instance method named `call`, and the type of
       // `call` is the function type F, then I is considered to be more specific
       // than F.
