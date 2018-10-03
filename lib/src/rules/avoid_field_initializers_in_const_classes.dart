@@ -99,10 +99,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
-    if (node
-        .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
-        .declaredElement
-        .constructors
+    ClassDeclaration classDeclaration =
+        node.getAncestor<ClassDeclaration>((e) => e is ClassDeclaration);
+    if (classDeclaration == null) {
+      // The field is declared in a mixin, and mixins can't have constructors.
+      return;
+    }
+    if (classDeclaration.declaredElement.constructors
         .every((e) => !e.isConst)) {
       return;
     }

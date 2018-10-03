@@ -44,3 +44,7 @@ class G {
   final g;
   const G(int length) : g = 'xyzzy'.length; // LINT
 }
+
+mixin M {
+  final a = const []; // OK
+}

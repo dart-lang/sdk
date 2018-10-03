@@ -83,12 +83,21 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       type = node.target.staticType;
     } else {
       var classDeclaration =
-          (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration);
-      type = classDeclaration == null
-          ? null
-          : resolutionMap
-              .elementDeclaredByClassDeclaration(classDeclaration)
-              ?.type;
+          (node.getAncestor((a) => a is ClassOrMixinDeclaration) as ClassOrMixinDeclaration);
+      if (classDeclaration == null) {
+        type = null;
+      } else if (classDeclaration is ClassDeclaration) {
+        type = resolutionMap
+            .elementDeclaredByClassDeclaration(classDeclaration)
+            ?.type;
+      } else if (classDeclaration is MixinDeclaration) {
+        type = null;
+        // TODO(brianwilkerson) Replace the line above with the following, after
+        // updating to a new analyzer release.
+//        type = resolutionMap
+//            .elementDeclaredByMixinDeclaration(classDeclaration)
+//            ?.type;
+      }
     }
     Expression argument = node.argumentList.arguments.first;
     if (type is InterfaceType &&
