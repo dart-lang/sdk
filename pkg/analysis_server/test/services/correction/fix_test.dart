@@ -251,11 +251,19 @@ bool test() {
 
   Future<AnalysisError> _findErrorToFix() async {
     List<AnalysisError> errors = await _computeErrors();
+    List<AnalysisError> filteredErrors = errors;
     if (errorFilter != null) {
-      errors = errors.where(errorFilter).toList();
+      filteredErrors = filteredErrors.where(errorFilter).toList();
     }
-    expect(errors, hasLength(1));
-    return errors[0];
+    if (filteredErrors.length != 1) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln('Expected one error, found:');
+      for (AnalysisError error in errors) {
+        buffer.writeln('  $error [${error.errorCode}]');
+      }
+      fail(buffer.toString());
+    }
+    return filteredErrors[0];
   }
 
   Future<AnalysisError> _findErrorToFixOfType(ErrorCode errorCode) async {
@@ -304,48 +312,30 @@ var F = await;
     await assertNoFix(DartFixKind.ADD_ASYNC);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_blockFunctionBody() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
+    };
     await resolveTestUnit('''
 foo() {}
 main() {
   await foo();
 }
 ''');
-    List<AnalysisError> errors = await _computeErrors();
-    expect(errors, hasLength(2));
-    errors.sort((a, b) => a.message.compareTo(b.message));
-    // No fix for ";".
-    {
-      AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'.");
-      List<Fix> fixes = await _computeFixes(error);
-      expect(fixes, isEmpty);
-    }
-    // Has fix for "await".
-    {
-      AnalysisError error = errors[1];
-      expect(error.message, startsWith("Undefined name 'await' in function"));
-      List<Fix> fixes = await _computeFixes(error);
-      // has exactly one fix
-      expect(fixes, hasLength(1));
-      Fix fix = fixes[0];
-      expect(fix.kind, DartFixKind.ADD_ASYNC);
-      // apply to "file"
-      List<SourceFileEdit> fileEdits = fix.change.edits;
-      expect(fileEdits, hasLength(1));
-      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-      // verify
-      expect(resultCode, '''
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
 foo() {}
 main() async {
   await foo();
 }
 ''');
-    }
   }
 
   test_addAsync_blockFunctionBody_getter() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
+    };
     await resolveTestUnit('''
 int get foo => null;
 int f() {
@@ -353,22 +343,7 @@ int f() {
   return 1;
 }
 ''');
-    List<AnalysisError> errors = await _computeErrors();
-    expect(errors, hasLength(2));
-    AnalysisError error = errors.firstWhere(
-        (e) => e.errorCode == CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-        orElse: () => null);
-    List<Fix> fixes = await _computeFixes(error);
-    // has exactly one fix
-    expect(fixes, hasLength(1));
-    Fix fix = fixes[0];
-    expect(fix.kind, DartFixKind.ADD_ASYNC);
-    // apply to "file"
-    List<SourceFileEdit> fileEdits = fix.change.edits;
-    expect(fileEdits, hasLength(1));
-    resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-    // verify
-    expect(resultCode, '''
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
 import \'dart:async\';
 
 int get foo => null;
@@ -399,10 +374,9 @@ void doStuff() => takeFutureCallback(() async => await 1);
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_expressionFunctionBody() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode == ParserErrorCode.UNEXPECTED_TOKEN;
     };
     await resolveTestUnit('''
 foo() {}
@@ -414,10 +388,10 @@ main() async => await foo();
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
     };
     await resolveTestUnit('''
 foo() {}
@@ -437,10 +411,10 @@ Future<int> main() async {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_alreadyFuture() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
     };
     await resolveTestUnit('''
 import 'dart:async';
@@ -460,10 +434,10 @@ Future<int> main() async {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_dynamic() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
     };
     await resolveTestUnit('''
 foo() {}
@@ -481,10 +455,10 @@ dynamic main() async {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_noType() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode ==
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
     };
     await resolveTestUnit('''
 foo() {}
@@ -3561,7 +3535,6 @@ main() {
 ''');
   }
 
-  @failingTest
   test_createLocalVariable_functionType_synthetic() async {
     await resolveTestUnit('''
 foo(f(int p)) {}
@@ -3569,7 +3542,13 @@ main() {
   foo(bar);
 }
 ''');
-    await assertNoFix(DartFixKind.CREATE_LOCAL_VARIABLE);
+    await assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+foo(f(int p)) {}
+main() {
+  Function(int p) bar;
+  foo(bar);
+}
+''');
   }
 
   test_createLocalVariable_read_typeAssignment() async {
@@ -4658,23 +4637,6 @@ List<int> main() async {
     await assertHasFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, '''
 import 'dart:async';
 Future<List<int>> main() async {
-}
-''');
-  }
-
-  @failingTest // This is likely not going to be an error in dart 2.
-  test_illegalAsyncReturnType_void() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    };
-    await resolveTestUnit('''
-import 'dart:async';
-void main() async {
-}
-''');
-    await assertHasFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, '''
-import 'dart:async';
-Future main() async {
 }
 ''');
   }
@@ -5878,23 +5840,6 @@ class A {
   const A();
 }
 const a = new A();
-''');
-    await assertHasFix(DartFixKind.USE_CONST, '''
-class A {
-  const A();
-}
-const a = const A();
-''');
-  }
-
-  @failingTest
-  test_replaceWithConstInstanceCreation_implicitNew() async {
-    // This test fails because the implicit `new` isn't yet recognized.
-    await resolveTestUnit('''
-class A {
-  const A();
-}
-const a = A();
 ''');
     await assertHasFix(DartFixKind.USE_CONST, '''
 class A {
