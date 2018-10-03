@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
@@ -976,8 +977,12 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   }
 }
 
-BumpAllocateScope::BumpAllocateScope(Thread* thread) : StackResource(thread) {
+BumpAllocateScope::BumpAllocateScope(Thread* thread)
+    : StackResource(thread), no_reload_scope_(thread->isolate(), thread) {
   ASSERT(!thread->bump_allocate());
+  // If the background compiler thread is not disabled, there will be a cycle
+  // between the symbol table lock and the old space data lock.
+  BackgroundCompiler::Disable(thread->isolate());
   thread->heap()->WaitForMarkerTasks(thread);
   thread->heap()->old_space()->AcquireDataLock();
   thread->set_bump_allocate(true);
@@ -987,6 +992,7 @@ BumpAllocateScope::~BumpAllocateScope() {
   ASSERT(thread()->bump_allocate());
   thread()->set_bump_allocate(false);
   thread()->heap()->old_space()->ReleaseDataLock();
+  BackgroundCompiler::Enable(thread()->isolate());
 }
 
 }  // namespace dart

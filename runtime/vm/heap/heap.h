@@ -13,6 +13,7 @@
 #include "vm/heap/scavenger.h"
 #include "vm/heap/spaces.h"
 #include "vm/heap/weak_table.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -443,6 +444,10 @@ class BumpAllocateScope : StackResource {
   // This is needed to avoid a GC while we hold the page lock, which would
   // trigger a deadlock.
   NoHeapGrowthControlScope no_growth_control_;
+
+  // A reload will try to allocate into new gen, which could trigger a
+  // scavenge and deadlock.
+  NoReloadScope no_reload_scope_;
 
   DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
 };
