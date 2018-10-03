@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
-        BinaryExpressionImpl,
         ChildEntities,
         IdentifierImpl,
         PrefixedIdentifierImpl,

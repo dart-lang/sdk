@@ -17,7 +17,6 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries
