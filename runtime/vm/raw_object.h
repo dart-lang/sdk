@@ -2086,6 +2086,7 @@ class RawMint : public RawInteger {
   ALIGN8 int64_t value_;
 
   friend class Api;
+  friend class Integer;
   friend class SnapshotReader;
 };
 COMPILE_ASSERT(sizeof(RawMint) == 16);

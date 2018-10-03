@@ -14,62 +14,6 @@
 namespace dart {
 namespace kernel {
 
-#define FOR_EACH_BYTECODE_IN_FLOW_GRAPH_BUILDER(M)                             \
-  M(Allocate)                                                                  \
-  M(AllocateContext)                                                           \
-  M(AllocateT)                                                                 \
-  M(AssertAssignable)                                                          \
-  M(AssertBoolean)                                                             \
-  M(AssertSubtype)                                                             \
-  M(BooleanNegateTOS)                                                          \
-  M(CheckFunctionTypeArgs)                                                     \
-  M(CheckStack)                                                                \
-  M(CloneContext)                                                              \
-  M(CreateArrayTOS)                                                            \
-  M(Drop1)                                                                     \
-  M(Entry)                                                                     \
-  M(EntryFixed)                                                                \
-  M(EntryOptional)                                                             \
-  M(Frame)                                                                     \
-  M(IndirectStaticCall)                                                        \
-  M(InstanceCall)                                                              \
-  M(InstantiateType)                                                           \
-  M(InstantiateTypeArgumentsTOS)                                               \
-  M(Jump)                                                                      \
-  M(JumpIfNoAsserts)                                                           \
-  M(JumpIfNotZeroTypeArgs)                                                     \
-  M(JumpIfEqStrict)                                                            \
-  M(JumpIfNeStrict)                                                            \
-  M(JumpIfTrue)                                                                \
-  M(JumpIfFalse)                                                               \
-  M(JumpIfNull)                                                                \
-  M(JumpIfNotNull)                                                             \
-  M(LoadConstant)                                                              \
-  M(LoadContextParent)                                                         \
-  M(LoadContextVar)                                                            \
-  M(LoadFieldTOS)                                                              \
-  M(LoadTypeArgumentsField)                                                    \
-  M(MoveSpecial)                                                               \
-  M(NativeCall)                                                                \
-  M(PopLocal)                                                                  \
-  M(Push)                                                                      \
-  M(PushConstant)                                                              \
-  M(PushFalse)                                                                 \
-  M(PushInt)                                                                   \
-  M(PushNull)                                                                  \
-  M(PushStatic)                                                                \
-  M(PushTrue)                                                                  \
-  M(ReturnTOS)                                                                 \
-  M(SetFrame)                                                                  \
-  M(StoreContextParent)                                                        \
-  M(StoreContextVar)                                                           \
-  M(StoreFieldTOS)                                                             \
-  M(StoreIndexedTOS)                                                           \
-  M(StoreLocal)                                                                \
-  M(StoreStaticTOS)                                                            \
-  M(Throw)                                                                     \
-  M(Trap)
-
 // This class builds flow graph from bytecode. It is used either to compile
 // from bytecode, or generate bytecode interpreter (the latter is not
 // fully implemented yet).
@@ -96,6 +40,7 @@ class BytecodeFlowGraphBuilder {
         parameters_(zone_, 0),
         exception_var_(nullptr),
         stacktrace_var_(nullptr),
+        scratch_var_(nullptr),
         prologue_info_(-1, -1),
         throw_no_such_method_(nullptr) {}
 
@@ -184,18 +129,19 @@ class BytecodeFlowGraphBuilder {
   ArgumentArray GetArguments(int count);
   void PropagateStackState(intptr_t target_pc);
   void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
+  void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
 
-#define DECLARE_BUILD_METHOD(bytecode) void Build##bytecode();
-
-  FOR_EACH_BYTECODE_IN_FLOW_GRAPH_BUILDER(DECLARE_BUILD_METHOD)
+#define DECLARE_BUILD_METHOD(name, encoding, op1, op2, op3) void Build##name();
+  KERNEL_BYTECODES_LIST(DECLARE_BUILD_METHOD)
 #undef DECLARE_BUILD_METHOD
 
   void ProcessICDataInObjectPool(const ObjectPool& object_pool);
   intptr_t GetTryIndex(const PcDescriptors& descriptors, intptr_t pc);
   JoinEntryInstr* EnsureControlFlowJoin(const PcDescriptors& descriptors,
                                         intptr_t pc);
+  bool RequiresScratchVar(KBCInstr instr);
   void CollectControlFlow(const PcDescriptors& descriptors,
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
@@ -228,6 +174,7 @@ class BytecodeFlowGraphBuilder {
   ZoneGrowableArray<LocalVariable*> parameters_;
   LocalVariable* exception_var_;
   LocalVariable* stacktrace_var_;
+  LocalVariable* scratch_var_;
   IntMap<JoinEntryInstr*> jump_targets_;
   IntMap<Value*> stack_states_;
   PrologueInfo prologue_info_;

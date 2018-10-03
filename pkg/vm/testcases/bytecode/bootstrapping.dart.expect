@@ -118,20 +118,19 @@ Bytecode {
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
-  PushNull
-  InstanceCall         2, CP#2
+  EqualsNull
   AssertBoolean        0
   JumpIfFalse          L1
-  Allocate             CP#3
+  Allocate             CP#1
   StoreLocal           r1
   Push                 r1
-  PushConstant         CP#5
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
   Drop1
+  PushConstant         CP#5
+  IndirectStaticCall   0, CP#4
   PushConstant         CP#7
-  IndirectStaticCall   0, CP#6
-  PushConstant         CP#8
-  IndirectStaticCall   2, CP#1
+  IndirectStaticCall   2, CP#6
   StoreStaticTOS       CP#0
 L1:
   PushConstant         CP#0
@@ -142,14 +141,13 @@ L1:
 }
 ConstantPool {
   [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace
-  [1] = ArgDesc num-args 2, num-type-args 0, names []
-  [2] = ICData target-name '==', arg-desc CP#1
-  [3] = Class #lib::_NamespaceImpl
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = StaticICData target '#lib::_NamespaceImpl::_', arg-desc CP#4
-  [6] = ArgDesc num-args 0, num-type-args 0, names []
-  [7] = StaticICData target '#lib::_NamespaceImpl::_getDefault', arg-desc CP#6
-  [8] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#1
+  [1] = Class #lib::_NamespaceImpl
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = StaticICData target '#lib::_NamespaceImpl::_', arg-desc CP#2
+  [4] = ArgDesc num-args 0, num-type-args 0, names []
+  [5] = StaticICData target '#lib::_NamespaceImpl::_getDefault', arg-desc CP#4
+  [6] = ArgDesc num-args 2, num-type-args 0, names []
+  [7] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#6
 }
 ]  static get _namespace() → self::_NamespaceImpl {
     if(self::_NamespaceImpl::_cachedNamespace.{core::Object::==}(null)) {
@@ -303,14 +301,12 @@ Bytecode {
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
-  PushNull
-  InstanceCall         2, CP#2
+  EqualsNull
   AssertBoolean        0
   JumpIfFalse          L1
-  PushConstant         CP#3
-  PushStatic           CP#3
-  PushNull
-  InstanceCall         2, CP#4
+  PushConstant         CP#1
+  PushStatic           CP#1
+  EqualsNull
   AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
@@ -322,9 +318,9 @@ L2:
   Push                 r0
   AssertBoolean        0
   JumpIfFalse          L3
-  PushConstant         CP#3
-  PushStatic           CP#3
-  InstanceCall         1, CP#6
+  PushConstant         CP#1
+  PushStatic           CP#1
+  InstanceCall         1, CP#3
   StoreStaticTOS       CP#0
 L3:
   PushConstant         CP#0
@@ -335,12 +331,9 @@ L3:
 }
 ConstantPool {
   [0] = StaticField #lib::VMLibraryHooks::_cachedScript
-  [1] = ArgDesc num-args 2, num-type-args 0, names []
-  [2] = ICData target-name '==', arg-desc CP#1
-  [3] = StaticField #lib::VMLibraryHooks::_computeScriptUri
-  [4] = ICData target-name '==', arg-desc CP#1
-  [5] = ArgDesc num-args 1, num-type-args 0, names []
-  [6] = ICData dynamic target-name 'call', arg-desc CP#5
+  [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = ICData dynamic target-name 'call', arg-desc CP#2
 }
 ]  static get platformScript() → dynamic {
     if(self::VMLibraryHooks::_cachedScript.{core::Object::==}(null) && !self::VMLibraryHooks::_computeScriptUri.{core::Object::==}(null)) {

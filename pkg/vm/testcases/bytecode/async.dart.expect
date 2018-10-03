@@ -786,50 +786,50 @@ Bytecode {
   PushNull
   StoreContextVar      9
   Push                 r0
-  Allocate             CP#28
+  Allocate             CP#22
   StoreLocal           r3
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#29
+  StoreFieldTOS        CP#23
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#31
+  StoreFieldTOS        CP#25
   Push                 r3
-  PushConstant         CP#33
-  StoreFieldTOS        CP#34
+  PushConstant         CP#27
+  StoreFieldTOS        CP#28
   Push                 r3
   PushConstant         CP#3
-  StoreFieldTOS        CP#36
+  StoreFieldTOS        CP#30
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
   StoreContextVar      10
   Push                 r0
   LoadContextVar       10
-  PushConstant         CP#38
+  PushConstant         CP#32
   IndirectStaticCall   1, CP#1
   PopLocal             r2
   Push                 r0
   Push                 r0
   LoadContextVar       10
-  PushConstant         CP#39
+  PushConstant         CP#33
   IndirectStaticCall   1, CP#1
   StoreContextVar      3
   Push                 r0
   Push                 r0
   LoadContextVar       10
-  PushConstant         CP#40
+  PushConstant         CP#34
   IndirectStaticCall   1, CP#1
   StoreContextVar      4
-  PushConstant         CP#41
+  PushConstant         CP#35
   Push                 r0
   LoadContextVar       10
-  PushConstant         CP#42
-  IndirectStaticCall   2, CP#7
+  PushConstant         CP#36
+  IndirectStaticCall   2, CP#14
   Drop1
   Push                 r0
   LoadContextVar       1
-  InstanceCall         1, CP#43
+  InstanceCall         1, CP#37
   ReturnTOS
   PushNull
   ReturnTOS
@@ -842,43 +842,37 @@ ConstantPool {
   [4] = Null
   [5] = InstanceField dart.core::_Closure::_context
   [6] = Reserved
-  [7] = ArgDesc num-args 2, num-type-args 0, names []
-  [8] = ICData target-name '<', arg-desc CP#7
-  [9] = ICData get target-name 'iterator', arg-desc CP#1
-  [10] = ICData target-name 'moveNext', arg-desc CP#1
-  [11] = ICData get target-name 'current', arg-desc CP#1
-  [12] = ICData target-name '+', arg-desc CP#7
-  [13] = ArgDesc num-args 0, num-type-args 0, names []
-  [14] = StaticICData target '#lib::foo', arg-desc CP#13
-  [15] = ArgDesc num-args 4, num-type-args 0, names []
-  [16] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#15
-  [17] = ICData target-name '+', arg-desc CP#7
-  [18] = ICData target-name '+', arg-desc CP#7
-  [19] = ICData target-name '+', arg-desc CP#7
-  [20] = ICData target-name '<', arg-desc CP#7
-  [21] = ICData target-name '+', arg-desc CP#7
-  [22] = ICData target-name '+', arg-desc CP#7
-  [23] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#7
-  [24] = Type dynamic
-  [25] = ArgDesc num-args 3, num-type-args 0, names []
-  [26] = ICData target-name 'completeError', arg-desc CP#25
-  [27] = EndClosureFunctionScope
-  [28] = Class dart.core::_Closure
-  [29] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [30] = Reserved
-  [31] = InstanceField dart.core::_Closure::_function_type_arguments
-  [32] = Reserved
-  [33] = EmptyTypeArguments
-  [34] = InstanceField dart.core::_Closure::_delayed_type_arguments
-  [35] = Reserved
-  [36] = InstanceField dart.core::_Closure::_function
-  [37] = Reserved
-  [38] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#1
-  [39] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#1
-  [40] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#1
-  [41] = TypeArgumentsForInstanceAllocation dart.async::Future [dynamic]
-  [42] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#7
-  [43] = ICData get target-name 'future', arg-desc CP#1
+  [7] = ICData get target-name 'iterator', arg-desc CP#1
+  [8] = ICData target-name 'moveNext', arg-desc CP#1
+  [9] = ICData get target-name 'current', arg-desc CP#1
+  [10] = ArgDesc num-args 0, num-type-args 0, names []
+  [11] = StaticICData target '#lib::foo', arg-desc CP#10
+  [12] = ArgDesc num-args 4, num-type-args 0, names []
+  [13] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#12
+  [14] = ArgDesc num-args 2, num-type-args 0, names []
+  [15] = ICData target-name '+', arg-desc CP#14
+  [16] = ICData target-name '+', arg-desc CP#14
+  [17] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#14
+  [18] = Type dynamic
+  [19] = ArgDesc num-args 3, num-type-args 0, names []
+  [20] = ICData target-name 'completeError', arg-desc CP#19
+  [21] = EndClosureFunctionScope
+  [22] = Class dart.core::_Closure
+  [23] = InstanceField dart.core::_Closure::_instantiator_type_arguments
+  [24] = Reserved
+  [25] = InstanceField dart.core::_Closure::_function_type_arguments
+  [26] = Reserved
+  [27] = EmptyTypeArguments
+  [28] = InstanceField dart.core::_Closure::_delayed_type_arguments
+  [29] = Reserved
+  [30] = InstanceField dart.core::_Closure::_function
+  [31] = Reserved
+  [32] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#1
+  [33] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#1
+  [34] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#1
+  [35] = TypeArgumentsForInstanceAllocation dart.async::Future [dynamic]
+  [36] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#14
+  [37] = ICData get target-name 'future', arg-desc CP#1
 }
 Closure CP#3 {
   EntryOptional        1, 3, 0
@@ -922,14 +916,14 @@ L6:
   Push                 r4
   LoadContextVar       0
   PushInt              10
-  InstanceCall         2, CP#8
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L2
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextVar       0
-  InstanceCall         1, CP#9
+  InstanceCall         1, CP#7
   PopLocal             r8
   Push                 r4
   Push                 r8
@@ -939,7 +933,7 @@ L5:
   Push                 r4
   LoadContextVar       1
   StoreLocal           r8
-  InstanceCall         1, CP#10
+  InstanceCall         1, CP#8
   JumpIfFalse          L3
   AllocateContext      1
   StoreLocal           r5
@@ -949,7 +943,7 @@ L5:
   PopLocal             r4
   Push                 r4
   Push                 r8
-  InstanceCall         1, CP#11
+  InstanceCall         1, CP#9
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -969,7 +963,7 @@ L5:
   LoadContextVar       0
   Push                 r4
   LoadContextVar       0
-  InstanceCall         2, CP#12
+  AddInt
   StoreContextVar      8
   Push                 r4
   LoadContextParent
@@ -983,8 +977,8 @@ L5:
   LoadContextParent
   Push                 r4
   StoreContextVar      6
-  PushConstant         CP#14
-  IndirectStaticCall   0, CP#13
+  PushConstant         CP#11
+  IndirectStaticCall   0, CP#10
   Push                 r4
   LoadContextParent
   LoadContextParent
@@ -1000,8 +994,8 @@ L5:
   LoadContextParent
   LoadContextParent
   LoadContextVar       10
-  PushConstant         CP#16
-  IndirectStaticCall   4, CP#15
+  PushConstant         CP#13
+  IndirectStaticCall   4, CP#12
   PopLocal             r10
   PushNull
   ReturnTOS
@@ -1026,8 +1020,8 @@ L4:
   LoadContextParent
   LoadContextVar       8
   Push                 r1
-  InstanceCall         2, CP#17
-  InstanceCall         2, CP#18
+  InstanceCall         2, CP#15
+  InstanceCall         2, CP#16
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1041,7 +1035,7 @@ L3:
   Push                 r4
   LoadContextVar       0
   PushInt              1
-  InstanceCall         2, CP#19
+  AddInt
   StoreLocal           r8
   StoreContextVar      0
   Push                 r8
@@ -1057,18 +1051,18 @@ L8:
   CheckStack
   Push                 r8
   PushInt              10
-  InstanceCall         2, CP#20
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L7
   Push                 r4
   Push                 r4
   LoadContextVar       0
   Push                 r8
-  InstanceCall         2, CP#21
+  AddInt
   StoreContextVar      0
   Push                 r8
   PushInt              1
-  InstanceCall         2, CP#22
+  AddInt
   StoreLocal           r8
   Drop1
   Jump                 L8
@@ -1090,8 +1084,8 @@ L9:
   LoadContextVar       1
   Push                 r4
   LoadContextVar       2
-  PushConstant         CP#23
-  IndirectStaticCall   2, CP#7
+  PushConstant         CP#17
+  IndirectStaticCall   2, CP#14
   Drop1
   PushNull
   ReturnTOS
@@ -1115,7 +1109,7 @@ Try #0 handler:
   LoadContextVar       1
   Push                 r8
   Push                 r9
-  InstanceCall         3, CP#26
+  InstanceCall         3, CP#20
   Drop1
   Jump                 L10
 L10:
@@ -1835,20 +1829,20 @@ Bytecode {
   Push                 r0
   PushInt              3
   StoreContextVar      1
-  Allocate             CP#21
+  Allocate             CP#20
   StoreLocal           r3
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#22
+  StoreFieldTOS        CP#21
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#24
+  StoreFieldTOS        CP#23
   Push                 r3
-  PushConstant         CP#26
-  StoreFieldTOS        CP#27
+  PushConstant         CP#25
+  StoreFieldTOS        CP#26
   Push                 r3
   PushConstant         CP#0
-  StoreFieldTOS        CP#29
+  StoreFieldTOS        CP#28
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1869,34 +1863,33 @@ ConstantPool {
   [7] = Null
   [8] = ArgDesc num-args 4, num-type-args 0, names []
   [9] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#8
-  [10] = ArgDesc num-args 2, num-type-args 0, names []
-  [11] = ICData target-name '+', arg-desc CP#10
-  [12] = Type dynamic
-  [13] = String 'fin'
+  [10] = Type dynamic
+  [11] = String 'fin'
+  [12] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [13] = StaticICData target 'dart.core::print', arg-desc CP#4
   [14] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [15] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [16] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [17] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#10
-  [18] = ArgDesc num-args 3, num-type-args 0, names []
-  [19] = ICData target-name 'completeError', arg-desc CP#18
-  [20] = EndClosureFunctionScope
-  [21] = Class dart.core::_Closure
-  [22] = InstanceField dart.core::_Closure::_instantiator_type_arguments
-  [23] = Reserved
-  [24] = InstanceField dart.core::_Closure::_function_type_arguments
-  [25] = Reserved
-  [26] = EmptyTypeArguments
-  [27] = InstanceField dart.core::_Closure::_delayed_type_arguments
-  [28] = Reserved
-  [29] = InstanceField dart.core::_Closure::_function
-  [30] = Reserved
-  [31] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#4
-  [32] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#4
-  [33] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#4
-  [34] = TypeArgumentsForInstanceAllocation dart.async::Future [dynamic]
-  [35] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#10
-  [36] = ICData get target-name 'future', arg-desc CP#4
-  [37] = EndClosureFunctionScope
+  [15] = ArgDesc num-args 2, num-type-args 0, names []
+  [16] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#15
+  [17] = ArgDesc num-args 3, num-type-args 0, names []
+  [18] = ICData target-name 'completeError', arg-desc CP#17
+  [19] = EndClosureFunctionScope
+  [20] = Class dart.core::_Closure
+  [21] = InstanceField dart.core::_Closure::_instantiator_type_arguments
+  [22] = Reserved
+  [23] = InstanceField dart.core::_Closure::_function_type_arguments
+  [24] = Reserved
+  [25] = EmptyTypeArguments
+  [26] = InstanceField dart.core::_Closure::_delayed_type_arguments
+  [27] = Reserved
+  [28] = InstanceField dart.core::_Closure::_function
+  [29] = Reserved
+  [30] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#4
+  [31] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#4
+  [32] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#4
+  [33] = TypeArgumentsForInstanceAllocation dart.async::Future [dynamic]
+  [34] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#15
+  [35] = ICData get target-name 'future', arg-desc CP#4
+  [36] = EndClosureFunctionScope
 }
 Closure CP#6 {
   EntryOptional        1, 3, 0
@@ -1980,7 +1973,7 @@ L2:
   LoadContextVar       1
   Push                 r4
   LoadContextVar       0
-  InstanceCall         2, CP#11
+  AddInt
   StoreContextVar      1
   Jump                 L3
   Jump                 L4
@@ -1995,8 +1988,8 @@ Try #1 handler:
   PopLocal             r4
   MoveSpecial          r8, exception
   MoveSpecial          r9, stackTrace
-  PushConstant         CP#13
-  PushConstant         CP#14
+  PushConstant         CP#11
+  PushConstant         CP#12
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r8
@@ -2009,8 +2002,8 @@ L3:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
+  PushConstant         CP#11
   PushConstant         CP#13
-  PushConstant         CP#15
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r4
@@ -2024,8 +2017,8 @@ L4:
   Push                 r4
   LoadContextVar       7
   PopLocal             r4
-  PushConstant         CP#13
-  PushConstant         CP#16
+  PushConstant         CP#11
+  PushConstant         CP#14
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r4
@@ -2036,8 +2029,8 @@ L5:
   LoadContextVar       0
   Push                 r4
   LoadContextVar       1
-  PushConstant         CP#17
-  IndirectStaticCall   2, CP#10
+  PushConstant         CP#16
+  IndirectStaticCall   2, CP#15
   Drop1
   PushNull
   ReturnTOS
@@ -2061,7 +2054,7 @@ Try #0 handler:
   LoadContextVar       0
   Push                 r8
   Push                 r9
-  InstanceCall         3, CP#19
+  InstanceCall         3, CP#18
   Drop1
   Jump                 L6
 L6:
@@ -2116,50 +2109,50 @@ Closure CP#0 {
   PushNull
   StoreContextVar      7
   Push                 r0
-  Allocate             CP#21
+  Allocate             CP#20
   StoreLocal           r3
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#22
+  StoreFieldTOS        CP#21
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#24
+  StoreFieldTOS        CP#23
   Push                 r3
-  PushConstant         CP#26
-  StoreFieldTOS        CP#27
+  PushConstant         CP#25
+  StoreFieldTOS        CP#26
   Push                 r3
   PushConstant         CP#6
-  StoreFieldTOS        CP#29
+  StoreFieldTOS        CP#28
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
   StoreContextVar      8
   Push                 r0
   LoadContextVar       8
-  PushConstant         CP#31
+  PushConstant         CP#30
   IndirectStaticCall   1, CP#4
   PopLocal             r2
   Push                 r0
   Push                 r0
   LoadContextVar       8
-  PushConstant         CP#32
+  PushConstant         CP#31
   IndirectStaticCall   1, CP#4
   StoreContextVar      2
   Push                 r0
   Push                 r0
   LoadContextVar       8
-  PushConstant         CP#33
+  PushConstant         CP#32
   IndirectStaticCall   1, CP#4
   StoreContextVar      3
-  PushConstant         CP#34
+  PushConstant         CP#33
   Push                 r0
   LoadContextVar       8
-  PushConstant         CP#35
-  IndirectStaticCall   2, CP#10
+  PushConstant         CP#34
+  IndirectStaticCall   2, CP#15
   Drop1
   Push                 r0
   LoadContextVar       0
-  InstanceCall         1, CP#36
+  InstanceCall         1, CP#35
   ReturnTOS
   Push                 r0
   LoadContextParent

@@ -140,6 +140,11 @@ class BytecodeAssembler {
   int _encodeT(Opcode opcode, int rt) =>
       _uint8(opcode.index) | (_int24(rt) << 8);
 
+  void emitBytecode0(Opcode opcode) {
+    assert(BytecodeFormats[opcode].encoding == Encoding.k0);
+    emitWord(_encode0(opcode));
+  }
+
   void emitTrap() {
     emitWord(_encode0(Opcode.kTrap));
   }

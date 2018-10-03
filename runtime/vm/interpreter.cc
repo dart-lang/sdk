@@ -92,8 +92,11 @@ class InterpreterHelpers {
  public:
 #define DEFINE_CASTS(Type)                                                     \
   DART_FORCE_INLINE static Raw##Type* CastTo##Type(RawObject* obj) {           \
-    ASSERT((k##Type##Cid == kSmiCid) ? !obj->IsHeapObject()                    \
-                                     : obj->Is##Type());                       \
+    ASSERT((k##Type##Cid == kSmiCid)                                           \
+               ? !obj->IsHeapObject()                                          \
+               : (k##Type##Cid == kIntegerCid)                                 \
+                     ? (!obj->IsHeapObject() || obj->IsMint())                 \
+                     : obj->Is##Type());                                       \
     return reinterpret_cast<Raw##Type*>(obj);                                  \
   }
   CLASS_LIST(DEFINE_CASTS)
@@ -1366,6 +1369,29 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 
 #define LOAD_CONSTANT(index) (pp_->ptr()->data()[(index)].raw_obj_)
 
+#define UNBOX_INT64(value, obj, selector)                                      \
+  int64_t value;                                                               \
+  {                                                                            \
+    word raw_value = reinterpret_cast<word>(obj);                              \
+    if (LIKELY((raw_value & kSmiTagMask) == kSmiTag)) {                        \
+      value = raw_value >> kSmiTagShift;                                       \
+    } else {                                                                   \
+      if (UNLIKELY(obj == null_value)) {                                       \
+        SP[0] = selector.raw();                                                \
+        goto ThrowNullError;                                                   \
+      }                                                                        \
+      value = Integer::GetInt64Value(RAW_CAST(Integer, obj));                  \
+    }                                                                          \
+  }
+
+#define BOX_INT64_RESULT(result)                                               \
+  if (LIKELY(Smi::IsValid(result))) {                                          \
+    SP[0] = Smi::New(static_cast<intptr_t>(result));                           \
+  } else if (!AllocateInt64Box(thread, result, pc, FP, SP)) {                  \
+    HANDLE_EXCEPTION;                                                          \
+  }                                                                            \
+  ASSERT(Integer::GetInt64Value(RAW_CAST(Integer, SP[0])) == result);
+
 // Returns true if deoptimization succeeds.
 DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
                                                uint32_t** pc,
@@ -1510,6 +1536,42 @@ RawObject* Interpreter::Call(const Function& function,
                              Thread* thread) {
   return Call(function.raw(), arguments_descriptor.raw(), arguments.Length(),
               arguments.raw_ptr()->data(), thread);
+}
+
+// Allocate _Mint box for the given int64_t value and puts it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
+                                                 int64_t value,
+                                                 uint32_t* pc,
+                                                 RawObject** FP,
+                                                 RawObject** SP) {
+  ASSERT(!Smi::IsValid(value));
+  const intptr_t instance_size = Mint::InstanceSize();
+  const uword start =
+      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
+  if (LIKELY(start != 0)) {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kMintCid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    // Also writes zero in the hash_ field.
+    *reinterpret_cast<uword*>(start + Mint::tags_offset()) = tags;
+    *reinterpret_cast<int64_t*>(start + Mint::value_offset()) = value;
+    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate()->object_store()->mint_type();  // Class object.
+    SP[2] = Object::null();                                  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    *reinterpret_cast<int64_t*>(reinterpret_cast<uword>(SP[0]) -
+                                kHeapObjectTag + Mint::value_offset()) = value;
+    return true;
+  }
 }
 
 RawObject* Interpreter::Call(RawFunction* function,
@@ -2598,6 +2660,203 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(EqualsNull, 0);
+    SP[0] = (SP[0] == null_value) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(NegateInt, 0);
+    UNBOX_INT64(value, SP[0], Symbols::UnaryMinus());
+    int64_t result = Utils::SubWithWrapAround(0, value);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(AddInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Plus());
+    UNBOX_INT64(b, SP[1], Symbols::Plus());
+    int64_t result = Utils::AddWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SubInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Minus());
+    UNBOX_INT64(b, SP[1], Symbols::Minus());
+    int64_t result = Utils::SubWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(MulInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Star());
+    UNBOX_INT64(b, SP[1], Symbols::Star());
+    int64_t result = Utils::MulWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(TruncDivInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
+    UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
+    if (UNLIKELY(b == 0)) {
+      goto ThrowIntegerDivisionByZeroException;
+    }
+    int64_t result;
+    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+      result = Mint::kMinValue;
+    } else {
+      result = a / b;
+    }
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(ModInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Percent());
+    UNBOX_INT64(b, SP[1], Symbols::Percent());
+    if (UNLIKELY(b == 0)) {
+      goto ThrowIntegerDivisionByZeroException;
+    }
+    int64_t result;
+    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+      result = 0;
+    } else {
+      result = a % b;
+      if (result < 0) {
+        if (b < 0) {
+          result -= b;
+        } else {
+          result += b;
+        }
+      }
+    }
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BitAndInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Ampersand());
+    UNBOX_INT64(b, SP[1], Symbols::Ampersand());
+    int64_t result = a & b;
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BitOrInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::BitOr());
+    UNBOX_INT64(b, SP[1], Symbols::BitOr());
+    int64_t result = a | b;
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BitXorInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Caret());
+    UNBOX_INT64(b, SP[1], Symbols::Caret());
+    int64_t result = a ^ b;
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(ShlInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LeftShiftOperator());
+    UNBOX_INT64(b, SP[1], Symbols::LeftShiftOperator());
+    if (b < 0) {
+      SP[0] = SP[1];
+      goto ThrowArgumentError;
+    }
+    int64_t result = Utils::ShiftLeftWithTruncation(a, b);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(ShrInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::RightShiftOperator());
+    UNBOX_INT64(b, SP[1], Symbols::RightShiftOperator());
+    if (b < 0) {
+      SP[0] = SP[1];
+      goto ThrowArgumentError;
+    }
+    int64_t result = a >> Utils::Minimum<int64_t>(b, Mint::kBits);
+    BOX_INT64_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntEq, 0);
+    SP -= 1;
+    if (SP[0] == SP[1]) {
+      SP[0] = true_value;
+    } else if (!SP[0]->IsHeapObject() || !SP[1]->IsHeapObject() ||
+               (SP[0] == null_value) || (SP[1] == null_value)) {
+      SP[0] = false_value;
+    } else {
+      int64_t a = Integer::GetInt64Value(RAW_CAST(Integer, SP[0]));
+      int64_t b = Integer::GetInt64Value(RAW_CAST(Integer, SP[1]));
+      SP[0] = (a == b) ? true_value : false_value;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntGt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::RAngleBracket());
+    UNBOX_INT64(b, SP[1], Symbols::RAngleBracket());
+    SP[0] = (a > b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntLt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LAngleBracket());
+    UNBOX_INT64(b, SP[1], Symbols::LAngleBracket());
+    SP[0] = (a < b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntGe, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::GreaterEqualOperator());
+    UNBOX_INT64(b, SP[1], Symbols::GreaterEqualOperator());
+    SP[0] = (a >= b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntLe, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LessEqualOperator());
+    UNBOX_INT64(b, SP[1], Symbols::LessEqualOperator());
+    SP[0] = (a <= b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Trap, 0);
     UNIMPLEMENTED();
     DISPATCH();
@@ -2664,6 +2923,35 @@ RawObject* Interpreter::Call(RawFunction* function,
     }
 
     DISPATCH();
+  }
+
+  {
+  ThrowNullError:
+    // SP[0] contains selector.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP, SP + 1);
+    INVOKE_RUNTIME(DRT_NullErrorWithSelector, args);
+    UNREACHABLE();
+  }
+
+  {
+  ThrowIntegerDivisionByZeroException:
+    SP[0] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 1, pc);
+    NativeArguments args(thread, 0, SP, SP);
+    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException, args);
+    UNREACHABLE();
+  }
+
+  {
+  ThrowArgumentError:
+    // SP[0] contains value.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP, SP + 1);
+    INVOKE_RUNTIME(DRT_ArgumentError, args);
+    UNREACHABLE();
   }
 
   // Single dispatch point used by exception handling macros.

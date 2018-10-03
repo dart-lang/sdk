@@ -27,6 +27,7 @@ import 'constant_pool.dart';
 import 'dbc.dart';
 import 'exceptions.dart';
 import 'local_vars.dart' show LocalVariables;
+import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
@@ -63,6 +64,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final bool omitSourcePositions;
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
+  final RecognizedMethods recognizedMethods;
 
   Class enclosingClass;
   Member enclosingMember;
@@ -97,7 +99,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.constantsBackend,
       this.strongMode,
       this.omitSourcePositions,
-      this.errorReporter) {
+      this.errorReporter)
+      : recognizedMethods = new RecognizedMethods(typeEnvironment) {
     component.addMetadataRepository(metadata);
   }
 
@@ -1764,11 +1767,56 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genStaticCall(mapFromLiteral, new ConstantArgDesc(2, numTypeArgs: 0), 2);
   }
 
+  void _genMethodInvocationUsingSpecializedBytecode(
+      Opcode opcode, MethodInvocation node) {
+    switch (opcode) {
+      case Opcode.kEqualsNull:
+        if (node.receiver is NullLiteral) {
+          node.arguments.positional.single.accept(this);
+        } else {
+          node.receiver.accept(this);
+        }
+        break;
+
+      case Opcode.kNegateInt:
+        node.receiver.accept(this);
+        break;
+
+      case Opcode.kAddInt:
+      case Opcode.kSubInt:
+      case Opcode.kMulInt:
+      case Opcode.kTruncDivInt:
+      case Opcode.kModInt:
+      case Opcode.kBitAndInt:
+      case Opcode.kBitOrInt:
+      case Opcode.kBitXorInt:
+      case Opcode.kShlInt:
+      case Opcode.kShrInt:
+      case Opcode.kCompareIntEq:
+      case Opcode.kCompareIntGt:
+      case Opcode.kCompareIntLt:
+      case Opcode.kCompareIntGe:
+      case Opcode.kCompareIntLe:
+        node.receiver.accept(this);
+        node.arguments.positional.single.accept(this);
+        break;
+
+      default:
+        throw 'Unexpected specialized bytecode $opcode';
+    }
+
+    asm.emitBytecode0(opcode);
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
+    final Opcode opcode = recognizedMethods.specializedBytecodeFor(node);
+    if (opcode != null) {
+      _genMethodInvocationUsingSpecializedBytecode(opcode, node);
+      return;
+    }
     final args = node.arguments;
     _genArguments(node.receiver, args);
-    // TODO(alexmarkov): fast path smi ops
     final argDescIndex =
         cp.add(new ConstantArgDesc.fromArguments(args, hasReceiver: true));
     final icdataIndex = cp.add(new ConstantICData(

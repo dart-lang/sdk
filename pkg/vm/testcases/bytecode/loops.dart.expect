@@ -15,18 +15,18 @@ L2:
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
-  InstanceCall         2, CP#3
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InstanceCall         2, CP#4
-  InstanceCall         2, CP#5
+  InstanceCall         2, CP#3
+  AddInt
   PopLocal             r0
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#6
+  AddInt
   StoreLocal           r1
   Drop1
   Jump                 L2
@@ -40,10 +40,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = ICData get target-name 'length', arg-desc CP#0
   [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = ICData target-name '<', arg-desc CP#2
-  [4] = ICData target-name '[]', arg-desc CP#2
-  [5] = ICData target-name '+', arg-desc CP#2
-  [6] = ICData target-name '+', arg-desc CP#2
+  [3] = ICData target-name '[]', arg-desc CP#2
 }
 ]static method test_for(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -64,13 +61,13 @@ L3:
   CheckStack
   Push                 r1
   PushInt              0
-  InstanceCall         2, CP#1
+  CompareIntGe
   AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   Push                 FP[-5]
-  InstanceCall         1, CP#3
-  InstanceCall         2, CP#4
+  InstanceCall         1, CP#1
+  CompareIntGe
   AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L1
@@ -78,12 +75,12 @@ L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InstanceCall         2, CP#5
-  InstanceCall         2, CP#6
+  InstanceCall         2, CP#3
+  AddInt
   PopLocal             r0
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#7
+  AddInt
   StoreLocal           r1
   Drop1
   Jump                 L3
@@ -94,14 +91,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '>=', arg-desc CP#0
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = ICData get target-name 'length', arg-desc CP#2
-  [4] = ICData target-name '>=', arg-desc CP#0
-  [5] = ICData target-name '[]', arg-desc CP#0
-  [6] = ICData target-name '+', arg-desc CP#0
-  [7] = ICData target-name '+', arg-desc CP#0
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ICData get target-name 'length', arg-desc CP#0
+  [2] = ArgDesc num-args 2, num-type-args 0, names []
+  [3] = ICData target-name '[]', arg-desc CP#2
 }
 ]static method test_for_break(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -121,19 +114,19 @@ Bytecode {
   PushInt              0
   PopLocal             r0
   PushInt              100
-  InstanceCall         1, CP#1
+  NegateInt
   PopLocal             r1
 L4:
   CheckStack
   Push                 r1
   Push                 FP[-5]
-  InstanceCall         1, CP#2
-  InstanceCall         2, CP#4
+  InstanceCall         1, CP#1
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   PushInt              0
-  InstanceCall         2, CP#5
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
@@ -141,13 +134,13 @@ L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InstanceCall         2, CP#6
-  InstanceCall         2, CP#7
+  InstanceCall         2, CP#3
+  AddInt
   PopLocal             r0
 L3:
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#8
+  AddInt
   StoreLocal           r1
   Drop1
   Jump                 L4
@@ -159,14 +152,9 @@ L1:
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = ICData target-name 'unary-', arg-desc CP#0
-  [2] = ICData get target-name 'length', arg-desc CP#0
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = ICData target-name '<', arg-desc CP#3
-  [5] = ICData target-name '<', arg-desc CP#3
-  [6] = ICData target-name '[]', arg-desc CP#3
-  [7] = ICData target-name '+', arg-desc CP#3
-  [8] = ICData target-name '+', arg-desc CP#3
+  [1] = ICData get target-name 'length', arg-desc CP#0
+  [2] = ArgDesc num-args 2, num-type-args 0, names []
+  [3] = ICData target-name '[]', arg-desc CP#2
 }
 ]static method test_for_continue(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -193,7 +181,7 @@ L2:
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
-  InstanceCall         2, CP#3
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
@@ -202,12 +190,12 @@ L2:
   PopLocal             r2
   Push                 r2
   PushInt              1
-  InstanceCall         2, CP#4
+  AddInt
   StoreLocal           r1
   PopLocal             r3
   Push                 r2
-  InstanceCall         2, CP#5
-  InstanceCall         2, CP#6
+  InstanceCall         2, CP#3
+  AddInt
   PopLocal             r0
   Jump                 L2
 L1:
@@ -220,10 +208,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = ICData get target-name 'length', arg-desc CP#0
   [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = ICData target-name '<', arg-desc CP#2
-  [4] = ICData target-name '+', arg-desc CP#2
-  [5] = ICData target-name '[]', arg-desc CP#2
-  [6] = ICData target-name '+', arg-desc CP#2
+  [3] = ICData target-name '[]', arg-desc CP#2
 }
 ]static method test_while(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -247,16 +232,16 @@ L1:
   Push                 FP[-5]
   Push                 r1
   InstanceCall         2, CP#1
-  InstanceCall         2, CP#2
+  AddInt
   PopLocal             r0
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#3
+  AddInt
   PopLocal             r1
   Push                 r1
   Push                 FP[-5]
-  InstanceCall         1, CP#5
-  InstanceCall         2, CP#6
+  InstanceCall         1, CP#3
+  CompareIntLt
   AssertBoolean        0
   JumpIfTrue           L1
   Push                 r0
@@ -267,11 +252,8 @@ L1:
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
   [1] = ICData target-name '[]', arg-desc CP#0
-  [2] = ICData target-name '+', arg-desc CP#0
-  [3] = ICData target-name '+', arg-desc CP#0
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = ICData get target-name 'length', arg-desc CP#4
-  [6] = ICData target-name '<', arg-desc CP#0
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = ICData get target-name 'length', arg-desc CP#2
 }
 ]static method test_do_while(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -302,7 +284,7 @@ L2:
   PopLocal             r2
   Push                 r0
   Push                 r2
-  InstanceCall         2, CP#5
+  AddInt
   PopLocal             r0
   Jump                 L2
 L1:
@@ -316,8 +298,6 @@ ConstantPool {
   [1] = ICData get target-name 'iterator', arg-desc CP#0
   [2] = ICData target-name 'moveNext', arg-desc CP#0
   [3] = ICData get target-name 'current', arg-desc CP#0
-  [4] = ArgDesc num-args 2, num-type-args 0, names []
-  [5] = ICData target-name '+', arg-desc CP#4
 }
 ]static method test_for_in(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -349,7 +329,7 @@ L2:
   PopLocal             r1
   Push                 r0
   Push                 r1
-  InstanceCall         2, CP#5
+  AddInt
   PopLocal             r0
   Jump                 L2
 L1:
@@ -363,8 +343,6 @@ ConstantPool {
   [1] = ICData get target-name 'iterator', arg-desc CP#0
   [2] = ICData target-name 'moveNext', arg-desc CP#0
   [3] = ICData get target-name 'current', arg-desc CP#0
-  [4] = ArgDesc num-args 2, num-type-args 0, names []
-  [5] = ICData target-name '+', arg-desc CP#4
 }
 ]static method test_for_in_with_outer_var(core::List<core::int> list) → core::int {
   core::int sum = 0;

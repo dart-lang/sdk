@@ -39,6 +39,8 @@ namespace dart {
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
   V(NullError)                                                                 \
+  V(NullErrorWithSelector)                                                     \
+  V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \

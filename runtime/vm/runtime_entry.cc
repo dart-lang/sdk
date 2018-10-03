@@ -174,6 +174,28 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+static void NullErrorHelper(Zone* zone, const String& selector) {
+  InvocationMirror::Kind kind = InvocationMirror::kMethod;
+  if (Field::IsGetterName(selector)) {
+    kind = InvocationMirror::kGetter;
+  } else if (Field::IsSetterName(selector)) {
+    kind = InvocationMirror::kSetter;
+  }
+
+  const Smi& invocation_type = Smi::Handle(
+      zone,
+      Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
+
+  const Array& args = Array::Handle(zone, Array::New(6));
+  args.SetAt(0, /* instance */ Object::null_object());
+  args.SetAt(1, selector);
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, /* func_type_args */ Object::null_object());
+  args.SetAt(4, /* func_args */ Object::null_object());
+  args.SetAt(5, /* func_arg_names */ Object::null_object());
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+}
+
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -199,25 +221,17 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const String& member_name =
       String::CheckedHandle(zone, pool.ObjectAt(name_index));
 
-  InvocationMirror::Kind kind = InvocationMirror::kMethod;
-  if (Field::IsGetterName(member_name)) {
-    kind = InvocationMirror::kGetter;
-  } else if (Field::IsSetterName(member_name)) {
-    kind = InvocationMirror::kSetter;
-  }
+  NullErrorHelper(zone, member_name);
+}
 
-  const Smi& invocation_type = Smi::Handle(
-      zone,
-      Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
+DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
+  const String& selector = String::CheckedHandle(arguments.ArgAt(0));
+  NullErrorHelper(zone, selector);
+}
 
-  const Array& args = Array::Handle(zone, Array::New(6));
-  args.SetAt(0, /* instance */ Object::null_object());
-  args.SetAt(1, member_name);
-  args.SetAt(2, invocation_type);
-  args.SetAt(3, /* func_type_args */ Object::null_object());
-  args.SetAt(4, /* func_args */ Object::null_object());
-  args.SetAt(5, /* func_arg_names */ Object::null_object());
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
+  const Instance& value = Instance::CheckedHandle(arguments.ArgAt(0));
+  Exceptions::ThrowArgumentError(value);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {

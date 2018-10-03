@@ -7116,6 +7116,16 @@ class Integer : public Number {
                       const Integer& other,
                       Heap::Space space = Heap::kNew) const;
 
+  static int64_t GetInt64Value(const RawInteger* obj) {
+    intptr_t raw_value = reinterpret_cast<intptr_t>(obj);
+    if ((raw_value & kSmiTagMask) == kSmiTag) {
+      return (raw_value >> kSmiTagShift);
+    } else {
+      ASSERT(obj->IsMint());
+      return reinterpret_cast<const RawMint*>(obj)->ptr()->value_;
+    }
+  }
+
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;

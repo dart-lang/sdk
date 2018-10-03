@@ -344,6 +344,29 @@ namespace dart {
 //
 //    SP[0] = !SP[0]
 //
+//  - EqualsNull
+//
+//    SP[0] = (SP[0] == null) ? true : false
+//
+//  - NegateInt
+//
+//    Equivalent to invocation of unary int operator-.
+//    Receiver should have static type int.
+//    Check SP[0] for null; SP[0] = -SP[0].
+//
+//  - AddInt; SubInt; MulInt; TruncDivInt; ModInt; BitAndInt; BitOrInt;
+//    BitXorInt; ShlInt; ShrInt
+//
+//    Equivalent to invocation of binary int operator +, -, *, ~/, %, &, |,
+//    ^, << or >>. Receiver and argument should have static type int.
+//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0].
+//
+//  - CompareIntEq; CompareIntGt; CompareIntLt; CompareIntGe; CompareIntLe
+//
+//    Equivalent to invocation of binary int operator ==, >, <, >= or <=.
+//    Receiver and argument should have static type int.
+//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
+//
 // BYTECODE LIST FORMAT
 //
 // KernelBytecode list below is specified using the following format:
@@ -420,7 +443,24 @@ namespace dart {
   V(Throw,                                 A, num, ___, ___)                   \
   V(MoveSpecial,                         A_D, reg, num, ___)                   \
   V(SetFrame,                              A, num, ___, num)                   \
-  V(BooleanNegateTOS,                      0, ___, ___, ___)
+  V(BooleanNegateTOS,                      0, ___, ___, ___)                   \
+  V(EqualsNull,                            0, ___, ___, ___)                   \
+  V(NegateInt,                             0, ___, ___, ___)                   \
+  V(AddInt,                                0, ___, ___, ___)                   \
+  V(SubInt,                                0, ___, ___, ___)                   \
+  V(MulInt,                                0, ___, ___, ___)                   \
+  V(TruncDivInt,                           0, ___, ___, ___)                   \
+  V(ModInt,                                0, ___, ___, ___)                   \
+  V(BitAndInt,                             0, ___, ___, ___)                   \
+  V(BitOrInt,                              0, ___, ___, ___)                   \
+  V(BitXorInt,                             0, ___, ___, ___)                   \
+  V(ShlInt,                                0, ___, ___, ___)                   \
+  V(ShrInt,                                0, ___, ___, ___)                   \
+  V(CompareIntEq,                          0, ___, ___, ___)                   \
+  V(CompareIntGt,                          0, ___, ___, ___)                   \
+  V(CompareIntLt,                          0, ___, ___, ___)                   \
+  V(CompareIntGe,                          0, ___, ___, ___)                   \
+  V(CompareIntLe,                          0, ___, ___, ___)
 
 // clang-format on
 

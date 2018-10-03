@@ -198,6 +198,12 @@ class Interpreter {
                         RawObject** args,
                         RawSubtypeTestCache* cache);
 
+  bool AllocateInt64Box(Thread* thread,
+                        int64_t value,
+                        uint32_t* pc,
+                        RawObject** FP,
+                        RawObject** SP);
+
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;

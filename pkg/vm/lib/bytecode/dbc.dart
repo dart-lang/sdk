@@ -85,6 +85,27 @@ enum Opcode {
 
   // Bool operations.
   kBooleanNegateTOS,
+
+  // Null operations.
+  kEqualsNull,
+
+  // Int operations.
+  kNegateInt,
+  kAddInt,
+  kSubInt,
+  kMulInt,
+  kTruncDivInt,
+  kModInt,
+  kBitAndInt,
+  kBitOrInt,
+  kBitXorInt,
+  kShlInt,
+  kShrInt,
+  kCompareIntEq,
+  kCompareIntGt,
+  kCompareIntLt,
+  kCompareIntGe,
+  kCompareIntLe,
 }
 
 enum Encoding {
@@ -223,6 +244,40 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kSetFrame: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kEqualsNull: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kNegateInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAddInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kSubInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kMulInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kTruncDivInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kModInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitAndInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitOrInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kBitXorInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kShlInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kShrInt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntEq: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntGt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntLt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntGe: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareIntLe: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 

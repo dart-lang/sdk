@@ -624,13 +624,13 @@ L5:
   CheckStack
   Push                 r0
   PushInt              10
-  InstanceCall         2, CP#1
+  CompareIntLt
   AssertBoolean        0
   JumpIfFalse          L1
 Try #0 start:
   Push                 r0
   PushInt              5
-  InstanceCall         2, CP#2
+  CompareIntGt
   AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
@@ -642,26 +642,26 @@ Try #0 handler:
   MoveSpecial          r1, exception
   MoveSpecial          r2, stackTrace
   Push                 r0
-  PushConstant         CP#5
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
   Drop1
   Push                 r1
   Push                 r2
   Throw                1
 L3:
   Push                 r0
-  PushConstant         CP#6
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#1
   Drop1
   Jump                 L1
 L4:
   Push                 r0
-  PushConstant         CP#7
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#1
   Drop1
   Push                 r0
   PushInt              1
-  InstanceCall         2, CP#8
+  AddInt
   StoreLocal           r0
   Drop1
   Jump                 L5
@@ -670,18 +670,14 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#0]
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '<', arg-desc CP#0
-  [2] = ICData target-name '>', arg-desc CP#0
-  [3] = Type dynamic
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [6] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [7] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [8] = ICData target-name '+', arg-desc CP#0
+  [0] = Type dynamic
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [4] = StaticICData target 'dart.core::print', arg-desc CP#1
 }
 ]static method testTryFinally1() → dynamic {
   #L1:

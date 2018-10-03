@@ -167,25 +167,23 @@ Bytecode {
   Push                 FP[-8]
   Push                 FP[-7]
   Push                 FP[-6]
-  InstanceCall         2, CP#1
-  StoreFieldTOS        CP#2
+  AddInt
+  StoreFieldTOS        CP#0
   Push                 FP[-8]
   Push                 FP[-5]
   PushInt              5
-  InstanceCall         2, CP#4
-  PushConstant         CP#5
-  IndirectStaticCall   2, CP#0
+  MulInt
+  PushConstant         CP#3
+  IndirectStaticCall   2, CP#2
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '+', arg-desc CP#0
-  [2] = InstanceField #lib::C::j
-  [3] = Reserved
-  [4] = ICData target-name '*', arg-desc CP#0
-  [5] = StaticICData target '#lib::B::', arg-desc CP#0
+  [0] = InstanceField #lib::C::j
+  [1] = Reserved
+  [2] = ArgDesc num-args 2, num-type-args 0, names []
+  [3] = StaticICData target '#lib::B::', arg-desc CP#2
 }
 ]  const constructor •(core::int a, core::int b, core::int c) → self::C
     : self::C::j = a.{core::num::+}(b), super self::B::•(c.{core::num::*}(5))
