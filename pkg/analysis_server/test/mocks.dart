@@ -10,7 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
 /**

@@ -20,7 +20,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit, SourceFileEdit;
-import 'package:front_end/src/base/source.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
 

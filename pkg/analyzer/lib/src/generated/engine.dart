@@ -34,7 +34,7 @@ import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -42,7 +42,8 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
-export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
+export 'package:analyzer/src/generated/timestamped_data.dart'
+    show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
