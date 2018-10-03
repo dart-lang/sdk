@@ -169,16 +169,18 @@ part '22/new_name.dart';
 
   test_folder_outside_workspace_returns_failure() async {
     _createRefactoring('/tmp-new', oldName: '/tmp');
+    // TODO(dantup): These paths should all use convertPath so they're as expected
+    // on Windows.
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
         expectedMessage: '/tmp does not belong to an analysis root.');
   }
 
   test_nonexistent_file_returns_failure() async {
-    _createRefactoring(
-        resourceProvider.convertPath('/project/test_missing_new.dart'),
-        oldName: resourceProvider.convertPath('/project/test_missing.dart'));
+    _createRefactoring(convertPath('/project/test_missing_new.dart'),
+        oldName: convertPath('/project/test_missing.dart'));
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage: '/project/test_missing.dart does not exist.');
+        expectedMessage:
+            '${convertPath('/project/test_missing.dart')} does not exist.');
   }
 
   @failingTest
