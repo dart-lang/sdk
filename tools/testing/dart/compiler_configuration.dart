@@ -1069,7 +1069,8 @@ abstract class VMKernelCompilerMixin {
     ];
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
-    args.addAll(arguments.where((name) => name.startsWith('-D')));
+    args.addAll(arguments.where(
+        (name) => name.startsWith('-D') || name.startsWith('--packages=')));
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
     }

@@ -38,11 +38,9 @@ out_of_memory_test: RuntimeError
 deferred_transitive_import_error_test: CompileTimeError
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
-
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler != dartkb && $fasta ]
-package/scenarios/invalid/invalid_utf8_test: CompileTimeError # Issue 32085
-package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError # Issue 32085
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_bind_test: Pass, Slow
@@ -70,9 +68,6 @@ io/web_socket_ping_test: Pass, RuntimeError # Please triage.
 io/web_socket_protocol_test: Pass, RuntimeError # Please triage.
 io/web_socket_typed_data_test: Pass, RuntimeError # Please triage.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
-package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
-package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
-package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
 typed_data_isolate_test: Pass, Crash, Timeout # Please triage.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
@@ -197,9 +192,6 @@ io/process_sync_test: Timeout, Pass
 io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
 io/test_extension_test: RuntimeError # Platform.script points to dill file.
 map_insert_remove_oom_test: Skip # Heap limit too low.
-package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
-package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
-package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ !$strong && ($compiler == dartk || $compiler == dartkb) ]
