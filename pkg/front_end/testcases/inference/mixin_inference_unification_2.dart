@@ -16,7 +16,7 @@ class M1<T> implements I<List<T>, T> {}
 // U0 = List<U1>
 // U1 = List<U0>
 // which has no finite solution
-class /*@error=AmbiguousSupertypes*/ A /*@error=AmbiguousSupertypes*/ extends Object
-    with M0, M1 {}
+class /*@error=AmbiguousSupertypes*/ /*@error=AmbiguousSupertypes*/ A
+    extends Object with M0, M1 {}
 
 main() {}

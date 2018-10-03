@@ -66,9 +66,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:29:10: Context: Override was introduced when the mixin 'M' was applied to 'S'.
+// pkg/front_end/testcases/mixin_application_override.dart:29:7: Context: Override was introduced when the mixin 'M' was applied to 'S'.
 // class B0 extends S with M {}
-//          ^^
+//       ^^
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
 //   foo() {}
@@ -76,9 +76,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:31:10: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
+// pkg/front_end/testcases/mixin_application_override.dart:31:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
 // class B1 extends S with M1, M {}
-//          ^^
+//       ^^
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
 //   foo() {}
@@ -86,9 +86,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:33:10: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
+// pkg/front_end/testcases/mixin_application_override.dart:33:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
 // class B2 extends S with M1, M2, M {}
-//          ^^
+//       ^^
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
 //   foo() {}
@@ -96,9 +96,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:35:11: Context: Override was introduced when the mixin 'M' was applied to 'S'.
+// pkg/front_end/testcases/mixin_application_override.dart:35:7: Context: Override was introduced when the mixin 'M' was applied to 'S'.
 // class B0X extends S with M, MX {}
-//           ^^^
+//       ^^^
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
 //   foo() {}
@@ -106,9 +106,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:37:11: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
+// pkg/front_end/testcases/mixin_application_override.dart:37:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1'.
 // class B1X extends S with M1, M, MX {}
-//           ^^^
+//       ^^^
 //
 // pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
 //   foo() {}
@@ -116,9 +116,9 @@
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
 //   foo([x]) {}
 //   ^
-// pkg/front_end/testcases/mixin_application_override.dart:39:11: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
+// pkg/front_end/testcases/mixin_application_override.dart:39:7: Context: Override was introduced when the mixin 'M' was applied to 'S with M1, M2'.
 // class B2X extends S with M1, M2, M, MX {}
-//           ^^^
+//       ^^^
 
 library;
 import self as self;

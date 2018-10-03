@@ -4,7 +4,8 @@
 
 library fasta.codes;
 
-import 'package:kernel/ast.dart' show Constant, DartType;
+import 'package:kernel/ast.dart'
+    show Constant, DartType, demangleMixinApplicationName;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 

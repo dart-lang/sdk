@@ -1,8 +1,8 @@
 // Unhandled errors:
 //
-// pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:9: Error: '_A&M2&M0' can't implement both '#lib1::I<dart.core::List<dart.core::Map<dart.core::int, dart.core::int>>>' and '#lib1::I<dart.core::List<dynamic>>'
+// pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:7: Error: 'M2 with M0' can't implement both '#lib1::I<dart.core::List<dart.core::Map<dart.core::int, dart.core::int>>>' and '#lib1::I<dart.core::List<dynamic>>'
 // class A extends M2<int> with M0 {}
-//         ^
+//       ^
 //
 // pkg/front_end/testcases/inference/mixin_inference_non_trivial_constraints.dart:14:7: Error: 'A' can't implement both '#lib1::I<dart.core::List<dart.core::Map<dart.core::int, dart.core::int>>>' and '#lib1::I<dart.core::List<dynamic>>'
 // class A extends M2<int> with M0 {}

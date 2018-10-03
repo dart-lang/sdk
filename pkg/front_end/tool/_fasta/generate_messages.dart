@@ -179,18 +179,21 @@ StringBuffer buffer;""");
         parameters.add("String name");
         conversions.add("if (name.isEmpty) throw 'No name provided';");
         arguments.add("'name': name");
+        conversions.add("name = demangleMixinApplicationName(name);");
         break;
 
       case "name2":
         parameters.add("String name2");
         conversions.add("if (name2.isEmpty) throw 'No name provided';");
         arguments.add("'name2': name2");
+        conversions.add("name2 = demangleMixinApplicationName(name2);");
         break;
 
       case "name3":
         parameters.add("String name3");
         conversions.add("if (name3.isEmpty) throw 'No name provided';");
         arguments.add("'name3': name3");
+        conversions.add("name3 = demangleMixinApplicationName(name3);");
         break;
 
       case "lexeme":

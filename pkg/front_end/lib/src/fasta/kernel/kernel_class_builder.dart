@@ -1169,19 +1169,10 @@ abstract class KernelClassBuilder
       ];
     } else {
       if (cls.isAnonymousMixin) {
-        // Implicit mixin application class with a synthetic name of the form
-        // "_Subclass&Superclass(&Mixin)+".
-        // TODO(askesc): Unify mixin application class name deconstruction
-        // and use it for all error reporting relating to such classes.
-        List<String> nameParts = cls.name.split('&');
-        assert(nameParts.length >= 3);
-        assert(nameParts[0].startsWith('_'));
-        int classNameLength = nameParts.first.length - 1;
-        String mixinName = nameParts.last;
-        String baseName = nameParts[1];
-        for (int i = 2; i < nameParts.length - 1; i++) {
-          baseName += (i == 2 ? " with " : ", ") + nameParts[i];
-        }
+        // Implicit mixin application class
+        String baseName = cls.superclass.demangledName;
+        String mixinName = cls.mixedInClass.name;
+        int classNameLength = cls.nameAsMixinApplicationSubclass.length;
         return [
           templateImplicitMixinOverrideContext
               .withArguments(mixinName, baseName)

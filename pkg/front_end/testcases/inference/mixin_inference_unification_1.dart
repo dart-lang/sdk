@@ -12,7 +12,7 @@ class M1<T> implements I<String, T> {}
 
 // M0 inferred as M0<String>
 // M1 inferred as M1<int>
-class /*@error=AmbiguousSupertypes*/ A /*@error=AmbiguousSupertypes*/ extends Object
-    with M0, M1 {}
+class /*@error=AmbiguousSupertypes*/ /*@error=AmbiguousSupertypes*/ A
+    extends Object with M0, M1 {}
 
 main() {}

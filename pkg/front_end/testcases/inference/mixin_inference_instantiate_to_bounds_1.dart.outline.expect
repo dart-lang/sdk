@@ -1,8 +1,8 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:9: Error: '_A&M1&M0' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:7: Error: 'M1 with M0' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
 // class A extends M1 with M0 {}
-//         ^
+//       ^
 //
 // pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_1.dart:12:7: Error: 'A' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
 // class A extends M1 with M0 {}

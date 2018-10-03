@@ -12,7 +12,7 @@ class M1<T> extends I<T> {}
 
 // M0 is inferred as M0<dynamic>
 // Error since class hierarchy is inconsistent
-class /*@error=AmbiguousSupertypes*/ A /*@error=AmbiguousSupertypes*/ extends Object
-    with M0, M1<int> {}
+class /*@error=AmbiguousSupertypes*/ /*@error=AmbiguousSupertypes*/ A
+    extends Object with M0, M1<int> {}
 
 main() {}
