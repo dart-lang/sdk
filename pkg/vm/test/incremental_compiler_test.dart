@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/api_prototype/compilation_message.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerOptions, DiagnosticMessage, computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -33,9 +32,8 @@ main() {
     ..strongMode = true
     ..target = new VmTarget(new TargetFlags(strongMode: true))
     ..linkedDependencies = <Uri>[platformKernel]
-    ..reportMessages = true
-    ..onError = (CompilationMessage error) {
-      fail("Compilation error: ${error}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
   group('basic', () {
