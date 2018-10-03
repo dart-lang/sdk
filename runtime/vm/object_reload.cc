@@ -716,7 +716,10 @@ void ICData::Reset(Zone* zone) const {
              old_target.kind() == RawFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
+      new_target = cls.LookupFunction(selector);
+      if (new_target.kind() != old_target.kind()) {
+        new_target = Function::null();
+      }
     } else {
       // Super call.
       Function& caller = Function::Handle(zone);
