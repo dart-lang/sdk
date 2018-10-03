@@ -205,8 +205,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   }
 
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
-    // TODO(johnniwinther): Optimize this algorithm, possibly by using
-    // `pkg/front_end/lib/src/dependency_walker.dart`.
+    // TODO(johnniwinther): Optimize this algorithm.
     Queue<SideEffectsBuilder> queue = new Queue<SideEffectsBuilder>();
     Set<SideEffectsBuilder> inQueue = new Set<SideEffectsBuilder>();
 
