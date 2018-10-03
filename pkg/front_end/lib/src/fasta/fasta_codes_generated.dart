@@ -4247,6 +4247,31 @@ Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInterfaceCheckContext = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Both members are inherited by the non-abstract class '#name'.""",
+    withArguments: _withArgumentsInterfaceCheckContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInterfaceCheckContext =
+    const Code<Message Function(String name)>(
+        "InterfaceCheckContext", templateInterfaceCheckContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInterfaceCheckContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  return new Message(codeInterfaceCheckContext,
+      message:
+          """Both members are inherited by the non-abstract class '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
     messageInternalProblemAlreadyInitialized;
 

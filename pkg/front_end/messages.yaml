@@ -1366,6 +1366,10 @@ MissingImplementationCause:
   template: "'#name' is defined here."
   severity: CONTEXT
 
+InterfaceCheckContext:
+  template: "Both members are inherited by the non-abstract class '#name'."
+  severity: CONTEXT
+
 ListLiteralTooManyTypeArguments:
   template: "List literal requires exactly one type argument."
   severity: ERROR_LEGACY_WARNING

@@ -13,7 +13,7 @@ abstract class I extends core::Object {
     ;
   abstract method f(covariant core::int x, core::Object y) → void;
 }
-class C extends self::B implements self::I {
+abstract class C extends self::B implements self::I {
   synthetic constructor •() → self::C
     ;
 }

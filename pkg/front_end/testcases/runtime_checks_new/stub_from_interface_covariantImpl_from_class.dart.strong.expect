@@ -15,7 +15,7 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
     ;
   abstract method f((self::I::T) → void x, core::Object y) → void;
 }
-class C<T extends core::Object = dynamic> extends self::B<(self::C::T) → void> implements self::I<(self::C::T) → void> {
+abstract class C<T extends core::Object = dynamic> extends self::B<(self::C::T) → void> implements self::I<(self::C::T) → void> {
   synthetic constructor •() → self::C<self::C::T>
     : super self::B::•()
     ;

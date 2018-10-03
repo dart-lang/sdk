@@ -15,7 +15,7 @@ abstract class I<T> {
   void f(F<T> x, Object y);
 }
 
-class
+abstract class
 /*@forwardingStub=void f(covariance=(genericImpl) ((C::T) -> void) -> void x, covariance=() Object y)*/
     C<T> extends B<F<T>> implements I<F<T>> {}
 

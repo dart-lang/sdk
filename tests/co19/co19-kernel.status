@@ -225,6 +225,7 @@ Language/Classes/Superinterfaces/implicit_interface_t01: CompileTimeError
 Language/Classes/Superinterfaces/implicit_interface_t02: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t01: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t02: CompileTimeError
+Language/Classes/Superinterfaces/no_member_t03: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t05: CompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/method_definition_t03: CompileTimeError

@@ -847,7 +847,8 @@ class SourceLoader<L> extends Loader<L> {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkAbstractMembers(coreTypes, hierarchy);
+        builder.checkAbstractMembers(
+            coreTypes, hierarchy, typeInferenceEngine.typeSchemaEnvironment);
       }
     }
     ticker.logMs("Checked abstract members");

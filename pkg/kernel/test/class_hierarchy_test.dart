@@ -383,10 +383,7 @@ class D extends self::B {}
 class E extends self::C {}
 ''');
 
-    _assertOverridePairs(b, [
-      'test::A::foo overrides test::B::foo',
-      'test::B::foo overrides test::A::foo'
-    ]);
+    _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
     _assertOverridePairs(c, ['test::C::foo overrides test::A::foo']);
     _assertOverridePairs(d, ['test::A::foo overrides test::B::foo']);
     _assertOverridePairs(e, ['test::A::foo overrides test::C::foo']);
@@ -416,10 +413,7 @@ class B extends self::A {
 
     // The documentation says:
     // It is possible for two methods to override one another in both directions.
-    _assertOverridePairs(b, [
-      'test::A::foo overrides test::B::foo',
-      'test::B::foo overrides test::A::foo'
-    ]);
+    _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
   }
 
   /// 1. A member declared in the class overrides a member inheritable through
