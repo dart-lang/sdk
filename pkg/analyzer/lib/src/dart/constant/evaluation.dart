@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl, TypeSystem;
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -37,20 +36,36 @@ class ConstantEvaluationEngine {
    * Parameter to "fromEnvironment" methods that denotes the default value.
    */
   static String _DEFAULT_VALUE_PARAM = "defaultValue";
+  /**
+   * Source of RegExp matching declarable operator names.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _OPERATOR_RE =
+      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+
+  /**
+   * Source of RegExp matching Dart reserved words.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _RESERVED_WORD_RE =
+      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
+      "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
+      "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
+      "r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
 
   /**
    * Source of RegExp matching any public identifier.
    * From sdk/lib/internal/symbol.dart.
    */
   static String _PUBLIC_IDENTIFIER_RE =
-      "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+      "(?!$_RESERVED_WORD_RE\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /**
    * RegExp that validates a non-empty non-private symbol.
    * From sdk/lib/internal/symbol.dart.
    */
   static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp(
-      "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
+      "^(?:$_OPERATOR_RE\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * The type provider used to access the known types.
@@ -955,119 +970,6 @@ class ConstantEvaluationValidator_ForProduction
 
   @override
   void beforeGetParameterDefault(ParameterElement parameter) {}
-}
-
-/**
- * An object used to compute the values of constant variables and constant
- * constructor invocations in one or more compilation units. The expected usage
- * pattern is for the compilation units to be added to this computer using the
- * method [add] and then for the method [computeValues] to be invoked exactly
- * once. Any use of an instance after invoking the method [computeValues] will
- * result in unpredictable behavior.
- */
-class ConstantValueComputer {
-  /**
-   * Source of RegExp matching declarable operator names.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _OPERATOR_RE =
-      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
-
-  /**
-   * Source of RegExp matching Dart reserved words.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _RESERVED_WORD_RE =
-      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
-
-  /**
-   * A graph in which the nodes are the constants, and the edges are from each
-   * constant to the other constants that are referenced by it.
-   */
-  DirectedGraph<ConstantEvaluationTarget> referenceGraph =
-      new DirectedGraph<ConstantEvaluationTarget>();
-
-  /**
-   * The elements whose constant values need to be computed.  Any elements
-   * which appear in [referenceGraph] but not in this set either belong to a
-   * different library cycle (and hence don't need to be recomputed) or were
-   * computed during a previous stage of resolution stage (e.g. constants
-   * associated with enums).
-   */
-  HashSet<ConstantEvaluationTarget> _constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
-
-  /**
-   * The evaluation engine that does the work of evaluating instance creation
-   * expressions.
-   */
-  final ConstantEvaluationEngine evaluationEngine;
-
-  /**
-   * Initialize a newly created constant value computer. The [typeProvider] is
-   * the type provider used to access known types. The [declaredVariables] is
-   * the set of variables declared on the command line using '-D'.
-   */
-  ConstantValueComputer(
-      TypeProvider typeProvider, DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
-      : evaluationEngine = new ConstantEvaluationEngine(
-            typeProvider, declaredVariables,
-            validator: validator, typeSystem: typeSystem);
-
-  /**
-   * Add the constants in the given compilation [unit] to the list of constants
-   * whose value needs to be computed.
-   */
-  void add(CompilationUnit unit) {
-    ConstantFinder constantFinder = new ConstantFinder();
-    unit.accept(constantFinder);
-    _constantsToCompute.addAll(constantFinder.constantsToCompute);
-  }
-
-  /**
-   * Compute values for all of the constants in the compilation units that were
-   * added.
-   */
-  void computeValues() {
-    for (ConstantEvaluationTarget constant in _constantsToCompute) {
-      referenceGraph.addNode(constant);
-      evaluationEngine.computeDependencies(constant,
-          (ConstantEvaluationTarget dependency) {
-        referenceGraph.addEdge(constant, dependency);
-      });
-    }
-    List<List<ConstantEvaluationTarget>> topologicalSort =
-        referenceGraph.computeTopologicalSort();
-    for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
-      if (constantsInCycle.length == 1) {
-        ConstantEvaluationTarget constant = constantsInCycle[0];
-        if (!referenceGraph.getTails(constant).contains(constant)) {
-          _computeValueFor(constant);
-          continue;
-        }
-      }
-      for (ConstantEvaluationTarget constant in constantsInCycle) {
-        evaluationEngine.generateCycleError(constantsInCycle, constant);
-      }
-    }
-  }
-
-  /**
-   * Compute a value for the given [constant].
-   */
-  void _computeValueFor(ConstantEvaluationTarget constant) {
-    if (!_constantsToCompute.contains(constant)) {
-      // Element is in the dependency graph but should have been computed by
-      // a previous stage of analysis.
-      // TODO(paulberry): once we have moved over to the new task model, this
-      // should only occur for constants associated with enum members.  Once
-      // that happens we should add an assertion to verify that it doesn't
-      // occur in any other cases.
-      return;
-    }
-    evaluationEngine.computeConstantValue(constant);
-  }
 }
 
 /**
