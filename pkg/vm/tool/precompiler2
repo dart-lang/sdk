@@ -109,5 +109,5 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 # Step 3: Assemble the assembly file into an ELF object.
 if [ $BUILD_ELF -eq 1 ]; then
-    gcc -shared -o "$SNAPSHOT_FILE" "$DART_BOOTSTRAP_OUT"
+    gcc -shared -o "$SNAPSHOT_FILE" "${SNAPSHOT_FILE}.S"
 fi
