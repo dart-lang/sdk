@@ -1023,17 +1023,6 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* isolate_snapshot_data_size);
 
 /**
- * Returns whether the buffer contains a snapshot created by
- * Dart_Create*Snapshot.
- *
- * \param buffer Pointer to a buffer that might contain a snapshot.
- * \param buffer_size Size of the buffer.
- *
- * \return Whether the buffer contains a snapshot (core, app or script).
- */
-DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size);
-
-/**
  * Returns whether the buffer contains a kernel file.
  *
  * \param buffer Pointer to a buffer that might contain a kernel binary.
@@ -1042,17 +1031,6 @@ DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size);
  * \return Whether the buffer contains a kernel binary (full or partial).
  */
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
-
-/**
- * Returns true if snapshot_buffer contains a Dart2 snapshot.
- *
- * \param snapshot_buffer Pointer to a buffer that contains the snapshot
- *   that needs to be checked.
- * \param snapshot_size Size of the buffer.
- *
- * \returns true if the snapshot is a Dart2 snapshot, false otherwise.
- */
-DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
 
 /**
  * Make isolate runnable.

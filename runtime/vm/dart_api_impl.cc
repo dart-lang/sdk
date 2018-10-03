@@ -1480,56 +1480,12 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   return Api::Success();
 }
 
-DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size) {
-  if (buffer_size < Snapshot::kHeaderSize) {
-    return false;
-  }
-  return Snapshot::SetupFromBuffer(buffer) != NULL;
-}
-
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
   if (buffer_size < 4) {
     return false;
   }
   return (buffer[0] == 0x90) && (buffer[1] == 0xab) && (buffer[2] == 0xcd) &&
          (buffer[3] == 0xef);
-}
-
-DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
-  if (snapshot_buffer == NULL) {
-    return false;
-  }
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
-  if (snapshot == NULL) {
-    return false;
-  }
-  const intptr_t snapshot_size = snapshot->length();
-  const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
-  const intptr_t version_len = strlen(expected_version);
-  if (snapshot_size < version_len) {
-    return false;
-  }
-
-  const char* version = reinterpret_cast<const char*>(snapshot->content());
-  ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
-    return false;
-  }
-  const char* features = version + version_len;
-  ASSERT(features != NULL);
-  intptr_t pending_len = snapshot_size - version_len;
-  intptr_t buffer_len = Utils::StrNLen(features, pending_len);
-  // if buffer_len is less than pending_len it means we have a null terminated
-  // string and we can safely execute 'strstr' on it.
-  if ((buffer_len < pending_len)) {
-    if (strstr(features, "no-strong")) {
-      return false;
-    } else if (strstr(features, "strong")) {
-      return true;
-    }
-  }
-  return false;
 }
 
 DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
