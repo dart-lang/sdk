@@ -1,3 +1,12 @@
+## 0.33.0
+* Support handling 'class C with M', with extends missing.
+* Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.
+* Further support and bugfixes for Dart 2.1-style mixin declarations.
+* Fixes for int2double support.
+* Performance improvements for analysis and summary generation.
+* Allow "yield" as a label, and "operator" as a static method name (#33672,
+  #33673)
+
 ## 0.33.0-alpha.0
 * Switch to using the parser from front_end.
 * Start implementing the new mixin syntax.
