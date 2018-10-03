@@ -35,6 +35,7 @@ dartdoc:third_party/pkg/dartdoc/lib
 dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
+file:third_party/pkg/file/packages/file/lib
 fixnum:third_party/pkg/fixnum/lib
 front_end:pkg/front_end/lib
 func:third_party/pkg/func/lib
@@ -69,8 +70,10 @@ package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
 petitparser:third_party/pkg/petitparser/lib
+platform:third_party/pkg/platform/lib
 plugin:third_party/pkg/plugin/lib
 pool:third_party/pkg/pool/lib
+process:third_party/pkg/process/lib
 protobuf:third_party/pkg/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
