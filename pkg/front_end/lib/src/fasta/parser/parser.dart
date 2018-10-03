@@ -28,9 +28,11 @@ import '../../scanner/token.dart'
 
 import '../scanner/token_constants.dart'
     show
+        BANG_EQ_EQ_TOKEN,
         COMMA_TOKEN,
         DOUBLE_TOKEN,
         EOF_TOKEN,
+        EQ_EQ_EQ_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
         HASH_TOKEN,
@@ -2921,7 +2923,16 @@ class Parser {
       TypeInfo typeInfo,
       Token getOrSet,
       Token name) {
-    bool isOperator = getOrSet == null && optional('operator', name);
+    bool isOperator = false;
+    if (getOrSet == null && optional('operator', name)) {
+      Token operator = name.next;
+      if (operator.isOperator ||
+          identical(operator.kind, EQ_EQ_EQ_TOKEN) ||
+          identical(operator.kind, BANG_EQ_EQ_TOKEN) ||
+          isUnaryMinus(operator)) {
+        isOperator = true;
+      }
+    }
 
     if (staticToken != null) {
       if (isOperator) {

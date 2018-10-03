@@ -106,6 +106,11 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
     ]);
   }
+
+  void test_staticOperatorNamedMethod() {
+    // operator can be used as a method name
+    parseCompilationUnit('class C { static operator(x) => x; }');
+  }
 }
 
 /**
