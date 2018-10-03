@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -45,12 +46,21 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    final drivers = workspace.driversContaining(newFile);
+    final drivers = workspace.driversContaining(oldFile);
     if (drivers.length != 1) {
-      return new RefactoringStatus.fatal(
-          'Unable to find a single driver for $newFile.');
+      if (workspace.drivers
+          .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
+        return new RefactoringStatus.fatal(
+            'Renaming an analysis root is not supported ($oldFile)');
+      } else {
+        return new RefactoringStatus.fatal(
+            '$oldFile does not belong to an analysis root.');
+      }
     }
     driver = drivers.first;
+    if (!driver.resourceProvider.getFile(oldFile).exists) {
+      return new RefactoringStatus.fatal('$oldFile does not exist.');
+    }
     return new RefactoringStatus();
   }
 
@@ -78,6 +88,24 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         _updateUriReferences(builder, library.exports, oldDir, newDir);
         _updateUriReferences(builder, library.parts, oldDir, newDir);
       });
+    } else {
+      // Otherwise, we need to update any relative part-of references.
+      Iterable<PartOfDirective> partOfs = element.unit.directives
+          .whereType<PartOfDirective>()
+          .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
+
+      if (partOfs.isNotEmpty) {
+        await changeBuilder.addFileEdit(element.source.fullName, (builder) {
+          partOfs.forEach((po) {
+            final oldDir = pathContext.dirname(oldFile);
+            final newDir = pathContext.dirname(newFile);
+            String oldLocation = pathContext.join(oldDir, po.uri.stringValue);
+            String newUri = _getRelativeUri(oldLocation, newDir);
+            builder.addSimpleReplacement(
+                new SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+          });
+        });
+      }
     }
 
     // Update incoming references to this file
