@@ -39,7 +39,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
 
-import '../../tool/reload.dart' show RemoteVm;
+import 'tool/reload.dart' show RemoteVm;
 
 abstract class TestCase {
   IncrementalKernelGenerator compiler;
