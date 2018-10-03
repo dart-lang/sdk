@@ -1,3 +1,9 @@
+# 0.1.67
+
+* miscellaneous mixin support fixes
+* update to `sort_constructors_first` to apply to all members
+* update `unnecessary_this` to work on field initializers
+
 # 0.1.66
 
 * broadened SDK version constraint
