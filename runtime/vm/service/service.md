@@ -2372,9 +2372,9 @@ class Script extends Object {
   // The library which owns this script.
   @Library library;
 
-  // The source code for this script. For certain built-in scripts,
-  // this may be reconstructed without source comments.
-  string source;
+  // The source code for this script. This can be null for certain built-in
+  // scripts.
+  string source [optional];
 
   // A table encoding a mapping from token position to line and column.
   int[][] tokenPosTable;
