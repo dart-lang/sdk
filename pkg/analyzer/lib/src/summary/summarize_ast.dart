@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
-import 'package:front_end/src/base/api_signature.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 
 /// Serialize all the declarations in [compilationUnit] to an unlinked summary.
 ///

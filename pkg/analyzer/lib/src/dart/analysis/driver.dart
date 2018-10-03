@@ -42,7 +42,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/api_signature.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:meta/meta.dart';
 

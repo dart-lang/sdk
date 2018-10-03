@@ -33,7 +33,7 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:front_end/src/base/api_signature.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
