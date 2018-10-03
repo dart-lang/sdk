@@ -55,11 +55,12 @@ dart_developer_disabled_env_test: RuntimeError
 
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
-io/dart_std_io_pipe_test: Pass, Crash # Trap bytecode encountered.
+io/dart_std_io_pipe_test: Pass, Crash, Timeout # Trap bytecode encountered.
 io/file_lock_test: Pass, Crash # Trap bytecode encountered.
 io/http_advanced_test: Pass, RuntimeError # Please triage.
 io/http_client_connect_test: Pass, RuntimeError # Please triage.
 io/http_outgoing_size_test: Pass, RuntimeError # Please triage.
+io/http_server_test: Pass, RuntimeError # Please triage.
 io/platform_test: RuntimeError # Platform.script points to dill file.
 io/process_sync_test: Pass, Crash # Bytecode compilation.
 io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
