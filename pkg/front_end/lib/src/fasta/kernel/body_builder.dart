@@ -2329,10 +2329,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (prefix is Generator) {
         name = prefix.qualifiedLookup(suffix);
       } else {
-        String displayName = debugName(getNodeName(prefix), suffix.lexeme);
-        addProblem(fasta.templateNotAType.withArguments(displayName),
-            offsetForToken(beginToken), lengthOfSpan(beginToken, suffix));
-        push(const InvalidType());
+        String name = getNodeName(prefix);
+        String displayName = debugName(name, suffix.lexeme);
+        int offset = offsetForToken(beginToken);
+        push(new UnresolvedType<KernelTypeBuilder>(
+            new KernelNamedTypeBuilder(name, null)
+              ..bind(new KernelInvalidTypeBuilder(
+                  name,
+                  fasta.templateNotAType
+                      .withArguments(displayName)
+                      .withLocation(
+                          uri, offset, lengthOfSpan(beginToken, suffix)))),
+            offset,
+            uri));
         return;
       }
     }

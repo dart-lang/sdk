@@ -1,0 +1,58 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:10:7: Error: 'Dupe' is already declared in this scope.
+// class Dupe {}
+//       ^^^^
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:8:7: Context: Previous declaration of 'Dupe'.
+// class Dupe {}
+//       ^^^^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:13:3: Error: Type 'Dupe.a' not found.
+//   Dupe.a b;
+//   ^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:6:1: Error: 'C' is imported from both 'pkg/front_end/testcases/duplicated_bad_prefix_lib1.dart' and 'pkg/front_end/testcases/duplicated_bad_prefix_lib2.dart'.
+// import 'duplicated_bad_prefix_lib2.dart' as dupe;
+// ^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:13:3: Error: 'Dupe.a' isn't a type.
+//   Dupe.a b;
+//   ^^^^^^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:10:7: Error: 'Dupe' is already declared in this scope.
+// class Dupe {}
+//       ^^^^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:13:3: Error: Type 'Dupe.a' not found.
+//   Dupe.a b;
+//   ^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:6:1: Error: 'C' is imported from both 'pkg/front_end/testcases/duplicated_bad_prefix_lib1.dart' and 'pkg/front_end/testcases/duplicated_bad_prefix_lib2.dart'.
+// import 'duplicated_bad_prefix_lib2.dart' as dupe;
+// ^
+//
+// pkg/front_end/testcases/duplicated_bad_prefix.dart:13:3: Error: 'Dupe.a' isn't a type.
+//   Dupe.a b;
+//   ^^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Dupe#1 extends core::Object {
+  synthetic constructor •() → self::Dupe#1
+    : super core::Object::•()
+    ;
+}
+class Dupe extends core::Object {
+}
+class C extends core::Object {
+  field invalid-type b = null;
+  field invalid-type d = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
