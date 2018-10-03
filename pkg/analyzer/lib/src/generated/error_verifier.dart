@@ -1900,10 +1900,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     bool problemReported = false;
-    for (int i = 0; i < withClause.mixinTypes.length; i++) {
-      TypeName mixinName = withClause.mixinTypes[i];
+    int mixinTypeIndex = -1;
+    for (int mixinNameIndex = 0;
+        mixinNameIndex < withClause.mixinTypes.length;
+        mixinNameIndex++) {
+      TypeName mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.type;
       if (mixinType is InterfaceType) {
+        mixinTypeIndex++;
         if (_checkForExtendsOrImplementsDisallowedClass(
             mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
@@ -1914,11 +1918,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             problemReported = true;
           }
           if (mixinElement.isMixin) {
-            if (_checkForMixinSuperclassConstraints(mixinName, i)) {
+            if (_checkForMixinSuperclassConstraints(
+                mixinNameIndex, mixinName)) {
               problemReported = true;
             }
             if (_checkForMixinSuperInvokedMembers(
-                i, mixinName, mixinElement, mixinType)) {
+                mixinTypeIndex, mixinName, mixinElement, mixinType)) {
               problemReported = true;
             }
           } else {
@@ -4151,15 +4156,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /// Check that superclass constrains for the mixin type of [mixinName] at
-  /// the [index] position in the mixins list are satisfied by the
+  /// the [mixinIndex] position in the mixins list are satisfied by the
   /// [_enclosingClass], or a previous mixin.
-  bool _checkForMixinSuperclassConstraints(TypeName mixinName, int index) {
+  bool _checkForMixinSuperclassConstraints(int mixinIndex, TypeName mixinName) {
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
       bool isSatisfied =
           _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
       if (!isSatisfied) {
-        for (int i = 0; i < index && !isSatisfied; i++) {
+        for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
               _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
         }
