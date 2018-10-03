@@ -147,10 +147,11 @@ Future<CompilerResult> _compile(List<String> args,
   var inputs = argResults.rest.map(sourcePathToCustomUri).toList();
 
   var succeeded = true;
-  void errorHandler(fe.CompilationMessage error) {
-    if (error.severity == fe.Severity.error) {
+  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+    if (message.severity == fe.Severity.error) {
       succeeded = false;
     }
+    fe.printDiagnosticMessage(message, print);
   }
 
   var oldCompilerState = compilerState;
@@ -177,7 +178,8 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
+  fe.DdcResult result =
+      await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   if (result == null || !succeeded) {
     return CompilerResult(1, compilerState);
   }

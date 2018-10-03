@@ -546,10 +546,11 @@ final _fileSystem = MemoryFileSystem(Uri.file('/memory/'));
 
 Future<Component> kernelCompile(String code) async {
   var succeeded = true;
-  void errorHandler(fe.CompilationMessage error) {
-    if (error.severity == fe.Severity.error) {
+  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+    if (message.severity == fe.Severity.error) {
       succeeded = false;
     }
+    fe.printDiagnosticMessage(message, print);
   }
 
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
@@ -577,7 +578,7 @@ const nullCheck = const _NullCheck();
       _compilerState, sdkUri, packagesUri, [], DevCompilerTarget(),
       fileSystem: _fileSystem);
   fe.DdcResult result =
-      await fe.compile(_compilerState, [mainUri], errorHandler);
+      await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
   return result.component;
 }
