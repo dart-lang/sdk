@@ -117,6 +117,9 @@ Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # Test
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError # Issue 30273
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
 Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError # The test even says in the comment it should be a compile time error
+Language/Mixins/Mixin_Application/warning_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Mixins/Mixin_Application/warning_t02: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Mixins/Mixin_Application/warning_t03: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError

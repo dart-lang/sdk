@@ -6,7 +6,6 @@
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler != compare_analyzer_cfe ]
-bug34235_test/01: MissingCompileTimeError # Issue 34235
 mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543

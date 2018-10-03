@@ -58,12 +58,13 @@ import '../fasta_codes.dart'
         noLength,
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
-        Template,
         templateImplementsRepeated,
         templateImplementsSuperClass,
+        templateImplicitMixinOverrideContext,
         templateInterfaceCheckContext,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
+        templateNamedMixinOverrideContext,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
@@ -388,14 +389,9 @@ abstract class KernelClassBuilder
       Member declaredMember,
       Member interfaceMember,
       bool isSetter,
-      Template<Message Function(String name)> inheritedTemplate,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool isInterfaceCheck = false}) {
     if (declaredMember == interfaceMember) {
-      return;
-    }
-    if (declaredMember.enclosingClass != cls && inheritedTemplate == null) {
-      // Either the override check has already been performed, or there is no
-      // override relationship between the two methods. Skip check.
       return;
     }
     if (declaredMember is Constructor || interfaceMember is Constructor) {
@@ -406,7 +402,7 @@ abstract class KernelClassBuilder
       if (declaredMember.kind == ProcedureKind.Method &&
           interfaceMember.kind == ProcedureKind.Method) {
         bool seenCovariant = checkMethodOverride(hierarchy, typeEnvironment,
-            declaredMember, interfaceMember, inheritedTemplate);
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
               hierarchy, declaredMember, interfaceMember, isSetter, callback);
@@ -415,12 +411,12 @@ abstract class KernelClassBuilder
       if (declaredMember.kind == ProcedureKind.Getter &&
           interfaceMember.kind == ProcedureKind.Getter) {
         checkGetterOverride(hierarchy, typeEnvironment, declaredMember,
-            interfaceMember, inheritedTemplate);
+            interfaceMember, isInterfaceCheck);
       }
       if (declaredMember.kind == ProcedureKind.Setter &&
           interfaceMember.kind == ProcedureKind.Setter) {
         bool seenCovariant = checkSetterOverride(hierarchy, typeEnvironment,
-            declaredMember, interfaceMember, inheritedTemplate);
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
               hierarchy, declaredMember, interfaceMember, isSetter, callback);
@@ -437,10 +433,10 @@ abstract class KernelClassBuilder
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
         checkGetterOverride(hierarchy, typeEnvironment, declaredMember,
-            interfaceMember, inheritedTemplate);
+            interfaceMember, isInterfaceCheck);
       } else if (declaredMemberHasSetter && interfaceMemberHasSetter) {
         bool seenCovariant = checkSetterOverride(hierarchy, typeEnvironment,
-            declaredMember, interfaceMember, inheritedTemplate);
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
               hierarchy, declaredMember, interfaceMember, isSetter, callback);
@@ -455,7 +451,7 @@ abstract class KernelClassBuilder
     void overridePairCallback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       checkOverride(hierarchy, typeEnvironment, declaredMember, interfaceMember,
-          isSetter, null, overridePairCallback);
+          isSetter, overridePairCallback);
     }
 
     hierarchy.forEachOverridePair(cls, overridePairCallback);
@@ -484,7 +480,8 @@ abstract class KernelClassBuilder
     void overridePairCallback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       checkOverride(hierarchy, typeEnvironment, declaredMember, interfaceMember,
-          isSetter, templateInterfaceCheckContext, overridePairCallback);
+          isSetter, overridePairCallback,
+          isInterfaceCheck: true);
     }
 
     bool hasNoSuchMethod =
@@ -772,7 +769,7 @@ abstract class KernelClassBuilder
       Member interfaceMember,
       FunctionNode declaredFunction,
       FunctionNode interfaceFunction,
-      Template<Message Function(String name)> inheritedTemplate) {
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
       interfaceSubstitution = Substitution.fromSupertype(
@@ -795,7 +792,7 @@ abstract class KernelClassBuilder
                     .withLocation(_getMemberUri(interfaceMember),
                         interfaceMember.fileOffset, noLength)
               ] +
-              inheritedContext(inheritedTemplate, declaredMember));
+              inheritedContext(isInterfaceCheck, declaredMember));
     } else if (library.loader.target.backendTarget.strongMode &&
         declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
@@ -832,7 +829,7 @@ abstract class KernelClassBuilder
                           .withLocation(_getMemberUri(interfaceMember),
                               interfaceMember.fileOffset, noLength)
                     ] +
-                    inheritedContext(inheritedTemplate, declaredMember));
+                    inheritedContext(isInterfaceCheck, declaredMember));
           }
         }
       }
@@ -862,7 +859,7 @@ abstract class KernelClassBuilder
       DartType interfaceType,
       bool isCovariant,
       VariableDeclaration declaredParameter,
-      Template<Message Function(String name)> inheritedTemplate,
+      bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
     if (!library.loader.target.backendTarget.strongMode) return false;
 
@@ -909,7 +906,7 @@ abstract class KernelClassBuilder
                     .withLocation(_getMemberUri(interfaceMember),
                         interfaceMember.fileOffset, noLength)
               ] +
-              inheritedContext(inheritedTemplate, declaredMember));
+              inheritedContext(isInterfaceCheck, declaredMember));
       return true;
     }
     return false;
@@ -922,7 +919,7 @@ abstract class KernelClassBuilder
       TypeEnvironment typeEnvironment,
       Procedure declaredMember,
       Procedure interfaceMember,
-      Template<Message Function(String name)> inheritedTemplate) {
+      bool isInterfaceCheck) {
     assert(declaredMember.kind == ProcedureKind.Method);
     assert(interfaceMember.kind == ProcedureKind.Method);
     bool seenCovariant = false;
@@ -935,7 +932,7 @@ abstract class KernelClassBuilder
         interfaceMember,
         declaredFunction,
         interfaceFunction,
-        inheritedTemplate);
+        isInterfaceCheck);
 
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(hierarchy, declaredMember);
@@ -950,7 +947,7 @@ abstract class KernelClassBuilder
         interfaceFunction.returnType,
         false,
         null,
-        inheritedTemplate);
+        isInterfaceCheck);
     if (declaredFunction.positionalParameters.length <
         interfaceFunction.positionalParameters.length) {
       library.addProblem(
@@ -968,7 +965,7 @@ abstract class KernelClassBuilder
                     .withLocation(interfaceMember.fileUri,
                         interfaceMember.fileOffset, noLength)
               ] +
-              inheritedContext(inheritedTemplate, declaredMember));
+              inheritedContext(isInterfaceCheck, declaredMember));
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
@@ -987,7 +984,7 @@ abstract class KernelClassBuilder
                     .withLocation(interfaceMember.fileUri,
                         interfaceMember.fileOffset, noLength)
               ] +
-              inheritedContext(inheritedTemplate, declaredMember));
+              inheritedContext(isInterfaceCheck, declaredMember));
     }
     for (int i = 0;
         i < declaredFunction.positionalParameters.length &&
@@ -1005,7 +1002,7 @@ abstract class KernelClassBuilder
           interfaceFunction.positionalParameters[i].type,
           declaredParameter.isCovariant || interfaceParameter.isCovariant,
           declaredParameter,
-          inheritedTemplate);
+          isInterfaceCheck);
       if (declaredParameter.isCovariant) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
@@ -1029,7 +1026,7 @@ abstract class KernelClassBuilder
                     .withLocation(interfaceMember.fileUri,
                         interfaceMember.fileOffset, noLength)
               ] +
-              inheritedContext(inheritedTemplate, declaredMember));
+              inheritedContext(isInterfaceCheck, declaredMember));
     }
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
       return p0.name.compareTo(p1.name);
@@ -1067,7 +1064,7 @@ abstract class KernelClassBuilder
                         .withLocation(interfaceMember.fileUri,
                             interfaceMember.fileOffset, noLength)
                   ] +
-                  inheritedContext(inheritedTemplate, declaredMember));
+                  inheritedContext(isInterfaceCheck, declaredMember));
           break outer;
         }
       }
@@ -1082,7 +1079,7 @@ abstract class KernelClassBuilder
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariant,
           declaredParameter,
-          inheritedTemplate);
+          isInterfaceCheck);
       if (declaredParameter.isCovariant) seenCovariant = true;
     }
     return seenCovariant;
@@ -1093,14 +1090,14 @@ abstract class KernelClassBuilder
       TypeEnvironment typeEnvironment,
       Member declaredMember,
       Member interfaceMember,
-      Template<Message Function(String name)> inheritedTemplate) {
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
         hierarchy,
         declaredMember,
         interfaceMember,
         null,
         null,
-        inheritedTemplate);
+        isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(hierarchy, declaredMember);
     var declaredType = declaredMember.getterType;
@@ -1115,7 +1112,7 @@ abstract class KernelClassBuilder
         interfaceType,
         false,
         null,
-        inheritedTemplate);
+        isInterfaceCheck);
   }
 
   /// Returns whether a covariant parameter was seen and more methods thus have
@@ -1125,14 +1122,14 @@ abstract class KernelClassBuilder
       TypeEnvironment typeEnvironment,
       Member declaredMember,
       Member interfaceMember,
-      Template<Message Function(String name)> inheritedTemplate) {
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
         hierarchy,
         declaredMember,
         interfaceMember,
         null,
         null,
-        inheritedTemplate);
+        isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(hierarchy, declaredMember);
     var declaredType = declaredMember.setterType;
@@ -1151,22 +1148,53 @@ abstract class KernelClassBuilder
         interfaceType,
         isCovariant,
         declaredParameter,
-        inheritedTemplate,
+        isInterfaceCheck,
         asIfDeclaredParameter: true);
     return isCovariant;
   }
 
+  // Extra context on override messages when the overriding member is inherited
   List<LocatedMessage> inheritedContext(
-      Template<Message Function(String name)> inheritedTemplate,
-      Member declaredMember) {
-    if (inheritedTemplate != null && declaredMember.enclosingClass != cls) {
+      bool isInterfaceCheck, Member declaredMember) {
+    if (declaredMember.enclosingClass == cls) {
+      // Ordinary override
+      return const [];
+    }
+    if (isInterfaceCheck) {
+      // Interface check
       return [
-        inheritedTemplate
+        templateInterfaceCheckContext
             .withArguments(cls.name)
             .withLocation(cls.fileUri, cls.fileOffset, cls.name.length)
       ];
     } else {
-      return const [];
+      if (cls.isAnonymousMixin) {
+        // Implicit mixin application class with a synthetic name of the form
+        // "_Subclass&Superclass(&Mixin)+".
+        // TODO(askesc): Unify mixin application class name deconstruction
+        // and use it for all error reporting relating to such classes.
+        List<String> nameParts = cls.name.split('&');
+        assert(nameParts.length >= 3);
+        assert(nameParts[0].startsWith('_'));
+        int classNameLength = nameParts.first.length - 1;
+        String mixinName = nameParts.last;
+        String baseName = nameParts[1];
+        for (int i = 2; i < nameParts.length - 1; i++) {
+          baseName += (i == 2 ? " with " : ", ") + nameParts[i];
+        }
+        return [
+          templateImplicitMixinOverrideContext
+              .withArguments(mixinName, baseName)
+              .withLocation(cls.fileUri, cls.fileOffset, classNameLength)
+        ];
+      } else {
+        // Named mixin application class
+        return [
+          templateNamedMixinOverrideContext
+              .withArguments(cls.name)
+              .withLocation(cls.fileUri, cls.fileOffset, cls.name.length)
+        ];
+      }
     }
   }
 

@@ -20,6 +20,18 @@
 // pkg/front_end/testcases/regress/issue_32972.dart:19:7: Context: The class 'Bar' has a constructor that takes no arguments.
 // class Bar<X, Y> {}
 //       ^
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:22:3: Warning: Expected 1 type arguments.
+//   foo<String, String>("hello world");
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:24:7: Warning: Expected 1 type arguments.
+//   Foo.foo<int, int>(42);
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:29:7: Warning: Expected 2 type arguments.
+//   new Bar<String>();
+//       ^
 
 library;
 import self as self;

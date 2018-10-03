@@ -20,7 +20,6 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 bug32372_test: RuntimeError
-bug34235_test/01: Pass
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
@@ -147,7 +146,7 @@ mixin_declaration/mixin_declaration_inference_valid_C12_test: CompileTimeError #
 mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError # Issue #34164
 mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Analyzer chooses wrong(?) super method.
-mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
+mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_test: RuntimeError
@@ -316,11 +315,6 @@ map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
-mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_application_supertype_test/06: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_application_supertype_test/07: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_override_test/06: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_override_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError

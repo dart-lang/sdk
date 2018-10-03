@@ -660,13 +660,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var superclass = supertype.classNode;
       var superGetters = getInterfaceMembers(superclass);
       var superSetters = getInterfaceMembers(superclass, setters: true);
-      _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
-      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
-          onlyAbstract: true);
-      _reportOverrides(info.implementedSetters, superSetters, callback,
-          isSetter: true);
+      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback);
       _reportOverrides(info.declaredSetters, superSetters, callback,
-          isSetter: true, onlyAbstract: true);
+          isSetter: true);
     }
   }
 
@@ -674,15 +670,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       List<Member> declaredList,
       List<Member> inheritedList,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool isSetter: false,
-      bool onlyAbstract: false}) {
+      {bool isSetter: false}) {
     int i = 0, j = 0;
     while (i < declaredList.length && j < inheritedList.length) {
       Member declared = declaredList[i];
-      if (onlyAbstract && !declared.isAbstract) {
-        ++i;
-        continue;
-      }
       Member inherited = inheritedList[j];
       int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {

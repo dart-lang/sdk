@@ -251,8 +251,6 @@ mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTim
 mixin_declaration/mixin_declaration_invalid_application_supertype_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_application_supertype_test/06: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_application_supertype_test/07: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_override_test/06: MissingCompileTimeError
-mixin_declaration/mixin_declaration_invalid_override_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/04: MissingCompileTimeError
@@ -283,32 +281,7 @@ mixin_invalid_bound_test/07: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/08: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33308
-mixin_method_override_test/C1: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/C2: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/C3: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/C4: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/C7: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/C8: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/G2: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/G3: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/G4: MissingCompileTimeError # Issue 34235
 mixin_method_override_test/G5: Crash # Issue 34354
-mixin_method_override_test/N10: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N11: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N12: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N13: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N14: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N3: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N4: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N5: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N6: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/N9: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O10: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O13: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O14: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O5: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O6: MissingCompileTimeError # Issue 34235
-mixin_method_override_test/O9: MissingCompileTimeError # Issue 34235
 mixin_super_bound_test/01: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/02: MissingCompileTimeError # Issue 33308
 regress_22976_test/*: CompileTimeError # Issue 31935

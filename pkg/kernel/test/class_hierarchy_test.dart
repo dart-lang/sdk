@@ -346,7 +346,7 @@ class D {}
 class E = self::D with self::A implements self::B {}
 ''');
 
-    _assertOverridePairs(c, ['test::A::foo overrides test::B::foo']);
+    _assertOverridePairs(c, []);
     _assertOverridePairs(e, ['test::A::foo overrides test::B::foo']);
   }
 
@@ -385,8 +385,8 @@ class E extends self::C {}
 
     _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
     _assertOverridePairs(c, ['test::C::foo overrides test::A::foo']);
-    _assertOverridePairs(d, ['test::A::foo overrides test::B::foo']);
-    _assertOverridePairs(e, ['test::A::foo overrides test::C::foo']);
+    _assertOverridePairs(d, []);
+    _assertOverridePairs(e, []);
   }
 
   /// 3. A non-abstract member is inherited from a superclass, and it overrides

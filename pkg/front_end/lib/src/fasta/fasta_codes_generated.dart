@@ -3964,6 +3964,34 @@ Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateImplicitMixinOverrideContext = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Override was introduced when the mixin '#name' was applied to '#name2'.""",
+    withArguments: _withArgumentsImplicitMixinOverrideContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeImplicitMixinOverrideContext =
+    const Code<Message Function(String name, String name2)>(
+        "ImplicitMixinOverrideContext", templateImplicitMixinOverrideContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitMixinOverrideContext(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  if (name2.isEmpty) throw 'No name provided';
+  return new Message(codeImplicitMixinOverrideContext,
+      message:
+          """Override was introduced when the mixin '${name}' was applied to '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5708,6 +5736,31 @@ const MessageCode messageNamedFunctionExpression = const MessageCode(
     "NamedFunctionExpression",
     analyzerCodes: <String>["NAMED_FUNCTION_EXPRESSION"],
     message: r"""A function expression can't have a name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNamedMixinOverrideContext = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Override was introduced in the mixin application class '#name'.""",
+    withArguments: _withArgumentsNamedMixinOverrideContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNamedMixinOverrideContext =
+    const Code<Message Function(String name)>(
+        "NamedMixinOverrideContext", templateNamedMixinOverrideContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNamedMixinOverrideContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  return new Message(codeNamedMixinOverrideContext,
+      message:
+          """Override was introduced in the mixin application class '${name}'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNativeClauseShouldBeAnnotation =

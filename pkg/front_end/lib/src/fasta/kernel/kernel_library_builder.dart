@@ -231,6 +231,8 @@ class KernelLibraryBuilder
         modifiers,
         className,
         typeVariables,
+        // TODO(askesc): Change to use offset of class name for consistency
+        // with named mixin application classes.
         applyMixins(supertype, supertypeOffset, className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,

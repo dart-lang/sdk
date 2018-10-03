@@ -1,3 +1,23 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M::x' is (test::C::T) → void, which does not match the return type of the overridden method ((dart.core::int) → void).
+// Change to a subtype of (dart.core::int) → void.
+//   T get x => f();
+//         ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:24:14: Context: This is the overridden method ('x').
+//   F<int> get x {
+//              ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:47:16: Context: Override was introduced in the mixin application class 'C'.
+// abstract class C<T> = B with M<F<T>> implements I<T>;
+//                ^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_getter.dart:39:9: Error: The return type of the method 'M::x' is (test::C::T) → void, which does not match the return type of the overridden method ((dart.core::int) → void).
+// Change to a subtype of (dart.core::int) → void.
+//   T get x => f();
+//         ^
+
 library test;
 import self as self;
 import "dart:core" as core;

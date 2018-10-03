@@ -12,7 +12,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-bug34235_test/01: Pass
 cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
 config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)

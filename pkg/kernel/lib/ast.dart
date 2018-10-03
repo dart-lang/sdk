@@ -753,10 +753,10 @@ class Class extends NamedNode implements FileUriNode {
   /// class C {}
   /// class D {}
   /// ...creates:
-  /// abstract class A&B extends A mixedIn B {}
-  /// abstract class A&B&C extends A&B mixedIn C {}
-  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
-  /// class Z extends A&B&C&D {}
+  /// abstract class _Z&A&B extends A mixedIn B {}
+  /// abstract class _Z&A&B&C extends A&B mixedIn C {}
+  /// abstract class _Z&A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends _Z&A&B&C&D {}
   /// All X&Y classes are marked as synthetic.
   bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
 

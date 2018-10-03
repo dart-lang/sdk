@@ -85,6 +85,7 @@ invocations: Fail
 literals: Fail
 map: Fail
 micro: Fail
+mixin_application_override: TypeCheckError
 named_parameters: Fail
 null_aware: Fail
 operators: Fail
@@ -189,7 +190,6 @@ regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31299: TypeCheckError
-regress/issue_32660: TypeCheckError # Test has an intentional error
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
@@ -197,10 +197,6 @@ runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_do
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
-runtime_checks_new/stub_from_interface_contravariant_from_class: TypeCheckError
-runtime_checks_new/stub_from_interface_covariantImpl_from_super: TypeCheckError
-runtime_checks_new/stub_from_interface_covariantInterface_from_class: TypeCheckError
-runtime_checks_new/stub_from_interface_covariant_from_super: TypeCheckError
 statements: Fail
 stringliteral: Fail
 super_rasta_copy: Fail
