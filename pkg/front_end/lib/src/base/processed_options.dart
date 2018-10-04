@@ -30,8 +30,6 @@ import '../api_prototype/compiler_options.dart' show CompilerOptions;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
-import '../base/performance_logger.dart' show PerformanceLog;
-
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
 
 import '../fasta/fasta_codes.dart'
@@ -182,11 +180,6 @@ class ProcessedOptions {
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
-
-  /// The logger to report compilation progress.
-  PerformanceLog get logger {
-    return _raw.logger;
-  }
 
   /// The byte storage to get and put serialized data.
   ByteStore get byteStore {

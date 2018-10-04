@@ -35,7 +35,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';

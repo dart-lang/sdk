@@ -6,8 +6,6 @@ library front_end.compiler_options;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../base/performance_logger.dart' show PerformanceLog;
-
 import '../fasta/fasta_codes.dart' show FormattedMessage;
 
 import '../fasta/severity.dart' show Severity;
@@ -134,9 +132,6 @@ class CompilerOptions {
 
   /// The byte storage to access serialized data.
   ByteStore byteStore = new NullByteStore();
-
-  /// The logger to report compilation progress.
-  PerformanceLog logger = new PerformanceLog(new StringBuffer());
 
   /// Whether to generate code for the SDK.
   ///

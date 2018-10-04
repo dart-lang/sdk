@@ -17,8 +17,10 @@ dependencies:
   path: '^1.3.9'
   source_span: '^1.2.3'
   yaml: '^2.1.12'
-dev_dependencies:
+  # TODO(ahe): Move analyzer dependency to dev_dependencies when
+  # https://github.com/dart-lang/dartdoc/issues/1775 is fixed.
   analyzer: '^0.33.0'
+dev_dependencies:
   args: '>=0.13.0 <2.0.0'
   build_integration:
     path: ../build_integration
