@@ -43,7 +43,7 @@ import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
-import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';

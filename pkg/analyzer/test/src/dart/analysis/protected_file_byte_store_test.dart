@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
+import 'package:analyzer/src/dart/analysis/protected_file_byte_store.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

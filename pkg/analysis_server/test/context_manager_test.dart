@@ -24,7 +24,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';

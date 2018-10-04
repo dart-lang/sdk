@@ -21,8 +21,6 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
-import '../api_prototype/byte_store.dart' show ByteStore;
-
 import '../api_prototype/compilation_message.dart' show CompilationMessage;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
@@ -180,11 +178,6 @@ class ProcessedOptions {
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
-
-  /// The byte storage to get and put serialized data.
-  ByteStore get byteStore {
-    return _raw.byteStore;
-  }
 
   bool get _reportMessages {
     return _raw.onProblem == null &&

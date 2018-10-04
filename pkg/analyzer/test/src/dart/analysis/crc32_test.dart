@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:front_end/src/byte_store/crc32.dart';
+import 'package:analyzer/src/dart/analysis/crc32.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -24,7 +24,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
-import 'package:front_end/src/byte_store/byte_store.dart' show MemoryByteStore;
+import 'package:analyzer/src/dart/analysis/byte_store.dart'
+    show MemoryByteStore;
 import 'package:meta/meta.dart';
 
 /**

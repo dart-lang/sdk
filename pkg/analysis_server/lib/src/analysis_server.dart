@@ -68,7 +68,9 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
+    show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
