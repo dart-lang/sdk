@@ -6165,7 +6165,7 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryUint32OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-    ASSERT(op_kind == Token::kBIT_NOT);
+    ASSERT(IsSupported(op_kind));
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -6177,6 +6177,10 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedUint32;
+  }
+
+  static bool IsSupported(Token::Kind op_kind) {
+    return op_kind == Token::kBIT_NOT;
   }
 
   DECLARE_INSTRUCTION(UnaryUint32Op)
@@ -6420,9 +6424,9 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
     SetInputAt(1, right);
   }
 
-  static bool IsSupported(Token::Kind op, Value* left, Value* right) {
+  static bool IsSupported(Token::Kind op_kind, Value* left, Value* right) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-    switch (op) {
+    switch (op_kind) {
       case Token::kADD:
       case Token::kSUB:
       case Token::kMUL:
@@ -6473,6 +6477,7 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
                       intptr_t deopt_id)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
     mark_truncating();
+    ASSERT(IsSupported(op_kind));
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -6485,6 +6490,20 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual CompileType ComputeType() const;
+
+  static bool IsSupported(Token::Kind op_kind) {
+    switch (op_kind) {
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   DECLARE_INSTRUCTION(BinaryUint32Op)
 
