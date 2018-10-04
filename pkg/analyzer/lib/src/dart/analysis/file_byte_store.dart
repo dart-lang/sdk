@@ -160,7 +160,7 @@ class FileByteStore implements ByteStore {
    */
   FileByteStore(this._cachePath, {String tempNameSuffix: ''})
       : _tempSuffix =
-            '-temp-${pid}${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
+            '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
   @override
   List<int> get(String key) {

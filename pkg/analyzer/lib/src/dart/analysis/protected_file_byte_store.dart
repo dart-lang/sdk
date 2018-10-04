@@ -111,8 +111,8 @@ class ProtectedFileByteStore implements ByteStore {
   /// just read, and where it is important to keep system unlocked.
   String _keysReadTextLocked() {
     File keysFile = new File(join(_cachePath, PROTECTED_FILE_NAME));
-    RandomAccessFile keysLock = keysFile.openSync(mode: FileMode.APPEND);
-    keysLock.lockSync(FileLock.BLOCKING_EXCLUSIVE);
+    RandomAccessFile keysLock = keysFile.openSync(mode: FileMode.append);
+    keysLock.lockSync(FileLock.blockingExclusive);
     try {
       return _keysReadText(keysLock);
     } finally {
@@ -148,8 +148,8 @@ class ProtectedFileByteStore implements ByteStore {
   static void _withProtectedKeysLockSync(
       String cachePath, void f(ProtectedKeys keys)) {
     String path = join(cachePath, PROTECTED_FILE_NAME);
-    RandomAccessFile file = new File(path).openSync(mode: FileMode.APPEND);
-    file.lockSync(FileLock.BLOCKING_EXCLUSIVE);
+    RandomAccessFile file = new File(path).openSync(mode: FileMode.append);
+    file.lockSync(FileLock.blockingExclusive);
     try {
       ProtectedKeys keys = _keysRead(file);
       f(keys);
