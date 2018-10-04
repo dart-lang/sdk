@@ -351,7 +351,6 @@ template("dart_io") {
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
-      "builtin.cc",
       "builtin_gen_snapshot.cc",
     ]
     if (!is_mac && !is_ios) {
