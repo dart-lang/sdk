@@ -1682,6 +1682,8 @@
           "script": "out/ReleaseX64/dart",
           "arguments": [
             "runtime/tools/dartfuzz/dartfuzz_test.dart",
+            "--isolates",
+            "8",
             "--no-show-stats",
             "--repeat",
             "100"
