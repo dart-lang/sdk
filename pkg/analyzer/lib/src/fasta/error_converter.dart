@@ -5,8 +5,6 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
-import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
@@ -492,27 +490,6 @@ class FastaErrorReporter {
     }
   }
 
-  void reportCompilationMessage(CompilationMessage message) {
-    String errorCodeStr = message.analyzerCode;
-    ErrorCode errorCode = _getErrorCode(errorCodeStr);
-    if (errorCode != null) {
-      errorReporter.reportError(new AnalysisError.forValues(
-          errorReporter.source,
-          message.span.start.offset,
-          message.span.length,
-          errorCode,
-          message.message,
-          message.tip));
-    } else if (message.severity != Severity.context) {
-      // Messages with [Severity.context] are supposed to give extra information
-      // to messages of other kinds, and it should be possible to ignore them
-      // without affecting the discoverability of compile-time errors.  See also
-      // https://github.com/dart-lang/sdk/issues/33730.
-      throw new StateError('Unable to convert (${message.code}, $errorCodeStr, '
-          '@${message.span.start.offset}, $message)');
-    }
-  }
-
   /// Report an error based on the given [message] whose range is described by
   /// the given [offset] and [length].
   void reportMessage(Message message, int offset, int length) {
@@ -552,26 +529,5 @@ class FastaErrorReporter {
           message.message,
           null));
     }
-  }
-
-  /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
-  static ErrorCode _getErrorCode(String shortName) {
-    const prefixes = const {
-      CompileTimeErrorCode: 'CompileTimeErrorCode.',
-      StrongModeCode: 'StrongModeCode.STRONG_MODE_',
-      ResolverErrorCode: 'ResolverErrorCode.',
-      ParserErrorCode: 'ParserErrorCode.',
-      ScannerErrorCode: 'ScannerErrorCode.',
-      StaticTypeWarningCode: 'StaticTypeWarningCode.',
-      StaticWarningCode: 'StaticWarningCode.'
-    };
-    for (var prefix in prefixes.values) {
-      var uniqueName = '$prefix$shortName';
-      var errorCode = errorCodeByUniqueName(uniqueName);
-      if (errorCode != null) {
-        return errorCode;
-      }
-    }
-    return null;
   }
 }

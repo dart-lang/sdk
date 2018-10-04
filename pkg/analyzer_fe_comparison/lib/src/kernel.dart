@@ -5,10 +5,13 @@
 import 'dart:async';
 
 import 'package:analyzer_fe_comparison/src/comparison_node.dart';
-import 'package:front_end/src/api_prototype/compilation_message.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
+import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -16,12 +19,12 @@ import 'package:kernel/target/targets.dart';
 /// [ComparisonNode] representing them.
 Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
-  var errors = <CompilationMessage>[];
+  var messages = <DiagnosticMessage>[];
   var component = await kernelForComponent(
-      inputs, _makeCompilerOptions(packagesFileUri, platformUri, errors.add));
-  if (errors.isNotEmpty) {
+      inputs, _makeCompilerOptions(packagesFileUri, platformUri, messages.add));
+  if (messages.isNotEmpty) {
     return ComparisonNode(
-        'Error occurred', errors.map(_compilationMessageToNode).toList());
+        'Error occurred', messages.map(_diagnosticMessageToNode).toList());
   }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
@@ -39,12 +42,12 @@ Future<ComparisonNode> analyzePackage(
 /// Only libraries whose URI passes the [uriFilter] are included in the results.
 Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
     Uri platformUri, bool uriFilter(Uri uri)) async {
-  var errors = <CompilationMessage>[];
+  var messages = <DiagnosticMessage>[];
   var component = await kernelForProgram(
-      input, _makeCompilerOptions(packagesFileUri, platformUri, errors.add));
-  if (errors.isNotEmpty) {
+      input, _makeCompilerOptions(packagesFileUri, platformUri, messages.add));
+  if (messages.isNotEmpty) {
     return ComparisonNode(
-        'Error occurred', errors.map(_compilationMessageToNode).toList());
+        'Error occurred', messages.map(_diagnosticMessageToNode).toList());
   }
   var libraryNodes = <ComparisonNode>[];
   var visitor = _KernelVisitor(libraryNodes);
@@ -56,12 +59,15 @@ Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
   return ComparisonNode.sorted('Component', libraryNodes);
 }
 
-ComparisonNode _compilationMessageToNode(CompilationMessage message) {
-  return ComparisonNode(message.toString());
+ComparisonNode _diagnosticMessageToNode(DiagnosticMessage message) {
+  // TODO(ahe): Temporarily using FormattedMessage until DiagnosticMessage
+  // is extended to support this use case.
+  FormattedMessage formatted = message;
+  return ComparisonNode(formatted.message);
 }
 
-CompilerOptions _makeCompilerOptions(
-    Uri packagesFileUri, Uri platformUri, ErrorHandler onError) {
+CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri,
+    DiagnosticMessageHandler onDiagnostic) {
   var targetFlags = TargetFlags(strongMode: true, syncAsync: true);
   var target = NoneTarget(targetFlags);
   var fileSystem = StandardFileSystem.instance;
@@ -74,7 +80,7 @@ CompilerOptions _makeCompilerOptions(
     ..target = target
     ..throwOnErrorsForDebugging = false
     ..embedSourceText = false
-    ..onError = onError;
+    ..onDiagnostic = onDiagnostic;
 }
 
 /// Visitor for serializing a kernel representation of a program into
