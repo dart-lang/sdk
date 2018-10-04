@@ -671,6 +671,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     parentFunction = null;
     isClosure = false;
     hasErrors = false;
+    if ((node is Procedure && !node.isStatic) || node is Constructor) {
+      typeEnvironment.thisType = enclosingClass.thisType;
+    }
     final isFactory = node is Procedure && node.isFactory;
     if (node.isInstanceMember || node is Constructor || isFactory) {
       if (enclosingClass.typeParameters.isNotEmpty) {
@@ -752,6 +755,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           cp, asm.bytecode, asm.exceptionsTable, nullableFields, closures);
     }
 
+    typeEnvironment.thisType = null;
     enclosingClass = null;
     enclosingMember = null;
     enclosingFunction = null;
