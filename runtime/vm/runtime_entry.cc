@@ -2156,7 +2156,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   // If running with interpreter, do the unoptimized compilation first.
   const bool unoptimized_compilation =
-      FLAG_enable_interpreter && !function.WasCompiled();
+      FLAG_enable_interpreter &&
+      (function.unoptimized_code() == Object::null());
 
   ASSERT(unoptimized_compilation || function.HasCode());
 

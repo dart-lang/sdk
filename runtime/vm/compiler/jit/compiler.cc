@@ -1245,7 +1245,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 #endif  // !defined(PRODUCT)
 
   // If running with interpreter, do the unoptimized compilation first.
-  const bool optimized = !FLAG_enable_interpreter || function.WasCompiled();
+  const bool optimized = !FLAG_enable_interpreter ||
+                         (function.unoptimized_code() != Object::null());
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is

@@ -488,6 +488,9 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
 #else
   visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
 
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&raw_obj->ptr()->bytecode_));
+
   if (ShouldVisitCode(raw_obj->ptr()->code_)) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&raw_obj->ptr()->code_));
