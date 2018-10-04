@@ -147,10 +147,8 @@ pause_idle_isolate_test: Skip # Flaky
 
 [ $compiler == dartk && $system == windows ]
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
-coverage_leaf_function_test: RuntimeError
 coverage_optimized_function_test: Skip # Timeout
 field_script_test: Skip # Timeout
-get_source_report_test: RuntimeError
 get_vm_timeline_rpc_test: Skip # Issue 32137.
 issue_25465_test: Skip # Issues 32137 and 32138.
 issue_30555_test: Skip # Issues 32137 and 32138.
