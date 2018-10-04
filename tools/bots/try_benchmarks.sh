@@ -230,9 +230,9 @@ EOF
   elif [ "$command" = linux-x64-build ]; then
     ./tools/build.py --mode=release --arch=x64 create_sdk
     ./tools/build.py --mode=release --arch=x64 runtime
+    ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
     ./tools/build.py --mode=release --arch=simdbc64 runtime
-    ./tools/build.py --mode=release --arch=x64 runtime_kernel
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -243,7 +243,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -364,7 +363,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
