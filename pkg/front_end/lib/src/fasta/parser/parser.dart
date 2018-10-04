@@ -2993,7 +2993,9 @@ class Parser {
         : MemberKind.NonStaticMethod;
     checkFormals(token, name, isGetter, kind);
     Token beforeParam = token;
-    token = parseFormalParametersOpt(token, kind);
+    token = isGetter
+        ? parseFormalParametersOpt(token, kind)
+        : parseFormalParametersRequiredOpt(token, kind);
     token = parseInitializersOpt(token);
 
     AsyncModifier savedAsyncModifier = asyncState;

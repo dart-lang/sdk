@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/parser.dart'
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show BeginToken, SyntheticBeginToken, SyntheticStringToken, SyntheticToken;
+    show SyntheticStringToken, SyntheticToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -2162,6 +2162,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
 
+    assert(parameters != null);
+
     if (typeParameters != null) {
       // TODO(danrubel): Update OutlineBuilder to report this error message.
       handleRecoverableError(messageConstructorWithTypeParameters,
@@ -2366,6 +2368,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
 
+    assert(parameters != null || optional('get', getOrSet));
+
     ConstructorName redirectedConstructor;
     FunctionBody body;
     if (bodyObject is FunctionBody) {
@@ -2377,30 +2381,6 @@ class AstBuilder extends StackListener {
     } else {
       unhandled("${bodyObject.runtimeType}", "bodyObject",
           beginToken.charOffset, uri);
-    }
-
-    if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
-      Token token = typeParameters?.endToken;
-      if (token == null) {
-        if (name is AstNode) {
-          token = name.endToken;
-        } else if (name is _OperatorName) {
-          token = name.name.endToken;
-        } else {
-          throw new UnimplementedError();
-        }
-      }
-      Token next = token.next;
-      int offset = next.charOffset;
-      BeginToken leftParen =
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
-      token.setNext(leftParen);
-      Token rightParen =
-          leftParen.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
-      leftParen.endGroup = rightParen;
-      rightParen.setNext(next);
-      parameters = ast.formalParameterList(
-          leftParen, <FormalParameter>[], null, null, rightParen);
     }
 
     ClassOrMixinDeclarationImpl declaration =
