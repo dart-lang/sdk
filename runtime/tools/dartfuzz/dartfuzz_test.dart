@@ -348,10 +348,11 @@ class DartFuzzTestSession {
   static String getMode(String mode, String other) {
     // Random when not set.
     if (mode == null || mode == '') {
-      // Pick a mode at random (not JS), different from other.
+      // Pick a mode at random (cluster), different from other.
+      const cluster_modes = 10;
       Random rand = new Random();
       do {
-        mode = modes[rand.nextInt(modes.length - 1)];
+        mode = modes[rand.nextInt(cluster_modes)];
       } while (mode == other);
     }
     // Verify mode.
@@ -375,18 +376,21 @@ class DartFuzzTestSession {
 
   // Supported modes.
   static const List<String> modes = [
+    // Cluster options:
     'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-arm32',
     'jit-debug-arm64',
-    'aot-debug-x64',
-    'aot-debug-arm64',
     'jit-ia32',
     'jit-x64',
     'jit-arm32',
     'jit-arm64',
+    'aot-debug-x64',
     'aot-x64',
+    // Times out often:
     'aot-arm64',
+    'aot-debug-arm64',
+    // Too many divergences (due to arithmetic):
     'js'
   ];
 }
