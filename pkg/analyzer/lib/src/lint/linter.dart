@@ -121,7 +121,8 @@ class DartLinter implements AnalysisErrorListener {
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+          contents: sourceFile.readAsStringSync(),
+          sourcePath: sourceFile.absolute.path);
 }
 
 class FileGlobFilter extends LintFilter {
