@@ -1,3 +1,7 @@
+# 0.1.68
+
+* updated analyzer compatibility to `^0.33.0`
+
 # 0.1.67
 
 * miscellaneous mixin support fixes

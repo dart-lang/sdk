@@ -92,12 +92,9 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
             .elementDeclaredByClassDeclaration(classDeclaration)
             ?.type;
       } else if (classDeclaration is MixinDeclaration) {
-        type = null;
-        // TODO(brianwilkerson) Replace the line above with the following, after
-        // updating to a new analyzer release.
-//        type = resolutionMap
-//            .elementDeclaredByMixinDeclaration(classDeclaration)
-//            ?.type;
+        type = resolutionMap
+            .elementDeclaredByMixinDeclaration(classDeclaration)
+            ?.type;
       }
     }
     Expression argument = node.argumentList.arguments.first;
