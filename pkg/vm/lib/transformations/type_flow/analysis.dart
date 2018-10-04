@@ -350,7 +350,9 @@ class _DispatchableInvocation extends _Invocation {
           if (selector.callKind != CallKind.PropertyGet) {
             if (selector is DynamicSelector) {
               typeFlowAnalysis._calledViaDynamicSelector.add(target);
-            } else if (selector is! VirtualSelector) {
+            } else if (selector is VirtualSelector) {
+              typeFlowAnalysis._calledViaThis.add(target);
+            } else {
               typeFlowAnalysis._calledViaInterfaceSelector.add(target);
             }
           }
@@ -1200,6 +1202,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Set<Member> _tearOffTaken = new Set<Member>();
   final Set<Member> _calledViaDynamicSelector = new Set<Member>();
   final Set<Member> _calledViaInterfaceSelector = new Set<Member>();
+  final Set<Member> _calledViaThis = new Set<Member>();
 
   TypeFlowAnalysis(this.target, Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
@@ -1254,6 +1257,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// Getters are not tracked. For fields, only setter is tracked.
   bool isCalledDynamically(Member member) =>
       _calledViaDynamicSelector.contains(member);
+
+  /// Returns true if this member is called via this call.
+  /// Getters are not tracked. For fields, only setter is tracked.
+  bool isCalledViaThis(Member member) => _calledViaThis.contains(member);
 
   /// Returns true if this member is called via non-this call.
   /// Getters are not tracked. For fields, only setter is tracked.
@@ -1327,5 +1334,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   @override
   void recordMemberCalledViaInterfaceSelector(Member target) {
     _calledViaInterfaceSelector.add(target);
+  }
+
+  @override
+  void recordMemberCalledViaThis(Member target) {
+    _calledViaThis.add(target);
   }
 }

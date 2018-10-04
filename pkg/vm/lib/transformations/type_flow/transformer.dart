@@ -215,6 +215,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           !(member is Procedure && member.isGetter)) {
         final attrs = new ProcedureAttributesMetadata(
             hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
+            hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
             hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
             hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
         _procedureAttributesMetadata.mapping[member] = attrs;

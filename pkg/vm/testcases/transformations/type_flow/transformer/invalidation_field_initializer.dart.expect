@@ -19,21 +19,21 @@ class B extends core::Object implements self::A {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  method foo() → core::Object
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → core::Object
     return new self::T1::•();
 }
 class C extends core::Object implements self::A {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  method foo() → core::Object
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → core::Object
     return new self::T2::•();
 }
 class DeepCaller1 extends core::Object {
   synthetic constructor •() → self::DeepCaller1
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  method barL1() → dynamic
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method barL1() → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller1::barL2] this.{self::DeepCaller1::barL2}();
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method barL2() → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller1::barL3] this.{self::DeepCaller1::barL3}();
@@ -43,7 +43,7 @@ class DeepCaller1 extends core::Object {
     return self::field1;
 }
 class D extends core::Object {
-[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  field core::Object field2 = [@vm.inferred-type.metadata=!] self::getValue();
+[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  field core::Object field2 = [@vm.inferred-type.metadata=!] self::getValue();
   synthetic constructor •() → self::D
     : super core::Object::•()
     ;
@@ -52,7 +52,7 @@ class DeepCaller2 extends core::Object {
   synthetic constructor •() → self::DeepCaller2
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  method barL1([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method barL1([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL2] [@vm.inferred-type.metadata=!] this.{self::DeepCaller2::barL2}(dd);
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method barL2([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL3] [@vm.inferred-type.metadata=!] this.{self::DeepCaller2::barL3}(dd);

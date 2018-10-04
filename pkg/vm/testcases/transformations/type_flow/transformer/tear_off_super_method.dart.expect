@@ -12,14 +12,14 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:true,hasNonThisUses:true,hasTearOffUses:false]  method foo() → core::int
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method foo() → core::int
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int?] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=int?] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
 }
 abstract class Base extends core::Object {
   synthetic constructor •() → self::Base
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:true]  method foo() → core::int
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method foo() → core::int
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int?] 3.{core::num::+}([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=int?] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method doCall(dynamic x) → core::int
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] x.call() as{TypeError} core::int;
@@ -28,7 +28,7 @@ class TearOffSuperMethod extends self::Base {
   synthetic constructor •() → self::TearOffSuperMethod
     : super self::Base::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  method bar() → core::int
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method bar() → core::int
     return [@vm.direct-call.metadata=#lib::Base::doCall] [@vm.inferred-type.metadata=int?] this.{self::Base::doCall}(super.{self::Base::foo});
 }
 [@vm.inferred-type.metadata=#lib::B?]static field self::A aa = new self::B::•();

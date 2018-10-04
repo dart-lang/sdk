@@ -28,6 +28,9 @@ abstract class EntryPointsListener {
   /// Record the fact that given member is called via interface selector
   /// (not dynamically, and not from `this`).
   void recordMemberCalledViaInterfaceSelector(Member target);
+
+  /// Record the fact that given member is called from this.
+  void recordMemberCalledViaThis(Member target);
 }
 
 abstract class ParsedPragma {}

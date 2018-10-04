@@ -12,13 +12,13 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:true]  method foo() → core::int
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method foo() → core::int
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int?] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B::bar] [@vm.inferred-type.metadata=dart.core::_Smi] [@vm.inferred-type.metadata=#lib::B] self::knownResult().bar() as{TypeError} core::num) as{TypeError} core::int;
-[@vm.procedure-attributes.metadata=hasDynamicUses:true,hasNonThisUses:true,hasTearOffUses:false]  method bar() → core::int
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bar() → core::int
     return 3;
 }
 class TearOffInterfaceMethod extends core::Object {
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  field dynamic bazz;
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  field dynamic bazz;
   constructor •([@vm.inferred-type.metadata=#lib::B] self::A arg) → self::TearOffInterfaceMethod
     : self::TearOffInterfaceMethod::bazz = arg.{self::A::foo}, super core::Object::•()
     ;

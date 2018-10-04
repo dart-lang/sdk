@@ -32,7 +32,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:true,hasTearOffUses:false]  @self::MethodAnnotation::•(42)
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  @self::MethodAnnotation::•(42)
   method instanceMethod() → void {}
 }
 static method foo([@vm.inferred-type.metadata=dart.core::Null?] (core::List<core::int>) → void a) → core::int {
