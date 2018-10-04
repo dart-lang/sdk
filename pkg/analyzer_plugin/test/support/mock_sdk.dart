@@ -619,9 +619,14 @@ class MockSdk implements DartSdk {
 }
 
 class _MockSdkLibrary implements SdkLibrary {
+  @override
   final String shortName;
+
+  @override
   final String path;
+
   final String content;
+
   final Map<String, String> parts;
 
   const _MockSdkLibrary(this.shortName, this.path, this.content,
