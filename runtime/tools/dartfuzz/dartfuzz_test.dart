@@ -403,11 +403,20 @@ main(List<String> arguments) {
         negatable: true, help: 'show session statistics', defaultsTo: true)
     ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
     ..addOption('mode1', help: 'execution mode 1')
-    ..addOption('mode2', help: 'execution mode 2');
+    ..addOption('mode2', help: 'execution mode 2')
+    // Undocumented options for cluster runs.
+    ..addOption('shards',
+        help: 'number of shards used in cluster run', defaultsTo: '1')
+    ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1');
 
   // Starts fuzz testing session.
   try {
     final results = parser.parse(arguments);
+    final shards = int.parse(results['shards']);
+    final shard = int.parse(results['shard']);
+    if (shards > 1) {
+      print('\nSHARD $shard OF $shards');
+    }
     new DartFuzzTestSession(
             int.parse(results['isolates']),
             int.parse(results['repeat']),
