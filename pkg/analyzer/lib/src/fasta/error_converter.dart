@@ -24,10 +24,6 @@ class FastaErrorReporter {
     String lexeme() => (arguments['token'] as Token).lexeme;
 
     switch (analyzerCode) {
-      case "ABSTRACT_CLASS_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
-        return;
       case "ANNOTATION_WITH_TYPE_ARGUMENTS":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
@@ -42,10 +38,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
-      case "BREAK_OUTSIDE_OF_LOOP":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, offset, length);
-        return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
@@ -57,39 +49,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CATCH_SYNTAX, offset, length);
         return;
-      case "CLASS_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CLASS_IN_CLASS, offset, length);
-        return;
-      case "COLON_IN_PLACE_OF_IN":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
-        return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
         errorReporter?.reportErrorForOffset(
             StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             offset,
             length);
-        return;
-      case "CONST_AFTER_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AFTER_FACTORY, offset, length);
-        return;
-      case "CONST_AND_COVARIANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_COVARIANT, offset, length);
-        return;
-      case "CONST_AND_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_FINAL, offset, length);
-        return;
-      case "CONST_AND_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_VAR, offset, length);
-        return;
-      case "CONST_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CLASS, offset, length);
         return;
       case "CONST_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
@@ -107,10 +71,6 @@ class FastaErrorReporter {
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
-        return;
-      case "CONSTRUCTOR_WITH_RETURN_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, offset, length);
         return;
       case "CONTINUE_WITHOUT_LABEL_IN_CASE":
         errorReporter?.reportErrorForOffset(

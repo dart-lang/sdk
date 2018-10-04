@@ -39,7 +39,7 @@ const Code<Null> codeAbstractClassMember = messageAbstractClassMember;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractClassMember = const MessageCode(
     "AbstractClassMember",
-    analyzerCodes: <String>["ABSTRACT_CLASS_MEMBER"],
+    index: 51,
     message: r"""Members of classes can't be declared to be 'abstract'.""",
     tip:
         r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
@@ -378,7 +378,7 @@ const Code<Null> codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageBreakOutsideOfLoop = const MessageCode(
     "BreakOutsideOfLoop",
-    analyzerCodes: <String>["BREAK_OUTSIDE_OF_LOOP"],
+    index: 52,
     message:
         r"""A break statement can't be used outside of a loop or switch statement.""",
     tip: r"""Try removing the break statement.""");
@@ -738,7 +738,7 @@ const Code<Null> codeClassInClass = messageClassInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageClassInClass = const MessageCode("ClassInClass",
-    analyzerCodes: <String>["CLASS_IN_CLASS"],
+    index: 53,
     message: r"""Classes can't be declared inside other classes.""",
     tip: r"""Try moving the class to the top-level.""");
 
@@ -748,7 +748,7 @@ const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageColonInPlaceOfIn = const MessageCode(
     "ColonInPlaceOfIn",
-    analyzerCodes: <String>["COLON_IN_PLACE_OF_IN"],
+    index: 54,
     message: r"""For-in loops use 'in' rather than a colon.""",
     tip: r"""Try replacing the colon with the keyword 'in'.""");
 
@@ -921,7 +921,7 @@ const Code<Null> codeConstAfterFactory = messageConstAfterFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstAfterFactory = const MessageCode(
     "ConstAfterFactory",
-    analyzerCodes: <String>["CONST_AFTER_FACTORY"],
+    index: 56,
     message:
         r"""The modifier 'const' should be before the modifier 'factory'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -932,7 +932,7 @@ const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstAndCovariant = const MessageCode(
     "ConstAndCovariant",
-    analyzerCodes: <String>["CONST_AND_COVARIANT"],
+    index: 57,
     message:
         r"""Members can't be declared to be both 'const' and 'covariant'.""",
     tip: r"""Try removing either the 'const' or 'covariant' keyword.""");
@@ -942,7 +942,7 @@ const Code<Null> codeConstAndFinal = messageConstAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstAndFinal = const MessageCode("ConstAndFinal",
-    analyzerCodes: <String>["CONST_AND_FINAL"],
+    index: 58,
     message: r"""Members can't be declared to be both 'const' and 'final'.""",
     tip: r"""Try removing either the 'const' or 'final' keyword.""");
 
@@ -951,7 +951,7 @@ const Code<Null> codeConstAndVar = messageConstAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstAndVar = const MessageCode("ConstAndVar",
-    analyzerCodes: <String>["CONST_AND_VAR"],
+    index: 59,
     message: r"""Members can't be declared to be both 'const' and 'var'.""",
     tip: r"""Try removing either the 'const' or 'var' keyword.""");
 
@@ -960,7 +960,7 @@ const Code<Null> codeConstClass = messageConstClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstClass = const MessageCode("ConstClass",
-    analyzerCodes: <String>["CONST_CLASS"],
+    index: 60,
     message: r"""Classes can't be declared to be 'const'.""",
     tip:
         r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
@@ -1556,7 +1556,7 @@ const Code<Null> codeConstructorWithReturnType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithReturnType = const MessageCode(
     "ConstructorWithReturnType",
-    analyzerCodes: <String>["CONSTRUCTOR_WITH_RETURN_TYPE"],
+    index: 55,
     message: r"""Constructors can't have a return type.""",
     tip: r"""Try removing the return type.""");
 

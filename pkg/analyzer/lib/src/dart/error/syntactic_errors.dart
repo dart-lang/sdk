@@ -20,10 +20,7 @@ part 'syntactic_errors.g.dart';
  * is wrong and, when appropriate, how the problem can be corrected.
  */
 class ParserErrorCode extends ErrorCode {
-  static const ParserErrorCode ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
-      'ABSTRACT_CLASS_MEMBER',
-      "Members of classes can't be declared to be 'abstract'.",
-      correction: "Try removing the keyword 'abstract'.");
+  static const ParserErrorCode ABSTRACT_CLASS_MEMBER = _ABSTRACT_CLASS_MEMBER;
 
   static const ParserErrorCode ABSTRACT_ENUM = const ParserErrorCode(
       'ABSTRACT_ENUM', "Enums can't be declared to be 'abstract'.",
@@ -59,10 +56,7 @@ class ParserErrorCode extends ErrorCode {
           "The keywords 'async', 'await', and 'yield' can't be used as "
           "identifiers in an asynchronous or generator function.");
 
-  static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
-      'BREAK_OUTSIDE_OF_LOOP',
-      "A break statement can't be used outside of a loop or switch statement.",
-      correction: "Try removing the break statement.");
+  static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CATCH_SYNTAX = const ParserErrorCode(
       'CATCH_SYNTAX',
@@ -70,40 +64,19 @@ class ParserErrorCode extends ErrorCode {
       correction:
           "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
 
-  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
-      'CLASS_IN_CLASS', "Classes can't be declared inside other classes.",
-      correction: "Try moving the class to the top-level.");
+  static const ParserErrorCode CLASS_IN_CLASS = _CLASS_IN_CLASS;
 
-  static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
-      'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon.",
-      correction: "Try replacing the colon with the keyword 'in'.");
+  static const ParserErrorCode COLON_IN_PLACE_OF_IN = _COLON_IN_PLACE_OF_IN;
 
-  static const ParserErrorCode CONST_AFTER_FACTORY = const ParserErrorCode(
-      'CONST_AFTER_FACTORY',
-      "The modifier 'const' should be before the modifier 'factory'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode CONST_AFTER_FACTORY = _CONST_AFTER_FACTORY;
 
-  static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
-      'CONST_AND_COVARIANT',
-      "Members can't be declared to be both 'const' and 'covariant'.",
-      correction: "Try removing either the 'const' or 'covariant' keyword.");
+  static const ParserErrorCode CONST_AND_COVARIANT = _CONST_AND_COVARIANT;
 
-  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
-      'CONST_AND_FINAL',
-      "Members can't be declared to be both 'const' and 'final'.",
-      correction: "Try removing either the 'const' or 'final' keyword.");
+  static const ParserErrorCode CONST_AND_FINAL = _CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
-      'CONST_AND_VAR',
-      "Members can't be declared to be both 'const' and 'var'.",
-      correction: "Try removing either the 'const' or 'var' keyword.");
+  static const ParserErrorCode CONST_AND_VAR = _CONST_AND_VAR;
 
-  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
-      'CONST_CLASS', "Classes can't be declared to be 'const'.",
-      correction:
-          "Try removing the 'const' keyword. If you're trying to indicate that "
-          "instances of the class can be constants, place the 'const' keyword on "
-          "the class' constructor(s).");
+  static const ParserErrorCode CONST_CLASS = _CONST_CLASS;
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode('CONST_CONSTRUCTOR_WITH_BODY',
@@ -130,9 +103,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try removing the 'const' keyword.");
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      const ParserErrorCode('CONSTRUCTOR_WITH_RETURN_TYPE',
-          "Constructors can't have a return type.",
-          correction: "Try removing the return type.");
+      _CONSTRUCTOR_WITH_RETURN_TYPE;
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
       _CONTINUE_OUTSIDE_OF_LOOP;

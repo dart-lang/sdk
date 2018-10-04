@@ -58,7 +58,64 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_AFTER_STATIC,
   _EXTERNAL_METHOD_WITH_BODY,
   _EXTERNAL_FIELD,
+  _ABSTRACT_CLASS_MEMBER,
+  _BREAK_OUTSIDE_OF_LOOP,
+  _CLASS_IN_CLASS,
+  _COLON_IN_PLACE_OF_IN,
+  _CONSTRUCTOR_WITH_RETURN_TYPE,
+  _CONST_AFTER_FACTORY,
+  _CONST_AND_COVARIANT,
+  _CONST_AND_FINAL,
+  _CONST_AND_VAR,
+  _CONST_CLASS,
 ];
+
+const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
+    'ABSTRACT_CLASS_MEMBER',
+    r"Members of classes can't be declared to be 'abstract'.",
+    correction:
+        "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
+    'BREAK_OUTSIDE_OF_LOOP',
+    r"A break statement can't be used outside of a loop or switch statement.",
+    correction: "Try removing the break statement.");
+
+const ParserErrorCode _CLASS_IN_CLASS = const ParserErrorCode(
+    'CLASS_IN_CLASS', r"Classes can't be declared inside other classes.",
+    correction: "Try moving the class to the top-level.");
+
+const ParserErrorCode _COLON_IN_PLACE_OF_IN = const ParserErrorCode(
+    'COLON_IN_PLACE_OF_IN', r"For-in loops use 'in' rather than a colon.",
+    correction: "Try replacing the colon with the keyword 'in'.");
+
+const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
+    'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
+    correction: "Try removing the return type.");
+
+const ParserErrorCode _CONST_AFTER_FACTORY = const ParserErrorCode(
+    'CONST_AFTER_FACTORY',
+    r"The modifier 'const' should be before the modifier 'factory'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _CONST_AND_COVARIANT = const ParserErrorCode(
+    'CONST_AND_COVARIANT',
+    r"Members can't be declared to be both 'const' and 'covariant'.",
+    correction: "Try removing either the 'const' or 'covariant' keyword.");
+
+const ParserErrorCode _CONST_AND_FINAL = const ParserErrorCode(
+    'CONST_AND_FINAL',
+    r"Members can't be declared to be both 'const' and 'final'.",
+    correction: "Try removing either the 'const' or 'final' keyword.");
+
+const ParserErrorCode _CONST_AND_VAR = const ParserErrorCode(
+    'CONST_AND_VAR', r"Members can't be declared to be both 'const' and 'var'.",
+    correction: "Try removing either the 'const' or 'var' keyword.");
+
+const ParserErrorCode _CONST_CLASS = const ParserErrorCode(
+    'CONST_CLASS', r"Classes can't be declared to be 'const'.",
+    correction:
+        "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).");
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'CONTINUE_OUTSIDE_OF_LOOP',

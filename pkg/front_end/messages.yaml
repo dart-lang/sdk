@@ -436,9 +436,10 @@ FunctionTypedParameterVar:
     - "void f(var x()) {}"
 
 AbstractClassMember:
+  index: 51
   template: "Members of classes can't be declared to be 'abstract'."
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
-  analyzerCode: ABSTRACT_CLASS_MEMBER
+  analyzerCode: ParserErrorCode.ABSTRACT_CLASS_MEMBER
   script:
     - "abstract class C {abstract C.c();}"
     - "abstract class C {abstract m();}"
@@ -448,9 +449,10 @@ AbstractClassMember:
     - "abstract class C {abstract static f;}"
 
 ClassInClass:
+  index: 53
   template: "Classes can't be declared inside other classes."
   tip: "Try moving the class to the top-level."
-  analyzerCode: CLASS_IN_CLASS
+  analyzerCode: ParserErrorCode.CLASS_IN_CLASS
   script:
     - "class C { class B {} }"
 
@@ -487,23 +489,26 @@ VarReturnType:
     - "class C { var C() {} }"
 
 ConstClass:
+  index: 60
   template: "Classes can't be declared to be 'const'."
   tip: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
-  analyzerCode: CONST_CLASS
+  analyzerCode: ParserErrorCode.CONST_CLASS
   script: "const class C {}"
 
 ConstAndCovariant:
+  index: 57
   template: "Members can't be declared to be both 'const' and 'covariant'."
   tip: "Try removing either the 'const' or 'covariant' keyword."
-  analyzerCode: CONST_AND_COVARIANT
+  analyzerCode: ParserErrorCode.CONST_AND_COVARIANT
   script:
     - "class C { covariant const C f; }"
     - "class C { const covariant C f; }"
 
 ConstAndFinal:
+  index: 58
   template: "Members can't be declared to be both 'const' and 'final'."
   tip: "Try removing either the 'const' or 'final' keyword."
-  analyzerCode: CONST_AND_FINAL
+  analyzerCode: ParserErrorCode.CONST_AND_FINAL
   declaration:
     - "class C { static const final int x = 5; }"
     - "class C { static final const int x = 5; }"
@@ -511,9 +516,10 @@ ConstAndFinal:
     - "final const int x = 5;"
 
 ConstAndVar:
+  index: 59
   template: "Members can't be declared to be both 'const' and 'var'."
   tip: "Try removing either the 'const' or 'var' keyword."
-  analyzerCode: CONST_AND_VAR
+  analyzerCode: ParserErrorCode.CONST_AND_VAR
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"
@@ -547,9 +553,10 @@ NonConstConstructor:
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 ConstAfterFactory:
+  index: 56
   template: "The modifier 'const' should be before the modifier 'factory'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: CONST_AFTER_FACTORY
+  analyzerCode: ParserErrorCode.CONST_AFTER_FACTORY
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 
@@ -776,9 +783,10 @@ StaticOperator:
     - "class C { static operator +(int x) => x + 1; }"
 
 BreakOutsideOfLoop:
+  index: 52
   template: "A break statement can't be used outside of a loop or switch statement."
   tip: "Try removing the break statement."
-  analyzerCode: BREAK_OUTSIDE_OF_LOOP
+  analyzerCode: ParserErrorCode.BREAK_OUTSIDE_OF_LOOP
   script:
     - "main() { break; }"
 
@@ -1224,9 +1232,10 @@ ConstructorNotFound:
   analyzerCode: CONSTRUCTOR_NOT_FOUND
 
 ConstructorWithReturnType:
+  index: 55
   template: "Constructors can't have a return type."
   tip: "Try removing the return type."
-  analyzerCode: CONSTRUCTOR_WITH_RETURN_TYPE
+  analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE
   script:
     - "class C { int C() {} }"
 
@@ -2660,9 +2669,10 @@ IntegerLiteralIsOutOfRange:
   analyzerCode: INTEGER_LITERAL_OUT_OF_RANGE
 
 ColonInPlaceOfIn:
+  index: 54
   template: "For-in loops use 'in' rather than a colon."
   tip: "Try replacing the colon with the keyword 'in'."
-  analyzerCode: COLON_IN_PLACE_OF_IN
+  analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
 
 ExternalFactoryRedirection:
   template: "A redirecting factory can't be external."
