@@ -43,7 +43,8 @@ class MixinDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
-              'mixin A on _s_ {}',
+              'mixin A extend _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
               failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'extends',
@@ -53,7 +54,8 @@ class MixinDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
-              'mixin A on _s_ {}',
+              'mixin A extends _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
               failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor('onBody', 'mixin A on {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME], 'mixin A on _s_ {}'),

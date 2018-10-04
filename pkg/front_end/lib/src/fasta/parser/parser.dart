@@ -1759,11 +1759,13 @@ class Parser {
           const ['extend', 'on'].contains(token.next.lexeme)) {
         reportRecoverableError(
             token.next, fasta.templateExpectedInstead.withArguments('extends'));
-        token = token.next;
-        rewriter.insertToken(token,
-            new SyntheticKeywordToken(Keyword.EXTENDS, token.next.charOffset));
+        Token incorrectExtendsKeyword = token.next;
+        token = computeType(incorrectExtendsKeyword, true)
+            .ensureTypeNotVoid(incorrectExtendsKeyword, this);
+        listener.handleClassExtends(incorrectExtendsKeyword);
+      } else {
+        token = parseClassExtendsOpt(token);
       }
-      token = parseClassExtendsOpt(token);
 
       if (recoveryListener.extendsKeyword != null) {
         if (hasExtends) {
@@ -1916,11 +1918,10 @@ class Parser {
           const ['extend', 'extends'].contains(token.next.lexeme)) {
         reportRecoverableError(
             token.next, fasta.templateExpectedInstead.withArguments('on'));
-        token = token.next;
-        rewriter.insertToken(token,
-            new SyntheticKeywordToken(Keyword.ON, token.next.charOffset));
+        token = parseMixinOn(token);
+      } else {
+        token = parseMixinOnOpt(token);
       }
-      token = parseMixinOnOpt(token);
 
       if (recoveryListener.onKeyword != null) {
         if (hasOn) {
@@ -1961,16 +1962,24 @@ class Parser {
   /// ;
   /// ```
   Token parseMixinOnOpt(Token token) {
-    Token onKeyword;
-    int typeCount = 0;
-    if (optional('on', token.next)) {
-      onKeyword = token.next;
-      do {
-        token =
-            computeType(token.next, true).ensureTypeNotVoid(token.next, this);
-        ++typeCount;
-      } while (optional(',', token.next));
+    if (!optional('on', token.next)) {
+      listener.handleMixinOn(null, 0);
+      return token;
     }
+    return parseMixinOn(token);
+  }
+
+  Token parseMixinOn(Token token) {
+    Token onKeyword = token.next;
+    // During recovery, the [onKeyword] can be "extend" or "extends"
+    assert(optional('on', onKeyword) ||
+        optional('extends', onKeyword) ||
+        onKeyword.lexeme == 'extend');
+    int typeCount = 0;
+    do {
+      token = computeType(token.next, true).ensureTypeNotVoid(token.next, this);
+      ++typeCount;
+    } while (optional(',', token.next));
     listener.handleMixinOn(onKeyword, typeCount);
     return token;
   }
