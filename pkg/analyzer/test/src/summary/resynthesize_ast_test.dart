@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -52,7 +53,7 @@ abstract class AstSerializeTestMixin
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
       <String, UnlinkedUnitBuilder>{};
 
-  AnalysisContext get context;
+  AnalysisContextImpl get context;
 
   TestSummaryResynthesizer encodeLibrary(Source source) {
     _serializeLibrary(source);
@@ -207,7 +208,7 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
  */
 abstract class _AstResynthesizeTestMixin
     implements _AstSerializeTestMixinInterface {
-  AnalysisContext get context;
+  AnalysisContextImpl get context;
 
   TestSummaryResynthesizer encodeLibrary(Source source);
 

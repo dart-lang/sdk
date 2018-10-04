@@ -1,3 +1,11 @@
+## 0.32.6
+* Fixed some invalid overrides that were previously undetected due to
+  https://github.com/dart-lang/sdk/issues/34392.
+
+## 0.32.5
+* Made SummaryBuilder's "strong" argument optional.  This should ease clients in
+  preparing for analyzer version 0.33.
+
 ## 0.32.4
 * Updated SDK constraint to <3.0.0.
 * Updated to be compatible with Dart 2 void usage semantics.
