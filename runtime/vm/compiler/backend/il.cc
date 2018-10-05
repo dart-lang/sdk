@@ -2167,9 +2167,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
     case Token::kBIT_NOT:
       if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value());
+        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
       } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value());
+        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
       }
       break;
 
