@@ -1555,13 +1555,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   // initializers will be visible inside the entire body of the constructor.
   // We should make a separate scope for them.
   if (constructor) {
-    // PatchClass with different kernel_data means we are building a constructor
-    // for some old class. That is not supported and should not be happening as
-    // old classes are gone after hot reload, we don't have reference to old
-    // class's fields.
-    ASSERT(!Object::Handle(dart_function.RawOwner()).IsPatchClass() ||
-           (Library::Handle(Class::Handle(dart_function.Owner()).library())
-                .kernel_data() == dart_function.KernelData()));
     body += BuildInitializers(Class::Handle(Z, dart_function.Owner()));
   }
 
