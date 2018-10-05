@@ -20,7 +20,8 @@ void usage() {
 }
 
 main(args) {
-  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
   List<int> bytes = new File(args[0]).readAsBytesSync();
   try {
     Component p = new Component();

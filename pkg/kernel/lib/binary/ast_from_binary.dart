@@ -23,9 +23,14 @@ class ParseError {
 }
 
 class InvalidKernelVersionError {
-  final String message;
+  final int version;
 
-  InvalidKernelVersionError(this.message);
+  InvalidKernelVersionError(this.version);
+
+  String toString() {
+    return 'Unexpected Kernel version ${version} '
+        '(expected ${Tag.BinaryFormatVersion}).';
+  }
 }
 
 class CanonicalNameError {
@@ -81,7 +86,7 @@ class BinaryBuilder {
       : _disableLazyReading = disableLazyReading;
 
   fail(String message) {
-    throw new ParseError(message,
+    throw ParseError(message,
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
 
@@ -266,7 +271,7 @@ class BinaryBuilder {
         return new TypeLiteralConstant(type);
     }
 
-    throw 'Invalid constant tag $constantTag';
+    throw fail('unexpected constant tag: $constantTag');
   }
 
   Constant readConstantReference() {
@@ -305,7 +310,7 @@ class BinaryBuilder {
     } else if (tag == Tag.Something) {
       return true;
     } else {
-      throw fail('Invalid Option tag: $tag');
+      throw fail('unexpected option tag: $tag');
     }
   }
 
@@ -394,7 +399,9 @@ class BinaryBuilder {
     while (_byteOffset > 0) {
       int size = readUint32();
       int start = _byteOffset - size;
-      if (start < 0) throw "Invalid component file: Indicated size is invalid.";
+      if (start < 0) {
+        throw fail("indicated size does not match file size");
+      }
       index.add(size);
       _byteOffset = start - 4;
     }
@@ -409,6 +416,18 @@ class BinaryBuilder {
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponent(Component component, {bool checkCanonicalNames: false}) {
+    // Check that we have a .dill file and it has the correct version before we
+    // start decoding it.  Otherwise we will fail for cryptic reasons.
+    int offset = _byteOffset;
+    int magic = readUint32();
+    if (magic != Tag.ComponentFile) {
+      throw ArgumentError('Not a .dill file (wrong magic number).');
+    }
+    int version = readUint32();
+    if (version != Tag.BinaryFormatVersion) {
+      throw InvalidKernelVersionError(version);
+    }
+    _byteOffset = offset;
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
@@ -451,7 +470,7 @@ class BinaryBuilder {
   void readSingleFileComponent(Component component,
       {bool checkCanonicalNames: false}) {
     List<int> componentFileSizes = _indexComponents();
-    if (componentFileSizes.isEmpty) throw "Invalid component data.";
+    if (componentFileSizes.isEmpty) throw fail("invalid component data");
     _readOneComponent(component, componentFileSizes[0]);
     if (_byteOffset < _bytes.length) {
       if (_byteOffset + 3 < _bytes.length) {
@@ -554,14 +573,12 @@ class BinaryBuilder {
 
     final int magic = readUint32();
     if (magic != Tag.ComponentFile) {
-      throw fail('This is not a binary dart file. '
-          'Magic number was: ${magic.toRadixString(16)}');
+      throw ArgumentError('Not a .dill file (wrong magic number).');
     }
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw fail('Invalid kernel binary format version '
-          '(found ${formatVersion}, expected ${Tag.BinaryFormatVersion})');
+      throw InvalidKernelVersionError(formatVersion);
     }
 
     // Read component index from the end of this ComponentFiles serialized data.
@@ -579,15 +596,12 @@ class BinaryBuilder {
 
     final int magic = readUint32();
     if (magic != Tag.ComponentFile) {
-      throw fail('This is not a binary dart file. '
-          'Magic number was: ${magic.toRadixString(16)}');
+      throw ArgumentError('Not a .dill file (wrong magic number).');
     }
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw new InvalidKernelVersionError(
-          'Invalid kernel binary format version '
-          '(found ${formatVersion}, expected ${Tag.BinaryFormatVersion})');
+      throw InvalidKernelVersionError(formatVersion);
     }
 
     // Read component index from the end of this ComponentFiles serialized data.
@@ -1192,7 +1206,7 @@ class BinaryBuilder {
       case Tag.AssertInitializer:
         return new AssertInitializer(readStatement());
       default:
-        throw fail('Invalid initializer tag: $tag');
+        throw fail('unexpected initializer tag: $tag');
     }
   }
 
@@ -1294,7 +1308,7 @@ class BinaryBuilder {
   VariableDeclaration readVariableReference() {
     int index = readUInt();
     if (index >= variableStack.length) {
-      throw fail('Invalid variable index: $index');
+      throw fail('unexpected variable index: $index');
     }
     return variableStack[index];
   }
@@ -1306,7 +1320,7 @@ class BinaryBuilder {
       case 1:
         return '||';
       default:
-        throw fail('Invalid logical operator index: $index');
+        throw fail('unexpected logical operator index: $index');
     }
   }
 
@@ -1538,7 +1552,7 @@ class BinaryBuilder {
       case Tag.ConstantExpression:
         return new ConstantExpression(readConstantReference());
       default:
-        throw fail('Invalid expression tag: $tag');
+        throw fail('unexpected expression tag: $tag');
     }
   }
 
@@ -1689,7 +1703,7 @@ class BinaryBuilder {
         var function = readFunctionNode();
         return new FunctionDeclaration(variable, function)..fileOffset = offset;
       default:
-        throw fail('Invalid statement tag: $tag');
+        throw fail('unexpected statement tag: $tag');
     }
   }
 
@@ -1832,7 +1846,7 @@ class BinaryBuilder {
         var bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index], bound);
       default:
-        throw fail('Invalid dart type tag: $tag');
+        throw fail('unexpected dart type tag: $tag');
     }
   }
 

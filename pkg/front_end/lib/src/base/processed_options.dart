@@ -316,7 +316,9 @@ class ProcessedOptions {
     if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
       var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+      if (bytes != null && bytes.isNotEmpty) {
+        _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+      }
     }
     return _sdkSummaryComponent;
   }
