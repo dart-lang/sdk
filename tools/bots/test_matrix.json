@@ -115,7 +115,7 @@
       "third_party/pkg_tested/",
       "third_party/observatory_pub_packages/packages/",
       "tests/angular/",
-      "tests/co19/",
+      "tests/co19_2/",
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
@@ -560,12 +560,9 @@
         "vm-kernel-linux-debug-ia32",
         "vm-kernel-linux-debug-simdbc64",
         "vm-kernel-linux-debug-x64",
-        "vm-kernel-linux-product-x64",
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
-        "vm-kernel-linux-release-simdbc64",
         "vm-kernel-linux-release-ia32",
-        "vm-kernel-linux-release-x64",
         "vm-kernel-mac-debug-simdbc64",
         "vm-kernel-mac-debug-x64",
         "vm-kernel-mac-product-x64",
@@ -590,6 +587,39 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-linux-product-x64",
+        "vm-kernel-linux-release-simdbc64",
+        "vm-kernel-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the co19_2 kernel builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartk-${system}-${mode}-${arch}"],
+          "fileset": "vm-kernel",
+          "shards": 10
+        },
+        {
+          "name": "vm co19 tests",
+          "arguments": [
+            "-ndartk-${system}-${mode}-${arch}",
+            "co19_2"
+          ],
           "fileset": "vm-kernel",
           "shards": 10
         }

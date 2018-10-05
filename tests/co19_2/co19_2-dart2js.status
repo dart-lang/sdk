@@ -1384,6 +1384,7 @@ LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Runti
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: RuntimeError, Pass
 LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Timeout
 LayoutTests/fast/css-generated-content/pseudo-transition-event_t01: Timeout, Pass
+LayoutTests/fast/css-generated-content/reset-content-to-initial_t01: Timeout, Pass
 LayoutTests/fast/css-grid-layout/breadth-size-resolution-grid_t01: RuntimeError
 LayoutTests/fast/css-grid-layout/calc-resolution-grid-item_t01: RuntimeError
 LayoutTests/fast/css-grid-layout/flex-content-resolution-columns_t01: RuntimeError
@@ -1439,6 +1440,7 @@ LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError
 LayoutTests/fast/css/link-alternate-stylesheet-1_t01: RuntimeError
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError
 LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError
+LayoutTests/fast/css/overflow-property_t01: RuntimeError, Pass
 LayoutTests/fast/css/padding-no-renderer_t01: RuntimeError, Pass
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError
 LayoutTests/fast/css/percent-min-width-img-src-change_t01: Timeout, Pass
@@ -1567,6 +1569,7 @@ LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Timeout
 LayoutTests/fast/events/event-creation_t01: RuntimeError
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError
 LayoutTests/fast/events/event-on-xhr-document_t01: RuntimeError
+LayoutTests/fast/events/fire-scroll-event-element_t01: Timeout, Pass
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError, Timeout
 LayoutTests/fast/events/init-message-event_t01: RuntimeError
 LayoutTests/fast/events/input-focus-no-duplicate-events_t01: RuntimeError, Pass
@@ -1575,7 +1578,7 @@ LayoutTests/fast/events/invalid-003_t01: RuntimeError
 LayoutTests/fast/events/label-focus_t01: RuntimeError, Pass
 LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError
 LayoutTests/fast/events/nested-event-remove-node-crash_t01: Timeout, Pass
-LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: RuntimeError
+LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: RuntimeError, Timeout
 LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError
 LayoutTests/fast/events/scroll-during-zoom-change_t01: Timeout, Pass
 LayoutTests/fast/events/scroll-event-phase_t01: Timeout, Pass
@@ -1869,6 +1872,7 @@ LibTest/html/IFrameElement/enteredView_A01_t01: Timeout, Pass
 LibTest/html/IFrameElement/focus_A01_t01: Timeout, Pass
 LibTest/html/IFrameElement/onMouseWheel_A01_t01: Timeout
 LibTest/html/IFrameElement/onTransitionEnd_A01_t01: Timeout
+LibTest/typed_data/Float64List/shuffle_A01_t01: RuntimeError, Pass
 LibTest/typed_data/Int16List/shuffle_A01_t01: RuntimeError, Pass
 Utils/tests/Expect/throws_A01_t04: RuntimeError
 WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Timeout
@@ -1983,12 +1987,12 @@ LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: RuntimeError, Pass
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: RuntimeError, Pass
 LayoutTests/fast/speechsynthesis/speech-synthesis-boundary-events_t01: RuntimeError, Pass
 LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: RuntimeError, Pass
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError, Pass
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos && $fast_startup ]
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError
 LayoutTests/fast/css/overflow-property_t01: RuntimeError, Pass
 LayoutTests/fast/dom/shadow/elementfrompoint_t01: RuntimeError, Pass
-LayoutTests/fast/events/fire-scroll-event-element_t01: Timeout, Pass
 LayoutTests/fast/forms/percent-height-auto-width-form-controls_t01: RuntimeError
 LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: RuntimeError, Pass
 LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: RuntimeError
@@ -3288,7 +3292,7 @@ LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError
 LayoutTests/fast/css/getPropertyValue-columns_t01: RuntimeError
 LayoutTests/fast/css/invalid-not-with-simple-selector-sequence_t01: RuntimeError
 LayoutTests/fast/css/parsing-object-position_t01: RuntimeError
-LayoutTests/fast/css/shadow-current-color_t01: RuntimeError
+LayoutTests/fast/css/shadow-current-color_t01: RuntimeError, Pass
 LayoutTests/fast/css/sticky/parsing-position-sticky_t01: RuntimeError
 LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last-inherited_t01: RuntimeError
 LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last_t01: RuntimeError
@@ -3316,7 +3320,7 @@ LayoutTests/fast/text/selection-exceptions_t01: RuntimeError
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: RuntimeError
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError
+LibTest/html/Element/isContentEditable_A02_t01: RuntimeError, Pass
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError
 LibTest/html/Window/close_A01_t01: RuntimeError
 
@@ -3450,6 +3454,9 @@ LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError
 LayoutTests/fast/css/getComputedStyle/getComputedStyle-zoom-and-background-size_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 ]
+Language/Classes/Instance_Methods/Operators/return_type_t01: MissingCompileTimeError
+Language/Classes/Setters/return_type_not_void_t01: MissingCompileTimeError
+Language/Classes/Setters/syntax_t04: MissingCompileTimeError
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Await_Expressions/evaluation_throws_t04: RuntimeError
 Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError
@@ -3485,6 +3492,7 @@ Language/Metadata/before_param_t05: RuntimeError
 Language/Metadata/before_param_t07: RuntimeError
 Language/Metadata/before_param_t09: RuntimeError
 Language/Metadata/before_variable_t02: RuntimeError
+Language/Mixins/Mixin_Application/superclass_t01: MissingCompileTimeError
 Language/Overview/Privacy/private_and_public_t18: RuntimeError
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError
 Language/Statements/Assert/execution_t09: RuntimeError
@@ -3513,6 +3521,16 @@ LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t09: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t10: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeError
+LanguageFeatures/Instantiate-to-bound/class/class_extends_neg_l1_t05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_Future_neg_assign_l1_t03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_named_extends_Future_neg_assign_l1_t05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_Future_neg_assign_l1_t01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_optparam_extends_Future_neg_assign_l1_t07: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_param_extends_Future_neg_assign_l1_t04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t06: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t07: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t13: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t15: MissingCompileTimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t02: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A53_t01: RuntimeError
@@ -3538,6 +3556,8 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_clas
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_local_variable_fail_A31_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_local_variable_fail_A32_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A32_t01: RuntimeError
+LanguageFeatures/Super_Mixins/mixin_member_neg_t02: RuntimeError
+LanguageFeatures/Super_Mixins/super_invocation_t01: CompileTimeError
 LayoutTests/fast/animation/request-animation-frame-prefix_t01: RuntimeError
 LayoutTests/fast/backgrounds/animated-gif-as-background_t01: RuntimeError
 LayoutTests/fast/backgrounds/background-fill-zero-area-crash_t01: RuntimeError
@@ -5543,6 +5563,7 @@ LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError
 LayoutTests/fast/events/nested-event-remove-node-crash_t01: Timeout
 LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: RuntimeError
 LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError
+LayoutTests/fast/events/scroll-during-zoom-change_t01: Timeout, Pass
 LayoutTests/fast/events/scroll-event-phase_t01: Timeout, Pass
 LayoutTests/fast/events/selectstart-on-selectall_t01: RuntimeError
 LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError
@@ -5589,6 +5610,7 @@ LayoutTests/fast/forms/date/date-interactive-validation-required_t01: RuntimeErr
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError
+LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: RuntimeError, Pass
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError
 LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError
@@ -5745,12 +5767,14 @@ LayoutTests/fast/xpath/implicit-node-args_t01: RuntimeError
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError
 LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError
 LayoutTests/fast/xsl/default-html_t01: RuntimeError
+LibTest/async/Future/Future.delayed_A01_t02: RuntimeError, Pass
 LibTest/async/Future/asStream_A01_t02: RuntimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t01: RuntimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t02: RuntimeError
 LibTest/async/Stream/Stream.fromIterable_A02_t01: RuntimeError
 LibTest/async/Stream/Stream.fromIterable_A03_t01: RuntimeError, Timeout, Pass
 LibTest/async/Stream/Stream.fromIterable_A03_t02: RuntimeError
+LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError, Pass
 LibTest/async/Stream/Stream.periodic_A04_t02: RuntimeError
 LibTest/async/Stream/Stream.periodic_A04_t03: RuntimeError
 LibTest/async/StreamController/StreamController.broadcast_A03_t02: RuntimeError
@@ -7418,7 +7442,7 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: RuntimeError
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError
-LayoutTests/fast/speechsynthesis/speech-synthesis-boundary-events_t01: Timeout, Pass
+LayoutTests/fast/speechsynthesis/speech-synthesis-boundary-events_t01: Timeout, Pass, RuntimeError
 LayoutTests/fast/speechsynthesis/speech-synthesis-cancel_t01: RuntimeError
 LayoutTests/fast/speechsynthesis/speech-synthesis-pause-resume_t01: Timeout, Pass
 LayoutTests/fast/speechsynthesis/speech-synthesis-speak_t01: Timeout, Pass
@@ -7450,6 +7474,7 @@ LayoutTests/fast/text/find-soft-hyphen_t01: RuntimeError
 LayoutTests/fast/text/glyph-reordering_t01: RuntimeError
 LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError
+LayoutTests/fast/text/multiglyph-characters_t01: RuntimeError, Pass
 LayoutTests/fast/text/offsetForPosition-cluster-at-zero_t01: RuntimeError
 LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: RuntimeError
 LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: RuntimeError
