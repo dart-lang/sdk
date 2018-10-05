@@ -200,12 +200,11 @@ class DartFuzzTest {
   bool run() {
     setup();
 
-    print('\nRun isolate: ${runner1.description} vs. '
-        '${runner2.description} in ${tmpDir.path}');
-
+    print('\n${isolate}: start');
     if (showStats) {
       showStatistics();
     }
+
     for (int i = 0; i < repeat; i++) {
       numTests++;
       seed = rand.nextInt(1 << 32);
@@ -213,11 +212,12 @@ class DartFuzzTest {
       runTest();
       if (showStats) {
         showStatistics();
+      } else if ((i & 31) == 31) {
+        print('\n${isolate}: busy @${numTests}....');
       }
     }
 
-    print('\nDone isolate: ${runner1.description} vs. '
-        '${runner2.description} in ${tmpDir.path}');
+    print('\n${isolate}: done');
     showStatistics();
     print('');
 
@@ -231,6 +231,9 @@ class DartFuzzTest {
     fileName = '${tmpDir.path}/fuzz.dart';
     runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env);
     runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env);
+    isolate = 'Isolate (${tmpDir.path}) '
+        '${runner1.description} - ${runner2.description}';
+
     numTests = 0;
     numSuccess = 0;
     numNotRun = 0;
@@ -298,10 +301,9 @@ class DartFuzzTest {
   void reportDivergence(
       TestResult result1, TestResult result2, bool outputDivergence) {
     numDivergences++;
-    print('\n\nDIVERGENCE $version:$seed : ${runner1.description} vs. '
-        '${runner2.description}\n');
+    print('\n${isolate}: !DIVERGENCE! $version:$seed');
     if (outputDivergence) {
-      print('out1:\n${result1.output}\n\nout2:\n${result2.output}\n');
+      print('out1:\n${result1.output}\nout2:\n${result2.output}\n');
     }
   }
 
@@ -320,6 +322,7 @@ class DartFuzzTest {
   String fileName;
   TestRunner runner1;
   TestRunner runner2;
+  String isolate;
   int seed;
 
   // Stats.
