@@ -24,7 +24,6 @@ namespace bin {
   V(depfile, depfile)                                                          \
   V(depfile_output_filename, depfile_output_filename)                          \
   V(shared_blobs, shared_blobs_filename)                                       \
-  V(save_obfuscation_map, obfuscation_map_filename)                            \
   V(save_compilation_trace, save_compilation_trace_filename)                   \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(root_certs_file, root_certs_file)                                          \
@@ -39,8 +38,6 @@ namespace bin {
   V(parse_all, parse_all)                                                      \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
   V(deterministic, deterministic)                                              \
-  V(use_blobs, use_blobs)                                                      \
-  V(obfuscate, obfuscate)                                                      \
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
@@ -69,7 +66,6 @@ namespace bin {
 enum SnapshotKind {
   kNone,
   kKernel,
-  kAppAOT,
   kAppJIT,
 };
 

@@ -25,7 +25,10 @@ namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
 static const char* kSnapshotKindNames[] = {
-    "none", "kernel", "app-aot", "app-jit", NULL,
+    "none",
+    "kernel",
+    "app-jit",
+    NULL,
 };
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
@@ -147,7 +150,7 @@ void Options::PrintUsage() {
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n");
@@ -178,7 +181,7 @@ void Options::PrintUsage() {
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n"
