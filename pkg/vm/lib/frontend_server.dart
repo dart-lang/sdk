@@ -636,28 +636,14 @@ String _escapePath(String path) {
   return path.replaceAll(r'\', r'\\').replaceAll(r' ', r'\ ');
 }
 
-List<Uri> _getDependencies(Component component) {
-  var deps = <Uri>[];
-  for (Library lib in component.libraries) {
-    if (lib.importUri.scheme == 'dart') {
-      continue;
-    }
-    deps.add(lib.fileUri);
-    for (LibraryPart part in lib.parts) {
-      final Uri fileUri = lib.fileUri.resolve(part.partUri);
-      deps.add(fileUri);
-    }
-  }
-  return deps;
-}
-
 // https://ninja-build.org/manual.html#_depfile
 _writeDepfile(Component component, String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
-  for (Uri dep in _getDependencies(component)) {
-    if (dep == null) continue;
+  for (Uri dep in component.uriToSource.keys) {
+    // Skip empty or corelib dependencies.
+    if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }
