@@ -475,10 +475,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   void handleSuperInvocation(ir.Name name, ir.Node arguments) {
     FunctionEntity method =
         elementMap.getSuperMember(currentMember, name, setter: false);
-    _visitArguments(arguments);
+    List<DartType> typeArguments = _visitArguments(arguments);
     if (method != null) {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          method, elementMap.getCallStructure(arguments)));
+          method, elementMap.getCallStructure(arguments), typeArguments));
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),

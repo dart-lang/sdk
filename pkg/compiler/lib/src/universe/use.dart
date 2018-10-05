@@ -295,13 +295,14 @@ class StaticUse {
 
   /// Invocation of a super method [element] with the given [callStructure].
   factory StaticUse.superInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      FunctionEntity element, CallStructure callStructure,
+      [List<DartType> typeArguments]) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Read access of a super field or getter [element].
