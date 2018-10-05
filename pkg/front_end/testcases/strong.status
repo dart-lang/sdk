@@ -21,6 +21,7 @@ cascade: Fail
 casts: Fail
 classes: Fail
 closure: Fail
+constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail

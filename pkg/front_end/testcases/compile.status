@@ -11,6 +11,7 @@ ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 call: Fail # Test can't run.
 constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
