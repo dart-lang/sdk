@@ -6295,6 +6295,18 @@ f() { return const G<B>(); }''');
     verify([source]);
   }
 
+  test_typedef_infiniteParameterBoundCycle() async {
+    Source source = addSource(r'''
+typedef F<X extends F> = F Function();
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
+    verify([source]);
+  }
+
   test_undefinedAnnotation_unresolved_identifier() async {
     Source source = addSource(r'''
 @unresolved
