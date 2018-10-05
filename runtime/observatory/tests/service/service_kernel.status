@@ -145,6 +145,10 @@ step_test: RuntimeError
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
 
+[ $compiler == dartk && $mode == release && $system == windows && !$strong ]
+code_test: RuntimeError
+get_object_rpc_test: RuntimeError
+
 [ $compiler == dartk && $system == windows ]
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
 coverage_optimized_function_test: Skip # Timeout
@@ -202,9 +206,6 @@ step_through_getter_test: Skip # Timeout
 step_through_property_set_test: Skip # Timeout
 
 [ $compiler == dartk && $system == windows && !$strong ]
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
 next_through_simple_async_test: Skip # Timeout
 step_test: Skip # Timeout
 step_through_constructor_test: Skip # Timeout
