@@ -70,8 +70,8 @@ DEFINE_FLAG(
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
-DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
+DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
+DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
 DEFINE_FLAG(bool,
             remove_script_timestamps_for_test,
@@ -11531,9 +11531,12 @@ void Library::InvalidateResolvedName(const String& name) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Object& entry = Object::Handle(zone);
-  if (LookupResolvedNamesCache(name, &entry)) {
+  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &entry)) {
     // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     ClearResolvedNamesCache();
+  }
+  if (!FLAG_use_exp_cache) {
+    return;
   }
   // When a new name is added to a library, we need to invalidate all
   // caches that contain an entry for this name. If the name was previously
