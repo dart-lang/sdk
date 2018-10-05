@@ -125,7 +125,7 @@ mutation_observer: Skip # Skip tests on the VM if the package depends on dart:ht
 
 [ $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
-front_end/test/src/incremental/hot_reload_e2e_test: Skip
+front_end/test/hot_reload_e2e_test: Skip
 vm/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == linux ]
@@ -136,8 +136,8 @@ analysis_server/test/integration/analysis/get_errors_nonStandard_sdk_test: Skip
 front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
+front_end/test/hot_reload_e2e_test: Skip # Issue 31901
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
 front_end/test/whole_program_test: Skip # Issue 31902
 
 [ $browser ]
