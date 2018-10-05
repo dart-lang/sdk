@@ -5817,7 +5817,6 @@ main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_replaceVarWithDynamic() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;

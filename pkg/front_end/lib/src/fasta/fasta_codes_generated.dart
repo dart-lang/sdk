@@ -8458,6 +8458,13 @@ Message _withArgumentsUseOfDeprecatedIdentifier(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVarAsTypeName = messageVarAsTypeName;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVarAsTypeName = const MessageCode("VarAsTypeName",
+    index: 61, message: r"""The keyword 'var' can't be used as a type name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVarReturnType = messageVarReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

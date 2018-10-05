@@ -779,9 +779,7 @@ class ParserErrorCode extends ErrorCode {
       "Variables can't be declared using both 'var' and a type name.",
       correction: "Try removing the keyword 'var'.");
 
-  static const ParserErrorCode VAR_AS_TYPE_NAME = const ParserErrorCode(
-      'VAR_AS_TYPE_NAME', "The keyword 'var' can't be used as a type name.",
-      correction: "Try using 'dynamic' instead of 'var'.");
+  static const ParserErrorCode VAR_AS_TYPE_NAME = _VAR_AS_TYPE_NAME;
 
   static const ParserErrorCode VAR_CLASS = const ParserErrorCode(
       'VAR_CLASS', "Classes can't be declared to be 'var'.",

@@ -875,6 +875,8 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
           parser.reportRecoverableErrorWithToken(
               next, fasta.templateBuiltInIdentifierAsType);
         }
+      } else if (optional('var', next)) {
+        parser.reportRecoverableError(next, fasta.messageVarAsTypeName);
       } else {
         parser.reportRecoverableErrorWithToken(
             next, fasta.templateExpectedType);

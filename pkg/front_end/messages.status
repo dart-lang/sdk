@@ -360,6 +360,7 @@ UnterminatedString/script7: Fail
 UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
+VarAsTypeName/script1: Fail # Too many problems
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail

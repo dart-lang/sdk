@@ -410,6 +410,13 @@ ExpectedType:
   template: "Expected a type, but got '#lexeme'."
   analyzerCode: EXPECTED_TYPE_NAME
 
+VarAsTypeName:
+  index: 61
+  template: "The keyword 'var' can't be used as a type name."
+  analyzerCode: ParserErrorCode.VAR_AS_TYPE_NAME
+  script:
+    - "class A { Map<String, var> m; }"
+
 MissingExpressionInThrow:
   index: 32
   template: "Missing expression after 'throw'."

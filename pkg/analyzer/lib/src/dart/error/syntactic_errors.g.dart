@@ -68,6 +68,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _CONST_AND_FINAL,
   _CONST_AND_VAR,
   _CONST_CLASS,
+  _VAR_AS_TYPE_NAME,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -347,6 +348,9 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _VAR_AS_TYPE_NAME = const ParserErrorCode(
+    'VAR_AS_TYPE_NAME', r"The keyword 'var' can't be used as a type name.");
 
 const ParserErrorCode _VAR_RETURN_TYPE = const ParserErrorCode(
     'VAR_RETURN_TYPE', r"The return type can't be 'var'.",

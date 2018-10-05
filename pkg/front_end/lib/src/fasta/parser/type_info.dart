@@ -12,7 +12,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show optional;
+import 'util.dart' show isOneOf, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -136,7 +136,7 @@ TypeInfo computeType(final Token token, bool required,
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinAsType(required);
+              .computeBuiltinOrVarAsType(required);
         }
       } else if (required || isGeneralizedFunctionType(next.next)) {
         String value = next.stringValue;
@@ -146,14 +146,22 @@ TypeInfo computeType(final Token token, bool required,
             !identical('operator', value) &&
             !(identical('typedef', value) && next.next.isIdentifier))) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinAsType(required);
+              .computeBuiltinOrVarAsType(required);
         }
       }
-    } else if (required && optional('.', next)) {
-      // Recovery: looks like prefixed type missing the prefix
-      return new ComplexTypeInfo(
-              token, computeTypeParamOrArg(next, inDeclaration))
-          .computePrefixedType(required);
+    } else if (required) {
+      // Recovery
+      if (optional('.', next)) {
+        // Looks like prefixed type missing the prefix
+        return new ComplexTypeInfo(
+                token, computeTypeParamOrArg(next, inDeclaration))
+            .computePrefixedType(required);
+      } else if (optional('var', next) &&
+          isOneOf(next.next, const ['<', ',', '>'])) {
+        return new ComplexTypeInfo(
+                token, computeTypeParamOrArg(next, inDeclaration))
+            .computeBuiltinOrVarAsType(required);
+      }
     }
     return noType;
   }

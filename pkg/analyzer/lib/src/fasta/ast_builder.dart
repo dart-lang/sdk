@@ -1771,10 +1771,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleClassExtends(Token extendsKeyword) {
-    assert(extendsKeyword == null ||
-        identical('extends', extendsKeyword.lexeme) ||
-        identical('on', extendsKeyword.lexeme) ||
-        extendsKeyword.lexeme == 'extend');
+    assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
     TypeName supertype = pop();
@@ -1895,10 +1892,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
-    assert(onKeyword == null ||
-        identical('on', onKeyword.lexeme) ||
-        identical('extends', onKeyword.lexeme) ||
-        onKeyword.lexeme == 'extend');
+    assert(onKeyword == null || onKeyword.isKeywordOrIdentifier);
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
