@@ -71,7 +71,8 @@ class Event {
 bool firstSection = true;
 
 bool search(String description, String searchFor, List<Event> events,
-    ArgResults options) {
+    ArgResults options,
+    {int count}) {
   bool judgement = false;
   bool beganSection = false;
 
@@ -103,6 +104,14 @@ bool search(String description, String searchFor, List<Event> events,
     final name = event.after.name;
     if (!after.flaked && !after.matches) {
       judgement = true;
+    }
+    if (count != null) {
+      if (--count <= 0) {
+        if (options["human"]) {
+          print("(And more)");
+        }
+        break;
+      }
     }
     if (options["human"]) {
       if (options["verbose"]) {
@@ -155,6 +164,10 @@ main(List<String> args) async {
       abbr: "h",
       help: "Prove you can't read machine readable output.",
       negatable: false);
+  parser.addOption("limit-flaky",
+      abbr: "l",
+      help: "Upper limit on tests reported flaky",
+      defaultsTo: "100");
   parser.addFlag("passing",
       abbr: 'p', negatable: false, help: "Show passing tests.");
   parser.addFlag("unchanged",
@@ -238,7 +251,10 @@ ${parser.usage}""");
       } else {
         sectionHeader = "The following tests are known to flake:";
       }
-      search(sectionHeader, "flaky", events, options);
+      search(sectionHeader, "flaky", events, options,
+          count: options["limit-flaky"] != null
+              ? int.parse(options["limit-flaky"])
+              : null);
     }
     if (options["failing"]) {
       String sectionHeader;
