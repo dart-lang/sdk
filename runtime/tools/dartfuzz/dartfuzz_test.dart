@@ -55,6 +55,8 @@ abstract class TestRunner {
       return new TestRunnerJIT(getTag(mode), top, tmp, env);
     if (mode.startsWith('aot'))
       return new TestRunnerAOT(getTag(mode), top, tmp, env);
+    if (mode.startsWith('kbc'))
+      return new TestRunnerKBC(mode, getTag(mode), top, tmp, env);
     if (mode.startsWith('js')) return new TestRunnerJS(top, tmp, env);
     throw ('unknown runner in mode: $mode');
   }
@@ -117,6 +119,51 @@ class TestRunnerAOT implements TestRunner {
   String dart;
   String fileName;
   String snapshot;
+  Map<String, String> env;
+}
+
+/// Concrete test runner of bytecode.
+class TestRunnerKBC implements TestRunner {
+  TestRunnerKBC(
+      String mode, String tag, String top, String tmp, Map<String, String> e) {
+    generate = '$top/pkg/vm/tool/gen_kernel';
+    platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
+    dill = '$tmp/out.dill';
+    dart = '$top/out/$tag/dart';
+    fileName = '$tmp/fuzz.dart';
+    env = e;
+    cmd = [dart];
+    if (mode.startsWith('kbc-int')) {
+      description = 'KBC-INT-${tag}';
+      cmd += ['--enable-interpreter', '--compilation-counter-threshold=-1'];
+    } else if (mode.startsWith('kbc-mix')) {
+      description = 'KBC-MIX-${tag}';
+      cmd += ['--enable-interpreter'];
+    } else if (mode.startsWith('kbc-cmp')) {
+      description = 'KBC-CMP-${tag}';
+      cmd += ['--use-bytecode-compiler'];
+    } else {
+      throw ('unknown KBC mode: $mode');
+    }
+    cmd += [dill];
+  }
+
+  TestResult run() {
+    TestResult result = runCommand(
+        [generate, '--gen-bytecode', platform, '-o', dill, fileName], env);
+    if (result.code != ResultCode.success) {
+      return result;
+    }
+    return runCommand(cmd, env);
+  }
+
+  String description;
+  String generate;
+  String platform;
+  String dill;
+  String dart;
+  String fileName;
+  List<String> cmd;
   Map<String, String> env;
 }
 
@@ -349,7 +396,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      const cluster_modes = 10;
+      const cluster_modes = 16;
       Random rand = new Random();
       do {
         mode = modes[rand.nextInt(cluster_modes)];
@@ -387,6 +434,12 @@ class DartFuzzTestSession {
     'jit-arm64',
     'aot-debug-x64',
     'aot-x64',
+    'kbc-int-debug-x64',
+    'kbc-cmp-debug-x64',
+    'kbc-mix-debug-x64',
+    'kbc-int-x64',
+    'kbc-cmp-x64',
+    'kbc-mix-x64',
     // Times out often:
     'aot-arm64',
     'aot-debug-arm64',

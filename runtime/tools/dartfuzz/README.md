@@ -48,13 +48,16 @@ where
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[debug-]ia32  = Dart JIT (ia32)
-        jit-[debug-]x64   = Dart JIT (x64)
-        jit-[debug-]arm32 = Dart JIT (simarm)
-        jit-[debug-]arm64 = Dart JIT (simarm64)
-        aot-[debug-]x64   = Dart AOT (x64)
-        aot-[debug-]arm64 = Dart AOT (simarm64)
-        js                = dart2js + JS
+        jit-[debug-]ia32    = Dart JIT (ia32)
+        jit-[debug-]x64     = Dart JIT (x64)
+        jit-[debug-]arm32   = Dart JIT (simarm)
+        jit-[debug-]arm64   = Dart JIT (simarm64)
+        aot-[debug-]x64     = Dart AOT (x64)
+        aot-[debug-]arm64   = Dart AOT (simarm64)
+        kbc-int-[debug-]x64 = Dart KBC (interpreted bytecode)
+        kbc-mix-[debug-]x64 = Dart KBC (mixed-mode bytecode)
+        kbc-cmp-[debug-]x64 = Dart KBC (compiled bytecode)
+        js                  = dart2js + JS
 
 If no modes are given, a random JIT and/or AOT combination is used.
 
