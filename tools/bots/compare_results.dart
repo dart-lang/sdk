@@ -71,10 +71,10 @@ class Event {
 bool firstSection = true;
 
 bool search(String description, String searchFor, List<Event> events,
-    ArgResults options,
-    {int count}) {
+    ArgResults options) {
   bool judgement = false;
   bool beganSection = false;
+  int count = options["count"] != null ? int.parse(options["count"]) : null;
 
   for (final event in events) {
     if (searchFor == "passing" &&
@@ -149,6 +149,9 @@ main(List<String> args) async {
       abbr: 'c',
       negatable: false,
       help: "Show only tests that changed results.");
+  parser.addOption("count",
+      abbr: "C",
+      help: "Upper limit on how many tests to report in each section");
   parser.addFlag("failing",
       abbr: 'f', negatable: false, help: "Show failing tests.");
   parser.addOption("flakiness-data",
@@ -164,10 +167,6 @@ main(List<String> args) async {
       abbr: "h",
       help: "Prove you can't read machine readable output.",
       negatable: false);
-  parser.addOption("limit-flaky",
-      abbr: "l",
-      help: "Upper limit on tests reported flaky",
-      defaultsTo: "100");
   parser.addFlag("passing",
       abbr: 'p', negatable: false, help: "Show passing tests.");
   parser.addFlag("unchanged",
@@ -251,10 +250,7 @@ ${parser.usage}""");
       } else {
         sectionHeader = "The following tests are known to flake:";
       }
-      search(sectionHeader, "flaky", events, options,
-          count: options["limit-flaky"] != null
-              ? int.parse(options["limit-flaky"])
-              : null);
+      search(sectionHeader, "flaky", events, options);
     }
     if (options["failing"]) {
       String sectionHeader;
