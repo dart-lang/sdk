@@ -66,6 +66,8 @@ Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError #
 Language/Expressions/Lists/constant_list_t01: CompileTimeError # Please triage this failure
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError # Please triage this failure
+Language/Expressions/Strings/String_Interpolation/double_quote_t02: CompileTimeError # Uses void, see issue #164 in the co19 repo
+Language/Expressions/Strings/String_Interpolation/single_quote_t02: CompileTimeError # Uses void, see issue #164 in the co19 repo
 Language/Functions/generator_return_type_t02: MissingCompileTimeError # Issue 32192
 Language/Functions/generator_return_type_t06: MissingCompileTimeError # Issue 32192
 Language/Generics/scope_t03: CompileTimeError # Please triage this failure

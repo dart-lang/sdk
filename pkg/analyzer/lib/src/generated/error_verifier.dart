@@ -403,6 +403,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForAssignability(node.rightOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
+      _checkForUseOfVoidResult(node.rightOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     }
@@ -538,6 +539,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     return super.visitCompilationUnit(node);
+  }
+
+  @override
+  Object visitInterpolationExpression(InterpolationExpression node) {
+    _checkForUseOfVoidResult(node.expression);
+    return super.visitInterpolationExpression(node);
   }
 
   @override
