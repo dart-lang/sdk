@@ -310,7 +310,7 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
-      ..useStartupEmitter = _hasOption(options, Flags.fastStartup) || true
+      ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
       ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
       ..verbose = _hasOption(options, Flags.verbose);
   }

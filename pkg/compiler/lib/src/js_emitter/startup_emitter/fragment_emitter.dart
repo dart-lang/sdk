@@ -79,7 +79,6 @@ var functionsHaveName = (function() {
 // As of 2015 only IE doesn't set the name.
 function setFunctionNamesIfNecessary(holders) {
   if (functionsHaveName) return;
-  throw '!functionsHaveName';
   for (var i = 0; i < holders.length; i++) {
     var holder = holders[i];
     var keys = Object.keys(holder);
