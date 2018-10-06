@@ -226,7 +226,7 @@ cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass
 cc/Profiler_TrivialRecordAllocation: Fail, Pass
 
-[ ($compiler == dartk || $compiler == dartkb) && $system == windows && $mode == release ]
+[ $arch == x64 && ($compiler == dartk || $compiler == dartkb) && $system == windows && $mode == release ]
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
