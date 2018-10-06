@@ -155,6 +155,7 @@ io/compile_all_test: Pass, Fail # Possibly related to issue 32373
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
+io/dart_std_io_pipe_test: Pass, Slow
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
 io/test_extension_test: RuntimeError, Pass # Issue 32137.
