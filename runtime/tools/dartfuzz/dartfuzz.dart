@@ -10,7 +10,7 @@ import 'package:args/args.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.1';
+const String version = '1.2';
 
 // Restriction on statement and expression depths.
 const int stmtDepth = 5;
@@ -607,7 +607,7 @@ class DartFuzz {
       emitTerminal(tp); // resort to terminal
       return;
     }
-    DartLib lib = oneOf<DartLib>(getLibrary(tp));
+    DartLib lib = oneOf(getLibrary(tp));
     List<DartType> proto = lib.proto;
     // Receiver.
     if (proto[0] != null) {
@@ -862,15 +862,16 @@ class DartFuzz {
         DartLib('toLowerCase', [DartType.STRING]),
         DartLib('toUpperCase', [DartType.STRING]),
         DartLib('substring', [DartType.STRING, DartType.INT]),
-        DartLib('padLeft', [DartType.STRING, DartType.INT]),
-        DartLib('padRight', [DartType.STRING, DartType.INT]),
         DartLib('replaceRange',
             [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING]),
         DartLib('remove', [DartType.INT_STRING_MAP, DartType.INT]),
+        // Avoid (OOM divergences, unless we restrict parameters):
+        // DartLib('padLeft', [DartType.STRING, DartType.INT]),
+        // DartLib('padRight', [DartType.STRING, DartType.INT]),
       ];
     } else if (tp == DartType.INT_LIST) {
       return const [
-        DartLib('sublist', [DartType.INT_LIST, DartType.INT]),
+        DartLib('sublist', [DartType.INT_LIST, DartType.INT])
       ];
     } else {
       assert(false);

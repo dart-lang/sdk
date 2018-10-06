@@ -20,7 +20,7 @@ enum ResultCode { success, timeout, error }
 
 /// Result of running a test.
 class TestResult {
-  TestResult(this.code, this.output);
+  const TestResult(this.code, this.output);
   final ResultCode code;
   final String output;
 }
