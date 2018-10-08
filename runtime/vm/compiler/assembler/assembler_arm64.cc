@@ -1189,6 +1189,11 @@ void Assembler::CheckCodePointer() {
 
 void Assembler::SetupDartSP() {
   mov(SP, CSP);
+#if defined(TARGET_OS_FUCHSIA)
+  // Make any future signal handlers fail fast. Verifies our assumption in
+  // EnterFrame.
+  LoadImmediate(CSP, 0);
+#endif
 }
 
 void Assembler::RestoreCSP() {
@@ -1208,9 +1213,12 @@ void Assembler::EnterFrame(intptr_t frame_size) {
   // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
   // this requires adjustments to stack handling to maintain the 16-byte
   // alignment.
+  // Note Fuchsia does not have signal handlers; see also SetupDartSP.
+#if !defined(TARGET_OS_FUCHSIA)
   const intptr_t kMaxDartFrameSize = 4096;
   sub(TMP, SP, Operand(kMaxDartFrameSize));
   andi(CSP, TMP, Immediate(~15));
+#endif
 
   PushPair(FP, LR);  // low: FP, high: LR.
   mov(FP, SP);

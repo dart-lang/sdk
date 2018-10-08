@@ -738,7 +738,12 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
                                                            : " softfp");
 #elif defined(TARGET_ARCH_ARM64)
-    buffer.AddString(" arm64");
+#if defined(TARGET_OS_FUCHSIA)
+    // See signal handler cheat in Assembler::EnterFrame.
+    buffer.AddString(" arm64-fuchsia");
+#else
+    buffer.AddString(" arm64-sysv");
+#endif
 #elif defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
