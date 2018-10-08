@@ -214,11 +214,7 @@ type_promotion_functions_test/none: CompileTimeError # Issue 30895
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
-void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
-void/void_type_usage_test/sync_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/sync_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 
 [ $compiler == dartdevk ]
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 30450, test name contains hyphen

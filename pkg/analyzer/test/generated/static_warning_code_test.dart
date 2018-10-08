@@ -1875,6 +1875,46 @@ void main() {
     assertNoErrors(source);
   }
 
+  test_generalizedVoid_yieldStarVoid_asyncStar() async {
+    Source source = addSource(r'''
+main(void x) async* {
+  yield* x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_yieldStarVoid_syncStar() async {
+    Source source = addSource(r'''
+main(void x) sync* {
+  yield* x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_yieldVoid_asyncStar() async {
+    Source source = addSource(r'''
+main(void x) async* {
+  yield x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_yieldVoid_syncStar() async {
+    Source source = addSource(r'''
+main(void x) sync* {
+  yield x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
   test_importDuplicatedLibraryNamed() async {
     Source source = addSource(r'''
 library test;

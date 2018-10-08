@@ -1327,6 +1327,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _errorReporter.reportErrorForNode(errorCode, node);
     }
+    _checkForUseOfVoidResult(node.expression);
     return super.visitYieldStatement(node);
   }
 
