@@ -1561,7 +1561,7 @@ DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
-    SP[1] = thread->isolate()->object_store()->mint_type();  // Class object.
+    SP[1] = thread->isolate()->object_store()->mint_class();  // Class object.
     SP[2] = Object::null();                                  // Type arguments.
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP);

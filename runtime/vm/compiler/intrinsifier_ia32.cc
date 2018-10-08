@@ -785,7 +785,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -830,7 +830,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -889,7 +889,7 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
 
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 
@@ -944,7 +944,7 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&done);
   // Restore THR and return.
   __ popl(THR);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(EAX, Object::null_object());
   __ ret();
 }
 

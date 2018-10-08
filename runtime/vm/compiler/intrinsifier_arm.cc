@@ -770,7 +770,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ teq(NOTFP, Operand(R8));
   __ b(&loop, NE);
   __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -813,7 +813,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ teq(R6, Operand(R8));
   __ b(&loop, NE);
   __ str(R9, Address(R6, 0));
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -872,7 +872,7 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler, Label* normal_ir_body) {
   __ adc(R4, R4, Operand(0));
   __ str(R4, Address(R8, 0));
 
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -927,7 +927,7 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler, Label* normal_ir_body) {
   __ b(&carry_loop, NE);
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
