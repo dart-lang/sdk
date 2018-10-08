@@ -12,7 +12,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        import "package:dummy/b.dart";
+        import "package:example/b.dart";
         main() {
           print("hello");
           b();
@@ -21,7 +21,7 @@ worlds:
         b() {
           print("hello from package");
         }
-      .packages: dummy:${outDirUri}package
+      .packages: example:package
     expectedLibraryCount: 2
   - entry: main.dart
     worldType: updated

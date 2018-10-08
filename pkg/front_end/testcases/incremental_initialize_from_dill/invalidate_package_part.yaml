@@ -8,56 +8,56 @@
 type: newworld
 strong: false
 worlds:
-  - entry: "package:dummy/main.dart"
+  - entry: "package:example/main.dart"
     sources:
-      main.dart: |
+      pkg/example/main.dart: |
         part "b.dart";
         main() {
           print("hello");
           b();
         }
-      b.dart: |
+      pkg/example/b.dart: |
         part of "main.dart";
         b() {
           print("b1");
         }
-      .packages: dummy:${outDirUri}
+      .packages: example:pkg/example
     expectedLibraryCount: 1
-  - entry: "package:dummy/main.dart"
+  - entry: "package:example/main.dart"
     invalidate:
-      - b.dart
+      - pkg/example/b.dart
     expectedInvalidatedUri:
-      - "package:dummy/b.dart"
+      - "package:example/b.dart"
     sources:
-      main.dart: |
+      pkg/example/main.dart: |
         part "b.dart";
         main() {
           print("hello");
           b();
         }
-      b.dart: |
+      pkg/example/b.dart: |
         part of "main.dart";
         b() {
           print("b2");
         }
-      .packages: dummy:${outDirUri}
+      .packages: example:pkg/example
     expectedLibraryCount: 1
-  - entry: "package:dummy/main.dart"
+  - entry: "package:example/main.dart"
     invalidate:
-      - "package:dummy/b.dart"
+      - "package:example/b.dart"
     expectedInvalidatedUri:
-      - "package:dummy/b.dart"
+      - "package:example/b.dart"
     sources:
-      main.dart: |
+      pkg/example/main.dart: |
         part "b.dart";
         main() {
           print("hello");
           b();
         }
-      b.dart: |
+      pkg/example/b.dart: |
         part of "main.dart";
         b() {
           print("b3");
         }
-      .packages: dummy:${outDirUri}
+      .packages: example:pkg/example
     expectedLibraryCount: 1

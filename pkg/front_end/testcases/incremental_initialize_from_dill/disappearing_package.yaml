@@ -13,16 +13,16 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        import "package:dummy/b.dart";
+        import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
-      b.dart: |
+      pkg/example/b.dart: |
         b() {
           print("b");
         }
-      .packages: dummy:${outDirUri}
+      .packages: example:pkg/example
     expectedLibraryCount: 2
   - entry: main.dart
     # TODO(jensj): For now we don't initialize from dill when a package was
