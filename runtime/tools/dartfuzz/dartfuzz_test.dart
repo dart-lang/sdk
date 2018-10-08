@@ -197,7 +197,7 @@ class DartFuzzTest {
   DartFuzzTest(this.env, this.repeat, this.trueDivergence, this.showStats,
       this.top, this.mode1, this.mode2);
 
-  bool run() {
+  int run() {
     setup();
 
     print('\n${isolate}: start');
@@ -222,7 +222,7 @@ class DartFuzzTest {
     print('');
 
     cleanup();
-    return numDivergences == 0;
+    return numDivergences;
   }
 
   void setup() {
@@ -301,8 +301,9 @@ class DartFuzzTest {
   void reportDivergence(
       TestResult result1, TestResult result2, bool outputDivergence) {
     numDivergences++;
-    print('\n${isolate}: !DIVERGENCE! $version:$seed');
-    if (outputDivergence) {
+    print(
+        '\n${isolate}: !DIVERGENCE! $version:$seed (output=${outputDivergence})');
+    if (showStats && outputDivergence) {
       print('out1:\n${result1.output}\nout2:\n${result2.output}\n');
     }
   }
@@ -356,31 +357,31 @@ class DartFuzzTestSession {
       await Isolate.spawn(run, this);
     }
     // Join.
-    bool success = true;
+    int divergences = 0;
     for (int i = 0; i < isolates; i++) {
-      var x = await ports[i].first;
-      success = success && x;
+      var d = await ports[i].first;
+      divergences += d;
     }
-    if (success) {
+    if (divergences == 0) {
       print('\nsuccess\n');
     } else {
-      print('\nfailure\n');
+      print('\nfailure ($divergences divergences)\n');
       exitCode = 1;
     }
   }
 
   static run(DartFuzzTestSession session) {
-    bool success = false;
+    int divergences = 0;
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
       final fuzz = new DartFuzzTest(Platform.environment, session.repeat,
           session.trueDivergence, session.showStats, session.top, m1, m2);
-      success = fuzz.run();
+      divergences = fuzz.run();
     } catch (e) {
       print('Isolate: $e');
     }
-    session.port.send(success);
+    session.port.send(divergences);
   }
 
   // Picks a top directory (command line, environment, or current).
