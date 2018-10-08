@@ -549,6 +549,14 @@ static void CreateAndWriteDependenciesFile() {
   dependencies->Clear();
 }
 
+static void LoadBytecode() {
+  if (Dart_IsVMFlagSet("enable_interpreter") &&
+      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    Dart_Handle result = Dart_ReadAllBytecode();
+    CHECK_RESULT(result);
+  }
+}
+
 static void LoadCompilationTrace() {
   if ((load_compilation_trace_filename != NULL) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
@@ -925,10 +933,12 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
       CreateAndWriteCoreSnapshot();
       break;
     case kCoreJIT:
+      LoadBytecode();
       LoadCompilationTrace();
       CreateAndWriteCoreJITSnapshot();
       break;
     case kAppJIT:
+      LoadBytecode();
       LoadCompilationTrace();
       CreateAndWriteAppJITSnapshot();
       break;

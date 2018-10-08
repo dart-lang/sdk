@@ -797,6 +797,13 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
+static void LoadBytecode() {
+  if (Dart_IsVMFlagSet("enable_interpreter")) {
+    Dart_Handle result = Dart_ReadAllBytecode();
+    CHECK_RESULT(result);
+  }
+}
+
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -879,6 +886,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     if (Options::gen_snapshot_kind() == kAppJIT) {
       result = Dart_SortClasses();
       CHECK_RESULT(result);
+      LoadBytecode();
     }
 
     if (Options::load_compilation_trace_filename() != NULL) {

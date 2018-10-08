@@ -104,6 +104,7 @@ cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give 
 cc/Service_Profile: Skip
 cc/GenKernelKernelLoadKernel: Skip  # Issue 34542.
 cc/GenKernelKernelReadAllBytecode: Skip  # Issue 34393.
+dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
 
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign

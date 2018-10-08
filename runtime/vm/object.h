@@ -4309,6 +4309,7 @@ class ObjectPool : public Object {
     kImmediate,
     kNativeFunction,
     kNativeFunctionWrapper,
+    kNativeEntryData,
   };
 
   enum Patchability {
@@ -4360,11 +4361,13 @@ class ObjectPool : public Object {
   }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT(TypeAt(index) == kTaggedObject);
+    ASSERT((TypeAt(index) == kTaggedObject) ||
+           (TypeAt(index) == kNativeEntryData));
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT(TypeAt(index) == kTaggedObject);
+    ASSERT((TypeAt(index) == kTaggedObject) ||
+           (TypeAt(index) == kNativeEntryData));
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 

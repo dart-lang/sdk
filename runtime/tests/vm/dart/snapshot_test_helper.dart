@@ -116,3 +116,27 @@ Future<void> runAppJitTest() async {
     await temp.delete(recursive: true);
   }
 }
+
+Future<void> runAppJitBytecodeTest() async {
+  final Directory temp = Directory.systemTemp.createTempSync();
+  final snapshotPath = p.join(temp.path, 'app.jit');
+  final testPath = Platform.script
+      .toFilePath()
+      .replaceAll(new RegExp(r'_test.dart$'), '_test_body.dart');
+
+  try {
+    final trainingResult = await runDartBinary('TRAINING RUN', [
+      '--enable_interpreter',
+      '--snapshot=$snapshotPath',
+      '--snapshot-kind=app-jit',
+      testPath,
+      '--train'
+    ]);
+    expectOutput("OK(Trained)", trainingResult);
+    final runResult = await runDartBinary(
+        'RUN FROM SNAPSHOT', ['--enable_interpreter', snapshotPath]);
+    expectOutput("OK(Run)", runResult);
+  } finally {
+    await temp.delete(recursive: true);
+  }
+}

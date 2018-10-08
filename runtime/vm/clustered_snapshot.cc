@@ -558,6 +558,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Push(func->ptr()->code_);
     } else if (s->kind() == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
+      NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
       s->Push(func->ptr()->code_);
       s->Push(func->ptr()->ic_data_array_);
     }
@@ -587,6 +588,7 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->WriteRef(func->ptr()->code_);
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->unoptimized_code_));
+        NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->bytecode_));
         s->WriteRef(func->ptr()->code_);
         s->WriteRef(func->ptr()->ic_data_array_);
       }
@@ -645,6 +647,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
+                               reinterpret_cast<RawCode*>(d->ReadRef()));
+        NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
                                reinterpret_cast<RawCode*>(d->ReadRef()));
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
         func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
@@ -705,6 +709,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        } else if (func.HasBytecode() && !code.IsDisabled()) {
+          func.SetInstructions(code);  // Set entrypoint.
+#endif                                 // !defined(DART_PRECOMPILED_RUNTIME)
         } else {
           func.ClearCode();  // Set code and entrypoint to lazy compile stub.
         }
@@ -1854,7 +1862,8 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     uint8_t* entry_bits = pool->ptr()->entry_bits();
     for (intptr_t i = 0; i < length; i++) {
       auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
-      if (entry_type == ObjectPool::kTaggedObject) {
+      if ((entry_type == ObjectPool::kTaggedObject) ||
+          (entry_type == ObjectPool::kNativeEntryData)) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
     }
@@ -1901,6 +1910,22 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
           }
           case ObjectPool::kImmediate: {
             s->Write<intptr_t>(entry.raw_value_);
+            break;
+          }
+          case ObjectPool::kNativeEntryData: {
+            RawObject* raw = entry.raw_obj_;
+            RawTypedData* raw_data = reinterpret_cast<RawTypedData*>(raw);
+            // kNativeEntryData object pool entries are for linking natives for
+            // the interpreter. Before writing these entries into the snapshot,
+            // we need to unlink them by nulling out the 'trampoline' and
+            // 'native_function' fields.
+            NativeEntryData::Payload* payload =
+                NativeEntryData::FromTypedArray(raw_data);
+            if (payload->kind == MethodRecognizer::kUnknown) {
+              payload->trampoline = NULL;
+              payload->native_function = NULL;
+            }
+            s->WriteRef(raw);
             break;
           }
           case ObjectPool::kNativeFunction:
@@ -1950,6 +1975,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
         pool->ptr()->entry_bits()[j] = entry_bits;
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits)) {
+          case ObjectPool::kNativeEntryData:
           case ObjectPool::kTaggedObject:
             entry.raw_obj_ = d->ReadRef();
             break;

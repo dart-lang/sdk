@@ -2263,11 +2263,18 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline = NativeEntryData::GetTrampoline(data);
-        NativeFunction function = NativeEntryData::GetNativeFunction(data);
+        NativeEntryData::Payload* payload =
+            NativeEntryData::FromTypedArray(data);
         intptr_t argc_tag = NativeEntryData::GetArgcTag(data);
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
+
+        if (payload->trampoline == NULL) {
+          ASSERT(payload->native_function == NULL);
+          payload->trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+          payload->native_function =
+              reinterpret_cast<NativeFunction>(&NativeEntry::LinkNativeCall);
+        }
 
         *++SP = null_value;  // Result slot.
 
@@ -2275,9 +2282,10 @@ RawObject* Interpreter::Call(RawFunction* function,
         RawObject** return_slot = SP;
         Exit(thread, FP, SP, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-        INVOKE_NATIVE(trampoline,
-                      reinterpret_cast<Dart_NativeFunction>(function),
-                      reinterpret_cast<Dart_NativeArguments>(&args));
+        INVOKE_NATIVE(
+            payload->trampoline,
+            reinterpret_cast<Dart_NativeFunction>(payload->native_function),
+            reinterpret_cast<Dart_NativeArguments>(&args));
 
         *(SP - num_arguments) = *return_slot;
         SP -= num_arguments;
