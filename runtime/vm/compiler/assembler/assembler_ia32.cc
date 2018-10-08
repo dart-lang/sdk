@@ -2097,7 +2097,6 @@ void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
 }
 
 void Assembler::CallToRuntime() {
-  movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 

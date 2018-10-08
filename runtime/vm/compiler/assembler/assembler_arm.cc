@@ -2548,7 +2548,6 @@ void Assembler::BranchLinkPatchable(const Code& target,
 
 void Assembler::BranchLinkToRuntime() {
   ldr(IP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   blx(IP);
 }
 

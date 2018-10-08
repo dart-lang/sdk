@@ -101,9 +101,7 @@ void Assembler::Call(const StubEntry& stub_entry) {
 }
 
 void Assembler::CallToRuntime() {
-  movq(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
-  call(TMP);
+  call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::CallNullErrorShared(bool save_fpu_registers) {
