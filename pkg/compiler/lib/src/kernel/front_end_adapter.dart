@@ -22,8 +22,13 @@ class CompilerFileSystem implements fe.FileSystem {
   CompilerFileSystem(this.inputProvider);
 
   @override
-  fe.FileSystemEntity entityForUri(Uri uri) =>
-      new _CompilerFileSystemEntity(uri, this);
+  fe.FileSystemEntity entityForUri(Uri uri) {
+    if (uri.scheme == 'data') {
+      return new fe.DataFileSystemEntity(Uri.base.resolveUri(uri));
+    } else {
+      return new _CompilerFileSystemEntity(uri, this);
+    }
+  }
 }
 
 class _CompilerFileSystemEntity implements fe.FileSystemEntity {

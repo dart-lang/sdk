@@ -37,6 +37,8 @@ export '../api_prototype/file_system.dart'
 
 export '../api_prototype/kernel_generator.dart' show kernelForProgram;
 
+export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
+
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
