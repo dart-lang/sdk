@@ -159,7 +159,6 @@ mixin_method_override_test/G5: Skip # Issue 34354
 covariant_subtyping_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: DartkCrash
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
