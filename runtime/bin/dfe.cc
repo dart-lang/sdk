@@ -209,14 +209,17 @@ void DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = 0;
       break;
     case Dart_KernelCompilationStatus_Error:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Crash:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kDartFrontendErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Unknown:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kErrorExitCode;
       break;
