@@ -113,15 +113,15 @@ class RunKernelTask : public ThreadPool::Task {
       return;
     }
 
-    bool init_success = false;
+    bool got_unwind;
     {
       ASSERT(Isolate::Current() == NULL);
       StartIsolateScope start_scope(isolate);
-      init_success = RunMain(isolate);
+      got_unwind = RunMain(isolate);
     }
     KernelIsolate::FinishedInitializing();
 
-    if (!init_success) {
+    if (got_unwind) {
       ShutdownIsolate(reinterpret_cast<uword>(isolate));
       return;
     }
@@ -205,16 +205,21 @@ class RunKernelTask : public ThreadPool::Task {
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Kernel isolate did not initialize properly.
-      const Error& error = Error::Cast(result);
-      OS::PrintErr(DART_KERNEL_ISOLATE_NAME
-                   ": Calling main resulted in an error: %s",
-                   error.ToErrorCString());
+      if (FLAG_trace_kernel) {
+        const Error& error = Error::Cast(result);
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME
+                     ": Calling main resulted in an error: %s",
+                     error.ToErrorCString());
+      }
+      if (result.IsUnwindError()) {
+        return true;
+      }
       return false;
     }
     ASSERT(result.IsReceivePort());
     const ReceivePort& rp = ReceivePort::Cast(result);
     KernelIsolate::SetLoadPort(rp.Id());
-    return true;
+    return false;
   }
 };
 
