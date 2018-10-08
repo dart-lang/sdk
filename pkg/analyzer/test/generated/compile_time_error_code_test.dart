@@ -5555,6 +5555,24 @@ const y = x + 1;''');
     verify([source]);
   }
 
+  test_recursiveCompileTimeConstant_fromMapLiteral() async {
+    resourceProvider.newFile(
+      resourceProvider.convertPath('/constants.dart'),
+      r'''
+const int x = y;
+const int y = x;
+''',
+    );
+    Source source = addSource(r'''
+import 'constants.dart';
+final z = {x: 0, y: 1};
+''');
+    await computeAnalysisResult(source);
+    // No errors, because the cycle is not in this source.
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
     Source source = addSource('''
 const y = const C();
@@ -5582,6 +5600,28 @@ const x = x;
       assertErrors(source, [
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
         StrongModeCode.TOP_LEVEL_CYCLE
+      ]);
+    }
+    verify([source]);
+  }
+
+  test_recursiveCompileTimeConstant_singleVariable_fromConstList() async {
+    Source source = addSource(r'''
+const elems = const [
+  const [
+    1, elems, 3,
+  ],
+];
+''');
+    await computeAnalysisResult(source);
+    if (!enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE,
       ]);
     }
     verify([source]);

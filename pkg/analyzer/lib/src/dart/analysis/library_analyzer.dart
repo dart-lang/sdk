@@ -60,7 +60,7 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
-  final List<ConstantEvaluationTarget> _constants = [];
+  final Set<ConstantEvaluationTarget> _constants = new Set();
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -162,7 +162,8 @@ class LibraryAnalyzer {
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables,
+        forAnalysisDriver: true);
     unit.accept(constantVerifier);
   }
 
@@ -172,7 +173,7 @@ class LibraryAnalyzer {
   void _computeConstants() {
     ConstantEvaluationEngine evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, _declaredVariables,
-        typeSystem: _context.typeSystem);
+        forAnalysisDriver: true, typeSystem: _context.typeSystem);
 
     List<_ConstantNode> nodes = [];
     Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};

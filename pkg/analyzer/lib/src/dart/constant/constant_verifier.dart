@@ -51,17 +51,23 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
+  ConstantEvaluationEngine _evaluationEngine;
+
   /// Initialize a newly created constant verifier.
   ///
   /// @param errorReporter the error reporter by which errors will be reported
   ConstantVerifier(this._errorReporter, LibraryElement currentLibrary,
-      this._typeProvider, this.declaredVariables)
+      this._typeProvider, this.declaredVariables,
+      {bool forAnalysisDriver: false})
       : _currentLibrary = currentLibrary,
         _typeSystem = currentLibrary.context.typeSystem {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
     this._stringType = _typeProvider.stringType;
+    this._evaluationEngine = new ConstantEvaluationEngine(
+        _typeProvider, declaredVariables,
+        forAnalysisDriver: forAnalysisDriver, typeSystem: _typeSystem);
   }
 
   @override
@@ -123,12 +129,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       // evaluation.
       ConstructorElement constructor = node.staticElement;
       if (constructor != null) {
-        ConstantEvaluationEngine evaluationEngine =
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                typeSystem: _typeSystem);
         ConstantVisitor constantVisitor =
-            new ConstantVisitor(evaluationEngine, _errorReporter);
-        evaluationEngine.evaluateConstructorCall(
+            new ConstantVisitor(_evaluationEngine, _errorReporter);
+        _evaluationEngine.evaluateConstructorCall(
             node,
             node.argumentList.arguments,
             constructor,
@@ -204,10 +207,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             AnalysisErrorListener.NULL_LISTENER;
         ErrorReporter subErrorReporter =
             new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result = key.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                typeSystem: _typeSystem),
-            subErrorReporter));
+        DartObjectImpl result = key
+            .accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
         if (result != null) {
           if (keys.contains(result)) {
             invalidKeys.add(key);
@@ -444,10 +445,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-            typeSystem: _typeSystem),
-        subErrorReporter));
+    DartObjectImpl result = expression
+        .accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
   }
@@ -545,10 +544,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
                 AnalysisErrorListener.NULL_LISTENER;
             ErrorReporter subErrorReporter =
                 new ErrorReporter(errorListener, _errorReporter.source);
-            DartObjectImpl result = initializer.accept(new ConstantVisitor(
-                new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                    typeSystem: _typeSystem),
-                subErrorReporter));
+            DartObjectImpl result = initializer.accept(
+                new ConstantVisitor(_evaluationEngine, subErrorReporter));
             if (result == null) {
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode
@@ -574,9 +571,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(_typeProvider,
-            subErrorReporter, this, parameterElements, declaredVariables,
-            typeSystem: _typeSystem));
+        new _ConstantVerifier_validateInitializerExpression(_typeSystem,
+            _evaluationEngine, subErrorReporter, this, parameterElements));
     _reportErrors(errorListener.errors,
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     if (result != null) {
@@ -606,24 +602,18 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
 }
 
 class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
+  final TypeSystem typeSystem;
   final ConstantVerifier verifier;
 
   List<ParameterElement> parameterElements;
 
-  TypeSystem _typeSystem;
-
   _ConstantVerifier_validateInitializerExpression(
-      TypeProvider typeProvider,
+      this.typeSystem,
+      ConstantEvaluationEngine evaluationEngine,
       ErrorReporter errorReporter,
       this.verifier,
-      this.parameterElements,
-      DeclaredVariables declaredVariables,
-      {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
-        super(
-            new ConstantEvaluationEngine(typeProvider, declaredVariables,
-                typeSystem: typeSystem),
-            errorReporter);
+      this.parameterElements)
+      : super(evaluationEngine, errorReporter);
 
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
@@ -637,20 +627,20 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
           if (type.isDynamic) {
             return new DartObjectImpl(
                 verifier._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._boolType)) {
+          } else if (typeSystem.isSubtypeOf(type, verifier._boolType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(
+          } else if (typeSystem.isSubtypeOf(
               type, verifier._typeProvider.doubleType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._intType)) {
+          } else if (typeSystem.isSubtypeOf(type, verifier._intType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.intType, IntState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._numType)) {
+          } else if (typeSystem.isSubtypeOf(type, verifier._numType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.numType, NumState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._stringType)) {
+          } else if (typeSystem.isSubtypeOf(type, verifier._stringType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.stringType, StringState.UNKNOWN_VALUE);
           }
