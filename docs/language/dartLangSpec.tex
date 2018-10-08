@@ -2265,17 +2265,29 @@ then consider a declaration of a redirecting factory constructor $k$ of one of t
 
 \begin{dartCode}
 $\ConstMetavar$ \FACTORY{}
-    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) = $R$;
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$]) = $R$;
 \\
 $\ConstMetavar$ \FACTORY{}
-    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) = $R$;
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$\}) = $R$;
 \end{dartCode}
 
 \noindent
 where $R$ is of one of the forms
 \code{$T$<$S_1 \ldots,\ S_p$>} or
 \code{$T$<$S_1 \ldots,\ S_p$>.\id}.
-The {\em redirectee constructor} for this declaration is then the constructor denoted by $R$.
+
+\LMHash{}
+It is a compile-time error if $T$ does not denote
+a class accessible in the current scope.
+If $T$ does denote such a class $D$,
+it is a compile-time error if $R$ does not denote a constructor.
+% It is by induction sufficient to check for abstractness one level down,
+% because it is an error on the redirectee if this occurs after multiple
+% redirections:
+Otherwise, it is a compile-time error
+if $R$ denotes a generative constructor and $D$ is abstract.
+Otherwise, the {\em redirectee constructor} for this declaration is
+the constructor denoted by $R$.
 
 \LMHash{}
 A redirecting factory constructor $q'$ is {\em redirection-reachable}
@@ -2314,6 +2326,7 @@ and/or the actual type argument list of the redirectee constructor is omitted (\
 
 \LMHash{}
 It is a compile-time error if $k$ explicitly specifies a default value for an optional parameter.
+
 \commentary{
 Default values specified in $k$ would be ignored, since it is the {\em actual} parameters that are passed to $k'$.
 Hence, default values are disallowed.
@@ -2324,50 +2337,18 @@ It is a compile-time error if a formal parameter of $k'$ has a default value
 whose type is not a subtype of the type annotation
 on the corresponding formal parameter in $k$.
 
-\LMHash{}
-It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections.
-
-\LMHash{}
-It is a compile-time error if $type$ does not denote a class accessible in the current scope;
-if $type$ does denote such a class $C$ it is a compile-time error if the referenced constructor (be it \metavar{type} or \code{\metavar{type}.\id}) is not a constructor of $C$.
-
 \commentary{
 Note that it is not possible to modify the arguments being passed to $k'$.
 }
-% but we have the same issue with other redirecting constructors, no?)
+
 \rationale{
 At first glance, one might think that ordinary factory constructors could simply create instances of other classes and return them, and that redirecting factories are unnecessary.
 However, redirecting factories have several advantages:
 \begin{itemize}
 \item An abstract class may provide a constant constructor that utilizes the constant constructor of another class.
-\item A redirecting factory constructor avoids the need for forwarders to repeat the default values for formal parameters in their signatures.
-%\item A generic factory class that aggregates factory constructors for types it does not implement can still have its type arguments passed correctly.
+\item A redirecting factory constructor avoids the need for forwarders to repeat the formal parameters and their default values.
 \end{itemize}
-
-%An example of the latter point:
-%}
-
-%\begin{dartCode}
-%\CLASS{} W<T> \IMPLEMENTS{} A<T> { W(w) {...} ...}
-%\CLASS{} X<T> \IMPLEMENTS{} A<T> { X(x) {...} ...}
-%\CLASS{} Y<T> \IMPLEMENTS{} A<T> { Y(y) {...} ...}
-%\CLASS{} Z<T> \IMPLEMENTS{} A<T> { Z(z) {...} ...}
-
-%\CLASS{} F<T> { // note that F does not implement A
-%  \STATIC{} F<T> idw(w) => \NEW{} W<T>(w); // illegal - T not in scope in idw
-%  \FACTORY{} F.idx(x) => \NEW{} X<T>(x);
-%  \FACTORY{} F.idy(y) => \NEW{} Y<T>(y);
-%  \STATIC{} F idz(z) => \NEW{} Z(z); // does not capture the type argument
-%}
-
-%\CLASS{} A<T>{
-%  \FACTORY{} A.idw(w) => F<T>.idw(w);
-%// illegal - cannot pass type parameter to static method
-%  \FACTORY{} A.idx(x) $=> \NEW{} $F<T>.idx(x); // works, but allocates a gratuitous instance of F
-%  \FACTORY{} A.idy(y) = Y<T>; // works
-%  \FACTORY{} A.idz(z) => F.idz(z); // wrong - returns Z<Dynamic>; no way to pass type argument
 }
-%\end{dartCode}
 
 \LMHash{}
 It is a compile-time error if $k$ is prefixed with the \CONST{} modifier but $k'$ is not a constant constructor (\ref{constantConstructors}).
@@ -2377,7 +2358,7 @@ Let $T_1, \ldots, T_m$ be the actual type arguments passed to $k'$
 in the declaration of $k$.
 Let $X_1, \ldots, X_m$ be the formal type arguments declared by
 the class that contains the declaration of $k'$.
-Let $F'$ be the function of $k'$ (\ref{constructors}).
+Let $F'$ be the function type of $k'$ (\ref{constructors}).
 It is a compile-time error if $[T_1/X_1, \ldots, T_m/X_m]F'$
 is not a subtype of the function type of $k$.
 
@@ -2387,9 +2368,6 @@ this is just a subtype check on the function types of the two constructors.
 In general, this implies that the resulting object conforms to
 the interface of the immediately enclosing class of $k$.
 }
-
-\LMHash{}
-It is a compile-time error if any of the type arguments to $k'$ are not subtypes of the bounds of the corresponding formal type parameters of $type$.
 
 \LMHash{}
 For the dynamic semantics,
