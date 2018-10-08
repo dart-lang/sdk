@@ -198,8 +198,6 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     node.updaters.accept(this);
     node.body?.accept(this);
     _propagateUndefinedExpressions(_removeLastScope());
-    // If a for statement do not have breaks inside, that means the condition
-    // after the loop is false.
     if (_isRelevantOutsideOfForStatement(node)) {
       _addFalseCondition(node.condition);
     }
@@ -328,17 +326,30 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   /// If any of the variables is declared inside the for statement then it does
   /// not mean anything afterwards.
-  bool _isRelevantOutsideOfForStatement(ForStatement node) =>
-      !breakScope.hasBreak(node) &&
-      node.condition != null &&
-      DartTypeUtilities.traverseNodesInDFS(node.condition)
-          .where((n) => n is SimpleIdentifier)
-          .map((n) => (n as SimpleIdentifier).staticElement?.computeNode())
-          .every((n) =>
-              n != null &&
-              n.getAncestor(
-                      (a) => a.offset == node.offset && a is ForStatement) ==
-                  null);
+  bool _isRelevantOutsideOfForStatement(ForStatement node) {
+    if (breakScope.hasBreak(node)) {
+      return false;
+    }
+
+    if (node.condition == null) {
+      return false;
+    }
+
+    for (var ref in DartTypeUtilities.traverseNodesInDFS(node.condition)) {
+      if (ref is SimpleIdentifier) {
+        var element = ref.staticElement;
+        if (element == null) {
+          return false;
+        }
+        var refOffset = element.nameOffset;
+        if (refOffset > node.offset && refOffset < node.end) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
 
   void _propagateUndefinedExpressions(ConditionScope scope) {
     outerScope?.addAll(scope.getUndefinedExpressions());
