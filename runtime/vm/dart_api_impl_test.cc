@@ -3593,7 +3593,6 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_type_checks = true;
   api_flags.enable_asserts = true;
   api_flags.enable_error_on_bad_type = true;
-  api_flags.enable_error_on_bad_override = true;
   char* err;
   Dart_Isolate isolate =
       Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,

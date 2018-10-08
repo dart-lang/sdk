@@ -553,14 +553,13 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000008)
+#define DART_FLAGS_CURRENT_VERSION (0x00000009)
 
 typedef struct {
   int32_t version;
   bool enable_type_checks;
   bool enable_asserts;
   bool enable_error_on_bad_type;
-  bool enable_error_on_bad_override;
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;

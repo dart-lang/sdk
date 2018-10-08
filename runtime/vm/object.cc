@@ -7116,56 +7116,6 @@ const char* Function::ToQualifiedCString() const {
   return chars;
 }
 
-bool Function::HasCompatibleParametersWith(const Function& other,
-                                           Error* bound_error) const {
-  ASSERT(Isolate::Current()->error_on_bad_override());
-  ASSERT(!FLAG_strong);
-  ASSERT((bound_error != NULL) && bound_error->IsNull());
-  // Check that this function's signature type is a subtype of the other
-  // function's signature type.
-  // Map type parameters referred to by formal parameter types and result type
-  // in the signature to dynamic before the test.
-  // Note that type parameters declared by a generic signature are preserved.
-  Function& this_fun = Function::Handle(raw());
-  if (!this_fun.HasInstantiatedSignature(kCurrentClass)) {
-    this_fun = this_fun.InstantiateSignatureFrom(
-        Object::null_type_arguments(), Object::null_type_arguments(),
-        kNoneFree,  // Keep function type parameters, do not map to dynamic.
-        Heap::kOld);
-  }
-  Function& other_fun = Function::Handle(other.raw());
-  if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
-    other_fun = other_fun.InstantiateSignatureFrom(
-        Object::null_type_arguments(), Object::null_type_arguments(),
-        kNoneFree,  // Keep function type parameters, do not map to dynamic.
-        Heap::kOld);
-  }
-  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
-                         Heap::kOld)) {
-    // For more informative error reporting, use the location of the other
-    // function here, since the caller will use the location of this function.
-    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
-    *bound_error = LanguageError::NewFormatted(
-        *bound_error,  // A bound error if non null.
-        Script::Handle(other.script()), other.token_pos(), Report::AtLocation,
-        Report::kError, space,
-        "signature type '%s' of function '%s' is not a subtype of signature "
-        "type '%s' of function '%s'\n",
-        String::Handle(UserVisibleSignature()).ToCString(),
-        String::Handle(UserVisibleName()).ToCString(),
-        String::Handle(other.UserVisibleSignature()).ToCString(),
-        String::Handle(other.UserVisibleName()).ToCString());
-    return false;
-  }
-  // We should also check that if the other function explicitly specifies a
-  // default value for a formal parameter, this function does not specify a
-  // different default value for the same parameter. However, this check is not
-  // possible in the current implementation, because the default parameter
-  // values are not stored in the Function object, but discarded after a
-  // function is compiled.
-  return true;
-}
-
 RawFunction* Function::InstantiateSignatureFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,

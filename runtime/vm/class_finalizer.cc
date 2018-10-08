@@ -449,23 +449,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (!FLAG_strong && Isolate::Current()->error_on_bad_override()) {
-    // Verify that the target is compatible with the redirecting factory.
-    Error& error = Error::Handle();
-    if (!target.HasCompatibleParametersWith(factory, &error)) {
-      const Script& script = Script::Handle(target_class.script());
-      type = NewFinalizedMalformedType(
-          error, script, target.token_pos(),
-          "constructor '%s' has incompatible parameters with "
-          "redirecting factory '%s'",
-          String::Handle(target.name()).ToCString(),
-          String::Handle(factory.name()).ToCString());
-      factory.SetRedirectionType(type);
-      ASSERT(factory.RedirectionTarget() == Function::null());
-      return;
-    }
-  }
-
   // Verify that the target is const if the redirecting factory is const.
   if (factory.is_const() && !target.is_const()) {
     ReportError(target_class, target.token_pos(),
@@ -1561,9 +1544,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // functions of a class, so we do not need to consider fields as implicitly
   // generating getters and setters.
   // Most overriding conflicts are only static warnings, i.e. they are not
-  // reported as compile-time errors by the vm. However, in non-strong mode,
-  // signature conflicts in overrides can be reported if the flag
-  // --error_on_bad_override is specified.
+  // reported as compile-time errors by the vm.
   // Static warning examples are:
   // - a static getter 'v' conflicting with an inherited instance setter 'v='.
   // - a static setter 'v=' conflicting with an inherited instance member 'v'.
@@ -2531,15 +2512,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
     FinalizeClass(super);
-  }
-  // Ensure interfaces are finalized in case we check for bad overrides.
-  Isolate* isolate = Isolate::Current();
-  if (isolate->error_on_bad_override() && !FLAG_strong) {
-    GrowableArray<const Class*> interfaces(4);
-    CollectInterfaces(cls, &interfaces);
-    for (intptr_t i = 0; i < interfaces.length(); i++) {
-      FinalizeClass(*interfaces.At(i));
-    }
   }
   if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.

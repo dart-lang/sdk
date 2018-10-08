@@ -2699,12 +2699,6 @@ class Function : public Object {
 
   const char* ToQualifiedCString() const;
 
-  // Returns true if this function has parameters that are compatible with the
-  // parameters of the other function in order for this function to override the
-  // other function.
-  bool HasCompatibleParametersWith(const Function& other,
-                                   Error* bound_error) const;
-
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
   bool IsSubtypeOf(const Function& other,

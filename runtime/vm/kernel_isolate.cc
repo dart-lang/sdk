@@ -91,7 +91,6 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_type_checks = false;
     api_flags.enable_asserts = false;
     api_flags.enable_error_on_bad_type = false;
-    api_flags.enable_error_on_bad_override = false;
     api_flags.unsafe_trust_strong_mode_types = false;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;

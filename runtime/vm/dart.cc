@@ -718,8 +718,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
              FLAG_error_on_bad_type);
-    ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
-             FLAG_error_on_bad_override);
     // sync-async and reify_generic_functions also affect deopt_ids.
     buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
     buffer.AddString(FLAG_reify_generic_functions
