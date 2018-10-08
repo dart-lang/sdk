@@ -1395,7 +1395,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
         commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadId, closedWorld)],
+        <HInstruction>[graph.addConstantString(loadId, closedWorld)],
         abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));

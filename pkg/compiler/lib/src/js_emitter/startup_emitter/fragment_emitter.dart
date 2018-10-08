@@ -679,7 +679,8 @@ class FragmentEmitter {
 
     List<js.Statement> statements = [
       new js.ExpressionStatement(new js.VariableDeclarationList(
-          holders.map(emitHolderInitialization).toList())),
+          holders.map(emitHolderInitialization).toList(),
+          indentSplits: false)),
       js.js.statement(
           'var holders = #',
           new js.ArrayInitializer(holders

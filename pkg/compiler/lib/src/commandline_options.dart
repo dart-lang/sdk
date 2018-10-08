@@ -26,6 +26,11 @@ class Flags {
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
+
+  // Temporary experiment for code generation of locals for frequently used
+  // 'this' and constants.
+  static const String experimentLocalNames = '--experiment-code-1';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =

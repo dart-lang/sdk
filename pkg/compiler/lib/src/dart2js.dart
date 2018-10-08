@@ -376,6 +376,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
+    new OptionHandler(Flags.experimentLocalNames, passThrough),
+
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
     new OptionHandler('-.*', (String argument) {

@@ -158,6 +158,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$prefix${instruction.id}";
   }
 
+  String visitLateValue(HLateValue node) {
+    return "LateValue: ${temporaryId(node.inputs[0])}";
+  }
+
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }

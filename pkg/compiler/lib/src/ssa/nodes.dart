@@ -65,6 +65,7 @@ abstract class HVisitor<R> {
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
   R visitIs(HIs node);
   R visitIsViaInterceptor(HIsViaInterceptor node);
+  R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -478,6 +479,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitIs(HIs node) => visitInstruction(node);
+  visitLateValue(HLateValue node) => visitInstruction(node);
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
@@ -3075,6 +3077,22 @@ class HIsViaInterceptor extends HLateInstruction {
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression;
   }
+}
+
+/// HLateValue is a late-stage instruction that can be used to force a value
+/// into a temporary.
+///
+/// HLateValue is useful for naming values that would otherwise be generated at
+/// use site, for example, if 'this' is used many times, replacing uses of
+/// 'this' with HLateValhe(HThis) will have the effect of copying 'this' to a
+/// temporary will reduce the size of minified code.
+class HLateValue extends HLateInstruction {
+  HLateValue(HInstruction target) : super([target], target.instructionType);
+
+  HInstruction get target => inputs.single;
+
+  accept(HVisitor visitor) => visitor.visitLateValue(this);
+  toString() => 'HLateValue($target)';
 }
 
 class HTypeConversion extends HCheck {
