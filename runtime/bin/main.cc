@@ -416,7 +416,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     app_snapshot->SetBuffers(
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
-    IsolateData* isolate_data =
+    isolate_data =
         new IsolateData(uri, package_root, packages_config, app_snapshot);
     isolate = Dart_CreateIsolate(
         DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
@@ -424,12 +424,16 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
         app_isolate_shared_instructions, flags, isolate_data, error);
   }
   if (isolate == NULL) {
+    // Clear error from app snapshot and re-trying from kernel file.
+    free(*error);
+    *error = NULL;
+    delete isolate_data;
+
     const uint8_t* kernel_service_buffer = NULL;
     intptr_t kernel_service_buffer_size = 0;
     dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != NULL);
-    IsolateData* isolate_data =
-        new IsolateData(uri, package_root, packages_config, NULL);
+    isolate_data = new IsolateData(uri, package_root, packages_config, NULL);
     isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
                                     kernel_service_buffer_size,
                                     false /* take_ownership */);
