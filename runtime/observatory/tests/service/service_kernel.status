@@ -127,10 +127,15 @@ get_isolate_after_language_error_test: CompileTimeError
 [ $arch == arm64 && $compiler == dartk ]
 coverage_optimized_function_test: Pass, Slow
 
+[ $arch == arm64 && $compiler == dartk && $mode == release ]
+get_object_rpc_test: Pass, RuntimeError # Please triage / issue #27806
+
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
+eval_test: RuntimeError, Timeout # Issue #33087
+evaluate_in_frame_rpc_test: RuntimeError, Timeout # Issue #33087
 get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
