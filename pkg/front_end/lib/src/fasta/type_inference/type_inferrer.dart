@@ -577,6 +577,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
+  bool isDoubleContext(DartType typeContext) {
+    // A context is a double context if double is assignable to it but int is
+    // not.  That is the type context is a double context if it is:
+    //   * double
+    //   * FutureOr<T> where T is a double context
+    //
+    // We check directly, rather than using isAssignable because it's simpler.
+    while (typeContext is InterfaceType &&
+        typeContext.classNode == coreTypes.futureOrClass &&
+        typeContext.typeArguments.isNotEmpty) {
+      InterfaceType type = typeContext;
+      typeContext = type.typeArguments.first;
+    }
+    return typeContext == coreTypes.doubleClass.rawType;
+  }
+
   bool isAssignable(DartType expectedType, DartType actualType) {
     return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType);

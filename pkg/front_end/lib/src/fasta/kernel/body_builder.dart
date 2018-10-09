@@ -75,7 +75,6 @@ import 'expression_generator.dart'
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         IndexedAccessGenerator,
-        IntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
         ParserErrorGenerator,
@@ -1140,8 +1139,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpressionGenerator(
-        this, token.endGroup, popForValue()));
+    Expression value = popForValue();
+    if (value is ShadowLargeIntLiteral) {
+      // We need to know that the expression was parenthesized because we will
+      // treat -n differently from -(n).  If the expression occurs in a double
+      // context, -n is a double literal and -(n) is an application of unary- to
+      // an integer literal.  And in any other context, '-' is part of the
+      // syntax of -n, i.e., -9223372036854775808 is OK and it is the minimun
+      // 64-bit integer, and '-' is an application of unary- in -(n), i.e.,
+      // -(9223372036854775808) is an error because the literal does not fit in
+      // 64-bits.
+      push(value..isParenthesized = true);
+    } else {
+      push(new ParenthesizedExpressionGenerator(this, token.endGroup, value));
+    }
   }
 
   @override
@@ -1831,7 +1842,23 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(IntAccessGenerator.parseIntLiteral(this, token));
+    int value = int.tryParse(token.lexeme);
+    if (!library.loader.target.strongMode) {
+      if (value == null) {
+        push(unhandled(
+            'large integer', 'handleLiteralInt', token.charOffset, uri));
+      } else {
+        push(forest.literalInt(value, token));
+      }
+      return;
+    }
+    // Postpone parsing of literals resulting in a negative value
+    // (hex literals >= 2^63). These are only allowed when not negated.
+    if (value == null || value < 0) {
+      push(forest.literalLargeInt(token.lexeme, token));
+    } else {
+      push(forest.literalInt(value, token));
+    }
   }
 
   @override
@@ -2827,19 +2854,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression receiverValue;
       if (optional("-", token)) {
         operator = "unary-";
-
-        if (receiver is IntAccessGenerator) {
-          receiverValue = receiver.buildNegatedRead();
-        }
       }
       bool isSuper = false;
-      if (receiverValue == null) {
-        if (receiver is ThisAccessGenerator && receiver.isSuper) {
-          isSuper = true;
-          receiverValue = forest.thisExpression(receiver.token);
-        } else {
-          receiverValue = toValue(receiver);
-        }
+      if (receiver is ThisAccessGenerator && receiver.isSuper) {
+        isSuper = true;
+        receiverValue = forest.thisExpression(receiver.token);
+      } else {
+        receiverValue = toValue(receiver);
       }
       push(buildMethodInvocation(receiverValue, new Name(operator),
           forest.argumentsEmpty(noLocation), token.charOffset,

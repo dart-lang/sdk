@@ -32,6 +32,7 @@ instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError #
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
 invocations: Fail
 micro: Fail # External method marked abstract.
+minimum_int: Crash # Min int literal not supported in non-strong mode.
 named_parameters: Fail # Missing types and unnecessary default values.
 optional: Fail # Unnecessary default values.
 rasta/abstract_constructor: Fail

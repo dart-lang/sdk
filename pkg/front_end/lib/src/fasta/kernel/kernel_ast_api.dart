@@ -113,6 +113,7 @@ export 'kernel_shadow_ast.dart'
         RedirectingInitializerJudgment,
         RethrowJudgment,
         ReturnJudgment,
+        ShadowLargeIntLiteral,
         StaticAssignmentJudgment,
         StaticGetJudgment,
         StaticInvocationJudgment,

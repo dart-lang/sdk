@@ -89,6 +89,8 @@ abstract class Forest {
   /// literal has the given [value].
   Expression literalInt(int value, Token location);
 
+  Expression literalLargeInt(String literal, Token location);
+
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
   /// [isConst] is `true` if the literal is either explicitly or implicitly a
@@ -389,9 +391,6 @@ abstract class Forest {
 
   Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Expression expression, String plainNameForRead);
-
-  Generator intAccessGenerator(
-      ExpressionGeneratorHelper helper, Token location);
 
   Generator unresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token location, Name name);

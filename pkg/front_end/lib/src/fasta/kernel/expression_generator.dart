@@ -22,12 +22,10 @@ import '../fasta_codes.dart'
         noLength,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
-        templateIntegerLiteralIsOutOfRange,
         templateMissingExplicitTypeArguments,
         templateNotAPrefixInTypeAnnotation,
         templateNotAType,
-        templateUnresolvedPrefixInTypeAnnotation,
-        templateWebLiteralCannotBeRepresentedExactly;
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../names.dart'
     show
@@ -665,96 +663,6 @@ abstract class ReadOnlyAccessGenerator implements Generator {
 
   @override
   String get debugName => "ReadOnlyAccessGenerator";
-}
-
-abstract class IntAccessGenerator implements Generator {
-  factory IntAccessGenerator(ExpressionGeneratorHelper helper, Token token) {
-    return helper.forest.intAccessGenerator(helper, token);
-  }
-
-  // TODO(ahe): This should probably be calling unhandled.
-  @override
-  String get plainNameForRead => null;
-
-  @override
-  String get debugName => "IntAccessGenerator";
-
-  static void checkWebIntLiteralsErrorIfUnexact(
-      ExpressionGeneratorHelper helper, int value, Token token) {
-    if (value >= 0 && value <= (1 << 53)) return;
-    if (!helper.library.loader.target.backendTarget
-        .errorOnUnexactWebIntLiterals) return;
-    BigInt asInt = new BigInt.from(value).toUnsigned(64);
-    BigInt asDouble = new BigInt.from(asInt.toDouble());
-    if (asInt != asDouble) {
-      String nearest;
-      if (token.lexeme.startsWith("0x") || token.lexeme.startsWith("0X")) {
-        nearest = '0x${asDouble.toRadixString(16)}';
-      } else {
-        nearest = '$asDouble';
-      }
-      helper.addProblem(
-          templateWebLiteralCannotBeRepresentedExactly.withArguments(
-              token.lexeme, nearest),
-          token.charOffset,
-          token.charCount);
-    }
-  }
-
-  static Object parseIntLiteral(ExpressionGeneratorHelper helper, Token token) {
-    int value = int.tryParse(token.lexeme);
-    // Postpone parsing of literals resulting in a negative value
-    // (hex literals >= 2^63). These are only allowed when not negated.
-    if (value == null || value < 0) {
-      return new IntAccessGenerator(helper, token);
-    } else {
-      checkWebIntLiteralsErrorIfUnexact(helper, value, token);
-      return helper.forest.literalInt(value, token);
-    }
-  }
-
-  Expression parseOrError(String literal, Token token) {
-    int value = int.tryParse(literal);
-    if (value != null) {
-      checkWebIntLiteralsErrorIfUnexact(helper, value, token);
-      return helper.forest.literalInt(value, token);
-    } else {
-      return buildError();
-    }
-  }
-
-  @override
-  Expression buildSimpleRead() {
-    // Called when literal that previously failed to parse, or resulted in
-    // a negative value (hex literals >= 2^63), is not negated.
-    // Try parsing again, this time accepting negative values.
-    return parseOrError(token.lexeme, token);
-  }
-
-  Expression buildNegatedRead() {
-    // Called when literal that previously failed to parse, or resulted in
-    // a negative value (hex literals >= 2^63), is negated.
-    // Try parsing with a '-' in front.
-    return parseOrError("-" + token.lexeme, token);
-  }
-
-  SyntheticExpressionJudgment buildError() {
-    return helper.buildProblem(
-        templateIntegerLiteralIsOutOfRange.withArguments(token),
-        offsetForToken(token),
-        lengthForToken(token));
-  }
-
-  @override
-  Expression doInvocation(int offset, Arguments arguments) {
-    return buildError();
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", lexeme: ");
-    sink.write(token.lexeme);
-  }
 }
 
 abstract class ErroneousExpressionGenerator implements Generator {

@@ -49,7 +49,6 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
-        IntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         ParserErrorGenerator,
@@ -1395,31 +1394,6 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
     sink.write(plainNameForRead);
     sink.write(", value: ");
     printNodeOn(value, sink, syntheticNames: syntheticNames);
-  }
-}
-
-class KernelIntAccessGenerator extends KernelGenerator with IntAccessGenerator {
-  KernelIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
-      : super(helper, token);
-
-  @override
-  Expression _makeSimpleRead() => buildError();
-
-  @override
-  Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
   }
 }
 

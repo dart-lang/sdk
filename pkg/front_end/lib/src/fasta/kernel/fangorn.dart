@@ -44,7 +44,6 @@ import 'kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelParserErrorGenerator,
@@ -95,6 +94,7 @@ import 'kernel_shadow_ast.dart'
         NullJudgment,
         RethrowJudgment,
         ReturnJudgment,
+        ShadowLargeIntLiteral,
         StringConcatenationJudgment,
         StringLiteralJudgment,
         SymbolLiteralJudgment,
@@ -170,7 +170,13 @@ class Fangorn extends Forest {
 
   @override
   IntJudgment literalInt(int value, Token token) {
-    return new IntJudgment(value)..fileOffset = offsetForToken(token);
+    return new IntJudgment(value, token?.lexeme)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  ShadowLargeIntLiteral literalLargeInt(String literal, Token token) {
+    return new ShadowLargeIntLiteral(literal, offsetForToken(token));
   }
 
   @override
@@ -696,12 +702,6 @@ class Fangorn extends Forest {
       String plainNameForRead) {
     return new KernelReadOnlyAccessGenerator(
         helper, token, expression, plainNameForRead);
-  }
-
-  @override
-  KernelIntAccessGenerator intAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token) {
-    return new KernelIntAccessGenerator(helper, token);
   }
 
   @override

@@ -44,7 +44,9 @@ import '../fasta_codes.dart'
         templateCantUseSuperBoundedTypeForInstanceCreation,
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
-        templateSwitchExpressionNotAssignable;
+        templateIntegerLiteralIsOutOfRange,
+        templateSwitchExpressionNotAssignable,
+        templateWebLiteralCannotBeRepresentedExactly;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -804,7 +806,7 @@ class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
-abstract class ExpressionJudgment implements Expression {
+abstract class ExpressionJudgment extends Expression {
   DartType inferredType;
 
   /// Calls back to [inferrer] to perform type inference for whatever concrete
@@ -1381,14 +1383,120 @@ abstract class InitializerJudgment implements Initializer {
   void infer(ShadowTypeInferrer inferrer);
 }
 
+Expression checkWebIntLiteralsErrorIfUnexact(
+    ShadowTypeInferrer inferrer, int value, String literal, int charOffset) {
+  if (value >= 0 && value <= (1 << 53)) return null;
+  if (inferrer.library == null) return null;
+  if (!inferrer.library.loader.target.backendTarget
+      .errorOnUnexactWebIntLiterals) return null;
+  BigInt asInt = BigInt.from(value).toUnsigned(64);
+  BigInt asDouble = BigInt.from(asInt.toDouble());
+  if (asInt == asDouble) return null;
+  String text = literal ?? value.toString();
+  String nearest = text.startsWith('0x') || text.startsWith('0X')
+      ? '0x${asDouble.toRadixString(16)}'
+      : asDouble.toString();
+  int length = literal?.length ?? noLength;
+  return inferrer.helper
+      .buildProblem(
+          templateWebLiteralCannotBeRepresentedExactly.withArguments(
+              text, nearest),
+          charOffset,
+          length)
+      .desugared;
+}
+
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
   DartType inferredType;
+  final String literal;
 
-  IntJudgment(int value) : super(value);
+  IntJudgment(int value, this.literal) : super(value);
+
+  double asDouble({bool negated: false}) {
+    if (value == 0 && negated) return -0.0;
+    BigInt intValue = BigInt.from(negated ? -value : value);
+    double doubleValue = intValue.toDouble();
+    return intValue == BigInt.from(doubleValue) ? doubleValue : null;
+  }
 
   @override
   Expression infer(ShadowTypeInferrer inferrer, DartType typeContext) {
+    if (inferrer.isDoubleContext(typeContext)) {
+      double doubleValue = asDouble();
+      if (doubleValue != null) {
+        parent.replaceChild(
+            this, DoubleLiteral(doubleValue)..fileOffset = fileOffset);
+        inferredType = inferrer.coreTypes.doubleClass.rawType;
+        return null;
+      }
+    }
+    Expression error =
+        checkWebIntLiteralsErrorIfUnexact(inferrer, value, literal, fileOffset);
+    if (error != null) {
+      parent.replaceChild(this, error);
+      inferredType = const BottomType();
+      return null;
+    }
+    inferredType = inferrer.coreTypes.intClass.rawType;
+    return null;
+  }
+}
+
+class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
+  final String literal;
+  final int fileOffset;
+  bool isParenthesized = false;
+
+  DartType inferredType;
+
+  ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
+
+  double asDouble({bool negated: false}) {
+    BigInt intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
+    if (intValue == null) return null;
+    double doubleValue = intValue.toDouble();
+    return !doubleValue.isNaN &&
+            !doubleValue.isInfinite &&
+            intValue == BigInt.from(doubleValue)
+        ? doubleValue
+        : null;
+  }
+
+  int asInt64({bool negated: false}) {
+    return int.tryParse(negated ? '-${literal}' : literal);
+  }
+
+  @override
+  Expression infer(ShadowTypeInferrer inferrer, DartType typeContext) {
+    if (inferrer.isDoubleContext(typeContext)) {
+      double doubleValue = asDouble();
+      if (doubleValue != null) {
+        parent.replaceChild(
+            this, DoubleLiteral(doubleValue)..fileOffset = fileOffset);
+        inferredType = inferrer.coreTypes.doubleClass.rawType;
+        return null;
+      }
+    }
+
+    int intValue = asInt64();
+    if (intValue == null) {
+      Expression replacement = inferrer.helper.buildProblem(
+          templateIntegerLiteralIsOutOfRange.withArguments(literal),
+          fileOffset,
+          literal.length);
+      parent.replaceChild(this, replacement);
+      inferredType = const BottomType();
+      return null;
+    }
+    Expression error = checkWebIntLiteralsErrorIfUnexact(
+        inferrer, intValue, literal, fileOffset);
+    if (error != null) {
+      parent.replaceChild(this, error);
+      inferredType = const BottomType();
+      return null;
+    }
+    parent.replaceChild(this, IntLiteral(intValue)..fileOffset = fileOffset);
     inferredType = inferrer.coreTypes.intClass.rawType;
     return null;
   }
@@ -1743,6 +1851,75 @@ class MethodInvocationJudgment extends MethodInvocation
 
   @override
   Expression infer(ShadowTypeInferrer inferrer, DartType typeContext) {
+    if (name.name == 'unary-' &&
+        arguments.types.isEmpty &&
+        arguments.positional.isEmpty &&
+        arguments.named.isEmpty) {
+      // Replace integer literals in a double context with the corresponding
+      // double literal if it's exact.  For double literals, the negation is
+      // folded away.  In any non-double context, or if there is no exact
+      // double value, then the corresponding integer literal is left.  The
+      // negation is not folded away so that platforms with web literals can
+      // distinguish between (non-negated) 0x8000000000000000 represented as
+      // integer literal -9223372036854775808 which should be a positive number,
+      // and negated 9223372036854775808 represented as
+      // -9223372036854775808.unary-() which should be a negative number.
+      if (receiver is IntJudgment) {
+        IntJudgment receiver = this.receiver;
+        if (inferrer.isDoubleContext(typeContext)) {
+          double doubleValue = receiver.asDouble(negated: true);
+          if (doubleValue != null) {
+            parent.replaceChild(
+                this, DoubleLiteral(doubleValue)..fileOffset = fileOffset);
+            inferredType = inferrer.coreTypes.doubleClass.rawType;
+            return null;
+          }
+        }
+        Expression error = checkWebIntLiteralsErrorIfUnexact(
+            inferrer, receiver.value, receiver.literal, receiver.fileOffset);
+        if (error != null) {
+          parent.replaceChild(this, error);
+          inferredType = const BottomType();
+          return null;
+        }
+      } else if (receiver is ShadowLargeIntLiteral) {
+        ShadowLargeIntLiteral receiver = this.receiver;
+        if (!receiver.isParenthesized) {
+          if (inferrer.isDoubleContext(typeContext)) {
+            double doubleValue = receiver.asDouble(negated: true);
+            if (doubleValue != null) {
+              parent.replaceChild(
+                  this, DoubleLiteral(doubleValue)..fileOffset = fileOffset);
+              inferredType = inferrer.coreTypes.doubleClass.rawType;
+              return null;
+            }
+          }
+          int intValue = receiver.asInt64(negated: true);
+          if (intValue == null) {
+            Expression error = inferrer.helper.buildProblem(
+                templateIntegerLiteralIsOutOfRange
+                    .withArguments(receiver.literal),
+                receiver.fileOffset,
+                receiver.literal.length);
+            parent.replaceChild(this, error);
+            inferredType = const BottomType();
+            return null;
+          }
+          if (intValue != null) {
+            Expression error = checkWebIntLiteralsErrorIfUnexact(
+                inferrer, intValue, receiver.literal, receiver.fileOffset);
+            if (error != null) {
+              parent.replaceChild(this, error);
+              inferredType = const BottomType();
+              return null;
+            }
+            this.receiver = IntLiteral(-intValue)
+              ..fileOffset = this.receiver.fileOffset
+              ..parent = this;
+          }
+        }
+      }
+    }
     var inferenceResult = inferrer.inferMethodInvocation(
         this, receiver, fileOffset, _isImplicitCall, typeContext,
         desugaredInvocation: this);
@@ -2670,6 +2847,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
         }
       }
       return inferredType;
+    } else if (expression is IntLiteral) {
+      return coreTypes.intClass.rawType;
+    } else if (expression is DoubleLiteral) {
+      return coreTypes.doubleClass.rawType;
     } else {
       // Encountered an expression type for which type inference is not yet
       // implemented, so just infer dynamic for now.

@@ -4324,30 +4324,30 @@ Message _withArgumentsInputFileNotFound(Uri uri_) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        Token
-            token)> templateIntegerLiteralIsOutOfRange = const Template<
-        Message Function(Token token)>(
+        String
+            string)> templateIntegerLiteralIsOutOfRange = const Template<
+        Message Function(String string)>(
     messageTemplate:
-        r"""The integer literal #lexeme can't be represented in 64 bits.""",
+        r"""The integer literal #string can't be represented in 64 bits.""",
     tipTemplate:
         r"""Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
     withArguments: _withArgumentsIntegerLiteralIsOutOfRange);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeIntegerLiteralIsOutOfRange =
-    const Code<Message Function(Token token)>(
+const Code<Message Function(String string)> codeIntegerLiteralIsOutOfRange =
+    const Code<Message Function(String string)>(
         "IntegerLiteralIsOutOfRange", templateIntegerLiteralIsOutOfRange,
         analyzerCodes: <String>["INTEGER_LITERAL_OUT_OF_RANGE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {
-  String lexeme = token.lexeme;
+Message _withArgumentsIntegerLiteralIsOutOfRange(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeIntegerLiteralIsOutOfRange,
       message:
-          """The integer literal ${lexeme} can't be represented in 64 bits.""",
+          """The integer literal ${string} can't be represented in 64 bits.""",
       tip:
           """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
-      arguments: {'token': token});
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
