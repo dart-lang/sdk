@@ -28,7 +28,7 @@ WritableInstructionsScope::~WritableInstructionsScope() {
   }
 }
 
-bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
+bool MatchesPattern(uword end, int16_t* pattern, intptr_t size) {
   // When breaking within generated code in GDB, it may overwrite individual
   // instructions with trap instructions, which can cause this test to fail.
   //
@@ -37,7 +37,7 @@ bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
   // cause replay to diverge from the original record.
   if (FLAG_support_rr) return true;
 
-  uint8_t* bytes = reinterpret_cast<uint8_t*>(addr);
+  uint8_t* bytes = reinterpret_cast<uint8_t*>(end - size);
   for (intptr_t i = 0; i < size; i++) {
     int16_t val = pattern[i];
     if ((val >= 0) && (val != bytes[i])) {

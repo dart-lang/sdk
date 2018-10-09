@@ -49,7 +49,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
-  uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();
+  uword end = test->payload_start() + test->code().Size();
+  uword return_address = end - 1;  // sizeof(ret)
   ICData& ic_data = ICData::Handle();
   CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data);
   EXPECT_STREQ("targetFunction",

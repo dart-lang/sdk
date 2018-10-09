@@ -20,8 +20,8 @@ class RawClass;
 class Immediate;
 class RawObject;
 
-intptr_t IndexFromPPLoad(uword start);
 intptr_t IndexFromPPLoadDisp8(uword start);
+intptr_t IndexFromPPLoadDisp32(uword start);
 
 // Template class for all instruction pattern classes.
 // P has to specify a static pattern and a pattern length method.

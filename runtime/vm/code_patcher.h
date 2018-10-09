@@ -64,8 +64,6 @@ class CodePatcher : public AllStatic {
                                                  const Code& code,
                                                  ICData* ic_data);
 
-  static intptr_t InstanceCallSizeInBytes();
-
   static void InsertDeoptimizationCallAt(uword start);
 
   static void PatchPoolPointerCallAt(uword return_address,
@@ -106,11 +104,11 @@ class CodePatcher : public AllStatic {
   static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
 };
 
-// Beginning from [addr] we compare [size] bytes with [pattern].  All [0..255]
-// values in [pattern] have to match, negative values are skipped.
+// Beginning from [end - size] we compare [size] bytes with [pattern]. All
+// [0..255] values in [pattern] have to match, negative values are skipped.
 //
 // Example pattern: `[0x3d, 0x8b, -1, -1]`.
-bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size);
+bool MatchesPattern(uword end, int16_t* pattern, intptr_t size);
 
 class KBCPatcher : public AllStatic {
  public:

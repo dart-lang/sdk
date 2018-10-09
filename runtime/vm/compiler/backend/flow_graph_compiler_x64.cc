@@ -762,8 +762,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
-  __ movq(subtype_cache_reg,
-          Address::AddressBaseImm32(PP, sub_type_cache_offset));
+  __ movq(subtype_cache_reg, Address(PP, sub_type_cache_offset));
   __ call(FieldAddress(RBX, AbstractType::type_test_stub_entry_point_offset()));
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);

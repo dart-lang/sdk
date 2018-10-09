@@ -293,8 +293,6 @@ class Assembler : public ValueObject {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 15;
-
   void pushq(Register reg);
   void pushq(const Address& address) { EmitUnaryL(address, 0xFF, 6); }
   void pushq(const Immediate& imm);
