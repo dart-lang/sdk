@@ -243,7 +243,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens
    * and capitalizing the following letter. Optionally [startUppercase] to
-   * captialize the first letter.
+   * capitalize the first letter.
    */
   String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
     var segments = hyphenedName.split('-');

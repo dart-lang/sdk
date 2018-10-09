@@ -2880,7 +2880,7 @@ class CodeGenerator extends Object
       FunctionBody body, ExecutableElement element) {
     var block = body.accept(this) as JS.Block;
     if (element.parameters.isNotEmpty) {
-      // Handle shadowing of parameters by local varaibles, which is allowed in
+      // Handle shadowing of parameters by local variables, which is allowed in
       // Dart but not in JS.
       //
       // We need this for all function types, including generator-based ones
@@ -5105,7 +5105,7 @@ class CodeGenerator extends Object
   ///
   /// For example, `expr1[expr2]++` can be transformed to this:
   ///
-  ///     // psuedocode mix of Scheme and JS:
+  ///     // pseudocode mix of Scheme and JS:
   ///     (let* (x1=expr1, x2=expr2, t=expr1[expr2]) { x1[x2] = t + 1; t })
   ///
   /// The [JS.MetaLet] nodes automatically simplify themselves if they can.
@@ -6326,19 +6326,19 @@ class CodeGenerator extends Object
   @override
   visitConfiguration(node) => _unreachable(node);
 
-  /// Unusued, see [_emitConstructor].
+  /// Unused, see [_emitConstructor].
   @override
   visitConstructorDeclaration(node) => _unreachable(node);
 
-  /// Unusued, see [_emitFieldInitializers].
+  /// Unused, see [_emitFieldInitializers].
   @override
   visitConstructorFieldInitializer(node) => _unreachable(node);
 
-  /// Unusued, see [_emitRedirectingConstructor].
+  /// Unused, see [_emitRedirectingConstructor].
   @override
   visitRedirectingConstructorInvocation(node) => _unreachable(node);
 
-  /// Unusued. Handled in [visitForEachStatement].
+  /// Unused. Handled in [visitForEachStatement].
   @override
   visitDeclaredIdentifier(node) => _unreachable(node);
 

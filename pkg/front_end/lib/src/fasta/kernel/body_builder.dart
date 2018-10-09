@@ -806,7 +806,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     // No-such-method forwarders get their bodies injected during outline
-    // buliding, so we should skip them here.
+    // building, so we should skip them here.
     bool isNoSuchMethodForwarder = (builder.function.parent is Procedure &&
         (builder.function.parent as Procedure).isNoSuchMethodForwarder);
     if (!builder.isExternal && !isNoSuchMethodForwarder) {
@@ -1145,7 +1145,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // treat -n differently from -(n).  If the expression occurs in a double
       // context, -n is a double literal and -(n) is an application of unary- to
       // an integer literal.  And in any other context, '-' is part of the
-      // syntax of -n, i.e., -9223372036854775808 is OK and it is the minimun
+      // syntax of -n, i.e., -9223372036854775808 is OK and it is the minimum
       // 64-bit integer, and '-' is an application of unary- in -(n), i.e.,
       // -(9223372036854775808) is an error because the literal does not fit in
       // 64-bits.
@@ -2910,7 +2910,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     pushQualifiedReference(start, periodBeforeName);
   }
 
-  /// A qualfied reference is something that matches one of:
+  /// A qualified reference is something that matches one of:
   ///
   ///     identifier
   ///     identifier typeArguments? '.' identifier

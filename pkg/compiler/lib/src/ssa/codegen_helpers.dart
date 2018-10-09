@@ -140,7 +140,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     //
     // where the interceptor calling convention is used come from recognizing
     // that 'a' is a 'self-interceptor'.  If the selector matches only methods
-    // that ignore the explicit receiver parameter, replace occurences of the
+    // that ignore the explicit receiver parameter, replace occurrences of the
     // receiver argument with a dummy receiver '0':
     //
     //     a.foo$1(a, x)   --->   a.foo$1(0, x)
@@ -861,7 +861,7 @@ class SsaShareRegionConstants extends HBaseVisitor {
     }
   }
 
-  // Not all occurences should be replaced with a local variable cache, so we
+  // Not all occurrences should be replaced with a local variable cache, so we
   // filter the uses.
   int _countCacheableUses(
       HInstruction node, bool Function(HInstruction) cacheable) {
@@ -943,7 +943,7 @@ class SsaShareRegionConstants extends HBaseVisitor {
       // JavaScript `x == null` is more efficient than `x == _null`.
       if (instruction is HIdentity) return false;
 
-      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
       return false;
     }
 
@@ -971,7 +971,7 @@ class SsaShareRegionConstants extends HBaseVisitor {
       // Foreign code templates may use literals in ways that are beneficial.
       if (instruction is HForeignCode) return false;
 
-      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
       return false;
     }
 
@@ -1001,7 +1001,7 @@ class SsaShareRegionConstants extends HBaseVisitor {
       // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
       if (instruction is HFieldSet) return true;
 
-      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      // TODO(sra): Determine if other uses result in faster JavaScript code.
       return false;
     }
 

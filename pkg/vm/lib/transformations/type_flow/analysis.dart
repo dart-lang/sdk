@@ -133,7 +133,7 @@ abstract class _Invocation extends _DependencyTracker
         typeFlowAnalysis.workList.processInvocation(nsmInvocation);
 
     // Result of this invocation depends on the result of noSuchMethod
-    // inovcation.
+    // invocation.
     nsmInvocation.addDependentInvocation(this);
 
     return type;
