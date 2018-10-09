@@ -2393,7 +2393,8 @@ const Template<Message Function(String name)> templateDuplicatedLibraryImport =
 const Code<Message Function(String name)> codeDuplicatedLibraryImport =
     const Code<Message Function(String name)>(
         "DuplicatedLibraryImport", templateDuplicatedLibraryImport,
-        analyzerCodes: <String>["IMPORT_DUPLICATED_LIBRARY_NAMED"]);
+        analyzerCodes: <String>["IMPORT_DUPLICATED_LIBRARY_NAMED"],
+        severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedLibraryImport(String name) {

@@ -25,7 +25,6 @@ inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
 inference/swarm_test: Slow, Pass, Fail #
 inference/type_mask2_test: RuntimeError # Issue 34095
 inlining/inlining_test: Slow, Pass
-model/in_user_code_test: RuntimeError # Two libraries with the same name -- actually a CompileTimeError
 model/native_test: Pass, Slow
 model/no_such_method_enabled_test: Pass, Slow
 model/subtype_test: Pass, Slow

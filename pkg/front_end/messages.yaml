@@ -1687,6 +1687,7 @@ DuplicatedImport:
 
 DuplicatedLibraryImport:
   template: "A library with name '#name' is imported more than once."
+  severity: WARNING
   analyzerCode: IMPORT_DUPLICATED_LIBRARY_NAMED
   script:
     lib1.dart: "library foo;"

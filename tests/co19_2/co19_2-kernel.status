@@ -183,6 +183,7 @@ Language/Generics/scope_t06: MissingCompileTimeError # Issue 33308
 Language/Generics/syntax_t02: CompileTimeError
 Language/Generics/syntax_t03: CompileTimeError
 Language/Generics/upper_bound_t01: MissingCompileTimeError # Issue 33308
+Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError # Issue 30273
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
 Language/Mixins/Mixin_Application/superclass_t01: MissingCompileTimeError
