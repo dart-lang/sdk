@@ -140,6 +140,8 @@ eval_test: Pass, Slow
 code_test: RuntimeError
 get_object_rpc_test: RuntimeError
 get_stack_rpc_test: RuntimeError
+
+[ $arch == x64 && $compiler == dartk && $system == windows ]
 regexp_function_test: Pass, Crash # Issue http://dartbug.com/34422
 
 [ $compiler == app_jitk && $mode == debug ]
