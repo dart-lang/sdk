@@ -71,7 +71,6 @@ int timeDuration(List events, int timeOrigin) {
 
 void allEventsHaveIsolateNumber(List events) {
   for (Map event in events) {
-    print(event);
     if (event['ph'] == 'M') {
       // Skip meta-data events.
       continue;
