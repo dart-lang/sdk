@@ -733,7 +733,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
-config_import_test: Crash
 const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
@@ -1390,7 +1389,6 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
-config_import_test: Crash
 const_conditional_test/08: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
