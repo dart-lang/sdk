@@ -5109,8 +5109,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 
   int get hashCode => value.isNaN ? 199 : super.hashCode;
   bool operator ==(Object other) =>
-      other is DoubleConstant &&
-      (other.value == value || identical(value, other.value) /* For NaN */);
+      other is DoubleConstant && identical(value, other.value);
 
   DartType getType(TypeEnvironment types) => types.doubleType;
 }
