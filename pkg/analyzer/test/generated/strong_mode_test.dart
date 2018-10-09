@@ -28,9 +28,7 @@ main() {
   });
 }
 
-/**
- * Strong mode static analyzer local type inference tests
- */
+/// Strong mode static analyzer local type inference tests
 @reflectiveTest
 class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
@@ -2792,9 +2790,7 @@ class B<T2, U2> {
   }
 }
 
-/**
- * Strong mode static analyzer end to end tests
- */
+/// Strong mode static analyzer end to end tests
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
     with StrongModeStaticTypeAnalyzer2TestCases {
