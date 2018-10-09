@@ -1163,10 +1163,15 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    var arguments = <String>[];
-    for (var argument in args) {
-      if (argument != "--ignore-unrecognized-flags") {
-        arguments.add(argument);
+    List<String> arguments = <String>[];
+    for (String argument in args) {
+      if (argument == "--ignore-unrecognized-flags") continue;
+      arguments.add(argument);
+      if (!argument.startsWith("-")) {
+        // Some tests pass arguments to the Dart program; that is, arguments
+        // after the name of the test file. Such arguments have nothing to do
+        // with the compiler and should be ignored.
+        break;
       }
     }
     return arguments;
