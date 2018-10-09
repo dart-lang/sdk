@@ -19,6 +19,8 @@ class ResourceProviderMixin {
   String convertPath(String path) => resourceProvider.convertPath(path);
 
   /// Convert the given [path] to be a valid import uri for this provider's path context.
+  /// The URI will use forward slashes on all platforms and absolute paths on Windows
+  /// will be formatted as /X:/path/file.dart
   String convertPathForImport(String path) {
     path = resourceProvider.convertPath(path);
 
@@ -31,7 +33,9 @@ class ResourceProviderMixin {
       path = new Uri.file(path).path;
     }
 
-    return path;
+    // Since this returns a URI for imports, it should always be forward slashes
+    // even for relative paths on Windows.
+    return path.replaceAll(r'\', '/');
   }
 
   void deleteFile(String path) {

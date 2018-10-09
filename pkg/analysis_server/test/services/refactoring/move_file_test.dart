@@ -41,24 +41,25 @@ class MoveFileTest extends RefactoringTest {
     addTestSource('''
 library lib;
 import 'dart:math';
-import '22/c.dart';
-export '333/d.dart';
+import '${convertPathForImport('22/c.dart')}';
+export '${convertPathForImport('333/d.dart')}';
 part 'a.dart';
-part '/absolute/uri.dart';
+part '${convertPathForImport('/absolute/uri.dart')}';
 ''');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertNoFileChange(pathA);
-    assertFileChangeResult(pathB, "import '22/new_name.dart';");
+    assertFileChangeResult(
+        pathB, "import '${convertPathForImport('22/new_name.dart')}';");
     assertNoFileChange(pathC);
     assertFileChangeResult(testFile, '''
 library lib;
 import 'dart:math';
 import 'c.dart';
-export '../333/d.dart';
-part '../a.dart';
-part '/absolute/uri.dart';
+export '${convertPathForImport('../333/d.dart')}';
+part '${convertPathForImport('../a.dart')}';
+part '${convertPathForImport('/absolute/uri.dart')}';
 ''');
   }
 
@@ -73,7 +74,7 @@ import 'test.dart';
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
-import '22/new_name.dart';
+import '${convertPathForImport('22/new_name.dart')}';
 ''');
     assertNoFileChange(testFile);
   }
@@ -82,14 +83,14 @@ import '22/new_name.dart';
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
     addSource(pathA, '''
-import 'sub/folder/test.dart';
+import '${convertPathForImport('sub/folder/test.dart')}';
 ''');
     addTestSource('');
     // perform refactoring
     _createRefactoring('/project/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
-import '../new/folder/name/new_name.dart';
+import '${convertPathForImport('../new/folder/name/new_name.dart')}';
 ''');
     assertNoFileChange(testFile);
   }
@@ -98,7 +99,7 @@ import '../new/folder/name/new_name.dart';
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
-import '22/test.dart';
+import '${convertPathForImport('22/test.dart')}';
 ''');
     addTestSource('');
     // perform refactoring
@@ -119,11 +120,11 @@ import 'new_name.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '22/test.dart';
+part '${convertPathForImport('22/test.dart')}';
 ''');
     addSource(pathB, '''
 library lib;
-part '1111/22/test.dart';
+part '${convertPathForImport('1111/22/test.dart')}';
 ''');
     addTestSource('''
 part of lib;
@@ -133,11 +134,11 @@ part of lib;
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '22/new_name.dart';
+part '${convertPathForImport('22/new_name.dart')}';
 ''');
     assertFileChangeResult(pathB, '''
 library lib;
-part '1111/22/new_name.dart';
+part '${convertPathForImport('1111/22/new_name.dart')}';
 ''');
     assertNoFileChange(testFile);
   }
@@ -147,7 +148,7 @@ part '1111/22/new_name.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '22/test.dart';
+part '${convertPathForImport('22/test.dart')}';
 ''');
     addTestSource('''
 part of lib;
@@ -157,7 +158,7 @@ part of lib;
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '22/new_name.dart';
+part '${convertPathForImport('22/new_name.dart')}';
 ''');
     assertNoFileChange(testFile);
   }
@@ -172,7 +173,8 @@ part '22/new_name.dart';
     // TODO(dantup): These paths should all use convertPath so they're as expected
     // on Windows.
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage: '/tmp does not belong to an analysis root.');
+        expectedMessage:
+            '${convertPath('/tmp')} does not belong to an analysis root.');
   }
 
   test_nonexistent_file_returns_failure() async {
@@ -194,7 +196,7 @@ part '22/new_name.dart';
     _createRefactoring('/project2', oldName: '/project');
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Renaming an analysis root is not supported (/project)');
+            'Renaming an analysis root is not supported (${convertPath('/project')})');
   }
 
   test_renaming_part_that_uses_uri_in_part_of() async {
@@ -205,20 +207,20 @@ part '22/new_name.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '22/test.dart';
+part '${convertPathForImport('22/test.dart')}';
 ''');
     addTestSource('''
-part of '../a.dart';
+part of '${convertPathForImport('../a.dart')}';
 ''');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/33/test.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '22/33/test.dart';
+part '${convertPathForImport('22/33/test.dart')}';
 ''');
     assertFileChangeResult(testFile, '''
-part of '../../a.dart';
+part of '${convertPathForImport('../../a.dart')}';
 ''');
   }
 
@@ -235,13 +237,13 @@ part of '../../a.dart';
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to that.
     if (oldName != null) {
-      refactoring =
-          new MoveFileRefactoring(resourceProvider, workspace, null, oldName);
+      refactoring = new MoveFileRefactoring(
+          resourceProvider, workspace, null, convertPath(oldName));
     } else {
       refactoring = new MoveFileRefactoring(
           resourceProvider, workspace, testSource, null);
     }
-    refactoring.newFile = newName;
+    refactoring.newFile = convertPath(newName);
   }
 
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
