@@ -1132,11 +1132,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
 
-  /// Check that [f1] is a subtype of [f2] for a member override.
-  ///
-  /// This is different from the normal function subtyping in two ways:
-  /// - we know the function types are strict arrows,
-  /// - it allows opt-in covariant parameters.
+  @override
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
         parameterRelation: isOverrideSubtypeOfParameter,
@@ -1831,6 +1827,13 @@ abstract class TypeSystem {
    */
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
+  /// Check that [f1] is a subtype of [f2] for a member override.
+  ///
+  /// This is different from the normal function subtyping in two ways:
+  /// - we know the function types are strict arrows,
+  /// - it allows opt-in covariant parameters.
+  bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
+
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
    * if leftType <: rightType).
@@ -2140,6 +2143,11 @@ class TypeSystemImpl extends TypeSystem {
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) =>
       t1.isMoreSpecificThan(t2);
+
+  @override
+  bool isOverrideSubtypeOf(FunctionType leftType, FunctionType rightType) {
+    return isSubtypeOf(leftType, rightType);
+  }
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {

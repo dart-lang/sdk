@@ -542,12 +542,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitInterpolationExpression(InterpolationExpression node) {
-    _checkForUseOfVoidResult(node.expression);
-    return super.visitInterpolationExpression(node);
-  }
-
-  @override
   Object visitConditionalExpression(ConditionalExpression node) {
     _checkForNonBoolCondition(node.condition);
     // TODO(mfairhurst) Enable this and get code compliant.
@@ -923,6 +917,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitIntegerLiteral(IntegerLiteral node) {
     _checkForOutOfRange(node);
     return super.visitIntegerLiteral(node);
+  }
+
+  @override
+  Object visitInterpolationExpression(InterpolationExpression node) {
+    _checkForUseOfVoidResult(node.expression);
+    return super.visitInterpolationExpression(node);
   }
 
   @override
@@ -4221,7 +4221,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _inheritanceManager2.getMember(mixinType, nameObject);
 
       if (mixinMemberType != null &&
-          !_typeSystem.isSubtypeOf(superMemberType, mixinMemberType)) {
+          !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,

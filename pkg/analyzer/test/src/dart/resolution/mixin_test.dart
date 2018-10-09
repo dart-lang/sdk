@@ -1046,6 +1046,28 @@ abstract class X extends A with M {}
     assertNoTestErrors();
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_super_covariant() async {
+    addTestFile(r'''
+class A {
+  bar(num n) {}
+}
+
+mixin M on A {
+  test() {
+    super.bar(3.14);
+  }
+}
+
+class B implements A {
+  bar(covariant int i) {}
+}
+
+class C extends B with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() async {
     addTestFile(r'''
 abstract class A {
