@@ -31,6 +31,7 @@ LibTest/core/double/round_A01_t03: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t02: RuntimeError
 LibTest/io/Directory/renameSync_A02_t01: RuntimeError
 LibTest/io/Directory/rename_A02_t01: RuntimeError
+LibTest/io/Directory/stat_A01_t02: RuntimeError, Pass
 LibTest/io/File/openRead_A01_t04: RuntimeError
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t05: Fail, Pass
 LibTest/io/HttpClientRequest/addStream_A02_t02: RuntimeError
@@ -514,7 +515,7 @@ LibTest/io/Cookie/Cookie_A01_t04: RuntimeError
 LibTest/io/Directory/watch_A01_t01: Fail, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t01: Fail, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t02: Fail, Pass
-LibTest/io/FileSystemCreateEvent/path_A01_t01: Fail
+LibTest/io/FileSystemCreateEvent/path_A01_t01: Fail, Pass
 LibTest/io/FileSystemModifyEvent/isDirectory_A01_t02: Fail
 LibTest/io/FileSystemModifyEvent/path_A01_t01: Fail
 LibTest/io/FileSystemModifyEvent/type_A01_t02: Fail
@@ -1118,6 +1119,7 @@ LibTest/typed_data/Int16List/any_A01_t01: RuntimeError
 LibTest/typed_data/Int16List/every_A01_t01: RuntimeError
 LibTest/typed_data/Int32List/any_A01_t01: RuntimeError
 LibTest/typed_data/Int32List/every_A01_t01: RuntimeError
+LibTest/typed_data/Int32List/shuffle_A01_t01: RuntimeError, Pass
 LibTest/typed_data/Int32x4List/Int32x4List.fromList_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/Int32x4List.fromList_A01_t02: RuntimeError
 LibTest/typed_data/Int32x4List/Int32x4List.view_A01_t01: RuntimeError
