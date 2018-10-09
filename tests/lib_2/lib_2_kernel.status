@@ -44,6 +44,9 @@ isolate/mint_maker_test: Timeout # Please triage.
 [ $arch == simdbc64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
+[ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
+mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
+
 [ $arch == x64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 

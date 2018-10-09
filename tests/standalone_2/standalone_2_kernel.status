@@ -48,6 +48,13 @@ io/dart_std_io_pipe_test: Timeout, Pass # Issue 34723
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_bind_test: Pass, Slow
 
+[ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
+io/file_test: Fail # Memory leak (issue 34724)
+io/http_server_response_test: Fail # Memory leak (issue 34724)
+io/process_sync_test: Pass, RuntimeError # Issue 34734
+io/signals_test: Pass, RuntimeError # Issue 34734
+io/test_extension_fail_test: Fail # Memory leak (issue 34724)
+
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
