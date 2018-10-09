@@ -18,6 +18,7 @@ main() {
         {bool dryRun = false,
         String errorOut,
         int exitCode,
+        bool force = false,
         String normalOut,
         List<String> targetSuffixes,
         bool verbose = false}) {
@@ -39,6 +40,7 @@ main() {
         expect(actualExitCode, isNull, reason: 'exit code');
       }
       expect(options.dryRun, dryRun);
+      expect(options.force, force);
       expect(options.verbose, verbose);
       expect(path.isAbsolute(options.sdkPath), isTrue, reason: options.sdkPath);
       for (String target in options.targets) {
@@ -61,6 +63,10 @@ main() {
       parse(['--dry-run', 'foo'], dryRun: true, targetSuffixes: ['foo']);
     });
 
+    test('force', () {
+      parse(['--force', 'foo'], force: true, targetSuffixes: ['foo']);
+    });
+
     test('invalid option', () {
       parse(['--foo'],
           errorOut: 'Could not find an option named "foo"', exitCode: 15);
@@ -75,7 +81,7 @@ main() {
       parse(['foo'], targetSuffixes: ['foo']);
     });
 
-    test('two files', () {
+    test('two targets', () {
       parse([p('one/foo'), p('two/bar')],
           targetSuffixes: [p('one/foo'), p('two/bar')]);
     });

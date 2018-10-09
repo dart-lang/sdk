@@ -18,9 +18,6 @@ class TestContext with ResourceProviderMixin implements Context {
   final stderr = new StringBuffer();
 
   @override
-  Stream<List<int>> get stdin => stdinController.stream;
-
-  @override
   String get workingDir => convertPath('/usr/some/non/existing/directory');
 
   @override

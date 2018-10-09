@@ -13,6 +13,7 @@ class Options {
 
   List<String> targets;
   bool dryRun;
+  bool force;
   String sdkPath;
   bool verbose;
 
@@ -30,10 +31,14 @@ class Options {
               ' but exit before applying them',
           defaultsTo: false,
           negatable: false)
+      ..addFlag(forceOption,
+          abbr: 'f',
+          help: 'Apply the recommended changes even if there are errors.',
+          defaultsTo: false,
+          negatable: false)
       ..addFlag(_helpOption,
           abbr: 'h',
-          help:
-              'Display this help message. Add --verbose to show hidden options.',
+          help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
       ..addFlag(_verboseOption,
@@ -106,6 +111,7 @@ class Options {
   void _fromArgs(ArgResults results) {
     targets = results.rest;
     dryRun = results[_dryRunOption] as bool;
+    force = results[forceOption] as bool;
     sdkPath = results[_sdkPathOption] as String;
     verbose = results[_verboseOption] as bool;
   }
@@ -127,6 +133,7 @@ class Options {
 
 const _binaryName = 'dartfix';
 const _dryRunOption = 'dry-run';
+const forceOption = 'force';
 const _helpOption = 'help';
 const _sdkPathOption = 'dart-sdk';
 const _verboseOption = 'verbose';

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -24,6 +23,7 @@ class Driver {
   Completer serverConnected;
   Completer analysisComplete;
   bool dryRun;
+  bool force;
   bool verbose;
   List<String> targets;
 
@@ -34,6 +34,7 @@ class Driver {
     final options = Options.parse(args, context);
 
     dryRun = options.dryRun;
+    force = options.force;
     verbose = options.verbose;
     targets = options.targets;
 
@@ -127,18 +128,17 @@ class Driver {
     for (SourceFileEdit fileEdit in result.fixes) {
       context.print(fileEdit.file);
     }
-    if (dryRun || !(await confirmApplyChanges(result))) {
-      return;
-    }
-    for (SourceFileEdit fileEdit in result.fixes) {
-      final file = new File(fileEdit.file);
-      String code = await file.readAsString();
-      for (SourceEdit edit in fileEdit.edits) {
-        code = edit.apply(code);
+    if (shouldApplyChanges(result)) {
+      for (SourceFileEdit fileEdit in result.fixes) {
+        final file = new File(fileEdit.file);
+        String code = await file.readAsString();
+        for (SourceEdit edit in fileEdit.edits) {
+          code = edit.apply(code);
+        }
+        await file.writeAsString(code);
       }
-      await file.writeAsString(code);
+      context.print('Changes applied.');
     }
-    context.print('Changes applied.');
   }
 
   void showDescriptions(List<String> descriptions, String title) {
@@ -152,33 +152,18 @@ class Driver {
     }
   }
 
-  Future<bool> confirmApplyChanges(EditDartfixResult result) async {
+  bool shouldApplyChanges(EditDartfixResult result) {
     context.print();
     if (result.hasErrors) {
       context.print('WARNING: The analyzed source contains errors'
           ' that may affect the accuracy of these changes.');
-    }
-    const prompt = 'Would you like to apply these changes (y/n)? ';
-    context.stdout.write(prompt);
-    final response = new Completer<bool>();
-    final subscription = context.stdin
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((String line) {
-      line = line.trim().toLowerCase();
-      if (line == 'y' || line == 'yes') {
-        response.complete(true);
-      } else if (line == 'n' || line == 'no') {
-        response.complete(false);
-      } else {
-        context.stdout
-            .writeln('  Unrecognized response. Please type "yes" or "no".');
-        context.stdout.write(prompt);
+      context.print();
+      if (!force) {
+        context.print('Rerun with --$forceOption to apply these changes.');
+        return false;
       }
-    });
-    bool applyChanges = await response.future;
-    await subscription.cancel();
-    return applyChanges;
+    }
+    return !dryRun;
   }
 
   /// Dispatch the notification named [event], and containing parameters

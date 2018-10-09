@@ -6,8 +6,6 @@ import 'dart:io' as io;
 
 /// The context for dartfix.
 class Context {
-  Stream<List<int>> get stdin => io.stdin;
-
   StringSink get stdout => io.stdout;
   StringSink get stderr => io.stderr;
 
