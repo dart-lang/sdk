@@ -1,11 +1,13 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart';
 
 @visibleForTesting
 StringSink errorSink = stderr;
@@ -24,13 +26,14 @@ typedef void ExitHandler(int code);
 
 /// Command line options for `dartfix`.
 class Options {
+  List<String> targets;
   List<String> analysisRoots;
   bool dryRun;
   String sdkPath;
   bool verbose;
 
   static Options parse(List<String> args,
-      {printAndFail(String msg) = printAndFail}) {
+      {printAndFail(String msg) = printAndFail, bool checkExists = true}) {
     final parser = new ArgParser(allowTrailingOptions: true);
 
     parser
@@ -85,21 +88,50 @@ class Options {
     }
 
     // Check for files and/or directories to analyze.
-    if (options.analysisRoots == null || options.analysisRoots.isEmpty) {
+    if (options.targets == null || options.targets.isEmpty) {
       errorSink.writeln('Expected at least one file or directory to analyze.');
       _showUsage(parser);
       exitHandler(15);
       return null; // Only reachable in testing.
     }
 
+    // Normalize and verify paths
+    options.targets =
+        options.targets.map<String>(makeAbsoluteAndNormalize).toList();
+    for (String target in options.targets) {
+      // TODO(danrubel): Consider a driver context for existence checks,
+      // reporting errors, and the like.
+      if (checkExists && !_exists(target)) {
+        errorSink.writeln('Expected an existing file or directory: $target');
+        _showUsage(parser);
+        exitHandler(15);
+        return null; // Only reachable in testing.
+      }
+      options._addAnalysisRoot(target);
+    }
+
     return options;
   }
 
   Options._fromArgs(ArgResults results)
-      : analysisRoots = results.rest,
+      : targets = results.rest,
+        analysisRoots = <String>[],
         dryRun = results[_dryRunOption] as bool,
         sdkPath = results[_sdkPathOption] as String,
         verbose = results[_verboseOption] as bool;
+
+  void _addAnalysisRoot(String target) {
+    // TODO(danrubel): Consider finding the directory containing `pubspec.yaml`
+    // and using that as the analysis root
+    String parent = target.endsWith('.dart') ? dirname(target) : target;
+    for (String root in analysisRoots) {
+      if (root == parent || isWithin(root, parent)) {
+        return;
+      }
+    }
+    analysisRoots.removeWhere((String root) => isWithin(parent, root));
+    analysisRoots.add(parent);
+  }
 
   static _showUsage(ArgParser parser) {
     errorSink.writeln(
@@ -115,8 +147,18 @@ const _helpOption = 'help';
 const _sdkPathOption = 'dart-sdk';
 const _verboseOption = 'verbose';
 
+String makeAbsoluteAndNormalize(String target) {
+  if (!isAbsolute(target)) {
+    target = join(Directory.current.path, target);
+  }
+  return normalize(target);
+}
+
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode: 15}) {
   errorSink.writeln(message);
   exitHandler(exitCode);
 }
+
+bool _exists(String target) =>
+    FileSystemEntity.typeSync(target) != FileSystemEntityType.notFound;

@@ -11,6 +11,7 @@ import 'package:analyzer_cli/src/fix/server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart';
 
 // For development
 const runAnalysisServerFromSource = false;
@@ -22,6 +23,8 @@ class Driver {
   Completer analysisComplete;
   bool dryRun;
   bool verbose;
+  List<String> targets;
+
   static const progressThreshold = 10;
   int progressCount = progressThreshold;
 
@@ -34,6 +37,7 @@ class Driver {
     }
     dryRun = options.dryRun;
     verbose = options.verbose;
+    targets = options.targets;
 
     EditDartfixResult result;
     await startServer(options);
@@ -87,8 +91,8 @@ class Driver {
     outSink.write('Calculating fixes...');
     verboseOut('');
     analysisComplete = new Completer();
-    Map<String, dynamic> json = await server.send(EDIT_REQUEST_DARTFIX,
-        new EditDartfixParams(options.analysisRoots).toJson());
+    Map<String, dynamic> json = await server.send(
+        EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
     await analysisComplete.future;
     analysisComplete = null;
     resetProgress();
@@ -281,7 +285,7 @@ class Driver {
 
   void onAnalysisErrors(AnalysisErrorsParams params) {
     List<AnalysisError> errors = params.errors;
-    if (errors.isNotEmpty) {
+    if (errors.isNotEmpty && isTarget(params.file)) {
       resetProgress();
       outSink.writeln(params.file);
       for (AnalysisError error in errors) {
@@ -337,5 +341,14 @@ class Driver {
     if (verbose) {
       outSink.writeln(message);
     }
+  }
+
+  bool isTarget(String path) {
+    for (String target in targets) {
+      if (path == target || isWithin(target, path)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

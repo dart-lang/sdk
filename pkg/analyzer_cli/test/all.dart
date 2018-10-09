@@ -9,6 +9,7 @@ import 'embedder_test.dart' as embedder_test;
 import 'error_test.dart' as error_test;
 import 'errors_reported_once_test.dart' as errors_reported_once_test;
 import 'errors_upgrade_fails_cli_test.dart' as errors_upgrade_fails_cli_test;
+import 'fix/options_test.dart' as fix_options;
 import 'options_test.dart' as options_test;
 import 'package_prefix_test.dart' as package_prefix_test;
 import 'perf_report_test.dart' as perf_report_test;
@@ -25,6 +26,7 @@ main() {
   error_test.main();
   errors_reported_once_test.main();
   errors_upgrade_fails_cli_test.main();
+  fix_options.main();
   options_test.main();
   package_prefix_test.main();
   perf_report_test.main();
