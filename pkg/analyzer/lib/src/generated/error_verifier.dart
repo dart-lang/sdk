@@ -5103,7 +5103,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Element element = name.staticElement;
     if (element is ExecutableElement) {
       // OK, static
-      if (element.isStatic) {
+      if (element.isStatic || element is ConstructorElement) {
         return;
       }
       _errorReporter.reportErrorForNode(

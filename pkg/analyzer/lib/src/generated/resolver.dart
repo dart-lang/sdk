@@ -112,7 +112,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             errorReporter.reportErrorForNode(
                 StaticTypeWarningCode
                     .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-                node,
+                typeArguments,
                 [element.name, constructorElement.name]);
           }
           AstFactory astFactory = new AstFactoryImpl();
@@ -179,7 +179,7 @@ class AstRewriteVisitor extends ScopedVisitor {
               errorReporter.reportErrorForNode(
                   StaticTypeWarningCode
                       .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-                  node,
+                  typeArguments,
                   [element.name, constructorElement.name]);
             }
             AstFactory astFactory = new AstFactoryImpl();
@@ -7169,6 +7169,37 @@ class TypeNameResolver {
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
             typeName, [typeName.name]);
+      } else if (typeName is PrefixedIdentifier &&
+          node.parent is ConstructorName &&
+          argumentList != null) {
+        SimpleIdentifier prefix = typeName.prefix;
+        SimpleIdentifier identifier = typeName.identifier;
+        Element prefixElement = nameScope.lookup(prefix, definingLibrary);
+        ConstructorElement constructorElement;
+        if (prefixElement is ClassElement) {
+          constructorElement =
+              prefixElement.getNamedConstructor(identifier.name);
+        }
+        if (constructorElement != null) {
+          reportErrorForNode(
+              StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+              argumentList,
+              [prefix.name, identifier.name]);
+          prefix.staticElement = prefixElement;
+          prefix.staticType = constructorElement.enclosingElement.type;
+          identifier.staticElement = constructorElement;
+          identifier.staticType = constructorElement.type;
+          typeName.staticType = constructorElement.enclosingElement.type;
+          (node.parent as ConstructorName).staticElement = constructorElement;
+          AstNode grandParent = node.parent.parent;
+          if (grandParent is InstanceCreationExpression) {
+            grandParent.staticElement = constructorElement;
+            grandParent.staticType = typeName.staticType;
+          }
+        } else {
+          reportErrorForNode(
+              StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
+        }
       } else {
         reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);

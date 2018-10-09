@@ -18,7 +18,10 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
+constructor_reference_test/07: MissingCompileTimeError # Issue 34671
+constructor_reference_test/08: MissingCompileTimeError # Issue 34671
 constructor_reference_test/27: MissingCompileTimeError # Issue 34403
+constructor_reference_test/28: MissingCompileTimeError # Issue 34403
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
 emit_const_fields_test: CompileTimeError # failing-by-design: #34340
@@ -89,6 +92,7 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError, MissingStaticWarning 
 mixin_supertype_subclass_test/05: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
 mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+named_constructor_test/01: MissingCompileTimeError # Issue 34671
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning
