@@ -10,6 +10,10 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+[ $builder_tag == asan ]
+isolate/non_fatal_exception_in_timer_callback_test: Pass, Fail # Issue 34724
+mirrors/dynamic_load_test: Fail # Issue 32187
+
 [ $compiler == app_jitk ]
 async/slow_consumer2_test: RuntimeError
 async/stream_distinct_test: RuntimeError
