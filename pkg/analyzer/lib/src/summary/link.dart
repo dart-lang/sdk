@@ -1402,7 +1402,13 @@ abstract class CompilationUnitElementForLink
       return context.typeParameterContext
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
-      return new GenericFunctionTypeElementForLink(this, context, entity).type;
+      return new GenericFunctionTypeElementForLink(
+              this,
+              context,
+              entity.typeParameters,
+              entity.syntheticReturnType,
+              entity.syntheticParams)
+          .type;
     } else if (entity.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementForLink_Synthetic(this, context, entity);
@@ -3185,14 +3191,24 @@ class GenericFunctionTypeElementForLink extends Object
   @override
   final ElementImpl enclosingElement;
 
-  /// The linked representation of the generic function in the summary.
-  final EntityRef _entity;
+  @override
+  final List<UnlinkedTypeParam> unlinkedTypeParams;
+
+  /// The representation of the generic function's return type in the summary.
+  final EntityRef _unlinkedReturnType;
+
+  @override
+  final List<UnlinkedParam> unlinkedParameters;
 
   DartType _returnType;
   FunctionTypeImpl _type;
 
   GenericFunctionTypeElementForLink(
-      this.enclosingUnit, this.enclosingElement, this._entity);
+      this.enclosingUnit,
+      this.enclosingElement,
+      this.unlinkedTypeParams,
+      this._unlinkedReturnType,
+      this.unlinkedParameters);
 
   @override
   DartType get asStaticType {
@@ -3223,8 +3239,8 @@ class GenericFunctionTypeElementForLink extends Object
   String get name => '-';
 
   @override
-  DartType get returnType => _returnType ??=
-      enclosingUnit.resolveTypeRef(this, _entity.syntheticReturnType);
+  DartType get returnType =>
+      _returnType ??= enclosingUnit.resolveTypeRef(this, _unlinkedReturnType);
 
   @override
   FunctionType get type {
@@ -3233,12 +3249,6 @@ class GenericFunctionTypeElementForLink extends Object
 
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<UnlinkedParam> get unlinkedParameters => _entity.syntheticParams;
-
-  @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams => _entity.typeParameters;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
