@@ -6,17 +6,19 @@ import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:analyzer_cli/src/fix/options.dart';
 import 'package:analyzer_cli/src/fix/server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 
 // For development
 const runAnalysisServerFromSource = false;
 
 class Driver {
+  final Context context = new Context();
   final Server server = new Server();
 
   Completer serverConnected;
@@ -29,12 +31,8 @@ class Driver {
   int progressCount = progressThreshold;
 
   Future start(List<String> args) async {
-    final options = Options.parse(args);
+    final options = Options.parse(args, context);
 
-    /// Only happens in testing.
-    if (options == null) {
-      return null;
-    }
     dryRun = options.dryRun;
     verbose = options.verbose;
     targets = options.targets;
@@ -71,7 +69,8 @@ class Driver {
         sdkPath: options.sdkPath, useSnapshot: !runAnalysisServerFromSource);
     server.listenToOutput(dispatchNotification);
     return serverConnected.future.timeout(connectTimeout, onTimeout: () {
-      printAndFail('Failed to connect to server');
+      context.stderr.writeln('Failed to connect to server');
+      context.exit(15);
     });
   }
 
@@ -88,7 +87,7 @@ class Driver {
   }
 
   Future<EditDartfixResult> requestFixes(Options options) async {
-    outSink.write('Calculating fixes...');
+    context.stdout.write('Calculating fixes...');
     verboseOut('');
     analysisComplete = new Completer();
     Map<String, dynamic> json = await server.send(
@@ -117,16 +116,16 @@ class Driver {
     showDescriptions(result.otherRecommendations,
         'Recommended changes that cannot not be automatically applied');
     if (result.descriptionOfFixes.isEmpty) {
-      outSink.writeln('');
-      outSink.writeln(result.otherRecommendations.isNotEmpty
+      context.print('');
+      context.print(result.otherRecommendations.isNotEmpty
           ? 'No recommended changes that cannot be automatically applied.'
           : 'No recommended changes.');
       return;
     }
-    outSink.writeln('');
-    outSink.writeln('Files to be changed:');
+    context.print('');
+    context.print('Files to be changed:');
     for (SourceFileEdit fileEdit in result.fixes) {
-      outSink.writeln(fileEdit.file);
+      context.print(fileEdit.file);
     }
     if (dryRun || !(await confirmApplyChanges(result))) {
       return;
@@ -139,30 +138,30 @@ class Driver {
       }
       await file.writeAsString(code);
     }
-    outSink.writeln('Changes applied.');
+    context.print('Changes applied.');
   }
 
   void showDescriptions(List<String> descriptions, String title) {
     if (descriptions.isNotEmpty) {
-      outSink.writeln('');
-      outSink.writeln('$title:');
+      context.print('');
+      context.print('$title:');
       List<String> sorted = new List.from(descriptions)..sort();
       for (String line in sorted) {
-        outSink.writeln(line);
+        context.print(line);
       }
     }
   }
 
   Future<bool> confirmApplyChanges(EditDartfixResult result) async {
-    outSink.writeln();
+    context.print();
     if (result.hasErrors) {
-      outSink.writeln('WARNING: The analyzed source contains errors'
+      context.print('WARNING: The analyzed source contains errors'
           ' that may affect the accuracy of these changes.');
     }
     const prompt = 'Would you like to apply these changes (y/n)? ';
-    outSink.write(prompt);
+    context.stdout.write(prompt);
     final response = new Completer<bool>();
-    final subscription = inputStream
+    final subscription = context.stdin
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
@@ -172,8 +171,9 @@ class Driver {
       } else if (line == 'n' || line == 'no') {
         response.complete(false);
       } else {
-        outSink.writeln('  Unrecognized response. Please type "yes" or "no".');
-        outSink.write(prompt);
+        context.stdout
+            .writeln('  Unrecognized response. Please type "yes" or "no".');
+        context.stdout.write(prompt);
       }
     });
     bool applyChanges = await response.future;
@@ -287,10 +287,10 @@ class Driver {
     List<AnalysisError> errors = params.errors;
     if (errors.isNotEmpty && isTarget(params.file)) {
       resetProgress();
-      outSink.writeln(params.file);
+      context.print(params.file);
       for (AnalysisError error in errors) {
         Location loc = error.location;
-        outSink.writeln('  ${error.message}'
+        context.print('  ${error.message}'
             ' at ${loc.startLine}:${loc.startColumn}');
       }
     } else {
@@ -313,7 +313,8 @@ class Driver {
     if (params.stackTrace != null) {
       message.writeln(params.stackTrace);
     }
-    printAndFail(message.toString());
+    context.stderr.writeln(message.toString());
+    context.exit(15);
   }
 
   void onServerStatus(ServerStatusParams params) {
@@ -325,27 +326,27 @@ class Driver {
 
   void resetProgress() {
     if (!verbose && progressCount >= progressThreshold) {
-      outSink.writeln();
+      context.print();
     }
     progressCount = 0;
   }
 
   void showProgress() {
     if (!verbose && progressCount % progressThreshold == 0) {
-      outSink.write('.');
+      context.stdout.write('.');
     }
     ++progressCount;
   }
 
   void verboseOut(String message) {
     if (verbose) {
-      outSink.writeln(message);
+      context.print(message);
     }
   }
 
   bool isTarget(String path) {
     for (String target in targets) {
-      if (path == target || isWithin(target, path)) {
+      if (path == target || pathos.isWithin(target, path)) {
         return true;
       }
     }

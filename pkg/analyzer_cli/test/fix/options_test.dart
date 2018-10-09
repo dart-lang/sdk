@@ -2,64 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer_cli/src/fix/options.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
+
+import 'test_context.dart';
 
 main() {
   group('Options', () {
-    int lastExitHandlerCode;
-    StringBuffer outStringBuffer = new StringBuffer();
-    StringBuffer errorStringBuffer = new StringBuffer();
-
-    StringSink savedOutSink, savedErrorSink;
-    int savedExitCode;
-    ExitHandler savedExitHandler;
+    TestContext context;
 
     Options parse(List<String> args,
-        {bool dryRun = false, bool verbose = false, bool checkExists = false}) {
-      final options = Options.parse(args, checkExists: checkExists);
-      expect(errorStringBuffer.toString(), isEmpty);
-      expect(outStringBuffer.toString(), isEmpty);
-      expect(lastExitHandlerCode, isNull);
+        {bool dryRun = false,
+        String errorOut,
+        int exitCode,
+        bool verbose = false}) {
+      Options options;
+      int actualExitCode;
+      try {
+        options = Options.parse(args, context);
+      } on TestExit catch (e) {
+        actualExitCode = e.code;
+      }
+      expect(context.stderr.toString(),
+          errorOut != null ? contains(errorOut) : isEmpty);
+      expect(context.stdout.toString(), isEmpty);
+      if (exitCode != null) {
+        expect(actualExitCode, exitCode, reason: 'exit code');
+        return null;
+      } else {
+        expect(actualExitCode, isNull, reason: 'exit code');
+      }
       expect(options.dryRun, dryRun);
       expect(options.verbose, verbose);
-      expect(isAbsolute(options.sdkPath), isTrue, reason: options.sdkPath);
+      expect(pathos.isAbsolute(options.sdkPath), isTrue,
+          reason: options.sdkPath);
       for (String target in options.targets) {
         expect(target, isNotNull);
-        expect(isAbsolute(target), isTrue, reason: '$target');
+        expect(pathos.isAbsolute(target), isTrue, reason: '$target');
       }
       for (String root in options.analysisRoots) {
         expect(root, isNotNull);
-        expect(isAbsolute(root), isTrue);
+        expect(pathos.isAbsolute(root), isTrue);
       }
       return options;
     }
 
     setUp(() {
-      savedOutSink = outSink;
-      savedErrorSink = errorSink;
-      savedExitHandler = exitHandler;
-      savedExitCode = exitCode;
-      exitHandler = (int code) {
-        lastExitHandlerCode = code;
-      };
-      outSink = outStringBuffer;
-      errorSink = errorStringBuffer;
-    });
-
-    tearDown(() {
-      outSink = savedOutSink;
-      errorSink = savedErrorSink;
-      exitCode = savedExitCode;
-      exitHandler = savedExitHandler;
+      context = new TestContext();
     });
 
     test('dryRun', () {
       final options = parse(['--dry-run', 'foo.dart'], dryRun: true);
       expectOneFileTarget(options, 'foo.dart');
+    });
+
+    test('invalid option', () {
+      parse(['--foo'],
+          errorOut: 'Could not find an option named "foo"', exitCode: 15);
     });
 
     test('simple', () {
@@ -68,20 +68,20 @@ main() {
     });
 
     test('two files in different directories', () {
-      final options = parse(['one/foo.dart', 'two/bar.dart']);
+      final options = parse([p('one/foo.dart'), p('two/bar.dart')]);
       expect(options.targets, hasLength(2));
-      expectContains(options.targets, 'one/foo.dart');
-      expectContains(options.targets, 'two/bar.dart');
+      expectContains(options.targets, p('one/foo.dart'));
+      expectContains(options.targets, p('two/bar.dart'));
       expect(options.analysisRoots, hasLength(2));
       expectContains(options.analysisRoots, 'one');
       expectContains(options.analysisRoots, 'two');
     });
 
     test('two files in overlapping directories', () {
-      final options = parse(['one/two/foo.dart', 'one/bar.dart']);
+      final options = parse([p('one/two/foo.dart'), p('one/bar.dart')]);
       expect(options.targets, hasLength(2));
-      expectContains(options.targets, 'one/two/foo.dart');
-      expectContains(options.targets, 'one/bar.dart');
+      expectContains(options.targets, p('one/two/foo.dart'));
+      expectContains(options.targets, p('one/bar.dart'));
       expect(options.analysisRoots, hasLength(1));
       expectContains(options.analysisRoots, 'one');
     });
@@ -108,7 +108,7 @@ void expectOneFileTarget(Options options, String fileName) {
   expect(options.analysisRoots, hasLength(1));
   final root = options.analysisRoots[0];
   expect(root.endsWith(fileName), isFalse);
-  expect(context.isWithin(root, target), isTrue);
+  expect(pathos.context.isWithin(root, target), isTrue);
 }
 
 void expectContains(Iterable<String> collection, String suffix) {

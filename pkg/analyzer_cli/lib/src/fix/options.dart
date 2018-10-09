@@ -2,38 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/src/util/sdk.dart';
+import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart';
-
-@visibleForTesting
-StringSink errorSink = stderr;
-
-@visibleForTesting
-StringSink outSink = stdout;
-
-@visibleForTesting
-Stream<List<int>> inputStream = stdin;
-
-@visibleForTesting
-ExitHandler exitHandler = exit;
-
-@visibleForTesting
-typedef void ExitHandler(int code);
+import 'package:path/path.dart' as pathos;
 
 /// Command line options for `dartfix`.
 class Options {
+  final Context context;
+
   List<String> targets;
   List<String> analysisRoots;
   bool dryRun;
   String sdkPath;
   bool verbose;
 
-  static Options parse(List<String> args,
-      {printAndFail(String msg) = printAndFail, bool checkExists = true}) {
+  Options(this.context);
+
+  static Options parse(List<String> args, Context context) {
+    Options options = new Options(context ?? new Context());
     final parser = new ArgParser(allowTrailingOptions: true);
 
     parser
@@ -60,52 +47,47 @@ class Options {
     try {
       results = parser.parse(args);
     } on FormatException catch (e) {
-      errorSink.writeln(e.message);
-      _showUsage(parser);
-      exitHandler(15);
-      return null; // Only reachable in testing.
+      context.stderr.writeln(e.message);
+      _showUsage(parser, context);
+      context.exit(15);
     }
 
     if (results[_helpOption] as bool) {
-      _showUsage(parser);
-      exitHandler(0);
-      return null; // Only reachable in testing.
+      _showUsage(parser, context);
+      context.exit(0);
     }
 
-    Options options = new Options._fromArgs(results);
+    options._fromArgs(results);
 
     // Check Dart SDK, and infer if unspecified.
     options.sdkPath ??= getSdkPath(args);
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
-      errorSink.writeln('No Dart SDK found.');
-      _showUsage(parser);
-      return null; // Only reachable in testing.
+      context.stderr.writeln('No Dart SDK found.');
+      _showUsage(parser, context);
     }
-    if (!(new Directory(sdkPath)).existsSync()) {
-      printAndFail('Invalid Dart SDK path: $sdkPath');
-      return null; // Only reachable in testing.
+    if (!context.exists(sdkPath)) {
+      context.stderr.writeln('Invalid Dart SDK path: $sdkPath');
+      context.exit(15);
     }
 
     // Check for files and/or directories to analyze.
     if (options.targets == null || options.targets.isEmpty) {
-      errorSink.writeln('Expected at least one file or directory to analyze.');
-      _showUsage(parser);
-      exitHandler(15);
-      return null; // Only reachable in testing.
+      context.stderr
+          .writeln('Expected at least one file or directory to analyze.');
+      _showUsage(parser, context);
+      context.exit(15);
     }
 
     // Normalize and verify paths
     options.targets =
-        options.targets.map<String>(makeAbsoluteAndNormalize).toList();
+        options.targets.map<String>(options.makeAbsoluteAndNormalize).toList();
     for (String target in options.targets) {
-      // TODO(danrubel): Consider a driver context for existence checks,
-      // reporting errors, and the like.
-      if (checkExists && !_exists(target)) {
-        errorSink.writeln('Expected an existing file or directory: $target');
-        _showUsage(parser);
-        exitHandler(15);
-        return null; // Only reachable in testing.
+      if (!context.exists(target)) {
+        context.stderr
+            .writeln('Expected an existing file or directory: $target');
+        _showUsage(parser, context);
+        context.exit(15);
       }
       options._addAnalysisRoot(target);
     }
@@ -113,31 +95,39 @@ class Options {
     return options;
   }
 
-  Options._fromArgs(ArgResults results)
-      : targets = results.rest,
-        analysisRoots = <String>[],
-        dryRun = results[_dryRunOption] as bool,
-        sdkPath = results[_sdkPathOption] as String,
-        verbose = results[_verboseOption] as bool;
+  void _fromArgs(ArgResults results) {
+    targets = results.rest;
+    analysisRoots = <String>[];
+    dryRun = results[_dryRunOption] as bool;
+    sdkPath = results[_sdkPathOption] as String;
+    verbose = results[_verboseOption] as bool;
+  }
 
   void _addAnalysisRoot(String target) {
     // TODO(danrubel): Consider finding the directory containing `pubspec.yaml`
     // and using that as the analysis root
-    String parent = target.endsWith('.dart') ? dirname(target) : target;
+    String parent = target.endsWith('.dart') ? pathos.dirname(target) : target;
     for (String root in analysisRoots) {
-      if (root == parent || isWithin(root, parent)) {
+      if (root == parent || pathos.isWithin(root, parent)) {
         return;
       }
     }
-    analysisRoots.removeWhere((String root) => isWithin(parent, root));
+    analysisRoots.removeWhere((String root) => pathos.isWithin(parent, root));
     analysisRoots.add(parent);
   }
 
-  static _showUsage(ArgParser parser) {
-    errorSink.writeln(
+  String makeAbsoluteAndNormalize(String target) {
+    if (!pathos.isAbsolute(target)) {
+      target = pathos.join(context.workingDir, target);
+    }
+    return pathos.normalize(target);
+  }
+
+  static _showUsage(ArgParser parser, Context context) {
+    context.stderr.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
-    errorSink.writeln('');
-    errorSink.writeln(parser.usage);
+    context.stderr.writeln('');
+    context.stderr.writeln(parser.usage);
   }
 }
 
@@ -146,19 +136,3 @@ const _dryRunOption = 'dry-run';
 const _helpOption = 'help';
 const _sdkPathOption = 'dart-sdk';
 const _verboseOption = 'verbose';
-
-String makeAbsoluteAndNormalize(String target) {
-  if (!isAbsolute(target)) {
-    target = join(Directory.current.path, target);
-  }
-  return normalize(target);
-}
-
-/// Print the given [message] to stderr and exit with the given [exitCode].
-void printAndFail(String message, {int exitCode: 15}) {
-  errorSink.writeln(message);
-  exitHandler(exitCode);
-}
-
-bool _exists(String target) =>
-    FileSystemEntity.typeSync(target) != FileSystemEntityType.notFound;
