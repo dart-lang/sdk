@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library set_library_debuggable_test;
 
@@ -11,9 +10,9 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 20;
-const LINE_B = 21;
-const LINE_C = 22;
+const LINE_A = 19;
+const LINE_B = 20;
+const LINE_C = 21;
 
 testMain() async {
   debugger();
