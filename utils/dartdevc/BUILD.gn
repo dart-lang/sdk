@@ -361,6 +361,9 @@ prebuilt_dart_action("dartdevk_sdk") {
   script = "../../pkg/dev_compiler/tool/kernel_sdk.dart"
 
   args = [
+    "--output",
     rebase_path(sdk_dill),
+    "--libraries",
+    rebase_path("//sdk/lib/libraries.json"),
   ]
 }

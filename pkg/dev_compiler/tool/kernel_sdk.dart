@@ -19,32 +19,30 @@ import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
-  // Parse flags.
-  var parser = ArgParser();
-  var parserOptions = parser.parse(args);
-  var rest = parserOptions.rest;
-
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
-  Directory.current = ddcPath;
 
-  String outputPath;
-  if (rest.isNotEmpty) {
-    outputPath = path.absolute(rest[0]);
-  } else {
+  // Parse flags.
+  var parser = ArgParser()
+    ..addOption('output')
+    ..addOption('libraries',
+        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'));
+  var parserOptions = parser.parse(args);
+
+  var outputPath = parserOptions['output'] as String;
+  if (outputPath == null) {
     var sdkRoot = path.absolute(path.dirname(path.dirname(ddcPath)));
     var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
     outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
   }
 
-  var inputPath = path.absolute('tool/input_sdk');
   var target = DevCompilerTarget();
   var options = CompilerOptions()
     ..compileSdk = true
-    ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
-    ..sdkRoot = path.toUri(inputPath)
+    // TODO(sigmund): remove this unnecessary option when possible.
+    ..sdkRoot = Uri.base
     ..librariesSpecificationUri =
-        Uri.base.resolve('../../sdk/lib/libraries.json')
+        Uri.base.resolveUri(Uri.file(parserOptions['libraries']))
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
