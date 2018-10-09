@@ -1541,8 +1541,13 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
       new (zone()) ZoneGrowableArray<BlockEntryInstr*>();
 
+  // Iterate over all entry blocks in the flow graph.
   for (BlockIterator it = postorder_iterator(); !it.Done(); it.Advance()) {
     BlockEntryInstr* block = it.Current();
+    // Reset loop information (since this may recompute
+    // loop information on a modified flow graph).
+    block->set_loop_info(nullptr);
+    // Iterate over predecessors to find back edges.
     for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       if (block->Dominates(pred)) {
@@ -1551,19 +1556,14 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
                        block->block_id());
         }
         BitVector* loop_info = FindLoop(pred, block);
-        // Loops that share the same loop header are treated as one loop.
-        BlockEntryInstr* header = NULL;
-        for (intptr_t i = 0; i < loop_headers->length(); ++i) {
-          if ((*loop_headers)[i] == block) {
-            header = (*loop_headers)[i];
-            break;
-          }
-        }
-        if (header != NULL) {
-          header->loop_info()->AddAll(loop_info);
-        } else {
+        // Identify the block as a loop header and add the blocks in the
+        // loop to the loop information. Loops that share the same loop
+        // header are treated as one loop by merging these blocks.
+        if (block->loop_info() == nullptr) {
           block->set_loop_info(loop_info);
           loop_headers->Add(block);
+        } else {
+          block->loop_info()->AddAll(loop_info);
         }
       }
     }

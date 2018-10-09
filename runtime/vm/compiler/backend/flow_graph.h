@@ -288,6 +288,8 @@ class FlowGraph : public ZoneAllocated {
 
   PrologueInfo prologue_info() const { return prologue_info_; }
 
+  // Computes loops and loop headers on demand.
+  // Returns the loop headers in the flow graph.
   const ZoneGrowableArray<BlockEntryInstr*>& LoopHeaders() {
     if (loop_headers_ == NULL) {
       loop_headers_ = ComputeLoops();
@@ -295,9 +297,17 @@ class FlowGraph : public ZoneAllocated {
     return *loop_headers_;
   }
 
+  // Returns the loop headers in the flow graph.
   const ZoneGrowableArray<BlockEntryInstr*>* loop_headers() const {
     return loop_headers_;
   }
+
+  // Resets the loop headers in the flow graph. Use this to force a
+  // recomputation of loops and loop headers by the next call to
+  // LoopHeaders() (note that this does not immediately reset the
+  // loop_info() information of block entries, although these will
+  // be overwritten by the next LoopHeaders() call).
+  void ResetLoopHeaders() { loop_headers_ = nullptr; }
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
