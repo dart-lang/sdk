@@ -2962,6 +2962,18 @@ bool Function::FindPragma(Isolate* I,
   return false;
 }
 
+bool Function::IsDynamicInvocationForwaderName(const String& name) {
+  return name.StartsWith(Symbols::DynamicPrefix());
+}
+
+RawString* Function::DemangleDynamicInvocationForwarderName(
+    const String& name) {
+  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
+  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
+  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
+                      name.Length() - kDynamicPrefixLength);
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawFunction* Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
@@ -2993,20 +3005,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   return forwarder.raw();
 }
 
-bool Function::IsDynamicInvocationForwaderName(const String& name) {
-  return name.StartsWith(Symbols::DynamicPrefix());
-}
-
 RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
   return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
-}
-
-RawString* Function::DemangleDynamicInvocationForwarderName(
-    const String& name) {
-  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
-  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
-  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
-                      name.Length() - kDynamicPrefixLength);
 }
 
 RawFunction* Function::GetDynamicInvocationForwarder(

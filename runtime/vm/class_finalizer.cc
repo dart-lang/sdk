@@ -2473,13 +2473,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
 }
 
-volatile int ctr = 0;
-
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
   ASSERT(cls.is_type_finalized());
-  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   if (cls.is_finalized()) {
     return;
   }
@@ -2520,7 +2517,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     ApplyMixinMembers(cls);
   }
   // Mark as parsed and finalized.
-  if (strstr(cls.ToCString(), "AssertionError")) ++ctr;
   cls.Finalize();
   // Mixin app alias classes may still lack their forwarding constructor.
   if (cls.is_mixin_app_alias() &&

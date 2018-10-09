@@ -26,12 +26,14 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // argument values match declarated parameter types for all non-covariant
   // and non-generic-covariant parameters. The same applies to type parameters
   // bounds for type parameters of generic functions.
+  //
   // In JIT mode we dynamically generate trampolines (dynamic invocation
   // forwarders) that perform type checks when arriving to a method from a
   // dynamic call-site.
-  // In AOT mode we don't dynamically generate such trampolines but
-  // instead rely on a static analysis to discover which methods can
-  // be invoked dynamically.
+  //
+  // In AOT mode we don't dynamically generate such trampolines but instead rely
+  // on a static analysis to discover which methods can be invoked dynamically,
+  // and generate the necessary trampolines during precompilation.
   if (method.name() == Symbols::Call().raw()) {
     // Currently we consider all call methods to be invoked dynamically and
     // don't mangle their names.
@@ -39,7 +41,7 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
     // entry point for closures.
     return false;
   }
-  return !FLAG_precompiled_mode || !attrs.has_dynamic_invocations;
+  return true;
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)

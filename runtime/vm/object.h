@@ -2899,13 +2899,16 @@ class Function : public Object {
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static bool IsDynamicInvocationForwaderName(const String& name);
+
   static RawString* DemangleDynamicInvocationForwarderName(const String& name);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawString* CreateDynamicInvocationForwarderName(const String& name);
 
   RawFunction* CreateDynamicInvocationForwarder(
       const String& mangled_name) const;
+
   RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
                                              bool allow_add = true) const;
 #endif

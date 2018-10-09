@@ -3066,23 +3066,27 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     instructions += CheckNull(position, receiver, setter_name);
   }
 
-  if (!direct_call.target_.IsNull()) {
+  const String* mangled_name = &setter_name;
+  const Function* direct_call_target = &direct_call.target_;
+  if (I->should_emit_strong_mode_checks() && H.IsRoot(itarget_name)) {
+    mangled_name = &String::ZoneHandle(
+        Z, Function::CreateDynamicInvocationForwarderName(setter_name));
+    if (!direct_call_target->IsNull()) {
+      direct_call_target = &Function::ZoneHandle(
+          direct_call.target_.GetDynamicInvocationForwarder(*mangled_name));
+    }
+  }
+
+  if (!direct_call_target->IsNull()) {
     // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
     // entry-points in AOT.
     ASSERT(FLAG_precompiled_mode);
     instructions +=
-        StaticCall(position, direct_call.target_, 2, Array::null_array(),
+        StaticCall(position, *direct_call_target, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
-
-    const String* mangled_name = &setter_name;
-    if (!FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
-        H.IsRoot(itarget_name)) {
-      mangled_name = &String::ZoneHandle(
-          Z, Function::CreateDynamicInvocationForwarderName(setter_name));
-    }
 
     instructions += InstanceCall(
         position, *mangled_name, Token::kSET, kTypeArgsLen, 2,
@@ -3670,6 +3674,24 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                               /*clear_temp=*/!is_unchecked_closure_call);
   }
 
+  const String* mangled_name = &name;
+  // Do not mangle == or call:
+  //   * operator == takes an Object so its either not checked or checked
+  //     at the entry because the parameter is marked covariant, neither of
+  //     those cases require a dynamic invocation forwarder;
+  //   * we assume that all closures are entered in a checked way.
+  const Function* direct_call_target = &direct_call.target_;
+  if (I->should_emit_strong_mode_checks() &&
+      (name.raw() != Symbols::EqualOperator().raw()) &&
+      (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
+    mangled_name = &String::ZoneHandle(
+        Z, Function::CreateDynamicInvocationForwarderName(name));
+    if (!direct_call_target->IsNull()) {
+      direct_call_target = &Function::ZoneHandle(
+          direct_call_target->GetDynamicInvocationForwarder(*mangled_name));
+    }
+  }
+
   if (is_unchecked_closure_call) {
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
@@ -3681,27 +3703,18 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions +=
         B->ClosureCall(position, type_args_len, argument_count, argument_names,
                        /*use_unchecked_entry=*/true);
-  } else if (!direct_call.target_.IsNull()) {
+  } else if (!direct_call_target->IsNull()) {
     // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
     // entry-points in AOT.
+
+    // Even if TFA infers a concrete receiver type, the static type of the
+    // call-site may still be dynamic and we need to call the dynamic invocation
+    // forwarder to ensure type-checks are performed.
     ASSERT(FLAG_precompiled_mode);
-    instructions += StaticCall(position, direct_call.target_, argument_count,
+    instructions += StaticCall(position, *direct_call_target, argument_count,
                                argument_names, ICData::kNoRebind, &result_type,
                                type_args_len);
   } else {
-    const String* mangled_name = &name;
-    // Do not mangle == or call:
-    //   * operator == takes an Object so its either not checked or checked
-    //     at the entry because the parameter is marked covariant, neither of
-    //     those cases require a dynamic invocation forwarder;
-    //   * we assume that all closures are entered in a checked way.
-    if (!FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
-        (name.raw() != Symbols::EqualOperator().raw()) &&
-        (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
-      mangled_name = &String::ZoneHandle(
-          Z, Function::CreateDynamicInvocationForwarderName(name));
-    }
-
     // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
     // entry-points in AOT.
     instructions += InstanceCall(

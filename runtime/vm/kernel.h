@@ -39,6 +39,7 @@ class Zone;
 namespace kernel {
 
 class Reader;
+struct ProcedureAttributesMetadata;
 
 class StringIndex {
  public:
@@ -200,7 +201,11 @@ bool NeedsDynamicInvocationForwarder(const Function& function);
 
 bool IsFieldInitializer(const Function& function, Zone* zone);
 
-bool IsTearOffTaken(const Function& function, Zone* zone);
+ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
+                                                  Zone* zone);
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
+                                                  Zone* zone);
 
 }  // namespace kernel
 }  // namespace dart

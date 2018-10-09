@@ -2889,6 +2889,7 @@ class _ExternalUint8ClampedArray extends _TypedList
     with _IntListMixin
     implements Uint8ClampedList {
   // Method(s) implementing the List interface.
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");

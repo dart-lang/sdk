@@ -692,24 +692,39 @@ bool IsFieldInitializer(const Function& function, Zone* zone) {
              .StartsWith(Symbols::InitPrefix());
 }
 
-bool IsTearOffTaken(const Function& function, Zone* zone) {
-  const Script& script = Script::Handle(zone, function.script());
+static ProcedureAttributesMetadata ProcedureAttributesOf(
+    Zone* zone,
+    const Script& script,
+    const ExternalTypedData& kernel_data,
+    intptr_t kernel_data_program_offset,
+    intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromScript(script);
-
-  KernelReaderHelper reader_helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset());
-
+  KernelReaderHelper reader_helper(zone, &translation_helper, script,
+                                   kernel_data, kernel_data_program_offset);
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper(
       &reader_helper);
-
   ProcedureAttributesMetadata attrs =
       procedure_attributes_metadata_helper.GetProcedureAttributes(
-          function.kernel_offset());
+          kernel_offset);
+  return attrs;
+}
 
-  return attrs.has_tearoff_uses;
+ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
+                                                  Zone* zone) {
+  const Script& script = Script::Handle(zone, function.script());
+  return ProcedureAttributesOf(
+      zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
+      function.KernelDataProgramOffset(), function.kernel_offset());
+}
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
+                                                  Zone* zone) {
+  const Class& parent = Class::Handle(zone, field.Owner());
+  const Script& script = Script::Handle(zone, parent.script());
+  return ProcedureAttributesOf(
+      zone, script, ExternalTypedData::Handle(zone, field.KernelData()),
+      field.KernelDataProgramOffset(), field.kernel_offset());
 }
 
 }  // namespace kernel
