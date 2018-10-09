@@ -1689,7 +1689,7 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart (aot and jit)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
@@ -1699,11 +1699,11 @@
           ]
         },
         {
-          "name": "build dart 32bit",
+          "name": "build dart (jit)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm",
+            "--arch=ia32,simarm,simdbc,simdbc64",
             "runtime"
           ]
         },
