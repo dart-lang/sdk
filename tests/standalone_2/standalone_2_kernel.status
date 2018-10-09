@@ -49,6 +49,9 @@ package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
 
+[ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
+io/file_lock_test: SkipSlow # Timeout
+
 [ $arch == ia32 && $compiler == dartk && $strong ]
 io/dart_std_io_pipe_test: Timeout, Pass # Issue 34723
 
