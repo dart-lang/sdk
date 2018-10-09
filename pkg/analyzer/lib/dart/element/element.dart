@@ -1628,6 +1628,13 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterizedElement implements Element {
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type parameters as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
+  bool get isSimplyBounded;
+
   /// The type of this element, which will be a parameterized type.
   ParameterizedType get type;
 

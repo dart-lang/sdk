@@ -671,6 +671,12 @@ abstract class LinkedUnit extends base.SummaryClass {
   @Id(2)
   List<int> get constCycles;
 
+  /// List of slot ids (referring to [UnlinkedClass.notSimplyBoundedSlot] or
+  /// [UnlinkedTypedef.notSimplyBoundedSlot]) corresponding to classes and
+  /// typedefs that are not simply bounded.
+  @Id(5)
+  List<int> get notSimplyBounded;
+
   /// List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
   /// [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
   /// that inherit `@covariant` behavior from a base class.
@@ -1061,6 +1067,16 @@ abstract class UnlinkedClass extends base.SummaryClass {
   @informative
   @Id(1)
   int get nameOffset;
+
+  /// If the class might not be simply bounded, a nonzero slot id which is unique
+  /// within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this class's type
+  /// parameters is not simply bounded, hence this class can't be used as a raw
+  /// type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  @Id(16)
+  int get notSimplyBoundedSlot;
 
   /// Superclass constraints for this mixin declaration. The list will be empty
   /// if this class is not a mixin declaration, or if the declaration does not
@@ -2231,6 +2247,16 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   @informative
   @Id(1)
   int get nameOffset;
+
+  /// If the typedef might not be simply bounded, a nonzero slot id which is
+  /// unique within this compilation unit.  If this id is found in
+  /// [LinkedUnit.notSimplyBounded], then at least one of this typedef's type
+  /// parameters is not simply bounded, hence this typedef can't be used as a
+  /// raw type when specifying the bound of a type parameter.
+  ///
+  /// Otherwise, zero.
+  @Id(9)
+  int get notSimplyBoundedSlot;
 
   /// Parameters of the executable, if any.
   @Id(3)

@@ -107,6 +107,8 @@ issue32353_test: RuntimeError
 issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
 issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
 issue34498_test: MissingCompileTimeError # Issue 34500
+issue34635_test: MissingCompileTimeError
+issue34636_test: MissingCompileTimeError
 label_test: RuntimeError
 large_class_declaration_test: Slow, Pass
 left_shift_test: RuntimeError # Ints and doubles are unified.

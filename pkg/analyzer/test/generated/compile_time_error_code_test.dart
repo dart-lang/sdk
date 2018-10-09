@@ -100,6 +100,13 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
+  test_typedef_infiniteParameterBoundCycle() {
+    // Does not work with the task model.
+    return super.test_typedef_infiniteParameterBoundCycle();
+  }
+
+  @override
+  @failingTest
   test_yieldEachInNonGenerator_async() {
     return super.test_yieldEachInNonGenerator_async();
   }

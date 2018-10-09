@@ -444,6 +444,12 @@ class SummaryResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  bool isSimplyBounded(int notSimplyBoundedSlot) {
+    return !unitResynthesizer.linkedUnit.notSimplyBounded
+        .contains(notSimplyBoundedSlot);
+  }
+
+  @override
   ConstructorElement resolveConstructorRef(
       ElementImpl context, EntityRef entry) {
     return unitResynthesizer._getConstructorForEntry(context, entry);

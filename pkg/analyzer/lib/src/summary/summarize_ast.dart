@@ -8,11 +8,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
 
 /// Serialize all the declarations in [compilationUnit] to an unlinked summary.
 ///
@@ -392,6 +392,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.isMixinApplication = isMixinApplication;
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
+    if (_shouldAssignNotSimplyBoundedSlot(typeParameters)) {
+      b.notSimplyBoundedSlot = assignSlot();
+    }
     if (superclass != null) {
       b.supertype = serializeType(superclass);
     } else {
@@ -1217,6 +1220,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.notSimplyBoundedSlot = assignSlot();
     EntityRefBuilder serializedReturnType = serializeType(node.returnType);
     if (serializedReturnType != null) {
       b.returnType = serializedReturnType;
@@ -1253,6 +1257,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.notSimplyBoundedSlot = assignSlot();
     GenericFunctionType functionType = node.functionType;
     EntityRefBuilder serializedType = functionType == null
         ? null
@@ -1380,6 +1385,16 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     // TODO(scheglov) Remove when we stop serializing local functions.
+  }
+
+  /// Determines whether a class declaration with the given [typeParameters]
+  /// needs to be assigned a slot to indicate whether it is simply bounded.
+  bool _shouldAssignNotSimplyBoundedSlot(TypeParameterList typeParameters) {
+    if (typeParameters == null) return false;
+    for (var typeParameter in typeParameters.typeParameters) {
+      if (typeParameter.bound != null) return true;
+    }
+    return false;
   }
 
   /// Compute the API signature of the unit and record it.

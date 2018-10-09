@@ -89,6 +89,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isRequired => actualElement.hasRequired;
 
   @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   bool get isValidMixin => actualElement.isValidMixin;
 
   @override
@@ -553,6 +556,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   bool get isOperator => actualElement.isOperator;
 
   @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   bool get isStatic => actualElement.isStatic;
 
   @override
@@ -693,6 +699,9 @@ class FunctionTypeAliasElementHandle extends ElementHandle
       super.enclosingElement as CompilationUnitElement;
 
   @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
@@ -734,6 +743,9 @@ class GenericTypeAliasElementHandle extends ElementHandle
 
   @override
   GenericFunctionTypeElement get function => actualElement.function;
+
+  @override
+  bool get isSimplyBounded => actualElement.isSimplyBounded;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;

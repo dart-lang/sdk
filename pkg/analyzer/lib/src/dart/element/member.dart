@@ -158,6 +158,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isOperator => baseElement.isOperator;
 
   @override
+  bool get isSimplyBounded => baseElement.isSimplyBounded;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override

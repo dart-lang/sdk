@@ -444,7 +444,7 @@ class AuxiliaryElements {
  * An [AbstractClassElementImpl] which is a class.
  */
 class ClassElementImpl extends AbstractClassElementImpl
-    with TypeParameterizedElementMixin {
+    with TypeParameterizedElementMixin, SimplyBoundableMixin {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -947,6 +947,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return _hasConstConstructorCached;
   }
+
+  @override
+  int get _notSimplyBoundedSlot => _unlinkedClass?.notSimplyBoundedSlot;
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -3645,6 +3648,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get isProxy => false;
 
   @override
+  bool get isSimplyBounded => true;
+
+  @override
   bool get isValidMixin => false;
 
   @override
@@ -4875,7 +4881,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
  * Clients may not extend, implement or mix-in this class.
  */
 class GenericTypeAliasElementImpl extends ElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, SimplyBoundableMixin
     implements GenericTypeAliasElement {
   /**
    * The unlinked representation of the type in the summary.
@@ -5055,6 +5061,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
       _unlinkedTypedef?.typeParameters;
+
+  @override
+  int get _notSimplyBoundedSlot => _unlinkedTypedef?.notSimplyBoundedSlot;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -8264,6 +8273,8 @@ abstract class ResynthesizerContext {
    */
   bool isInConstCycle(int slot);
 
+  bool isSimplyBounded(int notSimplyBoundedSlot);
+
   /**
    * Resolve an [EntityRef] into a constructor.  If the reference is
    * unresolved, return `null`.
@@ -8375,6 +8386,29 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
     }
     return buffer.toString();
   }
+}
+
+/// Mixin providing the implementation of
+/// [TypeParameterizedElement.isSimplyBounded] for elements that define a type.
+abstract class SimplyBoundableMixin implements TypeParameterizedElement {
+  CompilationUnitElementImpl get enclosingUnit;
+
+  @override
+  bool get isSimplyBounded {
+    var notSimplyBoundedSlot = _notSimplyBoundedSlot;
+    if (notSimplyBoundedSlot == null) {
+      // No summary is in use; we must be on the old task model.  Not supported.
+      // TODO(paulberry): remove this check when the old task model is gone.
+      return true;
+    }
+    if (notSimplyBoundedSlot == 0) {
+      return true;
+    }
+    return enclosingUnit.resynthesizerContext
+        .isSimplyBounded(_notSimplyBoundedSlot);
+  }
+
+  int get _notSimplyBoundedSlot;
 }
 
 /**
@@ -8586,10 +8620,8 @@ abstract class TypeParameterizedElementMixin
    */
   TypeParameterizedElementMixin get enclosingTypeParameterContext;
 
-  /**
-   * The unit in which this element is resynthesized.
-   */
-  CompilationUnitElementImpl get enclosingUnit;
+  @override
+  bool get isSimplyBounded => true;
 
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
