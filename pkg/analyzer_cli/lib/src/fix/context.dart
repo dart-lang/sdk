@@ -13,14 +13,17 @@ class Context {
 
   String get workingDir => io.Directory.current.path;
 
-  bool exists(String target) {
-    return io.FileSystemEntity.typeSync(target) !=
-        io.FileSystemEntityType.notFound;
-  }
+  bool exists(String filePath) =>
+      io.FileSystemEntity.typeSync(filePath) !=
+      io.FileSystemEntityType.notFound;
 
   void exit(int code) {
     io.exit(code);
   }
+
+  bool isDirectory(String filePath) =>
+      io.FileSystemEntity.typeSync(filePath) ==
+      io.FileSystemEntityType.directory;
 
   void print([String text = '']) {
     stdout.writeln(text);

@@ -12,7 +12,7 @@ import 'package:analyzer_cli/src/fix/server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 // For development
 const runAnalysisServerFromSource = false;
@@ -75,25 +75,25 @@ class Driver {
   }
 
   Future setupAnalysis(Options options) async {
+    context.stdout.write('Calculating fixes...');
+    verboseOut('');
     verboseOut('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
         new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
     await server.send(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
         new AnalysisSetAnalysisRootsParams(
-          options.analysisRoots,
+          options.targets,
           const [],
         ).toJson());
   }
 
   Future<EditDartfixResult> requestFixes(Options options) async {
-    context.stdout.write('Calculating fixes...');
-    verboseOut('');
+    verboseOut('Requesting fixes');
     analysisComplete = new Completer();
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
-    await analysisComplete.future;
-    analysisComplete = null;
+    await analysisComplete?.future;
     resetProgress();
     ResponseDecoder decoder = new ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
@@ -321,6 +321,7 @@ class Driver {
     if (params.analysis != null && !params.analysis.isAnalyzing) {
       verboseOut('Analysis complete');
       analysisComplete?.complete();
+      analysisComplete = null;
     }
   }
 
@@ -344,9 +345,9 @@ class Driver {
     }
   }
 
-  bool isTarget(String path) {
+  bool isTarget(String filePath) {
     for (String target in targets) {
-      if (path == target || pathos.isWithin(target, path)) {
+      if (filePath == target || path.isWithin(target, filePath)) {
         return true;
       }
     }

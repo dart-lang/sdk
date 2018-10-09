@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_cli/src/fix/options.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'test_context.dart';
@@ -12,10 +12,14 @@ main() {
   group('Options', () {
     TestContext context;
 
+    String p(String filePath) => context.convertPath(filePath);
+
     Options parse(List<String> args,
         {bool dryRun = false,
         String errorOut,
         int exitCode,
+        String normalOut,
+        List<String> targetSuffixes,
         bool verbose = false}) {
       Options options;
       int actualExitCode;
@@ -26,7 +30,8 @@ main() {
       }
       expect(context.stderr.toString(),
           errorOut != null ? contains(errorOut) : isEmpty);
-      expect(context.stdout.toString(), isEmpty);
+      expect(context.stdout.toString(),
+          normalOut != null ? contains(normalOut) : isEmpty);
       if (exitCode != null) {
         expect(actualExitCode, exitCode, reason: 'exit code');
         return null;
@@ -35,15 +40,15 @@ main() {
       }
       expect(options.dryRun, dryRun);
       expect(options.verbose, verbose);
-      expect(pathos.isAbsolute(options.sdkPath), isTrue,
-          reason: options.sdkPath);
+      expect(path.isAbsolute(options.sdkPath), isTrue, reason: options.sdkPath);
       for (String target in options.targets) {
         expect(target, isNotNull);
-        expect(pathos.isAbsolute(target), isTrue, reason: '$target');
+        expect(path.isAbsolute(target), isTrue, reason: '$target');
       }
-      for (String root in options.analysisRoots) {
-        expect(root, isNotNull);
-        expect(pathos.isAbsolute(root), isTrue);
+      if (targetSuffixes != null) {
+        for (String suffix in targetSuffixes) {
+          expectContains(options.targets, suffix);
+        }
       }
       return options;
     }
@@ -53,8 +58,7 @@ main() {
     });
 
     test('dryRun', () {
-      final options = parse(['--dry-run', 'foo.dart'], dryRun: true);
-      expectOneFileTarget(options, 'foo.dart');
+      parse(['--dry-run', 'foo'], dryRun: true, targetSuffixes: ['foo']);
     });
 
     test('invalid option', () {
@@ -62,41 +66,22 @@ main() {
           errorOut: 'Could not find an option named "foo"', exitCode: 15);
     });
 
+    test('invalid target', () {
+      parse(['foo.dart'],
+          errorOut: 'Expected directory, but found', exitCode: 15);
+    });
+
     test('simple', () {
-      final options = parse(['foo.dart']);
-      expectOneFileTarget(options, 'foo.dart');
+      parse(['foo'], targetSuffixes: ['foo']);
     });
 
-    test('two files in different directories', () {
-      final options = parse([p('one/foo.dart'), p('two/bar.dart')]);
-      expect(options.targets, hasLength(2));
-      expectContains(options.targets, p('one/foo.dart'));
-      expectContains(options.targets, p('two/bar.dart'));
-      expect(options.analysisRoots, hasLength(2));
-      expectContains(options.analysisRoots, 'one');
-      expectContains(options.analysisRoots, 'two');
-    });
-
-    test('two files in overlapping directories', () {
-      final options = parse([p('one/two/foo.dart'), p('one/bar.dart')]);
-      expect(options.targets, hasLength(2));
-      expectContains(options.targets, p('one/two/foo.dart'));
-      expectContains(options.targets, p('one/bar.dart'));
-      expect(options.analysisRoots, hasLength(1));
-      expectContains(options.analysisRoots, 'one');
-    });
-
-    test('two files in same directory', () {
-      final options = parse(['foo.dart', 'bar.dart']);
-      expect(options.targets, hasLength(2));
-      expectContains(options.targets, 'foo.dart');
-      expectContains(options.targets, 'bar.dart');
-      expect(options.analysisRoots, hasLength(1));
+    test('two files', () {
+      parse([p('one/foo'), p('two/bar')],
+          targetSuffixes: [p('one/foo'), p('two/bar')]);
     });
 
     test('verbose', () {
-      final options = parse(['--verbose', 'foo.dart'], verbose: true);
-      expectOneFileTarget(options, 'foo.dart');
+      parse(['--verbose', 'foo'], verbose: true, normalOut: 'Targets:');
     });
   });
 }
@@ -105,10 +90,6 @@ void expectOneFileTarget(Options options, String fileName) {
   expect(options.targets, hasLength(1));
   final target = options.targets[0];
   expect(target.endsWith(fileName), isTrue);
-  expect(options.analysisRoots, hasLength(1));
-  final root = options.analysisRoots[0];
-  expect(root.endsWith(fileName), isFalse);
-  expect(pathos.context.isWithin(root, target), isTrue);
 }
 
 void expectContains(Iterable<String> collection, String suffix) {

@@ -5,14 +5,13 @@
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 /// Command line options for `dartfix`.
 class Options {
   final Context context;
 
   List<String> targets;
-  List<String> analysisRoots;
   bool dryRun;
   String sdkPath;
   bool verbose;
@@ -83,13 +82,22 @@ class Options {
     options.targets =
         options.targets.map<String>(options.makeAbsoluteAndNormalize).toList();
     for (String target in options.targets) {
-      if (!context.exists(target)) {
-        context.stderr
-            .writeln('Expected an existing file or directory: $target');
+      if (!context.isDirectory(target)) {
+        if (!context.exists(target)) {
+          context.stderr.writeln('Target does not exist: $target');
+        } else {
+          context.stderr.writeln('Expected directory, but found: $target');
+        }
         _showUsage(parser, context);
         context.exit(15);
       }
-      options._addAnalysisRoot(target);
+    }
+
+    if (options.verbose) {
+      context.print('Targets:');
+      for (String target in options.targets) {
+        context.print('  $target');
+      }
     }
 
     return options;
@@ -97,35 +105,21 @@ class Options {
 
   void _fromArgs(ArgResults results) {
     targets = results.rest;
-    analysisRoots = <String>[];
     dryRun = results[_dryRunOption] as bool;
     sdkPath = results[_sdkPathOption] as String;
     verbose = results[_verboseOption] as bool;
   }
 
-  void _addAnalysisRoot(String target) {
-    // TODO(danrubel): Consider finding the directory containing `pubspec.yaml`
-    // and using that as the analysis root
-    String parent = target.endsWith('.dart') ? pathos.dirname(target) : target;
-    for (String root in analysisRoots) {
-      if (root == parent || pathos.isWithin(root, parent)) {
-        return;
-      }
-    }
-    analysisRoots.removeWhere((String root) => pathos.isWithin(parent, root));
-    analysisRoots.add(parent);
-  }
-
   String makeAbsoluteAndNormalize(String target) {
-    if (!pathos.isAbsolute(target)) {
-      target = pathos.join(context.workingDir, target);
+    if (!path.isAbsolute(target)) {
+      target = path.join(context.workingDir, target);
     }
-    return pathos.normalize(target);
+    return path.normalize(target);
   }
 
   static _showUsage(ArgParser parser, Context context) {
-    context.stderr.writeln(
-        'Usage: $_binaryName [options...] <directory or list of files>');
+    context.stderr
+        .writeln('Usage: $_binaryName [options...] <directory paths>');
     context.stderr.writeln('');
     context.stderr.writeln(parser.usage);
   }

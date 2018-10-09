@@ -4,21 +4,10 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
-import 'package:path/path.dart' as pathos;
 
-/// Convert the given posix [path] to conform to the current OS context.
-String p(String path) {
-  if (pathos.style == pathos.windows.style) {
-    if (path.startsWith(pathos.posix.separator)) {
-      path = r'C:' + path;
-    }
-    path = path.replaceAll(pathos.posix.separator, pathos.windows.separator);
-  }
-  return path;
-}
-
-class TestContext implements Context {
+class TestContext with ResourceProviderMixin implements Context {
   final StreamController<List<int>> stdinController =
       new StreamController<List<int>>();
 
@@ -32,15 +21,18 @@ class TestContext implements Context {
   Stream<List<int>> get stdin => stdinController.stream;
 
   @override
-  String get workingDir => p('/usr/some/non/existing/directory');
+  String get workingDir => convertPath('/usr/some/non/existing/directory');
 
   @override
-  bool exists(String target) => true;
+  bool exists(String filePath) => true;
 
   @override
   void exit(int code) {
     throw TestExit(code);
   }
+
+  @override
+  bool isDirectory(String filePath) => !filePath.endsWith('.dart');
 
   void print([String text = '']) {
     stdout.writeln(text);
