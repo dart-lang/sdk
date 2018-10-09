@@ -157,6 +157,7 @@ mixin_method_override_test/G5: Skip # Issue 34354
 
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError
+double_literals/implicit_double_context_test: RuntimeError # Issue 34730
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
