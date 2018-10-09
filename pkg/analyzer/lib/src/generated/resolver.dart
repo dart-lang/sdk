@@ -116,13 +116,14 @@ class AstRewriteVisitor extends ScopedVisitor {
                 [element.name, constructorElement.name]);
           }
           AstFactory astFactory = new AstFactoryImpl();
-          TypeName typeName = astFactory.typeName(target, typeArguments);
+          TypeName typeName = astFactory.typeName(target, null);
           ConstructorName constructorName =
               astFactory.constructorName(typeName, node.operator, methodName);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = getType(typeSystem, element, typeArguments);
+                  _getKeyword(node), constructorName, node.argumentList,
+                  typeArguments: typeArguments);
+          InterfaceType type = getType(typeSystem, element, null);
           constructorElement =
               type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;

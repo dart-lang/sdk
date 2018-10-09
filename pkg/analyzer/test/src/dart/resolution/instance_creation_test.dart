@@ -98,7 +98,7 @@ main() {
     assertInstanceCreation(
       creation,
       findElement.class_('Foo'),
-      'Foo<int>',
+      'Foo<dynamic>',
       constructorName: 'bar',
       expectedConstructorMember: true,
     );
