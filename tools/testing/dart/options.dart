@@ -358,7 +358,8 @@ compiler.''',
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
-    'write_result_log'
+    'write_result_log',
+    'write_results',
   ].toSet();
 
   /// Parses a list of strings as test options.
