@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'resolver_test_case.dart';
 import 'strong_mode_test.dart';
 
 main() {
@@ -22,9 +24,16 @@ class StrongModeLocalInferenceTest_Driver extends StrongModeLocalInferenceTest {
 
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test_Driver
-    extends StrongModeStaticTypeAnalyzer2Test {
+    extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    resetWith(options: options);
+  }
 
   @failingTest
   @override
@@ -67,15 +76,35 @@ class StrongModeStaticTypeAnalyzer2Test_Driver
   }
 
   @override
-  test_notInstantiatedBound_class_error_recursion() {
-    // overridden because not failing
-    return super.test_notInstantiatedBound_class_error_recursion();
+  @failingTest
+  test_genericMethod_nestedCaptureBounds() {
+    // https://github.com/dart-lang/sdk/issues/30236
+    return super.test_genericMethod_nestedCaptureBounds();
   }
 
   @override
-  test_notInstantiatedBound_class_error_recursion_less_direct() {
-    // overridden because not failing
-    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  @failingTest
+  test_genericMethod_tearoff_instantiated() {
+    return super.test_genericMethod_tearoff_instantiated();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() {
+    return super.test_instantiateToBounds_class_error_extension_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() {
+    return super
+        .test_instantiateToBounds_class_error_instantiation_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() {
+    return super.test_instantiateToBounds_generic_function_error_malbounded();
   }
 }
 
