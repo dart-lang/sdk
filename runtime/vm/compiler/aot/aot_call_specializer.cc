@@ -742,10 +742,6 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     ReplaceWithInstanceOf(instr);
     return;
   }
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
 
   if (TryInlineFieldAccess(instr)) {
     return;
@@ -1215,83 +1211,6 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
       Z, dart_internal.LookupFunctionAllowPrivate(target_name));
   ASSERT(!target.IsNull());
   ASSERT(target.IsRecognized() && target.always_inline());
-
-  const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call = new (Z) StaticCallInstr(
-      call->token_pos(), target, kTypeArgsLen,
-      Object::null_array(),  // argument_names
-      args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
-  Environment* copy =
-      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
-  for (intptr_t i = 0; i < args->length(); ++i) {
-    copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
-  }
-  call->RemoveEnvironment();
-  ReplaceCall(call, new_call);
-  copy->DeepCopyTo(Z, new_call);
-  return true;
-}
-
-bool AotCallSpecializer::TryReplaceTypeCastWithRangeCheck(
-    InstanceCallInstr* call,
-    const AbstractType& type) {
-  if (precompiler_ == NULL) {
-    // Loading not complete, can't do CHA yet.
-    return false;
-  }
-
-  HierarchyInfo* hi = thread()->hierarchy_info();
-  if (hi == NULL) {
-    return false;
-  }
-
-  intptr_t lower_limit, upper_limit;
-  if (!hi->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
-    return false;
-  }
-
-  Definition* left = call->ArgumentAt(0);
-
-  // left as type =>
-  //     _classRangeCheck(pos, left, type, left.cid, lower_limit, upper_limit)
-  LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-  InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
-  ConstantInstr* lower_cid =
-      flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(lower_limit)));
-  ConstantInstr* upper_cid =
-      flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(upper_limit)));
-  ConstantInstr* pos = flow_graph()->GetConstant(
-      Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
-
-  ZoneGrowableArray<PushArgumentInstr*>* args =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(6);
-  PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(left));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg =
-      new (Z) PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-
-  const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
-  const String& target_name = Symbols::_classRangeAssert();
-  const Function& target = Function::ZoneHandle(
-      Z, dart_internal.LookupFunctionAllowPrivate(target_name));
-  ASSERT(!target.IsNull());
-  ASSERT(target.IsRecognized());
-  ASSERT(target.always_inline());
 
   const intptr_t kTypeArgsLen = 0;
   StaticCallInstr* new_call = new (Z) StaticCallInstr(

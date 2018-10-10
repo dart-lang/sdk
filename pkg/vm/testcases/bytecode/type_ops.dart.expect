@@ -198,12 +198,13 @@ L1:
   Drop1
 L2:
   Push                 FP[-5]
+  PushConstant         CP#11
   Push                 FP[-6]
   LoadTypeArgumentsField CP#6
   Push                 r0
-  PushConstant         CP#11
-  InstanceCall         4, CP#12
-  InstanceCall         1, CP#13
+  PushConstant         CP#12
+  AssertAssignable     0, CP#13
+  InstanceCall         1, CP#14
   ReturnTOS
   PushNull
   ReturnTOS
@@ -221,8 +222,9 @@ ConstantPool {
   [9] = String '32'
   [10] = StaticICData target 'dart.core::print', arg-desc CP#4
   [11] = Type dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>
-  [12] = ICData target-name 'dart.core::_as', arg-desc CP#1
-  [13] = ICData get target-name 'values', arg-desc CP#4
+  [12] = String ' in type cast'
+  [13] = SubtypeTestCache
+  [14] = ICData get target-name 'values', arg-desc CP#4
 }
 ]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
     if(z is self::A<self::D::foo3::T1>) {
@@ -358,10 +360,11 @@ L1:
   Drop1
 L2:
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#11
-  InstanceCall         4, CP#12
+  PushNull
+  PushNull
+  PushConstant         CP#12
+  AssertAssignable     0, CP#13
   ReturnTOS
   PushNull
   ReturnTOS
@@ -379,7 +382,8 @@ ConstantPool {
   [9] = String '12'
   [10] = StaticICData target 'dart.core::print', arg-desc CP#4
   [11] = Type #lib::A<dart.core::int>
-  [12] = ICData target-name 'dart.core::_as', arg-desc CP#7
+  [12] = String ' in type cast'
+  [13] = SubtypeTestCache
 }
 ]static method foo1(dynamic x) → dynamic {
   if(x is self::B) {

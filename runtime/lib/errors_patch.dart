@@ -586,26 +586,6 @@ class _CompileTimeError extends Error {
   String toString() => _errorMsg;
 }
 
-@pragma("vm:entry-point")
-dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
-    int lowerLimit, int upperLimit) {
-  if ((cid < lowerLimit || cid > upperLimit) && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
-}
-
-@pragma("vm:entry-point")
-dynamic _classIdEqualsAssert(
-    int position, dynamic instance, _Type type, int cid, int otherCid) {
-  if (cid != otherCid && instance != null) {
-    _TypeError._throwNew(position, instance, type, " in type cast", null);
-  }
-
-  return instance;
-}
-
 /// Used by Fasta to report a runtime error when a final field with an
 /// initializer is also initialized in a generative constructor.
 ///

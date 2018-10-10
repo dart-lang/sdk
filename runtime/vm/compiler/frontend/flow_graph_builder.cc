@@ -1525,26 +1525,9 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
     ReturnValue(for_value.value());
     return;
   }
-  PushArgumentInstr* push_left = PushArgument(for_value.value());
-  PushArgumentInstr* push_instantiator_type_args =
-      PushInstantiatorTypeArguments(type, node->token_pos());
-  PushArgumentInstr* push_function_type_args =
-      PushFunctionTypeArguments(type, node->token_pos());
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
-  arguments->Add(push_left);
-  arguments->Add(push_instantiator_type_args);
-  arguments->Add(push_function_type_args);
-  Value* type_arg = Bind(new (Z) ConstantInstr(type));
-  arguments->Add(PushArgument(type_arg));
-  const int kTypeArgsLen = 0;
-  const intptr_t kNumArgsChecked = 1;
-  InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      node->token_pos(), Library::PrivateCoreLibName(Symbols::_as()),
-      node->kind(), arguments, kTypeArgsLen,
-      Object::null_array(),  // No argument names.
-      kNumArgsChecked, owner()->ic_data_array(), owner()->GetNextDeoptId());
-  ReturnDefinition(call);
+  auto assert_assignable = BuildAssertAssignable(
+      node->token_pos(), for_value.value(), type, Symbols::InTypeCast());
+  ReturnDefinition(assert_assignable);
 }
 
 StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(

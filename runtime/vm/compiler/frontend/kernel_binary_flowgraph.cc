@@ -4414,55 +4414,28 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  uint8_t flags = ReadFlags();  // read flags.
+  const uint8_t flags = ReadFlags();  // read flags.
   const bool is_type_error = (flags & (1 << 0)) != 0;
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-
-  // The VM does not like an Object_as call with a dynamic type. We need to
-  // special case this situation.
-  const Type& object_type = Type::Handle(Z, Type::ObjectType());
-
   if (type.IsMalformed()) {
     instructions += Drop();
     instructions += ThrowTypeError();
-    return instructions;
-  }
-
-  if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+  } else if (type.IsInstantiated() && type.IsTopType()) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
-  } else if (is_type_error) {
+  } else {
+    // We do not care whether the 'as' cast as implicitly added by the frontend
+    // or explicitly written by the user, in both cases we use an assert
+    // assignable.
     instructions += LoadLocal(MakeTemporary());
-    instructions += flow_graph_builder_->AssertAssignable(
-        position, type, Symbols::Empty(),
+    instructions += B->AssertAssignable(
+        position, type,
+        is_type_error ? Symbols::Empty() : Symbols::InTypeCast(),
         AssertAssignableInstr::kInsertedByFrontend);
     instructions += Drop();
-  } else {
-    instructions += PushArgument();
-
-    if (!type.IsInstantiated(kCurrentClass)) {
-      instructions += LoadInstantiatorTypeArguments();
-    } else {
-      instructions += NullConstant();
-    }
-    instructions += PushArgument();  // Instantiator type arguments.
-
-    if (!type.IsInstantiated(kFunctions)) {
-      instructions += LoadFunctionTypeArguments();
-    } else {
-      instructions += NullConstant();
-    }
-    instructions += PushArgument();  // Function type arguments.
-
-    instructions += Constant(type);
-    instructions += PushArgument();  // Type.
-
-    instructions += InstanceCall(
-        position, Library::PrivateCoreLibName(Symbols::_as()), Token::kAS, 4);
   }
   return instructions;
 }

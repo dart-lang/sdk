@@ -46,7 +46,7 @@ List<String> expected = [
   "$file:${LINE_A+12}:5", // on call to 'print'
   "$file:${LINE_A+14}:11", // in 'is'
   "$file:${LINE_A+15}:5", // on call to 'print'
-  "$file:${LINE_A+16}:17", // on 'as'
+  "$file:${LINE_A+16}:11", // on 'as'
   "$file:${LINE_A+17}:11", // on 'isEven'
   "$file:${LINE_A+18}:7", // on call to 'print'
   "$file:${LINE_A+23}:11", // on 'is!'

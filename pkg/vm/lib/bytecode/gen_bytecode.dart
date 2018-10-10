@@ -31,6 +31,11 @@ import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
+// This symbol is used as the name in assert assignable's to indicate it comes
+// from an explicit 'as' check.  This will cause the runtime to throw the right
+// exception.
+const String symbolForTypeCast = ' in type cast';
+
 void generateBytecode(Component component,
     {bool strongMode: true,
     bool dropAST: false,
@@ -217,10 +222,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _objectSimpleInstanceOf;
   Procedure get objectSimpleInstanceOf => _objectSimpleInstanceOf ??=
       libraryIndex.getMember('dart:core', 'Object', '_simpleInstanceOf');
-
-  Procedure _objectAs;
-  Procedure get objectAs =>
-      _objectAs ??= libraryIndex.getMember('dart:core', 'Object', '_as');
 
   Field _closureInstantiatorTypeArguments;
   Field get closureInstantiatorTypeArguments =>
@@ -1475,16 +1476,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (typeEnvironment.isTop(type)) {
       return;
     }
-    if (node.isTypeError) {
-      _genAssertAssignable(type);
-    } else {
-      _genPushInstantiatorAndFunctionTypeArguments([type]);
-      asm.emitPushConstant(cp.add(new ConstantType(type)));
-      final argDescIndex = cp.add(new ConstantArgDesc(4));
-      final icdataIndex = cp.add(new ConstantICData(
-          InvocationKind.method, objectAs.name, argDescIndex));
-      asm.emitInstanceCall(4, icdataIndex);
-    }
+
+    _genAssertAssignable(type, name: node.isTypeError ? '' : symbolForTypeCast);
   }
 
   @override

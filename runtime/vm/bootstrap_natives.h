@@ -23,7 +23,6 @@ namespace dart {
   V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
-  V(Object_as, 4)                                                              \
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_computeHash, 1)                                                    \

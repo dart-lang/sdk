@@ -80,11 +80,6 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
-
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
 
