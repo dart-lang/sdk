@@ -675,41 +675,6 @@ const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
     tip: r"""It should be safe to remove the '?' as a prefix is never null.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type)>
-    templateCantUseSuperBoundedTypeForInstanceCreation =
-    const Template<Message Function(DartType _type)>(
-        messageTemplate:
-            r"""Can't use a super-bounded type for instance creation. Got '#type'.""",
-        tipTemplate:
-            r"""Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
-        withArguments:
-            _withArgumentsCantUseSuperBoundedTypeForInstanceCreation);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type)>
-    codeCantUseSuperBoundedTypeForInstanceCreation =
-    const Code<Message Function(DartType _type)>(
-  "CantUseSuperBoundedTypeForInstanceCreation",
-  templateCantUseSuperBoundedTypeForInstanceCreation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseSuperBoundedTypeForInstanceCreation(
-    DartType _type) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  return new Message(codeCantUseSuperBoundedTypeForInstanceCreation,
-      message:
-          """Can't use a super-bounded type for instance creation. Got '${type}'.""",
-      tip: """Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4098,6 +4063,229 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
           """Import of '${name}' (from '${uri}') hides import from '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgument = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgument =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgument", templateIncorrectTypeArgument,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgument(DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgument,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgumentInReturnType = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the return type.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgumentInReturnType =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgumentInReturnType",
+        templateIncorrectTypeArgumentInReturnType,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInReturnType(
+    DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgumentInReturnType,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the return type.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        String name2,
+        String
+            name3)> templateIncorrectTypeArgumentInSupertype = const Template<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>(
+    messageTemplate:
+        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>
+    codeIncorrectTypeArgumentInSupertype = const Code<
+            Message Function(
+                DartType _type, String name, String name2, String name3)>(
+        "IncorrectTypeArgumentInSupertype",
+        templateIncorrectTypeArgumentInSupertype,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInSupertype(
+    DartType _type, String name, String name2, String name3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeIncorrectTypeArgumentInSupertype,
+      message:
+          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String name,
+        String name2,
+        String
+            name3)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
+        Message Function(DartType _type, String name, String name2,
+            String name3)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInSupertypeInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String name, String name2, String name3)>
+    codeIncorrectTypeArgumentInSupertypeInferred = const Code<
+            Message Function(
+                DartType _type, String name, String name2, String name3)>(
+        "IncorrectTypeArgumentInSupertypeInferred",
+        templateIncorrectTypeArgumentInSupertypeInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
+    DartType _type, String name, String name2, String name3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeIncorrectTypeArgumentInSupertypeInferred,
+      message:
+          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateIncorrectTypeArgumentInferred = const Template<
+        Message Function(DartType _type,
+            String name)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeIncorrectTypeArgumentInferred =
+    const Code<Message Function(DartType _type, String name)>(
+        "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInferred(
+    DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeIncorrectTypeArgumentInferred,
+      message:
+          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIncorrectTypeArgumentVariable =
+    messageIncorrectTypeArgumentVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
+    "IncorrectTypeArgumentVariable",
+    severity: Severity.context,
+    message: r"""Bound of this variable is violated.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;

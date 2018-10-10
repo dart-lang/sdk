@@ -561,7 +561,7 @@ Language/Expressions/Instance_Creation/New/execution_t11: CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t13: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t02: CompileTimeError
-Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t01: CompileTimeError # Issue 33308
+Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_argument_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t01: CompileTimeError

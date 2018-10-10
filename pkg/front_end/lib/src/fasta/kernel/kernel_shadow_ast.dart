@@ -41,12 +41,13 @@ import '../fasta_codes.dart'
         messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
-        templateCantUseSuperBoundedTypeForInstanceCreation,
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
         templateSwitchExpressionNotAssignable,
         templateWebLiteralCannotBeRepresentedExactly;
+
+import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -716,6 +717,8 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
       }
       inferrer.engine.beingInferred.remove(target);
     }
+    bool hasExplicitTypeArguments =
+        getExplicitTypeArguments(argumentJudgments) != null;
     var inferenceResult = inferrer.inferInvocation(
         typeContext,
         fileOffset,
@@ -725,14 +728,11 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
         isConst: isConst);
     var inferredType = inferenceResult.type;
     this.inferredType = inferredType;
-    if (inferrer.strongMode &&
-        !inferrer.isTopLevel &&
-        inferrer.typeSchemaEnvironment.isSuperBounded(inferredType)) {
-      inferrer.helper.addProblem(
-          templateCantUseSuperBoundedTypeForInstanceCreation
-              .withArguments(inferredType),
-          fileOffset,
-          noLength);
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (!hasExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInConstructorInvocation(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
     }
     return null;
   }
@@ -854,6 +854,7 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
 
   @override
   Expression infer(ShadowTypeInferrer inferrer, DartType typeContext) {
+    bool hadExplicitTypeArguments = getExplicitTypeArguments(arguments) != null;
     var inferenceResult = inferrer.inferInvocation(
         typeContext,
         fileOffset,
@@ -862,6 +863,12 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
         argumentJudgments,
         isConst: isConst);
     inferredType = inferenceResult.type;
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (!hadExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInFactoryInvocation(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
+    }
     return null;
   }
 }
@@ -1653,6 +1660,13 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
       }
     }
     inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (_declaredTypeArgument == null &&
+        inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInListLiteral(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
+    }
     return null;
   }
 }
@@ -1806,6 +1820,14 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
     }
     inferredType =
         new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
+    // none of them, so we may just check one.
+    if (_declaredKeyType == null && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInMapLiteral(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
+    }
     return null;
   }
 }
@@ -1920,6 +1942,7 @@ class MethodInvocationJudgment extends MethodInvocation
         }
       }
     }
+    bool hadExplicitTypeArguments = getExplicitTypeArguments(arguments) != null;
     var inferenceResult = inferrer.inferMethodInvocation(
         this, receiver, fileOffset, _isImplicitCall, typeContext,
         desugaredInvocation: this);
@@ -1927,6 +1950,12 @@ class MethodInvocationJudgment extends MethodInvocation
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
       parent = null;
+    }
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (!hadExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInMethodInvocation(
+          this, inferrer.thisType?.classNode, inferrer.typeSchemaEnvironment,
+          inferred: true);
     }
     return null;
   }
@@ -2336,12 +2365,22 @@ class StaticInvocationJudgment extends StaticInvocation
     FunctionType calleeType = target != null
         ? target.function.functionType
         : new FunctionType([], const DynamicType());
+    bool hadExplicitTypeArguments =
+        getExplicitTypeArguments(argumentJudgments) != null;
     var inferenceResult = inferrer.inferInvocation(typeContext, fileOffset,
         calleeType, calleeType.returnType, argumentJudgments);
     inferredType = inferenceResult.type;
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
       parent = null;
+    }
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (!hadExplicitTypeArguments &&
+        target != null &&
+        inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInStaticInvocation(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
     }
     return null;
   }
@@ -3132,6 +3171,12 @@ class VariableDeclarationJudgment extends VariableDeclaration
       if (replacedInitializer != null) {
         initializer = replacedInitializer;
       }
+    }
+    SourceLibraryBuilder inferrerLibrary = inferrer.library;
+    if (_implicitlyTyped && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInVariableDeclaration(
+          this, inferrer.typeSchemaEnvironment,
+          inferred: true);
     }
   }
 

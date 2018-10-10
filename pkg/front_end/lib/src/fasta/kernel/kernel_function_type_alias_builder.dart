@@ -27,6 +27,7 @@ import 'kernel_builder.dart'
         FunctionTypeAliasBuilder,
         KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
+        KernelLibraryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -120,7 +121,11 @@ class KernelFunctionTypeAliasBuilder
     for (int i = 0; i < target.typeParameters.length; i++) {
       substitution[target.typeParameters[i]] = arguments[i];
     }
-    return substitute(result, substitution);
+    result = substitute(result, substitution);
+    if (library is KernelLibraryBuilder) {
+      library.typedefInstantiations[result] = arguments;
+    }
+    return result;
   }
 
   List<DartType> buildTypeArguments(
@@ -134,6 +139,9 @@ class KernelFunctionTypeAliasBuilder
           new List<DartType>.filled(typeVariables.length, null, growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
+      }
+      if (library is KernelLibraryBuilder) {
+        library.inferredTypes.addAll(result);
       }
       return result;
     }

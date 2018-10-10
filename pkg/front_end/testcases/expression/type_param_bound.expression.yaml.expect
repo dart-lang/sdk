@@ -1,4 +1,6 @@
 Errors: {
+  Type argument 'T' violates the corresponding type variable bound of 'hasBound'. (@0)
+  Bound of this variable is violated. (@637)
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
   return main::hasBound<#lib1::debugExpr::T>();

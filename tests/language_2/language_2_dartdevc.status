@@ -272,7 +272,6 @@ generic_function_bounds_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
-generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -289,14 +288,12 @@ implicit_creation/implicit_const_not_default_values_test/e30: Pass
 implicit_creation/implicit_const_not_default_values_test/e6: Pass
 implicit_creation/implicit_const_not_default_values_test/e9: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
-issue18628_2_test/01: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-mixin_declaration/mixin_declaration_inference_invalid_07_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34165
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError
 mixin_declaration/mixin_declaration_invalid_usage_test/03: MissingCompileTimeError

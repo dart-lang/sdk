@@ -267,6 +267,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return isInstanceMember || member is KernelConstructorBuilder;
   }
 
+  TypeEnvironment get typeEnvironment => _typeInferrer?.typeSchemaEnvironment;
+
   @override
   void push(Object node) {
     if (node is DartType) {
@@ -717,9 +719,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // enabled for two reasons:
     // 1) the [isSubtypeOf] predicate produces false-negatives when [strongMode]
     // is false.
-    // 2) the member [_typeInferrer.typeSchemaEnvironment] might be null when
-    // [strongMode] is false. This particular behaviour can be observed when
-    // running the fasta perf benchmarks.
+    // 2) the member [typeEnvironment] might be null when [strongMode] is false.
+    // This particular behaviour can be observed when running the fasta perf
+    // benchmarks.
     bool strongMode = library.loader.target.strongMode;
     if (strongMode && builder.returnType != null) {
       DartType returnType = builder.function.returnType;
@@ -733,8 +735,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       switch (asyncModifier) {
         case AsyncMarker.Async:
           DartType futureBottomType = library.loader.futureOfBottom;
-          if (!_typeInferrer.typeSchemaEnvironment
-              .isSubtypeOf(futureBottomType, returnType)) {
+          if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
             problem = fasta.messageIllegalAsyncReturnType;
           }
           break;
@@ -743,8 +744,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           DartType streamBottomType = library.loader.streamOfBottom;
           if (returnType is VoidType) {
             problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-          } else if (!_typeInferrer.typeSchemaEnvironment
-              .isSubtypeOf(streamBottomType, returnType)) {
+          } else if (!typeEnvironment.isSubtypeOf(
+              streamBottomType, returnType)) {
             problem = fasta.messageIllegalAsyncGeneratorReturnType;
           }
           break;
@@ -753,8 +754,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           DartType iterableBottomType = library.loader.iterableOfBottom;
           if (returnType is VoidType) {
             problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
-          } else if (!_typeInferrer.typeSchemaEnvironment
-              .isSubtypeOf(iterableBottomType, returnType)) {
+          } else if (!typeEnvironment.isSubtypeOf(
+              iterableBottomType, returnType)) {
             problem = fasta.messageIllegalSyncGeneratorReturnType;
           }
           break;
@@ -1954,14 +1955,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
-    push(new VariableDeclarationJudgment(identifier.name, functionNestingLevel,
+    VariableDeclaration variable = new VariableDeclarationJudgment(
+        identifier.name, functionNestingLevel,
         forSyntheticToken: deprecated_extractToken(identifier).isSynthetic,
         initializer: initializer,
         type: buildDartType(currentLocalVariableType),
         isFinal: isFinal,
         isConst: isConst)
       ..fileOffset = identifier.charOffset
-      ..fileEqualsOffset = offsetForToken(equalsToken));
+      ..fileEqualsOffset = offsetForToken(equalsToken);
+    library.checkBoundsInVariableDeclaration(variable, typeEnvironment);
+    push(variable);
   }
 
   @override
@@ -2231,14 +2235,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(forest.literalList(
+    Expression node = forest.literalList(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
         typeArgument,
         typeArguments,
         leftBracket,
         expressions,
-        rightBracket));
+        rightBracket);
+    library.checkBoundsInListLiteral(node, typeEnvironment);
+    push(node);
   }
 
   @override
@@ -2285,8 +2291,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-
-    push(forest.literalMap(
+    Expression node = forest.literalMap(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
         keyType,
@@ -2294,7 +2299,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         typeArguments,
         leftBrace,
         entries,
-        rightBrace));
+        rightBrace);
+    library.checkBoundsInMapLiteral(node, typeEnvironment);
+    push(node);
   }
 
   @override
@@ -2448,7 +2455,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
-    UnresolvedType<KernelTypeBuilder> type = pop();
+    DartType type = buildDartType(pop());
+    library.checkBoundsInType(type, typeEnvironment, operator.charOffset);
     Expression expression = popForValue();
     if (constantContext != ConstantContext.none) {
       push(buildProblem(
@@ -2458,7 +2466,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               operator.length)
           .desugared);
     } else {
-      push(forest.asExpression(expression, buildDartType(type), operator));
+      Expression node = forest.asExpression(expression, type, operator);
+      push(node);
     }
   }
 
@@ -2470,6 +2479,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     bool isInverted = not != null;
     Expression isExpression =
         forest.isExpression(operand, isOperator, not, type);
+    library.checkBoundsInType(type, typeEnvironment, isOperator.charOffset);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
@@ -3032,10 +3042,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             target,
             arguments);
       }
-      return new ConstructorInvocationJudgment(
+      ConstructorInvocation node = new ConstructorInvocationJudgment(
           target, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
+      library.checkBoundsInConstructorInvocation(node, typeEnvironment);
+      return node;
     } else {
       Procedure procedure = target;
       if (procedure.isFactory) {
@@ -3049,15 +3061,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               target,
               arguments);
         }
-        return new FactoryConstructorInvocationJudgment(
+        StaticInvocation node = FactoryConstructorInvocationJudgment(
             target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
+        library.checkBoundsInFactoryInvocation(node, typeEnvironment);
+        return node;
       } else {
-        return new StaticInvocationJudgment(
+        StaticInvocation node = new StaticInvocationJudgment(
             target, forest.castArguments(arguments),
             desugaredError: error, isConst: isConst)
           ..fileOffset = charOffset;
+        library.checkBoundsInStaticInvocation(node, typeEnvironment);
+        return node;
       }
     }
   }
@@ -3095,10 +3111,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<DartType> types = forest.argumentsTypeArguments(arguments);
     if (typeParameters.length != types.length) {
       if (types.length == 0) {
-        // Expected `typeParameters.length` type arguments, but none given,
-        // so we fill in dynamic.
-        for (int i = 0; i < typeParameters.length; i++) {
-          types.add(const DynamicType());
+        // Expected `typeParameters.length` type arguments, but none given, so
+        // we fill in dynamic in legacy mode, and use type inference in strong
+        // mode.
+        if (!library.loader.target.strongMode) {
+          for (int i = 0; i < typeParameters.length; i++) {
+            types.add(const DynamicType());
+          }
         }
       } else {
         // A wrong (non-zero) amount of type arguments given. That's an error.
@@ -4326,8 +4345,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         if (library.loader.target.strongMode &&
             formalType != null &&
-            !_typeInferrer.typeSchemaEnvironment
-                .isSubtypeOf(formalType, builder.field.type)) {
+            !typeEnvironment.isSubtypeOf(formalType, builder.field.type)) {
           library.addProblem(
               fasta.templateInitializingFormalTypeMismatch
                   .withArguments(name, formalType, builder.field.type),
@@ -4523,10 +4541,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       receiver = new SuperPropertyGetJudgment(name,
           interfaceTarget: target, desugaredError: error)
         ..fileOffset = offset;
-      return new MethodInvocationJudgment(
+      MethodInvocation node = new MethodInvocationJudgment(
           receiver, callName, forest.castArguments(arguments),
           isImplicitCall: true, desugaredError: error)
         ..fileOffset = forest.readOffset(arguments);
+      library.checkBoundsInMethodInvocation(
+          node, classBuilder?.target, typeEnvironment);
+      return node;
     }
 
     if (isNullAware) {
@@ -4545,12 +4566,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           desugaredError: error)
         ..fileOffset = offset;
     } else {
-      return new MethodInvocationJudgment(
+      MethodInvocation node = new MethodInvocationJudgment(
           receiver, name, forest.castArguments(arguments),
           isImplicitCall: isImplicitCall,
           interfaceTarget: interfaceTarget,
           desugaredError: error)
         ..fileOffset = offset;
+      library.checkBoundsInMethodInvocation(
+          node, classBuilder?.target, typeEnvironment);
+      return node;
     }
   }
 
