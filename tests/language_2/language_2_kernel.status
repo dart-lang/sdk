@@ -418,21 +418,13 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 known_identifier_usage_error_test/none: RuntimeError # Issue 28814
-malbounded_redirecting_factory_test/03: Fail
-malbounded_redirecting_factory_test/04: Fail
 malbounded_type_test_test/03: Fail
 malbounded_type_test_test/04: Fail
-mixin_invalid_bound2_test/08: Fail
-mixin_invalid_bound2_test/09: Fail
-mixin_invalid_bound2_test/10: Fail
-mixin_invalid_bound_test/06: Fail
-mixin_invalid_bound_test/07: Fail
 recursive_inheritance_test: RuntimeError
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: Fail # Dartk Issue 28498
 regress_22728_test: RuntimeError
-type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked && $strong ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
@@ -1029,17 +1021,12 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 async_return_types_test/nestedFuture: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
-malbounded_redirecting_factory_test/03: Fail
-malbounded_redirecting_factory_test/04: Fail
 malbounded_type_test_test/03: Fail
 malbounded_type_test_test/04: Fail
 mixin_invalid_bound2_test/08: Fail
 mixin_invalid_bound2_test/09: Fail
 mixin_invalid_bound2_test/10: Fail
-mixin_invalid_bound_test/06: Fail
-mixin_invalid_bound_test/07: Fail
 regress_30339_test: RuntimeError
-type_variable_bounds4_test/01: RuntimeError
 
 [ $runtime == vm && !$checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
