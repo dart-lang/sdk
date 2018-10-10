@@ -30,6 +30,7 @@ external_test/10: CompileTimeError # External non-js-interop function are treate
 external_test/13: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 external_test/20: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 function_propagation_test: RuntimeError
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 instantiate_tearoff_of_call_test: RuntimeError
@@ -451,6 +452,7 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
+issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
@@ -465,6 +467,7 @@ regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
 
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
@@ -501,6 +504,7 @@ identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_test: RuntimeError
+issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 library_env_test/has_no_html_support: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
@@ -520,6 +524,7 @@ stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 symbol_conflict_test: RuntimeError # Issue 23857
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
 
 [ $compiler == dart2js && $strong ]
 async_await_test/02: RuntimeError

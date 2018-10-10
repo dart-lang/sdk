@@ -20,7 +20,6 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         Procedure,
-        RedirectingFactoryConstructor,
         ReturnStatement,
         VoidType,
         MethodInvocation,
@@ -63,9 +62,6 @@ import '../fasta_codes.dart'
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
         templateInterfaceCheckContext,
-        templateIncorrectTypeArgument,
-        templateIncorrectTypeArgumentInSupertype,
-        templateIncorrectTypeArgumentInSupertypeInferred,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
         templateNamedMixinOverrideContext,
@@ -163,9 +159,6 @@ abstract class KernelClassBuilder
           new List<DartType>.filled(typeVariables.length, null, growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
-      }
-      if (library is KernelLibraryBuilder) {
-        library.inferredTypes.addAll(result);
       }
       return result;
     }
@@ -273,99 +266,6 @@ abstract class KernelClassBuilder
             problemsOffsets[interface],
             noLength);
       });
-    }
-  }
-
-  void checkBoundsInSupertype(
-      Supertype supertype, TypeEnvironment typeEnvironment) {
-    KernelLibraryBuilder library = this.library;
-
-    List<Object> boundViolations = typeEnvironment.findBoundViolations(
-        new InterfaceType(supertype.classNode, supertype.typeArguments),
-        allowSuperBounded: false,
-        typedefInstantiations: library.typedefInstantiations);
-    if (boundViolations != null) {
-      for (int i = 0; i < boundViolations.length; i += 3) {
-        DartType argument = boundViolations[i];
-        TypeParameter variable = boundViolations[i + 1];
-        DartType enclosingType = boundViolations[i + 2];
-        Message message = library.inferredTypes.contains(argument)
-            ? templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
-                argument,
-                typeEnvironment.getGenericTypeName(enclosingType),
-                supertype.classNode.name,
-                name)
-            : templateIncorrectTypeArgumentInSupertype.withArguments(
-                argument,
-                typeEnvironment.getGenericTypeName(enclosingType),
-                supertype.classNode.name,
-                name);
-        library.reportBoundViolation(message, charOffset, variable);
-      }
-    }
-  }
-
-  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
-    KernelLibraryBuilder library = this.library;
-
-    // Check in bounds of own type variables.
-    for (TypeParameter parameter in cls.typeParameters) {
-      List<Object> violations = typeEnvironment.findBoundViolations(
-          parameter.bound,
-          allowSuperBounded: false,
-          typedefInstantiations: library.typedefInstantiations);
-      if (violations != null) {
-        for (int i = 0; i < violations.length; i += 3) {
-          DartType argument = violations[i];
-          TypeParameter variable = violations[i + 1];
-          DartType enclosingType = violations[i + 2];
-          if (library.inferredTypes.contains(argument)) {
-            // Inference in type expressions in the supertypes boils down to
-            // instantiate-to-bound which shouldn't produce anything that breaks
-            // the bounds after the non-simplicity checks are done.  So, any
-            // violation here is the result of non-simple bounds, and the error
-            // is reported elsewhere.
-            continue;
-          }
-          library.reportBoundViolation(
-              templateIncorrectTypeArgument.withArguments(
-                  argument, typeEnvironment.getGenericTypeName(enclosingType)),
-              parameter.fileOffset,
-              variable);
-        }
-      }
-    }
-
-    // Check in supers.
-    if (cls.supertype != null) {
-      checkBoundsInSupertype(cls.supertype, typeEnvironment);
-    }
-    if (cls.mixedInType != null) {
-      checkBoundsInSupertype(cls.mixedInType, typeEnvironment);
-    }
-    if (cls.implementedTypes != null) {
-      for (Supertype supertype in cls.implementedTypes) {
-        checkBoundsInSupertype(supertype, typeEnvironment);
-      }
-    }
-
-    // Check in members.
-    for (Field field in cls.fields) {
-      library.checkBoundsInField(field, typeEnvironment);
-    }
-    for (Procedure procedure in cls.procedures) {
-      library.checkBoundsInFunctionNode(procedure.function, typeEnvironment);
-    }
-    for (Constructor constructor in cls.constructors) {
-      library.checkBoundsInFunctionNode(constructor.function, typeEnvironment);
-    }
-    for (RedirectingFactoryConstructor redirecting
-        in cls.redirectingFactoryConstructors) {
-      library.checkBoundsInFunctionNodeParts(
-          typeEnvironment, redirecting.fileOffset,
-          typeParameters: redirecting.typeParameters,
-          positionalParameters: redirecting.positionalParameters,
-          namedParameters: redirecting.namedParameters);
     }
   }
 
