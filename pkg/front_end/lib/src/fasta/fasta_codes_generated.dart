@@ -3340,6 +3340,10 @@ const MessageCode messageFastaUsageLong =
   -v, --verbose
     Display verbose information.
 
+  -Dname
+  -Dname=value
+    Ignored for now.
+
   --
     Stop option parsing, the rest of the command line is assumed to be
     file names or arguments to the Dart program.
@@ -3375,6 +3379,9 @@ const MessageCode messageFastaUsageLong =
   --sdk=<sdk>
     Location of the SDK sources for use when compiling additional platform
     libraries.
+
+  --supermixin
+    Ignored for now.
 
   --fatal=errors
   --fatal=warnings

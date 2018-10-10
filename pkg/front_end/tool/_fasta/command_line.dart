@@ -62,6 +62,7 @@ class CommandLineProblem {
 class ParsedArguments {
   final Map<String, dynamic> options = <String, dynamic>{};
   final List<String> arguments = <String>[];
+  final Map<String, String> defines = <String, String>{};
 
   toString() => "ParsedArguments($options, $arguments)";
 
@@ -111,11 +112,16 @@ class ParsedArguments {
     while (iterator.moveNext()) {
       String argument = iterator.current;
       if (argument.startsWith("-") || argument == "/?" || argument == "/h") {
-        index = argument.indexOf("=");
         String value;
-        if (index != -1) {
-          value = argument.substring(index + 1);
-          argument = argument.substring(0, index);
+        if (argument.startsWith("-D")) {
+          value = argument.substring("-D".length);
+          argument = "-D";
+        } else {
+          index = argument.indexOf("=");
+          if (index != -1) {
+            value = argument.substring(index + 1);
+            argument = argument.substring(0, index);
+          }
         }
         var valueSpecification = specification[argument];
         if (valueSpecification == null) {
@@ -123,7 +129,9 @@ class ParsedArguments {
               "Unknown option '$argument'.");
         }
         String canonicalArgument = argument;
-        if (valueSpecification is String && valueSpecification != ",") {
+        if (valueSpecification is String &&
+            valueSpecification != "," &&
+            valueSpecification != "<define>") {
           canonicalArgument = valueSpecification;
           valueSpecification = specification[valueSpecification];
         }
@@ -147,6 +155,20 @@ class ParsedArguments {
             result.options
                 .putIfAbsent(argument, () => <String>[])
                 .addAll(value.split(","));
+            break;
+
+          case "<define>":
+            int index = value.indexOf('=');
+            String name;
+            String expression;
+            if (index != -1) {
+              name = value.substring(0, index);
+              expression = value.substring(index + 1);
+            } else {
+              name = value;
+              expression = value;
+            }
+            result.defines[name] = expression;
             break;
 
           case "int":
@@ -216,6 +238,7 @@ class ParsedArguments {
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
+  "--bytecode": false,
   "--compile-sdk": Uri,
   "--dump-ir": false,
   "--exclude-source": false,
@@ -228,13 +251,14 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--packages": Uri,
   "--platform": Uri,
   "--sdk": Uri,
-  "--single-root-scheme": String,
   "--single-root-base": Uri,
+  "--single-root-scheme": String,
+  "--supermixin": true,
   "--sync-async": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,
-  "--bytecode": false,
+  "-D": "<define>",
   "-h": "--help",
   "-o": "--output",
   "-t": "--target",
