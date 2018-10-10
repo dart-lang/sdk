@@ -893,7 +893,7 @@ abstract class KernelClassBuilder
                         interfaceMember.fileOffset, noLength)
               ] +
               inheritedContext(isInterfaceCheck, declaredMember));
-    } else if (library.loader.target.backendTarget.strongMode &&
+    } else if (!library.loader.target.backendTarget.legacyMode &&
         declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
@@ -961,7 +961,7 @@ abstract class KernelClassBuilder
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
-    if (!library.loader.target.backendTarget.strongMode) return false;
+    if (library.loader.target.backendTarget.legacyMode) return false;
 
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);

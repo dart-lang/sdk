@@ -19,7 +19,7 @@ class Dart2jsTarget extends Target {
 
   Dart2jsTarget(this.name, this.flags);
 
-  bool get strongMode => !flags.legacyMode;
+  bool get legacyMode => flags.legacyMode;
 
   bool get enableNoSuchMethodForwarders => !flags.legacyMode;
 

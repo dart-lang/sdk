@@ -12,7 +12,7 @@ import 'package:kernel/target/targets.dart';
 class DevCompilerTarget extends Target {
   ClassHierarchy hierarchy;
 
-  bool get strongMode => true; // the only correct answer
+  bool get legacyMode => false;
 
   bool get enableSuperMixins => true;
 

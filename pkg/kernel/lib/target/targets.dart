@@ -59,7 +59,7 @@ abstract class Target {
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
 
-  bool get strongMode;
+  bool get legacyMode;
 
   /// A derived class may change this to `true` to disable type inference and
   /// type promotion phases of analysis.
@@ -197,7 +197,7 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get strongMode => !flags.legacyMode;
+  bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void performModularTransformationsOnLibraries(Component component,

@@ -33,7 +33,7 @@ class VmTarget extends Target {
   VmTarget(this.flags);
 
   @override
-  bool get strongMode => !flags.legacyMode;
+  bool get legacyMode => flags.legacyMode;
 
   @override
   bool get enableNoSuchMethodForwarders => true;

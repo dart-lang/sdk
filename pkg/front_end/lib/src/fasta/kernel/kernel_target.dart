@@ -128,7 +128,7 @@ class KernelTarget extends TargetImplementation {
 
   final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
-  bool get strongMode => backendTarget.strongMode;
+  bool get strongMode => !backendTarget.legacyMode;
 
   bool get disableTypeInference => backendTarget.disableTypeInference;
 

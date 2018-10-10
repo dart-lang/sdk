@@ -106,7 +106,7 @@ InitializedCompilerState initializeCompiler(
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
-    ..legacyMode = !target.strongMode
+    ..legacyMode = target.legacyMode
     ..linkedDependencies = [sdkPlatformUri]
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri;
