@@ -228,9 +228,10 @@ class KernelLoader : public ValueObject {
 
   void FixCoreLibraryScriptUri(const Library& library, const Script& script);
 
-  Class& LoadClass(const Library& library,
-                   const Class& toplevel_class,
-                   intptr_t class_end);
+  void LoadClass(const Library& library,
+                 const Class& toplevel_class,
+                 intptr_t class_end,
+                 Class* klass);
 
   void FinishClassLoading(const Class& klass,
                           const Library& library,
@@ -266,9 +267,10 @@ class KernelLoader : public ValueObject {
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
 
-  Library& LookupLibraryOrNull(NameIndex library);
-  Library& LookupLibrary(NameIndex library);
-  Class& LookupClass(NameIndex klass);
+  RawLibrary* LookupLibraryOrNull(NameIndex library);
+  RawLibrary* LookupLibrary(NameIndex library);
+  RawLibrary* LookupLibraryFromClass(NameIndex klass);
+  RawClass* LookupClass(const Library& library, NameIndex klass);
 
   RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
@@ -353,8 +355,7 @@ class KernelLoader : public ValueObject {
 
   Class& pragma_class_;
 
-  Mapping<Library> libraries_;
-  Mapping<Class> classes_;
+  Smi& name_index_handle_;
 
   // We "re-use" the normal .dill file format for encoding compiled evaluation
   // expressions from the debugger.  This allows us to also reuse the normal

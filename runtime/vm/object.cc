@@ -13238,7 +13238,9 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const ExternalTypedData& metadata_payloads,
     const ExternalTypedData& metadata_mappings,
     const ExternalTypedData& constants_table,
-    const Array& scripts) {
+    const Array& scripts,
+    const Array& libraries_cache,
+    const Array& classes_cache) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -13250,6 +13252,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
+  info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
+  info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
   return info.raw();
 }
 
@@ -13280,6 +13284,90 @@ void KernelProgramInfo::set_potential_natives(
 void KernelProgramInfo::set_potential_pragma_functions(
     const GrowableObjectArray& candidates) const {
   StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
+}
+
+void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->libraries_cache_, cache.raw());
+}
+
+typedef UnorderedHashMap<SmiTraits> IntHashMap;
+
+RawLibrary* KernelProgramInfo::LookupLibrary(Thread* thread,
+                                             const Smi& name_index) const {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
+  RawLibrary* result;
+  {
+    data ^= libraries_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result = Library::RawCast(table.GetOrNull(name_index));
+    table.Release();
+  }
+  return result;
+}
+
+void KernelProgramInfo::InsertLibrary(Thread* thread,
+                                      const Smi& name_index,
+                                      const Library& lib) const {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
+  {
+    data ^= libraries_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    table.InsertOrGetValue(name_index, lib);
+    set_libraries_cache(table.Release());
+  }
+}
+
+void KernelProgramInfo::set_classes_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->classes_cache_, cache.raw());
+}
+
+RawClass* KernelProgramInfo::LookupClass(Thread* thread,
+                                         const Smi& name_index) const {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
+  RawClass* result;
+  {
+    data ^= classes_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    result = Class::RawCast(table.GetOrNull(name_index));
+    table.Release();
+  }
+  return result;
+}
+
+void KernelProgramInfo::InsertClass(Thread* thread,
+                                    const Smi& name_index,
+                                    const Class& klass) const {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
+  {
+    data ^= classes_cache();
+    ASSERT(!data.IsNull());
+    IntHashMap table(&key, &value, &data);
+    table.InsertOrGetValue(name_index, klass);
+    set_classes_cache(table.Release());
+  }
 }
 
 RawError* Library::CompileAll() {
