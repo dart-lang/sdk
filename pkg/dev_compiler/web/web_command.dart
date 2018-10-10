@@ -293,15 +293,14 @@ class WebCompileCommand extends Command {
       }
       resources.newFile(fileName, sourceCode);
 
-      var unit = BuildUnit(libraryName, "", [fileName]);
-
-      JSModuleFile module = compiler.compile(unit, compilerOptions);
+      compilerOptions.moduleName = path.toUri(libraryName).toString();
+      JSModuleFile module = compiler.compile([fileName], compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
-        moduleCode = module
-            .getCode(ModuleFormat.legacyConcat, unit.name, unit.name + '.map')
-            .code;
+        var name = compilerOptions.moduleName;
+        moduleCode =
+            module.getCode(ModuleFormat.legacyConcat, name, name + '.map').code;
       }
 
       return CompileResult(

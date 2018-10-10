@@ -221,6 +221,11 @@ Future<CompilerResult> _compile(List<String> args,
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryModules);
 
+  // TODO(jmesserly): support for multiple output formats?
+  //
+  // Also the old Analyzer backend had some code to make debugging better when
+  // --single-out-file is used, but that option does not appear to be used by
+  // any of our build systems.
   var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),

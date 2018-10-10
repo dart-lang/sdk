@@ -48,7 +48,7 @@ import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_typerep.dart';
-import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
+import 'module_compiler.dart' show CompilerOptions, JSModuleFile;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
@@ -179,8 +179,6 @@ class CodeGenerator extends Object
 
   final _deferredProperties = HashMap<PropertyAccessorElement, JS.Method>();
 
-  BuildUnit _buildUnit;
-
   String _libraryRoot;
 
   bool _superAllowed = true;
@@ -250,29 +248,29 @@ class CodeGenerator extends Object
   ///
   /// Takes the metadata for the build unit, as well as resolved trees and
   /// errors, and computes the output module code and optionally the source map.
-  JSModuleFile compile(BuildUnit unit, List<CompilationUnit> compilationUnits) {
-    _buildUnit = unit;
-    _libraryRoot = _buildUnit.libraryRoot;
+  JSModuleFile compile(List<CompilationUnit> compilationUnits) {
+    _libraryRoot = options.libraryRoot;
     if (!_libraryRoot.endsWith(path.separator)) {
       _libraryRoot += path.separator;
     }
 
+    var name = options.moduleName;
     invalidModule() =>
-        JSModuleFile.invalid(unit.name, formatErrors(context, errors), options);
+        JSModuleFile.invalid(name, formatErrors(context, errors), options);
 
     if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
       return invalidModule();
     }
 
     try {
-      var module = _emitModule(compilationUnits, unit.name);
+      var module = _emitModule(compilationUnits, name);
       if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
         return invalidModule();
       }
 
       var dartApiSummary = _summarizeModule(compilationUnits);
-      return JSModuleFile(unit.name, formatErrors(context, errors), options,
-          module, dartApiSummary);
+      return JSModuleFile(
+          name, formatErrors(context, errors), options, module, dartApiSummary);
     } catch (e) {
       if (errors.any(_isFatalError)) {
         // Force compilation failed.  Suppress the exception and report
@@ -443,7 +441,7 @@ class CodeGenerator extends Object
     _copyAndFlattenBlocks(items, moduleItems);
 
     // Build the module.
-    return JS.Program(items, name: _buildUnit.name);
+    return JS.Program(items, name: options.moduleName);
   }
 
   void _emitDebuggerExtensionInfo(String name) {

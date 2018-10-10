@@ -83,6 +83,13 @@ class SharedCompilerOptions {
 
   final List<ModuleFormat> moduleFormats;
 
+  /// The name of the module.
+  ///
+  /// This used when to support file concatenation. The JS module will contain
+  /// its module name inside itself, allowing it to declare the module name
+  /// independently of the file.
+  String moduleName;
+
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.summarizeApi = true,
@@ -91,7 +98,8 @@ class SharedCompilerOptions {
       this.replCompile = false,
       this.bazelMapping = const {},
       this.summaryModules = const {},
-      this.moduleFormats = const []});
+      this.moduleFormats = const [],
+      this.moduleName});
 
   SharedCompilerOptions.fromArguments(ArgResults args,
       [String moduleRoot, String summaryExtension])
@@ -104,10 +112,11 @@ class SharedCompilerOptions {
                 _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
-            moduleFormats: parseModuleFormatOption(args));
+            moduleFormats: parseModuleFormatOption(args),
+            moduleName: _getModuleName(args, moduleRoot));
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
-    addModuleFormatOptions(parser, allowMultiple: true, hide: hide);
+    addModuleFormatOptions(parser, hide: hide);
 
     parser
       ..addMultiOption('summary',
@@ -122,12 +131,41 @@ class SharedCompilerOptions {
           help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',
           help: 'enable assertions', defaultsTo: true, hide: hide)
+      ..addOption('module-name',
+          help: 'The output module name, used in some JS module formats.\n'
+              'Defaults to the output file name (without .js).')
       // TODO(jmesserly): rename this, it has nothing to do with bazel.
       ..addMultiOption('bazel-mapping',
           help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
               'adjusts the path in source maps.',
           splitCommas: false,
           hide: hide);
+  }
+
+  static String _getModuleName(ArgResults args, String moduleRoot) {
+    var moduleName = args['module-name'] as String;
+    if (moduleName == null) {
+      var outPaths = args['out'];
+      var outPath = outPaths is String
+          ? outPaths
+          : (outPaths as List<String>)
+              .firstWhere((_) => true, orElse: () => null);
+
+      if (moduleRoot != null) {
+        // TODO(jmesserly): remove this legacy support after a deprecation period.
+        // (Mainly this is to give time for migrating build rules.)
+        moduleName =
+            path.withoutExtension(path.relative(outPath, from: moduleRoot));
+      } else {
+        moduleName = path.basenameWithoutExtension(outPath);
+      }
+    }
+    // TODO(jmesserly): this should probably use sourcePathToUri.
+    //
+    // Also we should not need this logic if the user passed in the module name
+    // explicitly. It is here for backwards compatibility until we can confirm
+    // that build systems do not depend on passing windows-style paths here.
+    return path.toUri(moduleName).toString();
   }
 }
 

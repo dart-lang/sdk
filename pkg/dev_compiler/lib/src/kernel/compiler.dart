@@ -234,12 +234,12 @@ class ProgramCompiler extends Object
 
   bool get emitMetadata => options.emitMetadata;
 
-  JS.Program emitModule(Component buildUnit, List<Component> summaries,
+  JS.Program emitModule(Component component, List<Component> summaries,
       Map<Uri, String> summaryModules) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
-    _component = buildUnit;
+    _component = component;
 
     var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
@@ -252,7 +252,7 @@ class ProgramCompiler extends Object
       }
     }
 
-    var libraries = buildUnit.libraries.where((l) => !l.isExternal);
+    var libraries = component.libraries.where((l) => !l.isExternal);
     var ddcRuntime =
         libraries.firstWhere(isSdkInternalRuntime, orElse: () => null);
     if (ddcRuntime != null) {
@@ -335,7 +335,7 @@ class ProgramCompiler extends Object
     _copyAndFlattenBlocks(items, moduleItems);
 
     // Build the module.
-    return JS.Program(items, name: buildUnit.root.name);
+    return JS.Program(items, name: options.moduleName);
   }
 
   /// Flattens blocks in [items] to a single list.
