@@ -125,6 +125,4 @@ compiler_sources_tests = [
   "backend/locations_helpers_test.cc",
   "backend/range_analysis_test.cc",
   "cha_test.cc",
-  "code_generator_test.cc",
-  "frontend/flow_graph_builder_test.cc",
 ]

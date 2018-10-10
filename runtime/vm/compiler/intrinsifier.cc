@@ -218,16 +218,9 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   ASSERT(!parsed_function.function().HasOptionalParameters());
   PrologueInfo prologue_info(-1, -1);
 
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new ZoneGrowableArray<const ICData*>();
-  FlowGraphBuilder builder(parsed_function, *ic_data_array,
-                           /* not building var desc */ NULL,
-                           /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
-
-  intptr_t block_id = builder.AllocateBlockId();
-  TargetEntryInstr* normal_entry =
-      new TargetEntryInstr(block_id, CatchClauseNode::kInvalidTryIndex,
-                           CompilerState::Current().GetNextDeoptId());
+  intptr_t block_id = 1;  // 0 is GraphEntry.
+  TargetEntryInstr* normal_entry = new TargetEntryInstr(
+      block_id, kInvalidTryIndex, CompilerState::Current().GetNextDeoptId());
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
   FlowGraph* graph =

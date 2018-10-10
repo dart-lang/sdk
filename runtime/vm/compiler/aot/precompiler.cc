@@ -4,7 +4,6 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -796,14 +795,8 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   Zone* zone = stack_zone.GetZone();
   ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
 
-  ParsedFunction* parsed_function;
-  // Check if this field is coming from the Kernel binary.
-  if (field.kernel_offset() > 0) {
-    parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
-  } else {
-    parsed_function = Parser::ParseStaticFieldInitializer(field);
-    parsed_function->AllocateVariables();
-  }
+  ParsedFunction* parsed_function =
+      kernel::ParseStaticFieldInitializer(zone, field);
 
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
@@ -861,11 +854,6 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
-    if (FLAG_support_ast_printer && FLAG_trace_compiler) {
-      THR_Print("compiling expression: ");
-      AstPrinter ast_printer;
-      ast_printer.PrintNode(fragment);
-    }
 
     // Create a dummy function object for the code generator.
     // The function needs to be associated with a named Class: the interface

@@ -4,6 +4,7 @@
 
 #include "vm/growable_array.h"
 #include "platform/assert.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {

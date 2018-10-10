@@ -39,7 +39,6 @@
 
 namespace dart {
 
-static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
 static const intptr_t kMinStackSize = 512;
 
 /*

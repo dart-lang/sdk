@@ -593,9 +593,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)
-  void RecordCatchEntryMoves(
-      Environment* env = NULL,
-      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+  void RecordCatchEntryMoves(Environment* env = NULL,
+                             intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
@@ -689,7 +688,7 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t CurrentTryIndex() const {
     if (current_block_ == NULL) {
-      return CatchClauseNode::kInvalidTryIndex;
+      return kInvalidTryIndex;
     }
     return current_block_->try_index();
   }

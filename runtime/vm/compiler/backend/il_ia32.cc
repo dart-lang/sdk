@@ -197,7 +197,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const double value_as_double = Double::Cast(value_).value();
-    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    uword addr = FindDoubleConstant(value_as_double);
     if (addr == 0) {
       __ pushl(EAX);
       __ LoadObject(EAX, value_);
@@ -211,7 +211,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsDoubleStackSlot()) {
     const double value_as_double = Double::Cast(value_).value();
-    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    uword addr = FindDoubleConstant(value_as_double);
     if (addr == 0) {
       __ pushl(EAX);
       __ LoadObject(EAX, value_);

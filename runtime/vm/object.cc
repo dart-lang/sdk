@@ -11342,7 +11342,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
       metadata = kernel::EvaluateMetadata(
           field, /* is_annotations_offset = */ obj.IsLibrary());
     } else {
-      metadata = Parser::ParseMetadata(field);
+      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
@@ -13087,7 +13087,7 @@ RawObject* Namespace::GetMetadata() const {
       metadata =
           kernel::EvaluateMetadata(field, /* is_annotations_offset = */ true);
     } else {
-      metadata = Parser::ParseMetadata(field);
+      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());

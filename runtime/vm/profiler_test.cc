@@ -10,6 +10,7 @@
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
 #include "vm/source_report.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {

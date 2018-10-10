@@ -1021,8 +1021,7 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
       constant_address_(0) {
   if (representation_ == kUnboxedDouble) {
     ASSERT(value.IsDouble());
-    constant_address_ =
-        FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+    constant_address_ = FindDoubleConstant(Double::Cast(value).value());
   }
 }
 
@@ -1048,7 +1047,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
     : BlockEntryInstr(0,
-                      CatchClauseNode::kInvalidTryIndex,
+                      kInvalidTryIndex,
                       CompilerState::Current().GetNextDeoptId()),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),

@@ -12,7 +12,6 @@
 
 #include "platform/globals.h"
 
-#include "vm/ast_printer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/jit/compiler.h"
@@ -819,44 +818,6 @@ void AssemblerTest::Assemble() {
     }
   }
 #endif  // !PRODUCT
-}
-
-CodeGenTest::CodeGenTest(const char* name)
-    : function_(Function::ZoneHandle()),
-      node_sequence_(new SequenceNode(TokenPosition::kMinSource,
-                                      new LocalScope(NULL, 0, 0))),
-      default_parameter_values_(new ZoneGrowableArray<const Instance*>()) {
-  ASSERT(name != NULL);
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), name));
-  // Add function to a class and that class to the class dictionary so that
-  // frame walking can be used.
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::ZoneHandle(Class::New(
-      lib, function_name, Script::Handle(), TokenPosition::kMinSource));
-  function_ =
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
-  function_.set_result_type(Type::Handle(Type::DynamicType()));
-  const Array& functions = Array::Handle(Array::New(1));
-  functions.SetAt(0, function_);
-  cls.SetFunctions(functions);
-  lib.AddClass(cls);
-}
-
-void CodeGenTest::Compile() {
-  if (function_.HasCode()) return;
-  ParsedFunction* parsed_function =
-      new ParsedFunction(Thread::Current(), function_);
-  parsed_function->SetNodeSequence(node_sequence_);
-  parsed_function->set_default_parameter_values(default_parameter_values_);
-  node_sequence_->scope()->AddVariable(parsed_function->current_context_var());
-  parsed_function->EnsureExpressionTemp();
-  node_sequence_->scope()->AddVariable(parsed_function->expression_temp_var());
-  parsed_function->AllocateVariables();
-  const Error& error =
-      Error::Handle(Compiler::CompileParsedFunction(parsed_function));
-  EXPECT(error.IsNull());
 }
 
 bool CompilerTest::TestCompileScript(const Library& library,

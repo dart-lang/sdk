@@ -6,7 +6,6 @@
 
 #include "vm/compiler/assembler/assembler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler.h"
@@ -1115,17 +1114,6 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     pipeline->ParseFunction(parsed_function);
-// For now we just walk thru the AST nodes and in DEBUG mode we print
-// them otherwise just skip through them, this will be need to be
-// wired to generate the IR format.
-#if !defined(PRODUCT)
-#if defined(DEBUG)
-    AstPrinter ast_printer(true);
-#else
-    AstPrinter ast_printer(false);
-#endif  // defined(DEBUG).
-    ast_printer.PrintFunctionNodes(*parsed_function);
-#endif  // !defined(PRODUCT).
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
@@ -1510,14 +1498,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     // Don't allow reload requests to come in.
     NoReloadScope no_reload_scope(thread->isolate(), thread);
-
-    if (FLAG_trace_compiler) {
-      THR_Print("compiling expression: ");
-      if (FLAG_support_ast_printer) {
-        AstPrinter ast_printer;
-        ast_printer.PrintNode(fragment);
-      }
-    }
 
     // Create a dummy function object for the code generator.
     // The function needs to be associated with a named Class: the interface

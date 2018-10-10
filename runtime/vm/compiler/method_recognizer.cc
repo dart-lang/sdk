@@ -337,4 +337,35 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
   return Token::kILLEGAL;
 }
 
+#define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
+  {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
+
+static struct {
+  intptr_t symbol_id;
+  intptr_t cid;
+  intptr_t finger_print;
+  const char* name;
+} factory_recognizer_list[] = {RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY){
+    Symbols::kIllegal, -1, -1, NULL}};
+
+#undef RECOGNIZE_FACTORY
+
+intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
+  ASSERT(factory.IsFactory());
+  const Class& function_class = Class::Handle(factory.Owner());
+  const Library& lib = Library::Handle(function_class.library());
+  ASSERT((lib.raw() == Library::CoreLibrary()) ||
+         (lib.raw() == Library::TypedDataLibrary()));
+  const String& factory_name = String::Handle(factory.name());
+  for (intptr_t i = 0;
+       factory_recognizer_list[i].symbol_id != Symbols::kIllegal; i++) {
+    if (String::EqualsIgnoringPrivateKey(
+            factory_name,
+            Symbols::Symbol(factory_recognizer_list[i].symbol_id))) {
+      return factory_recognizer_list[i].cid;
+    }
+  }
+  return kDynamicCid;
+}
+
 }  // namespace dart

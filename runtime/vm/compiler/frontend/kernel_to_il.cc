@@ -1372,9 +1372,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
-  SetCurrentTryIndex(try_catch_block == nullptr
-                         ? CatchClauseNode::kInvalidTryIndex
-                         : try_catch_block->try_index());
+  SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
+                                                : try_catch_block->try_index());
 }
 
 }  // namespace kernel

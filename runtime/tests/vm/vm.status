@@ -325,7 +325,6 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
 # Tests that use functionality not supported in Dart 2.
 [ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
-cc/CanonicalizationInScriptSnapshots: SkipByDesign # Script snapshots unsupported.
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
 cc/DartAPI_LazyLoadDeoptimizes: SkipByDesign # Issue 33043, Dart_LoadSource unsupported.
 cc/DartAPI_LoadLibraryPatch_Error1: SkipByDesign # Dart_LibraryLoadPatch unsupported.
@@ -337,57 +336,16 @@ cc/DartAPI_LoadSource: SkipByDesign # Dart_LoadSource unsupported.
 cc/DartAPI_LoadSource_LateLoad: SkipByDesign
 cc/DartAPI_ParsePatchLibrary: SkipByDesign
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
-cc/Parser_AllocateVariables_CaptureLoopVar: SkipByDesign # VM parser tests.
-cc/Parser_AllocateVariables_CapturedVar: SkipByDesign
-cc/Parser_AllocateVariables_Issue7681: SkipByDesign
-cc/Parser_AllocateVariables_MiddleChain: SkipByDesign
-cc/Parser_AllocateVariables_NestedCapturedVar: SkipByDesign
-cc/Parser_AllocateVariables_TwoChains: SkipByDesign
-cc/ScriptSnapshot: SkipByDesign # Script snapshots unsupported.
-cc/ScriptSnapshot2: SkipByDesign
-cc/SourcePosition_Async: SkipByDesign # VM parser tests (Issue 32704)
-cc/SourcePosition_BitwiseOperations: SkipByDesign
-cc/SourcePosition_ForLoop: SkipByDesign
-cc/SourcePosition_If: SkipByDesign
-cc/SourcePosition_IfElse: SkipByDesign
-cc/SourcePosition_InstanceCalls: SkipByDesign
-cc/SourcePosition_InstanceFields: SkipByDesign
-cc/SourcePosition_LoadIndexed: SkipByDesign
-cc/SourcePosition_StoreIndexed: SkipByDesign
-cc/SourcePosition_Switch: SkipByDesign
-cc/SourcePosition_TryCatchFinally: SkipByDesign
-cc/SourcePosition_While: SkipByDesign
-cc/SourcePosition_WhileContinueBreak: SkipByDesign
 cc/CompileFunctionOnHelperThread: SkipByDesign
 cc/CompileFunction: SkipByDesign
 cc/InvokeDynamic_CompileError: SkipByDesign
 cc/InvokeStatic_CompileError: SkipByDesign
 cc/DartEntry: SkipByDesign
 cc/FindCodeObject: SkipByDesign
-cc/Parser_TopLevel: SkipByDesign
 cc/DartDynamicResolve: SkipByDesign
 cc/DartStaticResolve: SkipByDesign
-cc/AllocateNewObjectCodegen: SkipByDesign
-cc/InstanceCallCodegen: SkipByDesign
-cc/StaticCallCodegen: SkipByDesign
-cc/SimpleReturnCodegen: SkipByDesign
-cc/SmiReturnCodegen: SkipByDesign
-cc/SimpleStaticCallCodegen: SkipByDesign
-cc/StaticCallReturnParameterCodegen: SkipByDesign
-cc/StaticCallReturnParameterCodegen: SkipByDesign
-cc/StaticCallSmiParamSumCodegen: SkipByDesign
-cc/SmiAddCodegen: SkipByDesign
-cc/GenericAddCodegen: SkipByDesign
-cc/SmiBinaryOpCodegen: SkipByDesign
-cc/BoolNotCodegen: SkipByDesign
-cc/BoolAndCodegen: SkipByDesign
-cc/BinaryOpCodegen: SkipByDesign
-cc/SmiUnaryOpCodegen: SkipByDesign
-cc/DoubleUnaryOpCodegen: SkipByDesign
-cc/ParseClassDefinition: SkipByDesign
 cc/CompileScript: SkipByDesign
 cc/DartAPI_LoadLibraryPatch_1: SkipByDesign
-cc/StackMapCodegen: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors

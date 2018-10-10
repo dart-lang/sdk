@@ -1127,8 +1127,7 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
     // rethrow
     LoadStackSlots(2);
     GetArguments(2);
-    code_ += Fragment(new (Z) ReThrowInstr(position_,
-                                           CatchClauseNode::kInvalidTryIndex,
+    code_ += Fragment(new (Z) ReThrowInstr(position_, kInvalidTryIndex,
                                            B->GetNextDeoptId()))
                  .closed();
   }
@@ -1327,7 +1326,7 @@ intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
   const uword pc_offset =
       KernelBytecode::BytecodePcToOffset(pc, /* is_return_address = */ true);
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
-  intptr_t try_index = CatchClauseNode::kInvalidTryIndex;
+  intptr_t try_index = kInvalidTryIndex;
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     const uword start_pc = iter.PcOffset();

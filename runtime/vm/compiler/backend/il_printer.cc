@@ -863,7 +863,7 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
              try_index(), GetDeoptId());
   } else {
@@ -890,7 +890,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == CatchClauseNode::kInvalidTryIndex);
+  ASSERT(try_index() == kInvalidTryIndex);
   f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
@@ -1007,7 +1007,7 @@ void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd, block_id(), try_index(),
              GetDeoptId());
   } else {

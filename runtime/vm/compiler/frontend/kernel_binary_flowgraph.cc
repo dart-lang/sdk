@@ -1376,8 +1376,7 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
 
   // Prepend an entry corresponding to normal entry to the function.
   yield_continuations().InsertAt(
-      0, YieldContinuation(new (Z) DropTempsInstr(0, NULL),
-                           CatchClauseNode::kInvalidTryIndex));
+      0, YieldContinuation(new (Z) DropTempsInstr(0, NULL), kInvalidTryIndex));
   yield_continuations()[0].entry->LinkTo(body.entry);
 
   // Load :await_jump_var into a temporary.
@@ -4377,7 +4376,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     instructions += PushArgument();
 
     // See if simple instanceOf is applicable.
-    if (dart::FlowGraphBuilder::SimpleInstanceOfType(type)) {
+    if (dart::SimpleInstanceOfType(type)) {
       instructions += Constant(type);
       instructions += PushArgument();  // Type.
       instructions += InstanceCall(
@@ -5761,7 +5760,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
     rethrow += PushArgument();
     rethrow += LoadLocal(stack_trace_var);
     rethrow += PushArgument();
-    rethrow += RethrowException(position, CatchClauseNode::kInvalidTryIndex);
+    rethrow += RethrowException(position, kInvalidTryIndex);
     Drop();
 
     continuation = Fragment(continuation.entry, no_error);

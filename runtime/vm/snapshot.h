@@ -349,9 +349,6 @@ class SnapshotReader : public BaseReader {
   // Get an object from the backward references list.
   Object* GetBackRef(intptr_t id);
 
-  // Read a script snapshot.
-  RawObject* ReadScriptSnapshot();
-
   // Read version number of snapshot and verify.
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 

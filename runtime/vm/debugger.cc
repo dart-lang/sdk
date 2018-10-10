@@ -863,7 +863,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   handlers = code().exception_handlers();
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
-  while (try_index != CatchClauseNode::kInvalidTryIndex) {
+  while (try_index != kInvalidTryIndex) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());
@@ -971,7 +971,7 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     if (iter.TokenPos() == token_pos_) {
       // Match the lowest try index at this token position.
       // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != CatchClauseNode::kInvalidTryIndex) {
+      if (iter.TryIndex() != kInvalidTryIndex) {
         if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
           try_index_ = iter.TryIndex();
         }

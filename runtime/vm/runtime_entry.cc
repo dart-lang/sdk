@@ -4,7 +4,6 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/ast.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
