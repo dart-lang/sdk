@@ -133,10 +133,9 @@ Future<bool> computeKernel(List<String> args,
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
   if (summaryOnly) {
-    target = new SummaryTarget(
-        sources, excludeNonSources, new TargetFlags(strongMode: true));
+    target = new SummaryTarget(sources, excludeNonSources, new TargetFlags());
   } else {
-    target = new VmTarget(new TargetFlags(strongMode: true));
+    target = new VmTarget(new TargetFlags());
   }
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.

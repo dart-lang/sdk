@@ -11,7 +11,7 @@ import '../transformations/treeshaker.dart' show ProgramRoot;
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  final bool strongMode;
+  final bool legacyMode;
   final bool treeShake;
 
   /// Whether `async` functions start synchronously.
@@ -20,7 +20,7 @@ class TargetFlags {
   final Uri kernelRuntime;
 
   TargetFlags(
-      {this.strongMode: false,
+      {this.legacyMode: false,
       this.treeShake: false,
       this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
@@ -197,7 +197,7 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get strongMode => flags.strongMode;
+  bool get strongMode => !flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void performModularTransformationsOnLibraries(Component component,

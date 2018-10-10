@@ -121,7 +121,7 @@ Future _main(List<String> argv) async {
   final Uri platform = outDirUri.resolve('platform.dill.tmp');
   final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
-  TargetFlags flags = new TargetFlags();
+  TargetFlags flags = new TargetFlags(legacyMode: true);
   Target target;
 
   switch (mode) {

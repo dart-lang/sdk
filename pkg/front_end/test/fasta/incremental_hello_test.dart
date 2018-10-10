@@ -40,7 +40,7 @@ void problemHandler(FormattedMessage message, Severity severity,
 test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
-    ..target = new VmTarget(new TargetFlags(strongMode: false))
+    ..target = new VmTarget(new TargetFlags(legacyMode: true))
     ..legacyMode = true
     ..onProblem = problemHandler;
 

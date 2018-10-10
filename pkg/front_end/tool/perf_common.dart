@@ -71,7 +71,7 @@ onErrorHandler(bool isStrong) {
 // strongMode flag get merged, and we have a single way of specifying the
 // strong-mode flag to the FE.
 Target createTarget({bool isFlutter: false, bool strongMode: true}) {
-  var flags = new TargetFlags(strongMode: strongMode);
+  var flags = new TargetFlags(legacyMode: !strongMode);
   if (isFlutter) {
     return strongMode
         ? new FlutterTarget(flags)

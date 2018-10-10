@@ -298,7 +298,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(strongMode: strongMode)));
+          new TestVmTarget(new TargetFlags(legacyMode: !strongMode)));
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.

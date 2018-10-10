@@ -91,7 +91,7 @@ abstract class Compiler {
       ..legacyMode = !strongMode
       ..fileSystem = fileSystem
       ..target = new VmTarget(
-          new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+          new TargetFlags(legacyMode: !strongMode, syncAsync: syncAsync))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose

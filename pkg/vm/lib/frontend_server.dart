@@ -317,7 +317,7 @@ class FrontendCompiler implements CompilerInterface {
     installAdditionalTargets();
 
     final TargetFlags targetFlags = new TargetFlags(
-        strongMode: options['strong'], syncAsync: options['sync-async']);
+        legacyMode: !options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');

@@ -99,7 +99,7 @@ Future<int> compile(List<String> arguments) async {
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..legacyMode = !strongMode
     ..target = new VmTarget(
-        new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+        new TargetFlags(legacyMode: !strongMode, syncAsync: syncAsync))
     ..linkedDependencies = <Uri>[
       Uri.base.resolveUri(new Uri.file(platformKernel))
     ]

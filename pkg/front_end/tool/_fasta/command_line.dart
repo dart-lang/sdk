@@ -272,7 +272,7 @@ ProcessedOptions analyzeCommandLine(
   final String targetName = options["--target"] ?? "vm";
 
   final TargetFlags flags =
-      new TargetFlags(strongMode: !legacyMode, syncAsync: syncAsync);
+      new TargetFlags(legacyMode: legacyMode, syncAsync: syncAsync);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {

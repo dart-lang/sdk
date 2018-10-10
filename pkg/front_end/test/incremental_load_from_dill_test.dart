@@ -359,7 +359,7 @@ CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..target = new VmTarget(new TargetFlags(strongMode: strong))
+    ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..onProblem = (FormattedMessage problem, Severity severity,
         List<FormattedMessage> context) {
