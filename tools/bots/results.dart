@@ -15,8 +15,10 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
       .transform(utf8.decoder)
       .transform(new LineSplitter());
   await for (final line in lines) {
-    final Map<String, dynamic> map = jsonDecode(line);
-    results.add(map);
+    try {
+      final Map<String, dynamic> map = jsonDecode(line);
+      results.add(map);
+    } on FormatException {}
   }
   return results;
 }
