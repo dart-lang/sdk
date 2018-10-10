@@ -75,7 +75,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   ScriptInsetElement.created() : super.created();
 
-  bool get noSource => _startPos == -1;
+  bool get noSource => _startPos == -1 || _loadedScript.source == null;
 
   @override
   void attached() {
@@ -112,10 +112,10 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    if (noSource) {
-      children = <Element>[new SpanElement()..text = 'No source'];
-    } else if (_loadedScript == null) {
+    if (_loadedScript == null) {
       children = <Element>[new SpanElement()..text = 'Loading...'];
+    } else if (noSource) {
+      children = <Element>[new SpanElement()..text = 'No source'];
     } else {
       final table = linesTable();
       var firstBuild = false;
@@ -279,6 +279,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   Future _computeAnnotations() async {
+    if (noSource) return;
+
     _startLine = (_startPos != null
         ? _loadedScript.tokenToLine(_startPos)
         : 1 + _loadedScript.lineOffset);

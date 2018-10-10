@@ -4727,6 +4727,9 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
   if (scriptIndex == numScripts) {
     return result;
   }
+  if (script.source == null) {
+    return result;
+  }
   var ranges = report['ranges'];
   if (ranges != null) {
     for (var range in ranges) {
