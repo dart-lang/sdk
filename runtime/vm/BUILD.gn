@@ -123,7 +123,10 @@ compile_platform("vm_platform") {
     "$root_out_dir/vm_outline_strong.dill",
   ]
 
-  args = [ "dart:core" ]
+  args = [
+    "--exclude-source",
+    "dart:core",
+  ]
 
   if (dart_platform_bytecode) {
     args += [ "--bytecode" ]

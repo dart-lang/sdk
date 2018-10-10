@@ -803,53 +803,6 @@ static void CreateAndWritePrecompiledSnapshot() {
   }
 }
 
-static Dart_Isolate CreateServiceIsolate(const char* script_uri,
-                                         const char* main,
-                                         const char* package_root,
-                                         const char* package_config,
-                                         Dart_IsolateFlags* flags,
-                                         void* data,
-                                         char** error) {
-  IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, package_config, NULL);
-  Dart_Isolate isolate = NULL;
-  isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                               isolate_snapshot_instructions, NULL, NULL, flags,
-                               isolate_data, error);
-
-  if (isolate == NULL) {
-    Log::PrintErr("Error: Could not create service isolate\n");
-    return NULL;
-  }
-
-  Dart_EnterScope();
-  if (!Dart_IsServiceIsolate(isolate)) {
-    Log::PrintErr("Error: We only expect to create the service isolate\n");
-    return NULL;
-  }
-  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
-  if (Dart_IsError(result)) {
-    Log::PrintErr("Error: Could not set tag handler for service isolate\n");
-    return NULL;
-  }
-  // Setup the native resolver.
-  Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
-
-  ASSERT(Dart_IsServiceIsolate(isolate));
-  // Load embedder specific bits and return. Will not start http server.
-  if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */,
-                        false /* server dev mode */, false /* trace_loading */,
-                        true /* deterministic */)) {
-    *error = strdup(VmService::GetErrorMessage());
-    return NULL;
-  }
-  Dart_ExitScope();
-  Dart_ExitIsolate();
-  return isolate;
-}
-
 static Dart_QualifiedFunctionName no_entry_points[] = {
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
@@ -1046,12 +999,7 @@ int main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  if (app_script_name != NULL && kernel_buffer == NULL) {
-    // We need the service isolate to load script files.
-    // When generating snapshots from a kernel program, we do not need to load
-    // any script files.
-    init_params.create = CreateServiceIsolate;
-  }
+  ASSERT((app_script_name != NULL) || (kernel_buffer == NULL));
   init_params.file_open = DartUtils::OpenFile;
   init_params.file_read = DartUtils::ReadFile;
   init_params.file_write = DartUtils::WriteFile;
