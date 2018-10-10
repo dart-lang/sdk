@@ -1184,6 +1184,10 @@ class StandardTestSuite extends TestSuite {
     assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
     if (dartOptions != null) {
+      // TODO(ahe): Because we add [dartOptions] here,
+      // [CompilerConfiguration.computeCompilerArguments] has to discard them
+      // later. Perhaps it would be simpler to pass [dartOptions] to
+      // [CompilerConfiguration.computeRuntimeArguments].
       args.addAll(dartOptions);
     }
 

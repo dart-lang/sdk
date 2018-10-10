@@ -1163,7 +1163,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    List<String> arguments = <String>[];
+    List<String> arguments = new List<String>.from(sharedOptions);
     for (String argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;
       arguments.add(argument);
