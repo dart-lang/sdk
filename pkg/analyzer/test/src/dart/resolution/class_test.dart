@@ -1291,6 +1291,145 @@ class C {
     expect(method.isStatic, isTrue);
   }
 
+  test_error_mismatchedGetterAndSetterTypes_class() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_interfaces() async {
+    addTestFile(r'''
+class A {
+  int get foo {
+    return 0;
+  }
+}
+
+class B {
+  set foo(String _) {}
+}
+
+abstract class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_getter() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class B extends A {
+  set _foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_interfaces() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+class B {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+import 'b.dart';
+
+class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_interfaces2() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int get _foo => 0;
+}
+
+class B {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class X implements A, B {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_private_setter() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  set _foo(String _) {}
+}
+''');
+    addTestFile(r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_superGetter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  set foo(String _) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_superSetter() async {
+    addTestFile(r'''
+class A {
+  set foo(String _) {}
+}
+
+class B extends A {
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    ]);
+  }
+
   test_inconsistentInheritance_parameterType() async {
     addTestFile(r'''
 abstract class A {

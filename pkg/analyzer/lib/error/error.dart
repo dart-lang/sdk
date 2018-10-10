@@ -599,7 +599,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-  StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   StaticWarningCode.MIXED_RETURN_TYPES,
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,

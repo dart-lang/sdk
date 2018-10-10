@@ -2615,46 +2615,6 @@ class B implements I<int>, J<String> {
     verify([source]);
   }
 
-  test_mismatchedAccessorTypes_class() async {
-    Source source = addSource(r'''
-class A {
-  int get g { return 0; }
-  set g(String v) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
-    verify([source]);
-  }
-
-  test_mismatchedAccessorTypes_getterAndSuperSetter() async {
-    Source source = addSource(r'''
-class A {
-  int get g { return 0; }
-}
-class B extends A {
-  set g(String v) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
-    verify([source]);
-  }
-
-  test_mismatchedAccessorTypes_setterAndSuperGetter() async {
-    Source source = addSource(r'''
-class A {
-  set g(int v) {}
-}
-class B extends A {
-  String get g { return ''; }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
-    verify([source]);
-  }
-
   test_mismatchedAccessorTypes_topLevel() async {
     Source source = addSource(r'''
 int get g { return 0; }

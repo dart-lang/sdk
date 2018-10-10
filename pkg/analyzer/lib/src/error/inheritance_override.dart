@@ -84,6 +84,7 @@ class _ClassVerifier {
   final ErrorReporter reporter;
 
   final LibraryElement library;
+  final Uri libraryUri;
   final ClassElementImpl classElement;
 
   final SimpleIdentifier classNameNode;
@@ -108,7 +109,8 @@ class _ClassVerifier {
     this.onClause,
     this.superclass,
     this.withClause,
-  }) : classElement =
+  })  : libraryUri = library.source.uri,
+        classElement =
             AbstractClassElementImpl.getImpl(classNameNode.staticElement);
 
   void verify() {
@@ -147,7 +149,6 @@ class _ClassVerifier {
 
     // Check the members if the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
-    var libraryUri = library.source.uri;
     for (var member in members) {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
@@ -168,6 +169,8 @@ class _ClassVerifier {
     for (var conflict in interfaceMembers.conflicts) {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
+
+    _checkForMismatchedAccessorTypes(interfaceMembers);
 
     if (!classElement.isAbstract) {
       List<ExecutableElement> inheritedAbstractMembers = null;
@@ -339,6 +342,52 @@ class _ClassVerifier {
       }
     }
     return hasError;
+  }
+
+  void _checkForMismatchedAccessorTypes(Interface interface) {
+    for (var name in interface.map.keys) {
+      if (!name.isAccessibleFor(libraryUri)) continue;
+
+      var getter = interface.map[name];
+      if (getter.element.kind == ElementKind.GETTER) {
+        // TODO(scheglov) We should separate getters and setters.
+        var setter = interface.map[new Name(libraryUri, '${name.name}=')];
+        if (setter != null) {
+          var getterType = getter.returnType;
+          var setterType = setter.parameters[0].type;
+          if (!typeSystem.isAssignableTo(getterType, setterType)) {
+            var getterElement = getter.element;
+            var setterElement = setter.element;
+
+            Element errorElement;
+            if (getterElement.enclosingElement == classElement) {
+              errorElement = getterElement;
+            } else if (setterElement.enclosingElement == classElement) {
+              errorElement = setterElement;
+            } else {
+              errorElement = classElement;
+            }
+
+            String getterName = getterElement.displayName;
+            if (getterElement.enclosingElement != classElement) {
+              var getterClassName = getterElement.enclosingElement.displayName;
+              getterName = '$getterClassName.$getterName';
+            }
+
+            String setterName = setterElement.displayName;
+            if (setterElement.enclosingElement != classElement) {
+              var setterClassName = setterElement.enclosingElement.displayName;
+              setterName = '$setterClassName.$setterName';
+            }
+
+            reporter.reportErrorForElement(
+                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+                errorElement,
+                [getterName, getterType, setterType, setterName]);
+          }
+        }
+      }
+    }
   }
 
   /// We identified that the current non-abstract class does not have the
