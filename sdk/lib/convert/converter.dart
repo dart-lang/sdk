@@ -62,7 +62,7 @@ abstract class Converter<S, T> extends StreamTransformerBase<S, T> {
    * The resulting transformer will check at run-time that all conversion
    * inputs are actually instances of [S],
    * and it will check that all conversion output produced by this converter
-   * are acually instances of [RT].
+   * are actually instances of [RT].
    */
   Converter<RS, RT> cast<RS, RT>() => Converter.castFrom<S, T, RS, RT>(this);
 }

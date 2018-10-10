@@ -7350,7 +7350,7 @@ class LocalVariableInfo {
       new Set<VariableElement>();
 
   /**
-   * The set of local variables and parameters that are potentiall mutated
+   * The set of local variables and parameters that are potentially mutated
    * within the scope of their declarations.
    */
   final Set<VariableElement> potentiallyMutatedInScope =

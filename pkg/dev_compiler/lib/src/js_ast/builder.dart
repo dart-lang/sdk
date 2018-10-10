@@ -19,7 +19,7 @@ TemplateManager templateManager = TemplateManager();
 
 /**
 
-[js] is a singleton instace of JsBuilder.  JsBuilder is a set of conveniences
+[js] is a singleton instance of JsBuilder.  JsBuilder is a set of conveniences
 for constructing JavaScript ASTs.
 
 [string] and [number] are used to create leaf AST nodes:
@@ -60,7 +60,7 @@ still has one semicolon:
       return 123;
 
 If the placeholder is not followed by a semicolon, it is part of an expression.
-Here the paceholder is in the position of the function in a function call:
+Here the placeholder is in the position of the function in a function call:
 
     var vFoo = new Identifier('foo');
     js.statement('if (happy) #("Happy!")', vFoo)
@@ -71,7 +71,7 @@ Here the paceholder is in the position of the function in a function call:
 Generally, a placeholder in an expression position requires an Expression AST as
 an argument and a placeholder in a statement position requires a Statement AST.
 An expression will be converted to a Statement if needed by creating an
-ExpessionStatement.  A String argument will be converted into a Identifier and
+ExpressionStatement.  A String argument will be converted into a Identifier and
 requires that the string is a JavaScript identifier.
 
     js('# + 1', vFoo)       -->  foo + 1
@@ -146,7 +146,7 @@ bool argument, which selects the then-part or else-part of the if-statement:
     js.statement('if (#) return;', eTrue)  -->  if (true) return;
 
 Combined with block splicing, if-statement condition context placeholders allows
-the creation of tenplates that select code depending on variables.
+the creation of templates that select code depending on variables.
 
     js.statement('{ 1; if (#) 2; else { 3; 4; } 5;}', true)
     --> { 1; 2; 5; }
@@ -168,10 +168,10 @@ for `a["b"]`:
     js('a.#', 'x')    -->  a.x        (i.e. a["x"])
 
 (Question - should `.#` be restricted to permit only String arguments? The
-template should probably be writted with `[]` if non-strings are accepted.)
+template should probably be written with `[]` if non-strings are accepted.)
 
 
-Object initialiers allow placeholders in the key property name position:
+Object initializers allow placeholders in the key property name position:
 
     js('{#:1, #:2}',  [s, 'bye'])    -->  {hello: 1, bye: 2}
 

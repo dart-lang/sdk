@@ -1822,7 +1822,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
         // optimization.  The optimization ensures any type checks or
-        // conversions have been satisified.
+        // conversions have been satisfied.
         methodName = _nativeData.getFixedBackendName(target);
       }
     }

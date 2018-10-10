@@ -515,7 +515,7 @@ class BackendImpacts {
 
   BackendImpact get nativeTypeCheck {
     return _nativeTypeCheck ??= new BackendImpact(staticUses: [
-      // We will neeed to add the "$is" and "$as" properties on the
+      // We will need to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       _commonElements.defineProperty

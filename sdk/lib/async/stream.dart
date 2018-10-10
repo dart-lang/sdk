@@ -2073,7 +2073,7 @@ abstract class StreamTransformer<S, T> {
    * The resulting transformer will check at run-time that all data events
    * of the stream it transforms are actually instances of [S],
    * and it will check that all data events produced by this transformer
-   * are acually instances of [RT].
+   * are actually instances of [RT].
    */
   StreamTransformer<RS, RT> cast<RS, RT>();
 }

@@ -69,7 +69,7 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
         // be computed as part of serialization, so we need to do that
-        // preemtively here to avoid errors when serializing references to
+        // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
         component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
         lib.computeCanonicalNames();
