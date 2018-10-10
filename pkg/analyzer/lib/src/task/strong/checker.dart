@@ -1234,7 +1234,7 @@ class _OverrideChecker {
   /// Finds implicit casts that we need on parameters and type formals to
   /// ensure soundness of covariant generics, and records them on the [node].
   ///
-  /// The parameter checks can be retrived using [getClassCovariantParameters]
+  /// The parameter checks can be retrieved using [getClassCovariantParameters]
   /// and [getSuperclassCovariantParameters].
   ///
   /// For each member of this class and non-overridden inherited member, we
@@ -1404,7 +1404,7 @@ class _OverrideChecker {
   ///     }
   ///
   /// We've already found `C<Object>` is a potentially unsafe covariant generic
-  /// supertpe, and we call this method to see if any members need a check
+  /// supertype, and we call this method to see if any members need a check
   /// because of `C<Object>`.
   ///
   /// In this example, we will call this method with:
@@ -1418,7 +1418,7 @@ class _OverrideChecker {
   /// - get the type of `C<Object>.m`: `(Object) -> *`
   /// - get the type of `C<T>.m`:      `(T) -> *`
   /// - perform a subtype check `(T) -> * <: (Object) -> *`,
-  ///   and record any parameters/type formals that violate soundess.
+  ///   and record any parameters/type formals that violate soundness.
   /// - that checks `Object <: T`, which is false, thus we need a check on
   ///   parameter `t` of `C<T>.m`
   ///
@@ -1427,7 +1427,7 @@ class _OverrideChecker {
   /// - get the type of `D.g`:         `<R extends num>() -> *`
   /// - perform a subtype check
   ///   `<S extends Object>() -> * <: <R extends num>() -> *`,
-  ///   and record any parameters/type formals that violate soundess.
+  ///   and record any parameters/type formals that violate soundness.
   /// - that checks the type formal bound of `S` and `R` asserting
   ///   `Object <: num`, which is false, thus we need a check on type formal `R`
   ///   of `D.g`.

@@ -89,7 +89,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isDeclaredInSpec(TypeDecl type) {
 //    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
 //    if(resolvedType is TypeObject) {
-//      return truye;
+//      return true;
 //    }
     if (type is TypeReference) {
       return api.types.containsKey(type.typeName) && javaType(type) != 'String';

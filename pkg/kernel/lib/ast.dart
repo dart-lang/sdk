@@ -285,7 +285,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// other than [ClassLevel.Body].  Members in an external library have no
   /// body, but have their typed interface present.
   ///
-  /// If the libary is non-external, then its classes are at [ClassLevel.Body]
+  /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
   bool isExternal;
 

@@ -24,7 +24,7 @@ main() {
   testErrors();
   testIssue25577();
 
-  // Decoder is lenienet with mixed styles.
+  // Decoder is lenient with mixed styles.
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA%3D="));
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA=%3D"));
 }

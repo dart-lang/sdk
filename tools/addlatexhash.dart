@@ -22,7 +22,7 @@
 // please check the language specification source itself.
 //
 // NB: This utility assumes UN*X style line endings, \n, in the LaTeX
-// source file receieved as input; it will not work with other styles.
+// source file received as input; it will not work with other styles.
 
 import 'dart:io';
 
@@ -155,7 +155,7 @@ multilineNormalize(lines) {
       }
     } else {
       assert(!afterBlankLines && !afterCommentLines);
-      // No wsOnly or commentOnly lines preceed [line].
+      // No wsOnly or commentOnly lines precede [line].
       afterBlankLines = isWsOnly(line);
       afterCommentLines = isCommentOnly(line);
       if (!afterCommentLines) {

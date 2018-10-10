@@ -454,7 +454,7 @@ class ClassHierarchyNode {
 ///      A  ->  [C, D, F]
 ///
 /// The subtypes `B` and `E` are not directly modeled because they are implied
-/// by their subclass relation to `A` and `D`, repectively. This can be seen
+/// by their subclass relation to `A` and `D`, respectively. This can be seen
 /// if we expand the subclass subtrees:
 ///
 ///      A  ->  [C, D, F]
@@ -968,7 +968,7 @@ typedef IterationStep ForEachFunction(ClassEntity cls);
 /// Singleton map implemented as a field on the key.
 class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
   ClassHierarchyNode operator [](Object cls) {
-    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
       return cls._classHierarchyNode;
     }
@@ -976,7 +976,7 @@ class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
   }
 
   operator []=(Object cls, ClassHierarchyNode node) {
-    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
       cls._classHierarchyNode = node;
       return;

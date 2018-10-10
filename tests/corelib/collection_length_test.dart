@@ -6,7 +6,7 @@ library map_test;
 
 import 'dart:collection';
 
-// Test that length/isEmpty opertions are constant time on
+// Test that length/isEmpty operations are constant time on
 // maps, strings and collections.
 
 void testString(int n) {

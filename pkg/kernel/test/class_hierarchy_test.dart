@@ -103,7 +103,7 @@ class B extends self::A {
         unorderedEquals([methodA1, methodA2, methodA3]));
 
     // Apply member changes again, this time telling the hierarchy to find
-    // decendants.
+    // descendants.
     hierarchy.applyMemberChanges([a], findDescendants: true);
     expect(hierarchy.getDispatchTargets(b),
         unorderedEquals([methodA1, methodA2, methodA3, methodB1]));

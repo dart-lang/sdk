@@ -119,7 +119,7 @@ abstract class AbstractScanner implements Scanner {
   int currentAsUnicode(int next);
 
   /**
-   * Returns the character at the next poisition. Like in [advance], the
+   * Returns the character at the next position. Like in [advance], the
    * [Utf8BytesScanner] returns a UTF-8 byte, while the [StringScanner] returns
    * a UTF-16 code unit.
    */
@@ -906,7 +906,7 @@ abstract class AbstractScanner implements Scanner {
       commentsTail = null;
     } else {
       // It is the responsibility of the caller to construct the token
-      // being appended with preceeding comments if any
+      // being appended with preceding comments if any
       assert(comments == null || token.isSynthetic || token is ErrorToken);
     }
   }

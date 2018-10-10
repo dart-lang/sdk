@@ -17,7 +17,7 @@ main() {
 class A {
   // In dart2js, the optimized version of foo tries to optimize the
   // uses of a.length (which is used two times here: for the index,
-  // and for the bounds check), and that optmization used to crash
+  // and for the bounds check), and that optimization used to crash
   // the compiler.
   foo(a) => a[a.length];
 
