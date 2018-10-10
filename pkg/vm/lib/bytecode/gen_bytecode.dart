@@ -37,8 +37,7 @@ import '../metadata/bytecode.dart';
 const String symbolForTypeCast = ' in type cast';
 
 void generateBytecode(Component component,
-    {bool strongMode: true,
-    bool dropAST: false,
+    {bool dropAST: false,
     bool omitSourcePositions: false,
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter}) {
@@ -47,12 +46,12 @@ void generateBytecode(Component component,
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
+      new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
   new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
-          constantsBackend, strongMode, omitSourcePositions, errorReporter)
+          constantsBackend, omitSourcePositions, errorReporter)
       .visitComponent(component);
   if (dropAST) {
     new DropAST().visitComponent(component);
@@ -65,7 +64,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
-  final bool strongMode;
   final bool omitSourcePositions;
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
@@ -102,7 +100,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.hierarchy,
       this.typeEnvironment,
       this.constantsBackend,
-      this.strongMode,
       this.omitSourcePositions,
       this.errorReporter)
       : recognizedMethods = new RecognizedMethods(typeEnvironment) {
@@ -703,8 +700,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(constantsBackend, typeEnvironment,
-        coreTypes, strongMode, /* enableAsserts = */ true, errorReporter)
+    constantEvaluator = new ConstantEvaluator(
+        constantsBackend,
+        typeEnvironment,
+        coreTypes,
+        /* strongMode = */ true,
+        /* enableAsserts = */ true,
+        errorReporter)
       ..env = new EvaluationEnvironment();
     labeledStatements = <LabeledStatement, Label>{};
     switchCases = <SwitchCase, Label>{};

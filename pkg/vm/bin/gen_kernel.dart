@@ -26,7 +26,6 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
-  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
   ..addFlag('sync-async',
       help: 'Start `async` functions synchronously', defaultsTo: true)
   ..addFlag('embed-sources',
@@ -79,9 +78,7 @@ Future<int> compile(List<String> arguments) async {
   final String filename = options.rest.single;
   final String kernelBinaryFilename = options['output'] ?? "$filename.dill";
   final String packages = options['packages'];
-  final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
-  final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
@@ -97,9 +94,7 @@ Future<int> compile(List<String> arguments) async {
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
-    ..legacyMode = !strongMode
-    ..target = new VmTarget(
-        new TargetFlags(legacyMode: !strongMode, syncAsync: syncAsync))
+    ..target = new VmTarget(new TargetFlags(syncAsync: true))
     ..linkedDependencies = <Uri>[
       Uri.base.resolveUri(new Uri.file(platformKernel))
     ]

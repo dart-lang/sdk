@@ -43,11 +43,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
-  ..addFlag('strong',
-      help: 'Run compiler in strong mode (uses strong mode semantics)',
-      defaultsTo: false)
-  ..addFlag('sync-async',
-      help: 'Start `async` functions synchronously.', defaultsTo: true)
+  // TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
+  ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
+  ..addFlag('sync-async', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -262,12 +260,11 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
-    final String platformKernelDill = options['platform'] ??
-        (options['strong'] ? 'platform_strong.dill' : 'platform.dill');
+    final String platformKernelDill =
+        options['platform'] ?? 'platform_strong.dill';
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..packagesFileUri = _getFileOrUri(_options['packages'])
-      ..legacyMode = !options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
@@ -316,8 +313,7 @@ class FrontendCompiler implements CompilerInterface {
     // Ensure that Flutter and VM targets are added to targets dictionary.
     installAdditionalTargets();
 
-    final TargetFlags targetFlags = new TargetFlags(
-        legacyMode: !options['strong'], syncAsync: options['sync-async']);
+    final TargetFlags targetFlags = new TargetFlags(syncAsync: true);
     compilerOptions.target = getTarget(options['target'], targetFlags);
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');

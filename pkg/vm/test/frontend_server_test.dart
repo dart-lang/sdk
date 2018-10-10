@@ -50,44 +50,6 @@ Future<int> main() async {
         generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(false));
-    });
-
-    test('compile from command line (strong mode)', () async {
-      final List<String> args = <String>[
-        'server.dart',
-        '--sdk-root',
-        'sdkroot',
-        '--strong',
-      ];
-      await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(true));
-    });
-
-    test('compile from command line (no-sync-async)', () async {
-      final List<String> args = <String>[
-        'server.dart',
-        '--sdk-root',
-        'sdkroot',
-        '--strong',
-        '--no-sync-async',
-      ];
-      await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(false));
     });
 
     test('compile from command line with link platform', () async {
@@ -105,7 +67,6 @@ Future<int> main() async {
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
-      expect(capturedArgs.single['strong'], equals(false));
     });
   });
 
@@ -126,7 +87,6 @@ Future<int> main() async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
@@ -150,11 +110,6 @@ Future<int> main() async {
       '--sdk-root',
       'sdkroot',
     ];
-    final List<String> strongArgs = <String>[
-      '--sdk-root',
-      'sdkroot',
-      '--strong',
-    ];
 
     test('compile one file', () async {
       final StreamController<List<int>> inputStreamController =
@@ -165,37 +120,11 @@ Future<int> main() async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
       Future<int> result = starter(
         args,
-        compiler: compiler,
-        input: inputStreamController.stream,
-      );
-      inputStreamController.add('compile server.dart\n'.codeUnits);
-      await compileCalled.first;
-      inputStreamController.add('quit\n'.codeUnits);
-      expect(await result, 0);
-      inputStreamController.close();
-    });
-
-    test('compile one file (strong mode)', () async {
-      final StreamController<List<int>> inputStreamController =
-          new StreamController<List<int>>();
-      final ReceivePort compileCalled = new ReceivePort();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) {
-        expect(invocation.positionalArguments[0], equals('server.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(true));
-        compileCalled.sendPort.send(true);
-      });
-
-      Future<int> result = starter(
-        strongArgs,
         compiler: compiler,
         input: inputStreamController.stream,
       );
@@ -217,7 +146,6 @@ Future<int> main() async {
             equals('server${counter++}.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        expect(invocation.positionalArguments[1]['strong'], equals(false));
         compileCalled.sendPort.send(true);
       });
 
@@ -462,7 +390,6 @@ Future<int> main() async {
           generator: anyNamed('generator'),
         )).captured;
         expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-        expect(capturedArgs.single['strong'], equals(false));
       });
     });
   });
@@ -489,7 +416,6 @@ Future<int> main() async {
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -598,7 +524,6 @@ Future<int> main() async {
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -727,7 +652,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -836,7 +760,6 @@ true
       // First compile app entry point A.
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
@@ -921,7 +844,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}'
@@ -1007,7 +929,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
@@ -1028,7 +949,6 @@ true
       expect(depFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
@@ -1063,7 +983,6 @@ true
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
-        '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',

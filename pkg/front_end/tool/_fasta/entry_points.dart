@@ -329,7 +329,7 @@ Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (c.options.bytecode) {
-    generateBytecode(result.component, strongMode: !c.options.legacyMode);
+    generateBytecode(result.component);
   }
 
   await writeComponentToFile(result.component, fullOutput,
