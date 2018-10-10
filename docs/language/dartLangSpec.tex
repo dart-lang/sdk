@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{xspace}
 \usepackage{epsfig}
 \usepackage{color}
 \usepackage{syntax}
@@ -61,6 +62,7 @@
 %   program such that it takes exports into account.
 % - Eliminate all references to checked and production mode, Dart 2 does
 %   not have modes.
+% - Integrate feature specification on noSuchMethod forwarders.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -1629,6 +1631,298 @@ The rationale for this behavior is that assignments should be guaranteed to eval
 }
 
 
+\subsubsection{The Method \code{noSuchMethod}}
+\LMLabel{theMethodNoSuchMethod}
+
+\LMHash{}
+The method \code{noSuchMethod} is invoked implicitly during execution
+in situations where one or more member lookups fail
+(\ref{ordinaryInvocation},
+\ref{getterAccessAndMethodExtraction},
+\ref{assignment}).
+
+\commentary{
+We may think of \code{noSuchMethod} as a backup
+which kicks in when an invocation of a member $m$ is attempted,
+but there is no member named $m$,
+or it exists,
+but the given invocation has an argument list shape
+that does not fit the declaration of $m$
+(passing fewer positional arguments than required or more than supported,
+or passing named arguments with names not declared by $m$).
+% The next sentence covers both function objects and instances of
+% a class with a method named \code{call}, because we would have a
+% compile-time error invoking \code{call} with a wrongly shaped argument
+% list unless the type is \DYNAMIC{} or \FUNCTION.
+This can only occur for an ordinary method invocation
+when the receiver has static type \DYNAMIC,
+or for a function invocation when
+the invoked function has static type \FUNCTION{} or \DYNAMIC.
+%
+The method \code{noSuchMethod} can also be invoked in other ways, e.g.,
+it can be called explicitly like any other method,
+and it can be invoked from a \code{noSuchMethod} forwarder,
+as explained below.
+}
+
+\LMHash{}
+We say that a class $C$ {\em has a non-trivial \code{noSuchMethod}}
+if $C$ has a concrete member named \code{noSuchMethod}
+which is distinct from the one declared in the built-in class \code{Object}.
+
+\commentary{
+Note that it must be a method that accepts one positional argument,
+in order to correctly override \code{noSuchMethod} in \code{Object}.
+For instance, it can have signature
+\code{noSuchMethod(Invocation i)} or
+\code{noSuchMethod(Object i, [String s])},
+but not
+\code{noSuchMethod(Invocation i, String s)}.
+This implies that the situation where \code{noSuchMethod} is invoked
+(explicitly or implicitly)
+with one actual argument cannot fail for the reason that
+``there is no such method'',
+such that we would enter an infinite loop trying to invoke \code{noSuchMethod}.
+It \emph{is} possible, however, to encounter a dynamic error
+during an invocation of \code{noSuchMethod}
+because the actual argument fails to satisfy a type check,
+but that situation will give rise to a dynamic type error
+rather than a repeated attempt to invoke \code{noSuchMethod}
+(\ref{bindingActualsToFormals}).
+Here is an example where a dynamic type error occurs because
+an attempt is made to pass an \code{Invocation}
+where only the null object is accepted:
+}
+
+\begin{dartCode}
+\CLASS{} A \{
+  noSuchMethod(\COVARIANT{} Null n) => n;
+\}
+\\
+\VOID{} main() \{
+  \DYNAMIC{} d = A();
+  d.foo(42); // Dynamic type error when invoking noSuchMethod.
+\}
+\end{dartCode}
+
+\LMHash{}
+Let $C$ be a concrete class and
+let $L$ be the library that contains the declaration of $C$.
+The member $m$ is {\em noSuchMethod forwarded in} $C$ if{}f
+one of the following is true:
+
+\begin{itemize}
+\item $C$ has a non-trivial \code{noSuchMethod},
+  the interface of $C$ contains $m$,
+  and $C$ has no concrete declaration of $m$
+  (\commentary{that is, no member $m$ is declared or inherited by $C$}).
+\item
+  % Inaccessible private methods are not present in the interface of a class,
+  % so we need to find a class that can access $m$.
+  There exists a direct or indirect superinterface
+  $D$ of $C$ which is declared in the library $L_2$,
+  the interface of $D$ contains $m$
+  (\commentary{which implies that $m$ is accessible to $L_2$}),
+  $m$ is inaccessible to $L$,
+  and no superclass of $C$ has
+  a concrete declaration of $m$ accessible to $L_2$.
+\end{itemize}
+
+\LMHash{}
+For a concrete class $C$, a {\em \code{noSuchMethod} forwarder}
+is implicitly induced for each member $m$
+which is \code{noSuchMethod} forwarded.
+This is a concrete member of $C$
+with the signature taken from the interface of $C$ respectively $D$ above,
+and with the same default value for each optional parameter.
+It can be invoked in an ordinary invocation and in a superinvocation,
+and when $m$ is a method it can be closurized
+(\ref{ordinaryMemberClosurization})
+using a property extraction
+(\ref{propertyExtraction}).
+
+\commentary{
+This implies that a \code{noSuchMethod} forwarder has the same
+properties as an explicitly declared concrete member,
+except of course that a \code{noSuchMethod} forwarder
+does not prevent itself from being induced.
+We do not specify the body of a \code{noSuchMethod} forwarder,
+but it will invoke \code{noSuchMethod},
+and we specify the dynamic semantics of executing it below.
+}
+
+\commentary{
+At the beginning of this section we mentioned that implicit invocations
+of \code{noSuchMethod} can only occur
+with a receiver of static type \DYNAMIC{}
+or a function of static type \DYNAMIC{} or \FUNCTION{}.
+With a \code{noSuchMethod} forwarder,
+\code{noSuchMethod} can also be invoked
+on a receiver whose static type is not \DYNAMIC{}.
+No similar situation exists for functions,
+because it is impossible to induce a \code{noSuchMethod} forwarder
+into the class of a function object.
+}
+
+\commentary{
+For a concrete class $C$,
+we may think of a non-trivial \code{noSuchMethod}
+(declared in or inherited by $C$)
+as a request for ``automatic implementation'' of all unimplemented members
+in the interface of $C$ as \code{noSuchMethod} forwarders.
+Similarly, there is an implicit request for
+automatic implementation of all unimplemented
+inaccessible members of any concrete class,
+whether or not there is a non-trivial \code{noSuchMethod}.
+Note that the latter cannot be written explicitly in Dart,
+because their names are inaccessible;
+but the language can still specify that they are induced implicitly,
+because compilers control the treatment of private names.
+}
+
+\LMHash{}
+It is a compile-time error if a concrete class $C$ has
+a \code{noSuchMethod} forwarded method signature $S$
+for a method named $m$,
+and a superclass of $C$ has a concrete declaration of $m$
+which is not a \code{noSuchMethod} forwarder.
+
+\commentary{
+This can only happen if that concrete declaration does not
+correctly override $S$. Consider the following example:
+}
+
+\begin{dartCode}
+\CLASS{} A \{
+  foo(int i) => \NULL;
+\}
+
+\ABSTRACT{} \CLASS{} B \{
+  foo([int i]);
+\}
+
+\CLASS{} C \EXTENDS{} A \IMPLEMENTS{} B \{
+  noSuchMethod(Invocation i) => ...;
+  // Error: Forwarder would override `A.foo`.
+\}
+\end{dartCode}
+
+\commentary{
+In this example,
+an implementation with signature \code{foo(int i)} is inherited by \code{C},
+and the superinterface \code{B} declares
+the signature \code{foo([int i])}.
+This is a compile-time error because \code{C} does not have
+a method implementation with signature \code{foo([int])}.
+We do not wish to implicitly induce
+a \code{noSuchMethod} forwarder with signature \code{foo([int])}
+because it would override \code{A.foo},
+and that is likely to be highly confusing for developers.
+%
+In particular, it would cause an invocation like \code{C().foo(42)}
+to invoke \code{noSuchMethod},
+even though that is an invocation which is correct for
+the declaration of \code{foo} in \code{A}.
+%
+Hence, we require developers to explicitly resolve the conflict
+whenever an implicitly induced \code{noSuchMethod} forwarder
+would override an explicitly declared inherited implementation.
+%
+It is no problem, however,
+to let a \code{noSuchMethod} forwarder override
+another \code{noSuchMethod} forwarder,
+and hence there is no error in that situation.
+}
+
+\LMHash{}
+For the dynamic semantics,
+assume that a class $C$ has an implicitly induced
+\code{noSuchMethod} forwarder named $m$,
+with formal type parameters
+\code{$X_1,\ \ldots,\ X_r$},
+positional formal parameters
+\code{$a1,\ \ldots,\ a_k$}
+(\commentary{some of which may be optional when $m = 0$}),
+and named formal parameters with names
+\code{$x_1,\ \ldots,\ x_m$}
+(\commentary{with default values as mentioned above}).
+
+\commentary{
+For this purpose we need not distinguish between
+a signature that has optional positional parameters and
+a signature that has named parameters,
+because the former is covered by $m = 0$.
+}
+
+\LMHash{}
+The execution of the body of $m$ creates
+an instance $im$ of the predefined class \code{Invocation}
+such that:
+
+\begin{itemize}
+\item \code{$im$.isMethod} evaluates to \code{\TRUE{}} if{}f $m$ is a method.
+\item \code{$im$.isGetter} evaluates to \code{\TRUE{}} if{}f $m$ is a getter.
+\item \code{$im$.isSetter} evaluates to \code{\TRUE{}} if{}f $m$ is a setter.
+\item \code{$im$.memberName} evaluates to the symbol \code{m}.
+\item \code{$im$.positionalArguments} evaluates to an unmodifiable list
+  with the same values as the list resulting from evaluation of
+  \code{<Object>[$a_1, \ldots,\ a_k$]}.
+\item \code{$im$.namedArguments} evaluates to an unmodifiable map
+  with the same keys and values as the map resulting from evaluation of
+
+  \code{<Symbol, Object>\{$\#x_1$: $x_1, \ldots,\ \#x_m$: $x_m$\}}.
+\item \code{$im$.typeArguments} evaluates to an unmodifiable list
+  with the same values as the list resulting from evaluation of
+  \code{<Type>[$X_1, \ldots,\ X_r$]}.
+\end{itemize}
+
+\LMHash{}
+Next, \code{noSuchMethod} is invoked with $i$ as the actual argument,
+and the result obtained from there is returned by the execution of $m$.
+
+\commentary{
+This is an ordinary method invocation of \code{noSuchMethod}
+(\ref{ordinaryInvocation}).
+That is, a \code{noSuchMethod} forwarder in a class $C$ can invoke
+an implementation of \code{noSuchMethod} that is declared in
+a subclass of $C$.
+
+Dynamic type checks on the actual arguments passed to $m$
+are performed in the same way as for an invocation of an
+explicitly declared method.
+In particular, an actual argument passed to a covariant parameter
+will be checked dynamically.
+
+Also, like other ordinary method invocations,
+it is a dynamic type error if the result returned by
+a \code{noSuchMethod} forwarder has a type which is not a subtype
+of the return type of the forwarder.
+
+One special case to be aware of is where a forwarder is torn off
+and then invoked with an actual argument list which does not match
+the formal parameter list.
+In that situation we will get an invocation of
+\code{Object.noSuchMethod}
+rather than the \code{noSuchMethod} in the original receiver,
+because this is an invocation of a function object
+(and they do not override \code{noSuchMethod}):
+}
+
+\begin{dartCode}
+\CLASS{} A \{
+  noSuchMethod(Invocation i) => \NULL;
+  \VOID{} foo();
+\}
+\\
+\VOID{} main() \{
+  A a = A();
+  \FUNCTION{} f = a.foo;
+  // Invokes `Object.noSuchMethod`, which throws.
+  f(42);
+\}
+\end{dartCode}
+
+
 \subsection{Getters}
 \LMLabel{getters}
 
@@ -1747,7 +2041,11 @@ In classes used as mixins, it is often useful to introduce such declarations for
 }
 
 \LMHash{}
-%% TODO(eernst): Revise this to use the concepts of interfaces, and do not say that an abstract member is inherited by a class.
+%% TODO(eernst): This is semi-redundant: We should define what it means for
+%% a class to be 'fully implemented' and require once and for all that it is
+%% a compile-time error if a concrete class is not fully implemented. That
+%% is very nearly what line 2706++ already says. This will then be commentary,
+%% just focusing on the case where a concrete $C$ _declares_ an abstract $m$.
 It is a compile-time error if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
 \begin{itemize}
 \item $m$ overrides a concrete member, or
@@ -2787,7 +3085,7 @@ The controlling language is in the relevant sections of the specification.
 \item Rule \ref{typeSigAssignable} applies to interfaces as well as classes
   (\ref{interfaceInheritanceAndOverriding}).
 \item It is an error if a concrete class does not have an implementation
-  for a method in any of its superinterfaces
+  for a method in its interface
   unless it has a concrete \code{noSuchMethod} method
   (\ref{superinterfaces})
   distinct from the one in class \code{Object}.
@@ -2866,11 +3164,6 @@ It is a compile-time error if the implicit interface of a class $C$ has an insta
 \rationale{
 However, if a class does explicitly declare a member that conflicts with its superinterface, this always yields an error.
 }
-
-% TODO(eernst): When integrating nosuchmethod-forwarders.md, delete this and make sure that we mention the
-% case where there is no `noSuchMethod` and we still generate forwarders.
-% Consider: It is a compile-time error if an imported superinterface of a class $C$ declares private members.
-% Should we ignore unimplemented private members?
 
 
 \subsection{Class Member Conflicts}
@@ -3679,6 +3972,13 @@ when it is used in any of the following ways:
   or a \WITH{} clause
   (\ref{classes}).
 \end{itemize}
+
+\commentary{
+It is \emph{not} an error if a super-bounded type occurs
+as an immediate subterm of an \EXTENDS{} clause
+that specifies the bound of a type variable
+(\ref{generics}).
+}
 
 \commentary{
 Types of members from super-bounded class types are computed using the same
@@ -6177,6 +6477,8 @@ Then the method invocation \code{f.noSuchMethod($im$)} is evaluated,
 and its result is then the result of evaluating $i$.
 
 \commentary{
+The situation where \code{noSuchMethod} is invoked can only arise
+when the static type of $e_f$ is \DYNAMIC{}.
 The run-time semantics ensures that
 a function invocation may amount to an invocation of the instance method \CALL{}.
 However, an interface type with a method named \CALL{} is not itself a subtype of any function type.
@@ -6496,16 +6798,9 @@ Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argum
 and the result of this invocation is the result of evaluating $i$.
 
 \commentary{
+The situation where \code{noSuchMethod} is invoked can only arise
+when the static type of $e$ is \DYNAMIC{}.
 Notice that the wording avoids re-evaluating the receiver $o$ and the arguments $a_i$.
-Also note that there is no need to specify how to handle an invocation of \code{noSuchMethod}
-that fails because ``there is no such method'':
-It is not possible to override the \code{noSuchMethod} of class \code{Object}
-in such a way that it cannot be invoked with one argument of type \code{Invocation}.
-It can fail with a dynamic type error if the parameter type is overridden with a
-proper subtype of \code{Invocation},
-but that does not give rise to yet another invocation of \code{noSuchMethod}.
-% We might want to mention `noSuchMethod(covariant Null n) => n;`, but
-% `covariant` is not yet specified, and it is not a big problem to omit it.
 }
 
 
@@ -6739,14 +7034,10 @@ If the getter lookup has failed, then a new instance $im$ of the predefined clas
 Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argument $im$,
 and the result of this invocation is the result of evaluating $i$.
 
-% TODO(eernst): We have removed the description of how to invoke noSuchMethod
-% in Object if the overriding noSuchMethod does not accept one argument of
-% type Invocation, because that will be a compile-time error soon. At this
-% point we just keep a commentary ready to say that:
-%
-%% \commentary {
-%% It is a compile-time error to override the \code{noSuchMethod} of class \code{Object} in such a way that it cannot be invoked with one positional argument of type \code{Invocation}.
-%% }
+\commentary {
+The situation where \code{noSuchMethod} is invoked can only arise
+when the static type of $e$ is \DYNAMIC{}.
+}
 
 \LMHash{}
 It is a compile-time error if $m$ is a member of class \code{Object} and $e$ is either a prefix object (\ref{imports}) or a constant type literal.
@@ -6800,32 +7091,11 @@ Let $f$ be the result of looking up getter $m$ in $S_{dynamic}$ with respect to 
 The body of $f$ is executed with \THIS{} bound to the current value of \THIS{}.
 The value of $i$ is the result returned by the call to the getter function.
 
-\LMHash{}
-If the getter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
-\begin{itemize}
-\item \code{$im$.isGetter} evaluates to \code{\TRUE{}}.
-\item \code{$im$.memberName} evaluates to the symbol \code{m}.
-\item \code{$im$.positionalArguments} evaluates to an empty, unmodifiable instance of
-\code{List<Object>}.
-\item \code{$im$.namedArguments} evaluates to an empty, unmodifiable instance of
-
-\code{Map<Symbol, Object>}.
-\item \code{$im$.typeArguments} evaluates to an empty, unmodifiable instance of
-
-\code{List<Type>}.
-\end{itemize}
-
-\LMHash{}
-Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$.
-
-% TODO(eernst): We have removed the description of how to invoke noSuchMethod
-% in Object if the overriding noSuchMethod does not accept one argument of
-% type Invocation, because that will be a compile-time error soon. At this
-% point we just keep a commentary ready to say that:
-%
-%% \commentary {
-%% It is a compile-time error to override the \code{noSuchMethod} of class \code{Object} in such a way that it cannot be invoked with one positional argument of type \code{Invocation}.
-%% }
+\commentary{
+The getter lookup will not fail, because it is a compile-time error to have
+a super property extraction of a member $m$ when the superclass $S_{dynamic}$
+does not have a concrete member named $m$.
+}
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class.
@@ -7080,6 +7350,11 @@ An assignment changes the value associated with a mutable variable or property.
 
 \LMHash{}
 \Case{\code{$v$ = $e$}}
+%% TODO(eernst): This _only_ works if we assume that `v = e` has already
+%% been expanded to `this.v = e` "when that's the right thing to do".
+%% Otherwise `denotes` below cannot be interpreted as the result of a lookup,
+%% and we have no precise alternative which would work. We might be able
+%% to repair this by giving a definition of `denotes` somewhere.
 Consider an assignment $a$ of the form \code{$v$ = $e$},
 where $v$ is an identifier or an identifier qualified by an import prefix,
 and $v$ denotes a variable (\ref{variables}) or \code{$v$=} denotes a setter
@@ -7147,8 +7422,8 @@ of $v$.
 \LMHash{}
 \Case{\code{$e_1$?.$v$ = $e_2$}}
 Consider an assignment $a$ of the form \code{$e_1$?.$v$ = $e_2$}.
-Let $S$ be the static type of the formal parameter of the setter \code{$v$=}.
-It is a compile-time error if the static type of $e_2$ may not be assigned to $S$.
+Exactly the same compile-time errors that would be caused by
+\code{$e_1$.$v$ = $e_2$} are also generated in the case of $a$.
 The static type of $a$ is the static type of $e_2$.
 
 \LMHash{}
@@ -7164,9 +7439,14 @@ Then $a$ evaluates to $r$.
 \LMHash{}
 \Case{\code{$e_1$.$v$ = $e_2$}}
 Consider an assignment $a$ of the form \code{$e_1$.$v$ = $e_2$}.
-Let $S$ be the static type of the formal parameter of the setter \code{$v$=}.
-It is a compile-time error if the static type of $e_2$ may not be assigned to $S$.
-The static type of $a$ is the static type of $e_2$.
+Let $T$ be the static type of $e_1$.
+If $T$ is \DYNAMIC{}, no further checks are performed.
+Otherwise, it is a compile-time error unless
+$T$ has an accessible instance setter named \code{$v$=}.
+It is a compile-time error unless the static type of $e_2$
+may be assigned to the declared type of the formal parameter of said setter.
+Whether or not $T$ is \DYNAMIC{},
+the static type of $a$ is the static type of $e_2$.
 
 \LMHash{}
 Evaluation of an assignment of the form \code{$e_1$.$v$ = $e_2$}
@@ -7174,10 +7454,10 @@ proceeds as follows:
 The expression $e_1$ is evaluated to an object $o_1$.
 Then, the expression $e_2$ is evaluated to an object $o_2$.
 Then, the setter \code{$v$=} is looked up (\ref{lookup}) in $o_1$ with respect to the current library.
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-If $o_1$ is an instance of \code{Type} but $e_1$ is not a constant type literal,
-then if \code{$v$=} is a setter that forwards (\ref{functionDeclarations}) to a static setter, setter lookup fails.
-Otherwise, the body of \code{$v$=} is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$.
+It is a dynamic type error if the dynamic type of $o_2$
+is not a subtype of the actual parameter type of said setter
+(\ref{actualTypeOfADeclaration}).
+Otherwise, the body of the setter is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$.
 
 \LMHash{}
 If the setter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
@@ -7197,36 +7477,21 @@ $\code{<Object>}[o_2]$.
 \LMHash{}
 Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked with argument $im$.
 
-% TODO(eernst): We have removed the description of how to invoke noSuchMethod
-% in Object if the overriding noSuchMethod does not accept one argument of
-% type Invocation, because that will be a compile-time error soon. At this
-% point we just keep a commentary ready to say that:
-%
-%% \commentary {
-%% It is a compile-time error to override the \code{noSuchMethod} of class \code{Object} in such a way that it cannot be invoked with one positional argument of type \code{Invocation}.
-%% }
+\commentary{
+The situation where \code{noSuchMethod} is invoked can only arise
+when the static type of $e_1$ is \DYNAMIC{}.
+}
 
 \LMHash{}
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-It is a dynamic type error if $o_2$ is not the null object (\ref{null})
-and the dynamic type of $o_2$ is
-not a subtype of the actual type of $e_1.v$
-(\ref{actualTypeOfADeclaration}).
-
-\LMHash{}
-Let $T$ be the static type of $e_1$.
-It is a compile-time error if $T$ does not have an accessible instance setter named \code{$v$=}
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-unless $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named \code{$v$=}.
-
-\LMHash{}
 \Case{\code{\SUPER.$v$ = $e$}}
 Consider an assignment $a$ of the form \code{\SUPER.$v$ = $e$}.
 Let $S_{static}$ be the superclass of the immediately enclosing class.
-It is a compile-time error if $S_{static}$ does not have an accessible instance setter named \code{$v$=}.
-Otherwise, it is a compile-time error if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter \code{$v$=}.
+It is a compile-time error if $S_{static}$ does not have a concrete accessible instance setter named \code{$v$=}.
+Otherwise, it is a compile-time error if the static type of $e$
+may not be assigned to the static type of the formal parameter of said setter.
 The static type of $a$ is the static type of $e$.
 
 \LMHash{}
@@ -7239,42 +7504,34 @@ Then, the setter \code{$v$=} is looked up (\ref{lookup}) in $S_{dynamic}$ with r
 The body of \code{$v$=} is executed with its formal parameter bound to $o$
 and \THIS{} bound to the current value of \THIS{}.
 
-\LMHash{}
-If the setter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
-\begin{itemize}
-\item \code{$im$.isSetter} evaluates to \code{\TRUE{}}.
-\item \code{$im$.memberName} evaluates to the symbol \code{v=}.
-\item \code{$im$.positionalArguments} evaluates to an unmodifiable list
-with the same values as \code{<Object>[$o$]}.
-\item \code{$im$.namedArguments} evaluates to an empty unmodifiable instance of
-
-\code{Map<Symbol, Object>}.
-\item \code{$im$.typeArguments} evaluates to an empty, unmodifiable instance of
-
-\code{List<Type>}.
-\end{itemize}
+\commentary{
+The setter lookup will not fail, because it is a compile-time error
+when no concrete setter named \code{$v$=} exists in $S_{static}$.
+}
 
 \LMHash{}
-Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked with argument $im$.
-
-\LMHash{}
-The value of the assignment expression is $o$ irrespective of whether setter lookup has failed or succeeded.
+The value of the assignment expression is $o$.
 
 \LMHash{}
 It is a dynamic type error if $o$ is not the null object (\ref{null})
 and the dynamic type of $o$ is
-not a subtype of the actual type of \code{$S$.$v$}
-(\ref{actualTypeOfADeclaration}).
+not a subtype of the actual type of the formal parameter of \code{$v$=}
+(\ref{actualTypeOfADeclaration}) in $S_{static}$.
 
 \LMHash{}
 \Case{\code{$e_1$[$e_2$] = $e_3$}}
 Consider an assignment $a$ of the form \code{$e_1$[$e_2$] = $e_3$}.
-It is a compile-time error if the static type of $e_1$ does not have a method named \code{[]=}.
-Otherwise, let $S_2$ be the static type of the first formal parameter of the method \code{[]=}
+Let $T$ be the static type of $e_1$.
+If $T$ is \DYNAMIC{}, no further checks are performed.
+Otherwise, it is a compile-time error unless
+$T$ has a method named \code{[]=}.
+Let $S_2$ be the static type of the
+first formal parameter of the method \code{[]=},
 and $S_3$ the static type of the second.
-It is a compile-time error if the static type of $e_2$ may not be assigned to $S_2$,
-and if the static type of $e_3$ may not be assigned to $S_3$.
-The static type of $a$ is the static type of $e_3$.
+It is a compile-time error unless the static type of $e_2$ respectively $e_3$
+may be assigned to $S_2$ respectively $S_3$.
+Whether or not $T$ is \DYNAMIC{},
+the static type of $a$ is the static type of $e_3$.
 
 \LMHash{}
 Evaluation of an assignment $a$ of the form \code{$e_1$[$e_2$] = $e_3$}
@@ -7289,10 +7546,11 @@ Then $a$ evaluates to $v$.
 Consider an assignment $a$ of the form \code{\SUPER[$e_1$] = $e_2$}.
 Let $S_{static}$ be the superclass of the immediately enclosing class.
 It is a compile-time error if $S_{static}$ does not have a method \code{[]=}.
-Otherwise, let $S_1$ be the static type of the first formal parameter of the method \code{[]=}
+Otherwise, let $S_1$ be the static type of the
+first formal parameter of the method \code{[]=},
 and $S_2$ the static type of the second.
-It is a compile-time error if the static type of $e_1$ may not be assigned to $S_1$,
-and if the static type of $e_2$ may not be assigned to $S_2$.
+It is a compile-time error if the static type of $e_1$ respectively $e_2$
+may not be assigned to $S_1$ respectively $S_2$.
 The static type of $a$ is the static type of $e_2$.
 
 \LMHash{}
