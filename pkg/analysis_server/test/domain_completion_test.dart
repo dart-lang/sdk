@@ -251,7 +251,7 @@ class A {
 
   test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
-    final incompleteImportText = convertPathForImport('/project/bin/t');
+    final incompleteImportText = convertAbsolutePathToUri('/project/bin/t');
     newFile(filePath, content: 'library libA;');
     addTestFile('''
     import "$incompleteImportText^.dart";
@@ -261,7 +261,7 @@ class A {
           equals(completionOffset - incompleteImportText.length));
       expect(replacementLength, equals(5 + incompleteImportText.length));
       assertHasResult(
-          CompletionSuggestionKind.IMPORT, convertPathForImport(filePath));
+          CompletionSuggestionKind.IMPORT, convertAbsolutePathToUri(filePath));
       assertNoResult('test');
     });
   }
@@ -509,7 +509,7 @@ class A {
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "${convertPathForImport('/testA.dart')}";
+  part "${convertAbsolutePathToUri('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
@@ -734,7 +734,7 @@ class B extends A {m() {^}}
   test_partFile() {
     newFile('/project/bin/testA.dart', content: '''
       library libA;
-      part "${convertPathForImport(testFile)}";
+      part "${convertAbsolutePathToUri(testFile)}";
       import 'dart:html';
       class A { }
     ''');
@@ -760,7 +760,7 @@ class B extends A {m() {^}}
       class A { }''');
     addTestFile('''
       library libA;
-      part "${convertPathForImport("/testA.dart")}";
+      part "${convertAbsolutePathToUri("/testA.dart")}";
       import 'dart:html';
       main() {^}
     ''');

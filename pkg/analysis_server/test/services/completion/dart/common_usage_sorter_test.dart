@@ -86,7 +86,7 @@ main() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     newFile('/project/bin/myLib.dart',
         content:
-            'library L; part "${convertPathForImport(testFile)}"; class A {static int s2;}');
+            'library L; part "${convertAbsolutePathToUri(testFile)}"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']

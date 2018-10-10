@@ -3094,7 +3094,7 @@ void main() {C.^ print("something");}''');
     addTestSource('''
         library libA;
         import "testB.dart";
-        part "${convertPathForImport('/testA.dart')}";
+        part "${convertAbsolutePathToUri('/testA.dart')}";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');

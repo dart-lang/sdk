@@ -41,25 +41,24 @@ class MoveFileTest extends RefactoringTest {
     addTestSource('''
 library lib;
 import 'dart:math';
-import '${convertPathForImport('22/c.dart')}';
-export '${convertPathForImport('333/d.dart')}';
+import '22/c.dart';
+export '333/d.dart';
 part 'a.dart';
-part '${convertPathForImport('/absolute/uri.dart')}';
+part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
 ''');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertNoFileChange(pathA);
-    assertFileChangeResult(
-        pathB, "import '${convertPathForImport('22/new_name.dart')}';");
+    assertFileChangeResult(pathB, "import '22/new_name.dart';");
     assertNoFileChange(pathC);
     assertFileChangeResult(testFile, '''
 library lib;
 import 'dart:math';
 import 'c.dart';
-export '${convertPathForImport('../333/d.dart')}';
-part '${convertPathForImport('../a.dart')}';
-part '${convertPathForImport('/absolute/uri.dart')}';
+export '../333/d.dart';
+part '../a.dart';
+part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
 ''');
   }
 
@@ -74,7 +73,7 @@ import 'test.dart';
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
-import '${convertPathForImport('22/new_name.dart')}';
+import '22/new_name.dart';
 ''');
     assertNoFileChange(testFile);
   }
@@ -83,14 +82,14 @@ import '${convertPathForImport('22/new_name.dart')}';
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
     addSource(pathA, '''
-import '${convertPathForImport('sub/folder/test.dart')}';
+import 'sub/folder/test.dart';
 ''');
     addTestSource('');
     // perform refactoring
     _createRefactoring('/project/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
-import '${convertPathForImport('../new/folder/name/new_name.dart')}';
+import '../new/folder/name/new_name.dart';
 ''');
     assertNoFileChange(testFile);
   }
@@ -99,7 +98,7 @@ import '${convertPathForImport('../new/folder/name/new_name.dart')}';
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
-import '${convertPathForImport('22/test.dart')}';
+import '22/test.dart';
 ''');
     addTestSource('');
     // perform refactoring
@@ -120,11 +119,11 @@ import 'new_name.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '${convertPathForImport('22/test.dart')}';
+part '22/test.dart';
 ''');
     addSource(pathB, '''
 library lib;
-part '${convertPathForImport('1111/22/test.dart')}';
+part '1111/22/test.dart';
 ''');
     addTestSource('''
 part of lib;
@@ -134,11 +133,11 @@ part of lib;
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '${convertPathForImport('22/new_name.dart')}';
+part '22/new_name.dart';
 ''');
     assertFileChangeResult(pathB, '''
 library lib;
-part '${convertPathForImport('1111/22/new_name.dart')}';
+part '1111/22/new_name.dart';
 ''');
     assertNoFileChange(testFile);
   }
@@ -148,7 +147,7 @@ part '${convertPathForImport('1111/22/new_name.dart')}';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '${convertPathForImport('22/test.dart')}';
+part '22/test.dart';
 ''');
     addTestSource('''
 part of lib;
@@ -158,7 +157,7 @@ part of lib;
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '${convertPathForImport('22/new_name.dart')}';
+part '22/new_name.dart';
 ''');
     assertNoFileChange(testFile);
   }
@@ -207,20 +206,20 @@ part '${convertPathForImport('22/new_name.dart')}';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
 library lib;
-part '${convertPathForImport('22/test.dart')}';
+part '22/test.dart';
 ''');
     addTestSource('''
-part of '${convertPathForImport('../a.dart')}';
+part of '../a.dart';
 ''');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/33/test.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
 library lib;
-part '${convertPathForImport('22/33/test.dart')}';
+part '22/33/test.dart';
 ''');
     assertFileChangeResult(testFile, '''
-part of '${convertPathForImport('../../a.dart')}';
+part of '../../a.dart';
 ''');
   }
 
