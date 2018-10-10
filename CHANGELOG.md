@@ -4,6 +4,20 @@
 
 ### Language
 
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.1.0-dev.7.0
+
+### Language
+
 *   Fixed a bug (issue [32014](http://dartbug.com/32014)) that caused invalid
     implementations of the interface of a class to not be reported in some cases.
     For instance, the following code would not produce a compile-time error:
@@ -52,14 +66,6 @@
 
 *   Made `Uri` parsing more permissive about `[` and `]` occurring
     in the path, query or fragment, and `#` occurring in fragment.
-
-### Dart VM
-
-### Tool Changes
-
-#### Pub
-
-#### Other Tools
 
 ## 2.1.0-dev.6.0
 
