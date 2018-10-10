@@ -705,13 +705,14 @@ def CheckLinuxCoreDumpPattern(fatal=False):
 
   expected_core_pattern = 'core.%p'
   if core_pattern.strip() != expected_core_pattern:
+    message = ('Invalid core_pattern configuration. '
+        'The configuration of core dump handling is *not* correct for '
+        'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
+        .format(core_pattern_file, expected_core_pattern, core_pattern))
     if fatal:
-      message = ('Invalid core_pattern configuration. '
-          'The configuration of core dump handling is *not* correct for '
-          'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
-          .format(core_pattern_file, expected_core_pattern, core_pattern))
       raise Exception(message)
     else:
+      print message
       return False
   return True
 
@@ -789,15 +790,13 @@ class PosixCoreDumpEnabler(object):
 # TODO(whesse): Re-enable after issue #30205 is addressed
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
   def __enter__(self):
-    pass
     # Bump core limits to unlimited if core_pattern is correctly configured.
-    # if CheckLinuxCoreDumpPattern(fatal=False):
-    #   super(LinuxCoreDumpEnabler, self).__enter__()
+    if CheckLinuxCoreDumpPattern(fatal=False):
+      super(LinuxCoreDumpEnabler, self).__enter__()
 
   def __exit__(self, *args):
-    pass
-    # CheckLinuxCoreDumpPattern(fatal=True)
-    # super(LinuxCoreDumpEnabler, self).__exit__(*args)
+    CheckLinuxCoreDumpPattern(fatal=False)
+    super(LinuxCoreDumpEnabler, self).__exit__(*args)
 
 
 class WindowsCoreDumpEnabler(object):
