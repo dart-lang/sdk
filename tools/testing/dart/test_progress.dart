@@ -879,7 +879,8 @@ class ResultWriter extends EventListener {
     if (_outputDirectory == null) return;
     final path =
         Uri.directory(_outputDirectory).resolve(TestUtils.resultsFileName);
-    File.fromUri(path).writeAsStringSync(results.map(jsonEncode).join('\n'));
+    File.fromUri(path)
+        .writeAsStringSync(results.map(jsonEncode).join('\n') + '\n');
   }
 
   void writeRunFile() {
@@ -894,6 +895,6 @@ class ResultWriter extends EventListener {
     };
     final path = Uri.directory(_outputDirectory)
         .resolve(TestUtils.resultsInstanceFileName);
-    File.fromUri(path).writeAsStringSync(jsonEncode(run));
+    File.fromUri(path).writeAsStringSync(jsonEncode(run) + '\n');
   }
 }
