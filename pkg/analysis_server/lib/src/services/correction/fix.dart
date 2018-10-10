@@ -185,6 +185,10 @@ class DartFixKind {
       'Remove unnecessary interpolation braces');
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
+  static const MOVE_TYPE_ARGUMENTS_TO_CLASS = const FixKind(
+      'MOVE_TYPE_ARGUMENTS_TO_CLASS',
+      50,
+      "Move type arguments to after class name");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
@@ -213,6 +217,8 @@ class DartFixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_THIS_EXPRESSION =
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
+  static const REMOVE_TYPE_ARGUMENTS =
+      const FixKind('REMOVE_TYPE_ARGUMENTS', 50, "Remove type arguments");
   static const REMOVE_TYPE_NAME =
       const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST = const FixKind(

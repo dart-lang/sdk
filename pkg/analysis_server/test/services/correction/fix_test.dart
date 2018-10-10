@@ -5495,6 +5495,111 @@ class A {
 ''');
   }
 
+  @failingTest
+  test_moveTypeArgumentsToClass_explicitConst() async {
+    await resolveTestUnit('''
+main() {
+  const C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    await assertHasFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS, '''
+main() {
+  const C<int>.named();
+}
+class C<E> {
+  const C.named();
+}
+''');
+  }
+
+  @failingTest
+  test_moveTypeArgumentsToClass_explicitNew() async {
+    await resolveTestUnit('''
+main() {
+  new C.named<int>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertHasFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS, '''
+main() {
+  new C<int>.named();
+}
+class C<E> {
+  C.named();
+}
+''');
+  }
+
+  @failingTest
+  test_moveTypeArgumentsToClass_explicitNew_BAD_alreadyThere() async {
+    await resolveTestUnit('''
+main() {
+  new C<String>.named<int>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertNoFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS);
+  }
+
+  test_moveTypeArgumentsToClass_explicitNew_BAD_wrongNumber() async {
+    await resolveTestUnit('''
+main() {
+  new C.named<int, String>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertNoFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS);
+  }
+
+  @failingTest
+  test_moveTypeArgumentsToClass_implicitConst() async {
+    await resolveTestUnit('''
+main() {
+  const C c = C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    await assertHasFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS, '''
+main() {
+  const C c = C<int>.named();
+}
+class C<E> {
+  const C.named();
+}
+''');
+  }
+
+  @failingTest
+  test_moveTypeArgumentsToClass_implicitNew() async {
+    await resolveTestUnit('''
+main() {
+  C.named<int>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertHasFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS, '''
+main() {
+  C<int>.named();
+}
+class C<E> {
+  C.named();
+}
+''');
+  }
+
   test_noException_1() async {
     await resolveTestUnit('''
 main(p) {
@@ -5625,6 +5730,85 @@ class A {
 }
 main(A a) {
   a.foo;
+}
+''');
+  }
+
+  @failingTest
+  test_removeTypeArguments_explicitConst() async {
+    // Failing because we're producing an error with the code
+    // CompileTimeErrorCode.UNDEFINED_CLASS (with a class name of `C.named`).
+    await resolveTestUnit('''
+main() {
+  const C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_TYPE_ARGUMENTS, '''
+main() {
+  const C.named();
+}
+class C<E> {
+  const C.named();
+}
+''');
+  }
+
+  test_removeTypeArguments_explicitNew() async {
+    await resolveTestUnit('''
+main() {
+  new C.named<int>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_TYPE_ARGUMENTS, '''
+main() {
+  new C.named();
+}
+class C<E> {
+  C.named();
+}
+''');
+  }
+
+  test_removeTypeArguments_implicitConst() async {
+    await resolveTestUnit('''
+main() {
+  const C c = C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_TYPE_ARGUMENTS, '''
+main() {
+  const C c = C.named();
+}
+class C<E> {
+  const C.named();
+}
+''');
+  }
+
+  test_removeTypeArguments_implicitNew() async {
+    await resolveTestUnit('''
+main() {
+  C.named<int>();
+}
+class C<E> {
+  C.named();
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_TYPE_ARGUMENTS, '''
+main() {
+  C.named();
+}
+class C<E> {
+  C.named();
 }
 ''');
   }
