@@ -2507,12 +2507,17 @@ String& KernelReaderHelper::SourceTableUriFor(intptr_t index) {
   return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
-String& KernelReaderHelper::GetSourceFor(intptr_t index) {
+const String& KernelReaderHelper::GetSourceFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());       // skip uri.
   intptr_t size = ReadUInt();  // read source List<byte> size.
-  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
+  ASSERT(size >= 0);
+  if (size == 0) {
+    return Symbols::Empty();
+  } else {
+    return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
+  }
 }
 
 RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {

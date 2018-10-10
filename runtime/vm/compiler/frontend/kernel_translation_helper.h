@@ -1028,7 +1028,7 @@ class KernelReaderHelper {
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
-  String& GetSourceFor(intptr_t index);
+  const String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
 
   Zone* zone_;

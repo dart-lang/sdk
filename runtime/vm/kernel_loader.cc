@@ -1776,11 +1776,12 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
 
 RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   const String& uri_string = helper_.SourceTableUriFor(index);
-  String& sources = helper_.GetSourceFor(index);
+  const String& script_source = helper_.GetSourceFor(index);
+  String& sources = String::Handle(Z);
   TypedData& line_starts =
       TypedData::Handle(Z, helper_.GetLineStartsFor(index));
-  if (sources.Length() == 0 && line_starts.Length() == 0 &&
-      uri_string.Length() > 0) {
+  if (script_source.raw() == Symbols::Empty().raw() &&
+      line_starts.Length() == 0 && uri_string.Length() > 0) {
     // Entry included only to provide URI - actual source should already exist
     // in the VM, so try to find it.
     Library& lib = Library::Handle(Z);
@@ -1796,6 +1797,8 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
         break;
       }
     }
+  } else {
+    sources = script_source.raw();
   }
 
   const Script& script = Script::Handle(
@@ -1805,8 +1808,8 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
-  script.set_debug_positions(Array::Handle(Array::null()));
-  script.set_yield_positions(Array::Handle(Array::null()));
+  script.set_debug_positions(Array::null_array());
+  script.set_yield_positions(Array::null_array());
   return script.raw();
 }
 
