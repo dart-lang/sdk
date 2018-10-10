@@ -163,7 +163,11 @@ class Driver {
         return false;
       }
     }
-    return !dryRun;
+    if (dryRun) {
+      context.print('Dry run complete. No changes applied.');
+      return false;
+    }
+    return true;
   }
 
   /// Dispatch the notification named [event], and containing parameters

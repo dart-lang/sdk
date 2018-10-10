@@ -4,24 +4,29 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit, SourceFileEdit;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
 
 class EditDartFix {
@@ -115,6 +120,9 @@ class EditDartFix {
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
+    descriptionOfFixes = <String>[];
+    otherRecommendations = <String>[];
+    sourceChange = new SourceChange('dartfix');
     bool hasErrors = false;
     while (resources.isNotEmpty) {
       Resource res = resources.removeLast();
@@ -132,9 +140,10 @@ class EditDartFix {
       if (unit != null) {
         if (!hasErrors) {
           for (AnalysisError error in result.errors) {
-            if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-              hasErrors = true;
-              break;
+            if (!(await fixError(result, error))) {
+              if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+                hasErrors = true;
+              }
             }
           }
         }
@@ -154,16 +163,47 @@ class EditDartFix {
       linter.reporter = null;
     }
 
-    // Reporting
-    descriptionOfFixes = <String>[];
-    otherRecommendations = <String>[];
-    sourceChange = new SourceChange('dartfix');
+    // Apply distributed fixes
     for (LinterFix fix in fixes) {
       await fix.applyFix();
     }
+
     return new EditDartfixResult(descriptionOfFixes, otherRecommendations,
             hasErrors, sourceChange.edits)
         .toResponse(request.id);
+  }
+
+  Future<bool> fixError(AnalysisResult result, AnalysisError error) async {
+    if (error.errorCode ==
+        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
+      return fixConstructorTypeArguments(result, error);
+    }
+    return false;
+  }
+
+  Future<bool> fixConstructorTypeArguments(
+      AnalysisResult result, AnalysisError error) async {
+    final dartContext = new DartFixContextImpl(
+        new FixContextImpl(
+            server.resourceProvider, result.driver, error, result.errors),
+        new AstProviderForDriver(result.driver),
+        result.unit);
+    final processor = new FixProcessor(dartContext);
+    Fix fix = await processor.computeFix(error.errorCode);
+    if (fix != null) {
+      addFix(
+        fix.change.message ??
+            'Fix type arguments on constructor call'
+            ' in ${path.basename(result.path)}',
+        fix.change,
+      );
+    } else {
+      // TODO(danrubel): Determine why the fix could not be applied
+      // and report that in the description.
+      addRecommendation('Could not fix type arguments on constructor call'
+          ' in ${path.basename(result.path)}');
+    }
+    return true;
   }
 
   /// Return `true` if the path in within the set of `included` files
@@ -304,8 +344,7 @@ class PreferMixinFix extends LinterFix {
         } else {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
-          dartFix.addRecommendation(
-              'Could not automatically convert ${elem.name} to a mixin'
+          dartFix.addRecommendation('Could not convert ${elem.name} to a mixin'
               ' because the class contains a constructor.');
         }
       }

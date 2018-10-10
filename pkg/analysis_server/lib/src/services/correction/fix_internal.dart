@@ -628,6 +628,10 @@ class FixProcessor {
     return fixes;
   }
 
+  Future<Fix> computeFix(ErrorCode errorCode) async {
+    return null;
+  }
+
   Future<void> _addFix_addAsync() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
