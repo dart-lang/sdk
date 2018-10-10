@@ -2007,8 +2007,8 @@ class NullError extends Error implements NoSuchMethodError {
       : _method = match == null ? null : JS('', '#.method', match);
 
   String toString() {
-    if (_method == null) return 'NullError: $_message';
-    return "NullError: method not found: '$_method' on null";
+    if (_method == null) return 'NoSuchMethodError: $_message';
+    return "NoSuchMethodError: method not found: '$_method' on null";
   }
 }
 
