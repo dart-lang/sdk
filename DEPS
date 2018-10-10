@@ -165,6 +165,15 @@ deps = {
       ],
       "dep_type": "cipd",
   },
+  Var("dart_root") + "/third_party/d8": {
+      "packages": [
+          {
+              "package": "dart/d8",
+              "version": "version:6.9.427.23+1",
+          },
+      ],
+      "dep_type": "cipd",
+  },
 
   Var("dart_root") + "/tests/co19/src":
       Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
@@ -381,20 +390,6 @@ deps = {
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
-  {
-    'name': 'd8_testing_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/third_party/d8',
-    ],
-  },
   {
     "name": "firefox_jsshell",
     "pattern": ".",
