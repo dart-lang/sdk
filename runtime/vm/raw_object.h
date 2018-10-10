@@ -29,8 +29,6 @@ typedef RawObject* RawCompressed;
   V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
   V(Field)                                                                     \
-  V(LiteralToken)                                                              \
-  V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
   V(Namespace)                                                                 \
@@ -1158,30 +1156,6 @@ class RawField : public RawObject {
   friend class CidRewriteVisitor;
 };
 
-class RawLiteralToken : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LiteralToken);
-
-  VISIT_FROM(RawObject*, literal_);
-  RawString* literal_;  // Literal characters as they appear in source text.
-  RawObject* value_;    // The actual object corresponding to the token.
-  VISIT_TO(RawObject*, value_);
-  Token::Kind kind_;  // The literal kind (string, integer, double).
-
-  friend class SnapshotReader;
-};
-
-class RawTokenStream : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TokenStream);
-
-  VISIT_FROM(RawObject*, private_key_);
-  RawString* private_key_;  // Key used for private identifiers.
-  RawGrowableObjectArray* token_objects_;
-  RawExternalTypedData* stream_;
-  VISIT_TO(RawObject*, stream_);
-
-  friend class SnapshotReader;
-};
-
 class RawScript : public RawObject {
  public:
   enum Kind {
@@ -1204,7 +1178,6 @@ class RawScript : public RawObject {
   RawArray* debug_positions_;
   RawArray* yield_positions_;
   RawKernelProgramInfo* kernel_program_info_;
-  RawTokenStream* tokens_;
   RawString* source_;
   VISIT_TO(RawObject*, source_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1213,7 +1186,7 @@ class RawScript : public RawObject {
         return reinterpret_cast<RawObject**>(&ptr()->url_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->tokens_);
+        return reinterpret_cast<RawObject**>(&ptr()->kernel_program_info_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2324,9 +2297,6 @@ class RawExternalTypedData : public RawInstance {
   VISIT_TO(RawCompressed, length_)
 
   uint8_t* data_;
-
-  friend class TokenStream;
-  friend class RawTokenStream;
 };
 
 // VM implementations of the basic types in the isolate.

@@ -4,7 +4,6 @@
 
 #include "vm/thread.h"
 
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -34,10 +33,6 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
-  if (compiler_stats_ != NULL) {
-    delete compiler_stats_;
-    compiler_stats_ = NULL;
-  }
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -104,7 +99,6 @@ Thread::Thread(Isolate* isolate)
       active_stacktrace_(Object::null()),
       resume_pc_(0),
       sticky_error_(Error::null()),
-      compiler_stats_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
       execution_state_(kThreadInNative),
@@ -142,12 +136,6 @@ Thread::Thread(Isolate* isolate)
     InitVMConstants();
   }
 
-  if (FLAG_support_compiler_stats) {
-    compiler_stats_ = new CompilerStats(isolate);
-    if (FLAG_compiler_benchmark) {
-      compiler_stats_->EnableBenchmark();
-    }
-  }
   // This thread should not yet own any zones. If it does, we need to make sure
   // we've accounted for any memory it has already allocated.
   if (zone_ == NULL) {

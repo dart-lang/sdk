@@ -16,6 +16,7 @@
 #include "vm/malloc_hooks.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
+#include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/unit_test.h"
 
@@ -399,7 +400,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
   TEST_ROUND_TRIP_IDENTICAL(Object::type_arguments_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::function_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::field_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::token_stream_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::script_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::library_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::code_class());
@@ -724,78 +724,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
   CheckEncodeDecodeMessage(root);
 
   delete message;
-}
-
-static void GenerateSourceAndCheck(const Script& script) {
-  // Check if we are able to generate the source from the token stream.
-  // Rescan this source and compare the token stream to see if they are
-  // the same.
-  Zone* zone = Thread::Current()->zone();
-  const TokenStream& expected_tokens =
-      TokenStream::Handle(zone, script.tokens());
-  TokenStream::Iterator expected_iterator(zone, expected_tokens,
-                                          TokenPosition::kMinSource,
-                                          TokenStream::Iterator::kAllTokens);
-  const String& str = String::Handle(zone, expected_tokens.GenerateSource());
-  const String& private_key =
-      String::Handle(zone, expected_tokens.PrivateKey());
-  const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(zone, TokenStream::New(str, private_key, false));
-  expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);
-  TokenStream::Iterator reconstructed_iterator(
-      zone, reconstructed_tokens, TokenPosition::kMinSource,
-      TokenStream::Iterator::kAllTokens);
-  Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
-  Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
-  String& expected_literal = String::Handle(zone);
-  String& actual_literal = String::Handle(zone);
-  while (expected_kind != Token::kEOS && reconstructed_kind != Token::kEOS) {
-    EXPECT_EQ(expected_kind, reconstructed_kind);
-    expected_literal ^= expected_iterator.CurrentLiteral();
-    actual_literal ^= reconstructed_iterator.CurrentLiteral();
-    EXPECT_STREQ(expected_literal.ToCString(), actual_literal.ToCString());
-    expected_iterator.Advance();
-    reconstructed_iterator.Advance();
-    expected_kind = expected_iterator.CurrentTokenKind();
-    reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
-  }
-}
-
-static void IterateScripts(const Library& lib) {
-  const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
-  Script& script = Script::Handle();
-  String& uri = String::Handle();
-  for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
-    script ^= lib_scripts.At(i);
-    EXPECT(!script.IsNull());
-    uri = script.url();
-    OS::PrintErr("Generating source for part: %s\n", uri.ToCString());
-    GenerateSourceAndCheck(script);
-  }
-}
-
-ISOLATE_UNIT_TEST_CASE(GenerateSource) {
-  // Disable stack trace collection for this test as it results in a timeout.
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
-
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  String& uri = String::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    EXPECT(!lib.IsNull());
-    uri = lib.url();
-    OS::PrintErr("Generating source for library: %s\n", uri.ToCString());
-    IterateScripts(lib);
-  }
-
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 VM_UNIT_TEST_CASE(FullSnapshot) {

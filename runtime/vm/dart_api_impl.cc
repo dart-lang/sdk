@@ -48,7 +48,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
-#include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/uri.h"
 #include "vm/version.h"

@@ -40,8 +40,6 @@ vm_sources = [
   "code_patcher_x64.cc",
   "compilation_trace.cc",
   "compilation_trace.h",
-  "compiler_stats.cc",
-  "compiler_stats.h",
   "constants_arm.h",
   "constants_arm64.h",
   "constants_dbc.h",

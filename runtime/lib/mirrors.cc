@@ -1618,16 +1618,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
       if (script.kind() == RawScript::kLibraryTag) break;
     }
     ASSERT(!script.IsNull());
-    const String& libname = String::Handle(zone, lib.name());
-    if (libname.Length() == 0) {
-      // No library declaration.
-      const String& uri = String::Handle(zone, script.url());
-      return CreateSourceLocation(uri, 1, 1);
-    }
-    const TokenStream& stream = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator tkit(zone, stream, TokenPosition::kMinSource);
-    if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
-    token_pos = tkit.CurrentPosition();
+    const String& uri = String::Handle(zone, script.url());
+    return CreateSourceLocation(uri, 1, 1);
   }
 
   ASSERT(!script.IsNull());

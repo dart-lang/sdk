@@ -1007,9 +1007,6 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
-  if (FLAG_compiler_stats && is_present) {
-    ++H.thread()->compiler_stats()->num_const_cache_hits;
-  }
   return is_present;
 }
 

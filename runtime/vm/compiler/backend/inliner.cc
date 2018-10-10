@@ -23,7 +23,6 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/timer.h"
 
 namespace dart {
 
@@ -94,7 +93,6 @@ DEFINE_FLAG(bool,
             false,
             "Enable inlining annotations");
 
-DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -560,7 +558,6 @@ static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
                                   InlinedCallData* call_data,
                                   const TargetInfo* target_info) {
-  CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
   const bool is_polymorphic = call_data->call->IsPolymorphicInstanceCall();
   ASSERT(is_polymorphic == (target_info != NULL));
   FlowGraph* callee_graph = call_data->callee_graph;
@@ -944,7 +941,6 @@ class CallSiteInliner : public ValueObject {
         bool in_cache;
         ParsedFunction* parsed_function;
         {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
           parsed_function = GetParsedFunction(function, &in_cache);
           if (!function.CanBeInlined()) {
             // As a side effect of parsing the function, it may be marked
@@ -977,7 +973,6 @@ class CallSiteInliner : public ValueObject {
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked);
         {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
           callee_graph = builder.BuildGraph();
 
           CalleeGraphValidator::Validate(callee_graph);
@@ -1061,7 +1056,6 @@ class CallSiteInliner : public ValueObject {
         block_scheduler.AssignEdgeWeights();
 
         {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_ssa_timer);
           // Compute SSA on the callee graph, catching bailouts.
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
@@ -1077,7 +1071,6 @@ class CallSiteInliner : public ValueObject {
         }
 
         {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
@@ -1313,7 +1306,6 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCall(InlinedCallData* call_data) {
-    CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
     FlowGraph* callee_graph = call_data->callee_graph;
     TargetEntryInstr* callee_entry =
         callee_graph->graph_entry()->normal_entry();

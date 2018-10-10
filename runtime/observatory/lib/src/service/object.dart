@@ -272,9 +272,6 @@ abstract class ServiceObject implements M.ObjectRef {
           case 'SubtypeTestCache':
             obj = new SubtypeTestCache._empty(owner);
             break;
-          case 'TokenStream':
-            obj = new TokenStream._empty(owner);
-            break;
           case 'UnlinkedCall':
             obj = new UnlinkedCall._empty(owner);
             break;
@@ -4163,24 +4160,6 @@ class MegamorphicCache extends HeapObject implements M.MegamorphicCache {
     mask = map['_mask'];
     buckets = map['_buckets'];
     argumentsDescriptor = map['_argumentsDescriptor'];
-  }
-}
-
-class TokenStream extends HeapObject implements M.TokenStreamRef {
-  bool get immutable => true;
-
-  String privateKey;
-
-  TokenStream._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
-    super._update(map, mapIsRef);
-
-    if (mapIsRef) {
-      return;
-    }
-    privateKey = map['privateKey'];
   }
 }
 

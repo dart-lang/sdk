@@ -276,7 +276,6 @@ void CompilerPass::RunPipeline(PipelineMode mode,
 }
 
 COMPILER_PASS(ComputeSSA, {
-  CSTAT_TIMER_SCOPE(state->thread, ssa_timer);
   // Transform to SSA (virtual register 0 and no inlining arguments).
   flow_graph->ComputeSSA(0, NULL);
 });
@@ -289,7 +288,6 @@ COMPILER_PASS(SetOuterInliningId,
               { FlowGraphInliner::SetInliningId(flow_graph, 0); });
 
 COMPILER_PASS(Inlining, {
-  CSTAT_TIMER_SCOPE(state->thread, graphinliner_timer);
   FlowGraphInliner inliner(
       flow_graph, &state->inline_id_to_function, &state->inline_id_to_token_pos,
       &state->caller_inline_id, state->speculative_policy, state->precompiler);

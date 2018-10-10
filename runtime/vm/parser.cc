@@ -15,7 +15,6 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/scope_builder.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/growable_array.h"
@@ -38,7 +37,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
-#include "vm/timer.h"
 #include "vm/zone.h"
 
 namespace dart {

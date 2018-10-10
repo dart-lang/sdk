@@ -421,8 +421,6 @@ class Object {
   static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
   static RawClass* field_class() { return field_class_; }
-  static RawClass* literal_token_class() { return literal_token_class_; }
-  static RawClass* token_stream_class() { return token_stream_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* namespace_class() { return namespace_class_; }
@@ -688,8 +686,6 @@ class Object {
   static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* field_class_;             // Class of the Field vm object.
-  static RawClass* literal_token_class_;     // Class of LiteralToken vm object.
-  static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
   static RawClass* script_class_;        // Class of the Script vm object.
   static RawClass* library_class_;       // Class of the Library vm object.
   static RawClass* namespace_class_;     // Class of Namespace vm object.
@@ -3584,118 +3580,6 @@ class Field : public Object {
   friend class FieldSerializationCluster;
 };
 
-class LiteralToken : public Object {
- public:
-  Token::Kind kind() const { return raw_ptr()->kind_; }
-  RawString* literal() const { return raw_ptr()->literal_; }
-  RawObject* value() const { return raw_ptr()->value_; }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawLiteralToken));
-  }
-
-  static RawLiteralToken* New();
-  static RawLiteralToken* New(Token::Kind kind, const String& literal);
-
- private:
-  void set_kind(Token::Kind kind) const {
-    StoreNonPointer(&raw_ptr()->kind_, kind);
-  }
-  void set_literal(const String& literal) const;
-  void set_value(const Object& value) const;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
-  friend class Class;
-};
-
-class TokenStream : public Object {
- public:
-  RawGrowableObjectArray* TokenObjects() const;
-  void SetTokenObjects(const GrowableObjectArray& value) const;
-
-  RawExternalTypedData* GetStream() const;
-  void SetStream(const ExternalTypedData& stream) const;
-
-  RawString* GenerateSource() const;
-  RawString* GenerateSource(TokenPosition start, TokenPosition end) const;
-  intptr_t ComputeSourcePosition(TokenPosition tok_pos) const;
-
-  RawString* PrivateKey() const;
-
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawTokenStream));
-  }
-
-  static RawTokenStream* New(intptr_t length);
-  static RawTokenStream* New(const String& source,
-                             const String& private_key,
-                             bool use_shared_tokens);
-
-  static void OpenSharedTokenList(Isolate* isolate);
-  static void CloseSharedTokenList(Isolate* isolate);
-
-  // The class Iterator encapsulates iteration over the tokens
-  // in a TokenStream object.
-  class Iterator : ValueObject {
-   public:
-    enum StreamType { kNoNewlines, kAllTokens };
-
-    Iterator(Zone* zone,
-             const TokenStream& tokens,
-             TokenPosition token_pos,
-             Iterator::StreamType stream_type = kNoNewlines);
-
-    void SetStream(const TokenStream& tokens, TokenPosition token_pos);
-    bool IsValid() const;
-
-    inline Token::Kind CurrentTokenKind() const { return cur_token_kind_; }
-
-    Token::Kind LookaheadTokenKind(intptr_t num_tokens);
-
-    TokenPosition CurrentPosition() const;
-    void SetCurrentPosition(TokenPosition token_pos);
-
-    void Advance();
-
-    RawObject* CurrentToken() const;
-    RawString* CurrentLiteral() const;
-    RawString* MakeLiteralToken(const Object& obj) const;
-
-   private:
-    // Read token from the token stream (could be a simple token or an index
-    // into the token objects array for IDENT or literal tokens).
-    intptr_t ReadToken() {
-      int64_t value = stream_.ReadUnsigned();
-      ASSERT((value >= 0) && (value <= kIntptrMax));
-      return static_cast<intptr_t>(value);
-    }
-
-    TokenStream& tokens_;
-    ExternalTypedData& data_;
-    ReadStream stream_;
-    Array& token_objects_;
-    Object& obj_;
-    intptr_t cur_token_pos_;
-    Token::Kind cur_token_kind_;
-    intptr_t cur_token_obj_index_;
-    Iterator::StreamType stream_type_;
-  };
-
- private:
-  void SetPrivateKey(const String& value) const;
-
-  static RawTokenStream* New();
-  static void DataFinalizer(void* isolate_callback_data,
-                            Dart_WeakPersistentHandle handle,
-                            void* peer);
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
-  friend class Class;
-};
-
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
@@ -3705,7 +3589,6 @@ class Script : public Object {
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
   bool HasSource() const;
   RawString* Source() const;
-  RawString* GenerateSource() const;  // Generates source code from Tokenstream.
   RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
@@ -3734,11 +3617,6 @@ class Script : public Object {
 
   RawTypedData* kernel_string_offsets() const;
 
-  RawTokenStream* tokens() const {
-    ASSERT(kind() != RawScript::kKernelTag);
-    return raw_ptr()->tokens_;
-  }
-
   RawTypedData* line_starts() const;
 
   void set_line_starts(const TypedData& value) const;
@@ -3748,8 +3626,6 @@ class Script : public Object {
   void set_yield_positions(const Array& value) const;
 
   RawArray* yield_positions() const;
-
-  void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
@@ -3776,9 +3652,6 @@ class Script : public Object {
                         TokenPosition* first_token_index,
                         TokenPosition* last_token_index) const;
 
-  int32_t SourceFingerprint() const;
-  int32_t SourceFingerprint(TokenPosition start, TokenPosition end) const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -3797,7 +3670,6 @@ class Script : public Object {
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
-  void set_tokens(const TokenStream& value) const;
   RawArray* debug_positions() const;
 
   static RawScript* New();

@@ -779,7 +779,6 @@ void AssemblerTest::Assemble() {
   const Script& script = Script::Handle(
       Script::New(function_name, String::Handle(String::New(kDummyScript)),
                   RawScript::kSourceTag));
-  script.Tokenize(String::Handle());
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));

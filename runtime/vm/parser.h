@@ -13,7 +13,6 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler_stats.h"
 #include "vm/hash_table.h"
 #include "vm/kernel.h"
 #include "vm/object.h"

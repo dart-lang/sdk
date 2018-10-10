@@ -159,7 +159,6 @@ mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qu
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
-mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
 mirrors/fake_function_without_call_test: RuntimeError, OK

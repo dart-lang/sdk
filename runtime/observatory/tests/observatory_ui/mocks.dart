@@ -41,7 +41,6 @@ part 'mocks/objects/script.dart';
 part 'mocks/objects/sentinel.dart';
 part 'mocks/objects/source_location.dart';
 part 'mocks/objects/target.dart';
-part 'mocks/objects/token_stream.dart';
 part 'mocks/objects/unknown.dart';
 part 'mocks/objects/vm.dart';
 

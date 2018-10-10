@@ -341,62 +341,6 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
 
-ISOLATE_UNIT_TEST_CASE(Service_TokenStream) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "main() {\n"
-      "}";
-
-  Isolate* isolate = thread->isolate();
-  isolate->set_is_runnable(true);
-  Dart_Handle lib;
-  Library& vmlib = Library::Handle();
-  {
-    TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
-    EXPECT_VALID(lib);
-    vmlib ^= Api::UnwrapHandle(lib);
-    EXPECT(!vmlib.IsNull());
-  }
-
-  const String& script_name = String::Handle(String::New("test-lib"));
-  EXPECT(!script_name.IsNull());
-  const Script& script = Script::Handle(vmlib.LookupScript(script_name));
-  EXPECT(!script.IsNull());
-
-  const TokenStream& token_stream = TokenStream::Handle(script.tokens());
-  EXPECT(!token_stream.IsNull());
-  ObjectIdRing* ring = isolate->object_id_ring();
-  intptr_t id = ring->GetIdForObject(token_stream.raw());
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  {
-    TransitionVMToNative transition(thread);
-    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-  }
-
-  Array& service_msg = Array::Handle();
-
-  // Fetch object.
-  service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]",
-                      id);
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-
-  // Check type.
-  EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
-  EXPECT_SUBSTRING("\"_vmType\":\"TokenStream\"", handler.msg());
-  // Check for members array.
-  EXPECT_SUBSTRING("\"members\":[", handler.msg());
-}
-
 ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.

@@ -591,38 +591,6 @@ void RawField::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
-RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();
-  return LiteralToken::null();
-}
-
-void RawLiteralToken::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-}
-
-RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  UNREACHABLE();
-  return TokenStream::null();
-}
-
-void RawTokenStream::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  UNREACHABLE();
-}
-
 RawScript* Script::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,

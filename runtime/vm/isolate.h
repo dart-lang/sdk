@@ -21,7 +21,6 @@
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
-#include "vm/timer.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -31,7 +30,6 @@ class ApiState;
 class BackgroundCompiler;
 class Capability;
 class CodeIndexTable;
-class CompilerStats;
 class Debugger;
 class DeoptContext;
 class ExternalTypedData;
@@ -509,11 +507,6 @@ class Isolate : public BaseIsolate {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
 #endif
-
-  // Mutator thread is used to aggregate compiler stats.
-  CompilerStats* aggregate_compiler_stats() {
-    return mutator_thread()->compiler_stats();
-  }
 
 #if !defined(PRODUCT)
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }

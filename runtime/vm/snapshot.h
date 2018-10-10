@@ -63,7 +63,6 @@ class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
 class RawLinkedHashMap;
-class RawLiteralToken;
 class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
@@ -84,7 +83,6 @@ class RawSmi;
 class RawStackMap;
 class RawStackTrace;
 class RawSubtypeTestCache;
-class RawTokenStream;
 class RawTwoByteString;
 class RawType;
 class RawTypeArguments;
@@ -95,7 +93,6 @@ class RawUnhandledException;
 class RawUnresolvedClass;
 class RawWeakProperty;
 class String;
-class TokenStream;
 class TypeArguments;
 class TypedData;
 class UnhandledException;
@@ -331,7 +328,6 @@ class SnapshotReader : public BaseReader {
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   GrowableObjectArray* TokensHandle() { return &tokens_; }
-  TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Function* FunctionHandle() { return &function_; }
@@ -441,7 +437,6 @@ class SnapshotReader : public BaseReader {
   AbstractType& type_;             // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
-  TokenStream& stream_;            // Temporary token stream handle.
   ExternalTypedData& data_;        // Temporary stream data handle.
   TypedData& typed_data_;          // Temporary typed data handle.
   Function& function_;             // Temporary function handle.
@@ -470,7 +465,6 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class LinkedHashMap;
-  friend class LiteralToken;
   friend class MirrorReference;
   friend class MixinAppType;
   friend class Namespace;
@@ -480,7 +474,6 @@ class SnapshotReader : public BaseReader {
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;
-  friend class TokenStream;
   friend class Type;
   friend class TypeArguments;
   friend class TypeParameter;
@@ -746,7 +739,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawInstructions;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
-  friend class RawLiteralToken;
   friend class RawLocalVarDescriptors;
   friend class RawMirrorReference;
   friend class RawObjectPool;
@@ -755,7 +747,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawScript;
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
-  friend class RawTokenStream;
   friend class RawType;
   friend class RawTypeRef;
   friend class RawBoundedType;

@@ -12,7 +12,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -49,7 +48,6 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timeline_analysis.h"
-#include "vm/timer.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -1240,7 +1238,6 @@ void Isolate::DoneLoading() {
       lib.SetLoaded();
     }
   }
-  TokenStream::CloseSharedTokenList(this);
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1870,19 +1867,6 @@ void Isolate::Shutdown() {
 
   // Don't allow anymore dart code to execution on this isolate.
   thread->ClearStackLimit();
-
-  // First, perform higher-level cleanup that may need to allocate.
-  {
-    // Ensure we have a zone and handle scope so that we can call VM functions.
-    StackZone stack_zone(thread);
-    HandleScope handle_scope(thread);
-
-    // Write compiler stats data if enabled.
-    if (FLAG_support_compiler_stats && FLAG_compiler_stats &&
-        !Isolate::IsVMInternalIsolate(this)) {
-      OS::PrintErr("%s", aggregate_compiler_stats()->PrintToZone());
-    }
-  }
 
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.

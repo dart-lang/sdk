@@ -975,12 +975,6 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
       exception_handlers_list_->FinalizeExceptionHandlers(code.PayloadStart()));
   code.set_exception_handlers(handlers);
-  if (FLAG_compiler_stats) {
-    Thread* thread = Thread::Current();
-    INC_STAT(thread, total_code_size,
-             ExceptionHandlers::InstanceSize(handlers.num_entries()));
-    INC_STAT(thread, total_code_size, handlers.num_entries() * sizeof(uword));
-  }
 }
 
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
@@ -1096,20 +1090,15 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
     }
   }
   code.set_static_calls_target_table(targets);
-  INC_STAT(Thread::Current(), total_code_size,
-           targets.Length() * sizeof(uword));
 }
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   const Array& inlined_id_array =
       Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
-  INC_STAT(Thread::Current(), total_code_size,
-           inlined_id_array.Length() * sizeof(uword));
   code.set_inlined_id_to_function(inlined_id_array);
 
   const CodeSourceMap& map =
       CodeSourceMap::Handle(code_source_map_builder_->Finalize());
-  INC_STAT(Thread::Current(), total_code_size, map.Length() * sizeof(uint8_t));
   code.set_code_source_map(map);
 
 #if defined(DEBUG)

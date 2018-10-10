@@ -2643,14 +2643,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     script.GetTokenLocation(token_pos, &line, &column, &token_len);
     str = script.GetSnippet(line, column, line, column + token_len);
   } else {
-    const TokenStream& token_stream =
-        TokenStream::Handle(zone, script.tokens());
-    if (token_stream.IsNull()) {
-      // No token position.
-      return NULL;
-    }
-    TokenStream::Iterator iterator(zone, token_stream, token_pos);
-    str = iterator.CurrentLiteral();
+    UNREACHABLE();
   }
   return str.IsNull() ? NULL : str.ToCString();
 }

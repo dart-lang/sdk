@@ -122,8 +122,6 @@ class ObjectPointerVisitor;
   RW(Class, async_star_stream_controller)                                      \
   RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
-  RW(GrowableObjectArray, token_objects)                                       \
-  RW(Array, token_objects_map)                                                 \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \

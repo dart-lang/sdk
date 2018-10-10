@@ -2482,21 +2482,6 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-static TokenPosition LastTokenOnLine(Zone* zone,
-                                     const TokenStream& tokens,
-                                     TokenPosition pos) {
-  TokenStream::Iterator iter(zone, tokens, pos,
-                             TokenStream::Iterator::kAllTokens);
-  ASSERT(iter.IsValid());
-  TokenPosition last_pos = pos;
-  while ((iter.CurrentTokenKind() != Token::kNEWLINE) &&
-         (iter.CurrentTokenKind() != Token::kEOS)) {
-    last_pos = iter.CurrentPosition();
-    iter.Advance();
-  }
-  return last_pos;
-}
-
 // Returns the best fit token position for a breakpoint.
 //
 // Takes a range of tokens [requested_token_pos, last_token_pos] and
@@ -2635,8 +2620,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
         end_of_line_pos = begin_pos;
       }
     } else {
-      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+      UNREACHABLE();
+      end_of_line_pos = TokenPosition::kNoSource;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -3864,13 +3849,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
       }
       return false;
     }
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
-    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
-        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
-         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
-      return true;
-    }
+    UNREACHABLE();
   }
   return false;
 }

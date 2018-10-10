@@ -166,61 +166,6 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
 
-ISOLATE_UNIT_TEST_CASE(TokenStream) {
-  Zone* zone = Thread::Current()->zone();
-  String& source = String::Handle(zone, String::New("= ( 9 , ."));
-  String& private_key = String::Handle(zone, String::New(""));
-  const TokenStream& token_stream =
-      TokenStream::Handle(zone, TokenStream::New(source, private_key, false));
-  TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
-  iterator.Advance();  // Advance to '(' token.
-  EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
-  iterator.Advance();
-  iterator.Advance();
-  iterator.Advance();  // Advance to '.' token.
-  EXPECT_EQ(Token::kPERIOD, iterator.CurrentTokenKind());
-  iterator.Advance();  // Advance to end of stream.
-  EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
-}
-
-ISOLATE_UNIT_TEST_CASE(GenerateExactSource) {
-  // Verify the exact formatting of generated sources.
-  const char* kScriptChars =
-      "\n"
-      "class A {\n"
-      "  static bar() { return 42; }\n"
-      "  static fly() { return 5; }\n"
-      "  void catcher(x) {\n"
-      "    try {\n"
-      "      if (x is! List) {\n"
-      "        for (int i = 0; i < x; i++) {\n"
-      "          fly();\n"
-      "          ++i;\n"
-      "        }\n"
-      "      } else {\n"
-      "        for (int i = 0; i < x; i--) {\n"
-      "          !fly();\n"
-      "          --i;\n"
-      "        }\n"
-      "      }\n"
-      "    } on Blah catch (a) {\n"
-      "      _print(17);\n"
-      "    } catch (e, s) {\n"
-      "      bar()\n"
-      "    }\n"
-      "  }\n"
-      "}\n";
-
-  String& url = String::Handle(String::New("dart-test:GenerateExactSource"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  script.Tokenize(String::Handle(String::New("")));
-  const TokenStream& tokens = TokenStream::Handle(script.tokens());
-  const String& gen_source = String::Handle(tokens.GenerateSource());
-  EXPECT_STREQ(source.ToCString(), gen_source.ToCString());
-}
-
 TEST_CASE(Class_ComputeEndTokenPos) {
   const char* kScript =
       "\n"
@@ -2303,107 +2248,6 @@ ISOLATE_UNIT_TEST_CASE(Script) {
   EXPECT_VALID(result);
 }
 
-ISOLATE_UNIT_TEST_CASE(EmbeddedScript) {
-  const char* url_chars = "builtin:test-case";
-  const char* text =
-      /* 1 */
-      "<!DOCTYPE html>\n"
-      /* 2 */
-      "  ... more junk ...\n"
-      /* 3 */
-      "  <script type='application/dart'>main() {\n"
-      /* 4 */
-      "    return 'foo';\n"
-      /* 5 */
-      "  }\n"
-      /* 6 */ "</script>\n";
-  const char* line1 = text;
-  const char* line2 = strstr(line1, "\n") + 1;
-  const char* line3 = strstr(line2, "\n") + 1;
-  const char* line4 = strstr(line3, "\n") + 1;
-  const char* line5 = strstr(line4, "\n") + 1;
-
-  const int first_dart_line = 3;
-  EXPECT(strstr(line3, "main") != NULL);
-  const int last_dart_line = 5;
-  EXPECT(strstr(line5, "}") != NULL);
-
-  const char* script_begin = strstr(text, "main");
-  EXPECT(script_begin != NULL);
-  const char* script_end = strstr(text, "</script>");
-  EXPECT(script_end != NULL);
-  int script_length = script_end - script_begin;
-  EXPECT(script_length > 0);
-
-  // The Dart script starts on line 3 instead of 1, offset is 3 - 1 = 2.
-  int line_offset = 2;
-  // Dart script starts with "main" on line 3.
-  intptr_t col_offset = script_begin - line3;
-  EXPECT(col_offset > 0);
-
-  char* src_chars = strdup(script_begin);
-  src_chars[script_length] = '\0';
-
-  const String& url = String::Handle(String::New(url_chars));
-  const String& source = String::Handle(String::New(src_chars));
-  const Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, col_offset);
-
-  String& str = String::Handle();
-  str = script.GetLine(first_dart_line);
-  EXPECT_STREQ("main() {", str.ToCString());
-  str = script.GetLine(last_dart_line);
-  EXPECT_STREQ("  }", str.ToCString());
-
-  script.Tokenize(String::Handle(String::New("ABC")));
-  // Tokens: 0: kIDENT, 1: kLPAREN, 2: kRPAREN, 3: kLBRACE, 4: kNEWLINE,
-  //         5: kRETURN, 6: kSTRING, 7: kSEMICOLON, 8: kNEWLINE,
-  //         9: kRBRACE, 10: kNEWLINE
-
-  intptr_t line, col;
-  intptr_t fast_line;
-  script.GetTokenLocation(TokenPosition(0), &line, &col);
-  EXPECT_EQ(first_dart_line, line);
-  EXPECT_EQ(col, col_offset + 1);
-
-  // We allow asking for only the line number, which only scans the token stream
-  // instead of rescanning the script.
-  script.GetTokenLocation(TokenPosition(0), &fast_line, NULL);
-  EXPECT_EQ(line, fast_line);
-
-  script.GetTokenLocation(TokenPosition(5), &line, &col);  // Token 'return'
-  EXPECT_EQ(4, line);  // 'return' is in line 4.
-  EXPECT_EQ(5, col);   // Four spaces before 'return'.
-
-  // We allow asking for only the line number, which only scans the token stream
-  // instead of rescanning the script.
-  script.GetTokenLocation(TokenPosition(5), &fast_line, NULL);
-  EXPECT_EQ(line, fast_line);
-
-  TokenPosition first_idx, last_idx;
-  script.TokenRangeAtLine(3, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx.value());  // Token 'main' is first token.
-  EXPECT_EQ(3, last_idx.value());   // Token { is last token.
-  script.TokenRangeAtLine(4, &first_idx, &last_idx);
-  EXPECT_EQ(5, first_idx.value());  // Token 'return' is first token.
-  EXPECT_EQ(7, last_idx.value());   // Token ; is last token.
-  script.TokenRangeAtLine(5, &first_idx, &last_idx);
-  EXPECT_EQ(9, first_idx.value());  // Token } is first and only token.
-  EXPECT_EQ(9, last_idx.value());
-  script.TokenRangeAtLine(1, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx.value());
-  EXPECT_EQ(3, last_idx.value());
-  script.TokenRangeAtLine(6, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx.value());
-  EXPECT_EQ(-1, last_idx.value());
-  script.TokenRangeAtLine(1000, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx.value());
-  EXPECT_EQ(-1, last_idx.value());
-
-  free(src_chars);
-}
-
 ISOLATE_UNIT_TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));
@@ -4041,7 +3885,7 @@ class ObjectAccumulator : public ObjectVisitor {
     }
     Object& handle = Object::Handle(obj);
     // Skip some common simple objects to run in reasonable time.
-    if (handle.IsString() || handle.IsArray() || handle.IsLiteralToken()) {
+    if (handle.IsString() || handle.IsArray()) {
       return;
     }
     objects_->Add(&handle);
@@ -4322,18 +4166,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"kind\":\"BeingInitialized\","
         "\"valueAsString\":\"<being initialized>\"}",
         js.ToCString());
-  }
-  // LiteralToken reference.  This is meant to be an example of a
-  // "weird" type that isn't usually returned by the VM Service except
-  // when we are doing direct heap inspection.
-  {
-    JSONStream js;
-    LiteralToken& tok = LiteralToken::Handle(LiteralToken::New());
-    tok.PrintJSON(&js, true);
-    ElideJSONSubstring("objects", js.ToCString(), buffer);
-    EXPECT_STREQ(
-        "{\"type\":\"@Object\",\"_vmType\":\"LiteralToken\",\"id\":\"\"}",
-        buffer);
   }
 }
 
