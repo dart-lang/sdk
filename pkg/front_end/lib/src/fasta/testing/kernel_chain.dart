@@ -23,22 +23,15 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
 import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
 
-import 'package:kernel/target/targets.dart' show Target;
-
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step, TestDescription;
+    show ChainContext, Result, StdioProcess, Step;
 
 import '../../api_prototype/compiler_options.dart'
     show CompilerOptions, FormattedMessage, Severity;
 
-import '../../api_prototype/kernel_generator.dart' show kernelForProgram;
-
 import '../../base/processed_options.dart' show ProcessedOptions;
-
-import '../../compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -245,49 +238,6 @@ class Copy extends Step<Component, Component, ChainContext> {
     new BinaryBuilder(bytes).readComponent(component);
     return pass(component);
   }
-}
-
-/// A `package:testing` step that runs the `package:front_end` compiler to
-/// generate a kernel component for an individual file.
-///
-/// Most options are hard-coded, but if necessary they could be moved to the
-/// [CompileContext] object in the future.
-class Compile extends Step<TestDescription, Component, CompileContext> {
-  const Compile();
-
-  String get name => "fasta compilation";
-
-  Future<Result<Component>> run(
-      TestDescription description, CompileContext context) async {
-    Result<Component> result;
-    Uri sdk = Uri.base.resolve("sdk/");
-    var options = new CompilerOptions()
-      ..sdkRoot = sdk
-      ..compileSdk = true
-      ..packagesFileUri = Uri.base.resolve('.packages')
-      ..strongMode = context.strongMode
-      ..onProblem = (FormattedMessage problem, Severity severity,
-          List<FormattedMessage> context) {
-        result ??= fail(null, problem.formatted);
-      };
-    if (context.target != null) {
-      options.target = context.target;
-      // Do not link platform.dill, but recompile the platform libraries. This
-      // ensures that if target defines extra libraries that those get included
-      // too.
-    } else {
-      options.linkedDependencies = [
-        computePlatformBinariesLocation().resolve("vm_platform.dill"),
-      ];
-    }
-    Component p = await kernelForProgram(description.uri, options);
-    return result ??= pass(p);
-  }
-}
-
-abstract class CompileContext implements ChainContext {
-  bool get strongMode;
-  Target get target;
 }
 
 class BytesCollector implements Sink<List<int>> {
