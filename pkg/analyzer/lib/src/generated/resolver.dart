@@ -3904,6 +3904,9 @@ class OverrideVerifier extends RecursiveAstVisitor {
   /// The inheritance manager used to find overridden methods.
   final InheritanceManager _manager;
 
+  /// The [ClassElement] of the current [ClassDeclaration].
+  ClassElement _currentClass;
+
   /// Initialize a newly created verifier to look for inappropriate uses of the
   /// override annotation.
   ///
@@ -3912,17 +3915,27 @@ class OverrideVerifier extends RecursiveAstVisitor {
   OverrideVerifier(this._errorReporter, this._manager);
 
   @override
+  visitClassDeclaration(ClassDeclaration node) {
+    _currentClass = node.declaredElement;
+    super.visitClassDeclaration(node);
+    _currentClass = null;
+  }
+
+  @override
   visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      VariableElement fieldElement = field.declaredElement;
-      if (fieldElement is FieldElement && _isOverride(fieldElement)) {
+      FieldElement fieldElement = field.declaredElement;
+      if (fieldElement.hasOverride) {
         PropertyAccessorElement getter = fieldElement.getter;
+        if (getter != null && _isOverride(getter)) continue;
+
         PropertyAccessorElement setter = fieldElement.setter;
-        if (!(getter != null && _getOverriddenMember(getter) != null ||
-            setter != null && _getOverriddenMember(setter) != null)) {
-          _errorReporter.reportErrorForNode(
-              HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, field.name);
-        }
+        if (setter != null && _isOverride(setter)) continue;
+
+        _errorReporter.reportErrorForNode(
+          HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
+          field.name,
+        );
       }
     }
   }
@@ -3930,48 +3943,39 @@ class OverrideVerifier extends RecursiveAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.declaredElement;
-    if (_isOverride(element)) {
-      if (_getOverriddenMember(element) == null) {
-        if (element is MethodElement) {
+    if (element.hasOverride && !_isOverride(element)) {
+      if (element is MethodElement) {
+        _errorReporter.reportErrorForNode(
+          HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
+          node.name,
+        );
+      } else if (element is PropertyAccessorElement) {
+        if (element.isGetter) {
           _errorReporter.reportErrorForNode(
-              HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name);
-        } else if (element is PropertyAccessorElement) {
-          if (element.isGetter) {
-            _errorReporter.reportErrorForNode(
-                HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.name);
-          } else {
-            _errorReporter.reportErrorForNode(
-                HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.name);
-          }
+            HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+            node.name,
+          );
+        } else {
+          _errorReporter.reportErrorForNode(
+            HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
+            node.name,
+          );
         }
       }
     }
   }
 
-  /// Return the member that overrides the given member.
-  ///
-  /// @param member the member that overrides the returned member
-  /// @return the member that overrides the given member
-  ExecutableElement _getOverriddenMember(ExecutableElement member) {
-    LibraryElement library = member.library;
-    if (library == null) {
-      return null;
-    }
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
-    if (classElement == null) {
-      return null;
-    }
-    return _manager.lookupInheritance(classElement, member.name);
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    _currentClass = node.declaredElement;
+    super.visitMixinDeclaration(node);
+    _currentClass = null;
   }
 
-  /// Return `true` if the given element has an override annotation associated
-  /// with it.
-  ///
-  /// @param element the element being tested
-  /// @return `true` if the element has an override annotation associated with
-  ///         it
-  bool _isOverride(Element element) => element != null && element.hasOverride;
+  /// Return `true` if the [member] overrides a member from a superinterface.
+  bool _isOverride(ExecutableElement member) {
+    return _manager.lookupInheritance(_currentClass, member.name) != null;
+  }
 }
 
 /// An AST visitor that is used to resolve the some of the nodes within a single
