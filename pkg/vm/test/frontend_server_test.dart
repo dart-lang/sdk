@@ -792,6 +792,128 @@ true
       inputStreamController.close();
     });
 
+    test('unsafe-package-serialization', () async {
+      // Package A.
+      var file = new File('${tempDir.path}/pkgA/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA() {}");
+
+      // Package B.
+      file = new File('${tempDir.path}/pkgB/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA: ../pkgA");
+      file = new File('${tempDir.path}/pkgB/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgB_a() {}");
+      file = new File('${tempDir.path}/pkgB/b.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("import 'package:pkgA/a.dart';"
+          "pkgB_b() { pkgA(); }");
+
+      // Application.
+      file = new File('${tempDir.path}/app/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA:../pkgA\n"
+          "pkgB:../pkgB");
+
+      // Entry point A uses both package A and B.
+      file = new File('${tempDir.path}/app/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("import 'package:pkgB/b.dart';"
+          "import 'package:pkgB/a.dart';"
+          "appA() { pkgB_a(); pkgB_b(); }");
+
+      // Entry point B uses only package B.
+      var fileB = new File('${tempDir.path}/app/B.dart')
+        ..createSync(recursive: true);
+      fileB.writeAsStringSync("import 'package:pkgB/a.dart';"
+          "appB() { pkgB_a(); }");
+
+      // Other setup.
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+
+      // First compile app entry point A.
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--unsafe-package-serialization',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.substring(boundaryKey.length + 1));
+            boundaryKey = null;
+          }
+        }
+      });
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        CompilationResult result =
+            new CompilationResult.parse(outputFilenameAndErrorCount);
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            count += 1;
+            inputStreamController.add('accept\n'.codeUnits);
+            inputStreamController.add('reset\n'.codeUnits);
+
+            inputStreamController.add('recompile ${fileB.path} abc\n'
+                '${fileB.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            inputStreamController.add('quit\n'.codeUnits);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contains (at least) the 2 files we want.
+            component.libraries
+                    .where((l) =>
+                        l.importUri.toString() == "package:pkgB/a.dart" ||
+                        l.fileUri.toString().contains(fileB.path))
+                    .length ==
+                2;
+
+            // Verifiable (together with the platform file).
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
+            verifyComponent(component);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
     test('compile and recompile report non-zero error count', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() { foo(); bar(); }\n");

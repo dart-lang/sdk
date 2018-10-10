@@ -506,6 +506,14 @@ class FrontendCompiler implements CompilerInterface {
   /// [writePackagesToSinkAndTrimComponent].
   Map<Uri, List<int>> cachedPackageLibraries = new Map<Uri, List<int>>();
 
+  /// Map of dependencies for already serialized dill data.
+  /// E.g. if blob1 dependents on blob2, but only using a single file from blob1
+  /// that does not dependent on blob2, blob2 would not be included leaving the
+  /// dill file in a weird state that could cause the VM to crash if asked to
+  /// forcefully compile everything. Used by
+  /// [writePackagesToSinkAndTrimComponent].
+  Map<Uri, List<Uri>> cachedPackageDependencies = new Map<Uri, List<Uri>>();
+
   writePackagesToSinkAndTrimComponent(
       Component deltaProgram, Sink<List<int>> ioSink) {
     if (deltaProgram == null) return;
@@ -528,12 +536,21 @@ class FrontendCompiler implements CompilerInterface {
 
     Map<String, List<Library>> newPackages = new Map<String, List<Library>>();
     Set<List<int>> alreadyAdded = new Set<List<int>>();
+
+    addDataAndDependentData(List<int> data, Uri uri) {
+      if (alreadyAdded.add(data)) {
+        ioSink.add(data);
+        // Now also add all dependencies.
+        for (Uri dep in cachedPackageDependencies[uri]) {
+          addDataAndDependentData(cachedPackageLibraries[dep], dep);
+        }
+      }
+    }
+
     for (Library lib in packageLibraries) {
       List<int> data = cachedPackageLibraries[lib.fileUri];
       if (data != null) {
-        if (alreadyAdded.add(data)) {
-          ioSink.add(data);
-        }
+        addDataAndDependentData(data, lib.fileUri);
       } else {
         String package = lib.importUri.pathSegments.first;
         newPackages[package] ??= <Library>[];
@@ -550,9 +567,28 @@ class FrontendCompiler implements CompilerInterface {
       ByteSink byteSink = new ByteSink();
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
       printer.writeComponentFile(singleLibrary);
+
+      // Record things this package blob dependent on.
+      Set<Uri> libraryUris = new Set<Uri>();
+      for (Library lib in libraries) {
+        libraryUris.add(lib.fileUri);
+      }
+      Set<Uri> deps = new Set<Uri>();
+      for (Library lib in libraries) {
+        for (LibraryDependency dep in lib.dependencies) {
+          Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
+          if (dependencyLibrary.importUri.scheme != "package") continue;
+          Uri dependencyLibraryUri =
+              dep.importedLibraryReference.asLibrary.fileUri;
+          if (libraryUris.contains(dependencyLibraryUri)) continue;
+          deps.add(dependencyLibraryUri);
+        }
+      }
+
       List<int> data = byteSink.builder.takeBytes();
       for (Library lib in libraries) {
         cachedPackageLibraries[lib.fileUri] = data;
+        cachedPackageDependencies[lib.fileUri] = new List<Uri>.from(deps);
       }
       ioSink.add(data);
     }
