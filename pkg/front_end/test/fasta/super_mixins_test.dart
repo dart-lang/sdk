@@ -85,8 +85,7 @@ ProblemHandler _makeProblemHandler(Set<String> names) {
 testDisabledSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();
   var options = new CompilerOptions()
-    ..onProblem = _makeProblemHandler(missingSuperMethodNames)
-    ..strongMode = true;
+    ..onProblem = _makeProblemHandler(missingSuperMethodNames);
   await compileScript(testSource, options: options);
   Expect.setEquals(
       const <String>['bar', 'baz', 'foo', 'quux'], missingSuperMethodNames);
@@ -100,11 +99,10 @@ testEnabledSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();
   var options = new CompilerOptions()
     ..onProblem = _makeProblemHandler(missingSuperMethodNames)
-    ..strongMode = true
     ..target = new NoneTargetWithSuperMixins(new TargetFlags(strongMode: true));
   await compileScript(testSource, options: options);
-  Expect
-      .setEquals(const <String>['baz', 'foo', 'quux'], missingSuperMethodNames);
+  Expect.setEquals(
+      const <String>['baz', 'foo', 'quux'], missingSuperMethodNames);
 }
 
 void main() {

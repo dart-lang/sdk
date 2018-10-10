@@ -64,7 +64,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         source,
         options,
         component,
-        options.strongMode,
+        !options.legacyMode,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
         enableAsserts,
@@ -75,7 +75,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
-          strongMode: options.strongMode,
+          strongMode: !options.legacyMode,
           dropAST: dropAST,
           environmentDefines: environmentDefines);
     });

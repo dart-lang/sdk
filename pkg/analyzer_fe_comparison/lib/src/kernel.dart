@@ -76,7 +76,6 @@ CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri,
     ..fileSystem = fileSystem
     ..packagesFileUri = packagesFileUri
     ..sdkSummary = platformUri
-    ..strongMode = true
     ..target = target
     ..throwOnErrorsForDebugging = false
     ..embedSourceText = false

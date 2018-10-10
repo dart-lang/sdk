@@ -97,7 +97,7 @@ Future<int> compile(List<String> arguments) async {
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
-    ..strongMode = strongMode
+    ..legacyMode = !strongMode
     ..target = new VmTarget(
         new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
     ..linkedDependencies = <Uri>[

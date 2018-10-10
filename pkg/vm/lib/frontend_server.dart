@@ -267,7 +267,7 @@ class FrontendCompiler implements CompilerInterface {
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..packagesFileUri = _getFileOrUri(_options['packages'])
-      ..strongMode = options['strong']
+      ..legacyMode = !options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']

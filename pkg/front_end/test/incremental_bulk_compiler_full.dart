@@ -64,7 +64,7 @@ CompilerOptions getOptions(bool strong) {
         List<FormattedMessage> context) {
       // ignore
     }
-    ..strongMode = strong;
+    ..legacyMode = !strong;
   if (strong) {
     options.sdkSummary =
         computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
@@ -155,7 +155,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     }
     for (int i = 0; i < length; ++i) {
       if (a[i] != b[i]) {
-        Expect.fail("Data differs at byte ${i+1}.");
+        Expect.fail("Data differs at byte ${i + 1}.");
       }
     }
     Expect.equals(a.length, b.length);

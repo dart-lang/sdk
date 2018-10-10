@@ -465,8 +465,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
           ..onProblem = (FormattedMessage problem, Severity severity,
               List<FormattedMessage> context) {
             problems.add([problem, severity]);
-          }
-          ..strongMode = true,
+          },
         main,
         output);
 

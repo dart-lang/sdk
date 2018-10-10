@@ -1136,8 +1136,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     var outputFileName = output.toFilePath();
 
     var compilerArguments = <String>[];
-    if (!_isLegacy) {
-      compilerArguments.add("--strong-mode");
+    if (_isLegacy) {
+      compilerArguments.add("--legacy-mode");
     }
 
     compilerArguments.addAll(

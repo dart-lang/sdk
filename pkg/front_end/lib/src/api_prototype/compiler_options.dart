@@ -137,8 +137,8 @@ class CompilerOptions {
   @deprecated
   bool chaseDependencies;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool strongMode = true;
+  /// True if enabling legacy mode (Dart 1 compatibility).
+  bool legacyMode = false;
 
   /// Patch files to apply on the core libraries for a specific target platform.
   ///

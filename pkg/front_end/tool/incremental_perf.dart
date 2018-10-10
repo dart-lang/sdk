@@ -111,7 +111,7 @@ Future benchmark(
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
-    ..strongMode = strongMode
+    ..legacyMode = !strongMode
     ..onError = onErrorHandler(strongMode)
     ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
   if (sdkSummary != null) {

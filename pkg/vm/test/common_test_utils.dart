@@ -35,7 +35,6 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   target ??= new TestingVmTarget(new TargetFlags(strongMode: true))
     ..enableSuperMixins = enableSuperMixins;
   final options = new CompilerOptions()
-    ..strongMode = true
     ..target = target
     ..linkedDependencies = <Uri>[platformKernel]
     ..onDiagnostic = (DiagnosticMessage message) {

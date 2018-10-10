@@ -188,7 +188,7 @@ bool isCompileTimeError(Severity severity) {
       return true;
 
     case Severity.errorLegacyWarning:
-      return CompilerContext.current.options.strongMode;
+      return !CompilerContext.current.options.legacyMode;
 
     case Severity.warning:
     case Severity.context:

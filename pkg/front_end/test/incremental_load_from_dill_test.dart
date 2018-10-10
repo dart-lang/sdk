@@ -367,7 +367,7 @@ CompilerOptions getOptions(bool strong) {
         Expect.fail("Unexpected error: ${problem.formatted}");
       }
     }
-    ..strongMode = strong;
+    ..legacyMode = !strong;
   if (strong) {
     options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {

@@ -214,7 +214,7 @@ Future<Context> createContext(
   final List<CompilationMessage> errors = <CompilationMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..strongMode = false
+    ..legacyMode = true
     ..reportMessages = true
     ..verbose = true
     ..fileSystem = fs

@@ -41,7 +41,7 @@ test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags(strongMode: false))
-    ..strongMode = false
+    ..legacyMode = true
     ..onProblem = problemHandler;
 
   if (sdkFromSource) {

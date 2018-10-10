@@ -300,15 +300,14 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool get strongMode => _raw.strongMode;
+  bool get legacyMode => _raw.legacyMode;
 
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new NoneTarget(new TargetFlags(strongMode: !legacyMode));
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -624,7 +623,7 @@ class ProcessedOptions {
         '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
-    sb.writeln('Strong: ${strongMode}');
+    sb.writeln('Legacy mode: ${legacyMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');

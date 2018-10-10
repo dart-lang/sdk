@@ -140,8 +140,7 @@ void main() {
       ..onProblem = (FormattedMessage message, Severity severity,
           List<FormattedMessage> context) {
         Expect.fail("Unexpected error: ${message.formatted}");
-      }
-      ..strongMode = true;
+      };
     Component p = await compileScript(test.source,
         options: options, fileName: 'synthetic-test.dart');
     Expect.isNotNull(p);

@@ -192,7 +192,7 @@ Future<List<Uri>> compilePlatform(
     Uri patchedSdk, Target target, Uri packages, Uri output) async {
   var options = new CompilerOptions()
     ..setExitCodeOnProblem = true
-    ..strongMode = false
+    ..legacyMode = true
     ..compileSdk = true
     ..sdkRoot = patchedSdk
     ..packagesFileUri = packages

@@ -222,7 +222,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--fatal": ",",
   "--help": false,
   "--legacy": "--legacy-mode",
-  "--legacy-mode": true,
+  "--legacy-mode": false,
   "--libraries-json": Uri,
   "--output": Uri,
   "--packages": Uri,
@@ -230,8 +230,6 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--sdk": Uri,
   "--single-root-scheme": String,
   "--single-root-base": Uri,
-  "--strong": "--strong-mode",
-  "--strong-mode": false,
   "--sync-async": true,
   "--target": String,
   "--verbose": false,
@@ -267,14 +265,14 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool strongMode = options["--strong-mode"] || !options["--legacy-mode"];
+  final bool legacyMode = options["--legacy-mode"];
 
   final bool syncAsync = options["--sync-async"];
 
   final String targetName = options["--target"] ?? "vm";
 
   final TargetFlags flags =
-      new TargetFlags(strongMode: strongMode, syncAsync: syncAsync);
+      new TargetFlags(strongMode: !legacyMode, syncAsync: syncAsync);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -342,7 +340,7 @@ ProcessedOptions analyzeCommandLine(
           ..setExitCodeOnProblem = true
           ..fileSystem = fileSystem
           ..packagesFileUri = packages
-          ..strongMode = strongMode
+          ..legacyMode = legacyMode
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
@@ -368,7 +366,7 @@ ProcessedOptions analyzeCommandLine(
       ? null
       : (options["--platform"] ??
           computePlatformBinariesLocation().resolve(
-              strongMode ? "vm_platform_strong.dill" : "vm_platform.dill"));
+              legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
@@ -376,7 +374,7 @@ ProcessedOptions analyzeCommandLine(
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
-    ..strongMode = strongMode
+    ..legacyMode = legacyMode
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal

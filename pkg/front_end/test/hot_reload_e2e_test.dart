@@ -299,7 +299,7 @@ IncrementalKernelGenerator createIncrementalCompiler(
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..strongMode = false
+    ..legacyMode = true
     ..fileSystem = fs;
   return new IncrementalKernelGenerator(options, entryUri);
 }

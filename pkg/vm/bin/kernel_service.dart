@@ -88,7 +88,7 @@ abstract class Compiler {
     }
 
     options = new CompilerOptions()
-      ..strongMode = strongMode
+      ..legacyMode = !strongMode
       ..fileSystem = fileSystem
       ..target = new VmTarget(
           new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))

@@ -29,7 +29,6 @@ main() {
   final sdkRoot = computePlatformBinariesLocation();
   final options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..strongMode = true
     ..target = new VmTarget(new TargetFlags(strongMode: true))
     ..linkedDependencies = <Uri>[platformKernel]
     ..onDiagnostic = (DiagnosticMessage message) {

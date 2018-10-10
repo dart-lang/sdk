@@ -24,7 +24,6 @@ runTestCase(Uri source) async {
       enableSuperMixins: enableSuperMixins);
 
   final options = new CompilerOptions()
-    ..strongMode = true
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };

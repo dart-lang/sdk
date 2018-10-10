@@ -229,7 +229,7 @@ class CompileTask {
   }
 
   KernelTarget createKernelTarget(
-      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
+      DillTarget dillTarget, UriTranslator uriTranslator) {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
         uriToSource: c.uriToSource);
   }
@@ -238,8 +238,7 @@ class CompileTask {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
-    KernelTarget kernelTarget =
-        createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
+    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
     Uri platform = c.options.sdkSummary;
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
@@ -330,7 +329,7 @@ Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (c.options.bytecode) {
-    generateBytecode(result.component, strongMode: c.options.strongMode);
+    generateBytecode(result.component, strongMode: !c.options.legacyMode);
   }
 
   await writeComponentToFile(result.component, fullOutput,

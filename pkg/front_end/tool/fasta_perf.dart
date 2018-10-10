@@ -232,7 +232,7 @@ generateKernel(Uri entryUri,
     ..sdkRoot = sdkRoot
     ..reportMessages = true
     ..onError = onErrorHandler(strongMode)
-    ..strongMode = strongMode
+    ..legacyMode = !strongMode
     ..target = createTarget(isFlutter: false, strongMode: strongMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
