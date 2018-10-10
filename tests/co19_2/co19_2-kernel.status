@@ -2,6 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LibTest/io/Directory/stat_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/Directory/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/File/stat_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/File/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/FileStat/stat_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/FileStat/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/Link/stat_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/Link/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: DartkCrash
@@ -31,7 +40,6 @@ LibTest/core/double/round_A01_t03: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t02: RuntimeError
 LibTest/io/Directory/renameSync_A02_t01: RuntimeError
 LibTest/io/Directory/rename_A02_t01: RuntimeError
-LibTest/io/Directory/stat_A01_t02: RuntimeError, Pass
 LibTest/io/File/openRead_A01_t04: RuntimeError
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t05: Fail, Pass
 LibTest/io/HttpClientRequest/addStream_A02_t02: RuntimeError
@@ -1039,7 +1047,6 @@ LibTest/io/InternetAddress/reverse_A01_t01: RuntimeError
 LibTest/io/Link/renameSync_A02_t03: RuntimeError
 LibTest/io/Link/rename_A02_t03: RuntimeError
 LibTest/io/Link/statSync_A01_t01: RuntimeError
-LibTest/io/Link/stat_A01_t01: RuntimeError
 LibTest/io/Link/watch_A01_t01: RuntimeError
 LibTest/io/Process/run_A01_t02: RuntimeError
 LibTest/io/Process/stderr_A01_t01: RuntimeError
