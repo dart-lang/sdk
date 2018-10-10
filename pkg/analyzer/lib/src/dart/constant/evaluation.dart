@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl, TypeSystem;
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -37,20 +36,36 @@ class ConstantEvaluationEngine {
    * Parameter to "fromEnvironment" methods that denotes the default value.
    */
   static String _DEFAULT_VALUE_PARAM = "defaultValue";
+  /**
+   * Source of RegExp matching declarable operator names.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _OPERATOR_RE =
+      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+
+  /**
+   * Source of RegExp matching Dart reserved words.
+   * From sdk/lib/internal/symbol.dart.
+   */
+  static String _RESERVED_WORD_RE =
+      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
+      "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
+      "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
+      "r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
 
   /**
    * Source of RegExp matching any public identifier.
    * From sdk/lib/internal/symbol.dart.
    */
   static String _PUBLIC_IDENTIFIER_RE =
-      "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+      "(?!$_RESERVED_WORD_RE\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /**
    * RegExp that validates a non-empty non-private symbol.
    * From sdk/lib/internal/symbol.dart.
    */
   static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp(
-      "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
+      "^(?:$_OPERATOR_RE\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * The type provider used to access the known types.
@@ -75,6 +90,11 @@ class ConstantEvaluationEngine {
   final ConstantEvaluationValidator validator;
 
   /**
+   * Whether this engine is used inside Analysis Driver.
+   */
+  final bool forAnalysisDriver;
+
+  /**
    * Initialize a newly created [ConstantEvaluationEngine].  The [typeProvider]
    * is used to access known types.  [_declaredVariables] is the set of
    * variables declared on the command line using '-D'.  The [validator], if
@@ -82,7 +102,9 @@ class ConstantEvaluationEngine {
    * tests.
    */
   ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
+      {ConstantEvaluationValidator validator,
+      TypeSystem typeSystem,
+      this.forAnalysisDriver: false})
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
@@ -958,119 +980,6 @@ class ConstantEvaluationValidator_ForProduction
 }
 
 /**
- * An object used to compute the values of constant variables and constant
- * constructor invocations in one or more compilation units. The expected usage
- * pattern is for the compilation units to be added to this computer using the
- * method [add] and then for the method [computeValues] to be invoked exactly
- * once. Any use of an instance after invoking the method [computeValues] will
- * result in unpredictable behavior.
- */
-class ConstantValueComputer {
-  /**
-   * Source of RegExp matching declarable operator names.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _OPERATOR_RE =
-      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
-
-  /**
-   * Source of RegExp matching Dart reserved words.
-   * From sdk/lib/internal/symbol.dart.
-   */
-  static String _RESERVED_WORD_RE =
-      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
-
-  /**
-   * A graph in which the nodes are the constants, and the edges are from each
-   * constant to the other constants that are referenced by it.
-   */
-  DirectedGraph<ConstantEvaluationTarget> referenceGraph =
-      new DirectedGraph<ConstantEvaluationTarget>();
-
-  /**
-   * The elements whose constant values need to be computed.  Any elements
-   * which appear in [referenceGraph] but not in this set either belong to a
-   * different library cycle (and hence don't need to be recomputed) or were
-   * computed during a previous stage of resolution stage (e.g. constants
-   * associated with enums).
-   */
-  HashSet<ConstantEvaluationTarget> _constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
-
-  /**
-   * The evaluation engine that does the work of evaluating instance creation
-   * expressions.
-   */
-  final ConstantEvaluationEngine evaluationEngine;
-
-  /**
-   * Initialize a newly created constant value computer. The [typeProvider] is
-   * the type provider used to access known types. The [declaredVariables] is
-   * the set of variables declared on the command line using '-D'.
-   */
-  ConstantValueComputer(
-      TypeProvider typeProvider, DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
-      : evaluationEngine = new ConstantEvaluationEngine(
-            typeProvider, declaredVariables,
-            validator: validator, typeSystem: typeSystem);
-
-  /**
-   * Add the constants in the given compilation [unit] to the list of constants
-   * whose value needs to be computed.
-   */
-  void add(CompilationUnit unit) {
-    ConstantFinder constantFinder = new ConstantFinder();
-    unit.accept(constantFinder);
-    _constantsToCompute.addAll(constantFinder.constantsToCompute);
-  }
-
-  /**
-   * Compute values for all of the constants in the compilation units that were
-   * added.
-   */
-  void computeValues() {
-    for (ConstantEvaluationTarget constant in _constantsToCompute) {
-      referenceGraph.addNode(constant);
-      evaluationEngine.computeDependencies(constant,
-          (ConstantEvaluationTarget dependency) {
-        referenceGraph.addEdge(constant, dependency);
-      });
-    }
-    List<List<ConstantEvaluationTarget>> topologicalSort =
-        referenceGraph.computeTopologicalSort();
-    for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
-      if (constantsInCycle.length == 1) {
-        ConstantEvaluationTarget constant = constantsInCycle[0];
-        if (!referenceGraph.getTails(constant).contains(constant)) {
-          _computeValueFor(constant);
-          continue;
-        }
-      }
-      for (ConstantEvaluationTarget constant in constantsInCycle) {
-        evaluationEngine.generateCycleError(constantsInCycle, constant);
-      }
-    }
-  }
-
-  /**
-   * Compute a value for the given [constant].
-   */
-  void _computeValueFor(ConstantEvaluationTarget constant) {
-    if (!_constantsToCompute.contains(constant)) {
-      // Element is in the dependency graph but should have been computed by
-      // a previous stage of analysis.
-      // TODO(paulberry): once we have moved over to the new task model, this
-      // should only occur for constants associated with enum members.  Once
-      // that happens we should add an assertion to verify that it doesn't
-      // occur in any other cases.
-      return;
-    }
-    evaluationEngine.computeConstantValue(constant);
-  }
-}
-
-/**
  * A visitor used to evaluate constant expressions to produce their compile-time
  * value. According to the Dart Language Specification: <blockquote> A constant
  * expression is one of the following:
@@ -1168,7 +1077,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
    */
-  TypeSystem get _typeSystem => evaluationEngine.typeSystem;
+  TypeSystem get typeSystem => evaluationEngine.typeSystem;
 
   /**
    * Given a [type] that may contain free type variables, evaluate them against
@@ -1309,8 +1218,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
-    return new DartObjectImpl.validWithUnknownValue(_typeSystem
-        .getLeastUpperBound(thenType, elseType) as ParameterizedType);
+    return new DartObjectImpl.validWithUnknownValue(
+        typeSystem.getLeastUpperBound(thenType, elseType) as ParameterizedType);
   }
 
   @override
@@ -1576,6 +1485,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * given error [code].
    */
   void _error(AstNode node, ErrorCode code) {
+    if (code == null) {
+      var parent = node?.parent;
+      var parent2 = parent?.parent;
+      if (parent is ArgumentList &&
+          parent2 is InstanceCreationExpression &&
+          parent2.isConst) {
+        code = CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT;
+      } else {
+        code = CompileTimeErrorCode.INVALID_CONSTANT;
+      }
+    }
     _errorReporter.reportErrorForNode(
         code ?? CompileTimeErrorCode.INVALID_CONSTANT, node);
   }
@@ -1589,11 +1509,23 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
-      evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
-      variableElement.computeConstantValue();
-      EvaluationResultImpl value = variableElement.evaluationResult;
-      if (variableElement.isConst && value != null) {
-        return value.value;
+      // We access values of constant variables here in two cases: when we
+      // compute values of other constant  variables, or when we compute values
+      // and errors for other constant expressions. In any case, with Analysis
+      // Driver, we compute values of all dependencies first (or detect  cycle).
+      // So, the value has already been computed. Just return it.
+      if (evaluationEngine.forAnalysisDriver) {
+        if (variableElement.isConst) {
+          return variableElement.evaluationResult.value;
+        }
+      } else {
+        // TODO(scheglov) Once we remove task model, we can remove this code.
+        evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
+        variableElement.computeConstantValue();
+        EvaluationResultImpl value = variableElement.evaluationResult;
+        if (variableElement.isConst && value != null) {
+          return value.value;
+        }
       }
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;

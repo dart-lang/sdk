@@ -23,7 +23,7 @@ class CombinatorContributor extends DartCompletionContributor {
     await null;
     AstNode node = request.target.containingNode;
     if (node is! Combinator) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Build list of suggestions
@@ -40,6 +40,6 @@ class CombinatorContributor extends DartCompletionContributor {
         return builder.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }

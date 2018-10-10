@@ -74,7 +74,6 @@ class _AsyncRun {
       callback();
     }
 
-    ;
     JS('void', 'self.scheduleImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
@@ -84,7 +83,6 @@ class _AsyncRun {
       callback();
     }
 
-    ;
     JS('void', 'self.setImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }

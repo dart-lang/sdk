@@ -16,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -36,24 +36,6 @@ import 'package:analyzer/src/task/dart.dart';
  * warnings not covered by the parser and resolver.
  */
 class ErrorVerifier extends RecursiveAstVisitor<Object> {
-  /**
-   * Static final string with value `"getter "` used in the construction of the
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and
-   * similar, error code messages.
-   *
-   * See [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  static String _GETTER_SPACE = "getter ";
-
-  /**
-   * Static final string with value `"setter "` used in the construction of the
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and
-   * similar, error code messages.
-   *
-   * See [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  static String _SETTER_SPACE = "setter ";
-
   /**
    * The error reporter by which errors will be reported.
    */
@@ -93,6 +75,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * The manager for the inheritance mappings.
    */
   final InheritanceManager _inheritanceManager;
+
+  /**
+   * The manager for the inheritance mappings.
+   */
+  final InheritanceManager2 _inheritanceManager2;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -305,8 +292,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, this.enableSuperMixins,
+  ErrorVerifier(
+      ErrorReporter errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this._inheritanceManager,
+      this._inheritanceManager2,
+      this.enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
@@ -411,6 +403,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForAssignability(node.rightOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
+      _checkForUseOfVoidResult(node.rightOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     }
@@ -927,6 +920,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitInterpolationExpression(InterpolationExpression node) {
+    _checkForUseOfVoidResult(node.expression);
+    return super.visitInterpolationExpression(node);
+  }
+
+  @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
     _checkForUseOfVoidResult(node.expression);
@@ -996,7 +995,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForWrongNumberOfParametersForOperator(node);
         _checkForNonVoidReturnTypeForOperator(node);
       }
-      _checkForConcreteClassWithAbstractMember(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
@@ -1329,6 +1327,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _errorReporter.reportErrorForNode(errorCode, node);
     }
+    _checkForUseOfVoidResult(node.expression);
     return super.visitYieldStatement(node);
   }
 
@@ -1349,8 +1348,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForNonAbstractClassInheritsAbstractMember(node.name);
-      _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
@@ -1911,10 +1908,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     bool problemReported = false;
-    for (int i = 0; i < withClause.mixinTypes.length; i++) {
-      TypeName mixinName = withClause.mixinTypes[i];
+    int mixinTypeIndex = -1;
+    for (int mixinNameIndex = 0;
+        mixinNameIndex < withClause.mixinTypes.length;
+        mixinNameIndex++) {
+      TypeName mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.type;
       if (mixinType is InterfaceType) {
+        mixinTypeIndex++;
         if (_checkForExtendsOrImplementsDisallowedClass(
             mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
@@ -1925,10 +1926,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             problemReported = true;
           }
           if (mixinElement.isMixin) {
-            if (_checkForMixinSuperclassConstraints(mixinName, i)) {
+            if (_checkForMixinSuperclassConstraints(
+                mixinNameIndex, mixinName)) {
               problemReported = true;
             }
-            if (_checkForMixinSuperInvokedMembers(i, mixinName, mixinElement)) {
+            if (_checkForMixinSuperInvokedMembers(
+                mixinTypeIndex, mixinName, mixinElement, mixinType)) {
               problemReported = true;
             }
           } else {
@@ -2087,8 +2090,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive, [
           name,
-          prevElement.library.definingCompilationUnit.displayName,
-          element.library.definingCompilationUnit.displayName
+          prevElement.library.definingCompilationUnit.source.uri,
+          element.library.definingCompilationUnit.source.uri
         ]);
         return;
       } else {
@@ -2430,38 +2433,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SwitchMember member = members[i];
       if (member is SwitchCase) {
         _checkForCaseBlockNotTerminated(member);
-      }
-    }
-  }
-
-  /**
-   * Verify that the given [method] declaration is abstract only if the
-   * enclosing class is also abstract.
-   *
-   * See [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER].
-   */
-  void _checkForConcreteClassWithAbstractMember(MethodDeclaration method) {
-    if (method.isAbstract &&
-        _enclosingClass != null &&
-        !_enclosingClass.isAbstract) {
-      SimpleIdentifier nameNode = method.name;
-      String memberName = nameNode.name;
-      ExecutableElement overriddenMember;
-      if (method.isGetter) {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteGetter(
-            memberName, _currentLibrary);
-      } else if (method.isSetter) {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteSetter(
-            memberName, _currentLibrary);
-      } else {
-        overriddenMember = _enclosingClass.lookUpInheritedConcreteMethod(
-            memberName, _currentLibrary);
-      }
-      if (overriddenMember == null && !_enclosingClass.hasNoSuchMethod) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            nameNode,
-            [memberName, _enclosingClass.displayName]);
       }
     }
   }
@@ -2958,8 +2929,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (!name.isEmpty) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-            prevLibrary.definingCompilationUnit.displayName,
-            exportedLibrary.definingCompilationUnit.displayName,
+            prevLibrary.definingCompilationUnit.source.uri.toString(),
+            exportedLibrary.definingCompilationUnit.source.uri.toString(),
             name
           ]);
         }
@@ -3061,13 +3032,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Verify that the given [typeName] does not extend, implement or mixin
    * classes such as 'num' or 'String'.
    *
-   * See [_checkForExtendsDisallowedClass],
-   * [_checkForExtendsDisallowedClassInTypeAlias],
-   * [_checkForImplementsClauseErrorCodes],
-   * [_checkForAllMixinErrorCodes],
-   * [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS],
-   * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS], and
-   * [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS].
+   * TODO(scheglov) Remove this method, when all inheritance / override
+   * is concentrated. We keep it for now only because we need to know when
+   * inheritance is completely wrong, so that we don't need to check anything
+   * else.
    */
   bool _checkForExtendsOrImplementsDisallowedClass(
       TypeName typeName, ErrorCode errorCode) {
@@ -3079,36 +3047,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    DartType superType = typeName.type;
-    for (InterfaceType disallowedType
-        in _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT) {
-      if (superType != null && superType == disallowedType) {
-        // if the violating type happens to be 'num', we need to rule out the
-        // case where the enclosing class is 'int' or 'double'
-        if (superType == _typeProvider.numType) {
-          AstNode grandParent = typeName.parent.parent;
-          // Note: this is a corner case that won't happen often, so adding a
-          // field currentClass (see currentFunction) to ErrorVerifier isn't
-          // worth if for this case, but if the field currentClass is added,
-          // then this message should become a to-do to not lookup the
-          // grandparent node.
-          if (grandParent is ClassDeclaration) {
-            ClassElement classElement = grandParent.declaredElement;
-            DartType classType = classElement.type;
-            if (classType != null &&
-                (classType == _intType ||
-                    classType == _typeProvider.doubleType)) {
-              return false;
-            }
-          }
-        }
-        // otherwise, report the error
-        _errorReporter.reportErrorForNode(
-            errorCode, typeName, [disallowedType.displayName]);
-        return true;
-      }
-    }
-    return false;
+    return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
   }
 
   /**
@@ -3572,8 +3511,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (prevLibrary != nodeLibrary && !name.isEmpty) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-          prevLibrary.definingCompilationUnit.displayName,
-          nodeLibrary.definingCompilationUnit.displayName,
+          prevLibrary.definingCompilationUnit.source.uri,
+          nodeLibrary.definingCompilationUnit.source.uri,
           name
         ]);
       }
@@ -3613,27 +3552,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
         directive.uri,
         [directive.uri.stringValue]);
-  }
-
-  /**
-   * For each class declaration, this method is called which verifies that all
-   * inherited members are inherited consistently.
-   *
-   * See [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE].
-   */
-  void _checkForInconsistentMethodInheritance() {
-    // Ensure that the inheritance manager has a chance to generate all errors
-    // we may care about, note that we ensure that the interfaces data since
-    // there are no errors.
-    _inheritanceManager.getMembersInheritedFromInterfaces(_enclosingClass);
-    Set<AnalysisError> errors = _inheritanceManager.getErrors(_enclosingClass);
-    if (errors == null || errors.isEmpty) {
-      return;
-    }
-    for (AnalysisError error in errors) {
-      _errorReporter.reportError(error);
-    }
-    return;
   }
 
   /**
@@ -4246,15 +4164,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /// Check that superclass constrains for the mixin type of [mixinName] at
-  /// the [index] position in the mixins list are satisfied by the
+  /// the [mixinIndex] position in the mixins list are satisfied by the
   /// [_enclosingClass], or a previous mixin.
-  bool _checkForMixinSuperclassConstraints(TypeName mixinName, int index) {
+  bool _checkForMixinSuperclassConstraints(int mixinIndex, TypeName mixinName) {
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
       bool isSatisfied =
           _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
       if (!isSatisfied) {
-        for (int i = 0; i < index && !isSatisfied; i++) {
+        for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
               _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
         }
@@ -4273,19 +4191,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /// Check that the superclass of the given [mixinElement] at the given
   /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
   /// implementations of all the super-invoked members of the [mixinElement].
-  bool _checkForMixinSuperInvokedMembers(
-      int mixinIndex, TypeName mixinName, ClassElement mixinElement) {
-    ClassElementImpl mixinElementImpl = mixinElement is ClassElementHandle
-        ? mixinElement.actualElement
-        : mixinElement;
+  bool _checkForMixinSuperInvokedMembers(int mixinIndex, TypeName mixinName,
+      ClassElement mixinElement, InterfaceType mixinType) {
+    ClassElementImpl mixinElementImpl =
+        AbstractClassElementImpl.getImpl(mixinElement);
+    if (mixinElementImpl.superInvokedNames.isEmpty) {
+      return false;
+    }
+
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
+    Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
-      var superMember = enclosingType.lookUpInheritedMember(
-          name, _currentLibrary,
-          concrete: true,
-          stopMixinIndex: mixinIndex,
-          setter: name.endsWith('='));
-      if (superMember == null) {
+      var nameObject = new Name(mixinLibraryUri, name);
+
+      var superMemberType = _inheritanceManager2.getMember(
+          enclosingType, nameObject,
+          forMixinIndex: mixinIndex, forSuper: true);
+
+      if (superMemberType == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -4294,12 +4217,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return true;
       }
 
-      var mixinMember =
-          _inheritanceManager.lookupInheritance(mixinElement, name);
-      var superMemberType = superMember.type;
-      var mixinMemberType = mixinMember?.type;
+      FunctionType mixinMemberType =
+          _inheritanceManager2.getMember(mixinType, nameObject);
+
       if (mixinMemberType != null &&
-          !_typeSystem.isSubtypeOf(superMemberType, mixinMemberType)) {
+          !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
@@ -4513,98 +4435,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
         [superType.displayName, _enclosingClass.displayName]);
-  }
-
-  /**
-   * Check that the given class declaration overrides all members required by
-   * its superclasses and interfaces. The [classNameNode] is the
-   * [SimpleIdentifier] to be used if there is a violation, this is either the
-   * named from the [ClassDeclaration] or from the [ClassTypeAlias].
-   *
-   * See [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE],
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR], and
-   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS].
-   */
-  void _checkForNonAbstractClassInheritsAbstractMember(
-      SimpleIdentifier classNameNode) {
-    if (_enclosingClass.isAbstract) {
-      return;
-    } else if (_enclosingClass.hasNoSuchMethod) {
-      return;
-    }
-
-    Set<ExecutableElement> missingOverrides = computeMissingOverrides(
-        _typeProvider, _typeSystem, _inheritanceManager, _enclosingClass);
-    if (missingOverrides.isEmpty) {
-      return;
-    }
-
-    List<String> missingOverrideNames = <String>[];
-    for (ExecutableElement element in missingOverrides) {
-      Element enclosingElement = element.enclosingElement;
-      String prefix = StringUtilities.EMPTY;
-      if (element is PropertyAccessorElement) {
-        if (element.isGetter) {
-          prefix = _GETTER_SPACE;
-          // "getter "
-        } else {
-          prefix = _SETTER_SPACE;
-          // "setter "
-        }
-      }
-      String newStrMember;
-      if (enclosingElement != null) {
-        newStrMember =
-            "$prefix'${enclosingElement.displayName}.${element.displayName}'";
-      } else {
-        newStrMember = "$prefix'${element.displayName}'";
-      }
-      missingOverrideNames.add(newStrMember);
-    }
-    missingOverrideNames.sort();
-
-    if (missingOverrideNames.length == 1) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          classNameNode,
-          [missingOverrideNames[0]]);
-    } else if (missingOverrideNames.length == 2) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          classNameNode,
-          [missingOverrideNames[0], missingOverrideNames[1]]);
-    } else if (missingOverrideNames.length == 3) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-          classNameNode, [
-        missingOverrideNames[0],
-        missingOverrideNames[1],
-        missingOverrideNames[2]
-      ]);
-    } else if (missingOverrideNames.length == 4) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-          classNameNode, [
-        missingOverrideNames[0],
-        missingOverrideNames[1],
-        missingOverrideNames[2],
-        missingOverrideNames[3]
-      ]);
-    } else {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode
-              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-          classNameNode,
-          [
-            missingOverrideNames[0],
-            missingOverrideNames[1],
-            missingOverrideNames[2],
-            missingOverrideNames[3],
-            missingOverrideNames.length - 4
-          ]);
-    }
   }
 
   /**
@@ -5355,29 +5185,47 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_BOUND].
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    if (typeName.typeArguments == null) {
-      return;
-    }
     // prepare Type
     DartType type = typeName.type;
     if (type == null) {
       return;
     }
-    Element element = type.element;
-    if (element is ClassElement) {
+    if (type is ParameterizedType) {
+      var element = type.element;
       // prepare type parameters
-      List<TypeParameterElement> parameterElements = element.typeParameters;
-      List<DartType> parameterTypes = element.type.typeArguments;
-      List<DartType> arguments = (type as ParameterizedType).typeArguments;
+      List<TypeParameterElement> parameterElements;
+      if (element is ClassElement) {
+        parameterElements = element.typeParameters;
+      } else if (element is GenericTypeAliasElement) {
+        parameterElements = element.typeParameters;
+      } else if (element is GenericFunctionTypeElement) {
+        // TODO(paulberry): it seems like either this case or the one above
+        // should be unnecessary.
+        FunctionTypeAliasElement typedefElement = element.enclosingElement;
+        parameterElements = typedefElement.typeParameters;
+      } else {
+        // There are no other kinds of parameterized types.
+        throw new UnimplementedError(
+            'Unexpected element associated with parameterized type: '
+            '${element.runtimeType}');
+      }
+      var parameterTypes =
+          parameterElements.map<DartType>((p) => p.type).toList();
+      List<DartType> arguments = type.typeArguments;
       // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeAnnotation> argumentNodes = typeName.typeArguments.arguments;
+      NodeList<TypeAnnotation> argumentNodes =
+          typeName.typeArguments?.arguments;
+      var typeArguments = type.typeArguments;
       int loopThroughIndex =
-          math.min(argumentNodes.length, parameterElements.length);
+          math.min(typeArguments.length, parameterElements.length);
       bool shouldSubstitute =
           arguments.length != 0 && arguments.length == parameterTypes.length;
       for (int i = 0; i < loopThroughIndex; i++) {
-        TypeAnnotation argumentNode = argumentNodes[i];
-        DartType argType = argumentNode.type;
+        DartType argType = typeArguments[i];
+        TypeAnnotation argumentNode =
+            argumentNodes != null && i < argumentNodes.length
+                ? argumentNodes[i]
+                : typeName;
         if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
           _errorReporter.reportTypeErrorForNode(
               CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
@@ -5399,6 +5247,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             } else {
               errorCode =
                   StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+            }
+            if (_shouldAllowSuperBoundedTypes(typeName)) {
+              var replacedType =
+                  (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
+              if (!identical(replacedType, argType) &&
+                  _typeSystem.isSubtypeOf(replacedType, boundType)) {
+                // Bound is satisfied under super-bounded rules, so we're ok.
+                continue;
+              }
             }
             _errorReporter.reportTypeErrorForNode(
                 errorCode, argumentNode, [argType, boundType]);
@@ -5861,7 +5718,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(
@@ -6116,7 +5972,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
-        return library.definingCompilationUnit.displayName;
+        return library.definingCompilationUnit.source.uri.toString();
       }
     }
     List<String> indirectSources = new List<String>();
@@ -6126,15 +5982,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         for (LibraryElement exportedLibrary
             in importedLibrary.exportedLibraries) {
           if (identical(exportedLibrary, library)) {
-            indirectSources
-                .add(importedLibrary.definingCompilationUnit.displayName);
+            indirectSources.add(
+                importedLibrary.definingCompilationUnit.source.uri.toString());
           }
         }
       }
     }
     int indirectCount = indirectSources.length;
     StringBuffer buffer = new StringBuffer();
-    buffer.write(library.definingCompilationUnit.displayName);
+    buffer.write(library.definingCompilationUnit.source.uri.toString());
     if (indirectCount > 0) {
       buffer.write(" (via ");
       if (indirectCount > 1) {
@@ -6298,87 +6154,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /**
-   * Returns [ExecutableElement]s that are declared in interfaces implemented
-   * by the [classElement], but not implemented by the [classElement] or its
-   * superclasses.
-   */
-  static Set<ExecutableElement> computeMissingOverrides(
-      TypeProvider typeProvider,
-      TypeSystem typeSystem,
-      InheritanceManager inheritanceManager,
-      ClassElement classElement) {
-    //
-    // Store in local sets the set of all method and accessor names
-    //
-    HashSet<ExecutableElement> missingOverrides =
-        new HashSet<ExecutableElement>();
-    //
-    // Loop through the set of all executable elements declared in the implicit
-    // interface.
-    //
-    Map<String, ExecutableElement> membersInheritedFromInterfaces =
-        inheritanceManager.getMembersInheritedFromInterfaces(classElement);
-    Map<String, ExecutableElement> membersInheritedFromSuperclasses =
-        inheritanceManager.getMembersInheritedFromClasses(classElement);
-    for (String memberName in membersInheritedFromInterfaces.keys) {
-      ExecutableElement executableElt =
-          membersInheritedFromInterfaces[memberName];
-      if (memberName == null) {
-        break;
-      }
-      // If the element is not synthetic and can be determined to be defined in
-      // Object, skip it.
-      if (executableElt.enclosingElement != null &&
-          (executableElt.enclosingElement as ClassElement).type.isObject) {
-        continue;
-      }
-      // Check to see if some element is in local enclosing class that matches
-      // the name of the required member.
-      if (_isMemberInClassOrMixin(executableElt, classElement)) {
-        // We do not have to verify that this implementation of the found method
-        // matches the required function type: the set of
-        // StaticWarningCode.INVALID_METHOD_OVERRIDE_* warnings break out the
-        // different specific situations.
-        continue;
-      }
-      // First check to see if this element was declared in the superclass
-      // chain, in which case there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses[memberName];
-      // Check to see if an element was found in the superclass chain with the
-      // correct name.
-      if (elt != null) {
-        // Reference the types, if any are null then continue.
-        InterfaceType enclosingType = classElement.type;
-        FunctionType concreteType = elt.type;
-        FunctionType requiredMemberType = executableElt.type;
-        if (enclosingType == null ||
-            concreteType == null ||
-            requiredMemberType == null) {
-          continue;
-        }
-        // Some element was found in the superclass chain that matches the name
-        // of the required member.
-        // If it is not abstract and it is the correct one (types match- the
-        // version of this method that we have has the correct number of
-        // parameters, etc), then this class has a valid implementation of this
-        // method, so skip it.
-        if ((elt is MethodElement && !elt.isAbstract) ||
-            (elt is PropertyAccessorElement && !elt.isAbstract)) {
-          // Override checking for types is done in CodeChecker, so
-          // we can skip it here. Doing it here leads to unnecessary duplicate
-          // error messages in subclasses that inherit from one that has an
-          // override error.
-          //
-          // See: https://github.com/dart-lang/sdk/issues/25232
-          continue;
-        }
-      }
-      // The not qualifying concrete executable element was found, add it to the
-      // list.
-      missingOverrides.add(executableElt);
-    }
-    return missingOverrides;
+  /// Determines if the given [typeName] occurs in a context where super-bounded
+  /// types are allowed.
+  bool _shouldAllowSuperBoundedTypes(TypeName typeName) {
+    var parent = typeName.parent;
+    if (parent is ExtendsClause) return false;
+    if (parent is OnClause) return false;
+    if (parent is ClassTypeAlias) return false;
+    if (parent is WithClause) return false;
+    if (parent is ConstructorName) return false;
+    if (parent is ImplementsClause) return false;
+    return true;
   }
 
   /**
@@ -6445,57 +6231,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
-  }
-
-  /**
-   * Return `true` iff the given [classElement] has a concrete method, getter or
-   * setter that matches the name of the given [executableElement] in either the
-   * class itself, or one of its' mixins.
-   *
-   * By "match", only the name of the member is tested to match, it does not
-   * have to equal or be a subtype of the given executable element, this is due
-   * to the specific use where this method is used in
-   * [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  static bool _isMemberInClassOrMixin(
-      ExecutableElement executableElement, ClassElement classElement) {
-    ExecutableElement foundElt = null;
-    String executableName = executableElement.name;
-    if (executableElement is MethodElement) {
-      foundElt = classElement.getMethod(executableName);
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-      List<InterfaceType> mixins = classElement.mixins;
-      for (int i = 0; i < mixins.length && foundElt == null; i++) {
-        foundElt = mixins[i].getMethod(executableName);
-      }
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-    } else if (executableElement is PropertyAccessorElement) {
-      if (executableElement.isGetter) {
-        foundElt = classElement.getGetter(executableName);
-      }
-      if (foundElt == null && executableElement.isSetter) {
-        foundElt = classElement.getSetter(executableName);
-      }
-      if (foundElt != null &&
-          !(foundElt as PropertyAccessorElement).isAbstract) {
-        return true;
-      }
-      List<InterfaceType> mixins = classElement.mixins;
-      for (int i = 0; i < mixins.length && foundElt == null; i++) {
-        foundElt = mixins[i].getGetter(executableName);
-        if (foundElt == null) {
-          foundElt = mixins[i].getSetter(executableName);
-        }
-      }
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

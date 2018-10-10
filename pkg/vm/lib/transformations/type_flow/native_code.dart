@@ -24,6 +24,13 @@ abstract class EntryPointsListener {
 
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
+
+  /// Record the fact that given member is called via interface selector
+  /// (not dynamically, and not from `this`).
+  void recordMemberCalledViaInterfaceSelector(Member target);
+
+  /// Record the fact that given member is called from this.
+  void recordMemberCalledViaThis(Member target);
 }
 
 abstract class ParsedPragma {}
@@ -200,11 +207,17 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         addSelector(CallKind.PropertyGet);
         break;
       case PragmaEntryPointType.SetterOnly:
+        if (field.isFinal) {
+          throw "Error: can't use 'set' in entry-point pragma for final field "
+              "$field";
+        }
         addSelector(CallKind.PropertySet);
         break;
       case PragmaEntryPointType.Always:
         addSelector(CallKind.PropertyGet);
-        addSelector(CallKind.PropertySet);
+        if (!field.isFinal) {
+          addSelector(CallKind.PropertySet);
+        }
         break;
     }
 

@@ -21,16 +21,12 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
-import '../api_prototype/byte_store.dart' show ByteStore;
-
 import '../api_prototype/compilation_message.dart' show CompilationMessage;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
-
-import '../base/performance_logger.dart' show PerformanceLog;
 
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
 
@@ -183,41 +179,43 @@ class ProcessedOptions {
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
-  /// The logger to report compilation progress.
-  PerformanceLog get logger {
-    return _raw.logger;
-  }
-
-  /// The byte storage to get and put serialized data.
-  ByteStore get byteStore {
-    return _raw.byteStore;
-  }
-
   bool get _reportMessages {
     return _raw.onProblem == null &&
         (_raw.reportMessages ?? (_raw.onError == null));
   }
 
-  FormattedMessage format(LocatedMessage message, Severity severity) {
+  FormattedMessage format(
+      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
     String formatted =
         command_line_reporting.format(message, severity, location: location);
-    return message.withFormatting(
-        formatted, location?.line ?? -1, location?.column ?? -1);
+    List<FormattedMessage> formattedContext;
+    if (context != null && context.isNotEmpty) {
+      formattedContext = new List<FormattedMessage>(context.length);
+      for (int i = 0; i < context.length; i++) {
+        formattedContext[i] = format(context[i], Severity.context, null);
+      }
+    }
+    return message.withFormatting(formatted, location?.line ?? -1,
+        location?.column ?? -1, severity, formattedContext);
   }
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context}) {
     context ??= const <LocatedMessage>[];
-    if (_raw.onProblem != null) {
+    if (_raw.onDiagnostic != null) {
+      _raw.onDiagnostic(format(message, severity, context));
+      return;
+    } else if (_raw.onProblem != null) {
       List<FormattedMessage> formattedContext =
           new List<FormattedMessage>(context.length);
       for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], severity);
+        formattedContext[i] = format(context[i], Severity.context, null);
       }
-      _raw.onProblem(format(message, severity), severity, formattedContext);
+      _raw.onProblem(
+          format(message, severity, null), severity, formattedContext);
       if (command_line_reporting.shouldThrowOn(severity)) {
         throw new DebugAbort(
             message.uri, message.charOffset, severity, StackTrace.current);
@@ -318,7 +316,9 @@ class ProcessedOptions {
     if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
       var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+      if (bytes != null && bytes.isNotEmpty) {
+        _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+      }
     }
     return _sdkSummaryComponent;
   }
@@ -688,7 +688,7 @@ class _CompilationMessage implements CompilationMessage {
 
   String get code => _original.code.name;
 
-  String get analyzerCode => _original.code.analyzerCode;
+  String get analyzerCode => _original.code.analyzerCodes?.first;
 
   SourceSpan get span {
     if (_original.charOffset == -1) {

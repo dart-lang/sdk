@@ -242,7 +242,7 @@ class A extends core::Object {
   field dynamic c = null;
   field dynamic d = null;
   final field dynamic f = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   get e() → dynamic
@@ -266,7 +266,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
   get b() → dynamic
@@ -275,7 +275,7 @@ class B extends self::A {
   set i(dynamic x) → dynamic {}
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
   method test() → dynamic {

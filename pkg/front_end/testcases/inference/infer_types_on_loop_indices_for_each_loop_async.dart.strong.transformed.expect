@@ -5,12 +5,12 @@ import "dart:async" as asy;
 
 class Foo extends core::Object {
   field core::int bar = 42;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
 }
 class Bar<T extends asy::Stream<core::String> = asy::Stream<core::String>> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl self::Bar::T t) → dynamic /* originally async */ {
@@ -72,7 +72,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
   }
 }
 class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> = asy::Stream<dynamic>, S extends self::Baz::E = asy::Stream<dynamic>> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Baz<self::Baz::T, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl self::Baz::S t) → dynamic /* originally async */ {

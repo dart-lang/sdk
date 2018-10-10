@@ -15,6 +15,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -1003,7 +1003,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   }
 
   @override
-  int get precedence => 0;
+  int get precedence => 14;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1044,6 +1044,9 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
    */
   @override
   MethodElement staticElement;
+
+  @override
+  FunctionType staticInvokeType;
 
   /**
    * Initialize a newly created binary expression.
@@ -1093,23 +1096,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   void set rightOperand(Expression expression) {
     _rightOperand = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
-  ParameterElement get _staticParameterElementForRightOperand {
-    if (staticElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   @override
@@ -4163,7 +4149,11 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
       }
     } else if (parent is BinaryExpressionImpl) {
       if (identical(parent.rightOperand, this)) {
-        return parent._staticParameterElementForRightOperand;
+        var parameters = parent.staticInvokeType?.parameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0];
+        }
+        return null;
       }
     } else if (parent is AssignmentExpressionImpl) {
       if (identical(parent.rightHandSide, this)) {
@@ -5583,9 +5573,6 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
    */
   FormalParameterListImpl _parameters;
 
-  @override
-  Token question;
-
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
@@ -5599,8 +5586,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters,
-      this.question)
+      FormalParameterListImpl parameters)
       : super(comment, metadata, covariantKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
@@ -10938,9 +10924,6 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    */
   TypeArgumentListImpl _typeArguments;
 
-  @override
-  Token question;
-
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
@@ -10950,8 +10933,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(
-      IdentifierImpl name, TypeArgumentListImpl typeArguments, this.question) {
+  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }

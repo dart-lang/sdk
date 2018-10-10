@@ -33,8 +33,8 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -42,7 +42,8 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
-export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
+export 'package:analyzer/src/generated/timestamped_data.dart'
+    show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -1372,11 +1373,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   /**
-   * The default list of non-nullable type names.
-   */
-  static const List<String> NONNULLABLE_TYPES = const <String>[];
-
-  /**
    * The length of the list returned by [unlinkedSignature].
    */
   static const int unlinkedSignatureLength = 4;
@@ -1486,12 +1482,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitCasts = true;
 
   /**
-   * A list of non-nullable type names, prefixed by the library URI they belong
-   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
-   */
-  List<String> nonnullableTypes = NONNULLABLE_TYPES;
-
-  /**
    * A flag indicating whether implicit dynamic type is allowed, on by default.
    *
    * This flag can be used without necessarily enabling [strongMode], but it is
@@ -1539,7 +1529,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
-      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
       isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
@@ -1753,7 +1742,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     implicitDynamic = true;
     lint = false;
     _lintRules = null;
-    nonnullableTypes = NONNULLABLE_TYPES;
     patchPaths = {};
     preserveComments = true;
     strongModeHints = false;

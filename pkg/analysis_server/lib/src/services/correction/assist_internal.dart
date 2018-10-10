@@ -112,14 +112,7 @@ class AssistProcessor {
   Future<List<Assist>> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    try {
-      utils = new CorrectionUtils(unit);
-    } catch (e) {
-      throw new CancelCorrectionException(exception: e);
-    }
-
-    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
-    if (node == null) {
+    if (!_setupCompute()) {
       return assists;
     }
 
@@ -172,6 +165,18 @@ class AssistProcessor {
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
 
+    return assists;
+  }
+
+  Future<List<Assist>> computeAssist(AssistKind assistKind) async {
+    if (!_setupCompute()) {
+      return assists;
+    }
+
+    // Calculate only specific assists for edit.dartFix
+    if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
+      await _addProposal_convertClassToMixin();
+    }
     return assists;
   }
 
@@ -474,8 +479,8 @@ class AssistProcessor {
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(
           range.startStart(
-              classDeclaration.classKeyword, classDeclaration.leftBracket),
-          (DartEditBuilder builder) {
+              classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
+              classDeclaration.leftBracket), (DartEditBuilder builder) {
         builder.write('mixin ');
         builder.write(classDeclaration.name.name);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
@@ -1110,6 +1115,7 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // may be () in prefix expression
+    AstNode node = this.node;
     if (node is ParenthesizedExpression && node.parent is PrefixExpression) {
       node = node.parent;
     }
@@ -1320,7 +1326,7 @@ class AssistProcessor {
       // rename field
       builder.addSimpleReplacement(range.node(nameNode), '_$name');
       // update references in constructors
-      ClassDeclaration classDeclaration = fieldDeclaration.parent;
+      ClassOrMixinDeclaration classDeclaration = fieldDeclaration.parent;
       for (ClassMember member in classDeclaration.members) {
         if (member is ConstructorDeclaration) {
           for (FormalParameter parameter in member.parameters.parameters) {
@@ -3291,6 +3297,17 @@ class AssistProcessor {
    */
   String _getRangeText(SourceRange range) {
     return utils.getRangeText(range);
+  }
+
+  bool _setupCompute() {
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
+    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
+    return node != null;
   }
 
   Future<void> _swapParentAndChild(InstanceCreationExpression parent,

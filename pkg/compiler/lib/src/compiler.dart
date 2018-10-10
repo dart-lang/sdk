@@ -6,7 +6,8 @@ library dart2js.compiler_base;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/scanner.dart' show StringToken;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show clearStringTokenCanonicalizer;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
@@ -250,7 +251,7 @@ abstract class Compiler {
     // multiple times. Implement a better mechanism where we can store
     // such caches in the compiler and get access to them through a
     // suitably maintained static reference to the current compiler.
-    StringToken.canonicalizer.clear();
+    clearStringTokenCanonicalizer();
     Selector.canonicalizedValues.clear();
 
     // The selector objects held in static fields must remain canonical.

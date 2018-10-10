@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -34,6 +35,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:path/path.dart' as path;
 
+export 'package:analyzer/src/dart/constant/constant_verifier.dart';
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
 export 'package:analyzer/src/generated/type_system.dart';
@@ -83,7 +85,7 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        InterfaceType type = _getType(element, node.typeArguments);
+        InterfaceType type = getType(typeSystem, element, node.typeArguments);
         ConstructorElement constructorElement =
             type.lookUpConstructor(null, definingLibrary);
         methodName.staticElement = element;
@@ -120,7 +122,7 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(element, typeArguments);
+          InterfaceType type = getType(typeSystem, element, typeArguments);
           constructorElement =
               type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
@@ -150,7 +152,8 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(prefixedElement, node.typeArguments);
+          InterfaceType type =
+              getType(typeSystem, prefixedElement, node.typeArguments);
           ConstructorElement constructorElement =
               type.lookUpConstructor(null, definingLibrary);
           methodName.staticElement = element;
@@ -186,7 +189,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = _getType(element, typeArguments);
+            InterfaceType type = getType(typeSystem, element, typeArguments);
             constructorElement =
                 type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
@@ -214,7 +217,8 @@ class AstRewriteVisitor extends ScopedVisitor {
 
   /// Return the type of the given class [element] after substituting any type
   /// arguments from the list of [typeArguments] for the class' type parameters.
-  DartType _getType(ClassElement element, TypeArgumentList typeArguments) {
+  static InterfaceType getType(TypeSystem typeSystem, ClassElement element,
+      TypeArgumentList typeArguments) {
     DartType type = element.type;
     List<TypeParameterElement> typeParameters = element.typeParameters;
     if (typeArguments != null &&
@@ -273,14 +277,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   /// The current library
   LibraryElement _currentLibrary;
 
-  /// The inheritance manager used to find overridden methods.
-  InheritanceManager _manager;
-
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
-  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider,
-      this._currentLibrary, this._manager,
+  BestPracticesVerifier(
+      this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
@@ -879,8 +880,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         return;
       }
       ClassElement definingClass = element.enclosingElement;
-      ClassDeclaration accessingClass =
-          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
+      ClassOrMixinDeclaration accessingClass = identifier
+          .getAncestor((AstNode node) => node is ClassOrMixinDeclaration);
       if (_hasTypeOrSuperType(
           accessingClass?.declaredElement, definingClass.type)) {
         return;
@@ -915,19 +916,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
     if (isVisibleForTemplate(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
     if (isVisibleForTesting(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
           identifier,
-          [identifier.name.toString(), definingClass.name]);
+          [identifier.name.toString(), definingClass.source.uri]);
     }
   }
 
@@ -1412,606 +1413,6 @@ class BuildLibraryElementUtils {
         }
       }
     }
-  }
-}
-
-/// Instances of the class `ConstantVerifier` traverse an AST structure looking
-/// for additional errors and warnings not covered by the parser and resolver.
-/// In particular, it looks for errors and warnings related to constant
-/// expressions.
-class ConstantVerifier extends RecursiveAstVisitor<Object> {
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
-
-  /// The type provider used to access the known types.
-  final TypeProvider _typeProvider;
-
-  /// The type system in use.
-  final TypeSystem _typeSystem;
-
-  /// The set of variables declared using '-D' on the command line.
-  final DeclaredVariables declaredVariables;
-
-  /// The type representing the type 'bool'.
-  InterfaceType _boolType;
-
-  /// The type representing the type 'int'.
-  InterfaceType _intType;
-
-  /// The type representing the type 'num'.
-  InterfaceType _numType;
-
-  /// The type representing the type 'string'.
-  InterfaceType _stringType;
-
-  /// The current library that is being analyzed.
-  final LibraryElement _currentLibrary;
-
-  /// Initialize a newly created constant verifier.
-  ///
-  /// @param errorReporter the error reporter by which errors will be reported
-  ConstantVerifier(this._errorReporter, LibraryElement currentLibrary,
-      this._typeProvider, this.declaredVariables)
-      : _currentLibrary = currentLibrary,
-        _typeSystem = currentLibrary.context.typeSystem {
-    this._boolType = _typeProvider.boolType;
-    this._intType = _typeProvider.intType;
-    this._numType = _typeProvider.numType;
-    this._stringType = _typeProvider.stringType;
-  }
-
-  @override
-  Object visitAnnotation(Annotation node) {
-    super.visitAnnotation(node);
-    // check annotation creation
-    Element element = node.element;
-    if (element is ConstructorElement) {
-      // should be 'const' constructor
-      if (!element.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
-        return null;
-      }
-      // should have arguments
-      ArgumentList argumentList = node.arguments;
-      if (argumentList == null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
-        return null;
-      }
-      // arguments should be constants
-      _validateConstantArguments(argumentList);
-    }
-    if (node.elementAnnotation?.isSealed == true &&
-        !(node.parent is ClassDeclaration ||
-            node.parent is ClassTypeAlias ||
-            node.parent is MixinDeclaration)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
-    }
-    return null;
-  }
-
-  @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.constKeyword != null) {
-      _validateConstructorInitializers(node);
-      _validateFieldInitializers(node.parent as ClassDeclaration, node);
-    }
-    _validateDefaultValues(node.parameters);
-    return super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  Object visitFunctionExpression(FunctionExpression node) {
-    super.visitFunctionExpression(node);
-    _validateDefaultValues(node.parameters);
-    return null;
-  }
-
-  @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.isConst) {
-      TypeName typeName = node.constructorName.type;
-      _checkForConstWithTypeParameters(typeName);
-
-      // We need to evaluate the constant to see if any errors occur during its
-      // evaluation.
-      ConstructorElement constructor = node.staticElement;
-      if (constructor != null) {
-        ConstantEvaluationEngine evaluationEngine =
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                typeSystem: _typeSystem);
-        ConstantVisitor constantVisitor =
-            new ConstantVisitor(evaluationEngine, _errorReporter);
-        evaluationEngine.evaluateConstructorCall(
-            node,
-            node.argumentList.arguments,
-            constructor,
-            constantVisitor,
-            _errorReporter);
-      }
-    }
-    _validateInstanceCreationArguments(node);
-    return super.visitInstanceCreationExpression(node);
-  }
-
-  @override
-  Object visitListLiteral(ListLiteral node) {
-    super.visitListLiteral(node);
-    if (node.isConst) {
-      DartObjectImpl result;
-      for (Expression element in node.elements) {
-        result =
-            _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-        if (result != null) {
-          _reportErrorIfFromDeferredLibrary(
-              element,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
-        }
-      }
-    }
-    return null;
-  }
-
-  @override
-  Object visitMapLiteral(MapLiteral node) {
-    super.visitMapLiteral(node);
-    bool isConst = node.isConst;
-    bool reportEqualKeys = true;
-    HashSet<DartObject> keys = new HashSet<DartObject>();
-    List<Expression> invalidKeys = new List<Expression>();
-    for (MapLiteralEntry entry in node.entries) {
-      Expression key = entry.key;
-      if (isConst) {
-        DartObjectImpl keyResult =
-            _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        Expression valueExpression = entry.value;
-        DartObjectImpl valueResult = _validate(
-            valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (valueResult != null) {
-          _reportErrorIfFromDeferredLibrary(
-              valueExpression,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
-        }
-        if (keyResult != null) {
-          _reportErrorIfFromDeferredLibrary(key,
-              CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          if (keys.contains(keyResult)) {
-            invalidKeys.add(key);
-          } else {
-            keys.add(keyResult);
-          }
-          DartType type = keyResult.type;
-          if (_implementsEqualsWhenNotAllowed(type)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-                key,
-                [type.displayName]);
-          }
-        }
-      } else {
-        // Note: we throw the errors away because this isn't actually a const.
-        AnalysisErrorListener errorListener =
-            AnalysisErrorListener.NULL_LISTENER;
-        ErrorReporter subErrorReporter =
-            new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result = key.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                typeSystem: _typeSystem),
-            subErrorReporter));
-        if (result != null) {
-          if (keys.contains(result)) {
-            invalidKeys.add(key);
-          } else {
-            keys.add(result);
-          }
-        } else {
-          reportEqualKeys = false;
-        }
-      }
-    }
-    if (reportEqualKeys) {
-      int length = invalidKeys.length;
-      for (int i = 0; i < length; i++) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
-      }
-    }
-    return null;
-  }
-
-  @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
-    super.visitMethodDeclaration(node);
-    _validateDefaultValues(node.parameters);
-    return null;
-  }
-
-  @override
-  Object visitSwitchStatement(SwitchStatement node) {
-    // TODO(paulberry): to minimize error messages, it would be nice to
-    // compare all types with the most popular type rather than the first
-    // type.
-    NodeList<SwitchMember> switchMembers = node.members;
-    bool foundError = false;
-    DartType firstType = null;
-    for (SwitchMember switchMember in switchMembers) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
-        DartObjectImpl caseResult = _validate(
-            expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-        if (caseResult != null) {
-          _reportErrorIfFromDeferredLibrary(
-              expression,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
-          DartObject value = caseResult;
-          if (firstType == null) {
-            firstType = value.type;
-          } else {
-            DartType nType = value.type;
-            if (firstType != nType) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-                  expression,
-                  [expression.toSource(), firstType.displayName]);
-              foundError = true;
-            }
-          }
-        }
-      }
-    }
-    if (!foundError) {
-      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
-    }
-    return super.visitSwitchStatement(node);
-  }
-
-  @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
-    super.visitVariableDeclaration(node);
-    Expression initializer = node.initializer;
-    if (initializer != null && (node.isConst || node.isFinal)) {
-      VariableElementImpl element = node.declaredElement as VariableElementImpl;
-      EvaluationResultImpl result = element.evaluationResult;
-      if (result == null) {
-        // Variables marked "const" should have had their values computed by
-        // ConstantValueComputer.  Other variables will only have had their
-        // values computed if the value was needed (e.g. final variables in a
-        // class containing const constructors).
-        assert(!node.isConst);
-        return null;
-      }
-      _reportErrors(result.errors,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
-      _reportErrorIfFromDeferredLibrary(
-          initializer,
-          CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
-    }
-    return null;
-  }
-
-  /// This verifies that the passed switch statement does not have a case
-  /// expression with the operator '==' overridden.
-  ///
-  /// @param node the switch statement to evaluate
-  /// @param type the common type of all 'case' expressions
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node.
-  /// See [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS].
-  bool _checkForCaseExpressionTypeImplementsEquals(
-      SwitchStatement node, DartType type) {
-    if (!_implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.switchKeyword,
-        [type.displayName]);
-    return true;
-  }
-
-  /// Verify that the given [type] does not reference any type parameters.
-  ///
-  /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
-  void _checkForConstWithTypeParameters(TypeAnnotation type) {
-    // something wrong with AST
-    if (type is! TypeName) {
-      return;
-    }
-    TypeName typeName = type;
-    Identifier name = typeName.name;
-    if (name == null) {
-      return;
-    }
-    // should not be a type parameter
-    if (name.staticElement is TypeParameterElement) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
-    }
-    // check type arguments
-    TypeArgumentList typeArguments = typeName.typeArguments;
-    if (typeArguments != null) {
-      for (TypeAnnotation argument in typeArguments.arguments) {
-        _checkForConstWithTypeParameters(argument);
-      }
-    }
-  }
-
-  /// @return `true` if given [Type] implements operator <i>==</i>, and it is
-  ///         not <i>int</i> or <i>String</i>.
-  bool _implementsEqualsWhenNotAllowed(DartType type) {
-    // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
-      return false;
-    } else if (type == _typeProvider.doubleType) {
-      return true;
-    }
-    // prepare ClassElement
-    Element element = type.element;
-    if (element is ClassElement) {
-      // lookup for ==
-      MethodElement method =
-          element.lookUpConcreteMethod("==", _currentLibrary);
-      if (method == null || method.enclosingElement.type.isObject) {
-        return false;
-      }
-      // there is == that we don't like
-      return true;
-    }
-    return false;
-  }
-
-  /// Given some computed [Expression], this method generates the passed
-  /// [ErrorCode] on the node if its' value consists of information from a
-  /// deferred library.
-  ///
-  /// @param expression the expression to be tested for a deferred library
-  ///        reference
-  /// @param errorCode the error code to be used if the expression is or
-  ///        consists of a reference to a deferred library
-  void _reportErrorIfFromDeferredLibrary(
-      Expression expression, ErrorCode errorCode) {
-    DeferredLibraryReferenceDetector referenceDetector =
-        new DeferredLibraryReferenceDetector();
-    expression.accept(referenceDetector);
-    if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(errorCode, expression);
-    }
-  }
-
-  /// Report any errors in the given list. Except for special cases, use the
-  /// given error code rather than the one reported in the error.
-  ///
-  /// @param errors the errors that need to be reported
-  /// @param errorCode the error code to be used
-  void _reportErrors(List<AnalysisError> errors, ErrorCode errorCode) {
-    int length = errors.length;
-    for (int i = 0; i < length; i++) {
-      AnalysisError data = errors[i];
-      ErrorCode dataErrorCode = data.errorCode;
-      if (identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
-          identical(dataErrorCode,
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
-          identical(
-              dataErrorCode,
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
-          identical(
-              dataErrorCode,
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
-          identical(dataErrorCode,
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
-        _errorReporter.reportError(data);
-      } else if (errorCode != null) {
-        _errorReporter.reportError(new AnalysisError(
-            data.source, data.offset, data.length, errorCode));
-      }
-    }
-  }
-
-  /// Validate that the given expression is a compile time constant. Return the
-  /// value of the compile time constant, or `null` if the expression is not a
-  /// compile time constant.
-  ///
-  /// @param expression the expression to be validated
-  /// @param errorCode the error code to be used if the expression is not a
-  ///        compile time constant
-  /// @return the value of the compile time constant
-  DartObjectImpl _validate(Expression expression, ErrorCode errorCode) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter subErrorReporter =
-        new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-            typeSystem: _typeSystem),
-        subErrorReporter));
-    _reportErrors(errorListener.errors, errorCode);
-    return result;
-  }
-
-  /// Validate that if the passed arguments are constant expressions.
-  ///
-  /// @param argumentList the argument list to evaluate
-  void _validateConstantArguments(ArgumentList argumentList) {
-    for (Expression argument in argumentList.arguments) {
-      Expression realArgument =
-          argument is NamedExpression ? argument.expression : argument;
-      _validate(
-          realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
-    }
-  }
-
-  /// Validates that the expressions of the initializers of the given constant
-  /// [constructor] are all compile time constants.
-  void _validateConstructorInitializers(ConstructorDeclaration constructor) {
-    List<ParameterElement> parameterElements =
-        constructor.parameters.parameterElements;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    for (ConstructorInitializer initializer in initializers) {
-      if (initializer is AssertInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.condition);
-        Expression message = initializer.message;
-        if (message != null) {
-          _validateInitializerExpression(parameterElements, message);
-        }
-      } else if (initializer is ConstructorFieldInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.expression);
-      } else if (initializer is RedirectingConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
-      } else if (initializer is SuperConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
-      }
-    }
-  }
-
-  /// Validate that the default value associated with each of the parameters in
-  /// the given list is a compile time constant.
-  ///
-  /// @param parameters the list of parameters to be validated
-  void _validateDefaultValues(FormalParameterList parameters) {
-    if (parameters == null) {
-      return;
-    }
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameter) {
-        Expression defaultValue = parameter.defaultValue;
-        DartObjectImpl result;
-        if (defaultValue == null) {
-          result =
-              new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
-        } else {
-          result = _validate(
-              defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          if (result != null) {
-            _reportErrorIfFromDeferredLibrary(
-                defaultValue,
-                CompileTimeErrorCode
-                    .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
-          }
-        }
-        VariableElementImpl element =
-            parameter.declaredElement as VariableElementImpl;
-        element.evaluationResult = new EvaluationResultImpl(result);
-      }
-    }
-  }
-
-  /// Validates that the expressions of any field initializers in the class
-  /// declaration are all compile time constants. Since this is only required if
-  /// the class has a constant constructor, the error is reported at the
-  /// constructor site.
-  ///
-  /// @param classDeclaration the class which should be validated
-  /// @param errorSite the site at which errors should be reported.
-  void _validateFieldInitializers(
-      ClassDeclaration classDeclaration, ConstructorDeclaration errorSite) {
-    NodeList<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (VariableDeclaration variableDeclaration
-            in member.fields.variables) {
-          Expression initializer = variableDeclaration.initializer;
-          if (initializer != null) {
-            // Ignore any errors produced during validation--if the constant
-            // can't be evaluated we'll just report a single error.
-            AnalysisErrorListener errorListener =
-                AnalysisErrorListener.NULL_LISTENER;
-            ErrorReporter subErrorReporter =
-                new ErrorReporter(errorListener, _errorReporter.source);
-            DartObjectImpl result = initializer.accept(new ConstantVisitor(
-                new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                    typeSystem: _typeSystem),
-                subErrorReporter));
-            if (result == null) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode
-                      .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                  errorSite,
-                  [variableDeclaration.name.name]);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /// Validates that the given expression is a compile time constant.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param expression the expression to validate
-  void _validateInitializerExpression(
-      List<ParameterElement> parameterElements, Expression expression) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter subErrorReporter =
-        new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(_typeProvider,
-            subErrorReporter, this, parameterElements, declaredVariables,
-            typeSystem: _typeSystem));
-    _reportErrors(errorListener.errors,
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    if (result != null) {
-      _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
-    }
-  }
-
-  /// Validates that all of the arguments of a constructor initializer are
-  /// compile time constants.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param argumentList the argument list to validate
-  void _validateInitializerInvocationArguments(
-      List<ParameterElement> parameterElements, ArgumentList argumentList) {
-    if (argumentList == null) {
-      return;
-    }
-    for (Expression argument in argumentList.arguments) {
-      _validateInitializerExpression(parameterElements, argument);
-    }
-  }
-
-  /// Validate that if the passed instance creation is 'const' then all its
-  /// arguments are constant expressions.
-  ///
-  /// @param node the instance creation evaluate
-  void _validateInstanceCreationArguments(InstanceCreationExpression node) {
-    if (!node.isConst) {
-      return;
-    }
-    ArgumentList argumentList = node.argumentList;
-    if (argumentList == null) {
-      return;
-    }
-    _validateConstantArguments(argumentList);
   }
 }
 
@@ -4415,10 +3816,14 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   /// resolution. The [nameScope] is the scope used to resolve identifiers in
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on the [definingLibrary].
-  InstanceFieldResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  InstanceFieldResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : super(inheritance, definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   /// Resolve the instance fields in the given compilation unit [node].
@@ -4593,10 +3998,14 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
   /// create the type analyzer.  If `null` or unspecified, a type analyzer of
   /// type [StaticTypeAnalyzer] will be created.
-  PartialResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  PartialResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : super(inheritance, definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   @override
@@ -4749,6 +4158,11 @@ class ResolverErrorCode extends ErrorCode {
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor {
+  /**
+   * The manager for the inheritance mappings.
+   */
+  final InheritanceManager2 inheritance;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -4814,8 +4228,12 @@ class ResolverVisitor extends ScopedVisitor {
   /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
   /// create the type analyzer.  If `null` or unspecified, a type analyzer of
   /// type [StaticTypeAnalyzer] will be created.
-  ResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  ResolverVisitor(
+      this.inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope nameScope,
       bool propagateTypes: true,
       reportConstEvaluationErrors: true})
@@ -5169,6 +4587,7 @@ class ResolverVisitor extends ScopedVisitor {
           _overrideManager.exitScope();
         }
       }
+      node.accept(elementResolver);
     } else if (operatorType == TokenType.BAR_BAR) {
       InferenceContext.setType(leftOperand, typeProvider.boolType);
       InferenceContext.setType(rightOperand, typeProvider.boolType);
@@ -5182,13 +4601,17 @@ class ResolverVisitor extends ScopedVisitor {
           _overrideManager.exitScope();
         }
       }
+      node.accept(elementResolver);
     } else {
-      // TODO(leafp): Do downwards inference using the declared type
-      // of the binary operator for other cases.
       if (operatorType == TokenType.QUESTION_QUESTION) {
         InferenceContext.setTypeFromNode(leftOperand, node);
       }
       leftOperand?.accept(this);
+
+      // Call ElementResolver.visitBinaryExpression to resolve the user-defined
+      // operator method, if applicable.
+      node.accept(elementResolver);
+
       if (operatorType == TokenType.QUESTION_QUESTION) {
         // Set the right side, either from the context, or using the information
         // from the left side if it is more precise.
@@ -5198,10 +4621,17 @@ class ResolverVisitor extends ScopedVisitor {
           contextType = leftType;
         }
         InferenceContext.setType(rightOperand, contextType);
+      } else {
+        var invokeType = node.staticInvokeType;
+        if (invokeType != null && invokeType.parameters.isNotEmpty) {
+          // If this is a user-defined operator, set the right operand context
+          // using the operator method's parameter type.
+          var rightParam = invokeType.parameters[0];
+          InferenceContext.setType(rightOperand, rightParam.type);
+        }
       }
       rightOperand?.accept(this);
     }
-    node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
   }
@@ -5823,6 +5253,20 @@ class ResolverVisitor extends ScopedVisitor {
       perBranchOverrides.add(elseOverrides);
       _overrideManager.mergeOverrides(perBranchOverrides);
     }
+    return null;
+  }
+
+  @override
+  Object visitIndexExpression(IndexExpression node) {
+    node.target?.accept(this);
+    node.accept(elementResolver);
+    var method = node.staticElement;
+    if (method != null && method.parameters.isNotEmpty) {
+      var indexParam = node.staticElement.parameters[0];
+      InferenceContext.setType(node.index, indexParam.type);
+    }
+    node.index?.accept(this);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10017,72 +9461,6 @@ class VariableResolverVisitor extends ScopedVisitor {
   @override
   Object visitTypeName(TypeName node) {
     return null;
-  }
-}
-
-class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
-  final ConstantVerifier verifier;
-
-  List<ParameterElement> parameterElements;
-
-  TypeSystem _typeSystem;
-
-  _ConstantVerifier_validateInitializerExpression(
-      TypeProvider typeProvider,
-      ErrorReporter errorReporter,
-      this.verifier,
-      this.parameterElements,
-      DeclaredVariables declaredVariables,
-      {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
-        super(
-            new ConstantEvaluationEngine(typeProvider, declaredVariables,
-                typeSystem: typeSystem),
-            errorReporter);
-
-  @override
-  DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    int length = parameterElements.length;
-    for (int i = 0; i < length; i++) {
-      ParameterElement parameterElement = parameterElements[i];
-      if (identical(parameterElement, element) && parameterElement != null) {
-        DartType type = parameterElement.type;
-        if (type != null) {
-          if (type.isDynamic) {
-            return new DartObjectImpl(
-                verifier._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._boolType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(
-              type, verifier._typeProvider.doubleType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._intType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.intType, IntState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._numType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.numType, NumState.UNKNOWN_VALUE);
-          } else if (_typeSystem.isSubtypeOf(type, verifier._stringType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.stringType, StringState.UNKNOWN_VALUE);
-          }
-          //
-          // We don't test for other types of objects (such as List, Map,
-          // Function or Type) because there are no operations allowed on such
-          // types other than '==' and '!=', which means that we don't need to
-          // know the type when there is no specific data about the state of
-          // such objects.
-          //
-        }
-        return new DartObjectImpl(
-            type is InterfaceType ? type : verifier._typeProvider.objectType,
-            GenericState.UNKNOWN_VALUE);
-      }
-    }
-    return super.visitSimpleIdentifier(node);
   }
 }
 

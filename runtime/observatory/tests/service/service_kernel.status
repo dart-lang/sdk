@@ -109,9 +109,11 @@ valid_source_locations_test: RuntimeError
 [ $compiler == dartk ]
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
 bad_reload_test: RuntimeError # Issue 34025
+coverage_optimized_function_test: Pass, Slow
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+pause_on_unhandled_async_exceptions2_test: Pass, Slow
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
 unused_changes_in_last_reload_test: RuntimeError
 
@@ -135,6 +137,11 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 eval_test: Pass, Slow
 
 [ $arch == x64 && $compiler == dartk && $mode == release && $system == windows ]
+code_test: RuntimeError
+get_object_rpc_test: RuntimeError
+get_stack_rpc_test: RuntimeError
+
+[ $arch == x64 && $compiler == dartk && $system == windows ]
 regexp_function_test: Pass, Crash # Issue http://dartbug.com/34422
 
 [ $compiler == app_jitk && $mode == debug ]
@@ -144,13 +151,12 @@ step_test: RuntimeError
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
+rewind_optimized_out_test: Pass, Slow
 
 [ $compiler == dartk && $system == windows ]
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
-coverage_leaf_function_test: RuntimeError
 coverage_optimized_function_test: Skip # Timeout
 field_script_test: Skip # Timeout
-get_source_report_test: RuntimeError
 get_vm_timeline_rpc_test: Skip # Issue 32137.
 issue_25465_test: Skip # Issues 32137 and 32138.
 issue_30555_test: Skip # Issues 32137 and 32138.
@@ -186,9 +192,6 @@ step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 [ $compiler == dartk && $system == windows && $strong ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
 breakpoint_in_parts_class_test: Skip # Timeout
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
 next_through_call_on_static_field_in_class_test: Skip # Timeout
 next_through_closure_test: Skip # Timeout
 next_through_for_each_loop_test: Skip # Timeout
@@ -204,9 +207,6 @@ step_through_getter_test: Skip # Timeout
 step_through_property_set_test: Skip # Timeout
 
 [ $compiler == dartk && $system == windows && !$strong ]
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
 next_through_simple_async_test: Skip # Timeout
 step_test: Skip # Timeout
 step_through_constructor_test: Skip # Timeout

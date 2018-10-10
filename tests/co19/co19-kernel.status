@@ -225,6 +225,7 @@ Language/Classes/Superinterfaces/implicit_interface_t01: CompileTimeError
 Language/Classes/Superinterfaces/implicit_interface_t02: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t01: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t02: CompileTimeError
+Language/Classes/Superinterfaces/no_member_t03: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t05: CompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/method_definition_t03: CompileTimeError
@@ -1274,16 +1275,6 @@ LibTest/collection/ListQueue/ListQueue_class_A01_t01: CompileTimeError
 LibTest/collection/MapBase/MapBase_class_A01_t01: CompileTimeError
 LibTest/collection/MapMixin/MapMixin_class_A01_t01: CompileTimeError
 LibTest/collection/MapView/MapView_class_A01_t01: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t01: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t02: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t04: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t05: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t06: CompileTimeError
-LibTest/collection/Maps/forEach_A01_t08: CompileTimeError
-LibTest/collection/Maps/forEach_A02_t01: CompileTimeError
-LibTest/collection/Maps/putIfAbsent_A01_t04: CompileTimeError
-LibTest/collection/Maps/putIfAbsent_A01_t07: CompileTimeError
-LibTest/collection/Maps/putIfAbsent_A01_t08: CompileTimeError
 LibTest/collection/Queue/Queue_class_A01_t01: CompileTimeError
 LibTest/collection/SetBase/SetBase_class_A01_t01: CompileTimeError
 LibTest/collection/SetBase/setToString_A01_t01: CompileTimeError

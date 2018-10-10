@@ -44,9 +44,9 @@ import 'kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelParserErrorGenerator,
         KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
@@ -94,6 +94,7 @@ import 'kernel_shadow_ast.dart'
         NullJudgment,
         RethrowJudgment,
         ReturnJudgment,
+        ShadowLargeIntLiteral,
         StringConcatenationJudgment,
         StringLiteralJudgment,
         SymbolLiteralJudgment,
@@ -112,6 +113,7 @@ import 'forest.dart'
         Forest,
         Generator,
         LoadLibraryBuilder,
+        Message,
         PrefixBuilder,
         PrefixUseGenerator,
         TypeDeclarationBuilder,
@@ -168,7 +170,13 @@ class Fangorn extends Forest {
 
   @override
   IntJudgment literalInt(int value, Token token) {
-    return new IntJudgment(value)..fileOffset = offsetForToken(token);
+    return new IntJudgment(value, token?.lexeme)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  ShadowLargeIntLiteral literalLargeInt(String literal, Token token) {
+    return new ShadowLargeIntLiteral(literal, offsetForToken(token));
   }
 
   @override
@@ -697,12 +705,6 @@ class Fangorn extends Forest {
   }
 
   @override
-  KernelIntAccessGenerator intAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token) {
-    return new KernelIntAccessGenerator(helper, token);
-  }
-
-  @override
   KernelUnresolvedNameGenerator unresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
     return new KernelUnresolvedNameGenerator(helper, token, name);
@@ -750,6 +752,12 @@ class Fangorn extends Forest {
       bool isUnresolved) {
     return new KernelUnexpectedQualifiedUseGenerator(
         helper, token, prefixGenerator, isUnresolved);
+  }
+
+  @override
+  KernelParserErrorGenerator parserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message) {
+    return new KernelParserErrorGenerator(helper, token, message);
   }
 }
 

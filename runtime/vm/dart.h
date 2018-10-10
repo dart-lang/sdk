@@ -24,19 +24,19 @@ class Program;
 
 class Dart : public AllStatic {
  public:
-  static char* InitOnce(const uint8_t* vm_snapshot_data,
-                        const uint8_t* vm_snapshot_instructions,
-                        Dart_IsolateCreateCallback create,
-                        Dart_IsolateShutdownCallback shutdown,
-                        Dart_IsolateCleanupCallback cleanup,
-                        Dart_ThreadExitCallback thread_exit,
-                        Dart_FileOpenCallback file_open,
-                        Dart_FileReadCallback file_read,
-                        Dart_FileWriteCallback file_write,
-                        Dart_FileCloseCallback file_close,
-                        Dart_EntropySource entropy_source,
-                        Dart_GetVMServiceAssetsArchive get_service_assets,
-                        bool start_kernel_isolate);
+  static char* Init(const uint8_t* vm_snapshot_data,
+                    const uint8_t* vm_snapshot_instructions,
+                    Dart_IsolateCreateCallback create,
+                    Dart_IsolateShutdownCallback shutdown,
+                    Dart_IsolateCleanupCallback cleanup,
+                    Dart_ThreadExitCallback thread_exit,
+                    Dart_FileOpenCallback file_open,
+                    Dart_FileReadCallback file_read,
+                    Dart_FileWriteCallback file_write,
+                    Dart_FileCloseCallback file_close,
+                    Dart_EntropySource entropy_source,
+                    Dart_GetVMServiceAssetsArchive get_service_assets,
+                    bool start_kernel_isolate);
   static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,

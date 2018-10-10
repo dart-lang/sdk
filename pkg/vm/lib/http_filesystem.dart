@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:front_end/src/api_unstable/build_integration.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 
 class HttpAwareFileSystem implements FileSystem {
   FileSystem original;

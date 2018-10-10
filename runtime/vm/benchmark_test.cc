@@ -22,9 +22,6 @@ using dart::bin::File;
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_dart_frontend);
-DECLARE_FLAG(bool, strong);
-
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
 const char* Benchmark::executable_ = NULL;

@@ -450,8 +450,8 @@ class ComplexTypeInfo implements TypeInfo {
 
   /// Given a builtin, return the receiver so that parseType will report
   /// an error for the builtin used as a type.
-  TypeInfo computeBuiltinAsType(bool required) {
-    assert(start.type.isBuiltIn);
+  TypeInfo computeBuiltinOrVarAsType(bool required) {
+    assert(start.type.isBuiltIn || optional('var', start));
 
     end = typeArguments.skip(start);
     computeRest(end.next, required);

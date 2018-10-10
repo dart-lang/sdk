@@ -48,7 +48,75 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _INVALID_UNICODE_ESCAPE,
   _INVALID_OPERATOR,
   _INVALID_HEX_ESCAPE,
+  _EXPECTED_INSTEAD,
+  _IMPLEMENTS_BEFORE_WITH,
+  _IMPLEMENTS_BEFORE_ON,
+  _IMPLEMENTS_BEFORE_EXTENDS,
+  _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
+  _EXTERNAL_AFTER_CONST,
+  _EXTERNAL_AFTER_FACTORY,
+  _EXTERNAL_AFTER_STATIC,
+  _EXTERNAL_METHOD_WITH_BODY,
+  _EXTERNAL_FIELD,
+  _ABSTRACT_CLASS_MEMBER,
+  _BREAK_OUTSIDE_OF_LOOP,
+  _CLASS_IN_CLASS,
+  _COLON_IN_PLACE_OF_IN,
+  _CONSTRUCTOR_WITH_RETURN_TYPE,
+  _CONST_AFTER_FACTORY,
+  _CONST_AND_COVARIANT,
+  _CONST_AND_FINAL,
+  _CONST_AND_VAR,
+  _CONST_CLASS,
+  _VAR_AS_TYPE_NAME,
 ];
+
+const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
+    'ABSTRACT_CLASS_MEMBER',
+    r"Members of classes can't be declared to be 'abstract'.",
+    correction:
+        "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
+    'BREAK_OUTSIDE_OF_LOOP',
+    r"A break statement can't be used outside of a loop or switch statement.",
+    correction: "Try removing the break statement.");
+
+const ParserErrorCode _CLASS_IN_CLASS = const ParserErrorCode(
+    'CLASS_IN_CLASS', r"Classes can't be declared inside other classes.",
+    correction: "Try moving the class to the top-level.");
+
+const ParserErrorCode _COLON_IN_PLACE_OF_IN = const ParserErrorCode(
+    'COLON_IN_PLACE_OF_IN', r"For-in loops use 'in' rather than a colon.",
+    correction: "Try replacing the colon with the keyword 'in'.");
+
+const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
+    'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
+    correction: "Try removing the return type.");
+
+const ParserErrorCode _CONST_AFTER_FACTORY = const ParserErrorCode(
+    'CONST_AFTER_FACTORY',
+    r"The modifier 'const' should be before the modifier 'factory'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _CONST_AND_COVARIANT = const ParserErrorCode(
+    'CONST_AND_COVARIANT',
+    r"Members can't be declared to be both 'const' and 'covariant'.",
+    correction: "Try removing either the 'const' or 'covariant' keyword.");
+
+const ParserErrorCode _CONST_AND_FINAL = const ParserErrorCode(
+    'CONST_AND_FINAL',
+    r"Members can't be declared to be both 'const' and 'final'.",
+    correction: "Try removing either the 'const' or 'final' keyword.");
+
+const ParserErrorCode _CONST_AND_VAR = const ParserErrorCode(
+    'CONST_AND_VAR', r"Members can't be declared to be both 'const' and 'var'.",
+    correction: "Try removing either the 'const' or 'var' keyword.");
+
+const ParserErrorCode _CONST_CLASS = const ParserErrorCode(
+    'CONST_CLASS', r"Classes can't be declared to be 'const'.",
+    correction:
+        "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).");
 
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'CONTINUE_OUTSIDE_OF_LOOP',
@@ -65,6 +133,24 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
 
+const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
+    'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
+
+const ParserErrorCode _EXTERNAL_AFTER_CONST = const ParserErrorCode(
+    'EXTERNAL_AFTER_CONST',
+    r"The modifier 'external' should be before the modifier 'const'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _EXTERNAL_AFTER_FACTORY = const ParserErrorCode(
+    'EXTERNAL_AFTER_FACTORY',
+    r"The modifier 'external' should be before the modifier 'factory'.",
+    correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _EXTERNAL_AFTER_STATIC = const ParserErrorCode(
+    'EXTERNAL_AFTER_STATIC',
+    r"The modifier 'external' should be before the modifier 'static'.",
+    correction: "Try re-ordering the modifiers.");
+
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",
     correction: "Try removing the keyword 'external'.");
@@ -72,6 +158,33 @@ const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
 const ParserErrorCode _EXTERNAL_ENUM = const ParserErrorCode(
     'EXTERNAL_ENUM', r"Enums can't be declared to be 'external'.",
     correction: "Try removing the keyword 'external'.");
+
+const ParserErrorCode _EXTERNAL_FIELD = const ParserErrorCode(
+    'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
+    correction: "Try removing the keyword 'external'.");
+
+const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = const ParserErrorCode(
+    'EXTERNAL_METHOD_WITH_BODY',
+    r"An external or native method can't have a body.");
+
+const ParserErrorCode _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE =
+    const ParserErrorCode('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
+        r"Illegal assignment to non-assignable expression.");
+
+const ParserErrorCode _IMPLEMENTS_BEFORE_EXTENDS = const ParserErrorCode(
+    'IMPLEMENTS_BEFORE_EXTENDS',
+    r"The extends clause must be before the implements clause.",
+    correction: "Try moving the extends clause before the implements clause.");
+
+const ParserErrorCode _IMPLEMENTS_BEFORE_ON = const ParserErrorCode(
+    'IMPLEMENTS_BEFORE_ON',
+    r"The on clause must be before the implements clause.",
+    correction: "Try moving the on clause before the implements clause.");
+
+const ParserErrorCode _IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
+    'IMPLEMENTS_BEFORE_WITH',
+    r"The with clause must be before the implements clause.",
+    correction: "Try moving the with clause before the implements clause.");
 
 const ParserErrorCode _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
@@ -235,6 +348,9 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _VAR_AS_TYPE_NAME = const ParserErrorCode(
+    'VAR_AS_TYPE_NAME', r"The keyword 'var' can't be used as a type name.");
 
 const ParserErrorCode _VAR_RETURN_TYPE = const ParserErrorCode(
     'VAR_RETURN_TYPE', r"The return type can't be 'var'.",

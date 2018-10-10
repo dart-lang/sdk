@@ -30,8 +30,6 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import '../../api_prototype/file_system.dart';
 
 import '../../base/instrumentation.dart'
@@ -73,6 +71,7 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
         templateSourceOutlineSummary,
+        templateDirectCyclicClassHierarchy,
         templateUntranslatableUri;
 
 import '../fasta_codes.dart' as fasta_codes;
@@ -584,9 +583,14 @@ class SourceLoader<L> extends Loader<L> {
                 .toList()
                   ..sort())
             .join("', '");
-        messages[templateCyclicClassHierarchy
-            .withArguments(cls.fullNameForErrors, involvedString)
-            .withLocation(cls.fileUri, cls.charOffset, noLength)] = cls;
+        LocatedMessage message = involvedString.isEmpty
+            ? templateDirectCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors)
+                .withLocation(cls.fileUri, cls.charOffset, noLength)
+            : templateCyclicClassHierarchy
+                .withArguments(cls.fullNameForErrors, involvedString)
+                .withLocation(cls.fileUri, cls.charOffset, noLength);
+        messages[message] = cls;
       });
 
       // Report all classes involved in a cycle, sorted to ensure stability as
@@ -795,16 +799,9 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
-    String name = cls.name;
-    TypeEnvironment env = new TypeEnvironment(coreTypes, hierarchy,
-        strongMode: target.strongMode);
-
-    if (cls.isAnonymousMixin) return;
-
-    if (env.isSubtypeOf(a.asInterfaceType, b.asInterfaceType)) return;
     addProblem(
         templateAmbiguousSupertypes.withArguments(
-            name, a.asInterfaceType, b.asInterfaceType),
+            cls.name, a.asInterfaceType, b.asInterfaceType),
         cls.fileOffset,
         noLength,
         cls.fileUri);
@@ -850,7 +847,8 @@ class SourceLoader<L> extends Loader<L> {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkAbstractMembers(coreTypes, hierarchy);
+        builder.checkAbstractMembers(
+            coreTypes, hierarchy, typeInferenceEngine.typeSchemaEnvironment);
       }
     }
     ticker.logMs("Checked abstract members");
@@ -1009,16 +1007,6 @@ class SourceLoader<L> extends Loader<L> {
         isTopLevel: isTopLevel);
   }
 
-  Expression throwCompileConstantError(Expression error) {
-    return target.backendTarget.throwCompileConstantError(coreTypes, error);
-  }
-
-  Expression buildProblem(Message message, int offset, int length, Uri uri) {
-    String text = target.context
-        .format(message.withLocation(uri, offset, length), Severity.error);
-    return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
-  }
-
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
       {List<LocatedMessage> context}) {
@@ -1086,6 +1074,8 @@ class SourceLoader<L> extends Loader<L> {
   }
 }
 
+/// A minimal implementation of dart:core that is sufficient to create an
+/// instance of [CoreTypes] and compile a program.
 const String defaultDartCoreSource = """
 import 'dart:_internal';
 import 'dart:async';
@@ -1141,6 +1131,8 @@ class _SyncIterator {
 }
 """;
 
+/// A minimal implementation of dart:async that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 

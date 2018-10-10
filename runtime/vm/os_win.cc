@@ -312,16 +312,15 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
+void OS::Init() {
   static bool init_once_called = false;
-  ASSERT(init_once_called == false);
+  if (init_once_called) {
+    return;
+  }
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  ThreadLocalData::InitOnce();
+  ThreadLocalData::Init();
   MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
   LARGE_INTEGER ticks_per_sec;
@@ -332,9 +331,9 @@ void OS::InitOnce() {
   }
 }
 
-void OS::Shutdown() {
+void OS::Cleanup() {
   // TODO(zra): Enable once VM can shutdown cleanly.
-  // ThreadLocalData::Shutdown();
+  // ThreadLocalData::Cleanup();
 }
 
 void OS::Abort() {

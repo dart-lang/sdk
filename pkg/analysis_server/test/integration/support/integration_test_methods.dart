@@ -395,6 +395,7 @@ abstract class IntegrationTestMixin {
    *   reachable from a given file, clients can check for its presence in the
    *   resulting key set.
    */
+  @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
     var params = new AnalysisGetReachableSourcesParams(file).toJson();
@@ -1505,16 +1506,30 @@ abstract class IntegrationTestMixin {
    * included: List<FilePath>
    *
    *   A list of the files and directories for which edits should be suggested.
-   *   If a request is made for a file which does not exist, or which is not
-   *   currently subject to analysis (e.g. because it is not associated with
-   *   any analysis root specified to analysis.setAnalysisRoots), an error of
-   *   type FORMAT_INVALID_FILE will be generated.
+   *
+   *   If a request is made with a path that is invalid, e.g. is not absolute
+   *   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+   *   generated. If a request is made for a file which does not exist, or
+   *   which is not currently subject to analysis (e.g. because it is not
+   *   associated with any analysis root specified to
+   *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
+   *   generated.
    *
    * Returns
    *
-   * description: List<String>
+   * descriptionOfFixes: List<String>
    *
    *   A list of human readable changes made by applying the fixes.
+   *
+   * otherRecommendations: List<String>
+   *
+   *   A list of human readable recommended changes that cannot be made
+   *   automatically.
+   *
+   * hasErrors: bool
+   *
+   *   True if the analyzed source contains errors that might impact the
+   *   correctness of the recommended fixes that can be automatically applied.
    *
    * fixes: List<SourceFileEdit>
    *

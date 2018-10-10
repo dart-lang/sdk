@@ -196,7 +196,7 @@ class AllocationFilter : public SampleFilter {
 static void EnableProfiler() {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
 }
 

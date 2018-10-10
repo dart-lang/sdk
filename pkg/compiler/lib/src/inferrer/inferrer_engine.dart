@@ -19,7 +19,6 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart';
-import '../kernel/element_map.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';

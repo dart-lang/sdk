@@ -460,10 +460,12 @@ class Object {
 
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
-  static void InitOnce(Isolate* isolate);
-  static void FinishInitOnce(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void FinishInit(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
   static void FinalizeReadOnlyObject(RawObject* object);
+
+  static void Cleanup();
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
@@ -2086,7 +2088,10 @@ class ICData : public Object {
                         TokenPosition token_pos) const;
 
   // Initialize the preallocated empty ICData entry arrays.
-  static void InitOnce();
+  static void Init();
+
+  // Clear the preallocated empty ICData entry arrays.
+  static void Cleanup();
 
   // We cache ICData with 0, 1, 2 arguments tested without exactness
   // tracking and with 1 argument tested with exactness tracking.
@@ -2693,12 +2698,6 @@ class Function : public Object {
   const char* ToLibNamePrefixedQualifiedCString() const;
 
   const char* ToQualifiedCString() const;
-
-  // Returns true if this function has parameters that are compatible with the
-  // parameters of the other function in order for this function to override the
-  // other function.
-  bool HasCompatibleParametersWith(const Function& other,
-                                   Error* bound_error) const;
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
@@ -4310,6 +4309,7 @@ class ObjectPool : public Object {
     kImmediate,
     kNativeFunction,
     kNativeFunctionWrapper,
+    kNativeEntryData,
   };
 
   enum Patchability {
@@ -4361,11 +4361,13 @@ class ObjectPool : public Object {
   }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT(TypeAt(index) == kTaggedObject);
+    ASSERT((TypeAt(index) == kTaggedObject) ||
+           (TypeAt(index) == kNativeEntryData));
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT(TypeAt(index) == kTaggedObject);
+    ASSERT((TypeAt(index) == kTaggedObject) ||
+           (TypeAt(index) == kNativeEntryData));
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
@@ -7110,6 +7112,16 @@ class Integer : public Number {
   RawInteger* ShiftOp(Token::Kind operation,
                       const Integer& other,
                       Heap::Space space = Heap::kNew) const;
+
+  static int64_t GetInt64Value(const RawInteger* obj) {
+    intptr_t raw_value = reinterpret_cast<intptr_t>(obj);
+    if ((raw_value & kSmiTagMask) == kSmiTag) {
+      return (raw_value >> kSmiTagShift);
+    } else {
+      ASSERT(obj->IsMint());
+      return reinterpret_cast<const RawMint*>(obj)->ptr()->value_;
+    }
+  }
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);

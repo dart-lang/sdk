@@ -227,6 +227,7 @@ class _DirectInvocation extends _Invocation {
         // TODO(alexmarkov): capture receiver type
         assertx((member is Procedure) && !member.isGetter && !member.isSetter);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
+        typeFlowAnalysis._tearOffTaken.add(member);
         return new Type.nullableAny();
       } else {
         // Call via getter.
@@ -345,6 +346,16 @@ class _DispatchableInvocation extends _Invocation {
           // Result of this invocation depends on the results of direct
           // invocations corresponding to each target.
           directInvocation.addDependentInvocation(this);
+
+          if (selector.callKind != CallKind.PropertyGet) {
+            if (selector is DynamicSelector) {
+              typeFlowAnalysis._calledViaDynamicSelector.add(target);
+            } else if (selector is VirtualSelector) {
+              typeFlowAnalysis._calledViaThis.add(target);
+            } else {
+              typeFlowAnalysis._calledViaInterfaceSelector.add(target);
+            }
+          }
         }
 
         result = result.union(type, typeFlowAnalysis.hierarchyCache);
@@ -1188,6 +1199,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
+  final Set<Member> _tearOffTaken = new Set<Member>();
+  final Set<Member> _calledViaDynamicSelector = new Set<Member>();
+  final Set<Member> _calledViaInterfaceSelector = new Set<Member>();
+  final Set<Member> _calledViaThis = new Set<Member>();
 
   TypeFlowAnalysis(this.target, Component component, CoreTypes coreTypes,
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
@@ -1235,6 +1250,23 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   Type fieldType(Field field) => _fieldValues[field]?.value;
 
   Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
+
+  bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
+
+  /// Returns true if this member is called dynamically.
+  /// Getters are not tracked. For fields, only setter is tracked.
+  bool isCalledDynamically(Member member) =>
+      _calledViaDynamicSelector.contains(member);
+
+  /// Returns true if this member is called via this call.
+  /// Getters are not tracked. For fields, only setter is tracked.
+  bool isCalledViaThis(Member member) => _calledViaThis.contains(member);
+
+  /// Returns true if this member is called via non-this call.
+  /// Getters are not tracked. For fields, only setter is tracked.
+  bool isCalledNotViaThis(Member member) =>
+      _calledViaDynamicSelector.contains(member) ||
+      _calledViaInterfaceSelector.contains(member);
 
   /// ---- Implementation of [CallHandler] interface. ----
 
@@ -1297,5 +1329,15 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       debugPrint("ADD ALLOCATED CLASS: $c");
     }
     return hierarchyCache.addAllocatedClass(c);
+  }
+
+  @override
+  void recordMemberCalledViaInterfaceSelector(Member target) {
+    _calledViaInterfaceSelector.add(target);
+  }
+
+  @override
+  void recordMemberCalledViaThis(Member target) {
+    _calledViaThis.add(target);
   }
 }

@@ -289,10 +289,17 @@ SemiSpace::~SemiSpace() {
 Mutex* SemiSpace::mutex_ = NULL;
 SemiSpace* SemiSpace::cache_ = NULL;
 
-void SemiSpace::InitOnce() {
-  ASSERT(mutex_ == NULL);
-  mutex_ = new Mutex();
+void SemiSpace::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
   ASSERT(mutex_ != NULL);
+}
+
+void SemiSpace::Cleanup() {
+  MutexLocker locker(mutex_);
+  delete cache_;
+  cache_ = NULL;
 }
 
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {

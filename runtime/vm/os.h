@@ -118,10 +118,10 @@ class OS {
   static void RegisterCodeObservers();
 
   // Initialize the OS class.
-  static void InitOnce();
+  static void Init();
 
-  // Shut down the OS class.
-  static void Shutdown();
+  // Cleanup the OS class.
+  static void Cleanup();
 
   static DART_NORETURN void Abort();
 

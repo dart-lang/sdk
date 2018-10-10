@@ -4553,6 +4553,15 @@ class C {
 ''');
   }
 
+  test_field_typed() async {
+    var library = await checkLibrary('class C { int x = 0; }');
+    checkElementText(library, r'''
+class C {
+  int x;
+}
+''');
+  }
+
   test_field_untyped() async {
     var library = await checkLibrary('class C { var x = 0; }');
     checkElementText(library, r'''
@@ -6028,21 +6037,21 @@ unit: null
     allowMissingFiles = true;
     shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
+import ':[invaliduri]';
+import ':[invaliduri]:foo.dart';
 import 'a1.dart';
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
+import ':[invaliduri]';
+import ':[invaliduri]:foo.dart';
 
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
+export ':[invaliduri]';
+export ':[invaliduri]:foo.dart';
 export 'a2.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
+export ':[invaliduri]';
+export ':[invaliduri]:foo.dart';
 
-part '[invalid uri]';
+part ':[invaliduri]';
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invaliduri]';
 ''');
     checkElementText(library, r'''
 import '<unresolved>';
@@ -7417,9 +7426,9 @@ unit: b.dart
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
 library my.lib;
-part '<unresolved>';
+part '';
 --------------------
-unit: null
+unit: foo
 
 ''');
   }
@@ -8531,13 +8540,6 @@ final int x;
 ''');
   }
 
-  test_variable_final_top_level_untyped() async {
-    var library = await checkLibrary('final v = 0;');
-    checkElementText(library, r'''
-final int v;
-''');
-  }
-
   test_variable_getterInLib_setterInPart() async {
     addSource('/a.dart', '''
 part of my.lib;
@@ -8607,6 +8609,34 @@ dynamic x;
   }
 
   test_variable_inferred_type_implicit_initialized() async {
+    var library = await checkLibrary('var v = 0;');
+    checkElementText(library, r'''
+int v;
+''');
+  }
+
+  test_variable_initializer() async {
+    var library = await checkLibrary('int v = 0;');
+    checkElementText(library, r'''
+int v;
+''');
+  }
+
+  test_variable_initializer_final() async {
+    var library = await checkLibrary('final int v = 0;');
+    checkElementText(library, r'''
+final int v;
+''');
+  }
+
+  test_variable_initializer_final_untyped() async {
+    var library = await checkLibrary('final v = 0;');
+    checkElementText(library, r'''
+final int v;
+''');
+  }
+
+  test_variable_initializer_untyped() async {
     var library = await checkLibrary('var v = 0;');
     checkElementText(library, r'''
 int v;

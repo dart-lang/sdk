@@ -245,7 +245,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
       ClassUse classUse = new ClassUse()
-        ..instance = true
+        ..directInstance = true
         ..checkedInstance = true
         ..typeArgument = true
         ..checkedTypeArgument = true
@@ -357,7 +357,10 @@ abstract class RuntimeTypesSubstitutionsMixin
       ClassEntity other = cls;
       while (other != null) {
         inheritedClasses.add(other);
-        if (_elementEnvironment.isMixinApplication(other)) {
+        if (classUse.instance &&
+            _elementEnvironment.isMixinApplication(other)) {
+          // We don't mixin [other] if [cls] isn't instantiated, directly or
+          // indirectly.
           inheritedClasses
               .add(_elementEnvironment.getEffectiveMixinClass(other));
         }
@@ -494,7 +497,9 @@ abstract class RuntimeTypesSubstitutionsMixin
 
     for (ClassEntity cls in classUseMap.keys) {
       ClassUse classUse = classUseMap[cls] ?? emptyUse;
-      if (classUse.instance || classUse.typeArgument || classUse.typeLiteral) {
+      if (classUse.directInstance ||
+          classUse.typeArgument ||
+          classUse.typeLiteral) {
         // Add checks only for classes that are live either as instantiated
         // classes or type arguments passed at runtime.
         computeChecks(cls);
@@ -1935,11 +1940,16 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
+    codegenWorldBuilder.instantiatedClasses.forEach((ClassEntity cls) {
+      ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+      classUse.instance = true;
+    });
+
     codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => new ClassUse());
-      classUse.instance = true;
+      classUse.directInstance = true;
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
         testedTypeVisitor.visitType(callType, TypeVisitorState.direct);
@@ -2838,14 +2848,25 @@ class ClassFunctionType {
 
 /// Runtime type usage for a class.
 class ClassUse {
-  /// Whether the class is instantiated.
+  /// Whether the class is directly or indirectly instantiated.
   ///
-  /// For instance `A` in:
+  /// For instance `A` and `B` in:
   ///
   ///     class A {}
-  ///     main() => new A();
+  ///     class B extends A {}
+  ///     main() => new B();
   ///
   bool instance = false;
+
+  /// Whether the class is directly instantiated.
+  ///
+  /// For instance `B` in:
+  ///
+  ///     class A {}
+  ///     class B extends A {}
+  ///     main() => new B();
+  ///
+  bool directInstance = false;
 
   /// Whether objects are checked to be instances of the class.
   ///
@@ -2895,12 +2916,15 @@ class ClassUse {
 
   /// `true` if the class is 'live' either through instantiation or use in
   /// type arguments.
-  bool get isLive => instance || typeArgument;
+  bool get isLive => directInstance || typeArgument;
 
   String toString() {
     List<String> properties = <String>[];
     if (instance) {
       properties.add('instance');
+    }
+    if (directInstance) {
+      properties.add('directInstance');
     }
     if (checkedInstance) {
       properties.add('checkedInstance');

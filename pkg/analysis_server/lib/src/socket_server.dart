@@ -27,7 +27,6 @@ class SocketServer {
    */
   final DartSdkManager sdkManager;
 
-  final DartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final DiagnosticServer diagnosticServer;
   final ResolverProvider fileResolverProvider;
@@ -43,7 +42,6 @@ class SocketServer {
   SocketServer(
       this.analysisServerOptions,
       this.sdkManager,
-      this.defaultSdk,
       this.instrumentationService,
       this.diagnosticServer,
       this.fileResolverProvider,

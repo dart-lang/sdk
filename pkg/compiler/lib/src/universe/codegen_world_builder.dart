@@ -8,6 +8,9 @@ part of world_builder;
 ///
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
+  /// All directly or indirectly instantiated classes.
+  Iterable<ClassEntity> get instantiatedClasses;
+
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
@@ -165,7 +168,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
-  final KernelToWorldBuilder _elementMap;
+  final JsToWorldBuilder _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
 
   final Set<DartType> _constTypeLiterals = new Set<DartType>();
@@ -179,7 +182,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       this._world,
       this.selectorConstraintsStrategy);
 
-  Iterable<ClassEntity> get processedClasses => _processedClasses.keys
+  Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
   /// All directly instantiated classes, that is, classes with a generative

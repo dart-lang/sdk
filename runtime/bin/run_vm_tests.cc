@@ -150,8 +150,15 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     isolate = Dart_CreateIsolate(
         DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
         isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
+    if (*error != NULL) {
+      free(*error);
+      *error = NULL;
+    }
   }
   if (isolate == NULL) {
+    delete isolate_data;
+    isolate_data = NULL;
+
     bin::dfe.Init();
     bin::dfe.LoadKernelService(&kernel_service_buffer,
                                &kernel_service_buffer_size);
@@ -268,25 +275,16 @@ static int Main(int argc, const char** argv) {
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  const char* error;
-  if (!start_kernel_isolate) {
-    int extra_argc = dart_argc + 3;
-    const char** extra_argv = new const char*[extra_argc];
-    for (intptr_t i = 0; i < dart_argc; i++) {
-      extra_argv[i] = dart_argv[i];
-    }
-    extra_argv[dart_argc] = "--no-strong";
-    extra_argv[dart_argc + 1] = "--no-reify_generic_functions";
-    extra_argv[dart_argc + 2] = "--no-sync-async";
-    error = Flags::ProcessCommandLineFlags(extra_argc, extra_argv);
-    delete[] extra_argv;
-    ASSERT(error == NULL);
-  } else {
-    error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-    ASSERT(error == NULL);
-  }
+  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  ASSERT(error == NULL);
 
-  error = Dart::InitOnce(
+  TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
+  TesterState::create_callback = CreateIsolateAndSetup;
+  TesterState::cleanup_callback = CleanupIsolate;
+  TesterState::argv = dart_argv;
+  TesterState::argc = dart_argc;
+
+  error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
       CleanupIsolate /* cleanup */, NULL /* thread_exit */,
@@ -304,9 +302,10 @@ static int Main(int argc, const char** argv) {
   error = Dart::Cleanup();
   ASSERT(error == NULL);
 
+  TestCaseBase::RunAllRaw();
+
   bin::EventHandler::Stop();
 
-  TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     bin::Log::PrintErr("No tests matched: %s\n", run_filter);

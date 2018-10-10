@@ -21,8 +21,8 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/one_phase.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an

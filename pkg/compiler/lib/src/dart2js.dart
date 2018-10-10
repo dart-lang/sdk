@@ -9,8 +9,6 @@ import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
@@ -132,7 +130,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showHints;
   bool enableColors;
   int optimizationLevel = null;
-  Uri platformBinaries = computePlatformBinariesLocation();
+  Uri platformBinaries = fe.computePlatformBinariesLocation();
   Map<String, String> environment = new Map<String, String>();
 
   void passThrough(String argument) => options.add(argument);
@@ -377,6 +375,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     // used without `--fast-startup`.
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
+
+    new OptionHandler(Flags.experimentLocalNames, passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

@@ -53,7 +53,7 @@ class CodeObserver {
 
 class CodeObservers : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
 
   static void Register(CodeObserver* observer);
 
@@ -68,7 +68,7 @@ class CodeObservers : public AllStatic {
   // Returns true if there is at least one active code observer.
   static bool AreActive();
 
-  static void DeleteAll();
+  static void Cleanup();
 
   static Mutex* mutex() { return mutex_; }
 

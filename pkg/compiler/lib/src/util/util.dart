@@ -4,8 +4,8 @@
 
 library dart2js.util;
 
-import 'package:front_end/src/fasta/scanner/characters.dart';
-import 'package:front_end/src/fasta/util/link.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link, LinkBuilder;
 
 export 'emptyset.dart';
 export 'maplet.dart';

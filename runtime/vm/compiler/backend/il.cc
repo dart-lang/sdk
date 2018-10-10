@@ -2167,9 +2167,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
     case Token::kBIT_NOT:
       if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value());
+        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
       } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value());
+        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
       }
       break;
 
@@ -3994,7 +3994,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
       HasICData()) {
     ASSERT(HasICData());
-    if (ic_data()->NumberOfUsedChecks() > 0) {
+    if (compiler->is_optimizing() && (ic_data()->NumberOfUsedChecks() > 0)) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),

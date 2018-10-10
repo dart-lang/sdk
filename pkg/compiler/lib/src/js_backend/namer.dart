@@ -6,7 +6,9 @@ library js_backend.namer;
 
 import 'dart:collection' show HashMap;
 
-import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
+
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
@@ -1583,8 +1585,9 @@ class Namer {
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
+      String className = member.enclosingClass.name.replaceAll('&', '_');
       String invocationName = operatorNameToIdentifier(member.name);
-      return "super\$${member.enclosingClass.name}\$$invocationName";
+      return "super\$${className}\$$invocationName";
     });
   }
 

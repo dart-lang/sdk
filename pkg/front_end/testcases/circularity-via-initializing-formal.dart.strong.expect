@@ -18,7 +18,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field self::C f = new self::C::_circular(null);
-  constructor _circular(self::C f) → void
+  constructor _circular(self::C f) → self::C
     : self::C::f = f, super core::Object::•()
     ;
 }

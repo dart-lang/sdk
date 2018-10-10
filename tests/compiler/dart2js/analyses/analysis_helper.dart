@@ -37,8 +37,6 @@ run(Uri entryPoint, String allowedListPath, List<String> analyzedPaths,
   });
 }
 
-// TODO(johnniwinther): Handle dynamic access of Object properties/methods
-// separately.
 class DynamicVisitor extends StaticTypeTraversalVisitor {
   final DiagnosticReporter reporter;
   final ir.Component component;
@@ -228,9 +226,10 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
 
   @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) {
-    ir.DartType type = visitNode(node.receiver);
-    ir.DartType result = computePropertyGetType(node, type);
-    if (type is ir.DynamicType) {
+    ir.DartType receiverType = visitNode(node.receiver);
+    ir.DartType result = computePropertyGetType(node, receiverType);
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    if (receiverType is ir.DynamicType) {
       reportError(node, "Dynamic access of '${node.name}'.");
     }
     return result;
@@ -238,9 +237,10 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
 
   @override
   ir.DartType visitPropertySet(ir.PropertySet node) {
-    ir.DartType type = visitNode(node.receiver);
+    ir.DartType receiverType = visitNode(node.receiver);
     ir.DartType result = visitNode(node.value);
-    if (type is ir.DynamicType) {
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    if (receiverType is ir.DynamicType) {
       reportError(node, "Dynamic update to '${node.name}'.");
     }
     return result;
@@ -248,17 +248,14 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
 
   @override
   ir.DartType visitMethodInvocation(ir.MethodInvocation node) {
-    ir.DartType type = visitNode(node.receiver);
-    ir.DartType result = computeMethodInvocationType(node, type);
+    ir.DartType receiverType = visitNode(node.receiver);
+    ir.DartType result = computeMethodInvocationType(node, receiverType);
     if (!isSpecialCasedBinaryOperator(node.interfaceTarget)) {
       visitNodes(node.arguments.positional);
       visitNodes(node.arguments.named);
     }
-    if (node.name.name == '==' &&
-        node.arguments.positional.single is ir.NullLiteral) {
-      return result;
-    }
-    if (type is ir.DynamicType) {
+    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    if (receiverType is ir.DynamicType) {
       reportError(node, "Dynamic invocation of '${node.name}'.");
     }
     return result;

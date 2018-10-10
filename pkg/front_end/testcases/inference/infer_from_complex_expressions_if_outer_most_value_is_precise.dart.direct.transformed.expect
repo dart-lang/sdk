@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int x = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   operator +(dynamic other) → self::B
     return null;
 }
 class B extends self::A {
-  constructor •(dynamic ignore) → void
+  constructor •(dynamic ignore) → self::B
     : super self::A::•()
     ;
 }

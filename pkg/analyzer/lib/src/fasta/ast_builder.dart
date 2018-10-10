@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/parser.dart'
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show BeginToken, SyntheticBeginToken, SyntheticStringToken, SyntheticToken;
+    show SyntheticStringToken, SyntheticToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -1771,7 +1771,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleClassExtends(Token extendsKeyword) {
-    assert(optionalOrNull('extends', extendsKeyword));
+    assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
     TypeName supertype = pop();
@@ -1857,7 +1857,7 @@ class AstBuilder extends StackListener {
     WithClause withClause = pop(NullValue.WithClause);
     ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     ClassDeclaration declaration = declarations.last;
-    if (extendsClause != null && !extendsClause.extendsKeyword.isSynthetic) {
+    if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
       }
@@ -1892,7 +1892,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
-    assert(optionalOrNull('on', onKeyword));
+    assert(onKeyword == null || onKeyword.isKeywordOrIdentifier);
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
@@ -2040,7 +2040,7 @@ class AstBuilder extends StackListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+    if (message.code.analyzerCodes == null && startToken is ErrorToken) {
       translateErrorToken(startToken, errorReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
@@ -2161,6 +2161,8 @@ class AstBuilder extends StackListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null);
 
     if (typeParameters != null) {
       // TODO(danrubel): Update OutlineBuilder to report this error message.
@@ -2366,6 +2368,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
 
+    assert(parameters != null || optional('get', getOrSet));
+
     ConstructorName redirectedConstructor;
     FunctionBody body;
     if (bodyObject is FunctionBody) {
@@ -2377,30 +2381,6 @@ class AstBuilder extends StackListener {
     } else {
       unhandled("${bodyObject.runtimeType}", "bodyObject",
           beginToken.charOffset, uri);
-    }
-
-    if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
-      Token token = typeParameters?.endToken;
-      if (token == null) {
-        if (name is AstNode) {
-          token = name.endToken;
-        } else if (name is _OperatorName) {
-          token = name.name.endToken;
-        } else {
-          throw new UnimplementedError();
-        }
-      }
-      Token next = token.next;
-      int offset = next.charOffset;
-      BeginToken leftParen =
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
-      token.setNext(leftParen);
-      Token rightParen =
-          leftParen.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
-      leftParen.endGroup = rightParen;
-      rightParen.setNext(next);
-      parameters = ast.formalParameterList(
-          leftParen, <FormalParameter>[], null, null, rightParen);
     }
 
     ClassOrMixinDeclarationImpl declaration =
@@ -2773,7 +2753,9 @@ class AstBuilder extends StackListener {
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
-        message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
+        (message.code.analyzerCodes
+                ?.contains('NON_PART_OF_DIRECTIVE_IN_PART') ??
+            false)) {
       message = messageDirectiveAfterDeclaration;
     }
     errorReporter.reportMessage(message, charOffset, length);

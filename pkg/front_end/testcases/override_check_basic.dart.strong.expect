@@ -4,7 +4,7 @@
 // Change to a subtype of #lib1::A.
 //   Object /*@error=OverrideTypeMismatchReturnType*/ f4() {}
 //                                                    ^
-// pkg/front_end/testcases/override_check_basic.dart:15:5: Error: This is the overridden method ('f4').
+// pkg/front_end/testcases/override_check_basic.dart:15:5: Context: This is the overridden method ('f4').
 //   A f4() {}
 //     ^
 //
@@ -12,7 +12,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //   void f3({B /*@error=OverrideTypeMismatchParameter*/ x}) {}
 //                                                       ^
-// pkg/front_end/testcases/override_check_basic.dart:14:8: Error: This is the overridden method ('f3').
+// pkg/front_end/testcases/override_check_basic.dart:14:8: Context: This is the overridden method ('f3').
 //   void f3({A x}) {}
 //        ^
 //
@@ -20,7 +20,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //   void f1(B /*@error=OverrideTypeMismatchParameter*/ x) {}
 //                                                      ^
-// pkg/front_end/testcases/override_check_basic.dart:12:8: Error: This is the overridden method ('f1').
+// pkg/front_end/testcases/override_check_basic.dart:12:8: Context: This is the overridden method ('f1').
 //   void f1(A x) {}
 //        ^
 //
@@ -28,7 +28,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //   void f2([B /*@error=OverrideTypeMismatchParameter*/ x]) {}
 //                                                       ^
-// pkg/front_end/testcases/override_check_basic.dart:13:8: Error: This is the overridden method ('f2').
+// pkg/front_end/testcases/override_check_basic.dart:13:8: Context: This is the overridden method ('f2').
 //   void f2([A x]) {}
 //        ^
 
@@ -59,17 +59,17 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method f1(self::A x) → void {}
@@ -78,7 +78,7 @@ class C extends core::Object {
   method f4() → self::A {}
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   method f1(core::Object x) → void {}
@@ -87,7 +87,7 @@ class D extends self::C {
   method f4() → self::B {}
 }
 class E extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     : super self::C::•()
     ;
   method f1(self::B x) → void {}

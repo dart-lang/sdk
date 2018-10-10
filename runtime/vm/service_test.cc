@@ -30,7 +30,10 @@ class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
 
-  ~ServiceTestMessageHandler() { free(_msg); }
+  ~ServiceTestMessageHandler() {
+    PortMap::ClosePorts(this);
+    free(_msg);
+  }
 
   MessageStatus HandleMessage(Message* message) {
     if (_msg != NULL) {
@@ -792,7 +795,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 static void EnableProfiler() {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
 }
 

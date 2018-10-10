@@ -37,8 +37,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../kernel/element_map.dart';
-import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';

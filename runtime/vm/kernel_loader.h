@@ -21,8 +21,10 @@ class KernelLoader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelLoader* loader, Thread* thread)
-      : TranslationHelper(thread), loader_(loader) {}
+  BuildingTranslationHelper(KernelLoader* loader,
+                            Thread* thread,
+                            Heap::Space space)
+      : TranslationHelper(thread, space), loader_(loader) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
@@ -221,6 +223,7 @@ class KernelLoader : public ValueObject {
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
 
+  void ReadInferredType(const Field& field, intptr_t kernel_offset);
   void CheckForInitializer(const Field& field);
 
   void FixCoreLibraryScriptUri(const Library& library, const Script& script);
@@ -340,6 +343,7 @@ class KernelLoader : public ValueObject {
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
   TypeTranslator type_translator_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
 
   Class& external_name_class_;
   Field& external_name_field_;

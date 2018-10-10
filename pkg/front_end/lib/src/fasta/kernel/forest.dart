@@ -36,7 +36,11 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
 
+import '../fasta_codes.dart' show Message;
+
 import '../scanner.dart' show Token;
+
+export '../fasta_codes.dart' show Message;
 
 export 'body_builder.dart' show Operator;
 
@@ -84,6 +88,8 @@ abstract class Forest {
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
   Expression literalInt(int value, Token location);
+
+  Expression literalLargeInt(String literal, Token location);
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -386,9 +392,6 @@ abstract class Forest {
   Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Expression expression, String plainNameForRead);
 
-  Generator intAccessGenerator(
-      ExpressionGeneratorHelper helper, Token location);
-
   Generator unresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token location, Name name);
 
@@ -410,6 +413,9 @@ abstract class Forest {
 
   Generator unexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, Generator prefixGenerator, bool isUnresolved);
+
+  Generator parserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message);
 
   // TODO(ahe): Remove this method when all users are moved here.
   Arguments castArguments(Arguments arguments) {

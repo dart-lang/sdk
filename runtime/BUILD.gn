@@ -184,6 +184,12 @@ config("dart_config") {
   }
 }
 
+config("dart_shared_lib") {
+  if (dart_lib_export_symbols) {
+    defines = [ "DART_SHARED_LIB" ]
+  }
+}
+
 source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
@@ -204,6 +210,7 @@ library_for_all_configs("libdart") {
     "vm:libdart_lib",
     "vm:libdart_vm",
   ]
+  extra_configs = [ ":dart_shared_lib" ]
   include_dirs = [ "." ]
   public_configs = [ ":dart_public_config" ]
   sources = [
@@ -215,7 +222,6 @@ library_for_all_configs("libdart") {
     "vm/native_api_impl.cc",
     "vm/version.h",
   ]
-  defines = [ "DART_SHARED_LIB" ]
 }
 
 action("generate_version_cc_file") {

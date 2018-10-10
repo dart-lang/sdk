@@ -5,19 +5,30 @@
 import 'dart:async' show Future;
 
 import 'package:kernel/kernel.dart' show Component;
+
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/file_system.dart';
-import '../api_prototype/standard_file_system.dart';
-import '../base/processed_options.dart';
-import '../kernel_generator_impl.dart';
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-import '../api_prototype/compiler_options.dart';
-import 'compiler_state.dart';
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
-export 'compiler_state.dart';
+import '../api_prototype/file_system.dart' show FileSystem;
 
-export '../api_prototype/compilation_message.dart';
+import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../kernel_generator_impl.dart' show generateKernel;
+
+import 'compiler_state.dart' show InitializedCompilerState;
+
+export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../fasta/severity.dart' show Severity;
+
+export 'compiler_state.dart' show InitializedCompilerState;
+
+export 'vm.dart' show printDiagnosticMessage;
 
 class DdcResult {
   final Component component;
@@ -66,8 +77,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
     ..target = target
-    ..fileSystem = fileSystem ?? StandardFileSystem.instance
-    ..reportMessages = true;
+    ..fileSystem = fileSystem ?? StandardFileSystem.instance;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -75,9 +85,9 @@ Future<InitializedCompilerState> initializeCompiler(
 }
 
 Future<DdcResult> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, ErrorHandler errorHandler) async {
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
   CompilerOptions options = compilerState.options;
-  options..onError = errorHandler;
+  options..onDiagnostic = diagnosticMessageHandler;
 
   ProcessedOptions processedOpts = compilerState.processedOpts;
   processedOpts.inputs.clear();

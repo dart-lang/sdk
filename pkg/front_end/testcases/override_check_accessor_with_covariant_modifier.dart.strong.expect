@@ -4,7 +4,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //       B /*@error=OverrideTypeMismatchParameter*/ value) {} // Not covariant
 //                                                  ^
-// pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:15:12: Error: This is the overridden method ('x4').
+// pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:15:12: Context: This is the overridden method ('x4').
 //   void set x4(A value) {}
 //            ^
 //
@@ -12,7 +12,7 @@
 // Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
 //       covariant String /*@error=OverrideTypeMismatchParameter*/ value) {}
 //                                                                 ^
-// pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:16:12: Error: This is the overridden method ('x5').
+// pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:16:12: Context: This is the overridden method ('x5').
 //   void set x5(covariant A value) {}
 //            ^
 
@@ -33,17 +33,17 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   set x1(covariant self::A value) → void {}
@@ -54,7 +54,7 @@ class C extends core::Object {
   set x6(covariant self::B value) → void {}
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   set x1(covariant self::B value) → void {}

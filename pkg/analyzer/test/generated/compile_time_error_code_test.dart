@@ -1511,12 +1511,7 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
-    // ought to be suppressed.
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONST,
-      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     verify([source]);
   }
 
@@ -1542,11 +1537,8 @@ class A {
 }
 f(p) { return const A(p); }''');
     await computeAnalysisResult(source);
-    // TODO(paulberry): the error INVALID_CONSTANT is redundant and ought to be
-    // suppressed.
     assertErrors(source, [
       CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
-      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
     verify([source]);
   }
@@ -2649,10 +2641,17 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_String_num() async {
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -2722,10 +2721,17 @@ class A {}
 class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -3137,6 +3143,23 @@ class A {
     assertErrors(
         source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
     verify([source]);
+  }
+
+  test_instantiate_to_bounds_not_matching_bounds() async {
+    Source source = addSource('''
+class Foo<T> {}
+class Bar<T extends Foo<T>> {}
+class Baz extends Bar {}
+void main() {}
+''');
+    var result = await computeAnalysisResult(source);
+    // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>"
+    expect(result.unit.declaredElement.getType('Baz').supertype.toString(),
+        'Bar<Foo<dynamic>>');
+    // Therefore there should be an error, since Bar's type argument T is Foo,
+    // which doesn't extends Foo<T>.
+    assertErrors(
+        source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
   test_instantiateEnum_const() async {
@@ -4231,9 +4254,8 @@ class C = A with String;''');
 class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (enableNewAnalysisDriver) {
       assertErrors(source, [
-        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
       ]);
@@ -5533,6 +5555,24 @@ const y = x + 1;''');
     verify([source]);
   }
 
+  test_recursiveCompileTimeConstant_fromMapLiteral() async {
+    resourceProvider.newFile(
+      resourceProvider.convertPath('/constants.dart'),
+      r'''
+const int x = y;
+const int y = x;
+''',
+    );
+    Source source = addSource(r'''
+import 'constants.dart';
+final z = {x: 0, y: 1};
+''');
+    await computeAnalysisResult(source);
+    // No errors, because the cycle is not in this source.
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
     Source source = addSource('''
 const y = const C();
@@ -5560,6 +5600,28 @@ const x = x;
       assertErrors(source, [
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
         StrongModeCode.TOP_LEVEL_CYCLE
+      ]);
+    }
+    verify([source]);
+  }
+
+  test_recursiveCompileTimeConstant_singleVariable_fromConstList() async {
+    Source source = addSource(r'''
+const elems = const [
+  const [
+    1, elems, 3,
+  ],
+];
+''');
+    await computeAnalysisResult(source);
+    if (!enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE,
       ]);
     }
     verify([source]);
@@ -6252,8 +6314,10 @@ typedef A B();''');
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     Source source = addSource("typedef A<T extends A<int>>();");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+    ]);
     verify([source]);
   }
 
@@ -6268,6 +6332,18 @@ f() { return const G<B>(); }''');
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+
+  test_typedef_infiniteParameterBoundCycle() async {
+    Source source = addSource(r'''
+typedef F<X extends F> = F Function();
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
     verify([source]);
   }
 

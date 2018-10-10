@@ -2259,9 +2259,9 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  const char* receiver_id = js->LookupParam("receiverId");
+  const char* receiver_id = js->LookupParam("targetId");
   if (receiver_id == NULL) {
-    PrintMissingParamError(js, "receiverId");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
   const char* selector_cstr = js->LookupParam("selector");
@@ -2285,7 +2285,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintSentinel(js, kExpiredSentinel);
     } else {
-      PrintInvalidParamError(js, "receiverId");
+      PrintInvalidParamError(js, "targetId");
     }
     return true;
   }
@@ -2369,7 +2369,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
   js->PrintError(kInvalidParams,
-                 "%s: invalid 'receiverId' parameter: "
+                 "%s: invalid 'targetId' parameter: "
                  "Cannot invoke against a VM-internal object",
                  js->method());
   return true;
@@ -2382,8 +2382,14 @@ static const MethodParameter* evaluate_params[] = {
 static bool IsAlpha(char c) {
   return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
+static bool IsAlphaOrDollar(char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '$');
+}
 static bool IsAlphaNum(char c) {
   return (c >= '0' && c <= '9') || IsAlpha(c);
+}
+static bool IsAlphaNumOrDollar(char c) {
+  return (c >= '0' && c <= '9') || IsAlphaOrDollar(c);
 }
 static bool IsWhitespace(char c) {
   return c <= ' ';
@@ -2409,8 +2415,8 @@ static bool ParseScope(const char* scope,
     if (*c == '}') return true;
 
     const char* name = c;
-    if (!IsAlpha(*c)) return false;
-    while (IsAlphaNum(*c)) {
+    if (!IsAlphaOrDollar(*c)) return false;
+    while (IsAlphaNumOrDollar(*c)) {
       c++;
     }
     names->Add(zone->MakeCopyOfStringN(name, c - name));
@@ -3755,7 +3761,7 @@ static const MethodParameter* enable_profiler_params[] = {
 static bool EnableProfiler(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
   PrintSuccess(js);
   return true;
@@ -3931,19 +3937,12 @@ static const MethodParameter* collect_all_garbage_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
 
-#if defined(DEBUG)
 static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectAllGarbage(Heap::kDebugging);
   PrintSuccess(js);
   return true;
 }
-#else
-static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
-  PrintSuccess(js);
-  return true;
-}
-#endif  // defined(DEBUG)
 
 static const MethodParameter* get_heap_map_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,

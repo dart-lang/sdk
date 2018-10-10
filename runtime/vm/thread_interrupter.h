@@ -22,10 +22,10 @@ struct InterruptedThreadState {
 
 class ThreadInterrupter : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
 
   static void Startup();
-  static void Shutdown();
+  static void Cleanup();
 
   // Delay between interrupts.
   static void SetInterruptPeriod(intptr_t period);

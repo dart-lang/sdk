@@ -5,7 +5,7 @@
 import 'dart:math' as math;
 import 'dart:collection' show Queue;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/names.dart';
@@ -184,6 +184,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * copies to perform on block transitioning.
    */
   VariableNames variableNames;
+
+  /// `true` when we need to generate a `var` declaration at function entry,
+  /// `false` if we can generate a `var` declaration at first assignment in the
+  /// middle of the function.
   bool shouldGroupVarDeclarations = false;
 
   /**
@@ -370,6 +374,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
+    new SsaShareRegionConstants(_options).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
     intervalBuilder.visitGraph(graph);
@@ -384,6 +389,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
+    if (_options.experimentLocalNames) {
+      handleDelayedVariableDeclarations2(sourceInformation);
+      return;
+    }
+
     // If we have only one variable declaration and the first statement is an
     // assignment to that variable then we can merge the two.  We count the
     // number of variables in the variable allocator to try to avoid this issue,
@@ -422,10 +432,60 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
       var declarationList = new js.VariableDeclarationList(declarations)
           .withSourceInformation(sourceInformation);
-      ;
       insertStatementAtStart(new js.ExpressionStatement(declarationList));
     }
   }
+
+  void handleDelayedVariableDeclarations2(SourceInformation sourceInformation) {
+    // Create 'var' list at the start of function.  Move assignment statements
+    // from the top of the body into the variable initializers.
+    if (collectedVariableDeclarations.isEmpty) return;
+
+    List<js.VariableInitialization> declarations = [];
+    List<js.Statement> statements = currentContainer.statements;
+    int nextStatement = 0;
+
+    while (nextStatement < statements.length) {
+      if (collectedVariableDeclarations.isEmpty) break;
+      js.Statement statement = statements[nextStatement];
+      if (statement is js.ExpressionStatement) {
+        js.Expression expression = statement.expression;
+        if (expression is js.Assignment && !expression.isCompound) {
+          js.Expression left = expression.leftHandSide;
+          if (left is js.VariableReference) {
+            String name = left.name;
+            js.Expression value = expression.value;
+            if (_safeInInitializer(value) &&
+                collectedVariableDeclarations.remove(name)) {
+              var initialization = new js.VariableInitialization(
+                      new js.VariableDeclaration(name), value)
+                  .withSourceInformation(expression.sourceInformation);
+              declarations.add(initialization);
+              ++nextStatement;
+              continue;
+            }
+          }
+        }
+      }
+      break;
+    }
+
+    List<js.VariableInitialization> uninitialized = [];
+    for (String name in collectedVariableDeclarations) {
+      uninitialized.add(new js.VariableInitialization(
+          new js.VariableDeclaration(name), null));
+    }
+    var declarationList =
+        new js.VariableDeclarationList(uninitialized + declarations)
+            .withSourceInformation(sourceInformation);
+    statements.replaceRange(
+        0, nextStatement, [new js.ExpressionStatement(declarationList)]);
+  }
+
+  // An expression is safe to be pulled into a 'var' initializer if it does not
+  // contain assignments to locals. We don't generate assignments to locals
+  // inside expressions.
+  bool _safeInInitializer(js.Expression node) => true;
 
   visitGraph(HGraph graph) {
     preGenerateMethod(graph);
@@ -1399,6 +1459,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.right);
     push(new js.Binary(op, jsLeft, pop())
         .withSourceInformation(sourceInformation));
+  }
+
+  visitLateValue(HLateValue node) {
+    use(node.target);
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {

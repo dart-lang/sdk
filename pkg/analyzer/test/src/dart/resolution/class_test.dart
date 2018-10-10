@@ -1291,7 +1291,7 @@ class C {
     expect(method.isStatic, isTrue);
   }
 
-  test_inconsistentMethodInheritance_parameterType() async {
+  test_inconsistentInheritance_parameterType() async {
     addTestFile(r'''
 abstract class A {
   x(int i);
@@ -1303,11 +1303,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_requiredParameters() async {
+  test_inconsistentInheritance_requiredParameters() async {
     addTestFile(r'''
 abstract class A {
   x();
@@ -1319,11 +1319,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritance_returnType() async {
+  test_inconsistentInheritance_returnType() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1335,11 +1335,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_getter_method() async {
+  test_inconsistentInheritanceGetterAndMethod_getter_method() async {
     addTestFile(r'''
 abstract class A {
   int get x;
@@ -1351,11 +1351,11 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
-  test_inconsistentMethodInheritanceGetterAndMethod_method_getter() async {
+  test_inconsistentInheritanceGetterAndMethod_method_getter() async {
     addTestFile(r'''
 abstract class A {
   int x();
@@ -1367,7 +1367,7 @@ abstract class C implements A, B {}
 ''');
     await resolveTestFile();
     assertTestErrors([
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
@@ -1482,7 +1482,9 @@ class M {}
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
     ]);
   }
 
@@ -1539,7 +1541,6 @@ class C extends C {
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
       StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
     ]);
   }
 

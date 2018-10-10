@@ -41,9 +41,7 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.
   void registerInstantiatedClass(KClass class_) {
-    ClassDefinition definition = _elementMap.getClassDefinition(class_);
-    assert(definition.kind == ClassKind.regular);
-    ir.Class classNode = definition.node;
+    ir.Class classNode = _elementMap.getClassNode(class_);
 
     Set<ir.Field> nulls = new Set<ir.Field>();
     for (ir.Field field in classNode.fields) {

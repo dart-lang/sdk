@@ -95,33 +95,6 @@ Element _getKnownElement(Expression expression) {
   return null;
 }
 
-/// Return the field on type corresponding to member, or null if none
-/// exists or the "field" is actually a getter/setter.
-FieldElement _getMemberField(
-    InterfaceType type, PropertyAccessorElement member) {
-  String memberName = member.name;
-  FieldElement field;
-  if (member.isGetter) {
-    // The subclass member is an explicit getter or a field
-    // - lookup the getter on the superclass.
-    var getter = type.getGetter(memberName);
-    if (getter == null || getter.isStatic) return null;
-    field = getter.variable;
-  } else if (!member.isSynthetic) {
-    // The subclass member is an explicit setter
-    // - lookup the setter on the superclass.
-    // Note: an implicit (synthetic) setter would have already been flagged on
-    // the getter above.
-    var setter = type.getSetter(memberName);
-    if (setter == null || setter.isStatic) return null;
-    field = setter.variable;
-  } else {
-    return null;
-  }
-  if (field.isSynthetic) return null;
-  return field;
-}
-
 /// Looks up the declaration that matches [member] in [type] and returns it's
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
@@ -254,24 +227,18 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     if (op.isUserDefinableOperator) {
-      var element = node.staticElement;
-      if (element == null) {
+      var invokeType = node.staticInvokeType;
+      if (invokeType == null) {
         // Dynamic invocation
         // TODO(vsm): Move this logic to the resolver?
         if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
           _recordDynamicInvoke(node, node.leftOperand);
         }
       } else {
-        // Method invocation.
-        if (element is MethodElement) {
-          var type = element.type;
-          // Analyzer should enforce number of parameter types, but check in
-          // case we have erroneous input.
-          if (type.normalParameterTypes.isNotEmpty) {
-            checkArgument(node.rightOperand, type.normalParameterTypes[0]);
-          }
-        } else {
-          // TODO(vsm): Assert that the analyzer found an error here?
+        // Analyzer should enforce number of parameter types, but check in
+        // case we have erroneous input.
+        if (invokeType.normalParameterTypes.isNotEmpty) {
+          checkArgument(node.rightOperand, invokeType.normalParameterTypes[0]);
         }
       }
     } else {
@@ -648,15 +615,6 @@ class CodeChecker extends RecursiveAstVisitor {
     VariableElement variableElement = node == null
         ? null
         : resolutionMap.elementDeclaredByVariableDeclaration(node);
-    if (!node.isConst &&
-        !node.isFinal &&
-        node.initializer == null &&
-        rules.isNonNullableType(variableElement?.type)) {
-      _recordMessage(
-          node,
-          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, variableElement?.type]);
-    }
     AstNode parent = node.parent;
     if (variableElement != null &&
         parent is VariableDeclarationList &&
@@ -762,19 +720,6 @@ class CodeChecker extends RecursiveAstVisitor {
         true) {
       _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
-  }
-
-  /// Checks if the assignment is valid with respect to non-nullable types.
-  /// Returns `false` if a nullable expression is assigned to a variable of
-  /// non-nullable type and `true` otherwise.
-  bool _checkNonNullAssignment(
-      Expression expression, DartType to, DartType from) {
-    if (rules.isNonNullableType(to) && rules.isNullableType(from)) {
-      _recordMessage(
-          expression, StaticTypeWarningCode.INVALID_ASSIGNMENT, [from, to]);
-      return false;
-    }
-    return true;
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,
@@ -1090,8 +1035,6 @@ class CodeChecker extends RecursiveAstVisitor {
       {DartType from, bool isDeclarationCast: false}) {
     from ??= _getExpressionType(expr);
 
-    if (!_checkNonNullAssignment(expr, to, from)) return false;
-
     // Void is considered Top, but may only be *explicitly* cast.
     if (from.isVoid) return null;
 
@@ -1276,11 +1219,8 @@ class CodeChecker extends RecursiveAstVisitor {
 /// applications.
 class _OverrideChecker {
   final StrongTypeSystemImpl rules;
-  final CodeChecker _checker;
 
-  _OverrideChecker(CodeChecker checker)
-      : _checker = checker,
-        rules = checker.rules;
+  _OverrideChecker(CodeChecker checker) : rules = checker.rules;
 
   void check(Declaration node) {
     var element =
@@ -1288,9 +1228,6 @@ class _OverrideChecker {
     if (element.type.isObject) {
       return;
     }
-    _checkSuperOverrides(node, element);
-    _checkMixinApplicationOverrides(node, element);
-    _checkAllInterfaceOverrides(node, element);
     _checkForCovariantGenerics(node, element);
   }
 
@@ -1568,133 +1505,6 @@ class _OverrideChecker {
     return genericSupertypes;
   }
 
-  /// Checks that most-derived concrete members on this class correctly override
-  /// all reachable interfaces, and reports errors if all interfaces are not
-  /// correctly implemented.
-  ///
-  /// This checks the soundness property: for all interfaces implemented by this
-  /// class (including inherited interfaces), we ensure that calls through that
-  /// interface will be sound.
-  void _checkAllInterfaceOverrides(Declaration node, ClassElement element) {
-    var interfaces = _collectInterfacesToCheck(element.type);
-    var visitedClasses = new Set<InterfaceType>();
-    var visitedMembers = new HashSet<String>();
-
-    // Checks all most-derived concrete members on this `type`. We skip over
-    // members that are already `visitedMembers`, because they were overridden
-    // and we've already checked that member.
-    //
-    // Because of that, it is important we visit types in the order that they
-    // will override members.
-    // If checkingMixin is true, then we are checking [type] in a mixin position
-    // and hence should consider its own mixins and superclass as abstract.
-    void checkType(InterfaceType type, AstNode location,
-        {bool checkingMixin: false}) {
-      // Skip `Object` because we don't need to check those members here.
-      // (because `Object` is the root of everything, it will be checked in
-      // _checkSuperOverrides for all classes).
-      if (type == null || type.isObject || !visitedClasses.add(type)) return;
-
-      // Check `member` against all `interfaces`.
-      void checkOverride(ExecutableElement member, [AstNode loc]) {
-        if (!visitedMembers.add(member.name)) return;
-        for (var interface in interfaces) {
-          if (_checkMemberOverride(member, interface, loc ?? location) ==
-              false) {
-            // Only report one error per member for interfaces.
-            // TODO(jmesserly): this is for backwards compatibility. Remove it?
-            break;
-          }
-        }
-      }
-
-      // When we're checking the class declaration node we started from, we
-      // can use a more precise error location for reporting override errors.
-      //
-      // Otherwise, we'll use the `extends` or `with` clause.
-      var isRootClass = identical(location, node);
-
-      // Check direct overrides on the class.
-      if (isRootClass) {
-        _checkClassMembers(node, checkOverride);
-      } else {
-        _checkTypeMembers(type, checkOverride);
-      }
-
-      // If we are currently checking a mixin, then its own mixins and
-      // superclass are abstract, and we should not check their members.
-      // This should only happen when super mixins is enabled, and we
-      // don't do proper checking for super mixins (we don't check that
-      // the contract implied by the mixin declaration is satisfied by
-      // the mixin use), but this prevents us from erroneously
-      // rejecting some super mixin patterns.
-      // If this is a mixin application (class A = Object with B)
-      // however, then we do still need to treat the mixin as concrete.
-      if (!checkingMixin || type.element.isMixinApplication) {
-        // Check mixin members against interfaces.
-        //
-        // We visit mixins in reverse order to reflect how they override
-        // eachother.
-        for (int i = type.mixins.length - 1; i >= 0; i--) {
-          checkType(type.mixins[i],
-              isRootClass ? _withClause(node).mixinTypes[i] : location,
-              checkingMixin: true);
-        }
-
-        // Check members on the superclass.
-        checkType(type.superclass,
-            isRootClass ? _extendsErrorLocation(node) : location,
-            checkingMixin: checkingMixin);
-      }
-    }
-
-    checkType(element.type, node);
-  }
-
-  /// Gets the set of all interfaces on [type] that should be checked to see
-  /// if type's members are overriding them correctly.
-  ///
-  /// In particular, we need to check these overrides for the definitions in
-  /// the class itself and each its superclasses (and mixins).
-  /// If a superclass (or mixin) is concrete, then we can skip its transitive
-  /// interfaces, but if it is abstract we must check them. For example, in:
-  ///
-  ///     B extends C implements G
-  ///     A extends B with E, F implements H, I
-  ///
-  /// we need to check the following interfaces:
-  ///
-  ///     C against G, H, and I
-  ///     B against G, H, and I
-  ///     E against H and I // no check against G because B is a concrete class
-  ///     F against H and I
-  ///     A against H and I
-  Set<InterfaceType> _collectInterfacesToCheck(InterfaceType type) {
-    var interfaces = new Set<InterfaceType>();
-    void collectInterfaces(InterfaceType t) {
-      if (t == null || t.isObject) return;
-      if (!interfaces.add(t)) return;
-      collectInterfaces(t.superclass);
-      t.mixins.forEach(collectInterfaces);
-      t.interfaces.forEach(collectInterfaces);
-    }
-
-    // Check all interfaces reachable from the `implements` clause in the
-    // current class against definitions here and in superclasses.
-    type.interfaces.forEach(collectInterfaces);
-
-    // Also collect interfaces from any abstract mixins or superclasses.
-    //
-    // For a concrete mixin/superclass, we'll check that we override the
-    // concrete members in _checkSuperOverrides and
-    // _checkMixinApplicationOverrides. But for abstract classes, we need to
-    // consider any abstract members it got from its interfaces.
-    for (var s in _getSuperclasses(type, (t) => t.element.isAbstract)) {
-      s.interfaces.forEach(collectInterfaces);
-    }
-    return interfaces;
-  }
-
   /// Visits each member on the class [node] and calls [checkMember] with the
   /// corresponding instance element and AST node (for error reporting).
   ///
@@ -1739,195 +1549,10 @@ class _OverrideChecker {
     type.accessors.forEach(checkHelper);
   }
 
-  /// Check overrides from mixin applications themselves. For example, in:
-  ///
-  ///      A extends B with E, F
-  ///
-  ///  we check:
-  ///
-  ///      B & E against B (equivalently how E overrides B)
-  ///      B & E & F against B & E (equivalently how F overrides both B and E)
-  void _checkMixinApplicationOverrides(Declaration node, ClassElement element) {
-    var superclass = element.type.superclass;
-    var mixins = element.type.mixins;
-
-    // Check overrides from applying mixins
-    for (int i = 0; i < mixins.length; i++) {
-      var current = mixins[i];
-      var location = _withClause(node).mixinTypes[i];
-      var superclasses = mixins.sublist(0, i).reversed.toList()
-        ..add(superclass);
-
-      _checkTypeMembers(current, (m) {
-        for (var s in superclasses) {
-          if (_checkConcreteMemberOverride(m, s, location)) break;
-        }
-      });
-    }
-  }
-
-  /// Gets the member corresponding to [member] on [type], and returns `null`
-  /// if no member was found, or a boolean value to indicate whether the
-  /// override is valid.
-  ///
-  /// The [location] is a node where the error is reported. For example, a
-  /// bad override of a method in a class with respect to its superclass is
-  /// reported directly at the method declaration. However, invalid overrides
-  /// from base classes to interfaces, mixins to the base they are applied to,
-  /// or mixins to interfaces are reported at the class declaration, since the
-  /// base class or members on their own were not incorrect, only combining them
-  /// with the interface was problematic. For example, these are example error
-  /// locations in these cases:
-  ///
-  ///     error: base class introduces an invalid override. The type of B.foo is
-  ///     not a subtype of E.foo:
-  ///       class A extends B implements E { ... }
-  ///               ^^^^^^^^^
-  ///
-  ///     error: mixin introduces an invalid override. The type of C.foo is not
-  ///     a subtype of E.foo:
-  ///       class A extends B with C implements E { ... }
-  ///                              ^
-  ///
-  /// When checking for overrides from a type and it's super types, [node] is
-  /// the AST node that defines [member]. This is used to determine whether the
-  /// type of the element could be inferred from the types in the super classes.
-  bool _checkMemberOverride(
-      ExecutableElement member, InterfaceType type, AstNode location) {
-    assert(!member.isStatic);
-
-    FunctionType subType = _elementType(member);
-    FunctionType baseType = _getMemberType(type, member);
-    if (baseType == null) return null;
-
-    if (!rules.isOverrideSubtypeOf(subType, baseType)) {
-      ErrorCode errorCode;
-      var parent = location?.parent;
-      if (location is ExtendsClause ||
-          parent is ClassTypeAlias && parent.superclass == location) {
-        errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
-      } else if (parent is WithClause) {
-        errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN;
-      } else {
-        errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE;
-      }
-
-      _checker._recordMessage(location, errorCode,
-          [member.enclosingElement.name, member.name, subType, type, baseType]);
-      return false;
-    }
-    return true;
-  }
-
-  /// Checks that a member override from a superclass (i.e. a concrete member)
-  /// is correct, reporting an error if needed, and returns `true` if we should
-  /// keep searching up the superclass chain.
-  bool _checkConcreteMemberOverride(
-      ExecutableElement member, InterfaceType type, AstNode location) {
-    _checkFieldOverride(member, type, location);
-    // Stop if a member was found, and we have no covariant parameters.
-    // If we have covariant parameters, we need to keep searching.
-    return _checkMemberOverride(member, type, location) != null &&
-        member.parameters.every((p) => !p.isCovariant);
-  }
-
-  void _checkFieldOverride(
-      Element member, InterfaceType type, AstNode location) {
-    if (member is PropertyAccessorElement) {
-      // Disallow overriding a non-virtual field.
-      var field = _getMemberField(type, member);
-      if (field != null && !field.isVirtual) {
-        FunctionType subType = _elementType(member);
-        FunctionType baseType = _getMemberType(type, member);
-        _checker._recordMessage(
-            location, StrongModeCode.INVALID_FIELD_OVERRIDE, [
-          member.enclosingElement.name,
-          member.name,
-          subType,
-          type,
-          baseType
-        ]);
-      }
-    }
-  }
-
-  /// Check overrides between a class and its superclasses and mixins. For
-  /// example, in:
-  ///
-  ///      A extends B with E, F
-  ///
-  /// we check A against B, B super classes, E, and F.
-  ///
-  /// Internally we avoid reporting errors twice and we visit classes bottom up
-  /// to ensure we report the most immediate invalid override first. For
-  /// example, in the following code we'll report that `Test` has an invalid
-  /// override with respect to `Parent` (as opposed to an invalid override with
-  /// respect to `Grandparent`):
-  ///
-  ///     class Grandparent {
-  ///         m(A a) {}
-  ///     }
-  ///     class Parent extends Grandparent {
-  ///         m(A a) {}
-  ///     }
-  ///     class Test extends Parent {
-  ///         m(B a) {} // invalid override
-  ///     }
-  void _checkSuperOverrides(Declaration node, ClassElement element) {
-    var superclasses = _getSuperclasses(element.type);
-    _checkClassMembers(node, (member, loc) {
-      for (var s in superclasses) {
-        if (_checkConcreteMemberOverride(member, s, loc)) break;
-      }
-    });
-  }
-
-  /// Collects all superclasses of [type], including any mixin application
-  /// classes.
-  ///
-  /// The search can be pruned by passing a [visitSuperclasses] function and
-  /// having it return `false` for types that should not be further explored.
-  Iterable<InterfaceType> _getSuperclasses(InterfaceType type,
-      [bool visitSuperclasses(InterfaceType t)]) {
-    var superclasses = new Set<InterfaceType>();
-    visit(InterfaceType t) {
-      if ((visitSuperclasses == null || visitSuperclasses(t)) &&
-          superclasses.add(t)) {
-        t.mixins.reversed.forEach(visit);
-        var s = t.superclass;
-        if (s != null && !s.isObject) visit(s);
-      }
-    }
-
-    type.mixins.reversed.forEach(visit);
-    var s = type.superclass;
-    if (s != null && !s.isObject) visit(s);
-
-    // Make sure we record Object last, and not when we visit our mixins.
-    if (!type.isObject) visit(rules.typeProvider.objectType);
-    return superclasses;
-  }
-
   /// If node is a [ClassDeclaration] returns its members, otherwise if node is
   /// a [ClassTypeAlias] this returns an empty list.
   Iterable<ClassMember> _classMembers(Declaration node) {
     return node is ClassDeclaration ? node.members : [];
-  }
-
-  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
-  /// a [ClassTypeAlias] this returns an empty list.
-  AstNode _extendsErrorLocation(Declaration node) {
-    return node is ClassDeclaration
-        ? node.extendsClause
-        : (node as ClassTypeAlias).superclass;
-  }
-
-  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
-  /// a [ClassTypeAlias] this returns an empty list.
-  WithClause _withClause(Declaration node) {
-    return node is ClassDeclaration
-        ? node.withClause
-        : (node as ClassTypeAlias).withClause;
   }
 }
 

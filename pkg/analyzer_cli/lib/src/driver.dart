@@ -31,6 +31,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -42,8 +43,8 @@ import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
@@ -689,7 +690,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       packageMap = _PackageRootPackageMapBuilder.buildPackageMap(
           options.packageRootPath);
     } else {
-      file_system.Resource cwd = resourceProvider.getResource('.');
+      file_system.Resource cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
       packages = _discoverPackagespec(new Uri.directory(cwd.path));
       packageMap = _getPackageMap(packages);
@@ -705,8 +706,10 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     Map<String, List<file_system.Folder>> folderMap =
         new Map<String, List<file_system.Folder>>();
+    var pathContext = resourceProvider.pathContext;
     packages.asMap().forEach((String packagePath, Uri uri) {
-      folderMap[packagePath] = [resourceProvider.getFolder(path.fromUri(uri))];
+      String path = fileUriToNormalizedPath(pathContext, uri);
+      folderMap[packagePath] = [resourceProvider.getFolder(path)];
     });
     return folderMap;
   }

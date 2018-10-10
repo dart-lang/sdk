@@ -23,10 +23,8 @@ abstract class ClassHierarchy {
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
-      if (!cls.isAnonymousMixin) {
-        // See https://github.com/dart-lang/sdk/issues/32091
-        throw "$cls can't implement both $a and $b";
-      }
+      // See https://github.com/dart-lang/sdk/issues/32091
+      throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
         onAmbiguousSupertypes, mixinInferrer)
@@ -662,26 +660,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var superclass = supertype.classNode;
       var superGetters = getInterfaceMembers(superclass);
       var superSetters = getInterfaceMembers(superclass, setters: true);
-      _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
-      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
-          onlyAbstract: true);
-      _reportOverrides(info.implementedSetters, superSetters, callback,
-          isSetter: true);
+      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback);
       _reportOverrides(info.declaredSetters, superSetters, callback,
-          isSetter: true, onlyAbstract: true);
-    }
-    if (!class_.isAbstract) {
-      // If a non-abstract class declares an abstract method M whose
-      // implementation M' is inherited from the superclass, then the inherited
-      // method M' overrides the declared method M.
-      // This flies in the face of conventional override logic, but is necessary
-      // because an instance of the class will contain the method M' which can
-      // be invoked through the interface of M.
-      // Note that [_reportOverrides] does not report self-overrides, so in
-      // most cases these calls will just scan both lists and report nothing.
-      _reportOverrides(info.implementedGettersAndCalls,
-          info.declaredGettersAndCalls, callback);
-      _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
           isSetter: true);
     }
   }
@@ -690,15 +670,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       List<Member> declaredList,
       List<Member> inheritedList,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool isSetter: false,
-      bool onlyAbstract: false}) {
+      {bool isSetter: false}) {
     int i = 0, j = 0;
     while (i < declaredList.length && j < inheritedList.length) {
       Member declared = declaredList[i];
-      if (onlyAbstract && !declared.isAbstract) {
-        ++i;
-        continue;
-      }
       Member inherited = inheritedList[j];
       int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {

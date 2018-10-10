@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         SimpleIdentifierImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -83,6 +84,11 @@ import 'package:analyzer/src/task/strong/checker.dart';
  */
 class ElementResolver extends SimpleAstVisitor<Object> {
   /**
+   * The manager for the inheritance mappings.
+   */
+  final InheritanceManager2 _inheritance;
+
+  /**
    * The resolver driving this participant.
    */
   final ResolverVisitor _resolver;
@@ -90,7 +96,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement _definingLibrary;
+  final LibraryElement _definingLibrary;
 
   /**
    * The type representing the type 'dynamic'.
@@ -114,8 +120,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
-  ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true}) {
-    this._definingLibrary = _resolver.definingLibrary;
+  ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
+      : _inheritance = _resolver.inheritance,
+        _definingLibrary = _resolver.definingLibrary {
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
     _promoteManager = _resolver.promoteManager;
@@ -598,7 +605,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           if (staticType is InterfaceTypeImpl) {
             staticElement = staticType.lookUpInheritedMember(
                 methodName.name, _definingLibrary,
-                concrete: true);
+                concrete: true, forSuperInvocation: true);
             // We were not able to find the concrete dispatch target.
             // But we would like to give the user at least some resolution.
             // So, we retry without the "concrete" requirement.
@@ -649,8 +656,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode =
-        _checkForInvocationError(target, true, staticElement, staticType);
+    ErrorCode errorCode = _checkForInvocationError(
+        target, true, staticElement, staticType, methodName.name);
     if (errorCode != null &&
         target is SimpleIdentifier &&
         target.staticElement is PrefixElement) {
@@ -1122,7 +1129,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invocation is in a static constant (does not have access to instance state).
    */
   ErrorCode _checkForInvocationError(Expression target, bool useStaticContext,
-      Element element, DartType type) {
+      Element element, DartType type, String name) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
       return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
@@ -1194,6 +1201,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             // Proxy-conditional warning, based on state of
             // targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
+          } else if (targetType.isDynamic) {
+            PropertyAccessorElement getter =
+                _resolver.typeProvider.objectType.getGetter(name);
+            if (getter != null && getter.returnType is! FunctionType) {
+              return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+            }
           }
         }
       }
@@ -1568,6 +1581,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Look up the [FunctionType] of a getter or a method with the given [name]
+   * in the given [targetType].  The [target] is the target of the invocation,
+   * or `null` if there is no target.
+   */
+  FunctionType _lookUpGetterType(
+      Expression target, DartType targetType, String name) {
+    targetType = _resolveTypeParameter(targetType);
+    if (targetType is InterfaceType) {
+      var nameObject = new Name(_definingLibrary.source.uri, name);
+      return _inheritance.getMember(
+        targetType,
+        nameObject,
+        forSuper: target is SuperExpression,
+      );
+    }
+    return null;
+  }
+
+  /**
    * Look up the method with the given [methodName] in the given [type]. Return
    * the element representing the method that was found, or `null` if there is
    * no method with the given name. The [target] is the target of the
@@ -1861,23 +1893,24 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _resolveBinaryExpression(BinaryExpression node, String methodName) {
     Expression leftOperand = node.leftOperand;
     if (leftOperand != null) {
-      DartType staticType = _getStaticType(leftOperand);
-      MethodElement staticMethod =
-          _lookUpMethod(leftOperand, staticType, methodName);
-      node.staticElement = staticMethod;
-      if (_shouldReportMissingMember(staticType, staticMethod)) {
+      DartType leftType = _getStaticType(leftOperand);
+      var invokeType = _lookUpGetterType(leftOperand, leftType, methodName);
+      var invokeElement = invokeType?.element;
+      node.staticElement = invokeElement;
+      node.staticInvokeType = invokeType;
+      if (_shouldReportMissingMember(leftType, invokeElement)) {
         if (leftOperand is SuperExpression) {
           _recordUndefinedToken(
-              staticType.element,
+              leftType.element,
               StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
               node.operator,
-              [methodName, staticType.displayName]);
+              [methodName, leftType.displayName]);
         } else {
           _recordUndefinedToken(
-              staticType.element,
+              leftType.element,
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               node.operator,
-              [methodName, staticType.displayName]);
+              [methodName, leftType.displayName]);
         }
       }
     }
@@ -2090,7 +2123,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (staticType is InterfaceTypeImpl) {
           staticElement = staticType.lookUpInheritedMember(
               propertyName.name, _definingLibrary,
-              setter: propertyName.inSetterContext(), concrete: true);
+              setter: propertyName.inSetterContext(),
+              concrete: true,
+              forSuperInvocation: true);
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry without the "concrete" requirement.

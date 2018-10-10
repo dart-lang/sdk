@@ -12,7 +12,6 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
-import '../kernel/element_map.dart';
 import '../ir/util.dart';
 
 import 'element_map.dart';

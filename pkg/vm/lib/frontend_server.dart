@@ -15,11 +15,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart'
-    show FileSystemEntity;
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -275,14 +271,13 @@ class FrontendCompiler implements CompilerInterface {
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
-      ..onProblem =
-          (message, Severity severity, List<FormattedMessage> context) {
+      ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
-        switch (severity) {
+        switch (message.severity) {
           case Severity.error:
           case Severity.internalProblem:
             printMessage = true;
-            errors.add(message.formatted);
+            errors.addAll(message.plainTextFormatted);
             break;
           case Severity.warning:
             printMessage = true;
@@ -290,13 +285,10 @@ class FrontendCompiler implements CompilerInterface {
           case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
-            throw 'Unexpected severity: $severity';
+            throw 'Unexpected severity: ${message.severity}';
         }
         if (printMessage) {
-          _outputStream.writeln(message.formatted);
-          for (FormattedMessage message in context) {
-            _outputStream.writeln(message.formatted);
-          }
+          printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
     if (options.wasParsed('filesystem-root')) {
@@ -650,7 +642,8 @@ _writeDepfile(Component component, String output, String depfile) async {
   file.write(_escapePath(output));
   file.write(':');
   for (Uri dep in component.uriToSource.keys) {
-    if (dep == null) continue;
+    // Skip empty or corelib dependencies.
+    if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }

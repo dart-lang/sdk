@@ -4,26 +4,26 @@ import "dart:core" as core;
 
 class Uninitialized extends core::Object {
   field core::int x;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Uninitialized
     ;
 }
 class PartiallyInitialized extends core::Object {
   field core::int x;
-  constructor •(core::int x) → void
+  constructor •(core::int x) → self::PartiallyInitialized
     ;
-  constructor noInitializer() → void
+  constructor noInitializer() → self::PartiallyInitialized
     ;
 }
 class Initialized extends core::Object {
   field core::int x;
-  constructor •(core::int x) → void
+  constructor •(core::int x) → self::Initialized
     ;
 }
 class Forwarding extends core::Object {
   field core::int x;
-  constructor initialize(core::int x) → void
+  constructor initialize(core::int x) → self::Forwarding
     ;
-  constructor •(core::int arg) → void
+  constructor •(core::int arg) → self::Forwarding
     ;
 }
 static field core::int uninitializedTopLevel;

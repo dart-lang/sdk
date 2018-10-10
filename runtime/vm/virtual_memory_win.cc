@@ -16,7 +16,7 @@ namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
 
-void VirtualMemory::InitOnce() {
+void VirtualMemory::Init() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   page_size_ = info.dwPageSize;

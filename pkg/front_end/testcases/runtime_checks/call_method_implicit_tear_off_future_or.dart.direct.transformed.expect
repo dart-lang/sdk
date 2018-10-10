@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method call() → void {}

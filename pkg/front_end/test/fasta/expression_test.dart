@@ -394,8 +394,15 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  return new Context(new CompilerContext(options), snapshot, errors,
-      new String.fromEnvironment("updateExpectations") == "true");
+  final bool updateExpectations = environment["updateExpectations"] == "true";
+
+  final CompilerContext compilerContext = new CompilerContext(options);
+
+  // Disable colors to ensure that expectation files are the same across
+  // platforms and independent of stdin/stderr.
+  compilerContext.disableColors();
+
+  return new Context(compilerContext, snapshot, errors, updateExpectations);
 }
 
 main([List<String> arguments = const []]) =>

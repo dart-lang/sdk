@@ -27,6 +27,7 @@ import 'constant_pool.dart';
 import 'dbc.dart';
 import 'exceptions.dart';
 import 'local_vars.dart' show LocalVariables;
+import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
@@ -63,6 +64,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final bool omitSourcePositions;
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
+  final RecognizedMethods recognizedMethods;
 
   Class enclosingClass;
   Member enclosingMember;
@@ -97,7 +99,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.constantsBackend,
       this.strongMode,
       this.omitSourcePositions,
-      this.errorReporter) {
+      this.errorReporter)
+      : recognizedMethods = new RecognizedMethods(typeEnvironment) {
     component.addMetadataRepository(metadata);
   }
 
@@ -210,6 +213,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _objectInstanceOf;
   Procedure get objectInstanceOf => _objectInstanceOf ??=
       libraryIndex.getMember('dart:core', 'Object', '_instanceOf');
+
+  Procedure _objectSimpleInstanceOf;
+  Procedure get objectSimpleInstanceOf => _objectSimpleInstanceOf ??=
+      libraryIndex.getMember('dart:core', 'Object', '_simpleInstanceOf');
 
   Procedure _objectAs;
   Procedure get objectAs =>
@@ -598,13 +605,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genJumpIfFalse(bool negated, Label dest) {
-    asm.emitPushTrue();
     if (negated) {
-      asm.emitIfEqStrictTOS(); // if ((!condition) == true) ...
+      asm.emitJumpIfTrue(dest);
     } else {
-      asm.emitIfNeStrictTOS(); // if (condition != true) ...
+      asm.emitJumpIfFalse(dest);
     }
-    asm.emitJump(dest); // ... then jump dest
   }
 
   void _genJumpIfTrue(bool negated, Label dest) {
@@ -636,7 +641,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    // TODO(alexmarkov): generate _simpleInstanceOf if possible
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      assert(type.classNode.typeParameters.isEmpty);
+      asm.emitPushConstant(cp.add(new ConstantType(type)));
+      final argDescIndex = cp.add(new ConstantArgDesc(2));
+      final icdataIndex = cp.add(new ConstantICData(
+          InvocationKind.method, objectSimpleInstanceOf.name, argDescIndex));
+      asm.emitInstanceCall(2, icdataIndex);
+      return;
+    }
 
     if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
@@ -658,6 +671,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     parentFunction = null;
     isClosure = false;
     hasErrors = false;
+    if ((node is Procedure && !node.isStatic) || node is Constructor) {
+      typeEnvironment.thisType = enclosingClass.thisType;
+    }
     final isFactory = node is Procedure && node.isFactory;
     if (node.isInstanceMember || node is Constructor || isFactory) {
       if (enclosingClass.typeParameters.isNotEmpty) {
@@ -725,9 +741,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     Label done = new Label();
 
     _genLoadVar(member.function.positionalParameters[0]);
-    asm.emitPushNull();
-    asm.emitIfNeStrictTOS();
-    asm.emitJump(done);
+    asm.emitJumpIfNotNull(done);
 
     asm.emitPushFalse();
     _genReturnTOS();
@@ -741,6 +755,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           cp, asm.bytecode, asm.exceptionsTable, nullableFields, closures);
     }
 
+    typeEnvironment.thisType = null;
     enclosingClass = null;
     enclosingMember = null;
     enclosingFunction = null;
@@ -855,8 +870,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
     asm.emitStoreLocal(locals.functionTypeArgsVarIndexInFrame);
     asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
-    asm.emitIfEqStrictTOS();
-    asm.emitJump(noDelayedTypeArgs);
+    asm.emitJumpIfEqStrict(noDelayedTypeArgs);
 
     // There are non-empty delayed type arguments, and they are stored
     // into function type args variable already.
@@ -1099,8 +1113,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genAssertAssignable(DartType type, {String name = ''}) {
     assert(!typeEnvironment.isTop(type));
-    _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.add(new ConstantType(type)));
+    _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.add(new ConstantString(name)));
     bool isIntOk = typeEnvironment.isSubtypeOf(typeEnvironment.intType, type);
     int subtypeTestCacheCpIndex = cp.add(new ConstantSubtypeTestCache());
@@ -1207,8 +1221,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // if (switch_var != 0) goto continuationLabel
     _genPushInt(0);
-    asm.emitIfNeStrictTOS();
-    asm.emitJump(continuationLabel);
+    asm.emitJumpIfNeStrict(continuationLabel);
 
     // Proceed to normal entry.
   }
@@ -1235,10 +1248,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (i != yieldPoints.length - 1) {
         asm.emitPush(switchVarIndexInFrame);
         _genPushInt(index);
-        asm.emitIfEqStrictTOS();
+        asm.emitJumpIfEqStrict(yieldPoints[i]);
+      } else {
+        asm.emitJump(yieldPoints[i]);
       }
-
-      asm.emitJump(yieldPoints[i]);
     }
   }
 
@@ -1692,17 +1705,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final isOR = (node.operator == '||');
 
     bool negated = _genCondition(node.left);
-    asm.emitPushTrue();
     if (negated != isOR) {
       // OR: if (condition == true)
       // AND: if ((!condition) == true)
-      asm.emitIfEqStrictTOS();
+      asm.emitJumpIfTrue(shortCircuit);
     } else {
       // OR: if ((!condition) != true)
       // AND: if (condition != true)
-      asm.emitIfNeStrictTOS();
+      asm.emitJumpIfFalse(shortCircuit);
     }
-    asm.emitJump(shortCircuit);
 
     negated = _genCondition(node.right);
     if (negated) {
@@ -1760,11 +1771,56 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genStaticCall(mapFromLiteral, new ConstantArgDesc(2, numTypeArgs: 0), 2);
   }
 
+  void _genMethodInvocationUsingSpecializedBytecode(
+      Opcode opcode, MethodInvocation node) {
+    switch (opcode) {
+      case Opcode.kEqualsNull:
+        if (node.receiver is NullLiteral) {
+          node.arguments.positional.single.accept(this);
+        } else {
+          node.receiver.accept(this);
+        }
+        break;
+
+      case Opcode.kNegateInt:
+        node.receiver.accept(this);
+        break;
+
+      case Opcode.kAddInt:
+      case Opcode.kSubInt:
+      case Opcode.kMulInt:
+      case Opcode.kTruncDivInt:
+      case Opcode.kModInt:
+      case Opcode.kBitAndInt:
+      case Opcode.kBitOrInt:
+      case Opcode.kBitXorInt:
+      case Opcode.kShlInt:
+      case Opcode.kShrInt:
+      case Opcode.kCompareIntEq:
+      case Opcode.kCompareIntGt:
+      case Opcode.kCompareIntLt:
+      case Opcode.kCompareIntGe:
+      case Opcode.kCompareIntLe:
+        node.receiver.accept(this);
+        node.arguments.positional.single.accept(this);
+        break;
+
+      default:
+        throw 'Unexpected specialized bytecode $opcode';
+    }
+
+    asm.emitBytecode0(opcode);
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
+    final Opcode opcode = recognizedMethods.specializedBytecodeFor(node);
+    if (opcode != null) {
+      _genMethodInvocationUsingSpecializedBytecode(opcode, node);
+      return;
+    }
     final args = node.arguments;
     _genArguments(node.receiver, args);
-    // TODO(alexmarkov): fast path smi ops
     final argDescIndex =
         cp.add(new ConstantArgDesc.fromArguments(args, hasReceiver: true));
     final icdataIndex = cp.add(new ConstantICData(
@@ -2705,8 +2761,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
       // if (:exception != null) rethrow (:exception, :stack_trace)
       final Label cont = new Label();
-      asm.emitIfEqNull(exceptionParam);
-      asm.emitJump(cont);
+      asm.emitPush(exceptionParam);
+      asm.emitJumpIfNull(cont);
 
       asm.emitPush(exceptionParam);
       asm.emitPush(stackTraceParam);

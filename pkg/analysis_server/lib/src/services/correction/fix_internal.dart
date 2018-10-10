@@ -36,8 +36,8 @@ import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -90,7 +90,7 @@ class DefaultFixContributor extends DartFixContributor {
       List<Fix> fixAllFixes = await _computeFixAllFixes(context, fixes);
       return new List.from(fixes)..addAll(fixAllFixes);
     } on CancelCorrectionException {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
   }
 
@@ -105,14 +105,14 @@ class DefaultFixContributor extends DartFixContributor {
     // - return if no fixes
     // - return if no other analysis errors
     if (fixes.isEmpty || allAnalysisErrors.length < 2) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
 
     // Remove any analysis errors that don't have the expected error code name
     allAnalysisErrors
         .removeWhere((e) => analysisError.errorCode.name != e.errorCode.name);
     if (allAnalysisErrors.length < 2) {
-      return Fix.EMPTY_LIST;
+      return const <Fix>[];
     }
 
     // A map between each FixKind and the List of associated fixes
@@ -306,6 +306,11 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT ||
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
+      await _addFix_addAsync();
+    }
+    if ((errorCode == CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE ||
+            errorCode == ParserErrorCode.UNEXPECTED_TOKEN) &&
+        error.message.indexOf("'await'") >= 0) {
       await _addFix_addAsync();
     }
     if (errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE) {
@@ -1954,12 +1959,8 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
-    List<ExecutableElement> elements = ErrorVerifier.computeMissingOverrides(
-            typeProvider,
-            typeSystem,
-            new InheritanceManager(unitLibraryElement),
-            targetClassElement)
-        .toList();
+    List<ExecutableElement> elements =
+        InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
     elements.sort((Element a, Element b) {
       int names = compareStrings(a.displayName, b.displayName);
@@ -2299,7 +2300,8 @@ class FixProcessor {
         showNames.addAll(showCombinator.shownNames);
         showNames.add(name);
         // prepare library name - unit name or 'dart:name' for SDK library
-        String libraryName = libraryElement.definingCompilationUnit.displayName;
+        String libraryName =
+            libraryElement.definingCompilationUnit.source.uri.toString();
         if (libraryElement.isInSdk) {
           libraryName = libraryElement.source.shortName;
         }
@@ -2908,7 +2910,8 @@ class FixProcessor {
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
         AstNode root = node.getAncestor((node) =>
-            node.parent is ClassDeclaration || node.parent is CompilationUnit);
+            node.parent is ClassOrMixinDeclaration ||
+            node.parent is CompilationUnit);
         references = findLocalElementReferences(root, element);
       }
     }

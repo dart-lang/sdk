@@ -101,9 +101,7 @@ void Assembler::Call(const StubEntry& stub_entry) {
 }
 
 void Assembler::CallToRuntime() {
-  movq(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
-  call(TMP);
+  call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::CallNullErrorShared(bool save_fpu_registers) {
@@ -1298,8 +1296,28 @@ void Assembler::StoreIntoObject(Register object,
   andl(TMP, Address(THR, Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
-  movq(TMP, value);
-  call(Address(THR, Thread::write_barrier_wrappers_offset(object)));
+
+  Register objectForCall = object;
+  if (value != kWriteBarrierValueReg) {
+    // Unlikely. Only non-graph intrinsics.
+    // TODO(rmacnak): Shuffle registers in intrinsics.
+    pushq(kWriteBarrierValueReg);
+    if (object == kWriteBarrierValueReg) {
+      COMPILE_ASSERT(RBX != kWriteBarrierValueReg);
+      COMPILE_ASSERT(RCX != kWriteBarrierValueReg);
+      objectForCall = (value == RBX) ? RCX : RBX;
+      pushq(objectForCall);
+      movq(objectForCall, object);
+    }
+    movq(kWriteBarrierValueReg, value);
+  }
+  call(Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
+  if (value != kWriteBarrierValueReg) {
+    if (object == kWriteBarrierValueReg) {
+      popq(objectForCall);
+    }
+    popq(kWriteBarrierValueReg);
+  }
   Bind(&done);
 #else
   movq(dest, value);

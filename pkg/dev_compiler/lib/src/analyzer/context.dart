@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart'
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummaryUriResolver, SummaryDataStore;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:cli_util/cli_util.dart' show getSdkDir;
+import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:path/path.dart' as path;
 
 // ignore_for_file: deprecated_member_use
@@ -46,7 +46,7 @@ class AnalyzerOptions {
       {this.contextBuilderOptions,
       String dartSdkPath,
       this.customUrlMappings = const {}})
-      : dartSdkPath = dartSdkPath ?? getSdkDir().path {
+      : dartSdkPath = dartSdkPath ?? getSdkPath() {
     contextBuilderOptions.declaredVariables ??= const {};
   }
 
@@ -65,8 +65,7 @@ class AnalyzerOptions {
         createContextBuilderOptions(args, trackCacheDependencies: false);
     (contextOpts.defaultOptions as AnalysisOptionsImpl).previewDart2 = true;
 
-    var dartSdkPath = args['dart-sdk'] as String ?? getSdkDir().path;
-
+    var dartSdkPath = args['dart-sdk'] as String ?? getSdkPath();
     dartSdkSummaryPath ??= contextOpts.dartSdkSummaryPath ??
         path.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.sum');
     // For building the SDK, we explicitly set the path to none.
@@ -138,7 +137,7 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
         ContextBuilder(resourceProvider, null, null, options: builderOptions);
 
     return PackageMapUriResolver(resourceProvider,
-        builder.convertPackagesToMap(builder.createPackageMap('')));
+        builder.convertPackagesToMap(builder.createPackageMap(path.current)));
   }
 
   return [ResourceUriResolver(resourceProvider), packageResolver()];

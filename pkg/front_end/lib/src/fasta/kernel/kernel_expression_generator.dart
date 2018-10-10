@@ -11,17 +11,19 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
-        Message,
         LocatedMessage,
+        Message,
+        messageCannotAssignToParenthesizedExpression,
         messageCannotAssignToSuper,
+        messageInvalidUseOfNullAwareAccess,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
         messageNotAnLvalue,
-        messageCannotAssignToParenthesizedExpression,
-        templateNotConstantExpression,
         messageSuperAsExpression,
-        templateThisOrSuperAccessInFieldInitializer,
-        messageInvalidUseOfNullAwareAccess;
+        templateConstructorNotFound,
+        templateNotConstantExpression,
+        templateSuperclassHasNoConstructor,
+        templateThisOrSuperAccessInFieldInitializer;
 
 import '../messages.dart' show Message, noLength;
 
@@ -47,9 +49,9 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
-        IntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
+        ParserErrorGenerator,
         PrefixUseGenerator,
         PropertyAccessGenerator,
         ReadOnlyAccessGenerator,
@@ -1395,31 +1397,6 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   }
 }
 
-class KernelIntAccessGenerator extends KernelGenerator with IntAccessGenerator {
-  KernelIntAccessGenerator(ExpressionGeneratorHelper helper, Token token)
-      : super(helper, token);
-
-  @override
-  Expression _makeSimpleRead() => buildError();
-
-  @override
-  Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
-  }
-}
-
 class KernelUnresolvedNameGenerator extends KernelGenerator
     with ErroneousExpressionGenerator, UnresolvedNameGenerator {
   @override
@@ -1562,6 +1539,16 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
 
   KernelUnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, this.prefixGenerator, this.isUnresolved)
+      : super(helper, token);
+}
+
+class KernelParserErrorGenerator extends KernelGenerator
+    with ParserErrorGenerator {
+  @override
+  final Message message;
+
+  KernelParserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.message)
       : super(helper, token);
 }
 

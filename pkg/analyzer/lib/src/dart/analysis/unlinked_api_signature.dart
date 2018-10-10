@@ -38,7 +38,12 @@ class _UnitApiSignatureComputer {
           (lastInitializer ?? member.parameters ?? member.name).endToken,
         );
       } else if (member is FieldDeclaration) {
-        addVariables(member, member.fields, hasConstConstructor);
+        var variableList = member.fields;
+        addVariables(
+          member,
+          variableList,
+          !member.isStatic && variableList.isFinal && hasConstConstructor,
+        );
       } else if (member is MethodDeclaration) {
         addTokens(
           member.beginToken,
@@ -78,11 +83,11 @@ class _UnitApiSignatureComputer {
   void addVariables(
     AstNode node,
     VariableDeclarationList variableList,
-    bool includeFinalInitializers,
+    bool includeInitializers,
   ) {
     if (variableList.type == null ||
         variableList.isConst ||
-        variableList.isFinal && includeFinalInitializers) {
+        includeInitializers) {
       addTokens(node.beginToken, node.endToken);
     } else {
       addTokens(node.beginToken, variableList.type.endToken);

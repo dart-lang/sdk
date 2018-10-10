@@ -72,7 +72,7 @@ class ElementFactory {
       [Source librarySource]) {
     Source source =
         new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.source = source;
     if (librarySource == null) {
       librarySource = source;

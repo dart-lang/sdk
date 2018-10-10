@@ -24,8 +24,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1770,21 +1770,21 @@ class C {}
 
   test_getResult_invalidUri() async {
     String content = r'''
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 
-part '[invalid uri]';
+part ':[invalid uri]';
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     addTestFile(content);
 
@@ -2319,6 +2319,33 @@ class B<T extends A<B>> {}
 ''');
 
     driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+  }
+
+  test_issue34619() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class C {
+  final Set<String> f = new Set<String>();
+
+  @override
+  List<int> foo() {}
+}
+''');
+
+    driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+
+    // Update the file in a
+    provider.updateFile(a, r'''
+class C {
+  final Set<String> f = a + b + c;
+
+  @override
+  List<int> foo() {}
+}
+''');
+    driver.changeFile(a);
     await waitForIdleWithoutExceptions();
   }
 

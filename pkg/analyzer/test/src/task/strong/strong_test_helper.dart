@@ -20,13 +20,13 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -280,7 +280,6 @@ class AbstractStrongTest {
       {bool declarationCasts: true,
       bool implicitCasts: true,
       bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
       bool superMixins: false}) async {
     _checkCalled = true;
 
@@ -293,7 +292,6 @@ class AbstractStrongTest {
     analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
-    analysisOptions.nonnullableTypes = nonnullableTypes;
     analysisOptions.enableSuperMixins = superMixins;
 
     var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
@@ -374,14 +372,12 @@ class AbstractStrongTest {
       {bool declarationCasts: true,
       bool implicitCasts: true,
       bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
       bool superMixins: false}) async {
     addFile(content);
     return await check(
         declarationCasts: declarationCasts,
         implicitCasts: implicitCasts,
         implicitDynamic: implicitDynamic,
-        nonnullableTypes: nonnullableTypes,
         superMixins: superMixins);
   }
 

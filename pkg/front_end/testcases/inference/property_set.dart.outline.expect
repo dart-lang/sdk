@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
   field core::List<self::A::T> x;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A<self::A::T>
     ;
   set y(core::List<self::A::T> value) → void
     ;

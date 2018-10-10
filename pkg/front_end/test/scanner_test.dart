@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/errors.dart';
-import 'package:front_end/src/base/jenkins_smi_hash.dart';
 import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
     show AbstractScanner;
 import 'package:front_end/src/scanner/errors.dart';
@@ -1518,6 +1517,20 @@ abstract class ScannerTestBase {
   }
 }
 
+// TODO(ahe): Remove this when http://dartbug.com/11617 is fixed.
+int combineHash(int hash, int value) {
+  hash = 0x1fffffff & (hash + value);
+  hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+  return hash ^ (hash >> 6);
+}
+
+// TODO(ahe): Remove this when http://dartbug.com/11617 is fixed.
+int finishHash(int hash) {
+  hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+  hash = hash ^ (hash >> 11);
+  return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+}
+
 class TestError {
   final int offset;
   final ErrorCode errorCode;
@@ -1527,13 +1540,13 @@ class TestError {
 
   @override
   get hashCode {
-    var h = new JenkinsSmiHash()..add(offset)..add(errorCode);
+    int h = combineHash(combineHash(0, offset), errorCode.hashCode);
     if (arguments != null) {
       for (Object argument in arguments) {
-        h.add(argument);
+        h = combineHash(h, argument.hashCode);
       }
     }
-    return h.hashCode;
+    return finishHash(h);
   }
 
   @override

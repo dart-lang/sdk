@@ -26,8 +26,8 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 
 import '../src/context/mock_sdk.dart';
@@ -560,8 +560,10 @@ class ResolverTestCase extends EngineTestCase {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() =>
-      createTestLibrary(AnalysisContextFactory.contextWithCore(), "test");
+  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
+      AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider),
+      "test");
 
   /**
    * Create a source object representing a file with the given [fileName] and
@@ -583,7 +585,7 @@ class ResolverTestCase extends EngineTestCase {
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
-    String fileName = "/test/$libraryName.dart";
+    String fileName = resourceProvider.convertPath("/test/$libraryName.dart");
     Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
@@ -597,7 +599,7 @@ class ResolverTestCase extends EngineTestCase {
             new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
-            new CompilationUnitElementImpl(fileName);
+            new CompilationUnitElementImpl();
         compilationUnit.source = createNamedSource(fileName);
         compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
@@ -605,7 +607,7 @@ class ResolverTestCase extends EngineTestCase {
       }
     }
     CompilationUnitElementImpl compilationUnit =
-        new CompilationUnitElementImpl(fileName);
+        new CompilationUnitElementImpl();
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(

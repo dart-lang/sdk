@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "./issue_34291_lib.dart" as iss;
 
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }

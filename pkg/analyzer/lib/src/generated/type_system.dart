@@ -402,7 +402,6 @@ class GenericInferrer {
         // GLB(A, FutureOr<B>) ==  GLB(FutureOr<A>, B)
         return _getGreatestLowerBound(t2, t1);
       }
-      // TODO(jmesserly): fix this rule once we support non-nullable types.
       return typeProvider.nullType;
     }
     return result;
@@ -740,17 +739,10 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   final bool implicitCasts;
 
-  /**
-   * A list of non-nullable type names (e.g., 'int', 'bool', etc.).
-   */
-  final List<String> nonnullableTypes;
-
   final TypeProvider typeProvider;
 
   StrongTypeSystemImpl(this.typeProvider,
-      {this.declarationCasts: true,
-      this.implicitCasts: true,
-      this.nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES});
+      {this.declarationCasts: true, this.implicitCasts: true});
 
   @override
   bool get isStrong => true;
@@ -833,37 +825,6 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // No subtype relation, so no known GLB.
     return typeProvider.bottomType;
-  }
-
-  /**
-   * Compute the least supertype of [type], which is known to be an interface
-   * type.
-   *
-   * In the event that the algorithm fails (which might occur due to a bug in
-   * the analyzer), `null` is returned.
-   */
-  DartType getLeastNullableSupertype(InterfaceType type) {
-    // compute set of supertypes
-    List<InterfaceType> s = InterfaceTypeImpl.computeSuperinterfaceSet(type)
-        .where(isNullableType)
-        .toList();
-    return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
-  }
-
-  /**
-   * Compute the least upper bound of two types.
-   */
-  @override
-  DartType getLeastUpperBound(DartType type1, DartType type2) {
-    if (isNullableType(type1) && isNonNullableType(type2)) {
-      assert(type2 is InterfaceType);
-      type2 = getLeastNullableSupertype(type2 as InterfaceType);
-    }
-    if (isNullableType(type2) && isNonNullableType(type1)) {
-      assert(type1 is InterfaceType);
-      type1 = getLeastNullableSupertype(type1 as InterfaceType);
-    }
-    return super.getLeastUpperBound(type1, type2);
   }
 
   /**
@@ -1171,23 +1132,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
 
-  /// Check if [type] is in a set of preselected non-nullable types.
-  /// [FunctionType]s are always nullable.
-  bool isNonNullableType(DartType type) {
-    return !isNullableType(type);
-  }
-
-  /// Opposite of [isNonNullableType].
-  bool isNullableType(DartType type) {
-    return type is FunctionType ||
-        !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
-  }
-
-  /// Check that [f1] is a subtype of [f2] for a member override.
-  ///
-  /// This is different from the normal function subtyping in two ways:
-  /// - we know the function types are strict arrows,
-  /// - it allows opt-in covariant parameters.
+  @override
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
         parameterRelation: isOverrideSubtypeOfParameter,
@@ -1476,12 +1421,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   DartType _functionParameterBound(DartType f, DartType g) =>
       getGreatestLowerBound(f, g);
-
-  /// Given a type return its name prepended with the URI to its containing
-  /// library and separated by a comma.
-  String _getTypeFullyQualifiedName(DartType type) {
-    return "${type?.element?.library?.identifier},$type";
-  }
 
   /**
    * This currently does not implement a very complete least upper bound
@@ -1888,6 +1827,13 @@ abstract class TypeSystem {
    */
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
+  /// Check that [f1] is a subtype of [f2] for a member override.
+  ///
+  /// This is different from the normal function subtyping in two ways:
+  /// - we know the function types are strict arrows,
+  /// - it allows opt-in covariant parameters.
+  bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
+
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
    * if leftType <: rightType).
@@ -2148,8 +2094,7 @@ abstract class TypeSystem {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return new StrongTypeSystemImpl(context.typeProvider,
         declarationCasts: options.declarationCasts,
-        implicitCasts: options.implicitCasts,
-        nonnullableTypes: options.nonnullableTypes);
+        implicitCasts: options.implicitCasts);
   }
 }
 
@@ -2198,6 +2143,11 @@ class TypeSystemImpl extends TypeSystem {
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) =>
       t1.isMoreSpecificThan(t2);
+
+  @override
+  bool isOverrideSubtypeOf(FunctionType leftType, FunctionType rightType) {
+    return isSubtypeOf(leftType, rightType);
+  }
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
@@ -2276,6 +2226,23 @@ class UnknownInferredType extends TypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    // In theory this should never happen, since we only need to do this
+    // replacement when checking super-boundedness of explicitly-specified
+    // types, or types produced by mixin inference or instantiate-to-bounds, and
+    // the unknown type can't occur in any of those cases.
+    assert(
+        false, 'Attempted to check super-boundedness of a type including "?"');
+    // But just in case it does, behave similar to `dynamic`.
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   DartType substitute2(

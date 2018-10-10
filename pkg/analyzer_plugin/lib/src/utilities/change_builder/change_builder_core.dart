@@ -357,7 +357,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
     SourceEdit edit = builder.sourceEdit;
     fileEdit.add(edit);
     int delta = _editDelta(edit);
-    changeBuilder._updatePositions(edit.offset + math.max(0, delta), delta);
+    changeBuilder._updatePositions(
+        edit.offset + math.max<int>(0, delta), delta);
     changeBuilder._lockedPositions.clear();
     _captureSelection(builder, edit);
   }

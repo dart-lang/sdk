@@ -23,6 +23,7 @@ import 'utils.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
+import '../../metadata/procedure_attributes.dart';
 import '../../metadata/unreachable.dart';
 
 const bool kDumpAllSummaries =
@@ -112,14 +113,18 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
+  final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final DartType _intType;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
+        _procedureAttributesMetadata =
+            new ProcedureAttributesMetadataRepository(),
         _intType = _typeFlowAnalysis.environment.intType {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
+    component.addMetadataRepository(_procedureAttributesMetadata);
   }
 
   InferredType _convertType(Type type) {
@@ -204,6 +209,16 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         }
 
         // TODO(alexmarkov): figure out how to pass receiver type.
+      }
+
+      if (member.isInstanceMember &&
+          !(member is Procedure && member.isGetter)) {
+        final attrs = new ProcedureAttributesMetadata(
+            hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
+            hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
+            hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
+            hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
+        _procedureAttributesMetadata.mapping[member] = attrs;
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);
@@ -333,7 +348,7 @@ class TreeShaker {
       }
       _usedClasses.add(c);
       visitIterable(c.supers, typeVisitor);
-      visitList(c.typeParameters, typeVisitor);
+      transformList(c.typeParameters, _pass1, c);
       transformList(c.annotations, _pass1, c);
       // Preserve NSM forwarders. They are overlooked by TFA / tree shaker
       // as they are abstract and don't have a body.
@@ -373,9 +388,9 @@ class TreeShaker {
       }
 
       if (func != null) {
-        visitList(func.typeParameters, typeVisitor);
-        visitList(func.positionalParameters, typeVisitor);
-        visitList(func.namedParameters, typeVisitor);
+        transformList(func.typeParameters, _pass1, func);
+        transformList(func.positionalParameters, _pass1, func);
+        transformList(func.namedParameters, _pass1, func);
         func.returnType.accept(typeVisitor);
       }
 
@@ -386,7 +401,10 @@ class TreeShaker {
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
       transformList(typedef.annotations, _pass1, typedef);
-      visitList(typedef.typeParameters, typeVisitor);
+      transformList(typedef.typeParameters, _pass1, typedef);
+      transformList(typedef.typeParametersOfFunctionType, _pass1, typedef);
+      transformList(typedef.positionalParameters, _pass1, typedef);
+      transformList(typedef.namedParameters, _pass1, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }
@@ -957,6 +975,7 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitInstanceConstant(InstanceConstant constant) {
     instanceConstants.add(constant);
     shaker.addClassUsedInType(constant.klass);
+    visitList(constant.typeArguments, typeVisitor);
     constant.fieldValues.forEach((Reference fieldRef, Constant value) {
       shaker.addUsedMember(fieldRef.asField);
       analyzeConstant(value);

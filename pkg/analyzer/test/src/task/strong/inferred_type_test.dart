@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,7 +42,6 @@ abstract class InferredTypeMixin {
       {bool declarationCasts: true,
       bool implicitCasts: true,
       bool implicitDynamic: true,
-      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
       bool superMixins: false});
 
   /**
@@ -431,12 +429,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -468,7 +466,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -486,7 +484,8 @@ void main() {
   }
 
   test_constructors_inferenceFBounded() async {
-    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER';
+    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER,'
+        'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
 class Clonable<T> {}
@@ -550,7 +549,8 @@ class NotA {}
 NotA myF() => null;
 
 main() {
-  var x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(myF);
+  var x = /*info:INFERRED_TYPE_ALLOCATION*/new
+      /*error:COULD_NOT_INFER,error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/C(myF);
 }
 ''');
     var x = findLocalVariable(unit, 'x');
@@ -751,7 +751,7 @@ class A {
 }
 
 class B implements A {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -1908,7 +1908,7 @@ class C {
 T m<T>(T x) => x;
 }
 class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/m(x) => x;
+/*error:INVALID_OVERRIDE*/m(x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
@@ -1955,8 +1955,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/T m<T>(T x) => x;
-  /*error:INVALID_METHOD_OVERRIDE*/T g<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T m<T>(T x) => x;
+  /*error:INVALID_OVERRIDE*/T g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
@@ -3383,7 +3383,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {

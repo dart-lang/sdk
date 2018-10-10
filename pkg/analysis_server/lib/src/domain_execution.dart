@@ -9,7 +9,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domains/execution/completion.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -63,25 +63,30 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the 'execution.getSuggestions' request.
    */
   void getSuggestions(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var params = new ExecutionGetSuggestionsParams.fromRequest(request);
-    var computer = new RuntimeCompletionComputer(
-        server.resourceProvider,
-        server.fileContentOverlay,
-        server.getAnalysisDriver(params.contextFile),
-        params.code,
-        params.offset,
-        params.contextFile,
-        params.contextOffset,
-        params.variables,
-        params.expressions);
-    RuntimeCompletionResult completionResult = await computer.compute();
-
-    // Send the response.
+//    // TODO(brianwilkerson) Determine whether this await is necessary.
+//    await null;
+//    var params = new ExecutionGetSuggestionsParams.fromRequest(request);
+//    var computer = new RuntimeCompletionComputer(
+//        server.resourceProvider,
+//        server.fileContentOverlay,
+//        server.getAnalysisDriver(params.contextFile),
+//        params.code,
+//        params.offset,
+//        params.contextFile,
+//        params.contextOffset,
+//        params.variables,
+//        params.expressions);
+//    RuntimeCompletionResult completionResult = await computer.compute();
+//
+//    // Send the response.
+//    var result = new ExecutionGetSuggestionsResult(
+//        suggestions: completionResult.suggestions,
+//        expressions: completionResult.expressions);
+    // TODO(brianwilkerson) Re-enable this functionality after implementing a
+    // way of computing suggestions that is compatible with AnalysisSession.
     var result = new ExecutionGetSuggestionsResult(
-        suggestions: completionResult.suggestions,
-        expressions: completionResult.expressions);
+        suggestions: <CompletionSuggestion>[],
+        expressions: <RuntimeCompletionExpression>[]);
     server.sendResponse(result.toResponse(request.id));
   }
 

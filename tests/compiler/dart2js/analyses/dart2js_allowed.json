@@ -1,7 +1,6 @@
 {
   "pkg/compiler/lib/src/dart2js.dart": {
     "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'pause'.": 1,
     "Dynamic invocation of 'resume'.": 1
   },
@@ -9,16 +8,13 @@
     "Dynamic invocation of 'call'.": 3
   },
   "pkg/compiler/lib/src/util/util.dart": {
-    "Dynamic access of 'hashCode'.": 8,
     "Dynamic access of 'a'.": 1,
     "Dynamic access of 'b'.": 1,
     "Dynamic invocation of 'write'.": 11,
-    "Dynamic invocation of 'writeCharCode'.": 1,
-    "Dynamic invocation of '=='.": 1
+    "Dynamic invocation of 'writeCharCode'.": 1
   },
   "pkg/compiler/lib/src/util/maplet.dart": {
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of '=='.": 9,
     "Dynamic access of 'length'.": 1,
     "Dynamic invocation of 'containsKey'.": 1,
     "Dynamic invocation of '[]'.": 11,
@@ -35,7 +31,6 @@
     "Dynamic access of 'iterator'.": 1,
     "Dynamic access of 'length'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of '=='.": 10,
     "Dynamic invocation of 'contains'.": 1,
     "Dynamic invocation of '[]'.": 7,
     "Dynamic invocation of 'add'.": 1,
@@ -50,16 +45,8 @@
     "Dynamic invocation of 'toSet'.": 1,
     "Dynamic invocation of 'toList'.": 1
   },
-  "pkg/compiler/lib/src/common/tasks.dart": {
-    "Dynamic invocation of '=='.": 4
-  },
-  "pkg/compiler/lib/src/compiler.dart": {
-    "Dynamic invocation of 'toString'.": 1
-  },
   "pkg/compiler/lib/src/diagnostics/messages.dart": {
     "Dynamic access of 'template'.": 1,
-    "Dynamic invocation of 'toString'.": 1,
-    "Dynamic access of 'lexeme'.": 1,
     "Dynamic invocation of 'toDartText'.": 1
   },
   "pkg/compiler/lib/src/diagnostics/source_span.dart": {
@@ -123,7 +110,6 @@
     "Dynamic access of 'isMap'.": 1,
     "Dynamic access of 'forwardTo'.": 2,
     "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic access of 'typeMap'.": 1,
     "Dynamic access of 'values'.": 1,
     "Dynamic invocation of 'union'.": 1,
@@ -135,7 +121,6 @@
     "Dynamic access of 'forwardTo'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic invocation of '=='.": 1,
     "Dynamic access of 'isUnion'.": 5,
     "Dynamic access of 'disjointMasks'.": 4,
     "Dynamic invocation of 'contains'.": 1,
@@ -149,9 +134,6 @@
     "Dynamic access of 'sourceUri'.": 1,
     "Dynamic access of 'offset'.": 1,
     "Dynamic access of 'sourceName'.": 1
-  },
-  "pkg/compiler/lib/src/js_model/js_strategy.dart": {
-    "Dynamic invocation of '=='.": 2
   },
   "pkg/compiler/lib/src/ssa/nodes.dart": {
     "Dynamic invocation of 'replaceWith'.": 1
@@ -168,8 +150,7 @@
     "Dynamic access of 'isRedirection'.": 1
   },
   "pkg/compiler/lib/src/constants/expressions.dart": {
-    "Dynamic access of 'kind'.": 1,
-    "Dynamic access of 'hashCode'.": 1
+    "Dynamic access of 'kind'.": 1
   },
   "pkg/compiler/lib/src/helpers/trace.dart": {
     "Dynamic access of 'index'.": 1,
@@ -177,9 +158,6 @@
     "Dynamic access of 'lineNo'.": 1,
     "Dynamic access of 'columnNo'.": 1,
     "Dynamic access of 'method'.": 1
-  },
-  "pkg/compiler/lib/src/helpers/debug_collection.dart": {
-    "Dynamic access of 'runtimeType'.": 4
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
@@ -232,9 +210,7 @@
   "pkg/compiler/lib/src/constants/values.dart": {
     "Dynamic access of 'element'.": 1,
     "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic access of 'hashCode'.": 2
+    "Dynamic access of 'length'.": 1
   },
   "pkg/compiler/lib/src/elements/types.dart": {
     "Dynamic access of 'element'.": 1
@@ -242,8 +218,7 @@
   "pkg/compiler/lib/src/js_backend/constant_system_javascript.dart": {
     "Dynamic invocation of 'remainder'.": 1,
     "Dynamic access of 'isString'.": 1,
-    "Dynamic access of 'stringValue'.": 1,
-    "Dynamic invocation of '=='.": 1
+    "Dynamic access of 'stringValue'.": 1
   },
   "pkg/compiler/lib/src/universe/use.dart": {
     "Dynamic access of 'selector'.": 1,
@@ -259,22 +234,14 @@
     "Dynamic invocation of '[]'.": 13,
     "Dynamic invocation of 'forEach'.": 3,
     "Dynamic invocation of 'map'.": 2,
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'length'.": 1
-  },
-  "pkg/compiler/lib/src/js/js.dart": {
-    "Dynamic invocation of '=='.": 1
   },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4,
     "Dynamic access of 'value'.": 1
   },
   "pkg/compiler/lib/src/native/enqueue.dart": {
-    "Dynamic access of 'isDynamic'.": 1,
-    "Dynamic access of 'runtimeType'.": 1
-  },
-  "pkg/compiler/lib/src/js/rewrite_async.dart": {
-    "Dynamic invocation of '=='.": 1
+    "Dynamic access of 'isDynamic'.": 1
   },
   "pkg/compiler/lib/src/js_backend/checked_mode_helpers.dart": {
     "Dynamic access of 'name'.": 1
@@ -282,7 +249,6 @@
   "pkg/compiler/lib/src/js_backend/namer_names.dart": {
     "Dynamic access of 'js_backend.namer::_target'.": 4,
     "Dynamic access of 'base'.": 1,
-    "Dynamic invocation of '=='.": 4,
     "Dynamic access of 'prefix'.": 1,
     "Dynamic access of 'js_backend.namer::_parts'.": 2,
     "Dynamic access of 'length'.": 1,
@@ -302,7 +268,6 @@
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'isVoid'.": 1,
     "Dynamic access of 'isDynamic'.": 1,
     "Dynamic access of 'treatAsDynamic'.": 1,
@@ -341,7 +306,6 @@
     "Dynamic access of 'superConstructorInvocation'.": 1,
     "Dynamic access of 'defaultValues'.": 2,
     "Dynamic access of 'fieldMap'.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic access of 'thisConstructorInvocation'.": 1,
     "Dynamic access of 'targetConstructorInvocation'.": 1
   },
@@ -358,7 +322,6 @@
     "Dynamic access of 'instructionType'.": 2,
     "Dynamic access of 'isContainer'.": 2,
     "Dynamic access of 'isNullable'.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'containsOnly'.": 2,
     "Dynamic invocation of 'containsOnlyString'.": 1
   },
@@ -379,11 +342,7 @@
     "Dynamic invocation of '<='.": 1,
     "Dynamic invocation of '>'.": 1,
     "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '=='.": 1,
     "Dynamic invocation of 'codeUnitAt'.": 1
-  },
-  "pkg/compiler/lib/src/native/js.dart": {
-    "Dynamic invocation of '=='.": 1
   },
   "third_party/pkg/dart2js_info/lib/src/measurements.dart": {
     "Dynamic access of 'name'.": 1,
@@ -406,7 +365,6 @@
     "Dynamic invocation of 'toStatement'.": 3
   },
   "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
-    "Dynamic invocation of '=='.": 7,
     "Dynamic access of 'isVoid'.": 1,
     "Dynamic access of 'isDynamic'.": 1,
     "Dynamic access of 'isInterfaceType'.": 1,
@@ -447,7 +405,6 @@
     "Dynamic access of 'left'.": 4,
     "Dynamic access of 'right'.": 4,
     "Dynamic access of 'lower'.": 1,
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'upper'.": 1,
     "Dynamic invocation of 'operation'.": 1
   },
@@ -459,16 +416,13 @@
     "Dynamic access of 'positional'.": 2,
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,
-    "Dynamic invocation of '[]'.": 2,
-    "Dynamic invocation of '=='.": 1
+    "Dynamic invocation of '[]'.": 2
   },
   "pkg/compiler/lib/src/inferrer/type_graph_dump.dart": {
     "Dynamic invocation of 'contains'.": 2
   },
   "pkg/compiler/lib/src/js_emitter/full_emitter/emitter.dart": {
     "Dynamic access of 'scheme'.": 1,
-    "Dynamic invocation of '=='.": 1,
-    "Dynamic invocation of 'toString'.": 1,
     "Dynamic invocation of 'finalizeTokens'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
@@ -479,7 +433,6 @@
   },
   "pkg/compiler/lib/src/inferrer/node_tracer.dart": {
     "Dynamic access of 'receiver'.": 2,
-    "Dynamic invocation of '=='.": 2,
     "Dynamic access of 'selector'.": 6,
     "Dynamic access of 'name'.": 4,
     "Dynamic access of 'isIndex'.": 1

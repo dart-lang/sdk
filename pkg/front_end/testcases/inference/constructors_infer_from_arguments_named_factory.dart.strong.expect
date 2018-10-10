@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl field self::C::T t = null;
-  constructor •() → void
+  constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
   static factory named<T extends core::Object = dynamic>(self::C::named::T t) → self::C<self::C::named::T> {

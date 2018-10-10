@@ -148,8 +148,9 @@ class StubCode : public AllStatic {
  public:
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
-  static void InitOnce();
+  static void Init();
 
+  static void Cleanup();
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.

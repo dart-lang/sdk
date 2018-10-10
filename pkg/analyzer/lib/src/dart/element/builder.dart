@@ -806,8 +806,7 @@ class CompilationUnitBuilder {
         return null;
       }
       ElementHolder holder = new ElementHolder();
-      CompilationUnitElementImpl element =
-          new CompilationUnitElementImpl(source.shortName);
+      CompilationUnitElementImpl element = new CompilationUnitElementImpl();
       ElementBuilder builder = new ElementBuilder(holder, element);
       unit.accept(builder);
       element.accessors = holder.accessors;

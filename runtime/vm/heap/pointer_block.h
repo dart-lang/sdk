@@ -87,8 +87,8 @@ class BlockStack {
 
   BlockStack();
   ~BlockStack();
-  static void InitOnce();
-  static void ShutDown();
+  static void Init();
+  static void Cleanup();
 
   // Partially filled blocks can be reused, and there is an "inifite" supply
   // of empty blocks (reused or newly allocated). In any case, the caller

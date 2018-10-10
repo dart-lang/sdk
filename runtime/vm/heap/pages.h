@@ -336,6 +336,9 @@ class PageSpace {
   // Bulk data allocation.
   void AcquireDataLock();
   void ReleaseDataLock();
+#if defined(DEBUG)
+  bool CurrentThreadOwnsDataLock();
+#endif
 
   uword TryAllocateDataLocked(intptr_t size, GrowthPolicy growth_policy) {
     bool is_protected = false;

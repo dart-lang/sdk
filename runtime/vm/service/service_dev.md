@@ -2,7 +2,7 @@
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.10-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.12-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -36,6 +36,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getStack](#getstack)
   - [getVersion](#getversion)
   - [getVM](#getvm)
+  - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
   - [reloadSources](#reloadsources)
@@ -2371,9 +2372,9 @@ class Script extends Object {
   // The library which owns this script.
   @Library library;
 
-  // The source code for this script. For certain built-in scripts,
-  // this may be reconstructed without source comments.
-  string source;
+  // The source code for this script. This can be null for certain built-in
+  // scripts.
+  string source [optional];
 
   // A table encoding a mapping from token position to line and column.
   int[][] tokenPosTable;
@@ -2707,5 +2708,6 @@ version | comments
 3.8 | Add 'kill'.
 3.9 | Changed numbers for errors related to service extensions.
 3.10 | Add 'invoke'.
+3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

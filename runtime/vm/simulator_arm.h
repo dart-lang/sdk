@@ -86,7 +86,7 @@ class Simulator {
   uint64_t get_icount() const { return icount_; }
 
   // Call on program start.
-  static void InitOnce();
+  static void Init();
 
   // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the

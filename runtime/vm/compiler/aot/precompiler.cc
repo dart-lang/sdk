@@ -64,7 +64,6 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
-DEFINE_FLAG(int, precompiler_rounds, 1, "Number of precompiler iterations");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -87,121 +86,6 @@ DECLARE_FLAG(bool, print_instruction_stats);
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
-
-class DartPrecompilationPipeline : public DartCompilationPipeline {
- public:
-  explicit DartPrecompilationPipeline(Zone* zone,
-                                      FieldTypeMap* field_map = NULL)
-      : zone_(zone),
-        result_type_(CompileType::None()),
-        field_map_(field_map),
-        class_(Class::Handle(zone)),
-        fields_(Array::Handle(zone)),
-        field_(Field::Handle(zone)) {}
-
-  virtual void FinalizeCompilation(FlowGraph* flow_graph) {
-    if ((field_map_ != NULL) &&
-        flow_graph->function().IsGenerativeConstructor()) {
-      const Function& constructor = flow_graph->function();
-      for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
-           !block_it.Done(); block_it.Advance()) {
-        ForwardInstructionIterator it(block_it.Current());
-        for (; !it.Done(); it.Advance()) {
-          StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
-          if (store != NULL) {
-            if (!store->field().IsNull() && store->field().is_final()) {
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print("Found store to %s <- %s\n",
-                          store->field().ToCString(),
-                          store->value()->Type()->ToCString());
-              }
-#endif  // !PRODUCT
-              RecordFieldStore(constructor, store->field(),
-                               store->value()->Type());
-            }
-          }
-        }
-      }
-
-      // Final fields which were not initialized in this constructor are
-      // implicitly initialized with null.
-      class_ = flow_graph->function().Owner();
-      fields_ = class_.fields();
-      for (intptr_t i = 0; i < fields_.Length(); ++i) {
-        field_ ^= fields_.At(i);
-        if (!field_.is_static() && field_.is_final()) {
-          FieldTypePair* entry = field_map_->Lookup(&field_);
-          if ((entry == nullptr) ||
-              (entry->field_info.constructor != constructor.raw())) {
-#ifndef PRODUCT
-              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-                THR_Print("Implicit initialization %s <- null\n",
-                          field_.ToCString());
-              }
-#endif  // !PRODUCT
-              CompileType null_type = CompileType::Null();
-              RecordFieldStore(constructor, field_, &null_type);
-          }
-        }
-      }
-    }
-
-    CompileType result_type = CompileType::None();
-    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
-         !block_it.Done(); block_it.Advance()) {
-      ForwardInstructionIterator it(block_it.Current());
-      for (; !it.Done(); it.Advance()) {
-        ReturnInstr* return_instr = it.Current()->AsReturn();
-        if (return_instr != NULL) {
-          result_type.Union(return_instr->InputAt(0)->Type());
-        }
-      }
-    }
-    result_type_ = result_type;
-  }
-
-  void RecordFieldStore(const Function& constructor,
-                        const Field& field,
-                        CompileType* value_type) {
-    FieldTypePair* entry = field_map_->Lookup(&field);
-    if (entry == NULL) {
-      field_map_->Insert(
-          FieldTypePair(&Field::Handle(zone_, field.raw()),  // Re-wrap.
-                        value_type->ToCid(), constructor.raw()));
-#ifndef PRODUCT
-      if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-        THR_Print(" initial type = %s\n", value_type->ToCString());
-      }
-#endif  // !PRODUCT
-      return;
-    }
-    CompileType type = CompileType::FromCid(entry->field_info.cid);
-#ifndef PRODUCT
-    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-      THR_Print(" old type = %s\n", type.ToCString());
-    }
-#endif  // !PRODUCT
-    type.Union(value_type);
-#ifndef PRODUCT
-    if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-      THR_Print(" new type = %s\n", type.ToCString());
-    }
-#endif  // !PRODUCT
-    entry->field_info.cid = type.ToCid();
-    entry->field_info.constructor = constructor.raw();
-  }
-
-  CompileType result_type() { return result_type_; }
-
- private:
-  Zone* zone_;
-  CompileType result_type_;
-  FieldTypeMap* field_map_;
-  Class& class_;
-  Array& fields_;
-  Field& field_;
-};
 
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
@@ -291,7 +175,6 @@ Precompiler::Precompiler(Thread* thread)
       typeargs_to_retain_(),
       types_to_retain_(),
       consts_to_retain_(),
-      field_type_map_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {}
 
@@ -320,47 +203,26 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      // Precompile static initializers to compute result type information.
-      PrecompileStaticInitializers();
-      ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
-
-      // Precompile constructors to compute type information for final fields.
+      // Precompile constructors to compute information such as
+      // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode();
       PrecompileConstructors();
 
-      for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
-        if (FLAG_trace_precompiler) {
-          THR_Print("Precompiler round %" Pd "\n", round);
-        }
+      ClassFinalizer::ClearAllCode();
 
-        if (round > 0) {
-          ResetPrecompilerState();
-        }
+      CollectDynamicFunctionNames();
 
-        // TODO(rmacnak): We should be able to do a more thorough job and drop
-        // some
-        //  - implicit static closures
-        //  - field initializers
-        //  - invoke-field-dispatchers
-        //  - method-extractors
-        // that are needed in early iterations but optimized away in later
-        // iterations.
-        ClassFinalizer::ClearAllCode();
+      // Start with the allocations and invocations that happen from C++.
+      AddRoots();
+      AddAnnotatedRoots();
 
-        CollectDynamicFunctionNames();
+      // Compile newly found targets and add their callees until we reach a
+      // fixed point.
+      Iterate();
 
-        // Start with the allocations and invocations that happen from C++.
-        AddRoots();
-        AddAnnotatedRoots();
-
-        // Compile newly found targets and add their callees until we reach a
-        // fixed point.
-        Iterate();
-
-        // Replace the default type testing stubs installed on [Type]s with new
-        // [Type]-specialized stubs.
-        AttachOptimizedTypeTestingStub();
-      }
+      // Replace the default type testing stubs installed on [Type]s with new
+      // [Type]-specialized stubs.
+      AttachOptimizedTypeTestingStub();
 
       I->set_compilation_allowed(false);
 
@@ -430,61 +292,6 @@ void Precompiler::DoCompileAll() {
   }
 }
 
-static void CompileStaticInitializerIgnoreErrors(const Field& field) {
-  ASSERT(Error::Handle(Thread::Current()->zone(),
-                       Thread::Current()->sticky_error())
-             .IsNull());
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    const Function& initializer =
-        Function::Handle(Precompiler::CompileStaticInitializer(
-            field, /* compute_type = */ true));
-    // This function may have become a canonical signature function. Clear
-    // its code while we have a chance.
-    initializer.ClearCode();
-    initializer.ClearICDataArray();
-  } else {
-    // Ignore compile-time errors here. If the field is actually used,
-    // the error will be reported later during Iterate().
-    Thread::Current()->clear_sticky_error();
-  }
-  ASSERT(Error::Handle(Thread::Current()->zone(),
-                       Thread::Current()->sticky_error())
-             .IsNull());
-}
-
-void Precompiler::PrecompileStaticInitializers() {
-  class StaticInitializerVisitor : public ClassVisitor {
-   public:
-    explicit StaticInitializerVisitor(Zone* zone)
-        : fields_(Array::Handle(zone)),
-          field_(Field::Handle(zone)),
-          function_(Function::Handle(zone)) {}
-    void Visit(const Class& cls) {
-      fields_ = cls.fields();
-      for (intptr_t j = 0; j < fields_.Length(); j++) {
-        field_ ^= fields_.At(j);
-        if (field_.is_static() && field_.is_final() &&
-            field_.has_initializer() && !field_.is_const()) {
-          if (FLAG_trace_precompiler) {
-            THR_Print("Precompiling initializer for %s\n", field_.ToCString());
-          }
-          CompileStaticInitializerIgnoreErrors(field_);
-        }
-      }
-    }
-
-   private:
-    Array& fields_;
-    Field& field_;
-    Function& function_;
-  };
-
-  HANDLESCOPE(T);
-  StaticInitializerVisitor visitor(Z);
-  ProgramVisitor::VisitClasses(&visitor);
-}
-
 void Precompiler::PrecompileConstructors() {
   class ConstructorVisitor : public FunctionVisitor {
    public:
@@ -500,8 +307,7 @@ void Precompiler::PrecompileConstructors() {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiling constructor %s\n", function.ToCString());
       }
-      CompileFunction(precompiler_, Thread::Current(), zone_, function,
-                      precompiler_->field_type_map());
+      CompileFunction(precompiler_, Thread::Current(), zone_, function);
     }
 
    private:
@@ -512,22 +318,6 @@ void Precompiler::PrecompileConstructors() {
   HANDLESCOPE(T);
   ConstructorVisitor visitor(this, zone_);
   ProgramVisitor::VisitFunctions(&visitor);
-
-  FieldTypeMap::Iterator it(field_type_map_.GetIterator());
-  for (FieldTypePair* current = it.Next(); current != NULL;
-       current = it.Next()) {
-    const intptr_t cid = current->field_info.cid;
-    current->field->set_guarded_cid(cid);
-    current->field->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
-    // TODO(vegorov) we can actually compute the length in the same way we
-    // compute cids.
-    current->field->set_guarded_list_length(Field::kNoFixedLength);
-    if (FLAG_trace_precompiler) {
-      THR_Print(
-          "Field %s <- Type %s\n", current->field->ToCString(),
-          Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
-    }
-  }
 }
 
 void Precompiler::AddRoots() {
@@ -989,8 +779,8 @@ void Precompiler::AddField(const Field& field) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
         ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-        const Function& initializer = Function::Handle(
-            Z, CompileStaticInitializer(field, /* compute_type = */ true));
+        const Function& initializer =
+            Function::Handle(Z, CompileStaticInitializer(field));
         ASSERT(!initializer.IsNull());
         field.SetPrecompiledInitializer(initializer);
         AddCalleesOf(initializer);
@@ -999,8 +789,7 @@ void Precompiler::AddField(const Field& field) {
   }
 }
 
-RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
-                                                   bool compute_type) {
+RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -1016,7 +805,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
     parsed_function->AllocateVariables();
   }
 
-  DartPrecompilationPipeline pipeline(zone);
+  DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);
@@ -1025,19 +814,6 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
     ASSERT(!error.IsNull());
     Jump(error);
     UNREACHABLE();
-  }
-
-  if (compute_type && field.is_final()) {
-    intptr_t result_cid = pipeline.result_type().ToCid();
-    if (result_cid != kDynamicCid) {
-#ifndef PRODUCT
-      if (FLAG_trace_precompiler && FLAG_support_il_printer) {
-        THR_Print("Setting guarded_cid of %s to %s\n", field.ToCString(),
-                  pipeline.result_type().ToCString());
-      }
-#endif  // !PRODUCT
-      field.set_guarded_cid(result_cid);
-    }
   }
 
   if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
@@ -1064,7 +840,7 @@ RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
     // remembering it because it won't be used again.
     Function& initializer = Function::Handle();
     if (!field.HasPrecompiledInitializer()) {
-      initializer = CompileStaticInitializer(field, /* compute_type = */ false);
+      initializer = CompileStaticInitializer(field);
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -1123,7 +899,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    DartPrecompilationPipeline pipeline(Thread::Current()->zone());
+    DartCompilationPipeline pipeline;
     PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                           parsed_function,
                                           /* optimized = */ false);
@@ -1381,7 +1157,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
           }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
-          if (IsSent(selector2)) {
+          if (IsSent(selector2) && kernel::IsTearOffTaken(function, Z)) {
             // Closurization.
             // Function is foo and somewhere get:foo is called.
             function2 = function.ImplicitClosureFunction();
@@ -2422,40 +2198,6 @@ void Precompiler::FinalizeAllClasses() {
 }
 
 
-void Precompiler::ResetPrecompilerState() {
-  changed_ = false;
-  function_count_ = 0;
-  class_count_ = 0;
-  selector_count_ = 0;
-  dropped_function_count_ = 0;
-  dropped_field_count_ = 0;
-  ASSERT(pending_functions_.Length() == 0);
-  sent_selectors_.Clear();
-  enqueued_functions_.Clear();
-
-  classes_to_retain_.Clear();
-  consts_to_retain_.Clear();
-  fields_to_retain_.Clear();
-  functions_to_retain_.Clear();
-  typeargs_to_retain_.Clear();
-  types_to_retain_.Clear();
-
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      cls.set_is_allocated(false);
-    }
-  }
-}
-
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
@@ -2773,14 +2515,13 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
 RawError* Precompiler::CompileFunction(Precompiler* precompiler,
                                        Thread* thread,
                                        Zone* zone,
-                                       const Function& function,
-                                       FieldTypeMap* field_type_map) {
+                                       const Function& function) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
   ASSERT(FLAG_precompiled_mode);
   const bool optimized = function.IsOptimizable();  // False for natives.
-  DartPrecompilationPipeline pipeline(zone, field_type_map);
+  DartCompilationPipeline pipeline;
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
 }
 

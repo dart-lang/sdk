@@ -4,8 +4,7 @@
 
 library entities;
 
-import 'package:front_end/src/fasta/parser/async_modifier.dart'
-    show AsyncModifier;
+import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;

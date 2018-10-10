@@ -600,8 +600,7 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      {Token question: null});
+      FormalParameterList parameters);
 
   /**
    * Returns a newly created formal parameter. Either or both of the
@@ -616,8 +615,7 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      @required FormalParameterList parameters,
-      Token question});
+      @required FormalParameterList parameters});
 
   /**
    * Initialize a newly created generic function type.
@@ -1078,8 +1076,7 @@ abstract class AstFactory {
    * Returns a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
-      {Token question: null});
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments);
 
   /**
    * Returns a newly created type parameter. Either or both of the [comment]

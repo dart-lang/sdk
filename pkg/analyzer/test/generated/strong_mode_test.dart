@@ -2796,16 +2796,65 @@ class B<T2, U2> {
  * Strong mode static analyzer end to end tests
  */
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
-    var invocation = findIdentifier(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
-  }
-
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_nestedCaptureBounds() {
+    // https://github.com/dart-lang/sdk/issues/30236
+    return super.test_genericMethod_nestedCaptureBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_tearoff_instantiated() {
+    return super.test_genericMethod_tearoff_instantiated();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() {
+    return super.test_instantiateToBounds_class_error_extension_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() {
+    return super
+        .test_instantiateToBounds_class_error_instantiation_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() {
+    return super.test_instantiateToBounds_generic_function_error_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion() {
+    return super.test_notInstantiatedBound_class_error_recursion();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_less_direct() {
+    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  }
+}
+
+/// Test cases for [StrongModeStaticTypeAnalyzer2Test]
+abstract class StrongModeStaticTypeAnalyzer2TestCases
+    implements StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -3348,7 +3397,6 @@ class C<T> {
     expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/30236
   test_genericMethod_nestedCaptureBounds() async {
     await resolveTestUnit(r'''
 class C<T> {
@@ -3460,7 +3508,7 @@ class D extends C {
   T f<T extends B>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3475,7 +3523,7 @@ class D extends C {
   T f<T extends A>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3488,7 +3536,7 @@ class D extends C {
   String f<S>(S x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3501,7 +3549,7 @@ class D extends C {
   S f<T, S>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3574,7 +3622,6 @@ void test<S>(T Function<T>(T) pf) {
     expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
-  @failingTest
   test_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -3715,7 +3762,6 @@ main() {
     expect(p.enclosingElement, same(fType.element));
   }
 
-  @failingTest
   test_instantiateToBounds_class_error_extension_malbounded() async {
     // Test that superclasses are strictly checked for malbounded default
     // types
@@ -3727,7 +3773,6 @@ class D extends C {}
     assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
   }
 
-  @failingTest
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
     // Test that instance creations are strictly checked for malbounded default
     // types
@@ -3856,7 +3901,6 @@ void main() {
     expectIdentifierType('d;', 'D<A<dynamic>>');
   }
 
-  @failingTest
   test_instantiateToBounds_generic_function_error_malbounded() async {
     // Test that generic methods are strictly checked for malbounded default
     // types
@@ -3941,7 +3985,6 @@ class C<E> {
 ''');
   }
 
-  @failingTest
   test_notInstantiatedBound_class_error_recursion() async {
     String code = r'''
 class A<T extends B> {} // points to a
@@ -3956,7 +3999,6 @@ class C<T extends A> {} // points to a cyclical type
     ]);
   }
 
-  @failingTest
   test_notInstantiatedBound_class_error_recursion_less_direct() async {
     String code = r'''
 class A<T extends B<A>> {}

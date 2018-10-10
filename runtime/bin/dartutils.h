@@ -222,7 +222,6 @@ class DartUtils {
   static Dart_Handle ResolveScript(Dart_Handle url);
 
   enum MagicNumber {
-    kSnapshotMagicNumber,
     kAppJITMagicNumber,
     kKernelMagicNumber,
     kKernelListMagicNumber,
@@ -649,7 +648,6 @@ struct MagicNumberData {
 };
 
 extern MagicNumberData appjit_magic_number;
-extern MagicNumberData snapshot_magic_number;
 extern MagicNumberData kernel_magic_number;
 extern MagicNumberData kernel_list_magic_number;
 extern MagicNumberData gzip_magic_number;

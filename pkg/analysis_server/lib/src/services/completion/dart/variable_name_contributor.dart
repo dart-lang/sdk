@@ -82,7 +82,7 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       }
       if (strName == null) {
-        return EMPTY_LIST;
+        return const <CompletionSuggestion>[];
       }
 
       List<String> variableNameSuggestions = getCamelWordCombinations(strName);
@@ -96,6 +96,6 @@ class VariableNameContributor extends DartCompletionContributor {
       }
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }

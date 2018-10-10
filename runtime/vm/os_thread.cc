@@ -136,15 +136,17 @@ static void DeleteThread(void* thread) {
   delete reinterpret_cast<OSThread*>(thread);
 }
 
-void OSThread::InitOnce() {
+void OSThread::Init() {
   // Allocate the global OSThread lock.
-  ASSERT(thread_list_lock_ == NULL);
-  thread_list_lock_ = new Mutex();
+  if (thread_list_lock_ == NULL) {
+    thread_list_lock_ = new Mutex();
+  }
   ASSERT(thread_list_lock_ != NULL);
 
   // Create the thread local key.
-  ASSERT(thread_key_ == kUnsetThreadLocalKey);
-  thread_key_ = CreateThreadLocal(DeleteThread);
+  if (thread_key_ == kUnsetThreadLocalKey) {
+    thread_key_ = CreateThreadLocal(DeleteThread);
+  }
   ASSERT(thread_key_ != kUnsetThreadLocalKey);
 
   // Enable creation of OSThread structures in the VM.

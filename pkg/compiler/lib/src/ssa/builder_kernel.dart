@@ -33,7 +33,6 @@ import '../js_model/locals.dart'
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
-import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
@@ -1396,7 +1395,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
         commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadId, closedWorld)],
+        <HInstruction>[graph.addConstantString(loadId, closedWorld)],
         abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));
@@ -3021,9 +3020,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.value.accept(this);
     HInstruction value = pop();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget,
-        setter: true);
+    MemberEntity member = _elementMap
+        .getSuperMember(_currentFrame.member, node.name, setter: true);
     if (member == null) {
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
           <HInstruction>[value], const <DartType>[], sourceInformation);
@@ -3377,7 +3375,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       MemberEntity element = sourceElement is ConstructorBodyEntity
           ? (sourceElement as ConstructorBodyEntity).constructor
           : sourceElement;
-      ;
+
       return globalInferenceResults
               .resultOfMember(element)
               .typeOfNewList(node) ??
@@ -4546,8 +4544,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_currentFrame.member, node.name);
     if (member == null) {
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
           const <HInstruction>[], const <DartType>[], sourceInformation);
@@ -4566,8 +4564,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
-    MemberEntity member = _elementMap.getSuperMember(
-        _currentFrame.member, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_currentFrame.member, node.name);
     if (member == null) {
       Selector selector = _elementMap.getSelector(node);
       List<DartType> typeArguments = <DartType>[];

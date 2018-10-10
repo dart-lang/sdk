@@ -14,7 +14,6 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -31,7 +30,8 @@ main(List<String> args) {
 
 class Tags {
   static const String isChecks = 'checks';
-  static const String instance = 'instance';
+  static const String indirectInstance = 'indirectInstance';
+  static const String directInstance = 'instance';
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
@@ -61,9 +61,12 @@ abstract class ComputeValueMixin {
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];
     if (classUse != null) {
-      if (classUse.instance) {
-        features.add(Tags.instance);
+      if (classUse.directInstance) {
+        features.add(Tags.directInstance);
+      } else if (classUse.instance) {
+        features.add(Tags.indirectInstance);
       }
+
       if (classUse.checkedInstance) {
         features.add(Tags.checkedInstance);
       }

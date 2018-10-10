@@ -607,8 +607,8 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void InitOnce(Isolate* isolate);
-  static void InitOnceFromSnapshot(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void InitFromSnapshot(Isolate* isolate);
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);

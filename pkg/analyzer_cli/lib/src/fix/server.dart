@@ -94,14 +94,20 @@ class Server {
    * upward to the 'test' dir, and then going up one more directory.
    */
   String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(basename(pathname))) {
+    while (true) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
         throw new Exception("Can't find root directory");
       }
+      String name = basename(pathname);
+      if (['benchmark', 'test'].contains(name)) {
+        return parent;
+      }
+      if (name == 'pkg') {
+        return join(pathname, 'analysis_server');
+      }
       pathname = parent;
     }
-    return dirname(pathname);
   }
 
   /**
@@ -223,6 +229,7 @@ class Server {
     String sdkPath,
     int servicesPort,
     bool useAnalysisHighlight2: false,
+    bool useSnapshot: true,
   }) async {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -230,11 +237,10 @@ class Server {
     _time.start();
     String dartBinary = Platform.executable;
 
-    // The integration tests run 3x faster when run from snapshots (you need to
-    // run test.py with --use-sdk).
-    final bool useSnapshot = true;
     String serverPath;
 
+    // The integration tests run 3x faster when run from snapshots (you need to
+    // run test.py with --use-sdk).
     if (useSnapshot) {
       // Look for snapshots/analysis_server.dart.snapshot.
       serverPath = normalize(join(dirname(Platform.resolvedExecutable),

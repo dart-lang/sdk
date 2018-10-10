@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 abstract class T0 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T0
     : super core::Object::•()
     ;
   abstract method foo() → void;
 }
 class T2 extends self::T0 {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::T2
     : super self::T0::•()
     ;
-  method foo() → void {}
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → void {}
 }
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method method1(self::T0 t0) → void {
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method method1(self::T0 t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
   }
 }
@@ -26,18 +26,18 @@ abstract class B extends core::Object {
   abstract method method2(covariant dynamic arg) → void;
 }
 class C extends core::Object implements self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method method2(covariant self::T0 t0) → void {
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method method2(covariant self::T0 t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
   }
 }
 class D extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super core::Object::•()
     ;
-  method method3(self::T0 t0) → void {
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method method3(self::T0 t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
   }
 }

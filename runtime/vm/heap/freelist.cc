@@ -44,7 +44,7 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   // writable.
 }
 
-void FreeListElement::InitOnce() {
+void FreeListElement::Init() {
   ASSERT(sizeof(FreeListElement) == kObjectAlignment);
   ASSERT(OFFSET_OF(FreeListElement, tags_) == Object::tags_offset());
 }

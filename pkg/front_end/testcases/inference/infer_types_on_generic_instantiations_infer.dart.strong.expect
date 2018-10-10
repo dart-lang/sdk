@@ -4,7 +4,7 @@
 // Change to a subtype of dart.core::int.
 //   /*error:INVALID_METHOD_OVERRIDE*/ dynamic get x => 3;
 //                                                 ^
-// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_infer.dart:9:11: Error: This is the overridden method ('x').
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_infer.dart:9:11: Context: This is the overridden method ('x').
 //   final T x = null;
 //           ^
 
@@ -21,12 +21,12 @@ import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
   final field self::A::T x = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A<self::A::T>
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   get x() → dynamic

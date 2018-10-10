@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field self::Foo self;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     ;
 }
 static method main() → dynamic

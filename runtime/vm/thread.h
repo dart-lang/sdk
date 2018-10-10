@@ -107,6 +107,7 @@ class Zone;
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
     StubCode::ICCallThroughCode_entry()->code(), NULL)                         \
+  V(RawCode*, deoptimize_stub_, StubCode::Deoptimize_entry()->code(), NULL)    \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
     StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
@@ -154,7 +155,8 @@ class Zone;
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \
-    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)
+    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)                        \
+  V(uword, deoptimize_entry_, StubCode::Deoptimize_entry()->EntryPoint(), 0)
 
 #endif
 
@@ -463,6 +465,9 @@ class Thread : public BaseThread {
 
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
+
+  bool bump_allocate() const { return bump_allocate_; }
+  void set_bump_allocate(bool b) { bump_allocate_ = b; }
 
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
@@ -867,6 +872,7 @@ class Thread : public BaseThread {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+  bool bump_allocate_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;

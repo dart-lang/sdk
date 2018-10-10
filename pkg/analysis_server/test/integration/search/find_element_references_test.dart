@@ -41,8 +41,10 @@ main() {
   test_findReferences() async {
     String text = r'''
 main() {
-  print /* target */ ('Hello');
+  foo /* target */ ('Hello');
 }
+
+foo(String str) {}
 ''';
 
     pathname = sourcePath('foo.dart');

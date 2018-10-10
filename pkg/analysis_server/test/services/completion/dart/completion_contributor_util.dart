@@ -382,7 +382,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    expect(cs.returnType, returnType ?? 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.METHOD));
@@ -391,7 +391,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
-    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    expect(element.returnType, returnType ?? 'dynamic');
     assertHasParameterInfo(cs);
     return cs;
   }

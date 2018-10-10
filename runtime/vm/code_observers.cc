@@ -47,7 +47,7 @@ bool CodeObservers::AreActive() {
   return false;
 }
 
-void CodeObservers::DeleteAll() {
+void CodeObservers::Cleanup() {
   for (intptr_t i = 0; i < observers_length_; i++) {
     delete observers_[i];
   }
@@ -56,9 +56,10 @@ void CodeObservers::DeleteAll() {
   observers_ = NULL;
 }
 
-void CodeObservers::InitOnce() {
-  ASSERT(mutex_ == NULL);
-  mutex_ = new Mutex();
+void CodeObservers::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
   ASSERT(mutex_ != NULL);
   OS::RegisterCodeObservers();
 }

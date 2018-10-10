@@ -12,8 +12,8 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -304,6 +304,48 @@ class C {
 ''', r'''
 class C {
   final int a = 2;
+}
+''');
+  }
+
+  test_class_field_withType_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  int a = 2;
+  const C();
+}
+''');
+  }
+
+  test_class_field_withType_static_final_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  static final int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  static final int a = 2;
+  const C();
+}
+''');
+  }
+
+  test_class_field_withType_static_hasConstConstructor() async {
+    await assertSameSignature(r'''
+class C {
+  static int a = 1;
+  const C();
+}
+''', r'''
+class C {
+  static int a = 2;
+  const C();
 }
 ''');
   }

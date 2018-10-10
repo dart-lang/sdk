@@ -29,9 +29,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
@@ -102,11 +102,6 @@ class FileState {
   final Uri uri;
 
   /**
-   * The absolute file URI of the file.
-   */
-  final Uri fileUri;
-
-  /**
    * The [Source] of the file with the [uri].
    */
   final Source source;
@@ -136,7 +131,7 @@ class FileState {
   List<FileState> _libraryFiles;
   List<NameFilter> _exportFilters;
 
-  Set<FileState> _directReferencedFiles = new Set<FileState>();
+  Set<FileState> _directReferencedFiles;
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
 
@@ -150,13 +145,12 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.fileUri, this.source)
+  FileState._(this._fsState, this.path, this.uri, this.source)
       : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
-        fileUri = null,
         source = null,
         _exists = true {
     _apiSignature = new Uint8List(16);
@@ -332,7 +326,7 @@ class FileState {
 
       void appendReferenced(FileState file) {
         if (_transitiveFiles.add(file)) {
-          file._directReferencedFiles.forEach(appendReferenced);
+          file._directReferencedFiles?.forEach(appendReferenced);
         }
       }
 
@@ -524,12 +518,14 @@ class FileState {
     // If the set of directly referenced files of this file is changed,
     // then the transitive sets of files that include this file are also
     // changed. Reset these transitive sets.
-    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
-        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
-      for (FileState file in _fsState._uriToFile.values) {
-        if (file._transitiveFiles != null &&
-            file._transitiveFiles.contains(this)) {
-          file._transitiveFiles = null;
+    if (oldDirectReferencedFiles != null) {
+      if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+          !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+        for (FileState file in _fsState._uriToFile.values) {
+          if (file._transitiveFiles != null &&
+              file._transitiveFiles.contains(this)) {
+            file._transitiveFiles = null;
+          }
         }
       }
     }
@@ -828,7 +824,7 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = new FileState._(this, null, null, null, null);
+      _unresolvedFile = new FileState._(this, null, null, null);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -856,8 +852,7 @@ class FileSystemState {
       }
       // Create a new file.
       FileSource uriSource = new FileSource(resource, uri);
-      file = new FileState._(
-          this, path, uri, _absolutePathToFileUri(path), uriSource);
+      file = new FileState._(this, path, uri, uriSource);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -897,8 +892,7 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
-      file = new FileState._(
-          this, path, uri, _absolutePathToFileUri(path), source);
+      file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
@@ -969,18 +963,6 @@ class FileSystemState {
     _pathToCanonicalFile.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
-  }
-
-  /**
-   * A specialized version of package:path context.toUri(). This assumes the
-   * path is absolute as does a performant conversion to a file: uri.
-   */
-  Uri _absolutePathToFileUri(String path) {
-    if (path.contains(r'\')) {
-      return new Uri(scheme: 'file', path: path.replaceAll(r'\', '/'));
-    } else {
-      return new Uri(scheme: 'file', path: path);
-    }
   }
 
   void _addFileWithPath(String path, FileState file) {

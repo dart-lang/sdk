@@ -1552,9 +1552,12 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
-  return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsBinaryInt64Op() ||
-         def->IsShiftInt64Op() || def->IsSpeculativeShiftInt64Op() ||
-         def->IsUnaryInt64Op();
+  return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsShiftInt64Op() ||
+         def->IsSpeculativeShiftInt64Op() ||
+         (def->IsBinaryInt64Op() && BinaryUint32OpInstr::IsSupported(
+                                        def->AsBinaryInt64Op()->op_kind())) ||
+         (def->IsUnaryInt64Op() &&
+          UnaryUint32OpInstr::IsSupported(def->AsUnaryInt64Op()->op_kind()));
 }
 
 void IntegerInstructionSelector::FindPotentialUint32Definitions() {

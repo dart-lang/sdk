@@ -449,23 +449,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (!FLAG_strong && Isolate::Current()->error_on_bad_override()) {
-    // Verify that the target is compatible with the redirecting factory.
-    Error& error = Error::Handle();
-    if (!target.HasCompatibleParametersWith(factory, &error)) {
-      const Script& script = Script::Handle(target_class.script());
-      type = NewFinalizedMalformedType(
-          error, script, target.token_pos(),
-          "constructor '%s' has incompatible parameters with "
-          "redirecting factory '%s'",
-          String::Handle(target.name()).ToCString(),
-          String::Handle(factory.name()).ToCString());
-      factory.SetRedirectionType(type);
-      ASSERT(factory.RedirectionTarget() == Function::null());
-      return;
-    }
-  }
-
   // Verify that the target is const if the redirecting factory is const.
   if (factory.is_const() && !target.is_const()) {
     ReportError(target_class, target.token_pos(),
@@ -1484,50 +1467,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   }
 }
 
-// Check if an instance field, getter, or method of same name exists
-// in any super class.
-static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
-                                                const String& name,
-                                                const String& getter_name) {
-  Class& super_class = Class::Handle();
-  Function& function = Function::Handle();
-  Field& field = Field::Handle();
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    function = super_class.LookupFunction(name);
-    if (!function.IsNull() && !function.is_static()) {
-      return super_class.raw();
-    }
-    function = super_class.LookupFunction(getter_name);
-    if (!function.IsNull() && !function.is_static()) {
-      return super_class.raw();
-    }
-    field = super_class.LookupField(name);
-    if (!field.IsNull() && !field.is_static()) {
-      return super_class.raw();
-    }
-    super_class = super_class.SuperClass();
-  }
-  return Class::null();
-}
-
-// Check if an instance method of same name exists in any super class.
-static RawClass* FindSuperOwnerOfFunction(const Class& cls,
-                                          const String& name) {
-  Class& super_class = Class::Handle();
-  Function& function = Function::Handle();
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    function = super_class.LookupFunction(name);
-    if (!function.IsNull() && !function.is_static() &&
-        !function.IsMethodExtractor()) {
-      return super_class.raw();
-    }
-    super_class = super_class.SuperClass();
-  }
-  return Class::null();
-}
-
 // Resolve the upper bounds of the type parameters of class cls.
 void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
   const intptr_t num_type_params = cls.NumTypeParameters();
@@ -1605,9 +1544,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // functions of a class, so we do not need to consider fields as implicitly
   // generating getters and setters.
   // Most overriding conflicts are only static warnings, i.e. they are not
-  // reported as compile-time errors by the vm. However, in non-strong mode,
-  // signature conflicts in overrides can be reported if the flag
-  // --error_on_bad_override is specified.
+  // reported as compile-time errors by the vm.
   // Static warning examples are:
   // - a static getter 'v' conflicting with an inherited instance setter 'v='.
   // - a static setter 'v=' conflicting with an inherited instance member 'v'.
@@ -1628,10 +1565,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   Array& array = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   AbstractType& type = AbstractType::Handle(zone);
-  String& name = String::Handle(zone);
-  String& getter_name = String::Handle(zone);
-  String& other_name = String::Handle(zone);
-  Class& super_class = Class::Handle(zone);
   const intptr_t num_fields = array.Length();
   const bool track_exactness = FLAG_strong && isolate->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
@@ -1643,200 +1576,19 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       field.set_static_type_exactness_state(
           StaticTypeExactnessState::Unitialized());
     }
-    name = field.name();
-    if (field.is_static()) {
-      getter_name = Field::GetterSymbol(name);
-      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "static field '%s' of class '%s' conflicts with "
-                    "instance member '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-      // An implicit setter is not generated for a static field, therefore, we
-      // cannot rely on the code below handling the static setter case to report
-      // a conflict with an instance setter. So we check explicitly here.
-      other_name = Field::SetterSymbol(name);
-      super_class = FindSuperOwnerOfFunction(cls, other_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "static field '%s' of class '%s' conflicts with "
-                    "instance setter '%s=' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-
-    } else {
-      // Instance field. Check whether the field overrides a method
-      // (but not getter).
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, field.token_pos(),
-                    "field '%s' of class '%s' conflicts with method '%s' "
-                    "of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-    }
-    if (field.is_static() && (field.StaticValue() != Object::null()) &&
-        (field.StaticValue() != Object::sentinel().raw())) {
-      // The parser does not preset the value if the type is a type parameter or
-      // is parameterized unless the value is null.
-      Error& error = Error::Handle(zone);
-      if (type.IsMalformedOrMalbounded()) {
-        error = type.error();
-      } else {
-        ASSERT(type.IsInstantiated());
-      }
-      const Instance& const_value = Instance::Handle(zone, field.StaticValue());
-      if (!error.IsNull() ||
-          (!type.IsDynamicType() &&
-           !const_value.IsInstanceOf(type, Object::null_type_arguments(),
-                                     Object::null_type_arguments(), &error))) {
-        if (isolate->error_on_bad_type()) {
-          const AbstractType& const_value_type =
-              AbstractType::Handle(zone, const_value.GetType(Heap::kNew));
-          const String& const_value_type_name =
-              String::Handle(zone, const_value_type.UserVisibleName());
-          const String& type_name =
-              String::Handle(zone, type.UserVisibleName());
-          ReportErrors(error, cls, field.token_pos(),
-                       "error initializing static %s field '%s': "
-                       "type '%s' is not a subtype of type '%s'",
-                       field.is_const() ? "const" : "final", name.ToCString(),
-                       const_value_type_name.ToCString(),
-                       type_name.ToCString());
-        } else {
-          // Do not report an error yet, even in checked mode, since the field
-          // may not actually be used.
-          // Also, we may be generating a snapshot in production mode that will
-          // later be executed in checked mode, in which case an error needs to
-          // be reported, should the field be accessed.
-          // Therefore, we undo the optimization performed by the parser, i.e.
-          // we create an implicit static final getter and reset the field value
-          // to the sentinel value.
-          const Function& getter = Function::Handle(
-              zone, Function::New(
-                        getter_name, RawFunction::kImplicitStaticFinalGetter,
-                        /* is_static = */ true,
-                        /* is_const = */ field.is_const(),
-                        /* is_abstract = */ false,
-                        /* is_external = */ false,
-                        /* is_native = */ false, cls, field.token_pos()));
-          getter.set_result_type(type);
-          getter.set_is_debuggable(false);
-          getter.set_kernel_offset(field.kernel_offset());
-          cls.AddFunction(getter);
-          field.SetStaticValue(Object::sentinel(), true);
-        }
-      }
-    }
-  }
-  // If we check for bad overrides, collect interfaces, super interfaces, and
-  // super classes of this class.
-  GrowableArray<const Class*> interfaces(zone, 4);
-  if (isolate->error_on_bad_override() && !FLAG_strong) {
-    CollectInterfaces(cls, &interfaces);
-    // Include superclasses in list of interfaces and super interfaces.
-    super_class = cls.SuperClass();
-    while (!super_class.IsNull()) {
-      interfaces.Add(&Class::ZoneHandle(zone, super_class.raw()));
-      CollectInterfaces(super_class, &interfaces);
-      super_class = super_class.SuperClass();
-    }
   }
   // Resolve function signatures and check for conflicts in super classes and
   // interfaces.
   array = cls.functions();
   Function& function = Function::Handle(zone);
-  Function& overridden_function = Function::Handle(zone);
   const intptr_t num_functions = array.Length();
-  Error& error = Error::Handle(zone);
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
     FinalizeSignature(cls, function);
-    name = function.name();
-    // Report signature conflicts only.
-    if (isolate->error_on_bad_override() && !FLAG_strong &&
-        !function.is_static() && !function.IsGenerativeConstructor()) {
-      // A constructor cannot override anything.
-      for (intptr_t i = 0; i < interfaces.length(); i++) {
-        const Class* interface = interfaces.At(i);
-        // All interfaces should have been finalized since override checks
-        // rely on all interface members to be finalized.
-        ASSERT(interface->is_finalized());
-        overridden_function = interface->LookupDynamicFunction(name);
-        if (!overridden_function.IsNull() &&
-            !function.HasCompatibleParametersWith(overridden_function,
-                                                  &error)) {
-          const String& class_name = String::Handle(zone, cls.Name());
-          const String& interface_name =
-              String::Handle(zone, interface->Name());
-          ReportErrors(error, cls, function.token_pos(),
-                       "class '%s' overrides method '%s' of super class or "
-                       "interface '%s' with incompatible parameters",
-                       class_name.ToCString(), name.ToCString(),
-                       interface_name.ToCString());
-        }
-      }
-    }
-    if (function.IsImplicitGetterFunction() ||
-        function.IsImplicitSetterFunction() ||
-        function.IsImplicitStaticFieldInitializer()) {
-      // Cache the field object in the function data_ field.
-      if (function.IsImplicitSetterFunction()) {
-        other_name = Field::NameFromSetter(name);
-      } else {
-        other_name = Field::NameFromGetter(name);
-      }
-      field = cls.LookupFieldAllowPrivate(other_name);
-      ASSERT(!field.IsNull());
-      function.set_accessor_field(field);
-    }
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
-      if (function.is_static()) {
-        super_class = FindSuperOwnerOfFunction(cls, name);
-        if (!super_class.IsNull()) {
-          const String& class_name = String::Handle(zone, cls.Name());
-          const String& super_cls_name =
-              String::Handle(zone, super_class.Name());
-          ReportError(cls, function.token_pos(),
-                      "static setter '%s=' of class '%s' conflicts with "
-                      "instance setter '%s=' of super class '%s'",
-                      name.ToCString(), class_name.ToCString(),
-                      name.ToCString(), super_cls_name.ToCString());
-        }
-      }
       continue;
     }
-    if (function.IsGetterFunction() || function.IsImplicitGetterFunction()) {
-      getter_name = name.raw();
-      name = Field::NameFromGetter(getter_name);
-    } else {
-      getter_name = Field::GetterSymbol(name);
-    }
     if (function.is_static()) {
-      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(
-            cls, function.token_pos(),
-            "static %s '%s' of class '%s' conflicts with "
-            "instance member '%s' of super class '%s'",
-            (function.IsGetterFunction() || function.IsImplicitGetterFunction())
-                ? "getter"
-                : "method",
-            name.ToCString(), class_name.ToCString(), name.ToCString(),
-            super_cls_name.ToCString());
-      }
       if (function.IsRedirectingFactory()) {
         // The function may be a still unresolved redirecting factory. Do not
         // yet try to resolve it in order to avoid cycles in class finalization.
@@ -1848,32 +1600,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           type ^= FinalizeType(cls, type);
           function.SetRedirectionType(type);
         }
-      }
-    } else if (function.IsGetterFunction() ||
-               function.IsImplicitGetterFunction()) {
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, function.token_pos(),
-                    "getter '%s' of class '%s' conflicts with "
-                    "method '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
-      }
-    } else if (!function.IsSetterFunction() &&
-               !function.IsImplicitSetterFunction()) {
-      // A function cannot conflict with a setter, since they cannot
-      // have the same name. Thus, we do not need to check setters.
-      super_class = FindSuperOwnerOfFunction(cls, getter_name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(zone, cls.Name());
-        const String& super_cls_name = String::Handle(zone, super_class.Name());
-        ReportError(cls, function.token_pos(),
-                    "method '%s' of class '%s' conflicts with "
-                    "getter '%s' of super class '%s'",
-                    name.ToCString(), class_name.ToCString(), name.ToCString(),
-                    super_cls_name.ToCString());
       }
     }
   }
@@ -2786,15 +2512,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
     FinalizeClass(super);
-  }
-  // Ensure interfaces are finalized in case we check for bad overrides.
-  Isolate* isolate = Isolate::Current();
-  if (isolate->error_on_bad_override() && !FLAG_strong) {
-    GrowableArray<const Class*> interfaces(4);
-    CollectInterfaces(cls, &interfaces);
-    for (intptr_t i = 0; i < interfaces.length(); i++) {
-      FinalizeClass(*interfaces.At(i));
-    }
   }
   if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.

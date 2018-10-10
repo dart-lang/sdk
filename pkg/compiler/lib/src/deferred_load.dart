@@ -858,9 +858,11 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// - <prefix> is the `as` prefix used for a given deferred import.
   /// - <list of files> is a list of the filenames the must be loaded when that
   ///   import is loaded.
-  Map<String, Map<String, dynamic>> computeDeferredMap() {
-    Map<String, Map<String, dynamic>> mapping =
-        new Map<String, Map<String, dynamic>>();
+  Map<String, Map<String, dynamic>> computeDeferredMap(
+      {Set<OutputUnit> omittedUnits}) {
+    omittedUnits ??= Set();
+    Map<String, Map<String, dynamic>> mapping = {};
+
     _deferredImportDescriptions.keys.forEach((ImportEntity import) {
       List<OutputUnit> outputUnits = hunksToLoad[_importDeferName[import]];
       ImportDescription description = _deferredImportDescriptions[import];
@@ -876,10 +878,11 @@ abstract class DeferredLoadTask extends CompilerTask {
                 "imports": <String, List<String>>{}
               });
 
-      libraryMap["imports"][_importDeferName[import]] =
-          outputUnits.map((OutputUnit outputUnit) {
-        return deferredPartFileName(outputUnit.name);
-      }).toList();
+      List<String> partFileNames = outputUnits
+          .where((outputUnit) => !omittedUnits.contains(outputUnit))
+          .map((outputUnit) => deferredPartFileName(outputUnit.name))
+          .toList();
+      libraryMap["imports"][_importDeferName[import]] = partFileNames;
     });
     return mapping;
   }

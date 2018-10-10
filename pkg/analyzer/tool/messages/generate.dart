@@ -16,7 +16,7 @@ import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/testing/package_root.dart' as pkgRoot;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;

@@ -231,7 +231,7 @@ class KernelLibraryBuilder
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, supertypeOffset, className,
+        applyMixins(supertype, charOffset, className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
         classScope,
@@ -307,8 +307,8 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(
-      KernelTypeBuilder type, int charOffset, String subclassName,
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
+      String subclassName, bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
@@ -469,8 +469,10 @@ class KernelLibraryBuilder
                 : abstractMask,
             fullname,
             applicationTypeVariables,
-            supertype,
-            isNamedMixinApplication ? interfaces : null,
+            isMixinDeclaration ? null : supertype,
+            isNamedMixinApplication
+                ? interfaces
+                : isMixinDeclaration ? [supertype, mixin] : null,
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 scope.withTypeVariables(typeVariables),
                 "mixin $fullname ", isModifiable: false),
@@ -481,7 +483,7 @@ class KernelLibraryBuilder
             startCharOffset,
             charOffset,
             TreeNode.noOffset,
-            mixedInType: mixin);
+            mixedInType: isMixinDeclaration ? null : mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
@@ -512,7 +514,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(
-        mixinApplication, charOffset, name,
+        mixinApplication, charOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,

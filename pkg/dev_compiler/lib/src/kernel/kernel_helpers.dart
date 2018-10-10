@@ -230,7 +230,8 @@ Class getSuperclassAndMixins(Class c, List<Class> mixins) {
 
   var sc = c.superclass;
   for (; sc.isAnonymousMixin; sc = sc.superclass) {
-    mixins.add(sc.mixedInClass);
+    mixedInClass = sc.mixedInClass;
+    if (mixedInClass != null) mixins.add(sc.mixedInClass);
   }
   return sc;
 }

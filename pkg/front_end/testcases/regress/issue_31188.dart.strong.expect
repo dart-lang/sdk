@@ -39,10 +39,6 @@
 // type T = Map<A, B>
 // ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Error: Getter not found: 'A'.
-// type T = Map<A, B>
-//              ^
-//
 // pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
 // type T = Map<A, B>
 // ^^^^

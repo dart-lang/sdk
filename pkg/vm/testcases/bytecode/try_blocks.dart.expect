@@ -77,13 +77,9 @@ Try #0 handler:
   MoveSpecial          r0, exception
   MoveSpecial          r1, stackTrace
   Push                 r0
-  PushNull
-  PushNull
   PushConstant         CP#3
-  InstanceCall         4, CP#5
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  InstanceCall         2, CP#5
+  JumpIfFalse          L2
   PushConstant         CP#6
   PushConstant         CP#7
   IndirectStaticCall   1, CP#1
@@ -91,13 +87,9 @@ Try #0 handler:
   Jump                 L1
 L2:
   Push                 r0
-  PushNull
-  PushNull
   PushConstant         CP#8
-  InstanceCall         4, CP#9
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L3
+  InstanceCall         2, CP#9
+  JumpIfFalse          L3
   Push                 r0
   PopLocal             r2
   PushNull
@@ -120,13 +112,9 @@ L2:
   Jump                 L1
 L3:
   Push                 r0
-  PushNull
-  PushNull
   PushConstant         CP#13
-  InstanceCall         4, CP#14
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L4
+  InstanceCall         2, CP#14
+  JumpIfFalse          L4
   Push                 r0
   PopLocal             r2
   Push                 r1
@@ -200,17 +188,17 @@ ConstantPool {
   [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target 'dart.core::print', arg-desc CP#1
   [3] = Type dart.core::TypeError
-  [4] = ArgDesc num-args 4, num-type-args 0, names []
-  [5] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#4
+  [4] = ArgDesc num-args 2, num-type-args 0, names []
+  [5] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#4
   [6] = String 'caught type error'
   [7] = StaticICData target 'dart.core::print', arg-desc CP#1
   [8] = Type dart.core::AssertionError
-  [9] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#4
+  [9] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#4
   [10] = String 'caught assertion error '
   [11] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#1
   [12] = StaticICData target 'dart.core::print', arg-desc CP#1
   [13] = Type dart.core::Error
-  [14] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#4
+  [14] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#4
   [15] = String 'caught error '
   [16] = String ' '
   [17] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#1
@@ -378,8 +366,8 @@ ConstantPool {
   [26] = String 'danger bar'
   [27] = StaticICData target 'dart.core::print', arg-desc CP#4
   [28] = Type dart.core::Error
-  [29] = ArgDesc num-args 4, num-type-args 0, names []
-  [30] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#29
+  [29] = ArgDesc num-args 2, num-type-args 0, names []
+  [30] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#29
   [31] = String 'error '
   [32] = String ', captured stack trace: '
   [33] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#4
@@ -446,13 +434,9 @@ Try #0 handler:
   MoveSpecial          r2, exception
   MoveSpecial          r3, stackTrace
   Push                 r2
-  PushNull
-  PushNull
   PushConstant         CP#28
-  InstanceCall         4, CP#30
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  InstanceCall         2, CP#30
+  JumpIfFalse          L2
   Push                 r2
   PopLocal             r4
   PushNull
@@ -545,9 +529,7 @@ Try #2 start:
   Drop1
   Push                 FP[-5]
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Push                 r2
   Push                 r3
   Throw                1
@@ -593,9 +575,9 @@ L4:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 38, handler 38, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 2, end 36, handler 36, needs-stack-trace, types [CP#3]
   try-index 1, outer 0, start 2, end 7, handler 7, needs-stack-trace, types [CP#3]
-  try-index 2, outer 0, start 12, end 26, handler 26, types [CP#3]
+  try-index 2, outer 0, start 12, end 24, handler 24, types [CP#3]
 }
 ConstantPool {
   [0] = String 'try 1 > try 2'
@@ -642,19 +624,15 @@ L5:
   CheckStack
   Push                 r0
   PushInt              10
-  InstanceCall         2, CP#1
+  CompareIntLt
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
 Try #0 start:
   Push                 r0
   PushInt              5
-  InstanceCall         2, CP#2
+  CompareIntGt
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   Jump                 L3
 L2:
   Jump                 L4
@@ -664,26 +642,26 @@ Try #0 handler:
   MoveSpecial          r1, exception
   MoveSpecial          r2, stackTrace
   Push                 r0
-  PushConstant         CP#5
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
   Drop1
   Push                 r1
   Push                 r2
   Throw                1
 L3:
   Push                 r0
-  PushConstant         CP#6
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#1
   Drop1
   Jump                 L1
 L4:
   Push                 r0
-  PushConstant         CP#7
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#1
   Drop1
   Push                 r0
   PushInt              1
-  InstanceCall         2, CP#8
+  AddInt
   StoreLocal           r0
   Drop1
   Jump                 L5
@@ -692,18 +670,14 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 12, end 21, handler 21, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#0]
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '<', arg-desc CP#0
-  [2] = ICData target-name '>', arg-desc CP#0
-  [3] = Type dynamic
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [6] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [7] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [8] = ICData target-name '+', arg-desc CP#0
+  [0] = Type dynamic
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [4] = StaticICData target 'dart.core::print', arg-desc CP#1
 }
 ]static method testTryFinally1() → dynamic {
   #L1:
@@ -733,15 +707,11 @@ Bytecode {
   Push                 r2
   PushInt              1
   InstanceCall         2, CP#1
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L1
+  JumpIfTrue           L1
   Push                 r2
   PushInt              2
   InstanceCall         2, CP#2
-  PushTrue
-  IfEqStrictTOS
-  Jump                 L2
+  JumpIfTrue           L2
   Jump                 L3
 L1:
   Push                 r0
@@ -859,8 +829,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 25, end 91, handler 91, needs-stack-trace, types [CP#25]
-  try-index 1, outer 0, start 34, end 61, handler 61, needs-stack-trace, types [CP#25]
+  try-index 0, outer -1, start 21, end 87, handler 87, needs-stack-trace, types [CP#25]
+  try-index 1, outer 0, start 30, end 57, handler 57, needs-stack-trace, types [CP#25]
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []

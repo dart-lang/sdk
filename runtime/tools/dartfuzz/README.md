@@ -32,6 +32,7 @@ To start a fuzz testing session, run
     dart dartfuzz_test.dart
 
     run_dartfuzz_test.py  [--help]
+                          [--isolates ISOLATES ]
                           [--repeat REPEAT]
                           [--true_divergence]
                           [--mode1 MODE]
@@ -40,19 +41,25 @@ To start a fuzz testing session, run
 where
 
     --help            : prints help and exits
+    --isolates        : number of isolates in the session (1 by default)
     --repeat          : number of tests to run (1000 by default)
-    --show-stats      : show session statistics (true by default)
+    --show-stats      : show statistics during session (true by default)
     --true-divergence : only report true divergences (true by default)
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[debug-]ia32  = Dart JIT (ia32)
-        jit-[debug-]x64   = Dart JIT (x64)
-        jit-[debug-]arm32 = Dart JIT (simarm)
-        jit-[debug-]arm64 = Dart JIT (simarm64)
-        aot-[debug-]x64   = Dart AOT (x64)
-        aot-[debug-]arm64 = Dart AOT (simarm64)
-        js                = dart2js + JS
+        jit-[debug-]ia32    = Dart JIT (ia32)
+        jit-[debug-]x64     = Dart JIT (x64)
+        jit-[debug-]arm32   = Dart JIT (simarm)
+        jit-[debug-]arm64   = Dart JIT (simarm64)
+        aot-[debug-]x64     = Dart AOT (x64)
+        aot-[debug-]arm64   = Dart AOT (simarm64)
+        kbc-int-[debug-]x64 = Dart KBC (interpreted bytecode)
+        kbc-mix-[debug-]x64 = Dart KBC (mixed-mode bytecode)
+        kbc-cmp-[debug-]x64 = Dart KBC (compiled bytecode)
+        js                  = dart2js + JS
+
+If no modes are given, a random JIT and/or AOT combination is used.
 
 This fuzz testing tool must have access to the top of a Dart SDK
 development tree (DART_TOP) in which all proper binaries have been

@@ -525,10 +525,9 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters,
-          {Token question: null}) =>
+          FormalParameterList parameters) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, null, returnType,
-          identifier, typeParameters, parameters, question);
+          identifier, typeParameters, parameters);
 
   @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
@@ -538,10 +537,9 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          @required FormalParameterList parameters,
-          Token question}) =>
+          @required FormalParameterList parameters}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
-          returnType, identifier, typeParameters, parameters, question);
+          returnType, identifier, typeParameters, parameters);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -947,9 +945,8 @@ class AstFactoryImpl extends AstFactory {
       new TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
-          {Token question: null}) =>
-      new TypeNameImpl(name, typeArguments, question);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments) =>
+      new TypeNameImpl(name, typeArguments);
 
   @override
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,

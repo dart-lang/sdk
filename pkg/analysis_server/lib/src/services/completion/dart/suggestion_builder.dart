@@ -14,8 +14,6 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
 
-const String DYNAMIC = 'dynamic';
-
 /**
  * Return a suggestion based upon the given element
  * or `null` if a suggestion is not appropriate for the given element.

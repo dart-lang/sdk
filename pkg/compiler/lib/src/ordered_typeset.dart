@@ -4,9 +4,8 @@
 
 library ordered_typeset;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
-import 'package:front_end/src/fasta/util/link_implementation.dart'
-    show LinkEntry;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show Link, LinkBuilder, LinkEntry;
 
 import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;

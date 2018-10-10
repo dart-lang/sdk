@@ -121,7 +121,7 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    // Set flags affecting runtime accordingly for dart_bootstrap.
+    // Set flags affecting runtime accordingly for gen_snapshot.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
@@ -138,18 +138,8 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
-bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
-  const Function& function = parsed_function->function();
-  return (function.kernel_offset() > 0) || function.HasBytecode() ||
-         (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
-         (function.kind() == RawFunction::kInvokeFieldDispatcher);
-}
-
 void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
-  if (!UseKernelFrontEndFor(parsed_function)) {
-    Parser::ParseFunction(parsed_function);
-    parsed_function->AllocateVariables();
-  }
+  // Nothing to do here.
 }
 
 FlowGraph* DartCompilationPipeline::BuildFlowGraph(
@@ -158,20 +148,12 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     ZoneGrowableArray<const ICData*>* ic_data_array,
     intptr_t osr_id,
     bool optimized) {
-  if (UseKernelFrontEndFor(parsed_function)) {
-    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
-                                     /* not building var desc */ NULL,
-                                     /* not inlining */ NULL, optimized,
-                                     osr_id);
-    FlowGraph* graph = builder.BuildGraph();
-    ASSERT(graph != NULL);
-    return graph;
-  }
-  FlowGraphBuilder builder(*parsed_function, *ic_data_array,
-                           /* not building var desc */ NULL,
-                           /* not inlining */ NULL, osr_id);
-
-  return builder.BuildGraph();
+  kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
+                                   /* not building var desc */ NULL,
+                                   /* not inlining */ NULL, optimized, osr_id);
+  FlowGraph* graph = builder.BuildGraph();
+  ASSERT(graph != NULL);
+  return graph;
 }
 
 void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
@@ -348,27 +330,6 @@ bool Compiler::IsBackgroundCompilation() {
 }
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-    StackZone zone(thread);
-    if (FLAG_trace_compiler) {
-      const String& script_url = String::Handle(script.url());
-      // TODO(iposva): Extract script kind.
-      THR_Print("Compiling %s '%s'\n", "", script_url.ToCString());
-    }
-    const String& library_key = String::Handle(library.private_key());
-    script.Tokenize(library_key);
-    Parser::ParseCompilationUnit(library, script);
-    return Error::null();
-  } else {
-    Thread* const thread = Thread::Current();
-    StackZone zone(thread);
-    Error& error = Error::Handle();
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
-  }
   UNREACHABLE();
   return Error::null();
 }
@@ -491,23 +452,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
       AddRelatedClassesToList(parse_list.At(i), &parse_list, &patch_list);
     }
 
-    // Classes loaded from a kernel should not be parsed.
-    if (cls.kernel_offset() <= 0) {
-      // Parse all the classes that have been added above.
-      for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
-        const Class& parse_class = parse_list.At(i);
-        ASSERT(!parse_class.IsNull());
-        Parser::ParseClass(parse_class);
-      }
-
-      // Parse all the patch classes that have been added above.
-      for (intptr_t i = 0; i < patch_list.length(); i++) {
-        const Class& parse_class = patch_list.At(i);
-        ASSERT(!parse_class.IsNull());
-        Parser::ParseClass(parse_class);
-      }
-    }
-
     // Finalize these classes.
     for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
       const Class& parse_class = parse_list.At(i);
@@ -543,8 +487,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
     thread->clear_sticky_error();
     return error.raw();
   }
-  UNREACHABLE();
-  return Error::null();
 }
 
 class CompileParsedFunctionHelper : public ValueObject {
@@ -1303,7 +1245,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 #endif  // !defined(PRODUCT)
 
   // If running with interpreter, do the unoptimized compilation first.
-  const bool optimized = !FLAG_enable_interpreter || function.WasCompiled();
+  const bool optimized = !FLAG_enable_interpreter ||
+                         (function.unoptimized_code() != Object::null());
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
@@ -1366,20 +1309,11 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     ZoneGrowableArray<intptr_t>* context_level_array =
         new ZoneGrowableArray<intptr_t>();
 
-    if (!UseKernelFrontEndFor(parsed_function)) {
-      Parser::ParseFunction(parsed_function);
-      parsed_function->AllocateVariables();
-      FlowGraphBuilder builder(
-          *parsed_function, *ic_data_array, context_level_array,
-          /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
-      builder.BuildGraph();
-    } else {
-      parsed_function->EnsureKernelScopes();
-      kernel::FlowGraphBuilder builder(
-          parsed_function, ic_data_array, context_level_array,
-          /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
-      builder.BuildGraph();
-    }
+    parsed_function->EnsureKernelScopes();
+    kernel::FlowGraphBuilder builder(
+        parsed_function, ic_data_array, context_level_array,
+        /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
+    builder.BuildGraph();
 
     const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
         parsed_function->node_sequence()->scope()->GetVarDescriptors(
@@ -1522,12 +1456,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
       // Create a one-time-use function to evaluate the initializer and invoke
       // it immediately.
-      if (field.kernel_offset() > 0) {
-        parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
-      } else {
-        parsed_function = Parser::ParseStaticFieldInitializer(field);
-        parsed_function->AllocateVariables();
-      }
+      parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
       const Function& initializer = parsed_function->function();
 
       if (FLAG_enable_interpreter) {
@@ -1958,11 +1887,6 @@ bool BackgroundCompiler::IsDisabled() {
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
-
-bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
-  UNREACHABLE();
-  return false;
-}
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {

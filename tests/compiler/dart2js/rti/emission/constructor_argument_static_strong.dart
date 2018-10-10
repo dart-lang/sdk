@@ -29,7 +29,7 @@ class A2 {}
 /*class: B2:checks=[],instance*/
 class B2 implements A2 {}
 
-/*class: Test2:checks=[]*/
+/*class: Test2:checks=[],indirectInstance*/
 abstract class Test2 {
   @noInline
   Test2(A2 x) {

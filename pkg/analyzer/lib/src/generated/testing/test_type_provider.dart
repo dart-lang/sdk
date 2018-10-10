@@ -175,8 +175,9 @@ class TestTypeProvider extends TypeProviderBase {
     if (_boolType == null) {
       ClassElementImpl boolElement = ElementFactory.classElement2("bool");
       _boolType = boolElement.type;
-      ConstructorElementImpl fromEnvironment = ElementFactory
-          .constructorElement(boolElement, "fromEnvironment", true);
+      ConstructorElementImpl fromEnvironment =
+          ElementFactory.constructorElement(
+              boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter3("defaultValue",
@@ -210,8 +211,8 @@ class TestTypeProvider extends TypeProviderBase {
       deprecatedElement.accessors = <PropertyAccessorElement>[
         expiresField.getter
       ];
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(deprecatedElement, '', true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          deprecatedElement, '', true, [stringType]);
       (constructor.parameters[0] as ParameterElementImpl).name = 'expires';
       ConstructorFieldInitializer expiresInit =
           AstTestFactory.constructorFieldInitializer(
@@ -366,8 +367,8 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
@@ -388,8 +389,8 @@ class TestTypeProvider extends TypeProviderBase {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = <ConstructorElement>[
         ElementFactory.constructorElement(mapElement, '', false)
@@ -422,7 +423,7 @@ class TestTypeProvider extends TypeProviderBase {
       // This enables the "isDartCoreNull" getter.
       var library = new LibraryElementImpl.forNode(
           _context, AstTestFactory.libraryIdentifier2(["dart.core"]));
-      var unit = new CompilationUnitElementImpl("core.dart");
+      var unit = new CompilationUnitElementImpl();
       library.definingCompilationUnit = unit;
       unit.librarySource = unit.source = new StringSource('', null);
 
@@ -507,8 +508,9 @@ class TestTypeProvider extends TypeProviderBase {
         ElementFactory.methodElement("toLowerCase", _stringType),
         ElementFactory.methodElement("toUpperCase", _stringType)
       ];
-      ConstructorElementImpl fromEnvironment = ElementFactory
-          .constructorElement(stringElement, "fromEnvironment", true);
+      ConstructorElementImpl fromEnvironment =
+          ElementFactory.constructorElement(
+              stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter3("defaultValue", type: _stringType)
@@ -524,8 +526,8 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(symbolClass, '', true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          symbolClass, '', true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -558,8 +560,7 @@ class TestTypeProvider extends TypeProviderBase {
   void _initDartAsync() {
     Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
     _context.setContents(asyncSource, "");
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
@@ -620,10 +621,10 @@ class TestTypeProvider extends TypeProviderBase {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsExponential", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsExponential", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     numElement.accessors = [

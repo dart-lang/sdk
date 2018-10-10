@@ -18,7 +18,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::A<self::A::T>
     : super core::Object::•()
     ;
 }
@@ -38,7 +38,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::A::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
@@ -58,7 +58,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::B::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::C<self::C::T1, self::C::T2, self::C::T3>
     : super self::B::•()
     ;
 }
@@ -70,10 +70,10 @@ Bytecode {
   CheckStack
   Push                 FP[-6]
   Push                 FP[-5]
+  PushConstant         CP#0
   Push                 FP[-6]
-  LoadTypeArgumentsField CP#0
+  LoadTypeArgumentsField CP#1
   PushNull
-  PushConstant         CP#1
   PushConstant         CP#2
   AssertAssignable     0, CP#3
   StoreFieldTOS        CP#4
@@ -85,8 +85,8 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsField #lib::D
-  [1] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [0] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [1] = TypeArgumentsField #lib::D
   [2] = String ''
   [3] = SubtypeTestCache
   [4] = InstanceField #lib::D::foo
@@ -94,7 +94,7 @@ ConstantPool {
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target '#lib::C::', arg-desc CP#6
 }
-]  constructor •(dynamic tt) → void
+]  constructor •(dynamic tt) → self::D<self::D::P, self::D::Q>
     : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
     ;
 [@vm.bytecode=
@@ -108,9 +108,7 @@ Bytecode {
   PushConstant         CP#1
   InstanceCall         4, CP#3
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   PushConstant         CP#4
   PushConstant         CP#6
   IndirectStaticCall   1, CP#5
@@ -123,9 +121,7 @@ L1:
   PushConstant         CP#7
   InstanceCall         4, CP#8
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   PushConstant         CP#9
   PushConstant         CP#10
   IndirectStaticCall   1, CP#5
@@ -133,10 +129,10 @@ L1:
 L2:
   Push                 FP[-6]
   Push                 FP[-5]
+  PushConstant         CP#11
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#11
   PushConstant         CP#12
   AssertAssignable     0, CP#13
   InstanceCall         2, CP#15
@@ -182,9 +178,7 @@ Bytecode {
   PushConstant         CP#0
   InstanceCall         4, CP#2
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   PushConstant         CP#3
   PushConstant         CP#5
   IndirectStaticCall   1, CP#4
@@ -197,9 +191,7 @@ L1:
   PushConstant         CP#7
   InstanceCall         4, CP#8
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
+  JumpIfFalse          L2
   PushConstant         CP#9
   PushConstant         CP#10
   IndirectStaticCall   1, CP#4
@@ -257,10 +249,10 @@ Bytecode {
   Push                 r1
   PushInt              0
   Push                 FP[-5]
+  PushConstant         CP#2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#2
   PushConstant         CP#3
   AssertAssignable     0, CP#4
   StoreIndexedTOS
@@ -268,10 +260,10 @@ Bytecode {
   IndirectStaticCall   2, CP#5
   PopLocal             r0
   Push                 FP[-5]
+  PushConstant         CP#2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   PushNull
-  PushConstant         CP#2
   PushConstant         CP#3
   AssertAssignable     0, CP#7
   ReturnTOS
@@ -344,14 +336,10 @@ Bytecode {
   Entry                0
   CheckStack
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#0
-  InstanceCall         4, CP#2
+  InstanceCall         2, CP#2
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L1
+  JumpIfFalse          L1
   PushConstant         CP#3
   PushConstant         CP#5
   IndirectStaticCall   1, CP#4
@@ -361,38 +349,37 @@ L1:
   PushNull
   PushNull
   PushConstant         CP#6
-  InstanceCall         4, CP#7
+  InstanceCall         4, CP#8
   AssertBoolean        0
-  PushTrue
-  IfNeStrictTOS
-  Jump                 L2
-  PushConstant         CP#8
+  JumpIfFalse          L2
   PushConstant         CP#9
+  PushConstant         CP#10
   IndirectStaticCall   1, CP#4
   Drop1
 L2:
   Push                 FP[-5]
   PushNull
   PushNull
-  PushConstant         CP#10
-  InstanceCall         4, CP#11
+  PushConstant         CP#11
+  InstanceCall         4, CP#12
   ReturnTOS
   PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = Type #lib::B
-  [1] = ArgDesc num-args 4, num-type-args 0, names []
-  [2] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#1
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = ICData target-name 'dart.core::_simpleInstanceOf', arg-desc CP#1
   [3] = String '11'
   [4] = ArgDesc num-args 1, num-type-args 0, names []
   [5] = StaticICData target 'dart.core::print', arg-desc CP#4
   [6] = Type #lib::C<dart.core::int, dart.core::Object, dynamic>
-  [7] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#1
-  [8] = String '12'
-  [9] = StaticICData target 'dart.core::print', arg-desc CP#4
-  [10] = Type #lib::A<dart.core::int>
-  [11] = ICData target-name 'dart.core::_as', arg-desc CP#1
+  [7] = ArgDesc num-args 4, num-type-args 0, names []
+  [8] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#7
+  [9] = String '12'
+  [10] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [11] = Type #lib::A<dart.core::int>
+  [12] = ICData target-name 'dart.core::_as', arg-desc CP#7
 }
 ]static method foo1(dynamic x) → dynamic {
   if(x is self::B) {
@@ -408,9 +395,9 @@ Bytecode {
   Entry                1
   CheckStack
   Push                 FP[-5]
-  PushNull
-  PushNull
   PushConstant         CP#0
+  PushNull
+  PushNull
   PushConstant         CP#1
   AssertAssignable     0, CP#2
   StoreStaticTOS       CP#3

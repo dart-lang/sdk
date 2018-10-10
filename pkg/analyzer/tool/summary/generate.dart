@@ -22,7 +22,7 @@ library analyzer.tool.summary.generate;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/testing/package_root.dart' as package_root;
@@ -1002,16 +1002,21 @@ class _CodeGenerator {
    */
   String _getNodeDoc(AnnotatedNode node) {
     Comment comment = node.documentationComment;
-    if (comment != null &&
-        comment.isDocumentation &&
-        comment.tokens.length == 1 &&
-        comment.tokens.first.lexeme.startsWith('/*')) {
-      Token token = comment.tokens.first;
-      return token.lexeme.split('\n').map((String line) {
-        line = line.trimLeft();
-        if (line.startsWith('*')) line = ' ' + line;
-        return line;
-      }).join('\n');
+    if (comment != null && comment.isDocumentation) {
+      if (comment.tokens.length == 1 &&
+          comment.tokens.first.lexeme.startsWith('/*')) {
+        Token token = comment.tokens.first;
+        return token.lexeme.split('\n').map((String line) {
+          line = line.trimLeft();
+          if (line.startsWith('*')) line = ' ' + line;
+          return line;
+        }).join('\n');
+      } else if (comment.tokens
+          .every((token) => token.lexeme.startsWith('///'))) {
+        return comment.tokens
+            .map((token) => token.lexeme.trimLeft())
+            .join('\n');
+      }
     }
     return null;
   }

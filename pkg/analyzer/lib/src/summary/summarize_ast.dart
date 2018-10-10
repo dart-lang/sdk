@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
-import 'package:front_end/src/base/api_signature.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 
 /// Serialize all the declarations in [compilationUnit] to an unlinked summary.
 ///
@@ -213,6 +213,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
 
+  /// Whether the current class declaration has a `const` constructor.
+  bool enclosingClassHasConstConstructor = false;
+
   /// List of objects which should be written to [UnlinkedUnit.mixins].
   final List<UnlinkedClassBuilder> mixins = <UnlinkedClassBuilder>[];
 
@@ -374,6 +377,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations) {
     int oldScopesLength = scopes.length;
+    enclosingClassHasConstConstructor = node is ClassDeclaration &&
+        node.members
+            .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
     executables = <UnlinkedExecutableBuilder>[];
     List<UnlinkedVariableBuilder> oldVariables = variables;
@@ -971,8 +977,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
 
       bool serializeBodyExpr = variable.isConst ||
-          variable.isFinal && isField && !isDeclaredStatic ||
-          _serializeInferrableFields && variables.type == null;
+          _serializeInferrableFields && variables.type == null ||
+          isField &&
+              !isDeclaredStatic &&
+              variables.isFinal &&
+              enclosingClassHasConstConstructor;
       b.initializer = serializeInitializerFunction(
           variable.initializer, serializeBodyExpr, b.isConst);
       if (isField && !isDeclaredStatic && !variables.isFinal) {

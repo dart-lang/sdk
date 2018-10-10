@@ -92,8 +92,11 @@ class InterpreterHelpers {
  public:
 #define DEFINE_CASTS(Type)                                                     \
   DART_FORCE_INLINE static Raw##Type* CastTo##Type(RawObject* obj) {           \
-    ASSERT((k##Type##Cid == kSmiCid) ? !obj->IsHeapObject()                    \
-                                     : obj->Is##Type());                       \
+    ASSERT((k##Type##Cid == kSmiCid)                                           \
+               ? !obj->IsHeapObject()                                          \
+               : (k##Type##Cid == kIntegerCid)                                 \
+                     ? (!obj->IsHeapObject() || obj->IsMint())                 \
+                     : obj->Is##Type());                                       \
     return reinterpret_cast<Raw##Type*>(obj);                                  \
   }
   CLASS_LIST(DEFINE_CASTS)
@@ -631,186 +634,6 @@ void Interpreter::Exit(Thread* thread,
 #endif
 }
 
-// TODO(vegorov): Investigate advantages of using
-// __builtin_s{add,sub,mul}_overflow() intrinsics here and below.
-// Note that they may clobber the output location even when there is overflow:
-// https://gcc.gnu.org/onlinedocs/gcc/Integer-Overflow-Builtins.html
-DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
-                                                    intptr_t* out) {
-  intptr_t res = 1;
-#if defined(HOST_ARCH_IA32)
-  asm volatile(
-      "add %2, %1\n"
-      "jo 1f;\n"
-      "xor %0, %0\n"
-      "mov %1, 0(%3)\n"
-      "1: "
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_X64)
-  int64_t tmp;
-  asm volatile(
-      "addl %[rhs], %[lhs]\n"
-      "jo 1f;\n"
-      "xor %[res], %[res]\n"
-      "movslq %[lhs], %[tmp]\n"
-      "mov %[tmp], 0(%[out])\n"
-      "1: "
-      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
-      : [rhs] "r"(rhs), [out] "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM)
-  asm volatile(
-      "adds %1, %1, %2;\n"
-      "bvs 1f;\n"
-      "mov %0, #0;\n"
-      "str %1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM64)
-  asm volatile(
-      "adds %w1, %w1, %w2;\n"
-      "bvs 1f;\n"
-      "sxtw %x1, %w1;\n"
-      "mov %0, #0;\n"
-      "str %x1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#else
-#error "Unsupported platform"
-#endif
-  return (res != 0);
-}
-
-DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
-                                                    intptr_t* out) {
-  intptr_t res = 1;
-#if defined(HOST_ARCH_IA32)
-  asm volatile(
-      "sub %2, %1\n"
-      "jo 1f;\n"
-      "xor %0, %0\n"
-      "mov %1, 0(%3)\n"
-      "1: "
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_X64)
-  int64_t tmp;
-  asm volatile(
-      "subl %[rhs], %[lhs]\n"
-      "jo 1f;\n"
-      "xor %[res], %[res]\n"
-      "movslq %[lhs], %[tmp]\n"
-      "mov %[tmp], 0(%[out])\n"
-      "1: "
-      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
-      : [rhs] "r"(rhs), [out] "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM)
-  asm volatile(
-      "subs %1, %1, %2;\n"
-      "bvs 1f;\n"
-      "mov %0, #0;\n"
-      "str %1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM64)
-  asm volatile(
-      "subs %w1, %w1, %w2;\n"
-      "bvs 1f;\n"
-      "sxtw %x1, %w1;\n"
-      "mov %0, #0;\n"
-      "str %x1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#else
-#error "Unsupported platform"
-#endif
-  return (res != 0);
-}
-
-DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
-                                                    intptr_t* out) {
-  intptr_t res = 1;
-#if defined(HOST_ARCH_IA32)
-  asm volatile(
-      "imul %2, %1\n"
-      "jo 1f;\n"
-      "xor %0, %0\n"
-      "mov %1, 0(%3)\n"
-      "1: "
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_X64)
-  int64_t tmp;
-  asm volatile(
-      "imull %[rhs], %[lhs]\n"
-      "jo 1f;\n"
-      "xor %[res], %[res]\n"
-      "movslq %[lhs], %[tmp]\n"
-      "mov %[tmp], 0(%[out])\n"
-      "1: "
-      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
-      : [rhs] "r"(rhs), [out] "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM)
-  asm volatile(
-      "smull %1, ip, %1, %2;\n"
-      "cmp ip, %1, ASR #31;\n"
-      "bne 1f;\n"
-      "mov %0, $0;\n"
-      "str %1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc", "r12");
-#elif defined(HOST_ARCH_ARM64)
-  int64_t prod_lo = 0;
-  asm volatile(
-      "smull %x1, %w2, %w3\n"
-      "asr %x2, %x1, #63\n"
-      "cmp %x2, %x1, ASR #31;\n"
-      "bne 1f;\n"
-      "mov %0, #0;\n"
-      "str %x1, [%4, #0]\n"
-      "1:"
-      : "=r"(res), "+r"(prod_lo), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#else
-#error "Unsupported platform"
-#endif
-  return (res != 0);
-}
-
-DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
-  return ((a | b) & kHeapObjectTag) == 0;
-}
-
-#define SMI_MUL(lhs, rhs, pres) SignedMulWithOverflow((lhs), (rhs) >> 1, pres)
-#define SMI_COND(cond, lhs, rhs, pres)                                         \
-  ((*(pres) = ((lhs cond rhs) ? true_value : false_value)), false)
-#define SMI_EQ(lhs, rhs, pres) SMI_COND(==, lhs, rhs, pres)
-#define SMI_LT(lhs, rhs, pres) SMI_COND(<, lhs, rhs, pres)
-#define SMI_GT(lhs, rhs, pres) SMI_COND(>, lhs, rhs, pres)
-#define SMI_BITOR(lhs, rhs, pres) ((*(pres) = (lhs | rhs)), false)
-#define SMI_BITAND(lhs, rhs, pres) ((*(pres) = ((lhs) & (rhs))), false)
-#define SMI_BITXOR(lhs, rhs, pres) ((*(pres) = ((lhs) ^ (rhs))), false)
-
 void Interpreter::CallRuntime(Thread* thread,
                               RawObject** base,
                               RawObject** exit_frame,
@@ -1014,18 +837,18 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         }
         // Push arguments of type test.
         // Type checked value is at call_base + 1.
+        call_base[2] = field_type;
         // Provide type arguments of instance as instantiator.
         RawClass* instance_class = thread->isolate()->class_table()->At(
             InterpreterHelpers::GetClassId(instance));
-        call_base[2] =
+        call_base[3] =
             instance_class->ptr()->num_type_arguments_ > 0
                 ? reinterpret_cast<RawObject**>(
                       instance
                           ->ptr())[instance_class->ptr()
                                        ->type_arguments_field_offset_in_words_]
                 : null_value;
-        call_base[3] = null_value;  // Implicit setters cannot be generic.
-        call_base[4] = field_type;
+        call_base[4] = null_value;  // Implicit setters cannot be generic.
         call_base[5] = field->ptr()->name_;
         if (!AssertAssignable(thread, *pc, *FP, call_base + 5, call_base + 1,
                               cache)) {
@@ -1419,6 +1242,9 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 // Fetch next operation from PC, increment program counter and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc++)
 
+// Load target of a jump instruction into PC.
+#define LOAD_JUMP_TARGET() pc += ((static_cast<int32_t>(op) >> 8) - 1)
+
 // Define entry point that handles bytecode Name with the given operand format.
 #define BYTECODE(Name, Operands)                                               \
   BYTECODE_HEADER(Name, DECLARE_##Operands, DECODE_##Operands)
@@ -1465,54 +1291,6 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
   USE(rD)
 #define DECODE_A_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
 
-#define SMI_FASTPATH_ICDATA_INC                                                \
-  do {                                                                         \
-    ASSERT(KernelBytecode::IsCallOpcode(*pc));                                 \
-    const uint16_t kidx = KernelBytecode::DecodeD(*pc);                        \
-    const RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));           \
-    RawObject** entries = icdata->ptr()->ic_data_->ptr()->data();              \
-    InterpreterHelpers::IncrementICUsageCount(entries, 0, 2);                  \
-  } while (0);
-
-// Declare bytecode handler for a smi operation (e.g. AddTOS) with the
-// given result type and the given behavior specified as a function
-// that takes left and right operands and result slot and returns
-// true if fast-path succeeds.
-#define SMI_FASTPATH_TOS(ResultT, Func)                                        \
-  {                                                                            \
-    const intptr_t lhs = reinterpret_cast<intptr_t>(SP[-1]);                   \
-    const intptr_t rhs = reinterpret_cast<intptr_t>(SP[-0]);                   \
-    ResultT* slot = reinterpret_cast<ResultT*>(SP - 1);                        \
-    if (LIKELY(!thread->isolate()->single_step()) &&                           \
-        LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {              \
-      SMI_FASTPATH_ICDATA_INC;                                                 \
-      /* Fast path succeeded. Skip the generic call that follows. */           \
-      pc++;                                                                    \
-      /* We dropped 2 arguments and push result                   */           \
-      SP--;                                                                    \
-    }                                                                          \
-  }
-
-// Skip the next instruction if there is no overflow.
-#define SMI_OP_CHECK(ResultT, Func)                                            \
-  {                                                                            \
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
-    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
-    if (LIKELY(!Func(lhs, rhs, slot))) {                                       \
-      /* Success. Skip the instruction that follows. */                        \
-      pc++;                                                                    \
-    }                                                                          \
-  }
-
-// Do not check for overflow.
-#define SMI_OP_NOCHECK(ResultT, Func)                                          \
-  {                                                                            \
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
-    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
-    Func(lhs, rhs, slot);                                                      \
-  }
 
 // Exception handling helper. Gets handler FP and PC from the Interpreter where
 // they were stored by Interpreter::Longjmp and proceeds to execute the handler.
@@ -1591,6 +1369,29 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 
 #define LOAD_CONSTANT(index) (pp_->ptr()->data()[(index)].raw_obj_)
 
+#define UNBOX_INT64(value, obj, selector)                                      \
+  int64_t value;                                                               \
+  {                                                                            \
+    word raw_value = reinterpret_cast<word>(obj);                              \
+    if (LIKELY((raw_value & kSmiTagMask) == kSmiTag)) {                        \
+      value = raw_value >> kSmiTagShift;                                       \
+    } else {                                                                   \
+      if (UNLIKELY(obj == null_value)) {                                       \
+        SP[0] = selector.raw();                                                \
+        goto ThrowNullError;                                                   \
+      }                                                                        \
+      value = Integer::GetInt64Value(RAW_CAST(Integer, obj));                  \
+    }                                                                          \
+  }
+
+#define BOX_INT64_RESULT(result)                                               \
+  if (LIKELY(Smi::IsValid(result))) {                                          \
+    SP[0] = Smi::New(static_cast<intptr_t>(result));                           \
+  } else if (!AllocateInt64Box(thread, result, pc, FP, SP)) {                  \
+    HANDLE_EXCEPTION;                                                          \
+  }                                                                            \
+  ASSERT(Integer::GetInt64Value(RAW_CAST(Integer, SP[0])) == result);
+
 // Returns true if deoptimization succeeds.
 DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
                                                uint32_t** pc,
@@ -1656,9 +1457,9 @@ bool Interpreter::AssertAssignable(Thread* thread,
   if (cache != null_value) {
     RawInstance* instance = static_cast<RawInstance*>(args[0]);
     RawTypeArguments* instantiator_type_arguments =
-        static_cast<RawTypeArguments*>(args[1]);
-    RawTypeArguments* function_type_arguments =
         static_cast<RawTypeArguments*>(args[2]);
+    RawTypeArguments* function_type_arguments =
+        static_cast<RawTypeArguments*>(args[3]);
 
     const intptr_t cid = InterpreterHelpers::GetClassId(instance);
 
@@ -1716,18 +1517,16 @@ bool Interpreter::AssertAssignable(Thread* thread,
   }
 
 AssertAssignableCallRuntime:
-  // TODO(regis): Modify AssertAssignable bytecode to expect arguments in same
-  // order as the TypeCheck runtime call, so this copying can be avoided.
-  call_top[1] = 0;        // Unused result.
-  call_top[2] = args[0];  // Instance.
-  call_top[3] = args[3];  // Type.
-  call_top[4] = args[1];  // Instantiator type args.
-  call_top[5] = args[2];  // Function type args.
-  call_top[6] = args[4];  // Name.
-  call_top[7] = cache;
-  call_top[8] = Smi::New(kTypeCheckFromInline);
-  Exit(thread, FP, call_top + 9, pc);
-  NativeArguments native_args(thread, 7, call_top + 2, call_top + 1);
+  // args[0]: Instance.
+  // args[1]: Type.
+  // args[2]: Instantiator type args.
+  // args[3]: Function type args.
+  // args[4]: Name.
+  args[5] = cache;
+  args[6] = Smi::New(kTypeCheckFromInline);
+  args[7] = 0;  // Unused result.
+  Exit(thread, FP, args + 8, pc);
+  NativeArguments native_args(thread, 7, args, args + 7);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
@@ -1737,6 +1536,42 @@ RawObject* Interpreter::Call(const Function& function,
                              Thread* thread) {
   return Call(function.raw(), arguments_descriptor.raw(), arguments.Length(),
               arguments.raw_ptr()->data(), thread);
+}
+
+// Allocate _Mint box for the given int64_t value and puts it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
+                                                 int64_t value,
+                                                 uint32_t* pc,
+                                                 RawObject** FP,
+                                                 RawObject** SP) {
+  ASSERT(!Smi::IsValid(value));
+  const intptr_t instance_size = Mint::InstanceSize();
+  const uword start =
+      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
+  if (LIKELY(start != 0)) {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kMintCid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    // Also writes zero in the hash_ field.
+    *reinterpret_cast<uword*>(start + Mint::tags_offset()) = tags;
+    *reinterpret_cast<int64_t*>(start + Mint::value_offset()) = value;
+    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate()->object_store()->mint_class();  // Class object.
+    SP[2] = Object::null();                                  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    *reinterpret_cast<int64_t*>(reinterpret_cast<uword>(SP[0]) -
+                                kHeapObjectTag + Mint::value_offset()) = value;
+    return true;
+  }
 }
 
 RawObject* Interpreter::Call(RawFunction* function,
@@ -2008,16 +1843,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(EntryOptimized, A_D);
-    const uint16_t num_registers = rD;
-
-    // Reserve space for registers used by the optimized code.
-    SP = FP + num_registers - 1;
-
-    DISPATCH();
-  }
-
-  {
     BYTECODE(Frame, A_D);
     // Initialize locals with null and increment SP.
     const uint16_t num_locals = rD;
@@ -2032,78 +1857,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(SetFrame, A);
     SP = FP + rA - 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Compile, 0);
-    FP[0] = argdesc_;
-    FP[1] = FrameFunction(FP);
-    FP[2] = 0;
-
-    UNIMPLEMENTED();  // TODO(regis): Revisit.
-
-    Exit(thread, FP, FP + 3, pc);
-    NativeArguments args(thread, 1, FP + 1, FP + 2);
-    INVOKE_RUNTIME(DRT_CompileFunction, args);
-    {
-      // Function should be compiled now, dispatch to its entry point.
-      RawCode* code = FrameFunction(FP)->ptr()->code_;
-      InterpreterHelpers::SetFrameCode(FP, code);
-      pp_ = code->ptr()->object_pool_;
-      pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
-      pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-      argdesc_ = static_cast<RawArray*>(FP[0]);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(HotCheck, A_D);
-    const uint8_t increment = rA;
-    const uint16_t threshold = rD;
-    RawFunction* f = FrameFunction(FP);
-    int32_t counter = f->ptr()->usage_counter_;
-    // Note: we don't increment usage counter in the prologue of optimized
-    // functions.
-    if (increment) {
-      counter += increment;
-      f->ptr()->usage_counter_ = counter;
-    }
-    if (UNLIKELY(counter >= threshold)) {
-      FP[0] = f;
-      FP[1] = 0;
-
-      // Save the args desriptor which came in.
-      FP[2] = argdesc_;
-
-      UNIMPLEMENTED();  // TODO(regis): Revisit.
-
-      // Make the DRT_OptimizeInvokedFunction see a stub as its caller for
-      // consistency with the other architectures, and to avoid needing to
-      // generate a stackmap for the HotCheck pc.
-      const StubEntry* stub = StubCode::OptimizeFunction_entry();
-      FP[kKBCPcMarkerSlotFromFp] = stub->code();
-      pc = reinterpret_cast<uint32_t*>(stub->EntryPoint());
-
-      Exit(thread, FP, FP + 3, pc);
-      NativeArguments args(thread, 1, /*argv=*/FP, /*retval=*/FP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, args);
-      {
-        // DRT_OptimizeInvokedFunction returns the code object to execute.
-        ASSERT(FP[1]->GetClassId() == kFunctionCid);
-        RawFunction* function = static_cast<RawFunction*>(FP[1]);
-        RawCode* code = function->ptr()->code_;
-        InterpreterHelpers::SetFrameCode(FP, code);
-
-        // Restore args descriptor which came in.
-        argdesc_ = Array::RawCast(FP[2]);
-
-        pp_ = code->ptr()->object_pool_;
-        pc = reinterpret_cast<uint32_t*>(function->ptr()->entry_point_);
-        pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-      }
-    }
     DISPATCH();
   }
 
@@ -2134,16 +1887,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(CheckStackAlwaysExit, A);
-    {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_StackOverflow, args);
-    }
-    DISPATCH();
-  }
-
-  {
     BYTECODE(CheckFunctionTypeArgs, A_D);
     const uint16_t declared_type_args_len = rA;
     const uint16_t first_stack_local_index = rD;
@@ -2162,38 +1905,6 @@ RawObject* Interpreter::Call(RawFunction* function,
     } else if (declared_type_args_len > 0) {
       FP[first_stack_local_index] = Object::null();
     }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DebugStep, A);
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DebugBreak, A);
-#if !defined(PRODUCT)
-    {
-      const uint32_t original_bc =
-          static_cast<uint32_t>(reinterpret_cast<uintptr_t>(
-              thread->isolate()->debugger()->GetPatchedStubAddress(
-                  reinterpret_cast<uword>(pc))));
-
-      SP[1] = null_value;
-      Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 0, NULL, SP + 1);
-      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)
-      DISPATCH_OP(original_bc);
-    }
-#else
-    // There should be no debug breaks in product mode.
-    UNREACHABLE();
-#endif
     DISPATCH();
   }
 
@@ -2277,20 +1988,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(Drop, 0);
-    SP -= rA;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DropR, 0);
-    RawObject* result = SP[0];
-    SP -= rA;
-    SP[0] = result;
-    DISPATCH();
-  }
-
-  {
     BYTECODE(LoadConstant, A_D);
     FP[rA] = LOAD_CONSTANT(rD);
     DISPATCH();
@@ -2304,19 +2001,19 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(PushNull, 0);
-    *++SP = Object::null();
+    *++SP = null_value;
     DISPATCH();
   }
 
   {
     BYTECODE(PushTrue, 0);
-    *++SP = Object::bool_true().raw();
+    *++SP = true_value;
     DISPATCH();
   }
 
   {
     BYTECODE(PushFalse, 0);
-    *++SP = Object::bool_false().raw();
+    *++SP = false_value;
     DISPATCH();
   }
 
@@ -2329,20 +2026,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(Push, A_X);
     *++SP = FP[rD];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Move, A_X);
-    FP[rA] = FP[rD];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Swap, A_X);
-    RawObject* tmp = FP[rD];
-    FP[rD] = FP[rA];
-    FP[rA] = tmp;
     DISPATCH();
   }
 
@@ -2367,12 +2050,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(BooleanNegateTOS, 0);
     SP[0] = (SP[0] == true_value) ? false_value : true_value;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BooleanNegate, A_D);
-    FP[rA] = (FP[rD] == true_value) ? false_value : true_value;
     DISPATCH();
   }
 
@@ -2403,18 +2080,6 @@ RawObject* Interpreter::Call(RawFunction* function,
       }
     }
 
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StaticCall, A_D);
-    const uint16_t argc = rA;
-    RawObject** call_base = SP - argc;
-    RawObject** call_top = SP;  // *SP contains function
-    argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(rD));
-    if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
-      HANDLE_EXCEPTION;
-    }
     DISPATCH();
   }
 
@@ -2453,90 +2118,6 @@ RawObject* Interpreter::Call(RawFunction* function,
       }
     }
 
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(InstanceCall1Opt, A_D);
-
-    {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
-
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
-
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         true /* optimized */)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(InstanceCall2Opt, A_D);
-
-    {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
-
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
-
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         true /* optimized */)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(PushPolymorphicInstanceCall, A_D);
-    const uint8_t argc = rA;
-    const intptr_t cids_length = rD;
-    RawObject** args = SP - argc + 1;
-    const intptr_t receiver_cid = InterpreterHelpers::GetClassId(args[0]);
-    for (intptr_t i = 0; i < 2 * cids_length; i += 2) {
-      const intptr_t icdata_cid = KernelBytecode::DecodeD(*(pc + i));
-      if (receiver_cid == icdata_cid) {
-        RawFunction* target = RAW_CAST(
-            Function, LOAD_CONSTANT(KernelBytecode::DecodeD(*(pc + i + 1))));
-        *++SP = target;
-        pc++;
-        break;
-      }
-    }
-    pc += 2 * cids_length;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(PushPolymorphicInstanceCallByRange, A_D);
-    const uint8_t argc = rA;
-    const intptr_t cids_length = rD;
-    RawObject** args = SP - argc + 1;
-    const intptr_t receiver_cid = InterpreterHelpers::GetClassId(args[0]);
-    for (intptr_t i = 0; i < 3 * cids_length; i += 3) {
-      // Note unsigned types to get an unsigned range compare.
-      const uintptr_t cid_start = KernelBytecode::DecodeD(*(pc + i));
-      const uintptr_t cids = KernelBytecode::DecodeD(*(pc + i + 1));
-      if (receiver_cid - cid_start < cids) {
-        RawFunction* target = RAW_CAST(
-            Function, LOAD_CONSTANT(KernelBytecode::DecodeD(*(pc + i + 2))));
-        *++SP = target;
-        pc++;
-        break;
-      }
-    }
-    pc += 3 * cids_length;
     DISPATCH();
   }
 
@@ -2682,11 +2263,18 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline = NativeEntryData::GetTrampoline(data);
-        NativeFunction function = NativeEntryData::GetNativeFunction(data);
+        NativeEntryData::Payload* payload =
+            NativeEntryData::FromTypedArray(data);
         intptr_t argc_tag = NativeEntryData::GetArgcTag(data);
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
+
+        if (payload->trampoline == NULL) {
+          ASSERT(payload->native_function == NULL);
+          payload->trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+          payload->native_function =
+              reinterpret_cast<NativeFunction>(&NativeEntry::LinkNativeCall);
+        }
 
         *++SP = null_value;  // Result slot.
 
@@ -2694,9 +2282,10 @@ RawObject* Interpreter::Call(RawFunction* function,
         RawObject** return_slot = SP;
         Exit(thread, FP, SP, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-        INVOKE_NATIVE(trampoline,
-                      reinterpret_cast<Dart_NativeFunction>(function),
-                      reinterpret_cast<Dart_NativeArguments>(&args));
+        INVOKE_NATIVE(
+            payload->trampoline,
+            reinterpret_cast<Dart_NativeFunction>(payload->native_function),
+            reinterpret_cast<Dart_NativeArguments>(&args));
 
         *(SP - num_arguments) = *return_slot;
         SP -= num_arguments;
@@ -2705,779 +2294,12 @@ RawObject* Interpreter::Call(RawFunction* function,
     DISPATCH();
   }
 
-  {
-    BYTECODE(OneByteStringFromCharCode, A_X);
-    const intptr_t char_code = Smi::Value(RAW_CAST(Smi, FP[rD]));
-    ASSERT(char_code >= 0);
-    ASSERT(char_code <= 255);
-    RawString** strings = Symbols::PredefinedAddress();
-    const intptr_t index = char_code + Symbols::kNullCharCodeSymbolOffset;
-    FP[rA] = strings[index];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StringToCharCode, A_X);
-    RawOneByteString* str = RAW_CAST(OneByteString, FP[rD]);
-    if (str->ptr()->length_ == Smi::New(1)) {
-      FP[rA] = Smi::New(str->ptr()->data()[0]);
-    } else {
-      FP[rA] = Smi::New(-1);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(AddTOS, A_B_C);
-    SMI_FASTPATH_TOS(intptr_t, SignedAddWithOverflow);
-    DISPATCH();
-  }
-  {
-    BYTECODE(SubTOS, A_B_C);
-    SMI_FASTPATH_TOS(intptr_t, SignedSubWithOverflow);
-    DISPATCH();
-  }
-  {
-    BYTECODE(MulTOS, A_B_C);
-    SMI_FASTPATH_TOS(intptr_t, SMI_MUL);
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitOrTOS, A_B_C);
-    SMI_FASTPATH_TOS(intptr_t, SMI_BITOR);
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitAndTOS, A_B_C);
-    SMI_FASTPATH_TOS(intptr_t, SMI_BITAND);
-    DISPATCH();
-  }
-  {
-    BYTECODE(EqualTOS, A_B_C);
-    SMI_FASTPATH_TOS(RawObject*, SMI_EQ);
-    DISPATCH();
-  }
-  {
-    BYTECODE(LessThanTOS, A_B_C);
-    SMI_FASTPATH_TOS(RawObject*, SMI_LT);
-    DISPATCH();
-  }
-  {
-    BYTECODE(GreaterThanTOS, A_B_C);
-    SMI_FASTPATH_TOS(RawObject*, SMI_GT);
-    DISPATCH();
-  }
-  {
-    BYTECODE(SmiAddTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    SP--;
-    SP[0] = Smi::New(Smi::Value(left) + Smi::Value(right));
-    DISPATCH();
-  }
-  {
-    BYTECODE(SmiSubTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    SP--;
-    SP[0] = Smi::New(Smi::Value(left) - Smi::Value(right));
-    DISPATCH();
-  }
-  {
-    BYTECODE(SmiMulTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    SP--;
-    SP[0] = Smi::New(Smi::Value(left) * Smi::Value(right));
-    DISPATCH();
-  }
-  {
-    BYTECODE(SmiBitAndTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    SP--;
-    SP[0] = Smi::New(Smi::Value(left) & Smi::Value(right));
-    DISPATCH();
-  }
-  {
-    BYTECODE(Add, A_B_C);
-    SMI_OP_CHECK(intptr_t, SignedAddWithOverflow);
-    DISPATCH();
-  }
-  {
-    BYTECODE(Sub, A_B_C);
-    SMI_OP_CHECK(intptr_t, SignedSubWithOverflow);
-    DISPATCH();
-  }
-  {
-    BYTECODE(Mul, A_B_C);
-    SMI_OP_CHECK(intptr_t, SMI_MUL);
-    DISPATCH();
-  }
-  {
-    BYTECODE(Neg, A_D);
-    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
-    intptr_t* out = reinterpret_cast<intptr_t*>(&FP[rA]);
-    if (LIKELY(!SignedSubWithOverflow(0, value, out))) {
-      pc++;
-    }
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitOr, A_B_C);
-    SMI_OP_NOCHECK(intptr_t, SMI_BITOR);
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitAnd, A_B_C);
-    SMI_OP_NOCHECK(intptr_t, SMI_BITAND);
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitXor, A_B_C);
-    SMI_OP_NOCHECK(intptr_t, SMI_BITXOR);
-    DISPATCH();
-  }
-  {
-    BYTECODE(BitNot, A_D);
-    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
-    *reinterpret_cast<intptr_t*>(&FP[rA]) = ~value & (~kSmiTagMask);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Div, A_B_C);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
-    if (rhs != 0) {
-      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-      const intptr_t res = (lhs >> kSmiTagSize) / (rhs >> kSmiTagSize);
-      const intptr_t untaggable = 0x40000000L;
-      if (res != untaggable) {
-        *reinterpret_cast<intptr_t*>(&FP[rA]) = res << kSmiTagSize;
-        pc++;
-      }
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Mod, A_B_C);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
-    if (rhs != 0) {
-      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-      const intptr_t res = ((lhs >> kSmiTagSize) % (rhs >> kSmiTagSize))
-                           << kSmiTagSize;
-      *reinterpret_cast<intptr_t*>(&FP[rA]) =
-          (res < 0) ? ((rhs < 0) ? (res - rhs) : (res + rhs)) : res;
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Shl, A_B_C);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
-    const int kBitsPerInt32 = 32;
-    if (static_cast<uintptr_t>(rhs) < kBitsPerInt32) {
-      const int32_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-      const int32_t res = lhs << rhs;
-      if (lhs == (res >> rhs)) {
-        *reinterpret_cast<intptr_t*>(&FP[rA]) = static_cast<intptr_t>(res);
-        pc++;
-      }
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Shr, A_B_C);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
-    if (rhs >= 0) {
-      const intptr_t shift_amount = (rhs >= 32) ? (32 - 1) : rhs;
-      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
-      *reinterpret_cast<intptr_t*>(&FP[rA]) = (lhs >> shift_amount)
-                                              << kSmiTagSize;
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(ShlImm, A_B_C);
-    const uint8_t shift = rC;
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-    FP[rA] = reinterpret_cast<RawObject*>(lhs << shift);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Min, A_B_C);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>((lhs < rhs) ? lhs : rhs);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Max, A_B_C);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>((lhs > rhs) ? lhs : rhs);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(UnboxInt32, A_B_C);
-    const intptr_t box_cid = InterpreterHelpers::GetClassId(FP[rB]);
-    const bool may_truncate = rC == 1;
-    if (box_cid == kSmiCid) {
-      const intptr_t value = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
-      const int32_t value32 = static_cast<int32_t>(value);
-      if (may_truncate || (value == static_cast<intptr_t>(value32))) {
-        FP[rA] = reinterpret_cast<RawObject*>(value);
-        pc++;
-      }
-    } else if (box_cid == kMintCid) {
-      RawMint* mint = RAW_CAST(Mint, FP[rB]);
-      const int64_t value = mint->ptr()->value_;
-      const int32_t value32 = static_cast<int32_t>(value);
-      if (may_truncate || (value == static_cast<int64_t>(value32))) {
-        FP[rA] = reinterpret_cast<RawObject*>(value);
-        pc++;
-      }
-    }
-    DISPATCH();
-  }
-
-#if defined(ARCH_IS_64_BIT)
-  {
-    BYTECODE(WriteIntoDouble, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    RawDouble* box = RAW_CAST(Double, FP[rA]);
-    box->ptr()->value_ = value;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(UnboxDouble, A_D);
-    const RawDouble* box = RAW_CAST(Double, FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckedUnboxDouble, A_D);
-    const intptr_t box_cid = InterpreterHelpers::GetClassId(FP[rD]);
-    if (box_cid == kSmiCid) {
-      const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
-      const double result = static_cast<double>(value);
-      FP[rA] = bit_cast<RawObject*, double>(result);
-      pc++;
-    } else if (box_cid == kDoubleCid) {
-      const RawDouble* box = RAW_CAST(Double, FP[rD]);
-      FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleToSmi, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    if (!isnan(value)) {
-      const intptr_t result = static_cast<intptr_t>(value);
-      if ((result <= Smi::kMaxValue) && (result >= Smi::kMinValue)) {
-        FP[rA] = reinterpret_cast<RawObject*>(result << kSmiTagSize);
-        pc++;
-      }
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(SmiToDouble, A_D);
-    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
-    const double result = static_cast<double>(value);
-    FP[rA] = bit_cast<RawObject*, double>(result);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DAdd, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    FP[rA] = bit_cast<RawObject*, double>(lhs + rhs);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSub, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    FP[rA] = bit_cast<RawObject*, double>(lhs - rhs);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMul, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    FP[rA] = bit_cast<RawObject*, double>(lhs * rhs);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DDiv, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    const double result = lhs / rhs;
-    FP[rA] = bit_cast<RawObject*, double>(result);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DNeg, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(-value);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSqrt, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(sqrt(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSin, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(sin(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DCos, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(cos(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DPow, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    const double result = pow(lhs, rhs);
-    FP[rA] = bit_cast<RawObject*, double>(result);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMod, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    const double result = DartModulo(lhs, rhs);
-    FP[rA] = bit_cast<RawObject*, double>(result);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMin, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    FP[rA] = bit_cast<RawObject*, double>(fmin(lhs, rhs));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMax, A_B_C);
-    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
-    FP[rA] = bit_cast<RawObject*, double>(fmax(lhs, rhs));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DTruncate, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(trunc(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DFloor, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(floor(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DCeil, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = bit_cast<RawObject*, double>(ceil(value));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleToFloat, A_D);
-    const double value = bit_cast<double, RawObject*>(FP[rD]);
-    const float valuef = static_cast<float>(value);
-    *reinterpret_cast<float*>(&FP[rA]) = valuef;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(FloatToDouble, A_D);
-    const float valuef = *reinterpret_cast<float*>(&FP[rD]);
-    const double value = static_cast<double>(valuef);
-    FP[rA] = bit_cast<RawObject*, double>(value);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsNaN, A);
-    const double v = bit_cast<double, RawObject*>(FP[rA]);
-    if (!isnan(v)) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsInfinite, A);
-    const double v = bit_cast<double, RawObject*>(FP[rA]);
-    if (!isinf(v)) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedFloat32, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    const uint32_t value = *reinterpret_cast<uint32_t*>(data);
-    const uint64_t value64 = value;
-    FP[rA] = reinterpret_cast<RawObject*>(value64);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexed4Float32, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    const uint32_t value =
-        reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)];
-    const uint64_t value64 = value;  // sign extend to clear high bits.
-    FP[rA] = reinterpret_cast<RawObject*>(value64);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedFloat64, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    *reinterpret_cast<uint64_t*>(&FP[rA]) = *reinterpret_cast<uint64_t*>(data);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexed8Float64, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    const int64_t value =
-        reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)];
-    FP[rA] = reinterpret_cast<RawObject*>(value);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexedFloat32, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rA], FP[rB]);
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    *reinterpret_cast<uint32_t*>(data) = value32;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexed4Float32, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)] =
-        value32;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexedFloat64, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rA], FP[rB]);
-    *reinterpret_cast<uint64_t*>(data) = reinterpret_cast<uint64_t>(FP[rC]);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexed8Float64, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    const int64_t value = reinterpret_cast<int64_t>(FP[rC]);
-    reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)] = value;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BoxInt32, A_D);
-    // Casts sign-extend high 32 bits from low 32 bits.
-    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
-    const int32_t value32 = static_cast<int32_t>(value);
-    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BoxUint32, A_D);
-    // Casts to zero out high 32 bits.
-    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rD]);
-    const uint32_t value32 = static_cast<uint32_t>(value);
-    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
-    DISPATCH();
-  }
-#else   // defined(ARCH_IS_64_BIT)
-  {
-    BYTECODE(WriteIntoDouble, A_D);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(UnboxDouble, A_D);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckedUnboxDouble, A_D);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleToSmi, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(SmiToDouble, A_D);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DAdd, A_B_C);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSub, A_B_C);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMul, A_B_C);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DDiv, A_B_C);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DNeg, A_D);
-    UNIMPLEMENTED();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSqrt, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DSin, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DCos, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DPow, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMod, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMin, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DMax, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DTruncate, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DFloor, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DCeil, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleToFloat, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(FloatToDouble, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsNaN, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsInfinite, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedFloat32, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexed4Float32, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedFloat64, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexed8Float64, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexedFloat32, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexed4Float32, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexedFloat64, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreIndexed8Float64, A_B_C);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BoxInt32, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BoxUint32, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-#endif  // defined(ARCH_IS_64_BIT)
-
   // Return and return like instructions (Intrinsic).
   {
     RawObject* result;  // result to return to the caller.
 
-    BYTECODE(Intrinsic, A);
-    // Try invoking intrinsic handler. If it succeeds (returns true)
-    // then just return the value it returned to the caller.
-    result = null_value;
-    if (!intrinsics_[rA](thread, FP, &result)) {
-      DISPATCH();
-    }
-    goto ReturnImpl;
-
-    BYTECODE(Return, A);
-    result = FP[rA];
-    goto ReturnImpl;
-
     BYTECODE(ReturnTOS, 0);
     result = *SP;
-    // Fall through to the ReturnImpl.
-
-  ReturnImpl:
     // Restore caller PC.
     pc = SavedCallerPC(FP);
     pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
@@ -3540,38 +2362,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(StoreField, A_B_C);
-    const uint16_t offset_in_words = rB;
-    const uint16_t value_reg = rC;
-
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
-    RawObject* value = FP[value_reg];
-
-    // TODO(regis): Implement cid guard.
-    ASSERT(!thread->isolate()->use_field_guards());
-
-    instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
-        thread);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(StoreFieldExt, A_D);
-    // The offset is stored in the following nop-instruction which is skipped.
-    const uint16_t offset_in_words = KernelBytecode::DecodeD(*pc++);
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
-    RawObject* value = FP[rD];
-
-    UNREACHABLE();  // TODO(regis): unused, remove.
-
-    instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
-        thread);
-    DISPATCH();
-  }
-
-  {
     BYTECODE(StoreFieldTOS, __D);
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
@@ -3620,34 +2410,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(LoadField, A_B_C);
-    const uint16_t instance_reg = rB;
-    const uint16_t offset_in_words = rC;
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
-    FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadFieldExt, A_D);
-    // The offset is stored in the following nop-instruction which is skipped.
-    const uint16_t offset_in_words = KernelBytecode::DecodeD(*pc++);
-    const uint16_t instance_reg = rD;
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
-    FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadUntagged, A_B_C);
-    const uint16_t instance_reg = rB;
-    const uint16_t offset_in_words = rC;
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
-    FP[rA] = reinterpret_cast<RawObject**>(instance)[offset_in_words];
-    DISPATCH();
-  }
-
-  {
     BYTECODE(LoadFieldTOS, __D);
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
@@ -3683,45 +2445,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     DISPATCH();
   }
 
-  {
-    BYTECODE(InitStaticTOS, 0);
-    UNREACHABLE();  // Not used. TODO(regis): Remove this bytecode.
-    RawField* field = static_cast<RawField*>(*SP--);
-    RawObject* value = field->ptr()->value_.static_value_;
-    if ((value == Object::sentinel().raw()) ||
-        (value == Object::transition_sentinel().raw())) {
-      // Note: SP[1] already contains the field object.
-      SP[2] = 0;
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments args(thread, 1, SP + 1, SP + 2);
-      INVOKE_RUNTIME(DRT_InitStaticField, args);
-    }
-    DISPATCH();
-  }
-
   // TODO(vegorov) allocation bytecodes can benefit from the new-space
   // allocation fast-path that does not transition into the runtime system.
-  {
-    BYTECODE(AllocateUninitializedContext, A_D);
-    const uint16_t num_context_variables = rD;
-    const intptr_t instance_size = Context::InstanceSize(num_context_variables);
-    const uword start =
-        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-    if (LIKELY(start != 0)) {
-      uint32_t tags = 0;
-      tags = RawObject::ClassIdTag::update(kContextCid, tags);
-      tags = RawObject::SizeTag::update(instance_size, tags);
-      tags = RawObject::NewBit::update(true, tags);
-      // Also writes 0 in the hash_ field of the header.
-      *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
-      *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
-          num_context_variables;
-      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-      pc += 2;
-    }
-    DISPATCH();
-  }
-
   {
     BYTECODE(AllocateContext, A_D);
     const uint16_t num_context_variables = rD;
@@ -3747,26 +2472,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(AllocateOpt, A_D);
-    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
-    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
-    const uword start =
-        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-    if (LIKELY(start != 0)) {
-      // Writes both the tags and the initial identity hash on 64 bit platforms.
-      tags = RawObject::NewBit::update(true, tags);
-      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
-      for (intptr_t current_offset = sizeof(RawInstance);
-           current_offset < instance_size; current_offset += kWordSize) {
-        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
-      }
-      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-      pc += 2;
-    }
-    DISPATCH();
-  }
-
-  {
     BYTECODE(Allocate, A_D);
     SP[1] = 0;                  // Space for the result.
     SP[2] = LOAD_CONSTANT(rD);  // Class object.
@@ -3775,30 +2480,6 @@ RawObject* Interpreter::Call(RawFunction* function,
     NativeArguments args(thread, 2, SP + 2, SP + 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
     SP++;  // Result is in SP[1].
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(AllocateTOpt, A_D);
-    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
-    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
-    const uword start =
-        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-    if (LIKELY(start != 0)) {
-      RawObject* type_args = SP[0];
-      const intptr_t type_args_offset = KernelBytecode::DecodeD(*pc);
-      // Writes both the tags and the initial identity hash on 64 bit platforms.
-      tags = RawObject::NewBit::update(true, tags);
-      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
-      for (intptr_t current_offset = sizeof(RawInstance);
-           current_offset < instance_size; current_offset += kWordSize) {
-        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
-      }
-      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
-      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-      SP -= 1;  // Consume the type arguments on the stack.
-      pc += 4;
-    }
     DISPATCH();
   }
 
@@ -3814,46 +2495,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(CreateArrayOpt, A_B_C);
-    if (LIKELY(!FP[rB]->IsHeapObject())) {
-      const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
-      if (LIKELY(static_cast<uintptr_t>(length) <= Array::kMaxElements)) {
-        const intptr_t fixed_size_plus_alignment_padding =
-            sizeof(RawArray) + kObjectAlignment - 1;
-        const intptr_t instance_size =
-            (fixed_size_plus_alignment_padding + length * kWordSize) &
-            ~(kObjectAlignment - 1);
-        const uword start = thread->heap()->new_space()->TryAllocateInTLAB(
-            thread, instance_size);
-        if (LIKELY(start != 0)) {
-          const intptr_t cid = kArrayCid;
-          uword tags = 0;
-          if (LIKELY(instance_size <= RawObject::SizeTag::kMaxSizeTag)) {
-            tags = RawObject::SizeTag::update(instance_size, tags);
-          }
-          tags = RawObject::ClassIdTag::update(cid, tags);
-          tags = RawObject::NewBit::update(true, tags);
-          // Writes both the tags and the initial identity hash on 64 bit
-          // platforms.
-          *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
-          *reinterpret_cast<RawObject**>(start + Array::length_offset()) =
-              FP[rB];
-          *reinterpret_cast<RawObject**>(
-              start + Array::type_arguments_offset()) = FP[rC];
-          RawObject** data =
-              reinterpret_cast<RawObject**>(start + Array::data_offset());
-          for (intptr_t i = 0; i < length; i++) {
-            data[i] = null_value;
-          }
-          FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-          pc += 4;
-        }
-      }
-    }
-    DISPATCH();
-  }
-
-  {
     BYTECODE(CreateArrayTOS, 0);
     SP[1] = SP[-0];  // Length.
     SP[2] = SP[-1];  // Type.
@@ -3865,109 +2506,8 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(InstanceOf, 0);
-    // Stack: instance, instantiator type args, function type args, type, cache
-    RawInstance* instance = static_cast<RawInstance*>(SP[-4]);
-    RawTypeArguments* instantiator_type_arguments =
-        static_cast<RawTypeArguments*>(SP[-3]);
-    RawTypeArguments* function_type_arguments =
-        static_cast<RawTypeArguments*>(SP[-2]);
-    RawAbstractType* type = static_cast<RawAbstractType*>(SP[-1]);
-    RawSubtypeTestCache* cache = static_cast<RawSubtypeTestCache*>(SP[0]);
-
-    if (cache != null_value) {
-      const intptr_t cid = InterpreterHelpers::GetClassId(instance);
-
-      RawTypeArguments* instance_type_arguments =
-          static_cast<RawTypeArguments*>(null_value);
-      RawObject* instance_cid_or_function;
-      RawTypeArguments* parent_function_type_arguments;
-      RawTypeArguments* delayed_function_type_arguments;
-      if (cid == kClosureCid) {
-        RawClosure* closure = static_cast<RawClosure*>(instance);
-        instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
-        parent_function_type_arguments =
-            closure->ptr()->function_type_arguments_;
-        delayed_function_type_arguments =
-            closure->ptr()->delayed_type_arguments_;
-        instance_cid_or_function = closure->ptr()->function_;
-      } else {
-        instance_cid_or_function = Smi::New(cid);
-
-        RawClass* instance_class = thread->isolate()->class_table()->At(cid);
-        if (instance_class->ptr()->num_type_arguments_ < 0) {
-          goto InstanceOfCallRuntime;
-        } else if (instance_class->ptr()->num_type_arguments_ > 0) {
-          instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
-              instance->ptr())[instance_class->ptr()
-                                   ->type_arguments_field_offset_in_words_];
-        }
-        parent_function_type_arguments =
-            static_cast<RawTypeArguments*>(null_value);
-        delayed_function_type_arguments =
-            static_cast<RawTypeArguments*>(null_value);
-      }
-
-      for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
-           entries[0] != null_value;
-           entries += SubtypeTestCache::kTestEntryLength) {
-        if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
-             instance_cid_or_function) &&
-            (entries[SubtypeTestCache::kInstanceTypeArguments] ==
-             instance_type_arguments) &&
-            (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-             instantiator_type_arguments) &&
-            (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-             function_type_arguments) &&
-            (entries[SubtypeTestCache::kInstanceParentFunctionTypeArguments] ==
-             parent_function_type_arguments) &&
-            (entries[SubtypeTestCache::kInstanceDelayedFunctionTypeArguments] ==
-             delayed_function_type_arguments)) {
-          SP[-4] = entries[SubtypeTestCache::kTestResult];
-          goto InstanceOfOk;
-        }
-      }
-    }
-
-  // clang-format off
-  InstanceOfCallRuntime:
-    {
-      SP[1] = instance;
-      SP[2] = type;
-      SP[3] = instantiator_type_arguments;
-      SP[4] = function_type_arguments;
-      SP[5] = cache;
-      Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 5, SP + 1, SP - 4);
-      INVOKE_RUNTIME(DRT_Instanceof, native_args);
-    }
-    // clang-format on
-
-  InstanceOfOk:
-    SP -= 4;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(BadTypeError, 0);
-    // Stack: instance, instantiator type args, function type args, type, name
-    RawObject** args = SP - 4;
-    if (args[0] != null_value) {
-      SP[1] = args[0];  // instance.
-      SP[2] = args[4];  // name.
-      SP[3] = args[3];  // type.
-      Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 3, SP + 1, SP - 4);
-      INVOKE_RUNTIME(DRT_BadTypeError, native_args);
-      UNREACHABLE();
-    }
-    SP -= 4;
-    DISPATCH();
-  }
-
-  {
     BYTECODE(AssertAssignable, A_D);
-    // Stack: instance, instantiator type args, function type args, type, name
+    // Stack: instance, type, instantiator type args, function type args, name
     RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
     const bool is_smi =
@@ -4040,475 +2580,15 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(TestSmi, A_D);
-    intptr_t left = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rA]));
-    intptr_t right = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rD]));
-    if ((left & right) != 0) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(TestCids, A_D);
-    const intptr_t cid = InterpreterHelpers::GetClassId(FP[rA]);
-    const intptr_t num_cases = rD;
-    for (intptr_t i = 0; i < num_cases; i++) {
-      ASSERT(KernelBytecode::DecodeOpcode(pc[i]) == KernelBytecode::kNop);
-      intptr_t test_target = KernelBytecode::DecodeA(pc[i]);
-      intptr_t test_cid = KernelBytecode::DecodeD(pc[i]);
-      if (cid == test_cid) {
-        if (test_target != 0) {
-          pc += 1;  // Match true.
-        } else {
-          pc += 2;  // Match false.
-        }
-        break;
-      }
-    }
-    pc += num_cases;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckSmi, 0);
-    intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
-    if ((obj & kSmiTagMask) == kSmiTag) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckEitherNonSmi, A_D);
-    const intptr_t obj1 = reinterpret_cast<intptr_t>(FP[rA]);
-    const intptr_t obj2 = reinterpret_cast<intptr_t>(FP[rD]);
-    const intptr_t tag = (obj1 | obj2) & kSmiTagMask;
-    if (tag != kSmiTag) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckClassId, A_D);
-    const intptr_t actual_cid =
-        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
-    const intptr_t desired_cid = rD;
-    pc += (actual_cid == desired_cid) ? 1 : 0;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckClassIdRange, A_D);
-    const intptr_t actual_cid =
-        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
-    const uintptr_t cid_start = rD;
-    const uintptr_t cid_range = KernelBytecode::DecodeD(*pc);
-    // Unsigned comparison.  Skip either just the nop or both the nop and the
-    // following instruction.
-    pc += (actual_cid - cid_start <= cid_range) ? 2 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckBitTest, A_D);
-    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
-    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
-    const intptr_t cid_min = KernelBytecode::DecodeD(*pc);
-    const intptr_t cid_mask = Smi::Value(
-        RAW_CAST(Smi, LOAD_CONSTANT(KernelBytecode::DecodeD(*(pc + 1)))));
-    if (LIKELY(!is_smi)) {
-      const intptr_t cid_max = Utils::HighestBit(cid_mask) + cid_min;
-      const intptr_t cid = InterpreterHelpers::GetClassId(FP[rA]);
-      // The cid is in-bounds, and the bit is set in the mask.
-      if ((cid >= cid_min) && (cid <= cid_max) &&
-          ((cid_mask & (1 << (cid - cid_min))) != 0)) {
-        pc += 3;
-      } else {
-        pc += 2;
-      }
-    } else {
-      const bool may_be_smi = (rD == 1);
-      pc += (may_be_smi ? 3 : 2);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckCids, A_B_C);
-    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
-    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
-    const bool may_be_smi = (rB == 1);
-    const intptr_t cids_length = rC;
-    if (LIKELY(!is_smi)) {
-      const intptr_t cid = InterpreterHelpers::GetClassId(FP[rA]);
-      for (intptr_t i = 0; i < cids_length; i++) {
-        const intptr_t desired_cid = KernelBytecode::DecodeD(*(pc + i));
-        if (cid == desired_cid) {
-          pc++;
-          break;
-        }
-      }
-      pc += cids_length;
-    } else {
-      pc += cids_length;
-      pc += (may_be_smi ? 1 : 0);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(CheckCidsByRange, A_B_C);
-    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
-    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
-    const bool may_be_smi = (rB == 1);
-    const intptr_t cids_length = rC;
-    if (LIKELY(!is_smi)) {
-      const intptr_t cid = InterpreterHelpers::GetClassId(FP[rA]);
-      for (intptr_t i = 0; i < cids_length; i += 2) {
-        // Note unsigned type to get unsigned range check below.
-        const uintptr_t cid_start = KernelBytecode::DecodeD(*(pc + i));
-        const uintptr_t cids = KernelBytecode::DecodeD(*(pc + i + 1));
-        if (cid - cid_start < cids) {
-          pc++;
-          break;
-        }
-      }
-      pc += cids_length;
-    } else {
-      pc += cids_length;
-      pc += (may_be_smi ? 1 : 0);
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfEqStrictTOS, 0);
-    SP -= 2;
-    if (SP[1] != SP[2]) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfNeStrictTOS, 0);
-    SP -= 2;
-    if (SP[1] == SP[2]) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfEqStrictNumTOS, 0);
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-
-    SP -= 2;
-    if (!InterpreterHelpers::IsStrictEqualWithNumberCheck(SP[1], SP[2])) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfNeStrictNumTOS, 0);
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-
-    SP -= 2;
-    if (InterpreterHelpers::IsStrictEqualWithNumberCheck(SP[1], SP[2])) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfSmiLtTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    if (!(Smi::Value(left) < Smi::Value(right))) {
-      pc++;
-    }
-    SP -= 2;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfSmiLeTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    if (!(Smi::Value(left) <= Smi::Value(right))) {
-      pc++;
-    }
-    SP -= 2;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfSmiGeTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    if (!(Smi::Value(left) >= Smi::Value(right))) {
-      pc++;
-    }
-    SP -= 2;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfSmiGtTOS, 0);
-    RawSmi* left = Smi::RawCast(SP[-1]);
-    RawSmi* right = Smi::RawCast(SP[-0]);
-    if (!(Smi::Value(left) > Smi::Value(right))) {
-      pc++;
-    }
-    SP -= 2;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfEqStrict, A_D);
-    RawObject* lhs = FP[rA];
-    RawObject* rhs = FP[rD];
-    if (lhs != rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfNeStrict, A_D);
-    RawObject* lhs = FP[rA];
-    RawObject* rhs = FP[rD];
-    if (lhs == rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfLe, A_D);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
-    if (lhs > rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfLt, A_D);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
-    if (lhs >= rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfGe, A_D);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
-    if (lhs < rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfGt, A_D);
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
-    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
-    if (lhs <= rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfULe, A_D);
-    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
-    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
-    if (lhs > rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfULt, A_D);
-    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
-    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
-    if (lhs >= rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfUGe, A_D);
-    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
-    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
-    if (lhs < rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfUGt, A_D);
-    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
-    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
-    if (lhs <= rhs) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-#if defined(ARCH_IS_64_BIT)
-  {
-    BYTECODE(IfDEq, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs == rhs) ? 0 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDNe, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs != rhs) ? 0 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDLe, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs <= rhs) ? 0 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDLt, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs < rhs) ? 0 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDGe, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs >= rhs) ? 0 : 1;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDGt, A_D);
-    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
-    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
-    pc += (lhs > rhs) ? 0 : 1;
-    DISPATCH();
-  }
-#else   // defined(ARCH_IS_64_BIT)
-  {
-    BYTECODE(IfDEq, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDNe, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDLe, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDLt, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDGe, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfDGt, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-#endif  // defined(ARCH_IS_64_BIT)
-
-  {
-    BYTECODE(IfEqStrictNum, A_D);
-    RawObject* lhs = FP[rA];
-    RawObject* rhs = FP[rD];
-    if (!InterpreterHelpers::IsStrictEqualWithNumberCheck(lhs, rhs)) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfNeStrictNum, A_D);
-    RawObject* lhs = FP[rA];
-    RawObject* rhs = FP[rD];
-    if (InterpreterHelpers::IsStrictEqualWithNumberCheck(lhs, rhs)) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfEqNull, A);
-    if (FP[rA] != null_value) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(IfNeNull, A_D);
-    if (FP[rA] == null_value) {
-      pc++;
-    }
-    DISPATCH();
-  }
-
-  {
     BYTECODE(Jump, 0);
-    const int32_t target = static_cast<int32_t>(op) >> 8;
-    pc += (target - 1);
+    LOAD_JUMP_TARGET();
     DISPATCH();
   }
 
   {
     BYTECODE(JumpIfNoAsserts, 0);
     if (!thread->isolate()->asserts()) {
-      const int32_t target = static_cast<int32_t>(op) >> 8;
-      pc += (target - 1);
+      LOAD_JUMP_TARGET();
     }
     DISPATCH();
   }
@@ -4516,24 +2596,62 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(JumpIfNotZeroTypeArgs, 0);
     if (InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) != 0) {
-      const int32_t target = static_cast<int32_t>(op) >> 8;
-      pc += (target - 1);
+      LOAD_JUMP_TARGET();
     }
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadClassId, A_D);
-    const uint16_t object_reg = rD;
-    RawObject* obj = static_cast<RawObject*>(FP[object_reg]);
-    FP[rA] = InterpreterHelpers::GetClassIdAsSmi(obj);
+    BYTECODE(JumpIfEqStrict, 0);
+    SP -= 2;
+    if (SP[1] == SP[2]) {
+      LOAD_JUMP_TARGET();
+    }
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadClassIdTOS, 0);
-    RawObject* obj = static_cast<RawObject*>(SP[0]);
-    SP[0] = InterpreterHelpers::GetClassIdAsSmi(obj);
+    BYTECODE(JumpIfNeStrict, 0);
+    SP -= 2;
+    if (SP[1] != SP[2]) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfTrue, 0);
+    SP -= 1;
+    if (SP[1] == true_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfFalse, 0);
+    SP -= 1;
+    if (SP[1] == false_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfNull, 0);
+    SP -= 1;
+    if (SP[1] == null_value) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfNotNull, 0);
+    SP -= 1;
+    if (SP[1] != null_value) {
+      LOAD_JUMP_TARGET();
+    }
     DISPATCH();
   }
 
@@ -4550,234 +2668,199 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(StoreIndexed, A_B_C);
-    RawArray* array = RAW_CAST(Array, FP[rA]);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawObject* value = FP[rC];
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
-                        thread);
+    BYTECODE(EqualsNull, 0);
+    SP[0] = (SP[0] == null_value) ? true_value : false_value;
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreIndexedUint8, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rA], FP[rB]);
-    *data = Smi::Value(RAW_CAST(Smi, FP[rC]));
+    BYTECODE(NegateInt, 0);
+    UNBOX_INT64(value, SP[0], Symbols::UnaryMinus());
+    int64_t result = Utils::SubWithWrapAround(0, value);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreIndexedExternalUint8, A_B_C);
-    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
-    array[Smi::Value(index)] = Smi::Value(value);
+    BYTECODE(AddInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Plus());
+    UNBOX_INT64(b, SP[1], Symbols::Plus());
+    int64_t result = Utils::AddWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreIndexedOneByteString, A_B_C);
-    RawOneByteString* array = RAW_CAST(OneByteString, FP[rA]);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->ptr()->data()[Smi::Value(index)] = Smi::Value(value);
+    BYTECODE(SubInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Minus());
+    UNBOX_INT64(b, SP[1], Symbols::Minus());
+    int64_t result = Utils::SubWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreIndexedUint32, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rA], FP[rB]);
-    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rC]);
-    *reinterpret_cast<uint32_t*>(data) = static_cast<uint32_t>(value);
+    BYTECODE(MulInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Star());
+    UNBOX_INT64(b, SP[1], Symbols::Star());
+    int64_t result = Utils::MulWithWrapAround(a, b);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(TailCall, 0);
-    RawCode* code = RAW_CAST(Code, SP[-0]);
-    RawImmutableArray* args_desc = RAW_CAST(ImmutableArray, SP[-1]);
-    PrepareForTailCall(code, args_desc, FP, &SP, &pc);
+    BYTECODE(TruncDivInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
+    UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
+    if (UNLIKELY(b == 0)) {
+      goto ThrowIntegerDivisionByZeroException;
+    }
+    int64_t result;
+    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+      result = Mint::kMinValue;
+    } else {
+      result = a / b;
+    }
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(TailCallOpt, A_D);
-    RawImmutableArray* args_desc = RAW_CAST(ImmutableArray, FP[rA]);
-    RawCode* code = RAW_CAST(Code, FP[rD]);
-    PrepareForTailCall(code, args_desc, FP, &SP, &pc);
+    BYTECODE(ModInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Percent());
+    UNBOX_INT64(b, SP[1], Symbols::Percent());
+    if (UNLIKELY(b == 0)) {
+      goto ThrowIntegerDivisionByZeroException;
+    }
+    int64_t result;
+    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+      result = 0;
+    } else {
+      result = a % b;
+      if (result < 0) {
+        if (b < 0) {
+          result -= b;
+        } else {
+          result += b;
+        }
+      }
+    }
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadArgDescriptor, 0);
-    SP++;
-    SP[0] = argdesc_;
+    BYTECODE(BitAndInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Ampersand());
+    UNBOX_INT64(b, SP[1], Symbols::Ampersand());
+    int64_t result = a & b;
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadArgDescriptorOpt, A);
-    FP[rA] = argdesc_;
+    BYTECODE(BitOrInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::BitOr());
+    UNBOX_INT64(b, SP[1], Symbols::BitOr());
+    int64_t result = a | b;
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(NoSuchMethod, 0);
-    goto ClosureNoSuchMethod;
-  }
-
-  {
-    BYTECODE(LoadFpRelativeSlot, A_X);
-    RawSmi* index = RAW_CAST(Smi, SP[-0]);
-    const int16_t offset = rD;
-    SP[-0] = FP[-(Smi::Value(index) + offset)];
+    BYTECODE(BitXorInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::Caret());
+    UNBOX_INT64(b, SP[1], Symbols::Caret());
+    int64_t result = a ^ b;
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadFpRelativeSlotOpt, A_B_Y);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    const int8_t offset = rY;
-    FP[rA] = FP[-(Smi::Value(index) + offset)];
+    BYTECODE(ShlInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LeftShiftOperator());
+    UNBOX_INT64(b, SP[1], Symbols::LeftShiftOperator());
+    if (b < 0) {
+      SP[0] = SP[1];
+      goto ThrowArgumentError;
+    }
+    int64_t result = Utils::ShiftLeftWithTruncation(a, b);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFpRelativeSlot, A_X);
-    RawSmi* index = RAW_CAST(Smi, SP[-1]);
-    const int16_t offset = rD;
-    FP[-(Smi::Value(index) + offset) - 0] = SP[-0];
-    SP--;
+    BYTECODE(ShrInt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::RightShiftOperator());
+    UNBOX_INT64(b, SP[1], Symbols::RightShiftOperator());
+    if (b < 0) {
+      SP[0] = SP[1];
+      goto ThrowArgumentError;
+    }
+    int64_t result = a >> Utils::Minimum<int64_t>(b, Mint::kBits);
+    BOX_INT64_RESULT(result);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFpRelativeSlotOpt, A_B_Y);
-    RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    const int8_t offset = rY;
-    FP[-(Smi::Value(index) + offset) - 0] = FP[rA];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedTOS, 0);
-    // Currently this instruction is only emitted if it's safe to do.
-    ASSERT(!SP[0]->IsHeapObject());
-    ASSERT(SP[-1]->IsArray() || SP[-1]->IsImmutableArray());
-
-    const intptr_t index_scale = rA;
-    RawSmi* index = RAW_CAST(Smi, SP[-0]);
-    RawArray* array = Array::RawCast(SP[-1]);
-
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    SP[-1] = array->ptr()->data()[Smi::Value(index) << index_scale];
-    SP--;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexed, A_B_C);
-    RawObject* obj = FP[rB];
-    ASSERT(obj->IsArray() || obj->IsImmutableArray());
-    RawArray* array = reinterpret_cast<RawArray*>(obj);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = array->ptr()->data()[Smi::Value(index)];
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedUint8, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*data);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedInt8, A_B_C);
-    uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data));
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedUint32, A_B_C);
-    const uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedInt32, A_B_C);
-    const uint8_t* data = InterpreterHelpers::GetTypedData(FP[rB], FP[rC]);
-    const int32_t value = *reinterpret_cast<const int32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedExternalUint8, A_B_C);
-    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedExternalInt8, A_B_C);
-    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedOneByteString, A_B_C);
-    RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(LoadIndexedTwoByteString, A_B_C);
-    RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(Deopt, A_D);
-    const bool is_lazy = rD == 0;
-    if (!Deoptimize(thread, &pc, &FP, &SP, is_lazy)) {
-      HANDLE_EXCEPTION;
+    BYTECODE(CompareIntEq, 0);
+    SP -= 1;
+    if (SP[0] == SP[1]) {
+      SP[0] = true_value;
+    } else if (!SP[0]->IsHeapObject() || !SP[1]->IsHeapObject() ||
+               (SP[0] == null_value) || (SP[1] == null_value)) {
+      SP[0] = false_value;
+    } else {
+      int64_t a = Integer::GetInt64Value(RAW_CAST(Integer, SP[0]));
+      int64_t b = Integer::GetInt64Value(RAW_CAST(Integer, SP[1]));
+      SP[0] = (a == b) ? true_value : false_value;
     }
     DISPATCH();
   }
 
   {
-    BYTECODE(DeoptRewind, 0);
-    pc = reinterpret_cast<uint32_t*>(thread->resume_pc());
-    if (!Deoptimize(thread, &pc, &FP, &SP, false /* eager */)) {
-      HANDLE_EXCEPTION;
-    }
-    {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_RewindPostDeopt, args);
-    }
-    UNREACHABLE();  // DRT_RewindPostDeopt does not exit normally.
+    BYTECODE(CompareIntGt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::RAngleBracket());
+    UNBOX_INT64(b, SP[1], Symbols::RAngleBracket());
+    SP[0] = (a > b) ? true_value : false_value;
     DISPATCH();
   }
 
   {
-    BYTECODE(Nop, 0);
+    BYTECODE(CompareIntLt, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LAngleBracket());
+    UNBOX_INT64(b, SP[1], Symbols::LAngleBracket());
+    SP[0] = (a < b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntGe, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::GreaterEqualOperator());
+    UNBOX_INT64(b, SP[1], Symbols::GreaterEqualOperator());
+    SP[0] = (a >= b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareIntLe, 0);
+    SP -= 1;
+    UNBOX_INT64(a, SP[0], Symbols::LessEqualOperator());
+    UNBOX_INT64(b, SP[1], Symbols::LessEqualOperator());
+    SP[0] = (a <= b) ? true_value : false_value;
     DISPATCH();
   }
 
@@ -4848,6 +2931,35 @@ RawObject* Interpreter::Call(RawFunction* function,
     }
 
     DISPATCH();
+  }
+
+  {
+  ThrowNullError:
+    // SP[0] contains selector.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP, SP + 1);
+    INVOKE_RUNTIME(DRT_NullErrorWithSelector, args);
+    UNREACHABLE();
+  }
+
+  {
+  ThrowIntegerDivisionByZeroException:
+    SP[0] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 1, pc);
+    NativeArguments args(thread, 0, SP, SP);
+    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException, args);
+    UNREACHABLE();
+  }
+
+  {
+  ThrowArgumentError:
+    // SP[0] contains value.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP, SP + 1);
+    INVOKE_RUNTIME(DRT_ArgumentError, args);
+    UNREACHABLE();
   }
 
   // Single dispatch point used by exception handling macros.

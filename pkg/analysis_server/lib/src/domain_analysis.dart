@@ -64,16 +64,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     AnalysisResult result = await server.getAnalysisResult(file);
-
-    if (server.onResultErrorSupplementor != null) {
-      if (result != null) {
-        await server.onResultErrorSupplementor(file, result.errors);
-      } else {
-        server.onNoAnalysisResult(file, send);
-        return;
-      }
-    }
-
     send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
   }
 

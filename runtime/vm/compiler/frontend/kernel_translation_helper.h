@@ -22,6 +22,8 @@ class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
+  TranslationHelper(Thread* thread, Heap::Space space);
+
   virtual ~TranslationHelper() {}
 
   void Reset();
@@ -874,15 +876,10 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
-                              bool has_non_this_uses = true,
-                              bool has_tearoff_uses = true)
-      : has_dynamic_invocations(has_dynamic_invocations),
-        has_non_this_uses(has_non_this_uses),
-        has_tearoff_uses(has_tearoff_uses) {}
-  bool has_dynamic_invocations;
-  bool has_non_this_uses;
-  bool has_tearoff_uses;
+  bool has_dynamic_invocations = true;
+  bool has_this_uses = true;
+  bool has_non_this_uses = true;
+  bool has_tearoff_uses = true;
 };
 
 // Helper class which provides access to direct call metadata.

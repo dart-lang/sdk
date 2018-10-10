@@ -45,6 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
@@ -979,7 +980,10 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   EDX: Address being stored
+//   EDX: Object (old)
+// If EDX is not remembered, mark as remembered and add to the store buffer.
+COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
+COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   // Save values being destroyed.
   __ pushl(EAX);

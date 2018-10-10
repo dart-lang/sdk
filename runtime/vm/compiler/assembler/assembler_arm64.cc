@@ -661,7 +661,6 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 
 void Assembler::BranchLinkToRuntime() {
   ldr(LR, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   blr(LR);
 }
 
@@ -1004,12 +1003,33 @@ void Assembler::StoreIntoObject(Register object,
   ldr(TMP2, FieldAddress(value, Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
-  b(&done, EQ);
+  b(&done, ZERO);
 
   if (!lr_reserved) Push(LR);
-  mov(TMP2, value);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
+  Register objectForCall = object;
+  if (value != kWriteBarrierValueReg) {
+    // Unlikely. Only non-graph intrinsics.
+    // TODO(rmacnak): Shuffle registers in intrinsics.
+    if (object != kWriteBarrierValueReg) {
+      Push(kWriteBarrierValueReg);
+    } else {
+      COMPILE_ASSERT(R2 != kWriteBarrierValueReg);
+      COMPILE_ASSERT(R3 != kWriteBarrierValueReg);
+      objectForCall = (value == R2) ? R3 : R2;
+      PushPair(kWriteBarrierValueReg, objectForCall);
+      mov(objectForCall, object);
+    }
+    mov(kWriteBarrierValueReg, value);
+  }
+  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(objectForCall)));
   blr(LR);
+  if (value != kWriteBarrierValueReg) {
+    if (object != kWriteBarrierValueReg) {
+      Pop(kWriteBarrierValueReg);
+    } else {
+      PopPair(kWriteBarrierValueReg, objectForCall);
+    }
+  }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
 #else
@@ -1168,6 +1188,11 @@ void Assembler::CheckCodePointer() {
 
 void Assembler::SetupDartSP() {
   mov(SP, CSP);
+#if defined(TARGET_OS_FUCHSIA)
+  // Make any future signal handlers fail fast. Verifies our assumption in
+  // EnterFrame.
+  LoadImmediate(CSP, 0);
+#endif
 }
 
 void Assembler::RestoreCSP() {
@@ -1187,9 +1212,12 @@ void Assembler::EnterFrame(intptr_t frame_size) {
   // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
   // this requires adjustments to stack handling to maintain the 16-byte
   // alignment.
+  // Note Fuchsia does not have signal handlers; see also SetupDartSP.
+#if !defined(TARGET_OS_FUCHSIA)
   const intptr_t kMaxDartFrameSize = 4096;
   sub(TMP, SP, Operand(kMaxDartFrameSize));
   andi(CSP, TMP, Immediate(~15));
+#endif
 
   PushPair(FP, LR);  // low: FP, high: LR.
   mov(FP, SP);

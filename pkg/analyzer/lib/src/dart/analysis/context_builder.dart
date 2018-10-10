@@ -19,8 +19,10 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
-import 'package:front_end/src/base/performance_logger.dart' show PerformanceLog;
-import 'package:front_end/src/byte_store/byte_store.dart' show MemoryByteStore;
+import 'package:analyzer/src/dart/analysis/performance_logger.dart'
+    show PerformanceLog;
+import 'package:analyzer/src/dart/analysis/byte_store.dart'
+    show ByteStore, MemoryByteStore;
 import 'package:meta/meta.dart';
 
 /**
@@ -50,18 +52,25 @@ class ContextBuilderImpl implements ContextBuilder {
 
   @override
   AnalysisContext createContext(
-      {@required ContextRoot contextRoot,
+      {@deprecated ByteStore byteStore,
+      @required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
+      @deprecated PerformanceLog performanceLog,
+      @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath}) {
-    PerformanceLog performanceLog = new PerformanceLog(new StringBuffer());
-    AnalysisDriverScheduler scheduler =
-        new AnalysisDriverScheduler(performanceLog);
+    byteStore ??= new MemoryByteStore();
+    performanceLog ??= new PerformanceLog(new StringBuffer());
+
     sdkPath ??= _defaultSdkPath;
     if (sdkPath == null) {
       throw new ArgumentError('Cannot find path to the SDK');
     }
     DartSdkManager sdkManager = new DartSdkManager(sdkPath, true);
-    scheduler.start();
+
+    if (scheduler == null) {
+      scheduler = new AnalysisDriverScheduler(performanceLog);
+      scheduler.start();
+    }
 
     // TODO(brianwilkerson) Move the required implementation from the old
     // ContextBuilder to this class and remove the old class.
@@ -75,7 +84,7 @@ class ContextBuilderImpl implements ContextBuilder {
         resourceProvider, sdkManager, new ContentCache(),
         options: options);
     builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = new MemoryByteStore();
+    builder.byteStore = byteStore;
     builder.fileContentOverlay = new FileContentOverlay();
     builder.performanceLog = performanceLog;
 

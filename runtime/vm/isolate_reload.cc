@@ -557,9 +557,12 @@ static void AcceptCompilation(Thread* thread) {
 }
 
 // NOTE: This function returns *after* FinalizeLoading is called.
+// If [root_script_url] is null, attempt to load from [kernel_buffer].
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
-                                  const char* packages_url_) {
+                                  const char* packages_url_,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -597,7 +600,7 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   bool did_kernel_compilation = false;
   bool skip_reload = false;
-  if (isolate()->use_dart_frontend()) {
+  {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
@@ -610,18 +613,25 @@ void IsolateReloadContext::Reload(bool force_reload,
     // compiled, so ReadKernelFromFile returns NULL.
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
     if (kernel_program.get() == NULL) {
-      Dart_SourceFile* modified_scripts = NULL;
-      intptr_t modified_scripts_count = 0;
-
-      FindModifiedSources(thread, force_reload, &modified_scripts,
-                          &modified_scripts_count, packages_url_);
-
       Dart_KernelCompilationResult retval;
-      {
-        TransitionVMToNative transition(thread);
-        retval = KernelIsolate::CompileToKernel(root_lib_url.ToCString(), NULL,
-                                                0, modified_scripts_count,
-                                                modified_scripts, true, NULL);
+      if (kernel_buffer != NULL && kernel_buffer_size != 0) {
+        retval.kernel = const_cast<uint8_t*>(kernel_buffer);
+        retval.kernel_size = kernel_buffer_size;
+        retval.status = Dart_KernelCompilationStatus_Ok;
+      } else {
+        Dart_SourceFile* modified_scripts = NULL;
+        intptr_t modified_scripts_count = 0;
+
+        FindModifiedSources(thread, force_reload, &modified_scripts,
+                            &modified_scripts_count, packages_url_);
+
+        {
+          TransitionVMToNative transition(thread);
+          retval = KernelIsolate::CompileToKernel(
+              root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
+              modified_scripts, true, NULL);
+          did_kernel_compilation = true;
+        }
       }
 
       if (retval.status != Dart_KernelCompilationStatus_Ok) {
@@ -629,12 +639,14 @@ void IsolateReloadContext::Reload(bool force_reload,
         const String& error_str = String::Handle(String::New(retval.error));
         free(retval.error);
         const ApiError& error = ApiError::Handle(ApiError::New(error_str));
+        if (retval.kernel != NULL) {
+          free(const_cast<uint8_t*>(retval.kernel));
+        }
         AddReasonForCancelling(new Aborted(zone_, error));
         ReportReasonsForCancelling();
         CommonFinalizeTail();
         return;
       }
-      did_kernel_compilation = true;
 
       // The ownership of the kernel buffer goes now to the VM.
       const ExternalTypedData& typed_data = ExternalTypedData::Handle(
@@ -659,10 +671,6 @@ void IsolateReloadContext::Reload(bool force_reload,
 
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
-  } else {
-    // Check to see which libraries have been modified.
-    modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
-    skip_reload = !modified_libs_->Contains(old_root_lib.index());
   }
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -675,7 +683,7 @@ void IsolateReloadContext::Reload(bool force_reload,
     // If we use the CFE and performed a compilation, we need to notify that
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
-    if (isolate()->use_dart_frontend() && did_kernel_compilation) {
+    if (did_kernel_compilation) {
       AcceptCompilation(thread);
     }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
@@ -729,7 +737,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   // for example, top level parse errors. We want to capture these errors while
   // propagating the UnwindError or an UnhandledException error.
 
-  if (isolate()->use_dart_frontend()) {
+  {
     const Object& tmp =
         kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
     if (!tmp.IsError()) {
@@ -754,16 +762,6 @@ void IsolateReloadContext::Reload(bool force_reload,
     } else {
       result = tmp.raw();
     }
-  } else {
-    TIR_Print("---- ENTERING TAG HANDLER\n");
-    TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-
-    Dart_Handle retval = (I->library_tag_handler())(
-        Dart_kScriptTag, Api::NewHandle(thread, packages_url.raw()),
-        Api::NewHandle(thread, root_lib_url.raw()));
-    result = Api::UnwrapHandle(retval);
-    TIR_Print("---- EXITED TAG HANDLER\n");
   }
   //
   // WEIRD CONTROL FLOW ENDS.

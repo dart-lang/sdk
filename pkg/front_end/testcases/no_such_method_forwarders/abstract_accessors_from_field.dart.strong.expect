@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 abstract class I extends core::Object {
   field core::int foo = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I
     : super core::Object::•()
     ;
 }
 class A extends core::Object implements self::I {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation i) → dynamic
@@ -20,7 +20,7 @@ class A extends core::Object implements self::I {
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }

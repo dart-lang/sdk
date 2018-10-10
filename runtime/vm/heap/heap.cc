@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
@@ -836,8 +837,8 @@ void Heap::RecordAfterGC(GCType type) {
          (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled() &&
-      !ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
-    ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
+      !Isolate::IsVMInternalIsolate(isolate())) {
+    ServiceEvent event(isolate(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
   }
@@ -974,6 +975,24 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(true);
   }
+}
+
+BumpAllocateScope::BumpAllocateScope(Thread* thread)
+    : StackResource(thread), no_reload_scope_(thread->isolate(), thread) {
+  ASSERT(!thread->bump_allocate());
+  // If the background compiler thread is not disabled, there will be a cycle
+  // between the symbol table lock and the old space data lock.
+  BackgroundCompiler::Disable(thread->isolate());
+  thread->heap()->WaitForMarkerTasks(thread);
+  thread->heap()->old_space()->AcquireDataLock();
+  thread->set_bump_allocate(true);
+}
+
+BumpAllocateScope::~BumpAllocateScope() {
+  ASSERT(thread()->bump_allocate());
+  thread()->set_bump_allocate(false);
+  thread()->heap()->old_space()->ReleaseDataLock();
+  BackgroundCompiler::Enable(thread()->isolate());
 }
 
 }  // namespace dart

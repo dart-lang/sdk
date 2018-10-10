@@ -5,15 +5,21 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_context_collection_test.dart' as analysis_context_collection;
+import 'byte_store_test.dart' as byte_store_test;
+import 'cache_test.dart' as cache_test;
 import 'context_builder_test.dart' as context_builder;
 import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
+import 'crc32_test.dart' as crc32_test;
 import 'defined_names_test.dart' as defined_names;
 import 'driver_resolution_test.dart' as driver_resolution;
 import 'driver_test.dart' as driver;
+import 'file_byte_store_test.dart' as file_byte_store_test;
 import 'file_state_test.dart' as file_state;
+import 'fletcher16_test.dart' as fletcher16_test;
 import 'index_test.dart' as index;
 import 'mutex_test.dart' as mutex;
+import 'protected_file_byte_store_test.dart' as protected_file_byte_store_test;
 import 'referenced_names_test.dart' as referenced_names;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
@@ -24,19 +30,25 @@ import 'uri_converter_test.dart' as uri_converter;
 main() {
   defineReflectiveSuite(() {
     analysis_context_collection.main();
+    byte_store_test.main();
+    cache_test.main();
     context_builder.main();
     context_locator.main();
     context_root.main();
+    crc32_test.main();
     defined_names.main();
     driver.main();
     driver_resolution.main();
+    file_byte_store_test.main();
     file_state.main();
+    fletcher16_test.main();
     index.main();
     mutex.main();
+    protected_file_byte_store_test.main();
     referenced_names.main();
     search.main();
-    session_helper.main();
     session.main();
+    session_helper.main();
     unlinked_api_signature.main();
     uri_converter.main();
   }, name: 'analysis');

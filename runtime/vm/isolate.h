@@ -143,8 +143,6 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
-  V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
-    enable_error_on_bad_override, FLAG_error_on_bad_override)                  \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -307,6 +305,13 @@ class Isolate : public BaseIsolate {
                      const char* root_script_url = NULL,
                      const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
+
+  // If provided, the VM takes ownership of kernel_buffer.
+  bool ReloadKernel(JSONStream* js,
+                    bool force_reload,
+                    const uint8_t* kernel_buffer = NULL,
+                    intptr_t kernel_buffer_size = 0,
+                    bool dont_delete_reload_context = false);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const char* MakeRunnable();
@@ -552,13 +557,6 @@ class Isolate : public BaseIsolate {
   }
 #endif  // !defined(PRODUCT)
 
-  bool use_dart_frontend() const {
-    return UseDartFrontEndBit::decode(isolate_flags_);
-  }
-  void set_use_dart_frontend(bool value) {
-    isolate_flags_ = UseDartFrontEndBit::update(value, isolate_flags_);
-  }
-
   RawError* PausePostRequest();
 
   uword user_tag() const { return user_tag_; }
@@ -801,10 +799,10 @@ class Isolate : public BaseIsolate {
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
-  static void InitOnce();
-  static Isolate* Init(const char* name_prefix,
-                       const Dart_IsolateFlags& api_flags,
-                       bool is_vm_isolate = false);
+  static void InitVM();
+  static Isolate* InitIsolate(const char* name_prefix,
+                              const Dart_IsolateFlags& api_flags,
+                              bool is_vm_isolate = false);
 
   // The isolates_list_monitor_ should be held when calling Kill().
   void KillLocked(LibMsgId msg_id);
@@ -881,7 +879,6 @@ class Isolate : public BaseIsolate {
   V(ResumeRequest)                                                             \
   V(HasAttemptedReload)                                                        \
   V(ShouldPausePostServiceRequest)                                             \
-  V(UseDartFrontEnd)                                                           \
   V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \

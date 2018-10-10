@@ -18,11 +18,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
  */
 class Fix {
   /**
-   * An empty list of fixes.
-   */
-  static const List<Fix> EMPTY_LIST = const <Fix>[];
-
-  /**
    * A comparator that can be used to sort fixes by their relevance. The most
    * relevant fixes will be sorted before fixes with a lower relevance. Fixes
    * with the same relevance are sorted alphabetically.

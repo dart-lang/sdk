@@ -6,10 +6,10 @@
 /// [constants.ErrorReporter] which uses package:front_end to report errors.
 library vm.constants_error_reporter;
 
-import 'package:front_end/src/api_prototype/compilation_message.dart'
-    show Severity;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerContext, Severity;
+
+import 'package:front_end/src/api_unstable/vm.dart' as codes;
 
 import 'package:kernel/ast.dart'
     show Constant, DartType, FileUriNode, IntConstant, Procedure, TreeNode;

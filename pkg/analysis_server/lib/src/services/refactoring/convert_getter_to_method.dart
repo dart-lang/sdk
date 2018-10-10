@@ -77,9 +77,6 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   RefactoringStatus _checkInitialConditions() {
     if (!element.isGetter || element.isSynthetic) {
       return new RefactoringStatus.fatal(

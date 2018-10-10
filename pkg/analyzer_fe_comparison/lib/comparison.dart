@@ -60,11 +60,10 @@ void compareTestPrograms(
   }
   ComparisonNode analyzerNode =
       await analyzer.analyzeFiles(startingPath, inputs);
-  var diff = ComparisonNode.diff(kernelNode, analyzerNode);
-  if (diff.children.isEmpty && diff.text.startsWith('=')) {
+  if (kernelNode == analyzerNode) {
     print('No differences found!');
   } else {
     print('Differences found:');
-    print(diff);
+    print(ComparisonNode.diff(kernelNode, analyzerNode));
   }
 }

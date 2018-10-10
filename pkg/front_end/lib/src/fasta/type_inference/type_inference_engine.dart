@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DartTypeVisitor,
         DynamicType,
+        Field,
         FunctionType,
         InterfaceType,
         TypeParameter,
@@ -278,9 +279,9 @@ abstract class TypeInferenceEngine {
 
   void inferInitializingFormal(VariableDeclaration formal, Constructor parent) {
     if (formal.type == null) {
-      for (ShadowField field in parent.enclosingClass.fields) {
+      for (Field field in parent.enclosingClass.fields) {
         if (field.name.name == formal.name) {
-          if (field.inferenceNode != null) {
+          if (field is ShadowField && field.inferenceNode != null) {
             field.inferenceNode.resolve();
           }
           formal.type = field.type;

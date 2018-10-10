@@ -753,10 +753,10 @@ class Class extends NamedNode implements FileUriNode {
   /// class C {}
   /// class D {}
   /// ...creates:
-  /// abstract class A&B extends A mixedIn B {}
-  /// abstract class A&B&C extends A&B mixedIn C {}
-  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
-  /// class Z extends A&B&C&D {}
+  /// abstract class _Z&A&B extends A mixedIn B {}
+  /// abstract class _Z&A&B&C extends A&B mixedIn C {}
+  /// abstract class _Z&A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends _Z&A&B&C&D {}
   /// All X&Y classes are marked as synthetic.
   bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
 
@@ -794,17 +794,20 @@ class Class extends NamedNode implements FileUriNode {
     if (!isMixinDeclaration) return constraints;
 
     Class previous = this;
-    Class current = supertype.classNode;
+    Class current = superclass;
 
     // Otherwise we have a left-linear binary tree (subtrees are supertype and
     // mixedInType) of constraints, where all the interior nodes are anonymous
     // mixin applications.
     while (current != null && current.isAnonymousMixin) {
-      constraints.add(current.mixedInType);
+      assert(current.implementedTypes.length == 2);
+      constraints.add(current.implementedTypes[1]);
       previous = current;
-      current = current.supertype.classNode;
+      current = current.implementedTypes[0].classNode;
     }
-    return constraints..add(previous.supertype);
+    return constraints
+      ..add(
+          previous == this ? previous.supertype : previous.implementedTypes[0]);
   }
 
   /// The URI of the source file this class was loaded from.
@@ -899,6 +902,22 @@ class Class extends NamedNode implements FileUriNode {
   Class get mixin => mixedInClass?.mixin ?? this;
 
   bool get isMixinApplication => mixedInType != null;
+
+  String get demangledName {
+    if (isAnonymousMixin) return nameAsMixinApplication;
+    assert(!name.contains('&'));
+    return name;
+  }
+
+  String get nameAsMixinApplication {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationName(name);
+  }
+
+  String get nameAsMixinApplicationSubclass {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationSubclassName(name);
+  }
 
   /// Members declared in this class.
   ///
@@ -4945,11 +4964,13 @@ class TypeParameter extends TreeNode {
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     bound.accept(v);
     defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     bound = v.visitDartType(bound);
     if (defaultType != null) {
       defaultType = v.visitDartType(defaultType);
@@ -5088,8 +5109,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 
   int get hashCode => value.isNaN ? 199 : super.hashCode;
   bool operator ==(Object other) =>
-      other is DoubleConstant &&
-      (other.value == value || identical(value, other.value) /* For NaN */);
+      other is DoubleConstant && identical(value, other.value);
 
   DartType getType(TypeEnvironment types) => types.doubleType;
 }
@@ -5801,4 +5821,33 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }
+}
+
+/// Convert the synthetic name of an implicit mixin application class
+/// into a name suitable for user-faced strings.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "S with M1" and "S with M1, M2", respectively.
+String demangleMixinApplicationName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  String demangledName = nameParts[1];
+  for (int i = 2; i < nameParts.length; i++) {
+    demangledName += (i == 2 ? " with " : ", ") + nameParts[i];
+  }
+  return demangledName;
+}
+
+/// Extract from the synthetic name of an implicit mixin application class
+/// the name of the final subclass of the mixin application.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "A" for both classes.
+String demangleMixinApplicationSubclassName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  assert(nameParts[0].startsWith('_'));
+  return nameParts[0].substring(1);
 }

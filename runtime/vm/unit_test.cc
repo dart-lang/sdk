@@ -37,15 +37,26 @@ namespace dart {
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
+const uint8_t* TesterState::vm_snapshot_data = NULL;
+Dart_IsolateCreateCallback TesterState::create_callback = NULL;
+Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
+Dart_IsolateCleanupCallback TesterState::cleanup_callback = NULL;
+const char** TesterState::argv = NULL;
+int TesterState::argc = 0;
+
 DEFINE_FLAG(bool,
             use_dart_frontend,
             true,
             "Parse scripts with Dart-to-Kernel parser");
 
-DECLARE_FLAG(bool, strong);
+void KernelBufferList::AddBufferToList(const uint8_t* kernel_buffer) {
+  next_ = new KernelBufferList(kernel_buffer_, next_);
+  kernel_buffer_ = kernel_buffer;
+}
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
+KernelBufferList* TestCaseBase::current_kernel_buffers_ = NULL;
 
 TestCaseBase::TestCaseBase(const char* name)
     : raw_test_(false), next_(NULL), name_(name) {
@@ -62,6 +73,7 @@ void TestCaseBase::RunAllRaw() {
   while (test != NULL) {
     if (test->raw_test_) {
       test->RunTest();
+      CleanupState();
     }
     test = test->next_;
   }
@@ -72,8 +84,25 @@ void TestCaseBase::RunAll() {
   while (test != NULL) {
     if (!test->raw_test_) {
       test->RunTest();
+      CleanupState();
     }
     test = test->next_;
+  }
+}
+
+void TestCaseBase::CleanupState() {
+  if (current_kernel_buffers_ != NULL) {
+    delete current_kernel_buffers_;
+    current_kernel_buffers_ = NULL;
+  }
+}
+
+void TestCaseBase::AddToKernelBuffers(const uint8_t* kernel_buffer) {
+  ASSERT(kernel_buffer != NULL);
+  if (current_kernel_buffers_ == NULL) {
+    current_kernel_buffers_ = new KernelBufferList(kernel_buffer);
+  } else {
+    current_kernel_buffers_->AddBufferToList(kernel_buffer);
   }
 }
 
@@ -85,7 +114,6 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
@@ -103,16 +131,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
 }
 
 Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
-  if (FLAG_use_dart_frontend) {
-    return CreateIsolate(
-        platform_strong_dill, platform_strong_dill_size,
-        NULL, /* There is no instr buffer in case of dill buffers. */
-        name, data);
-  } else {
-    return CreateIsolate(bin::core_isolate_snapshot_data,
-                         0 /* Snapshots have length encoded within them. */,
-                         bin::core_isolate_snapshot_instructions, name, data);
-  }
+  return CreateIsolate(bin::core_isolate_snapshot_data,
+                       0 /* Snapshots have length encoded within them. */,
+                       bin::core_isolate_snapshot_instructions, name, data);
 }
 
 static const char* kPackageScheme = "package:";
@@ -184,7 +205,8 @@ static Dart_Handle IsolateReloadTestLibSource() {
 }
 
 static void ReloadTest(Dart_NativeArguments native_args) {
-  Dart_Handle result = TestCase::TriggerReload();
+  Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ NULL,
+                                               /* kernel_buffer_size= */ 0);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -217,10 +239,6 @@ static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
 bool TestCase::UsingDartFrontend() {
   return FLAG_use_dart_frontend;
-}
-
-bool TestCase::UsingStrongMode() {
-  return FLAG_strong;
 }
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
@@ -322,10 +340,18 @@ char* TestCase::ValidateCompilationResult(
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
     free(compilation_result.error);
+    if (compilation_result.kernel != NULL) {
+      free(const_cast<uint8_t*>(compilation_result.kernel));
+    }
+    *kernel_buffer = NULL;
+    *kernel_buffer_size = 0;
     return result;
   }
   *kernel_buffer = compilation_result.kernel;
   *kernel_buffer_size = compilation_result.kernel_size;
+  if (compilation_result.error != NULL) {
+    free(compilation_result.error);
+  }
   if (kernel_buffer == NULL) {
     return OS::SCreate(zone, "front end generated a NULL kernel file");
   }
@@ -524,6 +550,9 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
         Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
 
+    // Ensure kernel buffer isn't leaked after test is run.
+    AddToKernelBuffers(kernel_buffer);
+
     // TODO(32618): Kernel doesn't correctly represent the root library.
     lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
     DART_CHECK_VALID(lib);
@@ -565,6 +594,9 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   Dart_Handle lib =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   DART_CHECK_VALID(lib);
+
+  // Ensure kernel buffer isn't leaked after test is run.
+  AddToKernelBuffers(kernel_buffer);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
@@ -610,17 +642,18 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   }
 }
 
-Dart_Handle TestCase::TriggerReload() {
+Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   JSONStream js;
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success = isolate->ReloadSources(&js,
-                                     false,  // force_reload
-                                     NULL, NULL,
-                                     true);  // dont_delete_reload_context
+    success = isolate->ReloadKernel(&js,
+                                    false,  // force_reload
+                                    kernel_buffer, kernel_buffer_size,
+                                    true);  // dont_delete_reload_context
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -656,18 +689,21 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       Dart_Handle result = Dart_NewApiError(compilation_result.error);
       free(compilation_result.error);
+      if (compilation_result.kernel != NULL) {
+        free(const_cast<uint8_t*>(compilation_result.kernel));
+      }
       return result;
     }
   } else {
     SetReloadTestScript(script);
   }
 
-  return TriggerReload();
+  return TriggerReload(/* kernel_buffer= */ NULL, /* kernel_buffer_size= */ 0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-  return TriggerReload();
+  return TriggerReload(kernel_buffer, kernel_buffer_size);
 }
 
 #endif  // !PRODUCT

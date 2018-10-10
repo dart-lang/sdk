@@ -84,6 +84,9 @@ declare_args() {
   # Whether the VM includes the kernel service in all modes (debug, release,
   # product).
   exclude_kernel_service = false
+
+  # Whether libdart should export the symbols of the Dart API.
+  dart_lib_export_symbols = true
 }
 
 declare_args() {

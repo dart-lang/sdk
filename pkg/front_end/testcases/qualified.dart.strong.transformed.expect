@@ -34,21 +34,21 @@ abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib:
   }
 }
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::WithMixin
     : super lib::Supertype::•()
     ;
 }
 class IllegalSupertype extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::IllegalSupertype
     : super core::Object::•()
     ;
 }
 class C<T extends core::Object = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
   static field dynamic _redirecting# = <dynamic>[self::C::b];
-  constructor •() → void
+  constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
-  constructor a() → void
+  constructor a() → self::C<self::C::T>
     : super core::Object::•()
     ;
   static factory b<T extends core::Object = dynamic>() → self::C<self::C::b::T>

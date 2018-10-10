@@ -657,6 +657,11 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
           jsentry.AddProperty("kind", "Immediate");
           jsentry.AddProperty64("value", imm);
           break;
+        case ObjectPool::kNativeEntryData:
+          obj = ObjectAt(i);
+          jsentry.AddProperty("kind", "NativeEntryData");
+          jsentry.AddProperty("value", obj);
+          break;
         case ObjectPool::kNativeFunction:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunction");

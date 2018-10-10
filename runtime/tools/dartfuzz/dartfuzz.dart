@@ -10,7 +10,7 @@ import 'package:args/args.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.0';
+const String version = '1.2';
 
 // Restriction on statement and expression depths.
 const int stmtDepth = 5;
@@ -58,7 +58,7 @@ const List<int> interestingIntegers = [
 
 // Interesting characters.
 const interestingChars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#&()+-';
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#&()+- ';
 
 // Class that represents Dart types.
 class DartType {
@@ -84,6 +84,13 @@ const allTypes = [
   DartType.INT_LIST,
   DartType.INT_STRING_MAP
 ];
+
+// Class that represents Dart library methods.
+class DartLib {
+  final String name;
+  final List<DartType> proto;
+  const DartLib(this.name, this.proto);
+}
 
 // Naming conventions.
 const varName = 'var';
@@ -375,16 +382,12 @@ class DartFuzz {
     emit('-${rand.nextInt(100)}');
   }
 
-  void emitInterestingInt() {
-    int i = rand.nextInt(interestingIntegers.length);
-    emit('${interestingIntegers[i]}');
-  }
-
   void emitInt() {
     switch (rand.nextInt(4)) {
       // favors small positive int
       case 0:
-        emitInterestingInt();
+        emit(
+            '${interestingIntegers[rand.nextInt(interestingIntegers.length)]}');
         break;
       case 1:
         emitSmallNegativeInt();
@@ -420,71 +423,52 @@ class DartFuzz {
   }
 
   void emitChar() {
-    emit(interestingChars[rand.nextInt(interestingChars.length)]);
+    switch (rand.nextInt(10)) {
+      // favors regular char
+      case 0:
+        emit('\\u2665');
+        break;
+      case 1:
+        emit('\\u{1f600}'); // rune
+        break;
+      default:
+        emit(interestingChars[rand.nextInt(interestingChars.length)]);
+        break;
+    }
   }
 
   void emitString() {
-    switch (rand.nextInt(4)) {
-      // favors non-null
-      case 0:
-        emit('null');
-        break;
-      default:
-        {
-          emit("'");
-          int l = rand.nextInt(8);
-          for (int i = 0; i < l; i++) {
-            emitChar();
-          }
-          emit("'");
-          break;
-        }
+    emit("'");
+    int l = rand.nextInt(8);
+    for (int i = 0; i < l; i++) {
+      emitChar();
     }
+    emit("'");
   }
 
   void emitIntList() {
-    switch (rand.nextInt(4)) {
-      // favors non-null
-      case 0:
-        emit('null');
-        break;
-      default:
-        {
-          emit('[ ');
-          int l = 1 + rand.nextInt(4);
-          for (int i = 0; i < l; i++) {
-            emitInt();
-            if (i != (l - 1)) {
-              emit(', ');
-            }
-          }
-          emit(' ]');
-          break;
-        }
+    emit('[ ');
+    int l = 1 + rand.nextInt(4);
+    for (int i = 0; i < l; i++) {
+      emitInt();
+      if (i != (l - 1)) {
+        emit(', ');
+      }
     }
+    emit(' ]');
   }
 
   void emitIntStringMap() {
-    switch (rand.nextInt(4)) {
-      // favors non-null
-      case 0:
-        emit('null');
-        break;
-      default:
-        {
-          emit('{ ');
-          int l = 1 + rand.nextInt(4);
-          for (int i = 0; i < l; i++) {
-            emit('$i : ');
-            emitString();
-            if (i != (l - 1)) {
-              emit(', ');
-            }
-          }
-          emit(' }');
-          break;
-        }
+    emit('{ ');
+    int l = 1 + rand.nextInt(4);
+    for (int i = 0; i < l; i++) {
+      emit('$i : ');
+      emitString();
+      if (i != (l - 1)) {
+        emit(', ');
+      }
     }
+    emit(' }');
   }
 
   void emitLiteral(DartType tp) {
@@ -548,28 +532,115 @@ class DartFuzz {
   }
 
   void emitExprList(int depth, List<DartType> proto) {
+    emit('(');
     for (int i = 1; i < proto.length; i++) {
       emitExpr(depth, proto[i]);
       if (i != (proto.length - 1)) {
         emit(', ');
       }
     }
+    emit(')');
   }
 
+  // Emit expression with unary operator: (~(x))
+  void emitUnaryExpr(int depth, DartType tp) {
+    if (tp == DartType.BOOL || tp == DartType.INT || tp == DartType.DOUBLE) {
+      emit('(');
+      emitUnaryOp(tp);
+      emit('(');
+      emitExpr(depth + 1, tp);
+      emit('))');
+    } else {
+      emitTerminal(tp); // resort to terminal
+    }
+  }
+
+  // Emit expression with binary operator: (x + y)
+  void emitBinaryExpr(int depth, DartType tp) {
+    if (tp == DartType.BOOL) {
+      // For boolean, allow type switch with relational op.
+      if (rand.nextInt(2) == 0) {
+        DartType deeper_tp = getType();
+        emit('(');
+        emitExpr(depth + 1, deeper_tp);
+        emitRelOp(deeper_tp);
+        emitExpr(depth + 1, deeper_tp);
+        emit(')');
+        return;
+      }
+    }
+    emit('(');
+    emitExpr(depth + 1, tp);
+    emitBinaryOp(tp);
+    emitExpr(depth + 1, tp);
+    emit(')');
+  }
+
+  // Emit expression with ternary operator: (b ? x : y)
+  void emitTernaryExpr(int depth, DartType tp) {
+    emit('(');
+    emitExpr(depth + 1, DartType.BOOL);
+    emit(' ? ');
+    emitExpr(depth + 1, tp);
+    emit(' : ');
+    emitExpr(depth + 1, tp);
+    emit(')');
+  }
+
+  // Emit expression with pre/post-increment/decrement operator: (x++)
+  void emitPreOrPostExpr(int depth, DartType tp) {
+    if (tp == DartType.INT) {
+      int r = rand.nextInt(2);
+      emit('(');
+      if (r == 0) emitPreOrPostOp(tp);
+      emitScalarVar(tp);
+      if (r == 1) emitPreOrPostOp(tp);
+      emit(')');
+    } else {
+      emitTerminal(tp); // resort to terminal
+    }
+  }
+
+  // Emit library call.
+  void emitLibraryCall(int depth, DartType tp) {
+    if (tp == DartType.INT_STRING_MAP) {
+      emitTerminal(tp); // resort to terminal
+      return;
+    }
+    DartLib lib = oneOf(getLibrary(tp));
+    List<DartType> proto = lib.proto;
+    // Receiver.
+    if (proto[0] != null) {
+      DartType deeper_tp = proto[0];
+      emit('(');
+      emitExpr(depth + 1, deeper_tp);
+      emit(').');
+    }
+    // Call.
+    emit('${lib.name}');
+    // Parameters.
+    if (proto.length == 1) {
+      emit('()');
+    } else if (proto[1] != null) {
+      emitExprList(depth + 1, proto);
+    }
+  }
+
+  // Helper for a method call.
   bool pickedCall(
       int depth, DartType tp, String name, List<List<DartType>> protos, int m) {
     for (int i = m - 1; i >= 0; i--) {
       if (tp == protos[i][0]) {
-        emit('$name$i(');
+        emit('$name$i');
         emitExprList(depth + 1, protos[i]);
-        emit(')');
         return true;
       }
     }
     return false;
   }
 
-  void emitCall(int depth, DartType tp) {
+  // Emit method call within the program.
+  void emitMethodCall(int depth, DartType tp) {
     // Only call backward to avoid infinite recursion.
     if (currentClass == null) {
       // Outside a class: call backward in global methods.
@@ -591,70 +662,7 @@ class DartFuzz {
     emitTerminal(tp); // resort to terminal.
   }
 
-  // Emit expression with unary operator: (~(x))
-  void emitUnaryExpr(int depth, DartType tp) {
-    if (tp == DartType.BOOL || tp == DartType.INT || tp == DartType.DOUBLE) {
-      emit('(');
-      emitUnaryOp(tp);
-      emit('(');
-      emitExpr(depth + 1, tp);
-      emit('))');
-    } else {
-      emitTerminal(tp); // resort to terminal
-    }
-  }
-
-  // Emit expression with binary operator: (x + y)
-  void emitBinaryExpr(int depth, DartType tp) {
-    if (tp == DartType.BOOL || tp == DartType.INT || tp == DartType.DOUBLE) {
-      emit('(');
-      emitExpr(depth + 1, tp);
-      emitBinaryOp(tp);
-      emitExpr(depth + 1, tp);
-      emit(')');
-    } else {
-      emitTerminal(tp); // resort to terminal
-    }
-  }
-
-  // Emit expression with pre/post-increment/decrement operator: (x++)
-  void emitPreOrPostExpr(int depth, DartType tp) {
-    if (tp == DartType.INT) {
-      int r = rand.nextInt(2);
-      emit('(');
-      if (r == 0) emitPreOrPostOp(tp);
-      emitScalarVar(tp);
-      if (r == 1) emitPreOrPostOp(tp);
-      emit(')');
-    } else {
-      emitTerminal(tp); // resort to terminal
-    }
-  }
-
-  // Emit type converting expression.
-  void emitTypeConv(int depth, DartType tp) {
-    if (tp == DartType.BOOL) {
-      DartType deeper_tp = getType();
-      emit('(');
-      emitExpr(depth + 1, deeper_tp);
-      emitRelOp(deeper_tp);
-      emitExpr(depth + 1, deeper_tp);
-      emit(')');
-    } else if (tp == DartType.INT) {
-      emit('(');
-      emitExpr(depth + 1, DartType.DOUBLE);
-      emit(').toInt()');
-    } else if (tp == DartType.DOUBLE) {
-      emit('(');
-      emitExpr(depth + 1, DartType.INT);
-      emit(').toDouble()');
-    } else {
-      emitTerminal(tp); // resort to terminal
-    }
-  }
-
   // Emit expression.
-  // TODO: add many more constructs
   void emitExpr(int depth, DartType tp) {
     // Continuing nested expressions becomes less likely as the depth grows.
     if (rand.nextInt(depth + 1) > exprDepth) {
@@ -662,7 +670,7 @@ class DartFuzz {
       return;
     }
     // Possibly nested expression.
-    switch (rand.nextInt(6)) {
+    switch (rand.nextInt(7)) {
       case 0:
         emitUnaryExpr(depth, tp);
         break;
@@ -670,13 +678,16 @@ class DartFuzz {
         emitBinaryExpr(depth, tp);
         break;
       case 2:
-        emitPreOrPostExpr(depth, tp);
+        emitTernaryExpr(depth, tp);
         break;
       case 3:
-        emitTypeConv(depth, tp);
+        emitPreOrPostExpr(depth, tp);
         break;
       case 4:
-        emitCall(depth, tp);
+        emitLibraryCall(depth, tp);
+        break;
+      case 5:
+        emitMethodCall(depth, tp);
         break;
       default:
         emitTerminal(tp);
@@ -687,11 +698,6 @@ class DartFuzz {
   //
   // Operators.
   //
-
-  // Emit one of the given choices.
-  T oneOf<T>(List<T> choices) {
-    return choices[rand.nextInt(choices.length)];
-  }
 
   // Emit same type in-out assignment operator.
   void emitAssignOp(DartType tp) {
@@ -707,12 +713,14 @@ class DartFuzz {
         ' ^= ',
         ' >>= ',
         ' <<= ',
+        ' ??= ',
         ' = '
       ]));
     } else if (tp == DartType.DOUBLE) {
-      emit(oneOf(const <String>[' += ', ' -= ', ' *= ', ' /= ', ' = ']));
+      emit(oneOf(
+          const <String>[' += ', ' -= ', ' *= ', ' /= ', ' ??= ', ' = ']));
     } else {
-      emit(' = ');
+      emit(oneOf(const <String>[' ??= ', ' = ']));
     }
   }
 
@@ -744,16 +752,19 @@ class DartFuzz {
         ' | ',
         ' ^ ',
         ' >> ',
-        ' << '
+        ' << ',
+        ' ?? '
       ]));
     } else if (tp == DartType.DOUBLE) {
-      emit(oneOf(const <String>[' + ', ' - ', ' * ', ' / ']));
+      emit(oneOf(const <String>[' + ', ' - ', ' * ', ' / ', ' ?? ']));
+    } else if (tp == DartType.STRING || tp == DartType.INT_LIST) {
+      emit(oneOf(const <String>[' + ', ' ?? ']));
     } else {
-      assert(false);
+      emit(' ?? ');
     }
   }
 
-  // Emit increment operator.
+  // Emit same type in-out increment operator.
   void emitPreOrPostOp(DartType tp) {
     if (tp == DartType.INT) {
       emit(oneOf(const <String>['++', '--']));
@@ -772,9 +783,106 @@ class DartFuzz {
   }
 
   //
+  // Library methods.
+  //
+
+  // Get list of library methods, organized by return type.
+  // Proto list:
+  //   [ receiver-type (null denotes none),
+  //     param1 type (null denotes getter),
+  //     param2 type,
+  //     ...
+  //   ]
+  List<DartLib> getLibrary(DartType tp) {
+    if (tp == DartType.BOOL) {
+      return const [
+        DartLib('isEven', [DartType.INT, null]),
+        DartLib('isOdd', [DartType.INT, null]),
+        DartLib('isEmpty', [DartType.STRING, null]),
+        DartLib('isEmpty', [DartType.INT_STRING_MAP, null]),
+        DartLib('isNotEmpty', [DartType.STRING, null]),
+        DartLib('isNotEmpty', [DartType.INT_STRING_MAP, null]),
+        DartLib('endsWith', [DartType.STRING, DartType.STRING]),
+        DartLib('remove', [DartType.INT_LIST, DartType.INT]),
+        DartLib('containsValue', [DartType.INT_STRING_MAP, DartType.STRING]),
+        DartLib('containsKey', [DartType.INT_STRING_MAP, DartType.INT]),
+      ];
+    } else if (tp == DartType.INT) {
+      return const [
+        DartLib('bitLength', [DartType.INT, null]),
+        DartLib('sign', [DartType.INT, null]),
+        DartLib('abs', [DartType.INT]),
+        DartLib('round', [DartType.INT]),
+        DartLib('round', [DartType.DOUBLE]),
+        DartLib('floor', [DartType.INT]),
+        DartLib('floor', [DartType.DOUBLE]),
+        DartLib('ceil', [DartType.INT]),
+        DartLib('ceil', [DartType.DOUBLE]),
+        DartLib('truncate', [DartType.INT]),
+        DartLib('truncate', [DartType.DOUBLE]),
+        DartLib('toInt', [DartType.DOUBLE]),
+        DartLib('toUnsigned', [DartType.INT, DartType.INT]),
+        DartLib('toSigned', [DartType.INT, DartType.INT]),
+        DartLib('modInverse', [DartType.INT, DartType.INT]),
+        DartLib('modPow', [DartType.INT, DartType.INT, DartType.INT]),
+        DartLib('length', [DartType.STRING, null]),
+        DartLib('length', [DartType.INT_LIST, null]),
+        DartLib('length', [DartType.INT_STRING_MAP, null]),
+        DartLib('codeUnitAt', [DartType.STRING, DartType.INT]),
+        DartLib('compareTo', [DartType.STRING, DartType.STRING]),
+        DartLib('removeLast', [DartType.INT_LIST]),
+        DartLib('removeAt', [DartType.INT_LIST, DartType.INT]),
+        DartLib('indexOf', [DartType.INT_LIST, DartType.INT]),
+        DartLib('lastIndexOf', [DartType.INT_LIST, DartType.INT]),
+      ];
+    } else if (tp == DartType.DOUBLE) {
+      return const [
+        DartLib('sign', [DartType.DOUBLE, null]),
+        DartLib('abs', [DartType.DOUBLE]),
+        DartLib('toDouble', [DartType.INT]),
+        DartLib('roundToDouble', [DartType.INT]),
+        DartLib('roundToDouble', [DartType.DOUBLE]),
+        DartLib('floorToDouble', [DartType.INT]),
+        DartLib('floorToDouble', [DartType.DOUBLE]),
+        DartLib('ceilToDouble', [DartType.INT]),
+        DartLib('ceilToDouble', [DartType.DOUBLE]),
+        DartLib('truncateToDouble', [DartType.INT]),
+        DartLib('truncateToDouble', [DartType.DOUBLE]),
+        DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE]),
+      ];
+    } else if (tp == DartType.STRING) {
+      return const [
+        DartLib('toString', [DartType.BOOL]),
+        DartLib('toString', [DartType.INT]),
+        DartLib('toString', [DartType.DOUBLE]),
+        DartLib('toRadixString', [DartType.INT, DartType.INT]),
+        DartLib('trim', [DartType.STRING]),
+        DartLib('trimLeft', [DartType.STRING]),
+        DartLib('trimRight', [DartType.STRING]),
+        DartLib('toLowerCase', [DartType.STRING]),
+        DartLib('toUpperCase', [DartType.STRING]),
+        DartLib('substring', [DartType.STRING, DartType.INT]),
+        DartLib('replaceRange',
+            [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING]),
+        DartLib('remove', [DartType.INT_STRING_MAP, DartType.INT]),
+        // Avoid (OOM divergences, unless we restrict parameters):
+        // DartLib('padLeft', [DartType.STRING, DartType.INT]),
+        // DartLib('padRight', [DartType.STRING, DartType.INT]),
+      ];
+    } else if (tp == DartType.INT_LIST) {
+      return const [
+        DartLib('sublist', [DartType.INT_LIST, DartType.INT])
+      ];
+    } else {
+      assert(false);
+    }
+  }
+
+  //
   // Types.
   //
 
+  // Get a random value type.
   DartType getType() {
     switch (rand.nextInt(6)) {
       case 0:
@@ -854,6 +962,11 @@ class DartFuzz {
     }
   }
 
+  // Emits one of the given choices.
+  T oneOf<T>(List<T> choices) {
+    return choices[rand.nextInt(choices.length)];
+  }
+
   // Random seed used to generate program.
   final int seed;
 
@@ -872,7 +985,7 @@ class DartFuzz {
   // Types of global variables.
   List<DartType> globalVars;
 
-  // Prototypes of all global functions (first element is return type).
+  // Prototypes of all global methods (first element is return type).
   List<List<DartType>> globalMethods;
 
   // Types of fields over all classes.
@@ -908,7 +1021,7 @@ main(List<String> arguments) {
     new DartFuzz(seed, file).run();
     file.closeSync();
   } catch (e) {
-    print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME');
-    print(parser.usage);
+    print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');
+    exitCode = 255;
   }
 }

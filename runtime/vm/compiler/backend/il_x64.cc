@@ -1405,9 +1405,15 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   switch (class_id()) {
     case kArrayCid:
+#if defined(CONCURRENT_MARKING)
+      locs->set_in(2, ShouldEmitStoreBarrier()
+                          ? Location::RegisterLocation(kWriteBarrierValueReg)
+                          : Location::RegisterOrConstant(value()));
+#else
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::WritableRegister()
                           : Location::RegisterOrConstant(value()));
+#endif
       break;
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
@@ -1921,7 +1927,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else {
 #if defined(CONCURRENT_MARKING)
     summary->set_in(1, ShouldEmitStoreBarrier()
-                           ? Location::RequiresRegister()
+                           ? Location::RegisterLocation(kWriteBarrierValueReg)
                            : Location::RegisterOrConstant(value()));
 #else
     summary->set_in(1, ShouldEmitStoreBarrier()
@@ -2130,7 +2136,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs =
       new (zone) LocationSummary(zone, 1, 1, LocationSummary::kNoCall);
 #if defined(CONCURRENT_MARKING)
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, Location::RegisterLocation(kWriteBarrierValueReg));
 #else
   locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
                                                : Location::RequiresRegister());
@@ -6011,6 +6017,7 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
+  ASSERT(instr->op_kind() == Token::kBIT_NOT);
   __ notl(value);
 }
 

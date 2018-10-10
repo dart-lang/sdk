@@ -629,6 +629,7 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => actualElement.isVirtual;
 

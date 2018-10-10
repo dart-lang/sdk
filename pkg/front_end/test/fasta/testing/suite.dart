@@ -332,6 +332,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
+      context.componentToProblems.clear();
       context.componentToProblems[p] = errors;
       return pass(p);
     });

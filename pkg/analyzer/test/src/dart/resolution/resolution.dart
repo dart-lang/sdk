@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
@@ -69,6 +70,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
+    actual = _unwrapHandle(actual);
     expect(actual, same(expected));
   }
 
@@ -158,7 +160,9 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   void assertInstanceCreation(InstanceCreationExpression creation,
       ClassElement expectedClassElement, String expectedType,
-      {String constructorName, PrefixElement expectedPrefix}) {
+      {String constructorName,
+      bool expectedConstructorMember: false,
+      PrefixElement expectedPrefix}) {
     String expectedClassName = expectedClassElement.name;
 
     ConstructorElement expectedConstructorElement;
@@ -177,10 +181,18 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     }
 
     var actualConstructorElement = getNodeElement(creation);
-    if (actualConstructorElement is ConstructorMember) {
+    if (creation.constructorName.name != null) {
+      expect(
+        creation.constructorName.name.staticElement,
+        same(actualConstructorElement),
+      );
+    }
+
+    if (expectedConstructorMember) {
+      expect(actualConstructorElement, const TypeMatcher<Member>());
       assertMember(creation, expectedType, expectedConstructorElement);
     } else {
-      assertElement(creation, actualConstructorElement);
+      assertElement(creation, expectedConstructorElement);
     }
 
     assertType(creation, expectedType);
@@ -302,6 +314,13 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   }
 
   void setAnalysisOptions({bool enableSuperMixins});
+
+  Element _unwrapHandle(Element element) {
+    if (element is ElementHandle && element is! Member) {
+      return element.actualElement;
+    }
+    return element;
+  }
 }
 
 class TestAnalysisResult {

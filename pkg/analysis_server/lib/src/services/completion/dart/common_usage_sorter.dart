@@ -33,7 +33,7 @@ class CommonUsageSorter implements DartContributionSorter {
    * The names are ordered from most relevant to least relevant.
    * Names not listed are considered equally less relevant than those listed.
    */
-  Map<String, List<String>> selectorRelevance;
+  final Map<String, List<String>> selectorRelevance;
 
   CommonUsageSorter([this.selectorRelevance = defaultSelectorRelevance]);
 

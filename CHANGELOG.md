@@ -1,8 +1,59 @@
+## 2.1.0-dev.7.0
+
+### Language
+
+*   Fixed a bug (issue [32014](http://dartbug.com/32014)) that caused invalid
+    implementations of the interface of a class to not be reported in some cases.
+    For instance, the following code would not produce a compile-time error:
+
+    ```dart
+    class A {
+      num get thing => 2.0;
+    }
+
+    abstract class B implements A {
+      int get thing;
+    }
+
+    class C extends A with B {} // 'thing' from 'A' is not a valid override of 'thing' from 'B'.
+
+    main() {
+      print(new C().thing.isEven); // Expects an int but gets a double.
+    }
+    ```
+
+*   Fixed a bug (issue [34235](http://dartbug.com/34235)) that caused invalid
+    overrides between a mixin member and an overridden member in the superclass
+    of the mixin application to not be reported. For instance, the following
+    code would not produce a compile-time error:
+
+    ```dart
+    class A {
+      int get thing => 2;
+    }
+
+    class B {
+      num get thing => 2.0;
+    }
+
+    class C extends A with B {} // 'thing' from 'B' is not a valid override of 'thing' from 'A'.
+
+    main() {
+      A a = new C();
+      print(a.thing.isEven); // Expects an int but gets a double.
+    }
+    ```
+
+### Core library changes
+
+#### `dart:core`
+
+*   Made `Uri` parsing more permissive about `[` and `]` occurring
+    in the path, query or fragment, and `#` occurring in fragment.
+
 ## 2.1.0-dev.6.0
 
 ## 2.1.0-dev.5.0
-
-### Core library changes
 
 #### `dart:core`
 

@@ -197,11 +197,11 @@ class ArgListContributor extends DartCompletionContributor {
     // for a method or a constructor or an annotation
     SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
     if (targetId == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
     Element elem = targetId.staticElement;
     if (elem == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Generate argument list suggestion based upon the type of element
@@ -221,7 +221,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addSuggestions(elem.parameters);
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,

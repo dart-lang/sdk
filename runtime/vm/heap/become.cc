@@ -40,7 +40,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   return result;
 }
 
-void ForwardingCorpse::InitOnce() {
+void ForwardingCorpse::Init() {
   ASSERT(sizeof(ForwardingCorpse) == kObjectAlignment);
   ASSERT(OFFSET_OF(ForwardingCorpse, tags_) == Object::tags_offset());
 }

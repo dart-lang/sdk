@@ -29,9 +29,9 @@ import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
-  const constructor constant() → void
+  const constructor constant() → self::C
     ;
-  constructor missingFactoryKeyword() → void
+  constructor missingFactoryKeyword() → self::C
     ;
   static factory good() → self::C
     let dynamic #redirecting_factory = self::C::constant in invalid-expression;

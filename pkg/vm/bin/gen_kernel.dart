@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
@@ -105,8 +105,10 @@ Future<int> compile(List<String> arguments) async {
     ]
     ..packagesFileUri =
         packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
-    ..reportMessages = true
-    ..onProblem = errorDetector
+    ..onDiagnostic = (DiagnosticMessage m) {
+      printDiagnosticMessage(m, stderr.writeln);
+      errorDetector(m);
+    }
     ..embedSourceText = options['embed-sources'];
 
   final inputUri = new Uri.file(filename);

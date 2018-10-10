@@ -454,6 +454,12 @@ void PageSpace::ReleaseDataLock() {
   freelist_[HeapPage::kData].mutex()->Unlock();
 }
 
+#if defined(DEBUG)
+bool PageSpace::CurrentThreadOwnsDataLock() {
+  return freelist_[HeapPage::kData].mutex()->IsOwnedByCurrentThread();
+}
+#endif
+
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
@@ -1313,8 +1319,12 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return after.CombinedCapacityInWords() >
-         (gc_threshold_in_words_ + heap_->new_space()->CapacityInWords());
+#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+  intptr_t headroom = 0;
+#else
+  intptr_t headroom = heap_->new_space()->CapacityInWords();
+#endif
+  return after.CombinedCapacityInWords() > (gc_threshold_in_words_ + headroom);
 }
 
 bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {

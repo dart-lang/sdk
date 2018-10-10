@@ -121,11 +121,6 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
    */
   Future<void> fillChange();
 
-  @override
-  bool requiresPreview() {
-    return false;
-  }
-
   static String _getDisplayName(Element element) {
     if (element is ImportElement) {
       PrefixElement prefix = element.prefix;

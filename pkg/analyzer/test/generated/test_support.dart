@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -61,7 +62,8 @@ class EngineTestCase {
   }
 
   AnalysisContext createAnalysisContext() {
-    return AnalysisContextFactory.contextWithCore();
+    return AnalysisContextFactory.contextWithCore(
+        resourceProvider: new MemoryResourceProvider());
   }
 
   /**

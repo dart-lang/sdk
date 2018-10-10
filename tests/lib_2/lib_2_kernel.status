@@ -26,7 +26,6 @@ isolate/spawn_function_custom_class_test: Skip # Timeout
 html/*: Skip # TODO(ahe): Make dart:html available.
 isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
-mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
 
 [ $fasta ]
 mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
@@ -71,10 +70,11 @@ isolate/browser/package_resolve_browser_test: CompileTimeError
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
-io/file_lock_test: Pass, Timeout # Please triage.
-isolate/isolate_complex_messages_test: Pass, Crash # Non-canonical type arguments.
-isolate/mandel_isolate_test: Pass, Timeout, Crash # Please triage.
-isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage.
+isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
+isolate/mandel_isolate_test: Pass, Timeout # Please triage.
+isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
+mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
+mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
 mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
 mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
@@ -205,7 +205,7 @@ mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
-mirrors/repeated_private_anon_mixin_app_test: CompileTimeError # Two libraries with same name inported.
+mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Mangled mixin application class name
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError # Issue 31537

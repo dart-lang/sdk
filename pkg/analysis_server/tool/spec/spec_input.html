@@ -605,7 +605,7 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getReachableSources" deprecated="true">
     <p>
       Return the transitive closure of reachable sources for a given file.
     </p>
@@ -1947,20 +1947,38 @@
         </list>
         <p>
           A list of the files and directories for which edits should be suggested.
-          If a request is made for a file which does not exist, or which is not
-          currently subject to analysis (e.g. because it is not associated with
-          any analysis root specified to analysis.setAnalysisRoots), an error of
-          type <tt>FORMAT_INVALID_FILE</tt> will be generated.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute and normalized,
+          an error of type <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not currently subject to analysis
+          (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
+          an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
         </p>
       </field>
     </params>
     <result>
-      <field name="description">
+      <field name="descriptionOfFixes">
         <list>
           <ref>String</ref>
         </list>
         <p>
           A list of human readable changes made by applying the fixes.
+        </p>
+      </field>
+      <field name="otherRecommendations">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of human readable recommended changes that cannot be made automatically.
+        </p>
+      </field>
+      <field name="hasErrors">
+        <ref>bool</ref>
+        <p>
+          True if the analyzed source contains errors that might impact the correctness
+          of the recommended fixes that can be automatically applied.
         </p>
       </field>
       <field name="fixes">
@@ -4185,31 +4203,11 @@
         </p>
       </value>
       <value>
-        <code>UNANALYZED_PRIORITY_FILES</code>
-        <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
-        </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
-      </value>
-      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </value>
-      <value>
-        <code>UNKNOWN_SOURCE</code>
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </value>
       <value>

@@ -35,7 +35,8 @@ class SortMembersTest extends AbstractAnalysisTest {
   test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
-        new EditSortMembersParams('/no/such/file.dart').toRequest('0');
+        new EditSortMembersParams(convertPath('/no/such/file.dart'))
+            .toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));

@@ -54,7 +54,7 @@ class Object {
 
   @patch
   String toString() =>
-      "Instance of '${dart.wrapType(dart.getReifiedType(this))}'";
+      "Instance of '${dart.typeName(dart.getReifiedType(this))}'";
 
   @patch
   noSuchMethod(Invocation invocation) {
@@ -198,7 +198,7 @@ class BigInt implements Comparable<BigInt> {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return "Instance of '${dart.wrapType(dart.getReifiedType(object))}'";
+    return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
   }
 
   @patch
@@ -727,12 +727,6 @@ class StackTrace {
   static StackTrace get current {
     return getTraceFromException(JS('', 'new Error()'));
   }
-}
-
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
 }
 
 // TODO(jmesserly): this class is supposed to be obsolete in Strong Mode, but

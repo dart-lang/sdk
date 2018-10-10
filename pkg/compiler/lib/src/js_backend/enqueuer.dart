@@ -283,5 +283,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<MemberEntity> get processedEntities => _processedEntities;
 
   @override
-  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
+  Iterable<ClassEntity> get processedClasses =>
+      _worldBuilder.instantiatedClasses;
 }

@@ -99,6 +99,8 @@ class BaseTest {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
   }) async {
+    options = _p(options);
+
     driver = new Driver(isTesting: true);
     var cmd = <String>[];
     if (options != null) {
@@ -141,6 +143,23 @@ class BaseTest {
     String uriPrefix = fileSpec.substring(0, uriPrefixLength);
     String relativePath = fileSpec.substring(uriPrefixLength);
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
+  }
+
+  /**
+   * Convert the given posix [filePath] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String _p(String filePath) {
+    if (filePath == null) {
+      return null;
+    }
+    if (path.style == path.windows.style) {
+      filePath =
+          filePath.replaceAll(path.posix.separator, path.windows.separator);
+    }
+    return filePath;
   }
 }
 
@@ -499,7 +518,10 @@ var b = new B();
       {String uri,
       List<String> additionalArgs: const [],
       String dartSdkSummaryPath}) async {
+    path = _p(path);
+
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+    var options = _p('data/options_tests_project/' + optionsFileName);
 
     List<String> args = <String>[];
     if (dartSdkSummaryPath != null) {
@@ -517,8 +539,7 @@ var b = new B();
     uri ??= 'file:///test_file.dart';
     String source = '$uri|$path';
 
-    await drive(source,
-        args: args, options: 'data/options_tests_project/$optionsFileName');
+    await drive(source, args: args, options: options);
   }
 
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
@@ -531,17 +552,23 @@ var b = new B();
           .existsSync();
     }
 
+    String makeAbsoluteAndNormalized(String result) {
+      result = path.absolute(result);
+      result = path.normalize(result);
+      return result;
+    }
+
     // Usually the sdk directory is the parent of the parent of the "dart"
     // executable.
     Directory executableParent = new File(Platform.executable).parent;
     Directory executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
-      return executableGrandparent.path;
+      return makeAbsoluteAndNormalized(executableGrandparent.path);
     }
     // During build bot execution, the sdk directory is simply the parent of the
     // "dart" executable.
     if (isSuitable(executableParent.path)) {
-      return executableParent.path;
+      return makeAbsoluteAndNormalized(executableParent.path);
     }
     // If neither of those are suitable, assume we are running locally within the
     // SDK project (e.g. within an IDE).  Find the build output directory and
@@ -555,7 +582,7 @@ var b = new B();
           if (subdir is Directory) {
             String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
             if (isSuitable(candidateSdkDir)) {
-              return candidateSdkDir;
+              return makeAbsoluteAndNormalized(candidateSdkDir);
             }
           }
         }

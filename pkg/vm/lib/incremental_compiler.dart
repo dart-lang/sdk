@@ -6,8 +6,7 @@
 /// the flow, where incremental deltas can be rejected by VM.
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart';
 
 const String kDebugProcedureName = ":Eval";

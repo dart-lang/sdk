@@ -56,8 +56,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   void set enableLazyAssignmentOperators(bool value);
 
-  void set enableNnbd(bool value);
-
   /**
    * Set a flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
@@ -1762,23 +1760,7 @@ int f(
  * Tests of the analyzer parser based on [ComplexParserTestMixin].
  */
 @reflectiveTest
-class ComplexParserTest extends ParserTestCase with ComplexParserTestMixin {
-  void test_logicalAndExpression_precedence_nullableType() {
-    enableNnbd = true;
-    BinaryExpression expression = parseExpression("x is C? && y is D");
-    expect(expression.leftOperand, new TypeMatcher<IsExpression>());
-    expect(expression.rightOperand, new TypeMatcher<IsExpression>());
-  }
-
-  void test_logicalOrExpression_precedence_nullableType() {
-    enableNnbd = true;
-    BinaryExpression expression = parseExpression("a is X? || (b ? c : d)");
-    expect(expression.leftOperand, new TypeMatcher<IsExpression>());
-    expect(expression.rightOperand, new TypeMatcher<ParenthesizedExpression>());
-    expect((expression.rightOperand as ParenthesizedExpression).expression,
-        new TypeMatcher<ConditionalExpression>());
-  }
-}
+class ComplexParserTest extends ParserTestCase with ComplexParserTestMixin {}
 
 /**
  * The class `ComplexParserTest` defines parser tests that test the parsing of more complex
@@ -2273,42 +2255,6 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
     expect(expression.isSynthetic, isTrue);
-  }
-
-  void test_nullableTypeInExtends() {
-    enableNnbd = true;
-    createParser('extends B?');
-    ExtendsClause clause = parser.parseExtendsClause();
-    expectNotNullIfNoErrors(clause);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS, 9, 1)]);
-  }
-
-  void test_nullableTypeInImplements() {
-    enableNnbd = true;
-    createParser('implements I?');
-    ImplementsClause clause = parser.parseImplementsClause();
-    expectNotNullIfNoErrors(clause);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS, 12, 1)]);
-  }
-
-  void test_nullableTypeInWith() {
-    enableNnbd = true;
-    createParser('with M?');
-    WithClause clause = parser.parseWithClause();
-    expectNotNullIfNoErrors(clause);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_WITH, 6, 1)]);
-  }
-
-  void test_nullableTypeParameter() {
-    enableNnbd = true;
-    createParser('T?');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NULLABLE_TYPE_PARAMETER, 1, 1)]);
   }
 }
 
@@ -5746,50 +5692,7 @@ void main() {
 
 @reflectiveTest
 class ExpressionParserTest extends ParserTestCase
-    with ExpressionParserTestMixin {
-  void test_parseInstanceCreationExpression_type_typeArguments_nullable() {
-    enableNnbd = true;
-    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpression expression =
-        parseInstanceCreationExpression('A<B?>()', token);
-    expect(expression, isNotNull);
-    assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
-    ConstructorName name = expression.constructorName;
-    expect(name, isNotNull);
-    TypeName type = name.type;
-    expect(type, isNotNull);
-    expect(name.period, isNull);
-    expect(name.name, isNull);
-    expect(expression.argumentList, isNotNull);
-    NodeList<TypeAnnotation> arguments = type.typeArguments.arguments;
-    expect(arguments, hasLength(1));
-    expect((arguments[0] as TypeName).question, isNotNull);
-  }
-
-  void test_parseRelationalExpression_as_nullable() {
-    enableNnbd = true;
-    Expression expression = parseRelationalExpression('x as Y?)');
-    expect(expression, isNotNull);
-    assertNoErrors();
-    var asExpression = expression as AsExpression;
-    expect(asExpression.expression, isNotNull);
-    expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, new TypeMatcher<TypeName>());
-  }
-
-  void test_parseRelationalExpression_is_nullable() {
-    enableNnbd = true;
-    Expression expression = parseRelationalExpression('x is y?)');
-    expect(expression, isNotNull);
-    assertNoErrors();
-    var isExpression = expression as IsExpression;
-    expect(isExpression.expression, isNotNull);
-    expect(isExpression.isOperator, isNotNull);
-    expect(isExpression.notOperator, isNull);
-    expect(isExpression.type, isNotNull);
-  }
-}
+    with ExpressionParserTestMixin {}
 
 abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_namedArgument() {
@@ -8066,93 +7969,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
  */
 @reflectiveTest
 class FormalParameterParserTest extends ParserTestCase
-    with FormalParameterParserTestMixin {
-  void test_parseNormalFormalParameter_function_noType_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('a()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void
-      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('a<E>()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a<E>()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('void a()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
-    enableNnbd = true;
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('void a<E>()?');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-}
+    with FormalParameterParserTestMixin {}
 
 /**
  * The class [FormalParameterParserTestMixin] defines parser tests that test
@@ -9107,8 +8924,6 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_type() {
@@ -9121,7 +8936,6 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameters() {
@@ -9134,7 +8948,6 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_typeVoid_covariant() {
@@ -9161,7 +8974,6 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameters() {
@@ -9174,7 +8986,6 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_withDocComment() {
@@ -9332,12 +9143,6 @@ class ParserTestCase extends EngineTestCase
   bool enableLazyAssignmentOperators = false;
 
   /**
-   * A flag indicating whether the parser is to parse the non-nullable modifier
-   * in type names.
-   */
-  bool enableNnbd = false;
-
-  /**
    * A flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
@@ -9414,7 +9219,6 @@ class ParserTestCase extends EngineTestCase
     parser = new Parser(source, listener);
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     parser.currentToken = token;
   }
@@ -12370,42 +12174,6 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     expect(new Parser(NonExistingSource.unknown, null), isNotNull);
   }
 
-  void test_parseTypeName_parameterized_nullable() {
-    enableNnbd = true;
-    createParser('List<int>?');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
-    assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNotNull);
-    expect(typeName.question, isNotNull);
-  }
-
-  void test_parseTypeName_simple_nullable() {
-    enableNnbd = true;
-    createParser('String?');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
-    assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNull);
-    expect(typeName.question, isNotNull);
-  }
-
-  void test_parseTypeParameter_bounded_nullable() {
-    enableNnbd = true;
-    createParser('A extends B?');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, new TypeMatcher<TypeName>());
-    expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
-    TypeName bound = parameter.bound;
-    expect(bound, isNotNull);
-    expect(bound.question, isNotNull);
-  }
-
   void test_skipPrefixedIdentifier_invalid() {
     createParser('+');
     Token following = parser.skipPrefixedIdentifier(parser.currentToken);
@@ -14379,7 +14147,6 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNotNull);
-    expect(typeName.question, isNull);
   }
 
   void test_parseTypeName_simple() {
@@ -14389,7 +14156,6 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNull);
-    expect(typeName.question, isNull);
   }
 
   void test_parseTypeParameter_bounded_functionType_noReturn() {

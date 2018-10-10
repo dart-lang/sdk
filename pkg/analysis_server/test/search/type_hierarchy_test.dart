@@ -1072,7 +1072,7 @@ class D extends C {}
 
   Future<void> test_superOnly_fileDoesNotExist() async {
     Request request = new SearchGetTypeHierarchyParams(
-            '/does/not/exist.dart', 0,
+            convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
         .toRequest(requestId);
     Response response = await serverChannel.sendRequest(request);

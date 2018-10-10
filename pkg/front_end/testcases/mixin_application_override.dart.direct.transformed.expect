@@ -1,0 +1,224 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class S extends core::Object {
+  synthetic constructor •() → self::S
+    : super core::Object::•()
+    ;
+  method foo([dynamic x = null]) → dynamic {}
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+}
+class M1 extends core::Object {
+  synthetic constructor •() → self::M1
+    : super core::Object::•()
+    ;
+}
+class M2 extends core::Object {
+  synthetic constructor •() → self::M2
+    : super core::Object::•()
+    ;
+}
+class MX extends core::Object {
+  synthetic constructor •() → self::MX
+    : super core::Object::•()
+    ;
+}
+class A0 extends self::S implements self::M {
+  synthetic constructor •() → self::A0
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A1&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+class A1 extends self::_A1&S&M1 implements self::M {
+  synthetic constructor •() → self::A1
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A2&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _A2&S&M1&M2 extends self::_A2&S&M1 implements self::M2 {
+  synthetic constructor •() → void
+    : super self::_A2&S&M1::•()
+    ;
+}
+class A2 extends self::_A2&S&M1&M2 implements self::M {
+  synthetic constructor •() → self::A2
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _A0X&S&M extends self::S implements self::M {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+class A0X extends self::_A0X&S&M implements self::MX {
+  synthetic constructor •() → self::A0X
+    : super self::S::•()
+    ;
+}
+abstract class _A1X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _A1X&S&M1&M extends self::_A1X&S&M1 implements self::M {
+  synthetic constructor •() → void
+    : super self::_A1X&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+class A1X extends self::_A1X&S&M1&M implements self::MX {
+  synthetic constructor •() → self::A1X
+    : super self::S::•()
+    ;
+}
+abstract class _A2X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _A2X&S&M1&M2 extends self::_A2X&S&M1 implements self::M2 {
+  synthetic constructor •() → void
+    : super self::_A2X&S&M1::•()
+    ;
+}
+abstract class _A2X&S&M1&M2&M extends self::_A2X&S&M1&M2 implements self::M {
+  synthetic constructor •() → void
+    : super self::_A2X&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+class A2X extends self::_A2X&S&M1&M2&M implements self::MX {
+  synthetic constructor •() → self::A2X
+    : super self::S::•()
+    ;
+}
+abstract class _B0&S&M extends self::S implements self::M {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+class B0 extends self::_B0&S&M {
+  synthetic constructor •() → self::B0
+    : super self::S::•()
+    ;
+}
+abstract class _B1&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _B1&S&M1&M extends self::_B1&S&M1 implements self::M {
+  synthetic constructor •() → void
+    : super self::_B1&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+class B1 extends self::_B1&S&M1&M {
+  synthetic constructor •() → self::B1
+    : super self::S::•()
+    ;
+}
+abstract class _B2&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _B2&S&M1&M2 extends self::_B2&S&M1 implements self::M2 {
+  synthetic constructor •() → void
+    : super self::_B2&S&M1::•()
+    ;
+}
+abstract class _B2&S&M1&M2&M extends self::_B2&S&M1&M2 implements self::M {
+  synthetic constructor •() → void
+    : super self::_B2&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+class B2 extends self::_B2&S&M1&M2&M {
+  synthetic constructor •() → self::B2
+    : super self::S::•()
+    ;
+}
+abstract class _B0X&S&M extends self::S implements self::M {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B0X&S&M&MX extends self::_B0X&S&M implements self::MX {
+  synthetic constructor •() → void
+    : super self::_B0X&S&M::•()
+    ;
+}
+class B0X extends self::_B0X&S&M&MX {
+  synthetic constructor •() → self::B0X
+    : super self::S::•()
+    ;
+}
+abstract class _B1X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _B1X&S&M1&M extends self::_B1X&S&M1 implements self::M {
+  synthetic constructor •() → void
+    : super self::_B1X&S&M1::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B1X&S&M1&M&MX extends self::_B1X&S&M1&M implements self::MX {
+  synthetic constructor •() → void
+    : super self::_B1X&S&M1&M::•()
+    ;
+}
+class B1X extends self::_B1X&S&M1&M&MX {
+  synthetic constructor •() → self::B1X
+    : super self::S::•()
+    ;
+}
+abstract class _B2X&S&M1 extends self::S implements self::M1 {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+abstract class _B2X&S&M1&M2 extends self::_B2X&S&M1 implements self::M2 {
+  synthetic constructor •() → void
+    : super self::_B2X&S&M1::•()
+    ;
+}
+abstract class _B2X&S&M1&M2&M extends self::_B2X&S&M1&M2 implements self::M {
+  synthetic constructor •() → void
+    : super self::_B2X&S&M1&M2::•()
+    ;
+  method foo() → dynamic {}
+}
+abstract class _B2X&S&M1&M2&M&MX extends self::_B2X&S&M1&M2&M implements self::MX {
+  synthetic constructor •() → void
+    : super self::_B2X&S&M1&M2&M::•()
+    ;
+}
+class B2X extends self::_B2X&S&M1&M2&M&MX {
+  synthetic constructor •() → self::B2X
+    : super self::S::•()
+    ;
+}
+static method main() → dynamic {}

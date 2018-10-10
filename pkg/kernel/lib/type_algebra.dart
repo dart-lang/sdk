@@ -78,12 +78,16 @@ List<DartType> calculateBounds(
     List<TypeParameter> typeParameters, Class object) {
   List<DartType> bounds = new List<DartType>(typeParameters.length);
   for (int i = 0; i < typeParameters.length; i++) {
-    DartType type = typeParameters[i].bound;
-    if (type == null || type is InterfaceType && type.classNode == object) {
-      type = const DynamicType();
+    DartType bound = typeParameters[i].bound;
+    if (bound == null) {
+      bound = const DynamicType();
+    } else if (bound is InterfaceType && bound.classNode == object) {
+      DartType defaultType = typeParameters[i].defaultType;
+      if (!(defaultType is InterfaceType && defaultType.classNode == object)) {
+        bound = const DynamicType();
+      }
     }
-
-    bounds[i] = type;
+    bounds[i] = bound;
   }
 
   _TypeVariableGraph graph = new _TypeVariableGraph(typeParameters, bounds);

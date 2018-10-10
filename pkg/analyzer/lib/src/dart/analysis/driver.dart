@@ -17,11 +17,13 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -38,12 +40,10 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -93,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 70;
+  static const int DATA_VERSION = 72;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -586,6 +586,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * potentially available is done, so that they are included in [knownFiles].
    */
   Future<void> discoverAvailableFiles() {
+    if (_discoverAvailableFilesTask != null &&
+        _discoverAvailableFilesTask.isCompleted) {
+      return new Future.value();
+    }
     _discoverAvailableFiles();
     _scheduler.notify(this);
     return _discoverAvailableFilesTask.completer.future;
@@ -2213,9 +2217,9 @@ class _DiscoverAvailableFilesTask {
   static const int _MS_WORK_INTERVAL = 5;
 
   final AnalysisDriver driver;
-  final Completer<void> completer = new Completer<void>();
 
   bool isCompleted = false;
+  Completer<void> completer = new Completer<void>();
 
   Iterator<Folder> folderIterator;
   List<String> files = [];
@@ -2236,7 +2240,8 @@ class _DiscoverAvailableFilesTask {
       var dartSdk = driver._sourceFactory.dartSdk;
       if (dartSdk != null) {
         for (var sdkLibrary in dartSdk.sdkLibraries) {
-          files.add(sdkLibrary.path);
+          var file = dartSdk.mapDartUri(sdkLibrary.shortName).fullName;
+          files.add(file);
         }
       }
 
@@ -2272,10 +2277,13 @@ class _DiscoverAvailableFilesTask {
     }
 
     // The task is done, clean up.
-    isCompleted = true;
     folderIterator = null;
     files = null;
+
+    // Complete and clean up.
+    isCompleted = true;
     completer.complete();
+    completer = null;
   }
 
   void _appendFilesRecursively(Folder folder) {

@@ -70,8 +70,8 @@ DEFINE_FLAG(
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
-DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
+DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
+DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
 DEFINE_FLAG(bool,
             remove_script_timestamps_for_test,
@@ -456,7 +456,7 @@ void Object::InitNull(Isolate* isolate) {
   }
 }
 
-void Object::InitOnce(Isolate* isolate) {
+void Object::Init(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
@@ -937,7 +937,7 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(extractor_parameter_names_->IsArray());
 }
 
-void Object::FinishInitOnce(Isolate* isolate) {
+void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
   // canonical type of kDynamicCid/kVoidCid need to be set in this
   // method, which is called after StubCode::InitOnce().
@@ -948,6 +948,46 @@ void Object::FinishInitOnce(Isolate* isolate) {
 
   instr = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
   void_type_->SetTypeTestingStub(instr);
+}
+
+void Object::Cleanup() {
+  null_ = reinterpret_cast<RawObject*>(RAW_NULL);
+  class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unresolved_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  redirection_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  kernel_program_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  code_source_map_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  var_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  exception_handlers_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  singletargetcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  megamorphic_cache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  subtypetestcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unhandled_exception_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 }
 
 // An object visitor which will mark all visited objects. This is used to
@@ -1276,7 +1316,8 @@ RawError* Object::Init(Isolate* isolate,
                                            "Object::Init");)
 
 #if defined(DART_NO_SNAPSHOT)
-  bool bootstrapping = Dart::vm_snapshot_kind() == Snapshot::kNone;
+  bool bootstrapping =
+      (Dart::vm_snapshot_kind() == Snapshot::kNone) || is_kernel;
 #elif defined(DART_PRECOMPILED_RUNTIME)
   bool bootstrapping = false;
 #else
@@ -2018,7 +2059,16 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
 
-  uword address = heap->Allocate(size, space);
+  uword address;
+
+  // In a bump allocation scope, all allocations go into old space.
+  if (thread->bump_allocate() && (space != Heap::kCode)) {
+    DEBUG_ASSERT(heap->old_space()->CurrentThreadOwnsDataLock());
+    address = heap->old_space()->TryAllocateDataBumpLocked(
+        size, PageSpace::kForceGrowth);
+  } else {
+    address = heap->Allocate(size, space);
+  }
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
@@ -5956,12 +6006,8 @@ bool Function::HasCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
 #else
-  if (FLAG_enable_interpreter) {
-    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-           raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
-  } else {
-    return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
-  }
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -7068,56 +7114,6 @@ const char* Function::ToQualifiedCString() const {
   ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false,
                                          kQualifiedFunctionLibKindLibUrl);
   return chars;
-}
-
-bool Function::HasCompatibleParametersWith(const Function& other,
-                                           Error* bound_error) const {
-  ASSERT(Isolate::Current()->error_on_bad_override());
-  ASSERT(!FLAG_strong);
-  ASSERT((bound_error != NULL) && bound_error->IsNull());
-  // Check that this function's signature type is a subtype of the other
-  // function's signature type.
-  // Map type parameters referred to by formal parameter types and result type
-  // in the signature to dynamic before the test.
-  // Note that type parameters declared by a generic signature are preserved.
-  Function& this_fun = Function::Handle(raw());
-  if (!this_fun.HasInstantiatedSignature(kCurrentClass)) {
-    this_fun = this_fun.InstantiateSignatureFrom(
-        Object::null_type_arguments(), Object::null_type_arguments(),
-        kNoneFree,  // Keep function type parameters, do not map to dynamic.
-        Heap::kOld);
-  }
-  Function& other_fun = Function::Handle(other.raw());
-  if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
-    other_fun = other_fun.InstantiateSignatureFrom(
-        Object::null_type_arguments(), Object::null_type_arguments(),
-        kNoneFree,  // Keep function type parameters, do not map to dynamic.
-        Heap::kOld);
-  }
-  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
-                         Heap::kOld)) {
-    // For more informative error reporting, use the location of the other
-    // function here, since the caller will use the location of this function.
-    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
-    *bound_error = LanguageError::NewFormatted(
-        *bound_error,  // A bound error if non null.
-        Script::Handle(other.script()), other.token_pos(), Report::AtLocation,
-        Report::kError, space,
-        "signature type '%s' of function '%s' is not a subtype of signature "
-        "type '%s' of function '%s'\n",
-        String::Handle(UserVisibleSignature()).ToCString(),
-        String::Handle(UserVisibleName()).ToCString(),
-        String::Handle(other.UserVisibleSignature()).ToCString(),
-        String::Handle(other.UserVisibleName()).ToCString());
-    return false;
-  }
-  // We should also check that if the other function explicitly specifies a
-  // default value for a formal parameter, this function does not specify a
-  // different default value for the same parameter. However, this check is not
-  // possible in the current implementation, because the default parameter
-  // values are not stored in the Function object, but discarded after a
-  // function is compiled.
-  return true;
 }
 
 RawFunction* Function::InstantiateSignatureFrom(
@@ -11485,9 +11481,12 @@ void Library::InvalidateResolvedName(const String& name) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Object& entry = Object::Handle(zone);
-  if (LookupResolvedNamesCache(name, &entry)) {
+  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &entry)) {
     // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     ClearResolvedNamesCache();
+  }
+  if (!FLAG_use_exp_cache) {
+    return;
   }
   // When a new name is added to a library, we need to invalidate all
   // caches that contain an entry for this name. If the name was previously
@@ -12481,6 +12480,10 @@ static RawObject* EvaluateCompiledExpressionHelper(
   kernel::KernelLoader loader(kernel_pgm);
   const Object& result = Object::Handle(
       loader.LoadExpressionEvaluationFunction(library_url, klass));
+
+  delete kernel_pgm;
+  kernel_pgm = NULL;
+
   if (result.IsError()) return result.raw();
 
   const Function& callee = Function::Cast(result);
@@ -13643,7 +13646,7 @@ void ObjectPool::DebugPrint() const {
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
-    if (TypeAt(i) == kTaggedObject) {
+    if ((TypeAt(i) == kTaggedObject) || (TypeAt(i) == kNativeEntryData)) {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
@@ -15254,7 +15257,7 @@ bool ICData::IsUsedAt(intptr_t i) const {
   return true;
 }
 
-void ICData::InitOnce() {
+void ICData::Init() {
   for (int i = 0; i <= kCachedICDataMaxArgsTestedWithoutExactnessTracking;
        i++) {
     cached_icdata_arrays_
@@ -15263,6 +15266,12 @@ void ICData::InitOnce() {
   }
   cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx] =
       ICData::NewNonCachedEmptyICDataArray(1, true);
+}
+
+void ICData::Cleanup() {
+  for (int i = 0; i < kCachedICDataArrayCount; ++i) {
+    cached_icdata_arrays_[i] = NULL;
+  }
 }
 
 RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,

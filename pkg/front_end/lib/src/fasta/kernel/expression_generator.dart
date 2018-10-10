@@ -19,14 +19,13 @@ import '../fasta_codes.dart'
         messageIllegalAssignmentToNonAssignable,
         messageInvalidInitializer,
         messageNotAConstantExpression,
+        noLength,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
-        templateIntegerLiteralIsOutOfRange,
         templateMissingExplicitTypeArguments,
         templateNotAPrefixInTypeAnnotation,
         templateNotAType,
-        templateUnresolvedPrefixInTypeAnnotation,
-        templateWebLiteralCannotBeRepresentedExactly;
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../names.dart'
     show
@@ -127,7 +126,8 @@ abstract class ExpressionGenerator {
       {int offset,
       bool voidContext,
       Procedure interfaceTarget,
-      bool isPreIncDec});
+      bool isPreIncDec,
+      bool isPostIncDec});
 
   /// Returns a [Expression] representing a pre-increment or pre-decrement of
   /// the generator.
@@ -245,7 +245,8 @@ abstract class Generator implements ExpressionGenerator {
     return new InvalidConstructorInvocationJudgment(
         helper.throwNoSuchMethodError(
             forest.literalNull(token),
-            name == "" ? plainNameForRead : "${plainNameForRead}.$name",
+            helper.constructorNameForDiagnostics(name,
+                className: plainNameForRead),
             arguments,
             nameToken.charOffset),
         null,
@@ -664,96 +665,6 @@ abstract class ReadOnlyAccessGenerator implements Generator {
   String get debugName => "ReadOnlyAccessGenerator";
 }
 
-abstract class IntAccessGenerator implements Generator {
-  factory IntAccessGenerator(ExpressionGeneratorHelper helper, Token token) {
-    return helper.forest.intAccessGenerator(helper, token);
-  }
-
-  // TODO(ahe): This should probably be calling unhandled.
-  @override
-  String get plainNameForRead => null;
-
-  @override
-  String get debugName => "IntAccessGenerator";
-
-  static void checkWebIntLiteralsErrorIfUnexact(
-      ExpressionGeneratorHelper helper, int value, Token token) {
-    if (value >= 0 && value <= (1 << 53)) return;
-    if (!helper.library.loader.target.backendTarget
-        .errorOnUnexactWebIntLiterals) return;
-    BigInt asInt = new BigInt.from(value).toUnsigned(64);
-    BigInt asDouble = new BigInt.from(asInt.toDouble());
-    if (asInt != asDouble) {
-      String nearest;
-      if (token.lexeme.startsWith("0x") || token.lexeme.startsWith("0X")) {
-        nearest = '0x${asDouble.toRadixString(16)}';
-      } else {
-        nearest = '$asDouble';
-      }
-      helper.addProblem(
-          templateWebLiteralCannotBeRepresentedExactly.withArguments(
-              token.lexeme, nearest),
-          token.charOffset,
-          token.charCount);
-    }
-  }
-
-  static Object parseIntLiteral(ExpressionGeneratorHelper helper, Token token) {
-    int value = int.tryParse(token.lexeme);
-    // Postpone parsing of literals resulting in a negative value
-    // (hex literals >= 2^63). These are only allowed when not negated.
-    if (value == null || value < 0) {
-      return new IntAccessGenerator(helper, token);
-    } else {
-      checkWebIntLiteralsErrorIfUnexact(helper, value, token);
-      return helper.forest.literalInt(value, token);
-    }
-  }
-
-  Expression parseOrError(String literal, Token token) {
-    int value = int.tryParse(literal);
-    if (value != null) {
-      checkWebIntLiteralsErrorIfUnexact(helper, value, token);
-      return helper.forest.literalInt(value, token);
-    } else {
-      return buildError();
-    }
-  }
-
-  @override
-  Expression buildSimpleRead() {
-    // Called when literal that previously failed to parse, or resulted in
-    // a negative value (hex literals >= 2^63), is not negated.
-    // Try parsing again, this time accepting negative values.
-    return parseOrError(token.lexeme, token);
-  }
-
-  Expression buildNegatedRead() {
-    // Called when literal that previously failed to parse, or resulted in
-    // a negative value (hex literals >= 2^63), is negated.
-    // Try parsing with a '-' in front.
-    return parseOrError("-" + token.lexeme, token);
-  }
-
-  SyntheticExpressionJudgment buildError() {
-    return helper.buildProblem(
-        templateIntegerLiteralIsOutOfRange.withArguments(token),
-        offsetForToken(token),
-        lengthForToken(token));
-  }
-
-  @override
-  Expression doInvocation(int offset, Arguments arguments) {
-    return buildError();
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", lexeme: ");
-    sink.write(token.lexeme);
-  }
-}
-
 abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
@@ -870,6 +781,9 @@ abstract class ErroneousExpressionGenerator implements Generator {
 abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   factory UnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
+    if (name.name.isEmpty) {
+      unhandled("empty", "name", offsetForToken(token), helper.uri);
+    }
     return helper.forest.unresolvedNameGenerator(helper, token, name);
   }
 
@@ -1251,5 +1165,99 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
   void printOn(StringSink sink) {
     sink.write(", prefixGenerator: ");
     prefixGenerator.printOn(sink);
+  }
+}
+
+abstract class ParserErrorGenerator implements Generator {
+  factory ParserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message) {
+    return helper.forest.parserErrorGenerator(helper, token, message);
+  }
+
+  Message get message => null;
+
+  @override
+  String get plainNameForRead => "#parser-error";
+
+  @override
+  String get debugName => "ParserErrorGenerator";
+
+  @override
+  void printOn(StringSink sink) {}
+
+  SyntheticExpressionJudgment buildProblem() {
+    return helper.buildProblem(message, offsetForToken(token), noLength,
+        suppressMessage: true);
+  }
+
+  Expression buildSimpleRead() => buildProblem();
+
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    return buildProblem();
+  }
+
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext}) {
+    return buildProblem();
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset,
+      bool voidContext,
+      Procedure interfaceTarget,
+      bool isPreIncDec,
+      bool isPostIncDec}) {
+    return buildProblem();
+  }
+
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return buildProblem();
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return buildProblem();
+  }
+
+  Expression makeInvalidRead() => buildProblem();
+
+  Expression makeInvalidWrite(Expression value) => buildProblem();
+
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    return helper.buildInvalidInitializer(buildProblem().desugared);
+  }
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    return buildProblem();
+  }
+
+  Expression buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    return buildProblem();
+  }
+
+  KernelTypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+    KernelNamedTypeBuilder result =
+        new KernelNamedTypeBuilder(token.lexeme, null);
+    result.bind(result.buildInvalidType(
+        message.withLocation(uri, offsetForToken(token), noLength)));
+    return result;
+  }
+
+  Expression qualifiedLookup(Token name) {
+    return buildProblem();
+  }
+
+  Expression invokeConstructor(
+      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
+    return buildProblem();
   }
 }

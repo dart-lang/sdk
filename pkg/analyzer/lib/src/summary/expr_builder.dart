@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show AstRewriteVisitor;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -302,6 +303,112 @@ class ExprBuilder {
     return arguments;
   }
 
+  /// Given the sequence of identifiers in [node], and the [classElement] or
+  /// [constructorElement] to which this sequence resolves, build the
+  /// [InstanceCreationExpression].
+  InstanceCreationExpression _buildCreation(
+    Expression node,
+    TypeArgumentList typeArguments,
+    ArgumentList argumentList, {
+    ClassElement classElement,
+    ConstructorElement constructorElement,
+  }) {
+    InstanceCreationExpression composeCreation(
+        DartType type,
+        ConstructorName constructorName,
+        ConstructorElement constructorElement,
+        ArgumentList argumentList) {
+      TypeName typeName = constructorName.type;
+      typeName.type = type;
+
+      constructorName.name?.staticElement = constructorElement;
+
+      var creation = astFactory.instanceCreationExpression(
+          uc.isValidConst
+              ? TokenFactory.tokenFromKeyword(Keyword.CONST)
+              : TokenFactory.tokenFromKeyword(Keyword.NEW),
+          constructorName,
+          argumentList);
+
+      creation.staticElement = constructorElement;
+      creation.staticType = type;
+      return creation;
+    }
+
+    classElement ??= constructorElement?.enclosingElement;
+    var type = AstRewriteVisitor.getType(
+        resynthesizer.typeSystem, classElement, typeArguments);
+
+    // C()
+    if (node is SimpleIdentifier && classElement != null) {
+      constructorElement = type.lookUpConstructor('', resynthesizer.library);
+      node.staticType = type;
+      return composeCreation(
+        type,
+        astFactory.constructorName(
+          astFactory.typeName(node, typeArguments),
+          null,
+          null,
+        ),
+        constructorElement,
+        argumentList,
+      );
+    }
+    if (node is PrefixedIdentifier) {
+      // C.n()
+      if (constructorElement != null) {
+        constructorElement =
+            type.lookUpConstructor(node.identifier.name, resynthesizer.library);
+        node.prefix.staticType = type;
+        return composeCreation(
+          type,
+          astFactory.constructorName(
+            astFactory.typeName(node.prefix, typeArguments),
+            TokenFactory.tokenFromType(TokenType.PERIOD),
+            node.identifier,
+          ),
+          constructorElement,
+          argumentList,
+        );
+      }
+      // p.C()
+      if (classElement != null) {
+        constructorElement = type.lookUpConstructor('', resynthesizer.library);
+        node.identifier.staticType = type;
+        return composeCreation(
+          type,
+          astFactory.constructorName(
+            astFactory.typeName(node.identifier, typeArguments),
+            null,
+            null,
+          ),
+          constructorElement,
+          argumentList,
+        );
+      }
+    }
+    // p.C.n()
+    if (node is PropertyAccess && constructorElement != null) {
+      constructorElement =
+          type.lookUpConstructor(node.propertyName.name, resynthesizer.library);
+      var typeIdentifier = (node.target as PrefixedIdentifier).identifier;
+      typeIdentifier.staticType = type;
+      return composeCreation(
+        type,
+        astFactory.constructorName(
+          astFactory.typeName(typeIdentifier, typeArguments),
+          TokenFactory.tokenFromType(TokenType.PERIOD),
+          node.propertyName,
+        ),
+        constructorElement,
+        argumentList,
+      );
+    }
+
+    throw new UnimplementedError('For ${node?.runtimeType}: $node; '
+        'class: $classElement;  constructor: $constructorElement');
+  }
+
   /**
    * Build the identifier sequence (a single or prefixed identifier, or a
    * property access) corresponding to the given reference [info].
@@ -571,6 +678,19 @@ class ExprBuilder {
     TypeArgumentList typeArguments = _buildTypeArguments();
     var period = TokenFactory.tokenFromType(TokenType.PERIOD);
     var argumentList = AstTestFactory.argumentList(arguments);
+
+    // Check for optional new/const.
+    if (info.element is ClassElement) {
+      _push(_buildCreation(node, typeArguments, argumentList,
+          classElement: info.element));
+      return;
+    }
+    if (info.element is ConstructorElement) {
+      _push(_buildCreation(node, typeArguments, argumentList,
+          constructorElement: info.element));
+      return;
+    }
+
     if (node is SimpleIdentifier) {
       _push(astFactory.methodInvocation(
           null, period, node, typeArguments, argumentList));

@@ -11,6 +11,8 @@ AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
+AnonymousBreakTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
+AnonymousContinueTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
 ArgumentTypeNotAssignable/example: Fail
 AssertAsExpression/analyzerCode: Fail
 AssertAsExpression/example: Fail
@@ -19,7 +21,6 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
-BreakTargetOutsideFunction/example: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 CannotAssignToParenthesizedExpression/example: Fail
@@ -78,7 +79,6 @@ ConstructorNotFound/example: Fail
 ConstructorNotSync/example: Fail
 ContinueLabelNotTarget/example: Fail
 ContinueOutsideOfLoop/script1: Fail
-ContinueTargetOutsideFunction/example: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
@@ -88,7 +88,9 @@ CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail
 CovariantMember/script1: Fail
 CovariantMember/script2: Fail
-CyclicClassHierarchy/example: Fail
+CycleInTypeVariables/script1: Fail # We report an error for each type variable involved in the cycle.
+CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
+CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/example: Fail
@@ -115,7 +117,6 @@ EnumConstantSameNameAsEnclosing/example: Fail
 EnumInstantiation/example: Fail
 EqualityCannotBeEqualityOperand/script1: Fail
 EqualityCannotBeEqualityOperand/script2: Fail
-ExpectedAnInitializer/script1: Fail
 ExpectedBlock/script: Fail
 ExpectedBlockToSkip/script: Fail
 ExpectedButGot/script1: Fail
@@ -276,6 +277,7 @@ PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
+PartOfTwice/script2: Fail # TODO(ahe): Investigate why this fails.
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
@@ -328,6 +330,7 @@ SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
+SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
@@ -344,16 +347,11 @@ TypeVariableInStaticContext/declaration3: Fail # Unfortunate message from outlin
 TypeVariableInStaticContext/declaration4: Fail # Unfortunate message from outline phase.
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
-UnexpectedDollarInString/script1: Fail
-UnexpectedDollarInString/script2: Fail
-UnexpectedDollarInString/script3: Fail
-UnexpectedDollarInString/script4: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
-UnsupportedPrefixPlus/script: Fail
 UnterminatedString/script2: Fail
 UnterminatedString/script4: Fail
 UnterminatedString/script5: Fail
@@ -362,6 +360,7 @@ UnterminatedString/script7: Fail
 UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
+VarAsTypeName/script1: Fail # Too many problems
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail

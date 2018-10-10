@@ -168,10 +168,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-
-  __ Push(CODE_REG);
+  __ ldr(LR, Address(THR, Thread::deoptimize_entry_offset()));
+  __ blx(LR);
   ASSERT(kReservedCpuRegisters & (1 << LR));
-  __ BranchLink(*StubCode::Deoptimize_entry());
   set_pc_offset(assembler->CodeSize());
 #undef __
 }

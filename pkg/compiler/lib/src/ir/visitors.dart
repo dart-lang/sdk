@@ -94,11 +94,16 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   }
 
   ConstructedConstantExpression _computeConstructorInvocation(
-      ir.Constructor target, ir.Arguments arguments) {
+      ir.Constructor target,
+      ir.Arguments arguments,
+      // TODO(johnniwinther): Remove this when correct type arguments are passed
+      // through [arguments]. Current [ir.RedirectingInitializer] doesn't have
+      // any type arguments.
+      List<ir.DartType> types) {
     List<ConstantExpression> expressions = _computeArguments(arguments);
     if (expressions == null) return null;
     return new ConstructedConstantExpression(
-        elementMap.createInterfaceType(target.enclosingClass, arguments.types),
+        elementMap.createInterfaceType(target.enclosingClass, types),
         elementMap.getConstructor(target),
         elementMap.getCallStructure(arguments),
         expressions);
@@ -107,7 +112,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
     if (!node.isConst) return null;
-    return _computeConstructorInvocation(node.target, node.arguments);
+    return _computeConstructorInvocation(
+        node.target, node.arguments, node.arguments.types);
   }
 
   @override
@@ -465,10 +471,14 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         registerField(initializer.field, visit(initializer.value));
       } else if (initializer is ir.SuperInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
-            initializer.target, initializer.arguments);
+            initializer.target,
+            initializer.arguments,
+            initializer.arguments.types);
       } else if (initializer is ir.RedirectingInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
-            initializer.target, initializer.arguments);
+            initializer.target,
+            initializer.arguments,
+            node.enclosingClass.thisType.typeArguments);
       } else if (initializer is ir.AssertInitializer) {
         ConstantExpression condition = visit(initializer.statement.condition);
         ConstantExpression message = initializer.statement.message != null

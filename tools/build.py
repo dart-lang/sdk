@@ -38,8 +38,11 @@ def BuildOptions():
   result.add_option("-j",
       type=int,
       help='Ninja -j option for Goma builds.',
-      metavar=1000,
       default=1000)
+  result.add_option("-l",
+      type=int,
+      help='Ninja -l option for Goma builds.',
+      default=64)
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
       metavar='[all,debug,release,product]',
@@ -164,7 +167,26 @@ def NotifyBuildDone(build_config, success, start):
     os.system(command)
 
 
-def RunGN(target_os, mode, arch):
+def GenerateBuildfilesIfNeeded():
+  if os.path.exists(utils.GetBuildDir(HOST_OS)):
+    return True
+  command = [
+    'python',
+    os.path.join(DART_ROOT, 'tools', 'generate_buildfiles.py')
+  ]
+  print ("Running " + ' '.join(command))
+  process = subprocess.Popen(command)
+  process.wait()
+  if process.returncode != 0:
+    print ("Tried to generate missing buildfiles, but failed. "
+           "Try running manually:\n\t$ " + ' '.join(command))
+    return False
+  return True
+
+
+def RunGNIfNeeded(out_dir, target_os, mode, arch):
+  if os.path.isfile(os.path.join(out_dir, 'args.gn')):
+    return
   gn_os = 'host' if target_os == HOST_OS else target_os
   gn_command = [
     'python',
@@ -179,11 +201,6 @@ def RunGN(target_os, mode, arch):
   if process.returncode != 0:
     print ("Tried to run GN, but it failed. Try running it manually: \n\t$ " +
            ' '.join(gn_command))
-
-
-def ShouldRunGN(out_dir):
-  return (not os.path.exists(out_dir) or
-          not os.path.isfile(os.path.join(out_dir, 'args.gn')))
 
 
 def UseGoma(out_dir):
@@ -234,8 +251,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
   using_goma = False
   # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
   # gn.py manually.
-  if ShouldRunGN(out_dir):
-    RunGN(target_os, mode, arch)
+  RunGNIfNeeded(out_dir, target_os, mode, arch)
   command = ['ninja', '-C', out_dir]
   if options.verbose:
     command += ['-v']
@@ -243,6 +259,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
     if options.no_start_goma or EnsureGomaStarted(out_dir):
       using_goma = True
       command += [('-j%s' % str(options.j))]
+      command += [('-l%s' % str(options.l))]
     else:
       # If we couldn't ensure that goma is started, let the build start, but
       # slowly so we can see any helpful error messages that pop out.
@@ -289,6 +306,9 @@ def Main():
     targets = ['all']
   else:
     targets = args
+
+  if not GenerateBuildfilesIfNeeded():
+    return 1
 
   # Build all targets for each requested configuration.
   configs = []

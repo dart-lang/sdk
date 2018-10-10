@@ -3645,6 +3645,23 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('ms3');
   }
 
+  test_super_withMixin() async {
+    addTestSource('''
+mixin M {
+  void m() {}
+}
+
+class C with M {
+  void c() {
+    super.^;
+  }
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('c');
+    assertSuggestMethod('m', 'M', 'void');
+  }
+
   test_SwitchStatement_c() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {String g(int x) {switch(x) {c^}}}');

@@ -18,7 +18,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::Base1
     : super core::Object::•()
     ;
 [@vm.bytecode=
@@ -72,7 +72,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base1::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::A
     : super self::Base1::•()
     ;
 [@vm.bytecode=
@@ -191,7 +191,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::Base2
     : super core::Object::•()
     ;
   abstract method foo<T extends core::Object = dynamic>(core::String a1, self::Base2::foo::T a2, core::int a3) → void;
@@ -214,7 +214,7 @@ ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = StaticICData target '#lib::Base2::', arg-desc CP#0
 }
-]  synthetic constructor •() → void
+]  synthetic constructor •() → self::B
     : super self::Base2::•()
     ;
 [@vm.bytecode=

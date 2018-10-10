@@ -1280,9 +1280,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -1313,9 +1311,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SERVER_ERROR",
   "SORT_MEMBERS_INVALID_FILE",
   "SORT_MEMBERS_PARSE_ERRORS",
-  "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
-  "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
 
@@ -2135,13 +2131,19 @@ final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
  * edit.dartfix result
  *
  * {
- *   "description": List<String>
+ *   "descriptionOfFixes": List<String>
+ *   "otherRecommendations": List<String>
+ *   "hasErrors": bool
  *   "fixes": List<SourceFileEdit>
  * }
  */
-final Matcher isEditDartfixResult = new LazyMatcher(() => new MatchesJsonObject(
-    "edit.dartfix result",
-    {"description": isListOf(isString), "fixes": isListOf(isSourceFileEdit)}));
+final Matcher isEditDartfixResult =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix result", {
+          "descriptionOfFixes": isListOf(isString),
+          "otherRecommendations": isListOf(isString),
+          "hasErrors": isBool,
+          "fixes": isListOf(isSourceFileEdit)
+        }));
 
 /**
  * edit.format params

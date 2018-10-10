@@ -159,6 +159,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
 
   List<Element> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
+      case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:

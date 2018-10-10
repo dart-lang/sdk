@@ -6179,19 +6179,25 @@ class EditDartfixParams implements RequestParams {
 
   /**
    * A list of the files and directories for which edits should be suggested.
+   *
+   * If a request is made with a path that is invalid, e.g. is not absolute and
+   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
    * If a request is made for a file which does not exist, or which is not
    * currently subject to analysis (e.g. because it is not associated with any
    * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FORMAT_INVALID_FILE will be generated.
+   * FILE_NOT_ANALYZED will be generated.
    */
   List<String> get included => _included;
 
   /**
    * A list of the files and directories for which edits should be suggested.
+   *
+   * If a request is made with a path that is invalid, e.g. is not absolute and
+   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
    * If a request is made for a file which does not exist, or which is not
    * currently subject to analysis (e.g. because it is not associated with any
    * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FORMAT_INVALID_FILE will be generated.
+   * FILE_NOT_ANALYZED will be generated.
    */
   void set included(List<String> value) {
     assert(value != null);
@@ -6262,28 +6268,64 @@ class EditDartfixParams implements RequestParams {
  * edit.dartfix result
  *
  * {
- *   "description": List<String>
+ *   "descriptionOfFixes": List<String>
+ *   "otherRecommendations": List<String>
+ *   "hasErrors": bool
  *   "fixes": List<SourceFileEdit>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditDartfixResult implements ResponseResult {
-  List<String> _description;
+  List<String> _descriptionOfFixes;
+
+  List<String> _otherRecommendations;
+
+  bool _hasErrors;
 
   List<SourceFileEdit> _fixes;
 
   /**
    * A list of human readable changes made by applying the fixes.
    */
-  List<String> get description => _description;
+  List<String> get descriptionOfFixes => _descriptionOfFixes;
 
   /**
    * A list of human readable changes made by applying the fixes.
    */
-  void set description(List<String> value) {
+  void set descriptionOfFixes(List<String> value) {
     assert(value != null);
-    this._description = value;
+    this._descriptionOfFixes = value;
+  }
+
+  /**
+   * A list of human readable recommended changes that cannot be made
+   * automatically.
+   */
+  List<String> get otherRecommendations => _otherRecommendations;
+
+  /**
+   * A list of human readable recommended changes that cannot be made
+   * automatically.
+   */
+  void set otherRecommendations(List<String> value) {
+    assert(value != null);
+    this._otherRecommendations = value;
+  }
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended fixes that can be automatically applied.
+   */
+  bool get hasErrors => _hasErrors;
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended fixes that can be automatically applied.
+   */
+  void set hasErrors(bool value) {
+    assert(value != null);
+    this._hasErrors = value;
   }
 
   /**
@@ -6299,8 +6341,14 @@ class EditDartfixResult implements ResponseResult {
     this._fixes = value;
   }
 
-  EditDartfixResult(List<String> description, List<SourceFileEdit> fixes) {
-    this.description = description;
+  EditDartfixResult(
+      List<String> descriptionOfFixes,
+      List<String> otherRecommendations,
+      bool hasErrors,
+      List<SourceFileEdit> fixes) {
+    this.descriptionOfFixes = descriptionOfFixes;
+    this.otherRecommendations = otherRecommendations;
+    this.hasErrors = hasErrors;
     this.fixes = fixes;
   }
 
@@ -6310,12 +6358,30 @@ class EditDartfixResult implements ResponseResult {
       json = {};
     }
     if (json is Map) {
-      List<String> description;
-      if (json.containsKey("description")) {
-        description = jsonDecoder.decodeList(jsonPath + ".description",
-            json["description"], jsonDecoder.decodeString);
+      List<String> descriptionOfFixes;
+      if (json.containsKey("descriptionOfFixes")) {
+        descriptionOfFixes = jsonDecoder.decodeList(
+            jsonPath + ".descriptionOfFixes",
+            json["descriptionOfFixes"],
+            jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "description");
+        throw jsonDecoder.mismatch(jsonPath, "descriptionOfFixes");
+      }
+      List<String> otherRecommendations;
+      if (json.containsKey("otherRecommendations")) {
+        otherRecommendations = jsonDecoder.decodeList(
+            jsonPath + ".otherRecommendations",
+            json["otherRecommendations"],
+            jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "otherRecommendations");
+      }
+      bool hasErrors;
+      if (json.containsKey("hasErrors")) {
+        hasErrors =
+            jsonDecoder.decodeBool(jsonPath + ".hasErrors", json["hasErrors"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "hasErrors");
       }
       List<SourceFileEdit> fixes;
       if (json.containsKey("fixes")) {
@@ -6327,7 +6393,8 @@ class EditDartfixResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new EditDartfixResult(description, fixes);
+      return new EditDartfixResult(
+          descriptionOfFixes, otherRecommendations, hasErrors, fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
@@ -6343,7 +6410,9 @@ class EditDartfixResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["description"] = description;
+    result["descriptionOfFixes"] = descriptionOfFixes;
+    result["otherRecommendations"] = otherRecommendations;
+    result["hasErrors"] = hasErrors;
     result["fixes"] =
         fixes.map((SourceFileEdit value) => value.toJson()).toList();
     return result;
@@ -6360,8 +6429,11 @@ class EditDartfixResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditDartfixResult) {
-      return listEqual(
-              description, other.description, (String a, String b) => a == b) &&
+      return listEqual(descriptionOfFixes, other.descriptionOfFixes,
+              (String a, String b) => a == b) &&
+          listEqual(otherRecommendations, other.otherRecommendations,
+              (String a, String b) => a == b) &&
+          hasErrors == other.hasErrors &&
           listEqual(fixes, other.fixes,
               (SourceFileEdit a, SourceFileEdit b) => a == b);
     }
@@ -6371,7 +6443,9 @@ class EditDartfixResult implements ResponseResult {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, descriptionOfFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, otherRecommendations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
     hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15830,9 +15904,7 @@ class RequestError implements HasToJson {
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  *
@@ -16022,28 +16094,11 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are
-   * not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
-   */
-  static const RequestErrorCode UNANALYZED_PRIORITY_FILES =
-      const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
-
-  /**
    * A request was received which the analysis server does not recognize, or
    * cannot handle in its current configuration.
    */
   static const RequestErrorCode UNKNOWN_REQUEST =
       const RequestErrorCode._("UNKNOWN_REQUEST");
-
-  /**
-   * The analysis server was requested to perform an action on a source that
-   * does not exist.
-   */
-  static const RequestErrorCode UNKNOWN_SOURCE =
-      const RequestErrorCode._("UNKNOWN_SOURCE");
 
   /**
    * The analysis server was requested to perform an action which is not
@@ -16085,9 +16140,7 @@ class RequestErrorCode implements Enum {
     SERVER_ERROR,
     SORT_MEMBERS_INVALID_FILE,
     SORT_MEMBERS_PARSE_ERRORS,
-    UNANALYZED_PRIORITY_FILES,
     UNKNOWN_REQUEST,
-    UNKNOWN_SOURCE,
     UNSUPPORTED_FEATURE
   ];
 
@@ -16150,12 +16203,8 @@ class RequestErrorCode implements Enum {
         return SORT_MEMBERS_INVALID_FILE;
       case "SORT_MEMBERS_PARSE_ERRORS":
         return SORT_MEMBERS_PARSE_ERRORS;
-      case "UNANALYZED_PRIORITY_FILES":
-        return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
-      case "UNKNOWN_SOURCE":
-        return UNKNOWN_SOURCE;
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }

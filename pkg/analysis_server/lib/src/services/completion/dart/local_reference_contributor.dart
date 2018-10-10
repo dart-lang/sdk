@@ -65,7 +65,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         return visitor.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -307,7 +307,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     CompletionSuggestionKind kind = targetIsFunctionalArgument
@@ -378,7 +378,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
+      ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     relevance = optype.returnValueSuggestionsFilter(

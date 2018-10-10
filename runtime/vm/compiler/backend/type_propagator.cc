@@ -1251,23 +1251,25 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   const Field& field = this->StaticField();
   const Isolate* isolate = Isolate::Current();
   if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
-    cid = kIllegalCid;
+    cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &AbstractType::ZoneHandle(field.type());
     TraceStrongModeType(this, *abstract_type);
   }
   ASSERT(field.is_static());
-  if (field.is_final()) {
-    if (!FLAG_fields_may_be_reset) {
-      const Instance& obj = Instance::Handle(field.StaticValue());
-      if ((obj.raw() != Object::sentinel().raw()) &&
-          (obj.raw() != Object::transition_sentinel().raw()) && !obj.IsNull()) {
-        is_nullable = CompileType::kNonNullable;
-        cid = obj.GetClassId();
-      }
-    } else if (field.guarded_cid() != kIllegalCid) {
-      cid = field.guarded_cid();
-      if (!IsNullableCid(cid)) is_nullable = CompileType::kNonNullable;
+  if (field.is_final() && !FLAG_fields_may_be_reset) {
+    const Instance& obj = Instance::Handle(field.StaticValue());
+    if ((obj.raw() != Object::sentinel().raw()) &&
+        (obj.raw() != Object::transition_sentinel().raw()) && !obj.IsNull()) {
+      is_nullable = CompileType::kNonNullable;
+      cid = obj.GetClassId();
+      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
     }
+  }
+  if ((field.guarded_cid() != kIllegalCid) &&
+      (field.guarded_cid() != kDynamicCid)) {
+    cid = field.guarded_cid();
+    is_nullable = field.is_nullable();
+    abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   }
   return CompileType(is_nullable, cid, abstract_type);
 }
@@ -1304,27 +1306,28 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  CompileType compile_type_annotation = CompileType::None();
+  bool is_nullable = CompileType::kNullable;
+  intptr_t cid = kDynamicCid;
+  const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
-    const AbstractType* abstract_type = &type();
+    cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
+    abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);
-    compile_type_annotation = CompileType::FromAbstractType(*abstract_type);
   }
-
-  CompileType compile_type_cid = CompileType::None();
-  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
-    bool is_nullable = field_->is_nullable();
-    intptr_t field_cid = field_->guarded_cid();
-
-    compile_type_cid = CompileType(is_nullable, field_cid, NULL);
+  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid) &&
+      (field_->guarded_cid() != kDynamicCid)) {
+    cid = field_->guarded_cid();
+    is_nullable = field_->is_nullable();
+    abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   } else {
-    compile_type_cid = CompileType::FromCid(result_cid_);
+    cid = result_cid_;
+    if ((cid != kIllegalCid) && (cid != kDynamicCid)) {
+      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
+    }
   }
-
-  return *CompileType::ComputeRefinedType(&compile_type_cid,
-                                          &compile_type_annotation);
+  return CompileType(is_nullable, cid, abstract_type);
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {

@@ -332,7 +332,7 @@ abstract class B {
   String aaa;
 }
 class C implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/var aaa;
+  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/var aaa;
 }
 ''';
     await checkFile(content);
@@ -798,7 +798,6 @@ Future<int> vFuture;
 ''');
   }
 
-  @failingTest
   test_initializer_functionExpressionInvocation_noTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 var v = (() => 42)();

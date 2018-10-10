@@ -174,6 +174,28 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+static void NullErrorHelper(Zone* zone, const String& selector) {
+  InvocationMirror::Kind kind = InvocationMirror::kMethod;
+  if (Field::IsGetterName(selector)) {
+    kind = InvocationMirror::kGetter;
+  } else if (Field::IsSetterName(selector)) {
+    kind = InvocationMirror::kSetter;
+  }
+
+  const Smi& invocation_type = Smi::Handle(
+      zone,
+      Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
+
+  const Array& args = Array::Handle(zone, Array::New(6));
+  args.SetAt(0, /* instance */ Object::null_object());
+  args.SetAt(1, selector);
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, /* func_type_args */ Object::null_object());
+  args.SetAt(4, /* func_args */ Object::null_object());
+  args.SetAt(5, /* func_arg_names */ Object::null_object());
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+}
+
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -199,25 +221,17 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const String& member_name =
       String::CheckedHandle(zone, pool.ObjectAt(name_index));
 
-  InvocationMirror::Kind kind = InvocationMirror::kMethod;
-  if (Field::IsGetterName(member_name)) {
-    kind = InvocationMirror::kGetter;
-  } else if (Field::IsSetterName(member_name)) {
-    kind = InvocationMirror::kSetter;
-  }
+  NullErrorHelper(zone, member_name);
+}
 
-  const Smi& invocation_type = Smi::Handle(
-      zone,
-      Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
+DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
+  const String& selector = String::CheckedHandle(arguments.ArgAt(0));
+  NullErrorHelper(zone, selector);
+}
 
-  const Array& args = Array::Handle(zone, Array::New(6));
-  args.SetAt(0, /* instance */ Object::null_object());
-  args.SetAt(1, member_name);
-  args.SetAt(2, invocation_type);
-  args.SetAt(3, /* func_type_args */ Object::null_object());
-  args.SetAt(4, /* func_args */ Object::null_object());
-  args.SetAt(5, /* func_arg_names */ Object::null_object());
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
+  const Instance& value = Instance::CheckedHandle(arguments.ArgAt(0));
+  Exceptions::ThrowArgumentError(value);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
@@ -637,24 +651,18 @@ static void UpdateTypeTestCache(
     }
     return;
   }
-  Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
-    if (FLAG_enable_interpreter) {
-      instance_class = Smi::Class();
-    } else {
-      if (FLAG_trace_type_checks) {
-        OS::PrintErr("UpdateTypeTestCache: instance is Smi, not updating\n");
-      }
-      return;
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("UpdateTypeTestCache: instance is Smi\n");
     }
-  } else {
-    instance_class = instance.clazz();
+    return;
   }
   // If the type is uninstantiated and refers to parent function type
   // parameters, the function_type_arguments have been canonicalized
   // when concatenated.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
+  const Class& instance_class = Class::Handle(zone, instance.clazz());
   auto& instance_class_id_or_function = Object::Handle(zone);
   auto& instance_type_arguments = TypeArguments::Handle(zone);
   auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
@@ -910,15 +918,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   if (should_update_cache) {
     if (cache.IsNull()) {
-      if (FLAG_enable_interpreter) {
-        // TODO(regis): Remove this workaround once the interpreter can provide
-        // a non-null cache for the type test in an implicit setter.
-        if (mode == kTypeCheckFromInline) {
-          arguments.SetReturn(src_instance);
-          return;
-        }
-      }
-
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
       ASSERT(mode == kTypeCheckFromSlowStub);
       // We lazily create [SubtypeTestCache] for those call sites which actually
@@ -1205,6 +1204,7 @@ static RawFunction* InlineCacheMissHandler(
   ObjectStore* store = Isolate::Current()->object_store();
   if (target_function.raw() == store->simple_instance_of_function()) {
     // Replace the target function with constant function.
+    ASSERT(args.length() == 2);
     const AbstractType& type = AbstractType::Cast(*args[1]);
     target_function =
         ComputeTypeCheckTarget(receiver, type, arguments_descriptor);
@@ -1813,10 +1813,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 
     const String& getter_name =
         String::Handle(zone, Field::GetterName(target_name));
+    ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ArgumentsDescriptor args_desc(orig_arguments_desc);
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
@@ -1829,7 +1829,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
         CheckResultError(getter_result);
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
-        orig_arguments.SetAt(0, getter_result);
+        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
         const Object& call_result = Object::Handle(
             zone,
             DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
@@ -2156,7 +2156,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   // If running with interpreter, do the unoptimized compilation first.
   const bool unoptimized_compilation =
-      FLAG_enable_interpreter && !function.WasCompiled();
+      FLAG_enable_interpreter &&
+      (function.unoptimized_code() == Object::null());
 
   ASSERT(unoptimized_compilation || function.HasCode());
 

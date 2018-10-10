@@ -7,17 +7,18 @@ library vm.kernel_front_end;
 
 import 'dart:async';
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show
+        CompilerContext,
+        CompilerOptions,
+        DiagnosticMessage,
+        DiagnosticMessageHandler,
+        ProcessedOptions,
+        Severity,
+        getMessageUri,
+        kernelForProgram,
+        printDiagnosticMessage;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, ProblemHandler;
-import 'package:front_end/src/api_prototype/kernel_generator.dart'
-    show kernelForProgram;
-import 'package:front_end/src/api_prototype/compilation_message.dart'
-    show Severity;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Field, StaticGet;
@@ -52,8 +53,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool enableConstantEvaluation: true}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
-      new ErrorDetector(previousErrorHandler: options.onProblem);
-  options.onProblem = errorDetector;
+      new ErrorDetector(previousErrorHandler: options.onDiagnostic);
+  options.onDiagnostic = errorDetector;
 
   final component = await kernelForProgram(source, options);
 
@@ -81,7 +82,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   }
 
   // Restore error handler (in case 'options' are reused).
-  options.onProblem = errorDetector.previousErrorHandler;
+  options.onDiagnostic = errorDetector.previousErrorHandler;
 
   return component;
 }
@@ -122,9 +123,8 @@ Future _runGlobalTransformations(
           compilerOptions.target, coreTypes, component);
     } else {
       devirtualization.transformComponent(coreTypes, component);
+      no_dynamic_invocations_annotator.transformComponent(component);
     }
-
-    no_dynamic_invocations_annotator.transformComponent(component);
   }
 }
 
@@ -189,47 +189,38 @@ void _patchVmConstants(CoreTypes coreTypes) {
 }
 
 class ErrorDetector {
-  final ProblemHandler previousErrorHandler;
+  final DiagnosticMessageHandler previousErrorHandler;
   bool hasCompilationErrors = false;
 
   ErrorDetector({this.previousErrorHandler});
 
-  void call(codes.FormattedMessage problem, Severity severity,
-      List<codes.FormattedMessage> context) {
-    if (severity == Severity.error) {
+  void call(DiagnosticMessage message) {
+    if (message.severity == Severity.error) {
       hasCompilationErrors = true;
     }
 
-    previousErrorHandler?.call(problem, severity, context);
+    previousErrorHandler?.call(message);
   }
 }
 
 class ErrorPrinter {
-  final ProblemHandler previousErrorHandler;
-  final compilationMessages = <Uri, List<List>>{};
+  final DiagnosticMessageHandler previousErrorHandler;
+  final compilationMessages = <Uri, List<DiagnosticMessage>>{};
 
   ErrorPrinter({this.previousErrorHandler});
 
-  void call(codes.FormattedMessage problem, Severity severity,
-      List<codes.FormattedMessage> context) {
-    final sourceUri = problem.locatedMessage.uri;
-    compilationMessages.putIfAbsent(sourceUri, () => [])
-      ..add([problem, context]);
-    previousErrorHandler?.call(problem, severity, context);
+  void call(DiagnosticMessage message) {
+    final sourceUri = getMessageUri(message);
+    (compilationMessages[sourceUri] ??= <DiagnosticMessage>[]).add(message);
+    previousErrorHandler?.call(message);
   }
 
   void printCompilationMessages(Uri baseUri) {
     final sortedUris = compilationMessages.keys.toList()
       ..sort((a, b) => '$a'.compareTo('$b'));
     for (final Uri sourceUri in sortedUris) {
-      for (final List errorTuple in compilationMessages[sourceUri]) {
-        final codes.FormattedMessage message = errorTuple.first;
-        print(message.formatted);
-
-        final List context = errorTuple.last;
-        for (final codes.FormattedMessage message in context?.reversed) {
-          print(message.formatted);
-        }
+      for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
+        printDiagnosticMessage(message, print);
       }
     }
   }

@@ -502,6 +502,10 @@ abstract class KCommonElements implements CommonElements {
 
   ClassEntity get forceInlineClass;
 
+  ClassEntity get pragmaClass;
+  FieldEntity get pragmaClassNameField;
+  FieldEntity get pragmaClassOptionsField;
+
   bool isCreateInvocationMirrorHelper(MemberEntity member);
 
   bool isSymbolValidatedConstructor(ConstructorEntity element);
@@ -1321,6 +1325,18 @@ class CommonElementsImpl
   ClassEntity get forceInlineClass =>
       _forceInlineClass ??= _findHelperClass('ForceInline');
 
+  ClassEntity _pragmaClass;
+  ClassEntity get pragmaClass =>
+      _pragmaClass ??= _findClass(coreLibrary, 'pragma');
+
+  FieldEntity _pragmaClassNameField;
+  FieldEntity get pragmaClassNameField =>
+      _pragmaClassNameField ??= _findClassMember(pragmaClass, 'name');
+
+  FieldEntity _pragmaClassOptionsField;
+  FieldEntity get pragmaClassOptionsField =>
+      _pragmaClassOptionsField ??= _findClassMember(pragmaClass, 'options');
+
   ClassEntity _jsInvocationMirrorClass;
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
@@ -1933,6 +1949,9 @@ abstract class ElementEnvironment {
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
+  /// Returns the type of [field].
+  DartType getFieldType(FieldEntity field);
+
   /// Returns the 'unaliased' type of [type]. For typedefs this is the function
   /// type it is an alias of, for other types it is the type itself.
   ///
@@ -2008,7 +2027,4 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// This is the type used as the default type argument when no explicit type
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
-
-  /// Returns the type of [field].
-  DartType getFieldType(FieldEntity field);
 }

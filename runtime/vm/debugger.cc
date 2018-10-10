@@ -2876,17 +2876,9 @@ bool Debugger::FindBestFit(const Script& script,
 
         bool has_func_literal_initializer = false;
 #ifndef DART_PRECOMPILED_RUNTIME
-        if (isolate_->use_dart_frontend()) {
-          has_func_literal_initializer =
-              kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
-        } else {
+        has_func_literal_initializer =
+            kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
 #endif  // !DART_PRECOMPILED_RUNTIME
-          has_func_literal_initializer =
-              Parser::FieldHasFunctionLiteralInitializer(field, &start, &end);
-#ifndef DART_PRECOMPILED_RUNTIME
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-
         if (has_func_literal_initializer) {
           if ((start <= token_pos && token_pos <= end) ||
               (token_pos <= start && start <= last_token_pos)) {

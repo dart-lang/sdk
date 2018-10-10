@@ -13,12 +13,12 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
   abstract method f(dynamic x) → dynamic;
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     ;
   abstract method f(dynamic x) → dynamic;
 }

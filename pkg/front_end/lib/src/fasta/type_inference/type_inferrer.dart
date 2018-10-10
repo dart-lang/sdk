@@ -35,6 +35,7 @@ import 'package:kernel/ast.dart'
         PropertyGet,
         PropertySet,
         ReturnStatement,
+        Statement,
         StaticGet,
         SuperMethodInvocation,
         SuperPropertyGet,
@@ -450,37 +451,28 @@ abstract class TypeInferrer {
   Uri get uri;
 
   /// Performs full type inference on the given field initializer.
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body);
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper, kernel.Initializer initializer);
+  void inferInitializer(InferenceHelper helper, kernel.Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations);
 
   /// Performs type inference on the given metadata annotations keeping the
   /// existing helper if possible.
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations);
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations);
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType);
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -500,35 +492,27 @@ class TypeInferrerDisabled extends TypeInferrer {
   Uri get uri => null;
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer) {}
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body) {}
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {}
 
   @override
-  void inferInitializer<Expression, Statement, Initializer, Type>(
+  void inferInitializer(
       InferenceHelper helper, kernel.Initializer initializer) {}
 
   @override
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations) {}
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations) {}
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {}
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType) {}
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -592,6 +576,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
+
+  bool isDoubleContext(DartType typeContext) {
+    // A context is a double context if double is assignable to it but int is
+    // not.  That is the type context is a double context if it is:
+    //   * double
+    //   * FutureOr<T> where T is a double context
+    //
+    // We check directly, rather than using isAssignable because it's simpler.
+    while (typeContext is InterfaceType &&
+        typeContext.classNode == coreTypes.futureOrClass &&
+        typeContext.typeArguments.isNotEmpty) {
+      InterfaceType type = typeContext;
+      typeContext = type.typeArguments.first;
+    }
+    return typeContext == coreTypes.doubleClass.rawType;
+  }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
     return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
@@ -1130,14 +1130,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  DartType inferExpression<Expression, Statement, Initializer, Type>(
+  DartType inferExpression(
       kernel.Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed});
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType declaredType,
+  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
       kernel.Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
@@ -1156,15 +1154,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
-      ShadowField field, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      DartType returnType,
-      AsyncMarker asyncMarker,
-      Statement body) {
+  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
@@ -1175,17 +1169,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  ExpressionInferenceResult
-      inferInvocation<Expression, Statement, Initializer, Type>(
-          DartType typeContext,
-          int offset,
-          FunctionType calleeType,
-          DartType returnType,
-          ArgumentsJudgment arguments,
-          {bool isOverloadedArithmeticOperator: false,
-          DartType receiverType,
-          bool skipTypeArgumentInference: false,
-          bool isConst: false}) {
+  ExpressionInferenceResult inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, DartType returnType, ArgumentsJudgment arguments,
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false}) {
     lastInferredSubstitution = null;
     lastCalleeType = null;
     var calleeTypeParameters = calleeType.typeParameters;
@@ -1355,12 +1344,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return new ExpressionInferenceResult(null, inferredType);
   }
 
-  ExpressionInferenceResult
-      inferLocalFunction<Expression, Statement, Initializer, Type>(
-          FunctionNode function,
-          DartType typeContext,
-          int fileOffset,
-          DartType returnContext) {
+  ExpressionInferenceResult inferLocalFunction(FunctionNode function,
+      DartType typeContext, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
@@ -1503,7 +1488,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadata<Expression, Statement, Initializer, Type>(
+  void inferMetadata(
       InferenceHelper helper, List<kernel.Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
@@ -1513,8 +1498,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      List<kernel.Expression> annotations) {
+  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {
     if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
       // parent.  This is necessary in case any of the annotations need to get
@@ -1532,18 +1516,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  ExpressionInferenceResult
-      inferMethodInvocation<Expression, Statement, Initializer, Type>(
-          kernel.Expression expression,
-          kernel.Expression receiver,
-          int fileOffset,
-          bool isImplicitCall,
-          DartType typeContext,
-          {VariableDeclaration receiverVariable,
-          MethodInvocation desugaredInvocation,
-          Object interfaceMember,
-          Name methodName,
-          Arguments arguments}) {
+  ExpressionInferenceResult inferMethodInvocation(
+      kernel.Expression expression,
+      kernel.Expression receiver,
+      int fileOffset,
+      bool isImplicitCall,
+      DartType typeContext,
+      {VariableDeclaration receiverVariable,
+      MethodInvocation desugaredInvocation,
+      Object interfaceMember,
+      Name methodName,
+      Arguments arguments}) {
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
@@ -1606,10 +1589,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      kernel.Expression initializer,
-      DartType declaredType) {
+  void inferParameterInitializer(InferenceHelper helper,
+      kernel.Expression initializer, DartType declaredType) {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);
@@ -1621,7 +1602,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  void inferPropertyGet<Expression, Statement, Initializer, Type>(
+  void inferPropertyGet(
       ExpressionJudgment expression,
       ExpressionJudgment receiver,
       int fileOffset,
@@ -1682,8 +1663,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement<Expression, Statement, Initializer, Type>(
-      Statement statement);
+  void inferStatement(Statement statement);
 
   /// Performs the type inference steps necessary to instantiate a tear-off
   /// (if necessary).
@@ -1932,26 +1912,38 @@ class StrongModeMixinInferrer implements MixinInferrer {
     if (mixinSupertype.typeArguments.isEmpty) {
       // The supertype constraint isn't generic; it doesn't constrain anything.
     } else if (mixinSupertype.classNode.isAnonymousMixin) {
-      // We had a mixin M<X0, ..., Xn> with a superclass constraint of the form
-      // S0 with M0 where S0 and M0 each possibly have type arguments.  That has
-      // been compiled a named mixin application class of the form
+      // We have either a mixin declaration `mixin M<X0, ..., Xn> on S0, S1` or
+      // a VM-style super mixin `abstract class M<X0, ..., Xn> extends S0 with
+      // S1` where S0 and S1 are superclass constraints that possibly have type
+      // arguments.
       //
-      // class S0&M0<...> = S0 with M0;
-      // class M<X0, ..., Xn> extends S0&M0<...>
+      // It has been compiled by naming the superclass to either:
       //
-      // where the type parameters of S0&M0 are the X0, ..., Xn that occured
-      // free in S0 and M0.  Treat S0 and M0 as separate supertype constraints
-      // by recursively calling this algorithm.
+      // abstract class S0&S1<...> extends Object implements S0, S1 {}
+      // abstract class M<X0, ..., Xn> extends S0&S1<...> ...
       //
-      // In some back ends (e.g., the Dart VM) the mixin application classes
-      // themselves are all eliminated by translating them to normal classes.
-      // In that case, the mixin appears as the only interface in the
-      // introduced class:
+      // for a mixin declaration, or else:
       //
-      // class S0&M0<...> extends S0 implements M0 {}
+      // abstract class S0&S1<...> = S0 with S1;
+      // abstract class M<X0, ..., Xn> extends S0&S1<...>
+      //
+      // for a VM-style super mixin.  The type parameters of S0&S1 are the X0,
+      // ..., Xn that occured free in S0 and S1.  Treat S0 and S1 as separate
+      // supertype constraints by recursively calling this algorithm.
+      //
+      // In the Dart VM the mixin application classes themselves are all
+      // eliminated by translating them to normal classes.  In that case, the
+      // mixin appears as the only interface in the introduced class.  We
+      // support three forms for the superclass constraints:
+      //
+      // abstract class S0&S1<...> extends Object implements S0, S1 {}
+      // abstract class S0&S1<...> = S0 with S1;
+      // abstract class S0&S1<...> extends S0 implements S1 {}
       var mixinSuperclass = mixinSupertype.classNode;
       if (mixinSuperclass.mixedInType == null &&
-          mixinSuperclass.implementedTypes.length != 1) {
+          mixinSuperclass.implementedTypes.length != 1 &&
+          (mixinSuperclass.superclass != coreTypes.objectClass ||
+              mixinSuperclass.implementedTypes.length != 2)) {
         unexpected(
             'Compiler-generated mixin applications have a mixin or else '
             'implement exactly one type',
@@ -1961,11 +1953,21 @@ class StrongModeMixinInferrer implements MixinInferrer {
             mixinSuperclass.fileUri);
       }
       var substitution = Substitution.fromSupertype(mixinSupertype);
-      var s0 = substitution.substituteSupertype(mixinSuperclass.supertype);
-      var m0 = substitution.substituteSupertype(mixinSuperclass.mixedInType ??
-          mixinSuperclass.implementedTypes.first);
+      Supertype s0, s1;
+      if (mixinSuperclass.implementedTypes.length == 2) {
+        s0 = mixinSuperclass.implementedTypes[0];
+        s1 = mixinSuperclass.implementedTypes[1];
+      } else if (mixinSuperclass.implementedTypes.length == 1) {
+        s0 = mixinSuperclass.supertype;
+        s1 = mixinSuperclass.implementedTypes.first;
+      } else {
+        s0 = mixinSuperclass.supertype;
+        s1 = mixinSuperclass.mixedInType;
+      }
+      s0 = substitution.substituteSupertype(s0);
+      s1 = substitution.substituteSupertype(s1);
       generateConstraints(hierarchy, mixinClass, baseType, s0);
-      generateConstraints(hierarchy, mixinClass, baseType, m0);
+      generateConstraints(hierarchy, mixinClass, baseType, s1);
     } else {
       // Find the type U0 which is baseType as an instance of mixinSupertype's
       // class.
@@ -2028,11 +2030,10 @@ class StrongModeMixinInferrer implements MixinInferrer {
           return p;
         }
         assert(constraint == null || constraint.upper == constraint.lower);
+        bool exact =
+            constraint != null && constraint.upper != const UnknownType();
         return new TypeParameter(
-            p.name,
-            constraint == null || constraint.upper == const UnknownType()
-                ? p.bound
-                : constraint.upper);
+            p.name, exact ? constraint.upper : p.bound, p.defaultType);
       }).toList();
       // Bounds might mention the mixin class's type parameters so we have to
       // substitute them before calling instantiate to bounds.
@@ -2053,7 +2054,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
 }
 
 /// The result of an expression inference.
-class ExpressionInferenceResult<Expression> {
+class ExpressionInferenceResult {
   final Expression expression;
   final DartType type;
 

@@ -27,14 +27,7 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/hybrid_file_system.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/incremental_compiler.dart';
@@ -102,16 +95,15 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
-      ..onProblem = (FormattedMessage message, Severity severity,
-          List<FormattedMessage> context) {
+      ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
-        switch (severity) {
+        switch (message.severity) {
           case Severity.error:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code.
             printMessage = false; // errors are printed by VM
-            errors.add(message.formatted);
+            errors.addAll(message.plainTextFormatted);
             break;
           case Severity.warning:
             printMessage = !suppressWarnings;
@@ -119,13 +111,10 @@ abstract class Compiler {
           case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
-            throw "Unexpected severity: $severity";
+            throw "Unexpected severity: ${message.severity}";
         }
         if (printMessage) {
-          stderr.writeln(message.formatted);
-          for (FormattedMessage message in context) {
-            stderr.writeln(message.formatted);
-          }
+          printDiagnosticMessage(message, stderr.writeln);
         }
       };
   }

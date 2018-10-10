@@ -74,6 +74,7 @@ bool search(String description, String searchFor, List<Event> events,
     ArgResults options) {
   bool judgement = false;
   bool beganSection = false;
+  int count = options["count"] != null ? int.parse(options["count"]) : null;
 
   for (final event in events) {
     if (searchFor == "passing" &&
@@ -103,6 +104,14 @@ bool search(String description, String searchFor, List<Event> events,
     final name = event.after.name;
     if (!after.flaked && !after.matches) {
       judgement = true;
+    }
+    if (count != null) {
+      if (--count <= 0) {
+        if (options["human"]) {
+          print("(And more)");
+        }
+        break;
+      }
     }
     if (options["human"]) {
       if (options["verbose"]) {
@@ -140,6 +149,9 @@ main(List<String> args) async {
       abbr: 'c',
       negatable: false,
       help: "Show only tests that changed results.");
+  parser.addOption("count",
+      abbr: "C",
+      help: "Upper limit on how many tests to report in each section");
   parser.addFlag("failing",
       abbr: 'f', negatable: false, help: "Show failing tests.");
   parser.addOption("flakiness-data",

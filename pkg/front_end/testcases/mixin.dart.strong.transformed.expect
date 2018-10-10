@@ -17,19 +17,19 @@ abstract class _B&Object&M1&M2 extends self::_B&Object&M1 implements self::M2 {
     return core::print("M2");
 }
 class B extends self::_B&Object&M1&M2 {
-  constructor •(dynamic value) → void
+  constructor •(dynamic value) → self::B
     : super core::Object::•()
     ;
 }
 abstract class M1 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::M1
     : super core::Object::•()
     ;
   method m() → dynamic
     return core::print("M1");
 }
 abstract class M2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::M2
     : super core::Object::•()
     ;
   method m() → dynamic
@@ -50,12 +50,12 @@ abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 {
     return core::print("M2");
 }
 class C extends self::_C&Object&M1&M2 {
-  constructor •(dynamic value) → void
+  constructor •(dynamic value) → self::C
     : super core::Object::•()
     ;
 }
 abstract class G1<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::G1<self::G1::T>
     : super core::Object::•()
     ;
   method m() → dynamic
@@ -69,7 +69,7 @@ abstract class _D&Object&G1<S extends core::Object = dynamic> extends core::Obje
     return core::print(self::_D&Object&G1::S);
 }
 class D<S extends core::Object = dynamic> extends self::_D&Object&G1<self::D::S> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D<self::D::S>
     : super core::Object::•()
     ;
 }

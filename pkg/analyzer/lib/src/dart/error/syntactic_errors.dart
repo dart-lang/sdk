@@ -20,10 +20,7 @@ part 'syntactic_errors.g.dart';
  * is wrong and, when appropriate, how the problem can be corrected.
  */
 class ParserErrorCode extends ErrorCode {
-  static const ParserErrorCode ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
-      'ABSTRACT_CLASS_MEMBER',
-      "Members of classes can't be declared to be 'abstract'.",
-      correction: "Try removing the keyword 'abstract'.");
+  static const ParserErrorCode ABSTRACT_CLASS_MEMBER = _ABSTRACT_CLASS_MEMBER;
 
   static const ParserErrorCode ABSTRACT_ENUM = const ParserErrorCode(
       'ABSTRACT_ENUM', "Enums can't be declared to be 'abstract'.",
@@ -59,10 +56,7 @@ class ParserErrorCode extends ErrorCode {
           "The keywords 'async', 'await', and 'yield' can't be used as "
           "identifiers in an asynchronous or generator function.");
 
-  static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
-      'BREAK_OUTSIDE_OF_LOOP',
-      "A break statement can't be used outside of a loop or switch statement.",
-      correction: "Try removing the break statement.");
+  static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CATCH_SYNTAX = const ParserErrorCode(
       'CATCH_SYNTAX',
@@ -70,40 +64,19 @@ class ParserErrorCode extends ErrorCode {
       correction:
           "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
 
-  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
-      'CLASS_IN_CLASS', "Classes can't be declared inside other classes.",
-      correction: "Try moving the class to the top-level.");
+  static const ParserErrorCode CLASS_IN_CLASS = _CLASS_IN_CLASS;
 
-  static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
-      'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon.",
-      correction: "Try replacing the colon with the keyword 'in'.");
+  static const ParserErrorCode COLON_IN_PLACE_OF_IN = _COLON_IN_PLACE_OF_IN;
 
-  static const ParserErrorCode CONST_AFTER_FACTORY = const ParserErrorCode(
-      'CONST_AFTER_FACTORY',
-      "The modifier 'const' should be before the modifier 'factory'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode CONST_AFTER_FACTORY = _CONST_AFTER_FACTORY;
 
-  static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
-      'CONST_AND_COVARIANT',
-      "Members can't be declared to be both 'const' and 'covariant'.",
-      correction: "Try removing either the 'const' or 'covariant' keyword.");
+  static const ParserErrorCode CONST_AND_COVARIANT = _CONST_AND_COVARIANT;
 
-  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
-      'CONST_AND_FINAL',
-      "Members can't be declared to be both 'const' and 'final'.",
-      correction: "Try removing either the 'const' or 'final' keyword.");
+  static const ParserErrorCode CONST_AND_FINAL = _CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
-      'CONST_AND_VAR',
-      "Members can't be declared to be both 'const' and 'var'.",
-      correction: "Try removing either the 'const' or 'var' keyword.");
+  static const ParserErrorCode CONST_AND_VAR = _CONST_AND_VAR;
 
-  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
-      'CONST_CLASS', "Classes can't be declared to be 'const'.",
-      correction:
-          "Try removing the 'const' keyword. If you're trying to indicate that "
-          "instances of the class can be constants, place the 'const' keyword on "
-          "the class' constructor(s).");
+  static const ParserErrorCode CONST_CLASS = _CONST_CLASS;
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode('CONST_CONSTRUCTOR_WITH_BODY',
@@ -130,9 +103,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try removing the 'const' keyword.");
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      const ParserErrorCode('CONSTRUCTOR_WITH_RETURN_TYPE',
-          "Constructors can't have a return type.",
-          correction: "Try removing the return type.");
+      _CONSTRUCTOR_WITH_RETURN_TYPE;
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
       _CONTINUE_OUTSIDE_OF_LOOP;
@@ -253,6 +224,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXPECTED_TOKEN =
       const ParserErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
 
+  static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
+
   static const ParserErrorCode EXPECTED_TYPE_NAME =
       const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
 
@@ -262,20 +235,11 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving the export directives before the part directives.");
 
-  static const ParserErrorCode EXTERNAL_AFTER_CONST = const ParserErrorCode(
-      'EXTERNAL_AFTER_CONST',
-      "The modifier 'external' should be before the modifier 'const'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_CONST = _EXTERNAL_AFTER_CONST;
 
-  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = const ParserErrorCode(
-      'EXTERNAL_AFTER_FACTORY',
-      "The modifier 'external' should be before the modifier 'factory'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _EXTERNAL_AFTER_FACTORY;
 
-  static const ParserErrorCode EXTERNAL_AFTER_STATIC = const ParserErrorCode(
-      'EXTERNAL_AFTER_STATIC',
-      "The modifier 'external' should be before the modifier 'static'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode EXTERNAL_AFTER_STATIC = _EXTERNAL_AFTER_STATIC;
 
   static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
@@ -287,9 +251,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
 
-  static const ParserErrorCode EXTERNAL_FIELD = const ParserErrorCode(
-      'EXTERNAL_FIELD', "Fields can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_FIELD = _EXTERNAL_FIELD;
 
   static const ParserErrorCode EXTERNAL_GETTER_WITH_BODY =
       const ParserErrorCode(
@@ -298,10 +260,7 @@ class ParserErrorCode extends ErrorCode {
               "removing the keyword 'external'.");
 
   static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY =
-      const ParserErrorCode('EXTERNAL_METHOD_WITH_BODY',
-          "An external or native method can't have a body.",
-          correction: "Try removing the body of the method, or "
-              "removing the keyword 'external'.");
+      _EXTERNAL_METHOD_WITH_BODY;
 
   static const ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY =
       const ParserErrorCode('EXTERNAL_OPERATOR_WITH_BODY',
@@ -395,24 +354,14 @@ class ParserErrorCode extends ErrorCode {
           "removing the keyword 'get' to define a method rather than a getter.");
 
   static const ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE =
-      const ParserErrorCode('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
-          "Illegal assignment to non-assignable expression.");
+      _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE;
 
   static const ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS =
-      const ParserErrorCode('IMPLEMENTS_BEFORE_EXTENDS',
-          "The extends clause must be before the implements clause.",
-          correction:
-              "Try moving the extends clause before the implements clause.");
+      _IMPLEMENTS_BEFORE_EXTENDS;
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_ON = const ParserErrorCode(
-      'IMPLEMENTS_BEFORE_ON',
-      "The on clause must be before the implements clause.",
-      correction: "Try moving the on clause before the implements clause.");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_ON = _IMPLEMENTS_BEFORE_ON;
 
-  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
-      'IMPLEMENTS_BEFORE_WITH',
-      "The with clause must be before the implements clause.",
-      correction: "Try moving the with clause before the implements clause.");
+  static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = _IMPLEMENTS_BEFORE_WITH;
 
   static const ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
@@ -722,25 +671,6 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all of the normal parameters before the optional parameters.");
 
-  static const ParserErrorCode NULLABLE_TYPE_IN_EXTENDS = const ParserErrorCode(
-      'NULLABLE_TYPE_IN_EXTENDS',
-      "A nullable type can't be used in an extends clause.",
-      correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_IN_IMPLEMENTS =
-      const ParserErrorCode('NULLABLE_TYPE_IN_IMPLEMENTS',
-          "A nullable type can't be used in an implements clause.",
-          correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_IN_WITH = const ParserErrorCode(
-      'NULLABLE_TYPE_IN_WITH',
-      "A nullable type can't be used in a with clause.",
-      correction: "Try removing the '?' from the type name.");
-
-  static const ParserErrorCode NULLABLE_TYPE_PARAMETER = const ParserErrorCode(
-      'NULLABLE_TYPE_PARAMETER', "Type parameters can't be nullable.",
-      correction: "Try removing the '?' from the type name.");
-
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       const ParserErrorCode('POSITIONAL_AFTER_NAMED_ARGUMENT',
           "Positional arguments must occur before named arguments.",
@@ -849,9 +779,7 @@ class ParserErrorCode extends ErrorCode {
       "Variables can't be declared using both 'var' and a type name.",
       correction: "Try removing the keyword 'var'.");
 
-  static const ParserErrorCode VAR_AS_TYPE_NAME = const ParserErrorCode(
-      'VAR_AS_TYPE_NAME', "The keyword 'var' can't be used as a type name.",
-      correction: "Try using 'dynamic' instead of 'var'.");
+  static const ParserErrorCode VAR_AS_TYPE_NAME = _VAR_AS_TYPE_NAME;
 
   static const ParserErrorCode VAR_CLASS = const ParserErrorCode(
       'VAR_CLASS', "Classes can't be declared to be 'var'.",

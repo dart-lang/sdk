@@ -327,8 +327,6 @@ class PostfixCompletionProcessor {
 
   LineInfo get lineInfo => completionContext.lineInfo;
 
-  int get requestLine => lineInfo.getLocation(selectionOffset).lineNumber;
-
   int get selectionOffset => completionContext.selectionOffset;
 
   /**

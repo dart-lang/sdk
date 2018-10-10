@@ -557,8 +557,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitCompilationUnit() {
     CompilationUnit fromNode = AstTestFactory.compilationUnit();
-    CompilationUnitElement element =
-        new CompilationUnitElementImpl("test.dart");
+    CompilationUnitElement element = new CompilationUnitElementImpl();
     fromNode.element = element;
     CompilationUnit toNode = AstTestFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);

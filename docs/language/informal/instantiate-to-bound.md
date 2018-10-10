@@ -2,7 +2,7 @@
 
 **Author**: eernst@
 
-**Version**: 0.7 (2018-02-26)
+**Version**: 0.8 (2018-09-26)
 
 **Status**: Implemented.
 
@@ -99,7 +99,8 @@ This mechanism does not require any grammar modifications.
 
 ## Static analysis
 
-Let _G_ be a generic class with formal type parameter declarations
+Let _G_ be a generic class or parameterized type alias with formal type
+parameter declarations
 _F<sub>1</sub> .. F<sub>k</sub>_ containing formal type parameters
 _X<sub>1</sub> .. X<sub>k</sub>_ and bounds
 _B<sub>1</sub> .. B<sub>k</sub>_. We say that the formal type parameter
@@ -111,25 +112,27 @@ is satisfied:
 2. _B<sub>j</sub>_ is included, but does not contain any of _X<sub>1</sub>
    .. X<sub>k</sub>_. If _B<sub>j</sub>_ contains a type _T_ on the form
    `qualified` (*for instance, `C` or `p.D`*) which denotes a generic class
-   _G<sub>1</sub>_ (*that is, _T_ is a raw type*), every type argument of
-   _G<sub>1</sub>_ has a simple bound.
+   or parameterized type alias _G<sub>1</sub>_ (*that is, _T_ is a raw type*),
+   every type argument of _G<sub>1</sub>_ has a simple bound.
 
 The notion of a simple bound must be interpreted inductively rather than
-coinductively, i.e., if a bound _B<sub>j</sub>_ of a generic class _G_ is
-reached during an investigation of whether _B<sub>j</sub>_ is a simple
-bound, the answer is no.
+coinductively, i.e., if a bound _B<sub>j</sub>_ of a generic class or
+parameterized type alias _G_ is reached during an investigation of whether
+_B<sub>j</sub>_ is a simple bound, the answer is no.
 
 *For example, with `class C<X extends C> {}` the type parameter `X` does
-not have a simple bound.*
+not have a simple bound: A raw `C` is used as a bound for `X`, so `C` 
+must have simple bounds, but one of the bounds of `C` is the bound of `X`, 
+and that bound is `C`, so `C` must have simple bounds: Cycle, hence error!*
 
 *We can now specify in which sense instantiate to bound requires the
 involved types to be "simple enough". We impose the following constraint on
 all bounds because any generic type may be used as a raw type.*
 
 It is a compile-time error if a formal parameter bound _B_ contains a type
-_T_ on the form `qualified` and _T_ denotes a generic class _G_ (*that is,
-_T_ is a raw type*), unless every formal type parameter of _G_ has a simple
-bound.
+_T_ on the form `qualified` and _T_ denotes a generic class or parameterized
+type alias _G_ (*that is, _T_ is a raw type*), unless every formal type
+parameter of _G_ has a simple bound.
 
 *In short, type arguments on bounds can only be omitted if they themselves
 have simple bounds. In particular, `class C<X extends C> {}` is a
@@ -138,9 +141,9 @@ parameter `X` that corresponds to the omitted type argument does not have a
 simple bound.*
 
 When a type annotation _T_ on the form `qualified` denotes a generic class
-(*so _T_ is raw*), instantiate to bound is used to provide the missing type
-argument list. It is a compile-time error if the instantiate to bound
-process fails.
+or parameterized type alias (*so _T_ is raw*), instantiate to bound is used
+to provide the missing type argument list. It is a compile-time error if
+the instantiate to bound process fails.
 
 *Other mechanisms may be considered for this situation, e.g., inference
 could be used to select a possible type annotation, and type arguments
@@ -154,17 +157,18 @@ bound would still be used in cases where no information is available to
 infer the omitted type arguments, e.g., for `List xs = [];`.*
 
 *When type inference is providing actual type arguments for a term _G_ on
-the form `qualified` which denotes a generic class, instantiate to bound
-may be used to provide the value for type arguments where no information is
-available for inferring such an actual type argument. This document does
-not specify how inference interacts with instantiate to bound, that will be
-specified as part of the specification of inference. We will hence proceed
-to specify instantiate to bound as it applies to a type argument list which
-is omitted, such that a value for all the actual type arguments must be
-computed.*
+the form `qualified` which denotes a generic class or a parameterized type
+alias, instantiate to bound may be used to provide the value for type
+arguments where no information is available for inferring such an actual
+type argument. This document does not specify how inference interacts with
+instantiate to bound, that will be specified as part of the specification
+of inference. We will hence proceed to specify instantiate to bound as it
+applies to a type argument list which is omitted, such that a value for all
+the actual type arguments must be computed.*
 
-Let _T_ be a `qualified` term which denotes a generic class _G_ (*so _T_ is
-a raw type*), let _F<sub>1</sub> .. F<sub>k</sub>_ be the formal type
+Let _T_ be a `qualified` term which denotes a generic class or
+parameterized type alias _G_ (*so _T_ is a raw type*), let
+_F<sub>1</sub> .. F<sub>k</sub>_ be the formal type
 parameter declarations in the declaration of _G_, with type parameters
 _X<sub>1</sub> .. X<sub>k</sub>_ and bounds _B<sub>1</sub>
 .. B<sub>k</sub>_ with types _T<sub>1</sub> .. T<sub>k</sub>_. For _i_ in
@@ -259,6 +263,10 @@ applicable.
 
 
 ## Updates
+
+*   Sep 26th 2018, version 0.8: Fixed unintended omission: the same rules
+    that we specified for a generic class are now also specified to hold
+    for parameterized type aliases.
 
 *   Feb 26th 2018, version 0.7: Revised cycle breaking algorithm for
     F-bounded type variables to avoid specifying orderings that do not matter.

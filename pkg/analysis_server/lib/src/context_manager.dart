@@ -31,6 +31,7 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -369,12 +370,6 @@ abstract class ContextManagerCallbacks {
    * for the files in the given [folder] when analyzed using the given [options].
    */
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
-
-  /**
-   * Called when the context manager changes the folder with which a context is
-   * associated. Currently this is mostly FYI, and used only in tests.
-   */
-  void moveContext(Folder from, Folder to);
 
   /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
@@ -1759,9 +1754,10 @@ class PackagesFileDisposition extends FolderDisposition {
     if (packageMap == null) {
       packageMap = <String, List<Folder>>{};
       if (packages != null) {
+        var pathContext = resourceProvider.pathContext;
         packages.asMap().forEach((String name, Uri uri) {
           if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-            var path = resourceProvider.pathContext.fromUri(uri);
+            String path = fileUriToNormalizedPath(pathContext, uri);
             packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
           }
         });

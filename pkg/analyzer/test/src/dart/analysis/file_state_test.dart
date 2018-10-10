@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -397,13 +397,13 @@ part of L;
     String a3 = _p('/aaa/lib/a3.dart');
     String content_a1 = r'''
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     provider.newFile(a, content_a1);
 

@@ -10,19 +10,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
- * An empty list returned by [CompletionContributor]s
- * when they have no suggestions to contribute.
- */
-const EMPTY_LIST = const <CompletionSuggestion>[];
-
-/**
- * An object used to instantiate a [CompletionContributor] instance
- * for each 'completion.getSuggestions' request.
- * Contributors should *not* be cached between requests.
- */
-typedef CompletionContributor CompletionContributorFactory();
-
-/**
  * [AbortCompletion] is thrown when the current completion request
  * should be aborted because either
  * the source changed since the request was made, or

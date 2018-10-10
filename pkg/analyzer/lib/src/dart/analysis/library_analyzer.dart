@@ -14,11 +14,14 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -28,18 +31,19 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:front_end/src/dependency_walker.dart';
 
 /**
  * Analyzer of a single library.
  */
 class LibraryAnalyzer {
-  final AnalysisOptions _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
+  final InheritanceManager2 _inheritance;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -56,7 +60,7 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
-  final List<ConstantEvaluationTarget> _constants = [];
+  final Set<ConstantEvaluationTarget> _constants = new Set();
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -66,7 +70,8 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._library)
-      : _typeProvider = _context.typeProvider;
+      : _inheritance = new InheritanceManager2(_context.typeSystem),
+        _typeProvider = _context.typeProvider;
 
   /**
    * Compute analysis results for all units of the library.
@@ -157,7 +162,8 @@ class LibraryAnalyzer {
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables,
+        forAnalysisDriver: true);
     unit.accept(constantVerifier);
   }
 
@@ -167,7 +173,7 @@ class LibraryAnalyzer {
   void _computeConstants() {
     ConstantEvaluationEngine evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, _declaredVariables,
-        typeSystem: _context.typeSystem);
+        forAnalysisDriver: true, typeSystem: _context.typeSystem);
 
     List<_ConstantNode> nodes = [];
     Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
@@ -207,15 +213,14 @@ class LibraryAnalyzer {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
 
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        _libraryElement,
-        includeAbstractFromSuperclasses: true);
-
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
+        errorReporter, _typeProvider, _libraryElement,
         typeSystem: _context.typeSystem));
 
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+    unit.accept(new OverrideVerifier(
+        errorReporter,
+        new InheritanceManager(_libraryElement,
+            includeAbstractFromSuperclasses: true)));
 
     new ToDoFinder(errorReporter).findIn(unit);
 
@@ -293,15 +298,12 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
     CodeChecker checker = new CodeChecker(
-        _typeProvider,
-        new StrongTypeSystemImpl(_typeProvider,
-            implicitCasts: options.implicitCasts,
-            declarationCasts: options.declarationCasts,
-            nonnullableTypes: options.nonnullableTypes),
-        errorListener,
-        options);
+      _typeProvider,
+      _context.typeSystem,
+      errorListener,
+      _analysisOptions,
+    );
     checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
@@ -317,6 +319,13 @@ class LibraryAnalyzer {
     _computeConstantErrors(errorReporter, unit);
 
     //
+    // Compute inheritance and override errors.
+    //
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        _context.typeSystem, _inheritance, errorReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit);
+
+    //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
@@ -324,6 +333,7 @@ class LibraryAnalyzer {
         _libraryElement,
         _typeProvider,
         new InheritanceManager(_libraryElement),
+        _inheritance,
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
   }
@@ -565,8 +575,10 @@ class LibraryAnalyzer {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
+    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, errorListener));
+        source, _typeProvider, errorListener,
+        nameScope: libraryScope));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -577,20 +589,19 @@ class LibraryAnalyzer {
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
 
-    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: libraryScope));
 
-    unit.accept(new PartialResolverVisitor(_libraryElement, source,
-        _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
+        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener));
+        _inheritance, _libraryElement, source, _typeProvider, errorListener));
   }
 
   /**

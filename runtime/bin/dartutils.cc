@@ -55,7 +55,6 @@ const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 dart::SimpleHashMap* DartUtils::environment_ = NULL;
 
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
-MagicNumberData snapshot_magic_number = {4, {0xf5, 0xf5, 0xdc, 0xdc}};
 MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
 MagicNumberData kernel_list_magic_number = {
     7,
@@ -437,8 +436,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
       RefCntReleaseScope<File> rs(file);
       intptr_t max_magic_length = 0;
       max_magic_length =
-          Utils::Maximum(max_magic_length, snapshot_magic_number.length);
-      max_magic_length =
           Utils::Maximum(max_magic_length, appjit_magic_number.length);
       max_magic_length =
           Utils::Maximum(max_magic_length, kernel_magic_number.length);
@@ -458,10 +455,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
 
 DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
                                                       intptr_t buffer_length) {
-  if (CheckMagicNumber(buffer, buffer_length, snapshot_magic_number)) {
-    return kSnapshotMagicNumber;
-  }
-
   if (CheckMagicNumber(buffer, buffer_length, appjit_magic_number)) {
     return kAppJITMagicNumber;
   }

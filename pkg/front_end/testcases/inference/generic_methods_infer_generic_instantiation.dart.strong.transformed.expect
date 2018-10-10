@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:math" as math;
 
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method m<T extends core::num = core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T

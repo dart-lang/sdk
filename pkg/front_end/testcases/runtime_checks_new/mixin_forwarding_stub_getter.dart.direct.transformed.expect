@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object = dynamic> = (T) → void;
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   get x() → (core::int) → void {
@@ -15,14 +15,14 @@ class B extends core::Object {
   }
 }
 abstract class I<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I<self::I::T>
     : super core::Object::•()
     ;
   abstract get x() → (self::I::T) → void;
   abstract set x(core::Object value) → void;
 }
 abstract class M<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::M<self::M::T>
     : super core::Object::•()
     ;
   get x() → self::M::T
@@ -33,7 +33,7 @@ abstract class M<T extends core::Object = dynamic> extends core::Object {
   abstract method f() → self::M::T;
 }
 abstract class C<T extends core::Object = dynamic> extends self::B implements self::I<self::C::T>, self::M<(self::C::T) → void> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C<self::C::T>
     : super self::B::•()
     ;
   get x() → (self::C::T) → void
@@ -44,7 +44,7 @@ abstract class C<T extends core::Object = dynamic> extends self::B implements se
   abstract method f() → (self::C::T) → void;
 }
 class D extends self::C<core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::B::•()
     ;
   method f() → (core::int) → void

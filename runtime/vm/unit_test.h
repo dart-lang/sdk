@@ -272,10 +272,40 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
-extern const uint8_t* platform_dill;
 extern const uint8_t* platform_strong_dill;
-extern const intptr_t platform_dill_size;
 extern const intptr_t platform_strong_dill_size;
+
+class TesterState : public AllStatic {
+ public:
+  static const uint8_t* vm_snapshot_data;
+  static Dart_IsolateCreateCallback create_callback;
+  static Dart_IsolateShutdownCallback shutdown_callback;
+  static Dart_IsolateCleanupCallback cleanup_callback;
+  static const char** argv;
+  static int argc;
+};
+
+class KernelBufferList {
+ public:
+  explicit KernelBufferList(const uint8_t* kernel_buffer)
+      : kernel_buffer_(kernel_buffer), next_(NULL) {}
+
+  KernelBufferList(const uint8_t* kernel_buffer, KernelBufferList* next)
+      : kernel_buffer_(kernel_buffer), next_(next) {}
+
+  ~KernelBufferList() {
+    free(const_cast<uint8_t*>(kernel_buffer_));
+    if (next_ != NULL) {
+      delete next_;
+    }
+  }
+
+  void AddBufferToList(const uint8_t* kernel_buffer);
+
+ private:
+  const uint8_t* kernel_buffer_;
+  KernelBufferList* next_;
+};
 
 class TestCaseBase {
  public:
@@ -289,8 +319,11 @@ class TestCaseBase {
 
   static void RunAll();
   static void RunAllRaw();
+  static void CleanupState();
+  static void AddToKernelBuffers(const uint8_t* kernel_buffer);
 
  protected:
+  static KernelBufferList* current_kernel_buffers_;
   bool raw_test_;
 
  private:
@@ -314,7 +347,6 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
   static bool UsingDartFrontend();
-  static bool UsingStrongMode();
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
@@ -382,10 +414,13 @@ class TestCase : TestCaseBase {
   static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
-  static Dart_Handle TriggerReload();
+  static Dart_Handle TriggerReload(const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size);
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
+
+  // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestKernel(const uint8_t* kernel_buffer,
                                       intptr_t kernel_buffer_size);
 

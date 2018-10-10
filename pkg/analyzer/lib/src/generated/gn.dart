@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -100,8 +101,9 @@ class GnWorkspace extends Workspace {
   Map<String, List<Folder>> _convertPackagesToMap(Packages packages) {
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     if (packages != null && packages != Packages.noPackages) {
+      var pathContext = provider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
-        String path = provider.pathContext.fromUri(uri);
+        String path = fileUriToNormalizedPath(pathContext, uri);
         folderMap[packageName] = [provider.getFolder(path)];
       });
     }
@@ -142,7 +144,8 @@ class GnWorkspace extends Workspace {
   void _resolveSymbolicLinks(Map<String, Uri> map) {
     Context pathContext = provider.pathContext;
     for (String packageName in map.keys) {
-      Folder folder = provider.getFolder(pathContext.fromUri(map[packageName]));
+      String path = fileUriToNormalizedPath(pathContext, map[packageName]);
+      Folder folder = provider.getFolder(path);
       String folderPath = _resolveSymbolicLink(folder);
       // Add a '.' so that the URI is suitable for resolving relative URI's
       // against it.

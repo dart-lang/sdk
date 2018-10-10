@@ -25,7 +25,6 @@ POSIX_INFO = 'ps -p %s -o args'
 EXECUTABLE_NAMES = {
   'win32': {
     'chrome': 'chrome.exe',
-    'dart_bootstrap': 'dart_bootstrap.exe',
     'dart': 'dart.exe',
     'dart_precompiled_runtime': 'dart_precompiled_runtime.exe',
     'firefox': 'firefox.exe',
@@ -37,7 +36,6 @@ EXECUTABLE_NAMES = {
   },
   'linux': {
     'chrome': 'chrome',
-    'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
     'dart_precompiled_runtime': 'dart_precompiled_runtime',
     'firefox': 'firefox',
@@ -47,7 +45,6 @@ EXECUTABLE_NAMES = {
   'macos': {
     'chrome': 'Chrome',
     'chrome_helper': 'Chrome Helper',
-    'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
     'dart_precompiled_runtime': 'dart_precompiled_runtime',
     'firefox': 'firefox',
@@ -231,7 +228,6 @@ def KillVSBuild():
 
 def KillDart():
   status = Kill("dart", dump_stacks=True)
-  status += Kill("dart_bootstrap", dump_stacks=True)
   status += Kill("gen_snapshot", dump_stacks=True)
   status += Kill("dart_precompiled_runtime", dump_stacks=True)
   return status

@@ -28,9 +28,11 @@ import '../../scanner/token.dart'
 
 import '../scanner/token_constants.dart'
     show
+        BANG_EQ_EQ_TOKEN,
         COMMA_TOKEN,
         DOUBLE_TOKEN,
         EOF_TOKEN,
+        EQ_EQ_EQ_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
         HASH_TOKEN,
@@ -1753,7 +1755,17 @@ class Parser {
       // and generate the same events as in the parseClassHeader method above.
       recoveryListener.clear();
 
-      token = parseClassExtendsOpt(token);
+      if (token.next.isKeywordOrIdentifier &&
+          const ['extend', 'on'].contains(token.next.lexeme)) {
+        reportRecoverableError(
+            token.next, fasta.templateExpectedInstead.withArguments('extends'));
+        Token incorrectExtendsKeyword = token.next;
+        token = computeType(incorrectExtendsKeyword, true)
+            .ensureTypeNotVoid(incorrectExtendsKeyword, this);
+        listener.handleClassExtends(incorrectExtendsKeyword);
+      } else {
+        token = parseClassExtendsOpt(token);
+      }
 
       if (recoveryListener.extendsKeyword != null) {
         if (hasExtends) {
@@ -1901,7 +1913,15 @@ class Parser {
       // During recovery, clauses are parsed in the same order and
       // generate the same events as in the parseMixinHeaderOpt method above.
       recoveryListener.clear();
-      token = parseMixinOnOpt(token);
+
+      if (token.next.isKeywordOrIdentifier &&
+          const ['extend', 'extends'].contains(token.next.lexeme)) {
+        reportRecoverableError(
+            token.next, fasta.templateExpectedInstead.withArguments('on'));
+        token = parseMixinOn(token);
+      } else {
+        token = parseMixinOnOpt(token);
+      }
 
       if (recoveryListener.onKeyword != null) {
         if (hasOn) {
@@ -1942,16 +1962,24 @@ class Parser {
   /// ;
   /// ```
   Token parseMixinOnOpt(Token token) {
-    Token onKeyword;
-    int typeCount = 0;
-    if (optional('on', token.next)) {
-      onKeyword = token.next;
-      do {
-        token =
-            computeType(token.next, true).ensureTypeNotVoid(token.next, this);
-        ++typeCount;
-      } while (optional(',', token.next));
+    if (!optional('on', token.next)) {
+      listener.handleMixinOn(null, 0);
+      return token;
     }
+    return parseMixinOn(token);
+  }
+
+  Token parseMixinOn(Token token) {
+    Token onKeyword = token.next;
+    // During recovery, the [onKeyword] can be "extend" or "extends"
+    assert(optional('on', onKeyword) ||
+        optional('extends', onKeyword) ||
+        onKeyword.lexeme == 'extend');
+    int typeCount = 0;
+    do {
+      token = computeType(token.next, true).ensureTypeNotVoid(token.next, this);
+      ++typeCount;
+    } while (optional(',', token.next));
     listener.handleMixinOn(onKeyword, typeCount);
     return token;
   }
@@ -2904,7 +2932,16 @@ class Parser {
       TypeInfo typeInfo,
       Token getOrSet,
       Token name) {
-    bool isOperator = getOrSet == null && optional('operator', name);
+    bool isOperator = false;
+    if (getOrSet == null && optional('operator', name)) {
+      Token operator = name.next;
+      if (operator.isOperator ||
+          identical(operator.kind, EQ_EQ_EQ_TOKEN) ||
+          identical(operator.kind, BANG_EQ_EQ_TOKEN) ||
+          isUnaryMinus(operator)) {
+        isOperator = true;
+      }
+    }
 
     if (staticToken != null) {
       if (isOperator) {
@@ -2965,7 +3002,9 @@ class Parser {
         : MemberKind.NonStaticMethod;
     checkFormals(token, name, isGetter, kind);
     Token beforeParam = token;
-    token = parseFormalParametersOpt(token, kind);
+    token = isGetter
+        ? parseFormalParametersOpt(token, kind)
+        : parseFormalParametersRequiredOpt(token, kind);
     token = parseInitializersOpt(token);
 
     AsyncModifier savedAsyncModifier = asyncState;
@@ -3477,6 +3516,9 @@ class Parser {
     } else if (identical(value, 'yield')) {
       switch (asyncState) {
         case AsyncModifier.Sync:
+          if (optional(':', token.next.next)) {
+            return parseLabeledStatement(token);
+          }
           return parseExpressionStatementOrDeclaration(token);
 
         case AsyncModifier.SyncStar:

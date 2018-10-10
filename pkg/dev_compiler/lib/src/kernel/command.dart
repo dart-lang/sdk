@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart';
@@ -26,13 +27,13 @@ import 'analyzer_to_kernel.dart';
 import 'compiler.dart';
 import 'target.dart';
 
-const _binaryName = 'dartdevk';
+const _binaryName = 'dartdevc -k';
 
 /// Invoke the compiler with [args].
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {InitializedCompilerState compilerState}) async {
   try {
     return await _compile(args, compilerState: compilerState);
   } catch (error, stackTrace) {
@@ -59,17 +60,8 @@ String _usageMessage(ArgParser ddcArgParser) =>
     'Usage: $_binaryName [options...] <sources...>\n\n'
     '${ddcArgParser.usage}';
 
-class CompilerResult {
-  final fe.InitializedCompilerState compilerState;
-  final bool success;
-
-  CompilerResult(this.compilerState, this.success);
-
-  CompilerResult.noState(this.success) : compilerState = null;
-}
-
 Future<CompilerResult> _compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {InitializedCompilerState compilerState}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -97,7 +89,7 @@ Future<CompilerResult> _compile(List<String> args,
 
   if (argResults['help'] as bool || args.isEmpty) {
     print(_usageMessage(argParser));
-    return CompilerResult.noState(true);
+    return CompilerResult(0);
   }
 
   // To make the output .dill agnostic of the current working directory,
@@ -130,7 +122,6 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var options = SharedCompilerOptions.fromArguments(argResults);
-  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
@@ -139,16 +130,28 @@ Future<CompilerResult> _compile(List<String> args,
       (useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath);
   useAnalyzer = useAnalyzer || !sdkSummaryPath.endsWith('.dill');
 
-  var packageFile = argResults['packages'] as String ??
-      path.absolute(ddcPath, '..', '..', '.packages');
+  /// The .packages file path provided by the user.
+  //
+  // TODO(jmesserly): the default location is based on the current working
+  // directory, to match the behavior of dartanalyzer/dartdevc. However the
+  // Dart VM, CFE (and dart2js?) use the script file location instead. The
+  // difference may be due to the lack of a single entry point for DDC/Analyzer.
+  // Ultimately this is just the default behavior; in practice users call DDC
+  // through a build tool, which generally passes in `--packages=`.
+  //
+  // TODO(jmesserly): conceptually CFE should not need a .packages file to
+  // resolve package URIs that are in the input summaries, but it seems to.
+  // This needs further investigation.
+  var packageFile = argResults['packages'] as String ?? _findPackagesFilePath();
 
   var inputs = argResults.rest.map(sourcePathToCustomUri).toList();
 
   var succeeded = true;
-  void errorHandler(fe.CompilationMessage error) {
-    if (error.severity == fe.Severity.error) {
+  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+    if (message.severity == fe.Severity.error) {
       succeeded = false;
     }
+    fe.printDiagnosticMessage(message, print);
   }
 
   var oldCompilerState = compilerState;
@@ -175,14 +178,15 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
+  fe.DdcResult result =
+      await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   if (result == null || !succeeded) {
-    return CompilerResult(compilerState, false);
+    return CompilerResult(1, compilerState);
   }
 
   var component = result.component;
   if (!options.emitMetadata && _checkForDartMirrorsImport(component)) {
-    return CompilerResult(compilerState, false);
+    return CompilerResult(1, compilerState);
   }
 
   var file = File(output);
@@ -211,7 +215,9 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.Printer(sink, showExternal: false).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
-  var compiler = ProgramCompiler(component, options, declaredVariables);
+  var target = compilerState.options.target as DevCompilerTarget;
+  var compiler =
+      ProgramCompiler(component, target.hierarchy, options, declaredVariables);
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryModules);
 
@@ -229,7 +235,7 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   await Future.wait(outFiles);
-  return CompilerResult(compilerState, true);
+  return CompilerResult(0, compilerState);
 }
 
 /// The output of compiling a JavaScript module in a particular format.
@@ -318,17 +324,11 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 }
 
 /// The default path of the kernel summary for the Dart SDK.
-final defaultSdkSummaryPath = path.join(
-    path.dirname(path.dirname(Platform.resolvedExecutable)),
-    'lib',
-    '_internal',
-    'ddc_sdk.dill');
+final defaultSdkSummaryPath =
+    path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
 
-final defaultAnalyzerSdkSummaryPath = path.join(
-    path.dirname(path.dirname(Platform.resolvedExecutable)),
-    'lib',
-    '_internal',
-    'ddc_sdk.sum');
+final defaultAnalyzerSdkSummaryPath =
+    path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
@@ -343,4 +343,30 @@ bool _checkForDartMirrorsImport(Component component) {
     }
   }
   return false;
+}
+
+/// Returns the absolute path to the default `.packages` file, or `null` if one
+/// could not be found.
+///
+/// Checks for a `.packages` file in the current working directory, or in any
+/// parent directory.
+String _findPackagesFilePath() {
+  // TODO(jmesserly): this was copied from package:package_config/discovery.dart
+  // Unfortunately the relevant function is not public. CFE APIs require a URI
+  // to the .packages file, rather than letting us provide the package map data.
+  var dir = Directory.current;
+  if (!dir.isAbsolute) dir = dir.absolute;
+  if (!dir.existsSync()) return null;
+
+  // Check for $cwd/.packages
+  while (true) {
+    var file = File(path.join(dir.path, ".packages"));
+    if (file.existsSync()) return file.path;
+
+    // If we didn't find it, search the parent directory.
+    // Stop the search if we're already at the root.
+    var parent = dir.parent;
+    if (dir.path == parent.path) return null;
+    dir = parent;
+  }
 }

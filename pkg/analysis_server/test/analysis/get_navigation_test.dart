@@ -65,7 +65,7 @@ class Bar {
   }
 
   test_fileDoesNotExist() async {
-    String file = '$projectPath/doesNotExist.dart';
+    String file = convertPath('$projectPath/doesNotExist.dart');
     Request request = _createGetNavigationRequest(file, 0, 100);
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);

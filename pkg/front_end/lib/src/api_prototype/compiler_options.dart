@@ -6,15 +6,13 @@ library front_end.compiler_options;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../base/performance_logger.dart' show PerformanceLog;
-
 import '../fasta/fasta_codes.dart' show FormattedMessage;
 
 import '../fasta/severity.dart' show Severity;
 
-import 'byte_store.dart' show ByteStore, NullByteStore;
-
 import 'compilation_message.dart' show CompilationMessage;
+
+import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'file_system.dart' show FileSystem;
 
@@ -23,6 +21,8 @@ import 'standard_file_system.dart' show StandardFileSystem;
 export '../fasta/fasta_codes.dart' show FormattedMessage;
 
 export '../fasta/severity.dart' show Severity;
+
+export 'diagnostic_message.dart' show DiagnosticMessage;
 
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
@@ -59,6 +59,8 @@ class CompilerOptions {
   ErrorHandler onError;
 
   ProblemHandler onProblem;
+
+  DiagnosticMessageHandler onDiagnostic;
 
   /// Whether messages should be reported using the compiler's internal
   /// reporting mechanism.
@@ -125,12 +127,6 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
-
-  /// The byte storage to access serialized data.
-  ByteStore byteStore = new NullByteStore();
-
-  /// The logger to report compilation progress.
-  PerformanceLog logger = new PerformanceLog(new StringBuffer());
 
   /// Whether to generate code for the SDK.
   ///

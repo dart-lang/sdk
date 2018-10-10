@@ -114,7 +114,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   }
 
   var errorCode = token.errorCode;
-  switch (errorCode.analyzerCode) {
+  switch (errorCode.analyzerCodes?.first) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
@@ -166,7 +166,8 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError('$errorCode "${errorCode.analyzerCode}"');
+      throw new UnimplementedError(
+          '$errorCode "${errorCode.analyzerCodes?.first}"');
   }
 }
 

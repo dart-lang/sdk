@@ -59,11 +59,8 @@ int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
-# These tests crash in mixed mode.
 [ $compiler == dartkb ]
-bigint_from_test: Pass, Crash # Please triage
-bigint_parse_radix_test: Pass, Crash # Please triage
-bigint_test: Pass, Crash, RuntimeError # Please triage
+bigint_test: Skip # Switching from non-intrinsic version to intrinsics on the fly causes invariants "assert(d0 == d1)" and "assert(d == _digitsPerStep)" in bigint_patch.dart to break, which leads to flaky RuntimeError / Timeout failures.
 
 [ $compiler == precompiler ]
 bigint_test: Pass, Timeout # --no_intrinsify
@@ -424,8 +421,8 @@ symbol_test/01: MissingCompileTimeError
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $arch == simarm || $arch == simarm64 || $arch == simdbc64 || $compiler == dartkb ]
-bigint_parse_radix_test: Pass, Slow # Bigint computations are slow on simulated architectures.
-bigint_test: Pass, Slow, Timeout # Bigint computations are slow on simulated architectures.
+bigint_parse_radix_test: Skip # Issue 31659
+bigint_test: Skip # Issue 31659
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -589,6 +586,6 @@ double_try_parse_test: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
-bigint_parse_radix_test: Pass, Timeout, Crash # Issue 31659. Issue 34361.
-bigint_test: Pass, Timeout # Issue 31659
+bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
+bigint_test: Skip # Issue 31659
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow

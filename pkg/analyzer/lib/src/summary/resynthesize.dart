@@ -7,10 +7,8 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -198,6 +196,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   TypeProvider get typeProvider => _typeProvider;
 
   /**
+   * The [TypeSystem] used perform type operations.
+   */
+  TypeSystem get typeSystem => context.typeSystem;
+
+  /**
    * The client installed this resynthesizer into the context, and set its
    * type provider, so it is not safe to access type provider to create
    * additional types.
@@ -326,7 +329,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
             new LibraryElementImpl(context, '', -1, 0);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
-            new CompilationUnitElementImpl(librarySource.shortName);
+            new CompilationUnitElementImpl();
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
@@ -466,8 +469,14 @@ class SummaryResynthesizerContext implements ResynthesizerContext {
 /// An instance of [_UnitResynthesizer] is responsible for resynthesizing the
 /// elements in a single unit from that unit's summary.
 abstract class UnitResynthesizer {
+  /// Gets the [LibraryElement] being resynthesized.
+  LibraryElement get library;
+
   /// Gets the [TypeProvider], which may be used to create core types.
   TypeProvider get typeProvider;
+
+  /// Gets the [TypeSystem], which may be used to create core types.
+  TypeSystem get typeSystem;
 
   /// Builds a [DartType] object based on a [EntityRef].  This [DartType]
   /// may refer to elements in other libraries than the library being
@@ -1145,11 +1154,6 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   CompilationUnitElementImpl unit;
 
   /**
-   * The visitor to rewrite implicit `new` and `const`.
-   */
-  AstRewriteVisitor astRewriteVisitor;
-
-  /**
    * Map from slot id to the corresponding [EntityRef] object for linked types
    * (i.e. propagated and inferred types).
    */
@@ -1189,8 +1193,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         libraryResynthesizer.library,
         _resynthesizerContext,
         unlinkedUnit,
-        unlinkedPart,
-        unitSource?.shortName);
+        unlinkedPart);
 
     {
       List<int> lineStarts = unlinkedUnit.lineStarts;
@@ -1211,11 +1214,17 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
   }
 
+  @override
+  LibraryElement get library => libraryResynthesizer.library;
+
   SummaryResynthesizer get summaryResynthesizer =>
       libraryResynthesizer.summaryResynthesizer;
 
   @override
   TypeProvider get typeProvider => summaryResynthesizer.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => summaryResynthesizer.typeSystem;
 
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
@@ -1586,22 +1595,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedExpr uc) {
-    var expression = new ExprBuilder(this, context, uc).build();
-
-    if (expression != null) {
-      astRewriteVisitor ??= new AstRewriteVisitor(
-          libraryResynthesizer.summaryResynthesizer.context.typeSystem,
-          libraryResynthesizer.library,
-          unit.source,
-          typeProvider,
-          AnalysisErrorListener.NULL_LISTENER,
-          addConstKeyword: true);
-      var container = astFactory.expressionStatement(expression, null);
-      expression.accept(astRewriteVisitor);
-      expression = container.expression;
-    }
-
-    return expression;
+    return new ExprBuilder(this, context, uc).build();
   }
 
   /**

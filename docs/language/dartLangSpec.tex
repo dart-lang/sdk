@@ -49,7 +49,7 @@
 % - Introduce a notion of lookup which is needed for superinvocations.
 % - Use new lookup concept to simplify specification of getter, setter, method
 %   lookup.
-% - Introduce several `Case< SomeTopic >` markers in order to improve
+% - Introduce several `Case<SomeTopic>` markers in order to improve
 %   readability.
 % - Reorganize several sections to specify static analysis first and then
 %   dynamic semantics; clarify many details along the way. The sections are:
@@ -59,6 +59,8 @@
 %   \ref{localVariableDeclaration}, and \ref{return}.
 % - Corrected error involving multiple uses of the same part in the same
 %   program such that it takes exports into account.
+% - Eliminate all references to checked and production mode, Dart 2 does
+%   not have modes.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -113,6 +115,13 @@
 %   dynamically.
 % - Specify that it is an error for a superinitializer to occur anywhere else
 %   than at the end of an initializer list.
+% - Update the potentially/compile-time constant expression definitions
+%   so that "potentially constant" depends only on the grammar, not the types
+%   of sub-expressions.
+% - Make `==` recognize `null` and make `&&` and `||` short-circuit in constant
+%   expressions.
+% - Add `as` and `is` expressions as constant expressions
+% - Make `^`, `|` and `&` operations on `bool` constant operations.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -371,35 +380,66 @@ The run-time type of every object is represented as an instance of class \code{T
 
 \LMHash{}
 Dart programs may be statically checked.
-The static checker will report some violations of the type rules, but such violations do not abort compilation or preclude execution.
-
-\LMHash{}
-Dart programs may be executed in one of two modes: production mode or checked mode.
-In production mode, static type annotations (\ref{staticTypes}) have absolutely no effect on execution with the exception of reflection and structural type tests.
+Programs with compile-time errors do not have a specified dynamic semantics.
+This specification makes no attempt to answer additional questions
+about a library or program at the point
+where it is known to have a compile-time error.
 
 \commentary{
-Reflection, by definition, examines the program structure.
-If we provide reflective access to the type of a declaration, or to source code, it will inevitably produce results that depend on the types used in the underlying code.
-
-Type tests also examine the types in a program explicitly.
-Nevertheless, in most cases, these will not depend on type annotations.
-The exceptions to this rule are type tests involving function types.
-Function types are structural, and so depend on the types declared for their parameters and on their return types.
+However, tools may choose to support execution of some programs with errors.
+For instance, a compiler may compile certain constructs with errors such that
+a dynamic error will be raised if an attempt is made to
+execute such a construct,
+or an IDE integrated runtime may support opening
+an editor window when such a construct is executed,
+allowing developers to correct the error.
+It is expected that such features would amount to a natural extension of the
+dynamic semantics of Dart as specified here, but, as mentioned,
+this specification makes no attempt to specify exactly what that means.
 }
 
 \LMHash{}
-In checked mode, assignments are dynamically checked, and certain violations of the type system throw exceptions at run time.
+As specified in this document,
+dynamic checks are guaranteed to be performed in certain situations,
+and certain violations of the type system throw exceptions at run time.
+
+\commentary{
+An implementation is free to omit such checks whenever they are
+guaranteed to succeed, e.g., based on results from the static analysis.
+}
 
 \commentary{
 The coexistence between optional typing and reification is based on the following:
 \begin{enumerate}
-\item Reified type information reflects the types of objects at run time and may always be queried by dynamic typechecking constructs (the analogs of instanceOf, casts, typecase etc.\ in other languages).
-Reified type information includes class declarations, the run-time type (aka class) of an object, and type arguments to constructors.
-\item Static type annotations determine the types of variables and function declarations (including methods and constructors).
-\item Production mode respects optional typing.
-Static type annotations do not affect run-time behavior.
-\item Checked mode utilizes static type annotations and dynamic type information aggressively yet selectively to provide early error detection during development.
+\item
+  Reified type information reflects the types of objects at run time
+  and may always be queried by dynamic typechecking constructs
+  (the analogs of instanceOf, casts, typecase etc.\ in other languages).
+  Reified type information includes
+  access to instances of class \code{Type} representing types,
+  the run-time type (aka class) of an object,
+  and the actual values of type parameters
+  to constructors and generic function invocations.
+\item
+  Type annotations declare the types of
+  variables and functions (including methods and constructors).
+\item
+  %% TODO(eernst): Change when integrating instantiate-to-bounds.md.
+  Type annotations may be omitted, in which case they are generally
+  filled in with the type \DYNAMIC{}
+  (\ref{typeDynamic}).
 \end{enumerate}
+}
+
+%% TODO(eernst): Update when we add inference.
+\commentary{
+Dart as implemented includes extensive support for inference of omitted types.
+This specification makes the assumption that inference has taken place,
+and hence inferred types are considered to be present in the program already.
+However, in some cases no information is available
+to infer an omitted type annotation,
+and hence this specification still needs to specify how to deal with that.
+A future version of this specification will also specify type inference.
 }
 
 \LMHash{}
@@ -410,6 +450,10 @@ Libraries are units of encapsulation and may be mutually recursive.
 However they are not first class.
 To get multiple copies of a library running simultaneously, one needs to spawn an isolate.
 }
+
+\LMHash{}
+A dart program execution may occur with assertions enabled or disabled.
+The method used to enable or disable assertions is implementation specific.
 
 
 \subsection{Scoping}
@@ -706,7 +750,7 @@ It is a compile-time error to preface a top-level variable declaration with the 
 
 \LMHash{}
 A {\em constant variable} is a variable whose declaration includes the modifier \CONST{}.
-A constant variable must be initialized to a compile-time constant (\ref{constants}) or a compile-time error occurs.
+A constant variable must be initialized to a constant expression (\ref{constants}) or a compile-time error occurs.
 
 \LMHash{}
 A {\em final variable} is a variable whose binding is fixed upon initialization;
@@ -854,9 +898,9 @@ will throw.
 }
 
 \LMHash{}
-In checked mode,
-it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type of the variable $v$
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not
+a subtype of the actual type of the variable $v$
 (\ref{actualTypeOfADeclaration}).
 
 
@@ -901,9 +945,9 @@ If $d$ is of one of the forms
 \code{\CONST{} $T$ $v$ = $e$;},
 \code{\STATIC{} \CONST{} $v$ = $e$;} or
 \code{\STATIC{} \CONST{} $T$ $v$ = $e$;}
-the result of the getter is the value of the compile-time constant $e$.
+the result of the getter is the value of the constant expression $e$.
 \commentary{
-Note that a compile-time constant cannot depend on itself,
+Note that a constant expression cannot depend on itself,
 so no cyclic references can occur.
 }
 \item {\bf Variable declaration without initializer}.
@@ -1190,7 +1234,7 @@ The colon-syntax is included only for backwards compatibility.
 It is deprecated and will be removed in a later version of the language specification.
 
 \LMHash{}
-It is a compile-time error if the default value of an optional parameter is not a compile-time constant (\ref{constants}).
+It is a compile-time error if the default value of an optional parameter is not a constant expression (\ref{constants}).
 If no default is explicitly specified for an optional parameter an implicit default of \NULL{} is provided.
 
 \LMHash{}
@@ -1938,10 +1982,10 @@ $e_i,\ i \in 1 .. p+q$,
 must be a potentially constant expression (\ref{constantConstructors}).
 
 \LMHash{}
-It is a dynamic error if an actual argument passed in an invocation of a redirecting generative constructor $k$
+It is a dynamic type error if an actual argument passed in an invocation of a redirecting generative constructor $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
-It is a dynamic error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
+It is a dynamic type error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
 is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of the redirectee.
@@ -2122,10 +2166,9 @@ proceeds as follows:
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
 Then, the instance variable $v$ of $i$ is bound to $o$.
-In checked mode,
-it is a dynamic type error if $o$ is not the null object
+It is a dynamic type error if $o$ is not the null object
 (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type
+and the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of the instance variable $v$.
 
@@ -2184,7 +2227,10 @@ otherwise the return type is \code{$M$<$T_1, \ldots,\ T_n$>} where $T_1, \ldots,
 It is a compile-time error if $M$ is not the name of the immediately enclosing class.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if a factory returns a non-null object whose type is not a subtype of its actual (\ref{actualTypeOfADeclaration}) return type.
+It is a dynamic type error if a factory returns a non-null object
+whose type is not a subtype of its actual
+(\ref{actualTypeOfADeclaration})
+return type.
 
 \rationale{
 It seems useless to allow a factory to return the null object (\ref{null}).
@@ -2219,17 +2265,29 @@ then consider a declaration of a redirecting factory constructor $k$ of one of t
 
 \begin{dartCode}
 $\ConstMetavar$ \FACTORY{}
-    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) = $R$;
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$]) = $R$;
 \\
 $\ConstMetavar$ \FACTORY{}
-    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) = $R$;
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$\}) = $R$;
 \end{dartCode}
 
 \noindent
 where $R$ is of one of the forms
 \code{$T$<$S_1 \ldots,\ S_p$>} or
 \code{$T$<$S_1 \ldots,\ S_p$>.\id}.
-The {\em redirectee constructor} for this declaration is then the constructor denoted by $R$.
+
+\LMHash{}
+It is a compile-time error if $T$ does not denote
+a class accessible in the current scope.
+If $T$ does denote such a class $D$,
+it is a compile-time error if $R$ does not denote a constructor.
+% It is by induction sufficient to check for abstractness one level down,
+% because it is an error on the redirectee if this occurs after multiple
+% redirections:
+Otherwise, it is a compile-time error
+if $R$ denotes a generative constructor and $D$ is abstract.
+Otherwise, the {\em redirectee constructor} for this declaration is
+the constructor denoted by $R$.
 
 \LMHash{}
 A redirecting factory constructor $q'$ is {\em redirection-reachable}
@@ -2268,6 +2326,7 @@ and/or the actual type argument list of the redirectee constructor is omitted (\
 
 \LMHash{}
 It is a compile-time error if $k$ explicitly specifies a default value for an optional parameter.
+
 \commentary{
 Default values specified in $k$ would be ignored, since it is the {\em actual} parameters that are passed to $k'$.
 Hence, default values are disallowed.
@@ -2278,50 +2337,18 @@ It is a compile-time error if a formal parameter of $k'$ has a default value
 whose type is not a subtype of the type annotation
 on the corresponding formal parameter in $k$.
 
-\LMHash{}
-It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections.
-
-\LMHash{}
-It is a compile-time error if $type$ does not denote a class accessible in the current scope;
-if $type$ does denote such a class $C$ it is a compile-time error if the referenced constructor (be it \metavar{type} or \code{\metavar{type}.\id}) is not a constructor of $C$.
-
 \commentary{
 Note that it is not possible to modify the arguments being passed to $k'$.
 }
-% but we have the same issue with other redirecting constructors, no?)
+
 \rationale{
 At first glance, one might think that ordinary factory constructors could simply create instances of other classes and return them, and that redirecting factories are unnecessary.
 However, redirecting factories have several advantages:
 \begin{itemize}
 \item An abstract class may provide a constant constructor that utilizes the constant constructor of another class.
-\item A redirecting factory constructor avoids the need for forwarders to repeat the default values for formal parameters in their signatures.
-%\item A generic factory class that aggregates factory constructors for types it does not implement can still have its type arguments passed correctly.
+\item A redirecting factory constructor avoids the need for forwarders to repeat the formal parameters and their default values.
 \end{itemize}
-
-%An example of the latter point:
-%}
-
-%\begin{dartCode}
-%\CLASS{} W<T> \IMPLEMENTS{} A<T> { W(w) {...} ...}
-%\CLASS{} X<T> \IMPLEMENTS{} A<T> { X(x) {...} ...}
-%\CLASS{} Y<T> \IMPLEMENTS{} A<T> { Y(y) {...} ...}
-%\CLASS{} Z<T> \IMPLEMENTS{} A<T> { Z(z) {...} ...}
-
-%\CLASS{} F<T> { // note that F does not implement A
-%  \STATIC{} F<T> idw(w) => \NEW{} W<T>(w); // illegal - T not in scope in idw
-%  \FACTORY{} F.idx(x) => \NEW{} X<T>(x);
-%  \FACTORY{} F.idy(y) => \NEW{} Y<T>(y);
-%  \STATIC{} F idz(z) => \NEW{} Z(z); // does not capture the type argument
-%}
-
-%\CLASS{} A<T>{
-%  \FACTORY{} A.idw(w) => F<T>.idw(w);
-%// illegal - cannot pass type parameter to static method
-%  \FACTORY{} A.idx(x) $=> \NEW{} $F<T>.idx(x); // works, but allocates a gratuitous instance of F
-%  \FACTORY{} A.idy(y) = Y<T>; // works
-%  \FACTORY{} A.idz(z) => F.idz(z); // wrong - returns Z<Dynamic>; no way to pass type argument
 }
-%\end{dartCode}
 
 \LMHash{}
 It is a compile-time error if $k$ is prefixed with the \CONST{} modifier but $k'$ is not a constant constructor (\ref{constantConstructors}).
@@ -2331,7 +2358,7 @@ Let $T_1, \ldots, T_m$ be the actual type arguments passed to $k'$
 in the declaration of $k$.
 Let $X_1, \ldots, X_m$ be the formal type arguments declared by
 the class that contains the declaration of $k'$.
-Let $F'$ be the function of $k'$ (\ref{constructors}).
+Let $F'$ be the function type of $k'$ (\ref{constructors}).
 It is a compile-time error if $[T_1/X_1, \ldots, T_m/X_m]F'$
 is not a subtype of the function type of $k$.
 
@@ -2343,15 +2370,12 @@ the interface of the immediately enclosing class of $k$.
 }
 
 \LMHash{}
-It is a compile-time error if any of the type arguments to $k'$ are not subtypes of the bounds of the corresponding formal type parameters of $type$.
-
-\LMHash{}
 For the dynamic semantics,
 assume that $k$ is a redirecting factory constructor
 and $k'$ is the redirectee of $k$.
 
 \LMHash{}
-It is a dynamic error if an actual argument passed in an invocation of $k$
+It is a dynamic type error if an actual argument passed in an invocation of $k$
 is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
 of the corresponding formal parameter in the declaration of $k$.
 
@@ -2408,30 +2432,14 @@ The superinitializer that appears, explicitly or implicitly, in the initializer 
 Any expression that appears within the initializer list of a constant constructor must be a potentially constant expression, or a compile-time error occurs.
 
 \LMHash{}
-A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression, and where $e$ is also a valid expression if all the formal parameters are treated as non-constant variables.
+A {\em potentially constant expression} is an expression $e$ that could be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants of appropriate types, and where $e$ is also a valid expression if all the formal parameters are treated as non-constant variables.
 
 \commentary{
-Note that a parameter that is not used in a superexpression that is restricted to certain types can be a constant of any type.
-For example
-}
+The difference between a potentially constant expression and a constant expression (\ref{const}) deserves some explanation.
 
-\begin{dartCode}
-\CLASS{} A \{
-  \FINAL{} m;
-  \CONST{} A(this.m);
-\}
-\end{dartCode}
+The key issue is how one treats the formal parameters of a constructor.
 
-\commentary{
-can be instantiated via \code{\CONST{} A(\CONST []);}
-}
-
-\commentary{
-The difference between a potentially constant expression and a compile-time constant expression (\ref{const}) deserves some explanation.
-
-The key issue is whether one treats the formal parameters of a constructor as compile-time constants.
-
-If a constant constructor is invoked from a constant object expression, the actual arguments will be required to be compile-time constants.
+If a constant constructor is invoked from a constant object expression, the actual arguments will be required to be constant expressions.
 Therefore, if we were assured that constant constructors were always invoked from constant object expressions, we could assume that the formal parameters of a constructor were compile-time constants.
 
 However, constant constructors can also be invoked from ordinary instance creation expressions (\ref{new}), and so the above assumption is not generally valid.
@@ -2450,9 +2458,9 @@ This allows for constructors such as:
 \end{dartCode}
 
 \commentary{
-The assignment to \code{x} is allowed under the assumption that \code{q} is a compile-time constant (even though \code{q} is not, in general a compile-time constant).
+The assignment to \code{x} is allowed under the assumption that \code{q} is constant (even though \code{q} is not, in general a compile-time constant).
 The assignment to \code{y} is similar, but raises additional questions.
-In this case, the superexpression of \code{p} is \code{p + 100}, and it requires that \code{p} be a numeric compile-time constant for the entire expression to be considered constant.
+In this case, the superexpression of \code{p} is \code{p + 100}, and it requires that \code{p} be a numeric constant expression for the entire expression to be considered constant.
 The wording of the specification allows us to assume that \code{p} evaluates to an integer.
 A similar argument holds for \code{p} and \code{q} in the assignment to \code{z}.
 
@@ -2532,17 +2540,35 @@ Static method declarations may conflict with other declarations
 \subsection{Superclasses}
 \LMLabel{superclasses}
 
+%% TODO(eernst): We need to say that the superclass which is obtained
+%% by mixin application is generic when $C$ is generic, or at least
+%% when one or more of $C$'s type variables are used by the classes
+%% in the \EXTENDS{} or \WITH{} clause of $C$. It says below that
+%% these clauses are in the type parameter scope of $C$, but that does
+%% not allow us to talk about the superclass as an actual, stand-alone
+%% class (unless we start defining nested classes, such that the
+%% superclass can be declared in that scope).
+
 \LMHash{}
-The superclass $S^\prime$ of a class $C$ that has a with clause \code{\WITH{} $M_1, \ldots,\ M_k$} and an extends clause \code{\EXTENDS{} $S$} is the application of mixin composition (\ref{mixins}) $M_k* \cdots * M_1$ to $S$. The name $S^\prime$ is a fresh identifier.
-If no \WITH{} clause is specified then the \EXTENDS{} clause of a class $C$ specifies its superclass.
+The superclass $S'$ of a class $C$ whose declaration has a with clause
+\code{\WITH{} $M_1, \ldots,\ M_k$}
+and an extends clause
+\code{\EXTENDS{} $S$}
+is the abstract class obtained by application of
+mixin composition (\ref{mixins}) $M_k* \cdots * M_1$ to $S$.
+The name $S'$ is a fresh identifier.
+If no \WITH{} clause is specified then the \EXTENDS{} clause of
+a class $C$ specifies its superclass.
 If no \EXTENDS{} clause is specified, then either:
 \begin{itemize}
 \item $C$ is \code{Object}, which has no superclass. OR
-\item Class $C$ is deemed to have an \EXTENDS{} clause of the form \code{\EXTENDS{} Object}, and the rules above apply.
+\item Class $C$ is deemed to have an \EXTENDS{} clause of the form
+\code{\EXTENDS{} Object}, and the rules above apply.
 \end{itemize}
 
 \LMHash{}
-It is a compile-time error to specify an \EXTENDS{} clause for class \code{Object}.
+It is a compile-time error to specify an \EXTENDS{} clause
+for class \code{Object}.
 
 \begin{grammar}
 <superclass> ::= \EXTENDS{} <type>
@@ -3036,7 +3062,7 @@ where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
 which denote the superclass, by $N_C$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by \SUPER{},
-and $d'_i$, $i \in 1..p$, is a compile-time constant expression evaluating
+and $d'_i$, $i \in 1..p$, is a constant expression evaluating
 to the same value as $d_i$.
 If $S_q$ is a generative const constructor, and $M$ does not declare any
 fields, $C_q$ is also a const constructor.
@@ -3054,7 +3080,7 @@ where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by $N_C$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by \SUPER{},
-and $d'_i$, $i \in 1..n$, is a compile-time constant expression evaluating to the same value as $d_i$.
+and $d'_i$, $i \in 1..n$, is a constant expression evaluating to the same value as $d_i$.
 If $S_q$ is a generative const constructor, and $M$ does not declare any
 fields, $C_q$ is also a const constructor.
 
@@ -3744,7 +3770,7 @@ Dart supports metadata which is used to attach user defined annotations to progr
 Metadata consists of a series of annotations, each of which begin with the character @, followed by a constant expression that starts with an identifier.
 It is a compile-time error if the expression is not one of the following:
 \begin{itemize}
-\item A reference to a compile-time constant variable.
+\item A reference to a constant variable.
 \item A call to a constant constructor.
 \end{itemize}
 
@@ -3873,56 +3899,188 @@ The rules for identity make it impossible for a Dart programmer to observe wheth
 \subsection{Constants}
 \LMLabel{constants}
 
-\LMHash{}
-A {\em constant expression} is an expression whose value can never change, and that can be evaluated entirely at compile time.
+\commentary{
+All usages of the word 'constant' in Dart are associated with compile time.
+A potentially constant expression is an expression that will generally yield
+a constant value when the value of certain parameters is given.
+The constant expressions is a subset of the potentially constant expressions that {\em can} be evaluated entirely at compile time.
+}
+
+\rationale{
+The constant expressions are restricted to expressions that
+perform only simple arithmetic operations, boolean conditions, and string and instance creation.
+No user written function body is executed during constant expression evaluation,
+only members of the system classes \code{int}, \code{double}, \code{bool}, \code{String} or \code{Null}.
+}
 
 \LMHash{}
-A constant expression is one of the following:
+The {\em potentially constant expressions} and {\em constant expressions} are the following:
+
 \begin{itemize}
-\item A literal number (\ref{numbers}).
-\item A literal boolean (\ref{booleans}).
-\item A literal string (\ref{strings}) where every interpolated expression (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to the null object (\ref{null}).
-\rationale{
-It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.
-However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.
-}
-\item A literal symbol (\ref{symbols}).
-\item \NULL{} (\ref{null}).
-\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix.
+\item A literal boolean, \TRUE{} or \FALSE{} (\ref{booleans}), is a potentially constant and constant expression.
+
+\item A literal number (\ref{numbers}) is a potentially constant and constant expression if it evaluates to a value of type \code{int} or \code{double}.
+% A too-large integer literal does not evaluate to a value.
+
+\item A literal string (\ref{strings}) with string interpolations (\ref{stringInterpolation} with expressions $e_1$, \ldots{}, $e_n$ is a potentially constant expression if $e_1$, \ldots{}, $e_n$ are potentially constant expressions.
+The literal is further a constant expression if $e_1$, \ldots{}, $e_n$ are constant expressions evaluating to values that are instances of \code{int}, \code{double} \code{String}, \code{bool} or \code{Null}.
+\commentary{These requirements hold trivially if there are no interpolations in the string}.
+\rationale{It would be tempting to allow string interpolation where the
+interpolated value is any compile-time constant. However, this would require
+running the \code{toString()} method for constant objects, which could contain
+arbitrary code.}
+
+\item A literal symbol (\ref{symbols}) is a potentially constant and constant expression.
+
+\item The literal \NULL{} (\ref{null}) is a potentially constant and constant expression.
+
+\item An identifier that denotes a constant variable is a potentially constant and constant expression.
+
+\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix, is a potentially constant and constant expression.
 \commentary{
-For example, if class C declares a constant variable v, C.v is a constant.
-The same is true if C is accessed via a prefix p; p.C.v is a constant unless p is a deferred prefix.
+For example, If class $C$ declares a constant static variable $v$, \code{$C$.$v$} is a constant.
+The same is true if $C$ is accessed via a prefix $p$; \code{$p$.$C$.$v$} is a constant unless $p$ is a deferred prefix.
 }
-\item An identifier expression that denotes a constant variable.
-\item A simple or qualified identifier denoting a class or type alias that is not qualified by a deferred prefix.
+
+\item A simple or qualified identifier denoting a class, a mixin or a type alias that is not qualified by a deferred prefix, is a potentially constant and constant expression.
 \commentary{
-For example, If C is a class or typedef, C is a constant, and if C is imported with a prefix p, p.C is a constant unless p is a deferred prefix.
+The constant expression always evaluates to a \code{Type} object.
+For example, if $C$ is the name of a class or type alias, the expression \code{$C$} is a constant, and if $C$ is imported with a prefix $p$, \code{$p$.$C$} is a constant \code{Type} instance representing the type of $C$ unless $p$ is a deferred prefix.
 }
-\item A constant constructor invocation (\ref{const}) that is not qualified by a deferred prefix.
-\item A constant list literal (\ref{lists}).
-\item A constant map literal (\ref{maps}).
-\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
-\item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
-\item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions and \code{identical()} is statically bound to the predefined dart function \code{identical()} discussed above (\ref{objectIdentity}).
-\item An expression of one of the forms \code{$e_1$\,==\,$e_2$} or \code{$e_1$\,!=\,$e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to the null object (\ref{null}).
-\item An expression of one of the forms \code{!$e$}, \code{$e_1$\,\&\&\,$e_2$} or \code{$e_1$\,||\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
-\item An expression of one of the forms \code{\~{}$e$}, \code{$e_1$\,\^\,$e_2$}, \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, \code{$e_1$\,<\mbox<\,$e_2$}, \code{$e_1$\,\gtgt\,$e_2$} or \code{$e_1$\,\gtgtgt\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1$\,+\,$e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to the null object (\ref{null}).
-\item An expression of one of the forms \code{-$e$}, \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$}, \code{$e_1$\,/\,$e_2$,} \code{$e_1$\,\~{}/\,$e_2$}, \code{$e_1$\,>\,$e_2$}, \code{$e_1$\,<\,$e_2$}, \code{$e_1$\,>=\,$e_2$}, \code{$e_1$\,<=\,$e_2$} or \code{$e_1$\,\%\,$e_2$}, where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value or to the null object (\ref{null}).
-\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
-\item An expression of the form \code{$e_1$\,??\,$e_2$} where $e_1$ and $e_2$ are constant expressions.
-\item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
+
+\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix, is a potentially constant and constant expression.
+
+\item An identifier expression denoting a parameter of a constant constructor (\ref{constantConstructors}) that occurs in the initializer list of the constructor, is a potentially constant expression.
+
+\item A constant object expression (\ref{const}),
+\code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>(\metavar{arguments})} or
+\code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>.\id(\metavar{arguments})},
+or either expression without the leading \CONST{} that occurs in a constant context, is a potentially constant expression if $T_1$, \ldots{}, $T_k$ are constant type expressions, and the actual argument expressions in \metavar{arguments} are constant expressions.
+It is further a constant expression if the invocation evaluates to a value.
+% \ref{const} requires each actual argument to be a constant expression,
+% but here we also catch errors during evaluation, e.g., `C(1, 0)` where
+% `C(double x, double y): z = x / y;`.
+It is a compile-time error if a constant object expression is
+not a constant expression (\ref{const}).
+
+\item A constant list literal (\ref{lists}),
+\code{\CONST{} <$T$>[$e_1$, \ldots{}, $e_n$]}, or
+\code{<$T$>[$e_1$, \ldots{}, $e_n$]}
+that occurs in a constant context, is a potentially constant expression if $T$ is a constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions.
+It is further a constant expression if the list literal evaluates to a value.
+
+\item A constant map literal (\ref{maps}),
+\code{\CONST{} <$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}}
+is a potentially constant expression if
+\begin{itemize}
+  \item $K$ and $V$ are constant type expressions,
+  \item $k_1$, \ldots{}, $k_n$ are constant expressions evaluating to values that are either \code{int} or \code{String} instances, created using a symbol literal or a const invocation of the \code{Symbol} constructor, or instances of classes that that do not override the \code{==} operator inherited from \code{Object}, and
+  \item $v_1$, \ldots{}, $v_n$ are constant expressions.
+\end{itemize}
+It is further a constant expression if the map literal evaluates to a value.
+%Should we also require the key instances to not override hashCode? Because Symbols do.
+
+\item A parenthesized expression \code{($e$)} is a potentially constant expression if $e$ is a potentially constant expression. It is further a constant expression if $e$ is a constant expression.
+
+\item An expression of the form \code{identical($e_1$, $e_2$)} is a potentially constant expression if $e_1$ and $e_2$ are potentially constant expressions and \code{identical} is statically bound to the predefined dart function \code{identical()} discussed above (\ref{objectIdentity}). It is further a constant expression if $e_1$ and $e_2$ are constant expressions.
+
+\item An expression of the form \code{$e_1$\,!=\,$e_2$} is equivalent to \code{!($e_1$\,==\,$e_2$)} in every way, including whether it is potentially constant or constant.
+
+\item An expression of the form \code{$e_1$\,==\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant and either $e_1$ evaluates to a value that is an instance of \code{int}, \code{double}, \code{String}, \code{bool} or \code{Null}, or if $e_2$ evaluates to the null object (\ref{null}).
+%TODO: Consider adding enum instances here.
+
+\item An expression of the form \code{!$e_1$} is potentially constant if $e_1$ is potentially constant. It is further constant if $e_1$ is a constant expression that evaluates to a value of type \code{bool}.
+
+\item An expression of the form \code{$e_1$\,\&\&\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \FALSE{}, or
+\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\end{enumerate}
+
+\item An expression of the form \code{$e_1$\,||\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \TRUE{}, or
+\item $e_1$ evaluates to \FALSE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\end{enumerate}
+
+\item An expression of the form \code{~$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value of type \code{int}.
+
+\item An expression of one of the forms \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, or \code{$e_1$\,\^\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that both evaluate to values that are both instances of \code{int}, or that are both instances of \code{bool}.
+% The bool case is new in 2.1.
+
+\item An expression of one of the forms \code{$e_1$\,\~{}/\,$e_2$}, \code{$e_1$\,\gtgt\,$e_2$}, \code{$e_1$\,\gtgtgt\,$e_2$}, or \code{$e_1$\,\ltlt\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that evaluate to values that are instances of \code{int}.
+
+\item An expression of the form \code{$e_1$\,+\,$e_2$} is a potentially constant expression if $e_1$ and $e_2$ are both potentially constant expressions. It is further a constant expression if both $e_1$ and $e_2$ are constant expressions and either both evaluate to values that are instances of \code{int} or \code{double}, or both evaluate to values of type \code{String}.
+
+\item An expression of the form \code{-$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value that is an instance of \code{int} or \code{double}.
+
+\item An expression of the form \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$}, \code{$e_1$\,/\,$e_2$}, \code{$e_1$\,\%\,$e_2$}, \code{$e_1$\,<\,$e_2$}, \code{$e_1$\,<=\,$e_2$}, \code{$e_1$\,>\,$e_2$}, or \code{$e_1$\,>=\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that evaluate to values that are instances of \code{int} or \code{double}.
+
+\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e_3$} is potentially constant if $e_1$, $e_2$, and $e_3$ are all potentially constant expressions. It is constant if $e_1$ is a constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression, or
+\item $e_1$ evaluates to \FALSE{} and $e_3$ is a constant expression.
+\end{enumerate}
+
+\item An expression of the form \code{$e_1$\,??\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
+\begin{enumerate}
+\item $e_1$ evaluates to a non-\NULL{} value, or
+\item $e_1$ evaluates to \NULL{} and $e_2$ is a constant expression.
+\end{enumerate}
+
+\item An expression of the form \code{$e$.length} is potentially constant if $e$ is a potentially constant expression. It is further constant if $e$ is a constant expression that evaluates to a \code{String}.
+
+% New in 2.1.
+\item An expression of the form \code{$e$ as $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a constant type expression, and it is further constant if $e$ is constant.
+\commentary{
+It is a compile-time error to evaluate the constant expression
+if the cast operation would throw, that is,
+if the value the $e$ evaluates to is not \NULL{} and not of type $T$.
+}
+
+% New in 2.1.
+\item An expression of the form \code{$e$ is $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a constant type expression, and it is further constant if $e$ is constant.
+
+% New in 2.1.
+\item{}
+An expression of the form \code{$e$ is! $T$} is equivalent to \code{!($e$ is $T$)} in every way,
+including whether it's potentially constant or constant.
+
 \end{itemize}
 
-% null in all the expressions
+\LMHash{}
+% New in 2.1.
+A constant type expression is one of:
+\begin{itemize}
+\item An simple or qualified identifier denoting a type declaration (a type alias, class or mixin declaration) that is not qualified by a deferred prefix,
+optionally followed by type arguments on the form
+\code{<$T_1$,\ \ldots,\ $T_n$>}
+where $T_1$, \ldots{}, $T_n$ are constant type expressions.
+\item A type of the form \code{FutureOr<$T$>} where $T$ is a constant type expression.
+\item A function type
+\code{$R$ Function<\metavar{typeParameters}>(\metavar{argumentTypes})}
+(where $R$ and \code{<\metavar{typeParameters}>} may be omitted)
+and where $R$, \metavar{typeParameters} and \metavar{argumentTypes} (if present) contain only constant type expressions.
+\item The type \VOID{}.
+\item The type \DYNAMIC{}.
+\end{itemize}
 
-% designed so constants do not depend on check diode being on or not.
+% Being potentially constant is entirely structural, not type based,
+% but the program still has to satisfy strong-mode typing.
+
+% Constant expressions (like "const Foo(42)") always evaluate to the
+% same value, with at most one value per source location.
+% Potentially constant expressions that are not constant only
+% allow simple operations on basic types (num, String, bool, Null). These can
+% be computed statically without running user code.
+
+% A validly typed potentially constant expression can still fail when evaluated.
+% If that happens in a const invociation, it's a compile-time error.
 
 \LMHash{}
 It is a compile-time error if an expression is required to be a constant expression but its evaluation would throw an exception.
-It is a compile-time error if an assertion is part of a compile-time constant constructor invocation and the assertion would throw an exception.
+It is a compile-time error if an assertion is evaluated as part of a constant object expression evaluation, and the assertion would throw an exception.
 
-% so, checked mode? analyzers? editor/development compilers?
 \commentary{
 Note that there is no requirement that every constant expression evaluate correctly.
 Only when a constant expression is required (e.g., to initialize a constant variable, or as a default value of a formal parameter, or as metadata) do we insist that a constant expression actually be evaluated successfully at compile time.
@@ -3987,7 +4145,7 @@ In particular, constant constructor initializers such as
 }
 
 \LMHash{}
-It is a compile-time error if the value of a compile-time constant expression depends on itself.
+It is a compile-time error if the value of a constant expression depends on itself.
 
 \commentary{
 As an example, consider:
@@ -4398,7 +4556,7 @@ a valid declaration name or a valid library name in a Dart program.
 A symbol literal \code{\#\id} where \id{} is an identifier
 that does not begin with an underscore ('\code{\_}'),
 evaluates to an instance of \code{Symbol} representing the identifier \id.
-All occurences of \code{\#\id} evaluate to the same instance
+All occurrences of \code{\#\id} evaluate to the same instance
 \commentary{(symbol instances are canonicalized)},
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is equal
@@ -4408,7 +4566,7 @@ or to a \code{Symbol} instance that is equal
 A symbol literal \code{\#$\id.\id_2\ldots\id_n$}
 where $\id{} \ldots \id_n$ are identifiers,
 evaluates to an instance of \code{Symbol} representing that particular sequence of identifiers.
-All occurences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
+All occurrences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
 evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
@@ -4418,14 +4576,14 @@ if some of its identifiers begin with an underscore.}
 \LMHash{}
 A symbol literal \code{\#\metavar{operator}} evaluates to an instance of \code{Symbol}
 representing that particular operator name.
-All occurences of \code{\#\metavar{operator}} evaluate to the same instance,
+All occurrences of \code{\#\metavar{operator}} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \LMHash{}
 A symbol literal \code{\#\_\id}, evaluates to an instance of \code{Symbol}
 representing the private identifier \code{\_\id} of the containing library.
-All occurences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
+All occurrences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
@@ -4466,18 +4624,18 @@ A non-empty list has the index set $\{0, \ldots, n - 1\}$ where $n$ is the size 
 It is a run-time error to attempt to access a list using an index that is not a member of its set of indices.
 
 \LMHash{}
-If a list literal begins with the reserved word \CONST{}, it is a {\em constant list literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile time.
+If a list literal begins with the reserved word \CONST{}, it is a {\em constant list literal} which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
 Otherwise, it is a {\em run-time list literal} and it is evaluated at run time.
 Only run-time list literals can be mutated
 after they are created.
 Attempting to mutate a constant list literal will result in a dynamic error.
 
 \LMHash{}
-It is a compile-time error if an element of a constant list literal is not a compile-time constant.
+It is a compile-time error if an element of a constant list literal is not a constant expression.
 % Need 'free': `const <Function(Function<X>(X))>[]` is OK, but `X` is not free.
 It is a compile-time error if the type argument of a constant list literal is or contains a free type variable.
 \rationale{
-The binding of a type parameter is not known at compile time, so we cannot use type parameters inside compile-time constants.
+The binding of a type parameter is not known at compile time, so we cannot use type parameters inside constant expressions.
 }
 
 \LMHash{}
@@ -4524,7 +4682,9 @@ The result of the evaluation is $a$.
 \commentary{
 Note that this document does not specify an order in which the elements are set.
 This allows for parallel assignments into the list if an implementation so desires.
-The order can only be observed in checked mode (and may not be relied upon): if element $i$ is not a subtype of the element type of the list, a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
+The order can only be observed (and may not be relied upon):
+if element $i$ is not a subtype of the element type of the list,
+a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
 }
 
 \LMHash{}
@@ -4536,10 +4696,9 @@ is evaluated as
 \commentary{
 There is no restriction precluding nesting of list literals.
 It follows from the rules above that
-\code{<List<int\gtgt{}[[1, 2, 3], [4, 5, 6]]}
-is a list with type parameter
-\code{List<int>},
-containing two lists with type parameter \DYNAMIC{}.
+\code{<List<int>{}>[<int>[1, 2, 3], <int>[4, 5, 6]]}
+is a list with type parameter \code{List<int>},
+containing two lists with type parameter \code{int}.
 }
 
 \LMHash{}
@@ -4547,26 +4706,12 @@ The static type of a list literal of the form
 \code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
 or the form
 \code{<$E$>[$e_1, \ldots, e_n$]}
-is
-\code{List<E>}.
+is \code{List<$E$>}.
 The static type a list literal of the form
 \code{\CONST{} [$e_1, \ldots, e_n$]}
 or the form
 \code{[$e_1, \ldots, e_n$]}
-is
-\code{List<\DYNAMIC{}>}.
-
-\rationale{
-It is tempting to assume that the type of the list literal would be computed based on the types of its elements.
-However, for mutable lists this may be unwarranted.
-Even for constant lists, we found this behavior to be problematic.
-Since compile time is often actually run time, the run-time system must be able to perform a complex least upper bound computation to determine a reasonably precise type.
-It is better to leave this task to a tool in the IDE.
-It is also much more uniform (and therefore predictable and understandable) to insist that whenever types are unspecified they are assumed to be the unknown type \DYNAMIC{}.
-}
-
-%Invoking the getter \code{runtimeType} on a list literal returns the \code{Type} object that is the value of the expression \code{List}. The static type of a list literal is \code{List}.
-% what about generics?
+is \code{List<\DYNAMIC{}>}.
 
 
 \subsection{Maps}
@@ -4588,13 +4733,13 @@ Each entry has a {\em key} and a {\em value}.
 Each key and each value is denoted by an expression.
 
 \LMHash{}
-If a map literal begins with the reserved word \CONST{}, it is a {\em constant map literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile time.
+If a map literal begins with the reserved word \CONST{}, it is a {\em constant map literal} which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
 Otherwise, it is a {\em run-time map literal} and it is evaluated at run time.
 Only run-time map literals can be mutated after they are created.
 Attempting to mutate a constant map literal will result in a dynamic error.
 
 \LMHash{}
-It is a compile-time error if either a key or a value of an entry in a constant map literal is not a compile-time constant.
+It is a compile-time error if either a key or a value of an entry in a constant map literal is not a constant expression.
 It is a compile-time error if the key of an entry in a constant map literal is an instance of
 a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
 unless the key is a string or an integer,
@@ -5117,7 +5262,7 @@ If for any
 $j \in 1 .. n + k$
 the run-time type of $o_j$ is not a subtype of
 $[u_1/X_1, \ldots, u_m/X_m]S_j$,
-a dynamic error occurs.
+a dynamic type error occurs.
 
 \LMHash{}
 \Case{Non-loaded deferred constructors}
@@ -5208,7 +5353,7 @@ or if $T$ is a parameterized type which is not a class.
 It is a compile-time error if $T$ is a deferred type
 (\ref{staticTypes}).
 \commentary{
-For instance, $T$ can not be a type variable.
+In particular, $T$ must not be a type variable.
 }
 
 \LMHash{}
@@ -5868,11 +6013,19 @@ All of these remaining parameters are necessarily optional and thus have default
 
 \LMHash{}
 % Check the type arguments.
-In checked mode, it is a dynamic type error if $t_i$ is not a subtype of the actual bound (\ref{actualTypeOfADeclaration}) of the $i$th type argument of $f$, for actual type arguments $t_1, \ldots, t_r$.
+It is a dynamic type error if $t_i$ is not a subtype of the actual bound
+(\ref{actualTypeOfADeclaration})
+of the $i$th type argument of $f$, for actual type arguments $t_1, \ldots, t_r$.
 % Check the types of positional arguments.
-In checked mode, it is a dynamic type error if $o_i$ is not the null object (\ref{null}) and the actual type (\ref{actualTypeOfADeclaration}) of $p_i$ is not a supertype of the type of $o_i, i \in 1 .. m$.
+It is a dynamic type error if $o_i$ is not the null object (\ref{null})
+and the actual type
+(\ref{actualTypeOfADeclaration})
+of $p_i$ is not a supertype of the dynamic type of $o_i, i \in 1 .. m$.
 % Check the types of named arguments.
-In checked mode, it is a dynamic type error if $o_{m+j}$ is not the null object and the actual type (\ref{actualTypeOfADeclaration}) of $q_j$ is not a supertype of the type of $o_{m+j}, j \in 1 .. l$.
+It is a dynamic type error if $o_{m+j}$ is
+not the null object and the actual type
+(\ref{actualTypeOfADeclaration})
+of $q_j$ is not a supertype of the dynamic type of $o_{m+j}, j \in 1 .. l$.
 
 
 \subsubsection{Unqualified Invocation}
@@ -6986,8 +7139,10 @@ a compile-time error has occurred.
 Otherwise, the assignment is equivalent to the assignment \code{\THIS{}.$v$ = $e$}.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type (\ref{actualTypeOfADeclaration}) of $v$.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not a subtype of the actual type
+(\ref{actualTypeOfADeclaration})
+of $v$.
 
 \LMHash{}
 \Case{\code{$e_1$?.$v$ = $e_2$}}
@@ -7055,7 +7210,10 @@ Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked with arg
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o_2$ is not the null object (\ref{null}) and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
+It is a dynamic type error if $o_2$ is not the null object (\ref{null})
+and the dynamic type of $o_2$ is
+not a subtype of the actual type of $e_1.v$
+(\ref{actualTypeOfADeclaration}).
 
 \LMHash{}
 Let $T$ be the static type of $e_1$.
@@ -7103,8 +7261,10 @@ Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked 
 The value of the assignment expression is $o$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null})
-and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is
+not a subtype of the actual type of \code{$S$.$v$}
+(\ref{actualTypeOfADeclaration}).
 
 \LMHash{}
 \Case{\code{$e_1$[$e_2$] = $e_3$}}
@@ -8083,7 +8243,7 @@ If, however, $e$ occurs inside a static member, a compile-time error occurs.
 %\item If $d$ is a library variable then:
 %  \begin{itemize}
 %  \item If $d$ is of one of the forms \code{\VAR{} $v$ = $e_i$;} , \code{$T$ $v$ = $e_i$;} , \code{\FINAL{} $v$ = $e_i$;} or \code{\FINAL{} $T$ $v$ = $e_i$;} and no value has yet been stored into $v$ then the initializer expression $e_i$ is evaluated. If, during the evaluation of $e_i$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r$ be $o$, otherwise let $r$ be the null object (\ref{null}). In any case, $r$ is stored into $v$. The value of $e$ is $r$.
-\item If $d$ is a constant variable of one of the forms \code{\CONST{} $v$ = $e$;} or \code{\CONST{} $T$ $v$ = $e$;} then the value \id{} is the value of the compile-time constant $e$.
+\item If $d$ is a constant variable of one of the forms \code{\CONST{} $v$ = $e$;} or \code{\CONST{} $T$ $v$ = $e$;} then the value \id{} is the value of the constant expression $e$.
 %  Otherwise
 %  \item $e$ evaluates to the current binding of \id.
 %  \end{itemize}
@@ -8149,8 +8309,9 @@ Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to a value $v$.
+% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521.
 Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE.
+Otherwise, if the dynamic type of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE.
 Otherwise it evaluates to \FALSE.
 
 \commentary{
@@ -8207,10 +8368,11 @@ The {\em cast expression} ensures that an object is a member of a type.
 
 \LMHash{}
 The expression $e$ is evaluated to a value $v$.
+%% TODO(eernst): https://github.com/dart-lang/sdk/issues/34521
 Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs.
-Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$.
-Otherwise, if $v$ is the null object (\ref{null}), the cast expression evaluates to $v$.
-In all other cases, a \code{CastError} is thrown.
+It is a dynamic type error if $o$ is not the null object (\ref{null})
+and the dynamic type of $o$ is not a subtype of $T$.
+Otherwise $e$ evaluates to $v$.
 
 \LMHash{}
 The static type of a cast expression \code{$e$ \AS{} $T$} is $T$.
@@ -8391,7 +8553,8 @@ It is also a compile-time error to assign to a final local variable
 It is a compile-time error if
 a local variable is referenced at a source code location that is before
 the end of its initializing expression, if any,
-and otherwise before the identifier which names the variable.
+and otherwise before the declaring occurrence of
+the identifier which names the variable.
 
 \commentary{
 The example below illustrates the expected behavior.
@@ -8476,7 +8639,7 @@ proceeds as follows:
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 Then, the variable $v$ is set to $o$.
-A dynamic error occurs
+A dynamic type error occurs
 if the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of $v$.
@@ -8739,7 +8902,7 @@ proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
-It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
+It is a dynamic type error if $o$ is not an instance of a class that implements \code{Stream}.
 It is a compile-time error if $D$ is empty and \id{} is a final variable.
 
 \LMHash{}
@@ -8905,7 +9068,7 @@ or the form
 \}
 \end{dartCode}
 
-it is a compile-time error if the expressions $e_k$ are not compile-time constants for all $k \in 1 .. n$.
+it is a compile-time error unless the expressions $e_k$ are constant expressions for all $k \in 1 .. n$.
 It is a compile-time error if the values of the expressions $e_k$ are not either:
 \begin{itemize}
 \item instances of the same class $C$, for all $k \in 1 .. n$, or
@@ -8915,7 +9078,11 @@ It is a compile-time error if the values of the expressions $e_k$ are not either
 
 \commentary{
 In other words, all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.
-Note that the values of the expressions are known at compile time, and are independent of any static type annotations.
+%% TODO(eernst): Update when we specify inference: const List<int> xs = [];
+%% may be a counter-example: The value is a list that "knows" it is a
+%% `List<int>` independently of the type annotation, but it wouldn't be a
+%% `List<int>` if that type annotation hadn't been there.
+Note that the values of the expressions are known at compile time, and are independent of any type annotations.
 }
 
 \LMHash{}
@@ -8961,7 +9128,8 @@ proceeds as follows:
 
 \LMHash{}
 The statement \code{\VAR{} \id{} = $e$;} is evaluated, where \id{} is a fresh variable.
-In checked mode, it is a run-time error if the value of $e$ is not an instance of the same class as the constants $e_1, \ldots, e_n$.
+It is a run-time error if the value of $e$ is
+not an instance of the same class as the constants $e_1, \ldots, e_n$.
 
 \commentary{
 Note that if there are no case clauses ($n = 0$), the type of $e$ does not matter.
@@ -9364,7 +9532,6 @@ Then the return statement returns the value $r$ (\ref{completion}).
 
 \LMHash{}
 Let $U$ be the run-time type of $r$.
-In checked mode:
 \begin{itemize}
 \item If the body of $f$ is marked \ASYNC{} (\ref{functions})
 it is a dynamic type error if $o$ is not the null object (\ref{null}),
@@ -9560,7 +9727,7 @@ First, the expression $e$ is evaluated to an object $o$.
 \LMHash{}
 If the immediately enclosing function $m$ is marked \code{\SYNC*} (\ref{functions}), then:
 \begin{enumerate}
-\item It is a dynamic error if the class of $o$ does not implement \code{Iterable}.
+\item It is a dynamic type error if the class of $o$ does not implement \code{Iterable}.
 Otherwise
 \item The method \code{iterator} is invoked upon $o$ returning an object $i$.
 \item \label{moveNext} The \code{moveNext} method of $i$ is invoked on it with no arguments.
@@ -9577,7 +9744,7 @@ The current call to \code{moveNext()} returns \TRUE.
 \LMHash{}
 If $m$ is marked \code{\ASYNC*} (\ref{functions}), then:
 \begin{itemize}
-\item It is a dynamic error if the class of $o$ does not implement \code{Stream}.
+\item It is a dynamic type error if the class of $o$ does not implement \code{Stream}.
 Otherwise
 \item The nearest enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused.
 \item The $o$ stream is listened to, creating a subscription $s$, and for each event $x$, or error $e$ with stack trace $t$, of $s$:
@@ -9631,9 +9798,11 @@ Execution of an assert statement executes the assertion as described below
 and completes in the same way as the assertion.
 
 \LMHash{}
-In production mode an assertion has no effect
-and its execution immediately completes normally (\ref{completion}).
-In checked mode,
+When assertions are not enabled,
+execution of an assertion immediately completes normally
+(\ref{completion}).
+\commentary{That is, no subexpressions of the assertion are evaluated.}
+When assertions are enabled,
 execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}
@@ -9647,10 +9816,10 @@ Otherwise, $e$ is evaluated to an object $m$
 and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
 \LMHash{}
-It is a compile-time error if the type of $e$ may not be assigned to \code{bool}.
+It is a compile-time error if the type of $c$ may not be assigned to \code{bool}.
 
 \rationale{
-Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode.
+Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead when assertions are disabled.
 Also, in the absence of final methods, one could not prevent it being overridden (though there is no real harm in that).
 It cannot be viewed as a function call that is being optimized away because the arguments might have side effects.
 }
@@ -10222,10 +10391,10 @@ URIs are specified by means of string literals:
 \end{grammar}
 
 \LMHash{}
-It is a compile-time error if the string literal $x$ that describes a URI is not a compile-time constant, or if $x$ involves string interpolation.
+It is a compile-time error if the string literal $x$ that describes a URI contains a string interpolation.
 
 \LMHash{}
-It is a compile-time error if the string literal $x$ that is used in a {\em uriTest} is not a compile-time constant, or if $x$ involves string interpolation.
+It is a compile-time error if the string literal $x$ that is used in a {\em uriTest} is not a constant expression, or if $x$ involves string interpolation.
 
 \LMHash{} A {\em configurable URI} $c$ of the form \code{\metavar{uri} $\metavar{configurationUri}_1$ \ldots $\metavar{configurationUri}_n$} {\em specifies a URI} as follows:
 \begin{itemize}
@@ -10302,9 +10471,8 @@ It is easy for tools to provide a sound type analysis if they choose, which may 
 \LMLabel{staticTypes}
 
 \LMHash{}
-Static type annotations are used in variable declarations (\ref{variables}) (including formal parameters (\ref{formalParameters})), in the return types of functions (\ref{functions}) and in the bounds of type variables.
-Static type annotations are used during static checking and when running programs in checked mode.
-They have no effect whatsoever in production mode.
+Type annotations are used in variable declarations (\ref{variables}) (including formal parameters (\ref{formalParameters})), in the return types of functions (\ref{functions}) and in the bounds of type variables.
+Type annotations are used during static checking and when running programs.
 
 \begin{grammar}
 <type> ::= <typeName> <typeArguments>?
@@ -10408,107 +10576,78 @@ Those situations where an expression does show that a variable has a type are me
 \subsection{Dynamic Type System}
 \LMLabel{dynamicTypeSystem}
 
-\LMHash{}
-A Dart implementation must support execution in both {\em production mode} and {\em checked mode}.
-Those dynamic checks specified as occurring specifically in checked mode must be performed if{}f the code is executed in checked mode.
-
-\commentary{
-Note that this is the case even if the deferred type belongs to a prefix that has already been loaded.
-This is regrettable, since it strongly discourages the use of type annotations that involve deferred types because Dart programmers use checked mode much of the time.
-
-In practice, many scenarios involving deferred loading involve deferred loading of classes that implement eagerly loaded interfaces, so the situation is often less onerous than it seems.
-The current semantics were adopted based on considerations of ease of implementation.
-
-Clearly, if a deferred type has not yet been loaded, it is impossible to do a correct subtype test involving it, and one would expect a dynamic failure, as is the case with type tests and casts.
-By the same token, one would expect checked mode to work seamlessly once a type had been loaded.
-We hope to adopt these semantics in the future; such a change would be upwardly compatible.
-}
+% \ref{classes} says that 'when a class name appears as a type,%
+% that name denotes the interface of the class. So we can say
+% that the dynamic type of an instance is a non-generic class or
+% a generic instantiation of a generic class.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if a deferred, malformed or malbounded (\ref{parameterizedTypes}) type is used in a subtype test.
-
-%In production mode, an undeclared type is treated as an instance of type \DYNAMIC{}.
+Let $o$ be an instance.
+The {\em dynamic type} of $o$ is the class which is specified
+for the situation where $o$ was obtained as a fresh instance
+(\ref{redirectingFactoryConstructors},
+\ref{lists}, \ref{maps}, \ref{new}, \ref{functionInvocation}).
 
 \commentary{
-Consider the following program:
+In particular, the dynamic type of an instance never changes.
+It is at times only specified that the given class implements
+a certain type, e.g., for a list literal.
+In these cases the dynamic type is implementation dependent,
+except of course that said subtype requirement must be satisfied.
+}
+
+\LMHash{}
+The dynamic types of a running Dart program are equivalent to
+the static types with regard to subtyping.
+
+\commentary{
+Certain dynamic type checks are performed during execution
+(\ref{variables},
+\ref{redirectingGenerativeConstructors},
+\ref{executionOfInitializerLists},
+\ref{factories},
+\ref{redirectingFactoryConstructors},
+\ref{lists},
+\ref{new},
+\ref{bindingActualsToFormals},
+\ref{ordinaryInvocation},
+\ref{assignment},
+\ref{typeCast},
+\ref{localVariableDeclaration},
+\ref{asynchronousFor-in},
+\ref{return},
+\ref{yieldEach},
+\ref{assert}).
+As specified in those locations,
+these dynamic checks are based on the dynamic types of instances,
+and the actual types of declarations
+(\ref{actualTypeOfADeclaration}).
+}
+
+\LMHash{}
+When types are reified as instances of the built-in class \code{Type},
+two \code{Type} objects are equal according to operator \syntax{`=='}
+if{}f the corresponding types are subtypes of each other.
+
+\commentary{
+For example, the \code{Type} objects for the types
+\DYNAMIC{} and \code{Object} are equal to each other
+and hence \code{dynamic\,==\,Object} must evaluate to \TRUE.
+No constraints are imposed on the built-in function \code{identical},
+so \code{identical(dynamic, Object)} may be \TRUE{} or \FALSE.
+
+Similarly, \code{Type} instances for distinct type alias declarations
+declaring a name for the same function type are equal:
 }
 
 \begin{dartCode}
-\TYPEDEF{} F(bool x);
-f(foo x) => x;
-main() \{
-  if (f is F) \{
-    print("yoyoma");
-  \}
+\TYPEDEF{} F = void Function<X>(X);
+\TYPEDEF{} G = void Function<Y>(Y);
+\\
+\VOID{} main() \{
+  assert(F == G);
 \}
 \end{dartCode}
-
-\commentary{
-The type of the formal parameter of \code{f} is \code{foo}, which is undeclared in the lexical scope.
-This will lead to a compile-time error.
-
-As another example take
-}
-
-\begin{dartCode}
-\VAR{} i;
-i j; // a variable j of type i (supposedly)
-main() \{
-     j = 'I am not an i';
-\}
-\end{dartCode}
-
-\commentary{
-Since $i$ is not a type, a compile-time error will be issue at the declaration of $j$.
-However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}.
-However, in checked mode, the implicit subtype test at the assignment will trigger an error at run time.
-}
-
-\commentary{
-Here is an example involving malbounded types:
-}
-
-\begin{dartCode}
-\CLASS{} I<T \EXTENDS{} num> \{\}
-\CLASS{} J \{\}
-
-\CLASS{} A<T> \IMPLEMENTS{} J, I<T> // compile-time error: T is not a subtype of num
-\{ ...
-\}
-\end{dartCode}
-
-\commentary{
-Given the declarations above, the following
-}
-
-\begin{dartCode}
-I x = \NEW{} A<String>();
-\end{dartCode}
-
-\commentary{
-will cause a dynamic type error in checked mode, because the assignment requires a subtype test A<String> <: I.
-To show that this holds, we need to show that A<String> $<<$ I<String>, but I<String> is a malbounded type, causing the dynamic error.
-No error is thrown in production mode.
-Note that
-}
-
-\begin{dartCode}
-J x = \NEW{} A<String>();
-\end{dartCode}
-
-\commentary{
-does not cause a dynamic error, as there is no need to test against \code{I<String>} in this case.
-Similarly, in production mode
-}
-
-\begin{dartCode}
-A x = \NEW{} A<String>();
-bool b = x is I;
-\end{dartCode}
-
-\commentary{
-\code{b} is bound to \TRUE, but in checked mode the second line causes a dynamic type error.
-}
 
 
 \subsection{Type Declarations}
@@ -10846,53 +10985,40 @@ Furthermore, if $F$ is a function type, $F << \FUNCTION{}$.
 \LMLabel{typeDynamic}
 
 \LMHash{}
-The type \DYNAMIC{} denotes the unknown type.
-
-\LMHash{}
-If no static type annotation has been provided the type system assumes the declaration has the unknown type.
-%% TODO(eernst): Change when adding specification of instantiate-to-bound.
-If a generic type is used but type arguments are not provided, then the type arguments default to the unknown type.
+The type \DYNAMIC{} is a static type which is a supertype of all other types,
+just like \code{Object},
+but it it differs from other types in that the static analysis
+assumes that every member access has a corresponding member
+with a signature that admits the given access.
 
 \commentary{
-%% TODO(eernst): Delete when adding specification of instantiate-to-bound.
-This means that given a generic declaration \code{$G$<$T_1, \ldots,\ T_n$>}, the type $G$ is equivalent to
-\code{$G$<$\DYNAMIC{}, \ldots,\ \DYNAMIC{}$>}.
+For instance,
+when the receiver in an ordinary method invocation has type \DYNAMIC{},
+any method name can be invoked,
+with any number of type arguments or none,
+with any number of positional arguments,
+and any set of named arguments,
+of any type,
+without error.
+Note that the invocation will still cause a compile-time error
+if one or more arguments or other subterms has an error.
 }
 
 \LMHash{}
-%% TODO(eernst): Rephrase to say that receivers of type `dynamic` _are treated as if_ this were the case.
-Type \DYNAMIC{} has methods for every possible identifier and arity, with every possible combination of named parameters.
-These methods all have \DYNAMIC{} as their return type, and their formal parameters all have type \DYNAMIC{}.
-Type \DYNAMIC{} has properties for every possible identifier.
-These properties all have type \DYNAMIC{}.
+% Inference is assumed to have taken place, so the type was not inferred.
+If no static type annotation has been provided,
+the type system considers declarations to have type \DYNAMIC{}.
+%% TODO(eernst): Change when adding specification of instantiate-to-bound.
+If a generic type is used but type arguments are not provided,
+the type arguments default to type \DYNAMIC{}.
 
-\rationale{
-%% TODO(eernst): Change this entire rationale when adding specification of instantiate-to-bound.
-
-From a usability perspective, we want to ensure that the checker does not issue errors everywhere an unknown type is used.
-The definitions above ensure that no secondary errors are reported when accessing an unknown type.
-
-The current rules say that missing type arguments are treated as if they were the type \DYNAMIC{}.
-An alternative is to consider them as meaning \code{Object}.
-This would lead to earlier error detection in checked mode, and more aggressive errors during static typechecking.
-For example:
-
-(1) \code{typedAPI(G<String> g)\{...\}}
-
-(2) \code{typedAPI(new G()); }
-
-Under the alternative rules, (2) would cause a run-time error in checked mode.
-This seems desirable from the perspective of error localization.
-However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
-
-(3) \code{typedAPI(new G<String>());}
-
-This forces users to write type information in their client code just because they are calling a typed API.
-We do not want to impose this on Dart programmers, some of which may be blissfully unaware of types in general, and genericity in particular.
-
-What of static checking? Surely we would want to flag (2) when users have explicitly asked for static typechecking? Yes, but the reality is that the Dart static checker is likely to be running in the background by default.
-Engineering teams typically desire a ``clean build'' free of errors and so the checker is designed to be extremely charitable.
-Other tools can interpret the type information more aggressively and warn about violations of conventional (and sound) static type discipline.
+\commentary{
+%% TODO(eernst): Amend when adding specification of instantiate-to-bound.
+This means that given a generic declaration
+\code{$G$<$P_1, \ldots,\ P_n$>$\ldots$},
+where $P_i$ is a formal type parameter declaration, $i \in 1 .. n$,
+the type $G$ is equivalent to
+\code{$G$<$\DYNAMIC{}, \ldots,\ \DYNAMIC{}$>}.
 }
 
 \LMHash{}
@@ -10902,6 +11028,12 @@ denotes the \DYNAMIC{} type.
 When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression,
 it evaluates to a \code{Type} object representing the \DYNAMIC{} type,
 even though \DYNAMIC{} is not a class.
+
+\commentary{
+This \code{Type} object must compare equal to the corresponding \code{Type}
+objects for \code{Object} and \VOID{}
+(\ref{dynamicTypeSystem}).
+}
 
 
 \subsection{Type FutureOr}
@@ -10997,7 +11129,8 @@ Likewise, passing the result of a void method as a parameter or assigning it to 
 On the other hand, it is possible to return the result of a void method from within a void method.
 One can also return the null object (\ref{null}); or a value of type \DYNAMIC{}.
 Returning any other result will cause a compile-time error.
-In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
+%% TODO(eernst): Correct this when integrating generalized-void.md.
+A dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
 }
 
 \commentary{

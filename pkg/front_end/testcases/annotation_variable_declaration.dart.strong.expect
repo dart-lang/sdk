@@ -4,15 +4,15 @@ import "dart:core" as core;
 
 typedef hest_t = ({@self::foo dynamic named}) → dynamic;
 class Bar extends core::Object {
-  const constructor •() → void
+  const constructor •() → self::Bar
     : super core::Object::•()
     ;
-  const constructor named(dynamic x) → void
+  const constructor named(dynamic x) → self::Bar
     : super core::Object::•()
     ;
 }
 class Baz extends core::Object {
-  constructor •(@self::foo dynamic constructorFormal) → void
+  constructor •(@self::foo dynamic constructorFormal) → self::Baz
     : super core::Object::•()
     ;
   static factory bazFactory(@self::foo dynamic factoryFormal) → self::Baz

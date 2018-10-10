@@ -14,6 +14,9 @@ StringSink errorSink = stderr;
 StringSink outSink = stdout;
 
 @visibleForTesting
+Stream<List<int>> inputStream = stdin;
+
+@visibleForTesting
 ExitHandler exitHandler = exit;
 
 @visibleForTesting
@@ -21,8 +24,9 @@ typedef void ExitHandler(int code);
 
 /// Command line options for `dartfix`.
 class Options {
-  String sdkPath;
   List<String> analysisRoots;
+  bool dryRun;
+  String sdkPath;
   bool verbose;
 
   static Options parse(List<String> args,
@@ -31,6 +35,12 @@ class Options {
 
     parser
       ..addOption(_sdkPathOption, help: 'The path to the Dart SDK.')
+      ..addFlag(_dryRunOption,
+          abbr: 'n',
+          help: 'Calculate and display the recommended changes,'
+              ' but exit before applying them',
+          defaultsTo: false,
+          negatable: false)
       ..addFlag(_helpOption,
           abbr: 'h',
           help:
@@ -87,6 +97,7 @@ class Options {
 
   Options._fromArgs(ArgResults results)
       : analysisRoots = results.rest,
+        dryRun = results[_dryRunOption] as bool,
         sdkPath = results[_sdkPathOption] as String,
         verbose = results[_verboseOption] as bool;
 
@@ -99,6 +110,7 @@ class Options {
 }
 
 const _binaryName = 'dartfix';
+const _dryRunOption = 'dry-run';
 const _helpOption = 'help';
 const _sdkPathOption = 'dart-sdk';
 const _verboseOption = 'verbose';

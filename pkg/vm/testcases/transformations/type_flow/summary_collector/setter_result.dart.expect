@@ -20,7 +20,7 @@ RESULT: _T {}?
 ------------ #lib::B::testPropertySet ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
-t2 = _Call set [#lib::B::foo] (%this, %x)
+t2 = _Call virtual set [#lib::B::foo] (%this, %x)
 t3 = _Call direct [#lib::use] (%x)
 RESULT: _T {}?
 ------------ #lib::B::testDynamicPropertySet ------------

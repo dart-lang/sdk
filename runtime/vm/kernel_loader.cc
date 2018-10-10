@@ -10,6 +10,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
+#include "vm/heap/heap.h"
 #include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -172,13 +173,14 @@ KernelLoader::KernelLoader(Program* program)
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
-      translation_helper_(this, thread_),
+      translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_,
               &translation_helper_,
               program_->kernel_data(),
               program_->kernel_data_size(),
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -197,6 +199,8 @@ KernelLoader::KernelLoader(Program* program)
 
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
+  Thread* thread = Thread::Current();
+
   if (program->is_single_program()) {
     KernelLoader loader(program);
     return Object::Handle(loader.LoadProgram(process_pending_classes));
@@ -206,7 +210,6 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   GrowableArray<intptr_t> subprogram_file_starts;
   index_programs(&reader, &subprogram_file_starts);
 
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Library& library = Library::Handle(zone);
   // Create "fake programs" for each sub-program.
@@ -340,9 +343,10 @@ KernelLoader::KernelLoader(const Script& script,
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
-      translation_helper_(this, thread_),
+      translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -760,6 +764,18 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
   }
 }
 
+void KernelLoader::ReadInferredType(const Field& field,
+                                    intptr_t kernel_offset) {
+  const InferredTypeMetadata type =
+      inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+  if (type.IsTrivial()) {
+    return;
+  }
+  field.set_guarded_cid(type.cid);
+  field.set_is_nullable(type.IsNullable());
+  field.set_guarded_list_length(Field::kNoFixedLength);
+}
+
 void KernelLoader::CheckForInitializer(const Field& field) {
   if (helper_.PeekTag() == kSomething) {
     SimpleExpressionConverter converter(&H, &helper_);
@@ -932,6 +948,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
+    ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1326,6 +1343,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
+      ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
@@ -1849,6 +1867,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   const AbstractType& field_type = AbstractType::Handle(Z, field.type());
   getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
+  getter.set_accessor_field(field);
   SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
@@ -1868,6 +1887,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_kernel_offset(field.kernel_offset());
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
+    setter.set_accessor_field(field);
     SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }

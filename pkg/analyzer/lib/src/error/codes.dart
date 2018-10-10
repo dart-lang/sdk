@@ -1261,6 +1261,46 @@ class CompileTimeErrorCode extends ErrorCode {
           "Case expressions must have the same types, '{0}' isn't a '{1}'.");
 
   /**
+   * If a class declaration does not have a member declaration with a
+   * particular name, but some super-interfaces do have a member with that
+   * name, it's a compile-time error if there is no signature among the
+   * super-interfaces that is a valid override of all the other super-interface
+   * signatures with the same name. That "most specific" signature becomes the
+   * signature of the class's interface.
+   *
+   * Parameters:
+   * 0: the name of the instance member with inconsistent inheritance.
+   * 1: the list of all inherited signatures for this member.
+   */
+  static const CompileTimeErrorCode INCONSISTENT_INHERITANCE =
+      const CompileTimeErrorCode('INCONSISTENT_INHERITANCE',
+          "Superinterfaces don't have a valid override for '{0}': {1}.",
+          correction:
+              "Try adding an explicit override that is consistent with all "
+              "of the inherited members.");
+
+  /**
+   * 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
+   * class `C` declared in library `L`. `I` inherits all members of
+   * `inherited(I, L)` and `I` overrides `m'` if `m' ∈ overrides(I, L)`. It is
+   * a compile-time error if `m` is a method and `m'` is a getter, or if `m`
+   * is a getter and `m'` is a method.
+   *
+   * Parameters:
+   * 0: the name of the the instance member with inconsistent inheritance.
+   * 1: the name of the superinterface that declares the name as a getter.
+   * 2: the name of the superinterface that declares the name as a method.
+   */
+  static const CompileTimeErrorCode INCONSISTENT_INHERITANCE_GETTER_AND_METHOD =
+      const CompileTimeErrorCode(
+          'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+          "'{0}' is inherited as a getter (from '{1}') and also a "
+          "method (from '{2}').",
+          correction:
+              "Try adjusting the supertypes of this class to remove the "
+              "inconsistency.");
+
+  /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
    * is a compile-time error if <i>k</i>'s initializer list contains an
    * initializer for a variable that is not an instance variable declared in the
@@ -1486,6 +1526,26 @@ class CompileTimeErrorCode extends ErrorCode {
           "Inline function types cannot be used for parameters in a generic function type.",
           correction:
               "Try using a generic function type (returnType 'Function(' parameters ')').");
+
+  /**
+   * If a class declaration has a member declaration, the signature of that
+   * member declaration becomes the signature in the interface. It's a
+   * compile-time error if that signature is not a valid override of all
+   * super-interface member signatures with the same name. (Not just the
+   * members of the immediate super-interfaces, but all of them. For
+   * non-covariant parameters, it's sufficient to check just the immediate
+   * super-interfaces).
+   *
+   * Parameters:
+   * 0: the name of the declared member that is not a valid override.
+   * 1: the name of the interface that declares the member.
+   * 2: the type of the declared member in the interface.
+   * 3. the name of the interface with the overridden member.
+   * 4. the type of the overridden member.
+   */
+  static const CompileTimeErrorCode INVALID_OVERRIDE =
+      const CompileTimeErrorCode('INVALID_OVERRIDE',
+          "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').");
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level
@@ -2796,41 +2856,6 @@ class StaticTypeWarningCode extends ErrorCode {
               "removing the modifier 'sync*' from the function body.");
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause
-   * multiple members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the
-   * same name <i>n</i> that would be inherited (because identically named
-   * members existed in several superinterfaces) then at most one member is
-   * inherited.
-   *
-   * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the
-   * members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical,
-   * then there must be a member <i>m<sub>x</sub></i> such that <i>T<sub>x</sub>
-   * &lt;: T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for all <i>i, 1 &lt;= i &lt;=
-   * k</i>, or a static type warning occurs. The member that is inherited is
-   * <i>m<sub>x</sub></i>, if it exists; otherwise:
-   * * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional
-   *   parameters of a function <i>f</i>, and let
-   *   <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of required
-   *   parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the
-   *   set of all named parameters of the <i>m<sub>1</sub>, &hellip;,
-   *   m<sub>k</sub></i>. Then let
-   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
-   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <=
-   *   i <= k.</i> If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>,
-   *   with <i>r</i> required parameters of type <b>dynamic</b>, <i>h</i>
-   *   positional parameters of type <b>dynamic</b>, named parameters <i>s</i>
-   *   of type <b>dynamic</b> and return type <b>dynamic</b>.
-   * * Otherwise none of the members <i>m<sub>1</sub>, &hellip;,
-   *   m<sub>k</sub></i> is inherited.
-   */
-  static const StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE =
-      const StaticTypeWarningCode('INCONSISTENT_METHOD_INHERITANCE',
-          "Inconsistent declarations of '{0}' are inherited from {1}.",
-          correction:
-              "Try adjusting the supertypes of this class to remove the "
-              "inconsistency.");
-
-  /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
    * not have an accessible (3.2) instance member named <i>m</i>.
    *
@@ -2965,17 +2990,6 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode NON_BOOL_OPERAND =
       const StaticTypeWarningCode('NON_BOOL_OPERAND',
           "The operands of the '{0}' operator must be assignable to 'bool'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the variable
-   * 1: the type of the variable
-   */
-  static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
-      const StaticTypeWarningCode('NON_NULLABLE_FIELD_NOT_INITIALIZED',
-          "Variable '{0}' of non-nullable type '{1}' must be initialized.",
-          correction: "Try adding an initializer to the declaration, or "
-              "making the variable nullable by adding a '?' after the type name.");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>,
@@ -3807,158 +3821,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try importing the library that the part is a part of.");
 
   /**
-   * 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
-   * class `C` declared in library `L`. `I` inherits all members of
-   * `inherited(I, L)` and `I` overrides `m'` if `m' ∈ overrides(I, L)`. It is
-   * a compile-time error if `m` is a method and `m'` is a getter, or if `m`
-   * is a getter and `m'` is a method.
-   */
-  static const StaticWarningCode
-      INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD =
-      const StaticWarningCode(
-          'INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD',
-          "'{0}' is inherited as a getter and also a method.",
-          correction:
-              "Try adjusting the supertypes of this class to remove the "
-              "inconsistency.");
-
-  /**
-   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a
-   * getter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
-   * <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual return type
-   * 1: the name of the expected return type, not assignable to the actual
-   *    return type
-   * 2: the name of the class where the overridden getter is declared
-   *
-   * See [INVALID_METHOD_OVERRIDE_RETURN_TYPE].
-   */
-  static const StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE =
-      const StaticWarningCode(
-          'INVALID_GETTER_OVERRIDE_RETURN_TYPE',
-          "The return type '{0}' isn't assignable to '{1}' as required by the "
-          "getter it is overriding from '{2}'.",
-          correction:
-              "Try changing the return types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * Generic Method DEP: number of type parameters must match.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the number of type parameters in the method
-   * 1: the number of type parameters in the overridden method
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
-          "The method has {0} type parameters, but it is overriding a method "
-          "with {1} type parameters from '{2}'.",
-          correction:
-              "Try changing the number of type parameters so that they are the same.");
-
-  /**
-   * Generic Method DEP: bounds of type parameters must be compatible.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the type parameter name
-   * 1: the type parameter bound
-   * 2: the overridden type parameter name
-   * 3: the overridden type parameter bound
-   * 4: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-          "The type parameter '{0}' extends '{1}', but that is stricter than "
-          "'{2}' extends '{3}' in the overridden method from '{4}'.",
-          correction:
-              "Try changing the bounds on the type parameters so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   * See [INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE].
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual return type
-   * 1: the name of the expected return type, not assignable to the actual
-   *    return type
-   * 2: the name of the class where the overridden method is declared
-   *
-   * See [INVALID_GETTER_OVERRIDE_RETURN_TYPE].
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
-          "The return type '{0}' isn't assignable to '{1}' as required by the "
-          "method it is overriding from '{2}'.",
-          correction:
-              "Try changing the return types so that they are compatible.");
-
-  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance member <i>m2</i>, the signature of
    * <i>m2</i> explicitly specifies a default value for a formal parameter
@@ -4712,9 +4574,6 @@ class StrongModeCode extends ErrorCode {
   static const String _implicitCastCorrection =
       "Try adding an explicit cast to '{1}' or improving the type of '{0}'.";
 
-  static const String _invalidOverrideMessage =
-      "The type of '{0}.{1}' ('{2}') isn't a subtype of '{3}.{1}' ('{4}').";
-
   /**
    * This is appended to the end of an error message about implicit dynamic.
    *
@@ -4829,23 +4688,6 @@ class StrongModeCode extends ErrorCode {
 
   static const StrongModeCode DYNAMIC_INVOKE = const StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
-
-  static const StrongModeCode INVALID_METHOD_OVERRIDE = const StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_METHOD_OVERRIDE',
-      "Invalid override. $_invalidOverrideMessage");
-
-  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_BASE =
-      const StrongModeCode(
-          ErrorType.COMPILE_TIME_ERROR,
-          'INVALID_METHOD_OVERRIDE_FROM_BASE',
-          "Base class introduces an invalid override. $_invalidOverrideMessage");
-
-  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_MIXIN =
-      const StrongModeCode(
-          ErrorType.COMPILE_TIME_ERROR,
-          'INVALID_METHOD_OVERRIDE_FROM_MIXIN',
-          "Mixin introduces an invalid override. $_invalidOverrideMessage");
 
   static const StrongModeCode INVALID_FIELD_OVERRIDE = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

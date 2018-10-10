@@ -832,3 +832,188 @@ class SsaConditionMerger extends HGraphVisitor {
     }
   }
 }
+
+/// Insert 'caches' for whole-function region-constants when the local minified
+/// name would be shorter than repeated references.  These are caches for 'this'
+/// and constant values.
+class SsaShareRegionConstants extends HBaseVisitor {
+  final CompilerOptions _options;
+
+  SsaShareRegionConstants(this._options);
+
+  visitGraph(HGraph graph) {
+    if (!_options.experimentLocalNames) return;
+    // We need the async rewrite to be smarter about hoisting region constants
+    // before it is worth-while.
+    if (graph.needsAsyncRewrite) return;
+
+    // 'HThis' and constants are in the entry block. No need to walk the rest of
+    // the graph.
+    visitBasicBlock(graph.entry);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  // Not all occurences should be replaced with a local variable cache, so we
+  // filter the uses.
+  int _countCacheableUses(
+      HInstruction node, bool Function(HInstruction) cacheable) {
+    return node.usedBy.where(cacheable).length;
+  }
+
+  // Replace cacheable uses with a reference to a HLateValue node.
+  _cache(
+      HInstruction node, bool Function(HInstruction) cacheable, String name) {
+    var users = node.usedBy.toList();
+    var reference = new HLateValue(node);
+    // TODO(sra): The sourceInformation should really be from the function
+    // entry, not the use of `this`.
+    reference.sourceInformation = node.sourceInformation;
+    reference.sourceElement = _ExpressionName(name);
+    node.block.addAfter(node, reference);
+    for (HInstruction user in users) {
+      if (cacheable(user)) {
+        user.changeUse(node, reference);
+      }
+    }
+  }
+
+  void visitThis(HThis node) {
+    int size = 4;
+    // Compare the size of the unchanged minified with the size of the minified
+    // code where 'this' is assigned to a variable. We assume the variable has
+    // minified size 1.
+    //
+    // The size overhead of introducing a variable in the worst case includes
+    // 'var ':
+    //
+    //           1234   // size
+    //     var x=this;  // (minified ';' can be end-of-line)
+    //     123456    7  // additional overhead
+    //
+    // TODO(sra): If there are multiple values that can potentially be cached,
+    // they can share the 'var ' cost, even if none of them are beneficial
+    // individually.
+    int useCount = node.usedBy.length;
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, (_) => true, '_this');
+  }
+
+  void visitConstant(HConstant node) {
+    if (node.usedBy.length <= 1) return;
+    ConstantValue constant = node.constant;
+
+    if (constant.isNull) {
+      _handleNull(node);
+      return;
+    }
+
+    if (constant.isInt) {
+      _handleInt(node, constant);
+      return;
+    }
+
+    if (constant.isString) {
+      _handleString(node, constant);
+      return;
+    }
+  }
+
+  void _handleNull(HConstant node) {
+    int size = 4;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      // One-shot interceptors have `null` as a dummy interceptor.
+      if (instruction is HOneShotInterceptor) return false;
+
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HPhi) return true;
+
+      // We return `null` by removing the return expression or statement.
+      if (instruction is HReturn) return false;
+
+      // JavaScript `x == null` is more efficient than `x == _null`.
+      if (instruction is HIdentity) return false;
+
+      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_null');
+    return;
+  }
+
+  void _handleInt(HConstant node, IntConstantValue intConstant) {
+    BigInt value = intConstant.intValue;
+    String text = value.toString();
+    int size = text.length;
+    if (size <= 3) return;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
+      if (instruction is HPhi) return true;
+
+      // JavaScript `x === 5` is more efficient than `x === _5`.
+      if (instruction is HIdentity) return false;
+
+      // Foreign code templates may use literals in ways that are beneficial.
+      if (instruction is HForeignCode) return false;
+
+      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_${text.replaceFirst("-", "_")}');
+  }
+
+  void _handleString(HConstant node, StringConstantValue stringConstant) {
+    String value = stringConstant.stringValue;
+    int length = value.length;
+    int size = length + 2; // Include quotes.
+    if (size <= 2) return;
+
+    bool _isCacheableUse(HInstruction instruction) {
+      // Foreign code templates may use literals in ways that are beneficial.
+      if (instruction is HForeignCode) return false;
+
+      // Cache larger strings even if unfortunate.
+      if (length >= 16) return true;
+
+      if (instruction is HInvoke) return true;
+      if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
+      if (instruction is HPhi) return true;
+
+      // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
+      if (instruction is HFieldSet) return true;
+
+      // TODO(sra): Deterimine if other uses result in faster JavaScript code.
+      return false;
+    }
+
+    int useCount = _countCacheableUses(node, _isCacheableUse);
+    if (useCount * size <= 7 + size + useCount * 1) return;
+    _cache(node, _isCacheableUse, '_s${length}_');
+  }
+}
+
+/// A simple Entity to give intermediate values nice names when not generating
+/// minified code.
+class _ExpressionName implements Entity {
+  final String name;
+  _ExpressionName(this.name);
+}

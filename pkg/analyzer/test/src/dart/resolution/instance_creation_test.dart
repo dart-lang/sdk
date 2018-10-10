@@ -42,6 +42,7 @@ main() {
       findElement.class_('Foo'),
       'Foo<int>',
       constructorName: 'bar',
+      expectedConstructorMember: true,
     );
   }
 
@@ -71,6 +72,7 @@ main() {
       import.importedLibrary.getType('Foo'),
       'Foo<int>',
       constructorName: 'bar',
+      expectedConstructorMember: true,
       expectedPrefix: import.prefix,
     );
   }

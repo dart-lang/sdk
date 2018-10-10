@@ -53,7 +53,7 @@ class Simulator {
   uword stack_limit() const { return stack_limit_; }
 
   // Call on program start.
-  static void InitOnce();
+  static void Init();
 
   RawObject* Call(const Code& code,
                   const Array& arguments_descriptor,

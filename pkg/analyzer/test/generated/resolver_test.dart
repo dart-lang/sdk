@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -273,7 +273,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -293,7 +294,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_prefixedAndNonPrefixed() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName);
@@ -333,7 +335,8 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -1297,8 +1300,7 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType stringType = _classElement("String", objectType).type;
     InterfaceType symbolType = _classElement("Symbol", objectType).type;
     InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
     coreUnit.types = <ClassElement>[
       boolType.element,
       doubleType.element,
@@ -1313,8 +1315,7 @@ class TypeProviderImplTest extends EngineTestCase {
       symbolType.element,
       typeType.element
     ];
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
       futureType.element,
       futureOrType.element,
@@ -1377,7 +1378,8 @@ class TypeProviderImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class TypeResolverVisitorTest extends ParserTestCase {
+class TypeResolverVisitorTest extends ParserTestCase
+    with ResourceProviderMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -1421,15 +1423,12 @@ class TypeResolverVisitorTest extends ParserTestCase {
 
   void setUp({bool shouldSetElementSupertypes: false}) {
     _listener = new GatheringErrorListener();
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
-    Source librarySource =
-        new FileSource(resourceProvider.getFile("/lib.dart"));
+    Source librarySource = new FileSource(getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstTestFactory.libraryIdentifier2(["lib"]));
-    element.definingCompilationUnit =
-        new CompilationUnitElementImpl("lib.dart");
+    element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
@@ -1451,7 +1450,7 @@ A f([A p = const A()]) {
 }
 A V = new A();
 ''');
-    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    var unitElement = new CompilationUnitElementImpl();
     ClassElementImpl A = ElementFactory.classElement2('A');
 
     // Build API elements.
@@ -1462,10 +1461,9 @@ A V = new A();
 
     // Resolve API types.
     {
-      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
-      var source = resourceProvider.getFile('/test.dart').createSource();
+      var source = getFile('/test.dart').createSource();
       var libraryElement = new LibraryElementImpl.forNode(context, null)
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
@@ -2321,7 +2319,7 @@ A v = new A();
   void _resolveTypeModeLocal(
       String code, AstNode getNodeToResolve(CompilationUnit unit)) {
     CompilationUnit unit = parseCompilationUnit2(code);
-    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    var unitElement = new CompilationUnitElementImpl();
 
     // Build API elements.
     {
@@ -2333,10 +2331,9 @@ A v = new A();
     LibraryScope libraryScope;
     TypeResolverVisitor visitor;
     {
-      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
-      var source = resourceProvider.getFile('/test.dart').createSource();
+      var source = getFile('/test.dart').createSource();
       var libraryElement = new LibraryElementImpl.forNode(context, null)
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);

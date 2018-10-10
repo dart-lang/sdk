@@ -1235,7 +1235,7 @@ void main() {
 
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractWidgetRefactoring(
-        searchEngine, driver.currentSession, testUnit, offset, length);
+        searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }
 

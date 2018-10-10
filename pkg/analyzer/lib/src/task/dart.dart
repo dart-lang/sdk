@@ -18,14 +18,17 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -2858,7 +2861,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, typeProvider, libraryElement, inheritanceManager,
+        errorReporter, typeProvider, libraryElement,
         typeSystem: typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
@@ -3399,6 +3402,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
 
     // If we're not in a dependency cycle, and we have no type annotation,
     // re-resolve the right hand side and do inference.
@@ -3414,7 +3418,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer);
-      ResolverVisitor visitor = new ResolverVisitor(
+      ResolverVisitor visitor = new ResolverVisitor(inheritance,
           variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);
       if (resolutionContext.enclosingClassDeclaration != null) {
@@ -4018,11 +4022,16 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
     //
     // Resolve references and record outputs.
     //
-    PartialResolverVisitor visitor = new PartialResolverVisitor(libraryElement,
-        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER);
+    PartialResolverVisitor visitor = new PartialResolverVisitor(
+        inheritance,
+        libraryElement,
+        unitElement.source,
+        typeProvider,
+        AnalysisErrorListener.NULL_LISTENER);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -4550,12 +4559,14 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
 
     CompilationUnitElement unitElement = unit.declaredElement;
     //
     // Resolve references.
     //
     InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
+        inheritance,
         libraryElement,
         unitElement.source,
         typeProvider,
@@ -4992,13 +5003,14 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    var inheritance = new InheritanceManager2(context.typeSystem);
     //
     // Resolve everything.
     //
     CompilationUnitElement unitElement = unit.declaredElement;
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    ResolverVisitor visitor = new ResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener);
+    ResolverVisitor visitor = new ResolverVisitor(inheritance, libraryElement,
+        unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
     // Compute constant expressions' dependencies.
@@ -5437,8 +5449,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
           typeProvider,
           new StrongTypeSystemImpl(typeProvider,
               implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
+              declarationCasts: options.declarationCasts),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);
@@ -5553,6 +5564,16 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, libraryElement, typeProvider, context.declaredVariables);
     unit.accept(constantVerifier);
+
+    //
+    // Compute inheritance and override errors.
+    //
+    var typeSystem = libraryElement.context.typeSystem;
+    var inheritanceManager2 = new InheritanceManager2(typeSystem);
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        typeSystem, inheritanceManager2, errorReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit);
+
     //
     // Use the ErrorVerifier to compute errors.
     //
@@ -5561,6 +5582,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
+        inheritanceManager2,
         context.analysisOptions.enableSuperMixins,
         disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);

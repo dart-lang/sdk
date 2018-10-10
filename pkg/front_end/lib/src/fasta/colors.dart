@@ -113,6 +113,8 @@ bool _supportsAnsiEscapes(sink) {
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool computeEnableColors(CompilerContext context) {
+  // TODO(ahe): Remove this method.
+
   bool stderrSupportsColors = _supportsAnsiEscapes(stdout);
   bool stdoutSupportsColors = _supportsAnsiEscapes(stderr);
 

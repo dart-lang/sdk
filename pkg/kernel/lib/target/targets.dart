@@ -176,19 +176,6 @@ abstract class Target {
       bool isConstructor: false,
       bool isTopLevel: false});
 
-  /// Builds an expression that throws [error] as compile-time error. The
-  /// target must be able to handle this expression in a constant expression.
-  Expression throwCompileConstantError(CoreTypes coreTypes, Expression error) {
-    return error;
-  }
-
-  /// Builds an expression that represents a compile-time error which is
-  /// suitable for being passed to [throwCompileConstantError].
-  Expression buildCompileTimeError(
-      CoreTypes coreTypes, String message, int offset) {
-    return new InvalidExpression(message)..fileOffset = offset;
-  }
-
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
   Component configureComponent(Component component) => component;

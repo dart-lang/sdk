@@ -33,6 +33,18 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)) {}
 
+TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
+    : thread_(thread),
+      zone_(thread->zone()),
+      isolate_(thread->isolate()),
+      allocation_space_(space),
+      string_offsets_(TypedData::Handle(Z)),
+      string_data_(ExternalTypedData::Handle(Z)),
+      canonical_names_(TypedData::Handle(Z)),
+      metadata_payloads_(ExternalTypedData::Handle(Z)),
+      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      constants_(Array::Handle(Z)) {}
+
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
   string_data_ = ExternalTypedData::null();
@@ -1653,12 +1665,13 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
   const int kDynamicUsesBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
   const int kTearOffUsesBit = 1 << 2;
+  const int kThisUsesBit = 1 << 3;
 
   const uint8_t flags = helper_->ReadByte();
-  metadata->has_dynamic_invocations =
-      (flags & kDynamicUsesBit) == kDynamicUsesBit;
-  metadata->has_non_this_uses = (flags & kNonThisUsesBit) == kNonThisUsesBit;
-  metadata->has_tearoff_uses = (flags & kTearOffUsesBit) == kTearOffUsesBit;
+  metadata->has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
+  metadata->has_this_uses = (flags & kThisUsesBit) != 0;
+  metadata->has_non_this_uses = (flags & kNonThisUsesBit) != 0;
+  metadata->has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
   return true;
 }
 

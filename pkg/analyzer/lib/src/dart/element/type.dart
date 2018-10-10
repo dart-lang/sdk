@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -86,6 +87,24 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return this;
+    } else {
+      // In theory this should never happen, since we only need to do this
+      // replacement when checking super-boundedness of explicitly-specified
+      // types, or types produced by mixin inference or instantiate-to-bounds,
+      // and bottom can't occur in any of those cases.
+      assert(false,
+          'Attempted to check super-boundedness of a type including "bottom"');
+      // But just in case it does, return `dynamic` since that's similar to what
+      // we do with Null.
+      return typeProvider.objectType;
+    }
+  }
 
   @override
   BottomTypeImpl substitute2(
@@ -338,6 +357,16 @@ class DynamicTypeImpl extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -373,6 +402,9 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element].
    *
    * If [typeArguments] are provided, they are used to instantiate the typedef.
+   *
+   * Note: this constructor mishandles generics.
+   * See https://github.com/dart-lang/sdk/issues/34657.
    */
   factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
       {List<DartType> typeArguments}) {
@@ -773,6 +805,32 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         typeSystem.instantiateToBounds(type),
         (DartType t, DartType s) => t.isAssignableTo(s),
         typeSystem.instantiateToBounds);
+  }
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var returnType = (this.returnType as TypeImpl)
+        .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
+    ParameterElement transformParameter(ParameterElement p) {
+      TypeImpl type = p.type;
+      var newType =
+          type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
+      if (identical(newType, type)) return p;
+      return new ParameterElementImpl.synthetic(
+          p.name,
+          newType,
+          // ignore: deprecated_member_use
+          p.parameterKind);
+    }
+
+    var parameters = _transformOrShare(this.parameters, transformParameter);
+    if (identical(returnType, this.returnType) &&
+        identical(parameters, this.parameters)) {
+      return this;
+    } else {
+      return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters);
+    }
   }
 
   @override
@@ -1651,6 +1709,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return true;
         }
       }
+      if (element.isMixin) {
+        for (InterfaceType constraint in superclassConstraints) {
+          if ((constraint as InterfaceTypeImpl)
+              .isMoreSpecificThan(type, withDynamic, visitedElements)) {
+            return true;
+          }
+        }
+      }
       // If a type I includes an instance method named `call`, and the type of
       // `call` is the function type F, then I is considered to be more specific
       // than F.
@@ -1766,13 +1832,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false, int stopMixinIndex, bool setter: false}) {
+      {bool concrete: false,
+      bool forSuperInvocation: false,
+      int startMixinIndex,
+      bool setter: false,
+      bool thisType: false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
+    /// TODO(scheglov) Remove [includeSupers]. It is used only to work around
+    /// the problem with Flutter code base (using old super-mixins).
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
         {bool acceptAbstract: false,
         bool includeType: true,
-        int stopMixinIndex}) {
+        bool inMixin: false,
+        int startMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
       }
@@ -1792,14 +1865,28 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      var mixins = type.mixins;
-      for (var i = 0; i < mixins.length; i++) {
-        if (stopMixinIndex != null && i >= stopMixinIndex) {
-          break;
+      if (forSuperInvocation) {
+        bool inOldStyleSuperMixin = inMixin &&
+            type.superclass != null &&
+            !type.superclass.isObject &&
+            element.context.analysisOptions.enableSuperMixins;
+        if (inOldStyleSuperMixin) {
+          acceptAbstract = true;
         }
-        var result = lookUpImpl(mixins[i], acceptAbstract: acceptAbstract);
-        if (result != null) {
-          return result;
+      }
+
+      if (!inMixin || acceptAbstract) {
+        var mixins = type.mixins;
+        startMixinIndex ??= mixins.length;
+        for (var i = startMixinIndex - 1; i >= 0; i--) {
+          var result = lookUpImpl(
+            mixins[i],
+            acceptAbstract: acceptAbstract,
+            inMixin: true,
+          );
+          if (result != null) {
+            return result;
+          }
         }
       }
 
@@ -1814,10 +1901,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
 
-      return lookUpImpl(type.superclass, acceptAbstract: acceptAbstract);
+      if (!inMixin || acceptAbstract) {
+        return lookUpImpl(type.superclass,
+            acceptAbstract: acceptAbstract, inMixin: inMixin);
+      }
+
+      return null;
     }
 
     if (element.isMixin) {
+      // TODO(scheglov) We should choose the most specific signature.
+      // Not just the first signature.
       for (InterfaceType constraint in superclassConstraints) {
         var result = lookUpImpl(constraint, acceptAbstract: true);
         if (result != null) {
@@ -1828,8 +1922,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else {
       return lookUpImpl(
         this,
-        includeType: false,
-        stopMixinIndex: stopMixinIndex,
+        includeType: thisType,
+        startMixinIndex: startMixinIndex,
       );
     }
   }
@@ -1972,6 +2066,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           .map((DartType t) => (t as TypeImpl).pruned(prune))
           .toList();
       return result;
+    }
+  }
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var typeArguments = _transformOrShare(
+        this.typeArguments,
+        (t) => (t as TypeImpl)
+            .replaceTopAndBottom(typeProvider, isCovariant: isCovariant));
+    if (identical(typeArguments, this.typeArguments)) {
+      return this;
+    } else {
+      return new InterfaceTypeImpl._(element, name, prunedTypedefs)
+        ..typeArguments = typeArguments;
     }
   }
 
@@ -2606,6 +2715,14 @@ abstract class TypeImpl implements DartType {
    */
   TypeImpl pruned(List<FunctionTypeAliasElement> prune);
 
+  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
+  /// `Null` and all contravariant occurrences of `Null` with `Object`.
+  ///
+  /// The boolean `isCovariant` indicates whether this type is in covariant or
+  /// contravariant position.
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true});
+
   @override
   DartType resolveToBound(DartType objectType) => this;
 
@@ -2849,6 +2966,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    return this;
+  }
+
+  @override
   DartType resolveToBound(DartType objectType) {
     if (element.bound == null) {
       return objectType;
@@ -2940,6 +3063,16 @@ class UndefinedTypeImpl extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -3001,6 +3134,16 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   VoidTypeImpl substitute2(
@@ -3299,7 +3442,12 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     Element element = this.element;
-    if (prune != null && prune.contains(element)) {
+    Element forCircularity = this.element;
+    if (element is GenericFunctionTypeElement &&
+        element.enclosingElement is FunctionTypeAliasElement) {
+      forCircularity = element.enclosingElement;
+    }
+    if (prune != null && prune.contains(forCircularity)) {
       // Circularity found.  Prune the type declaration.
       return new CircularFunctionTypeImpl();
     }

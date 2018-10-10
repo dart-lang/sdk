@@ -89,7 +89,7 @@ class MessageTestSuite extends ChainContext {
       List<Example> examples = <Example>[];
       String externalTest;
       bool frontendInternal = false;
-      String analyzerCode;
+      List<String> analyzerCodes;
       Severity severity;
       YamlNode badSeverity;
       YamlNode unnecessarySeverity;
@@ -116,7 +116,9 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "analyzerCode":
-            analyzerCode = value;
+            analyzerCodes = value is String
+                ? <String>[value]
+                : new List<String>.from(value);
             break;
 
           case "bytes":
@@ -263,7 +265,7 @@ class MessageTestSuite extends ChainContext {
           null,
           exampleAndAnalyzerCodeRequired &&
                   !frontendInternal &&
-                  analyzerCode == null
+                  analyzerCodes == null
               ? "No analyzer code for $name."
                   "\nTry running"
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -61,7 +62,8 @@ abstract class BoundTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: new MemoryResourceProvider());
     typeProvider = context.typeProvider;
     var simpleFunctionElement =
         ElementFactory.genericTypeAliasElement('A', returnType: voidType);
@@ -168,7 +170,9 @@ class ConstraintMatchingTest {
   DartType list(DartType T) => typeProvider.listType.instantiate([T]);
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
+    typeProvider = AnalysisContextFactory.contextWithCore(
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
     T = _newTypeParameter('T');
   }
@@ -1882,7 +1886,9 @@ class StrongSubtypingTest {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
+    typeProvider = AnalysisContextFactory.contextWithCore(
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 

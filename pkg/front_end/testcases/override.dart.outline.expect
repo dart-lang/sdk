@@ -3,21 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     ;
 }
 class Bar extends self::Foo {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Bar
     ;
 }
 class Base extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Base
     ;
   method method() → self::Foo
     ;
 }
 class Sub extends self::Base {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Sub
     ;
   method method() → self::Foo
     ;

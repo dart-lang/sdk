@@ -49,6 +49,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
@@ -620,6 +621,10 @@ void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
 }
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+  __ popq(TMP);
+  __ pushq(CODE_REG);
+  __ pushq(TMP);
+  __ movq(CODE_REG, Address(THR, Thread::deoptimize_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
   __ ret();
 }
@@ -1244,10 +1249,10 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
-    __ pushq(RDX);
-    __ movq(RDX, reg);
+    __ pushq(kWriteBarrierObjectReg);
+    __ movq(kWriteBarrierObjectReg, reg);
     __ call(Address(THR, Thread::write_barrier_entry_point_offset()));
-    __ popq(RDX);
+    __ popq(kWriteBarrierObjectReg);
     __ ret();
     intptr_t end = __ CodeSize();
 
@@ -1257,14 +1262,16 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   RDX: Source object (old)
-//   TMP: Target object (old or new)
-// If TMP is new, add RDX to the store buffer. Otherwise TMP is old, mark TMP
+//   RDX: Object (old)
+//   RAX: Value (old or new)
+// If RAX is new, add RDX to the store buffer. Otherwise RAX is old, mark RAX
 // and add it to the mark list.
+COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
+COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 #if defined(CONCURRENT_MARKING)
   Label add_to_mark_stack;
-  __ testq(TMP, Immediate(1 << kNewObjectBitPosition));
+  __ testq(RAX, Immediate(1 << kNewObjectBitPosition));
   __ j(ZERO, &add_to_mark_stack);
 #else
   Label add_to_buffer;
@@ -1329,6 +1336,7 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Bind(&add_to_mark_stack);
   __ pushq(RAX);  // Spill.
   __ pushq(RCX);  // Spill.
+  __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
 
   // Atomically clear kOldAndNotMarkedBit.
   // Note that we use 32 bit operations here to match the size of the

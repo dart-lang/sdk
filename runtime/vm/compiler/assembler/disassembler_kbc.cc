@@ -128,18 +128,21 @@ static void FormatA_D(char* buf,
   Apply(&buf, &size, pc, op2, bc, "");
 }
 
-static void FormatA_X(char* buf,
-                      intptr_t size,
-                      uword pc,
-                      uint32_t op,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = (op & 0xFF00) >> 8;
-  const int32_t bc = static_cast<int32_t>(op) >> 16;
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, bc, "");
-}
+// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
+// remove it once bytecode instruction set is finalized.
+//
+// static void FormatA_X(char* buf,
+//                      intptr_t size,
+//                      uword pc,
+//                      uint32_t op,
+//                      Fmt op1,
+//                      Fmt op2,
+//                      Fmt op3) {
+//  const int32_t a = (op & 0xFF00) >> 8;
+//  const int32_t bc = static_cast<int32_t>(op) >> 16;
+//  Apply(&buf, &size, pc, op1, a, ", ");
+//  Apply(&buf, &size, pc, op2, bc, "");
+// }
 
 static void FormatX(char* buf,
                     intptr_t size,
@@ -178,20 +181,23 @@ static void FormatA_B_C(char* buf,
   Apply(&buf, &size, pc, op3, c, "");
 }
 
-static void FormatA_B_Y(char* buf,
-                        intptr_t size,
-                        uword pc,
-                        uint32_t op,
-                        Fmt op1,
-                        Fmt op2,
-                        Fmt op3) {
-  const int32_t a = (op >> 8) & 0xFF;
-  const int32_t b = (op >> 16) & 0xFF;
-  const int32_t y = static_cast<int8_t>((op >> 24) & 0xFF);
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, b, ", ");
-  Apply(&buf, &size, pc, op3, y, "");
-}
+// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
+// remove it once bytecode instruction set is finalized.
+//
+// static void FormatA_B_Y(char* buf,
+//                        intptr_t size,
+//                        uword pc,
+//                        uint32_t op,
+//                        Fmt op1,
+//                        Fmt op2,
+//                        Fmt op3) {
+//  const int32_t a = (op >> 8) & 0xFF;
+//  const int32_t b = (op >> 16) & 0xFF;
+//  const int32_t y = static_cast<int8_t>((op >> 24) & 0xFF);
+//  Apply(&buf, &size, pc, op1, a, ", ");
+//  Apply(&buf, &size, pc, op2, b, ", ");
+//  Apply(&buf, &size, pc, op3, y, "");
+// }
 
 #define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
   static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
@@ -210,11 +216,8 @@ static bool HasLoadFromPool(KBCInstr instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kLoadConstant:
     case KernelBytecode::kPushConstant:
-    case KernelBytecode::kStaticCall:
     case KernelBytecode::kIndirectStaticCall:
     case KernelBytecode::kInstanceCall:
-    case KernelBytecode::kInstanceCall1Opt:
-    case KernelBytecode::kInstanceCall2Opt:
     case KernelBytecode::kStoreStaticTOS:
     case KernelBytecode::kPushStatic:
     case KernelBytecode::kAllocate:

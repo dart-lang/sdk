@@ -4,9 +4,14 @@
 // Try removing the extra positional arguments.
 //   /*@warning=MethodNotFound*/ foo(null);
 //                                  ^
-// pkg/front_end/testcases/argument_mismatch.dart:7:29: Warning: Found this candidate, but the arguments don't match.
+// pkg/front_end/testcases/argument_mismatch.dart:7:29: Context: Found this candidate, but the arguments don't match.
 // /*@context=CandidateFound*/ foo() {}
 //                             ^^^
+//
+// pkg/front_end/testcases/argument_mismatch.dart:10:34: Warning: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   /*@warning=MethodNotFound*/ foo(null);
+//                                  ^
 
 library;
 import self as self;
