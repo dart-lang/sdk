@@ -5,21 +5,26 @@
 // TODO(dantup): Regex seemed like a good choice when parsing the first few...
 // maybe it's not so great now. We should parse this properly if it turns out
 // there are issues with what we have here.
-const String _blockBody = r'\s*([\s\S]*?)\s*\n\s*';
+const String _blockBody = r'\{([\s\S]*?)\s+\}';
 const String _comment = r'(?:\/\*\*((?:[\S\s](?!\*\/))+?)\s\*\/)?\s*';
 
+List<ApiItem> extractAllTypes(List<String> code) {
+  return extractTypes(code.join('\n'));
+}
+
 List<ApiItem> extractTypes(String code) {
-  return ApiItem.extractFrom(code);
+  final types = ApiItem.extractFrom(code);
+  _sort(types);
+  return _mergeTypes(types);
 }
 
 String _cleanComment(String comment) {
   if (comment == null) {
     return null;
   }
-  final _commentLinePrefixes = new RegExp(r'\n\s*\* ?', multiLine: true);
-  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s])', multiLine: true);
-  final _newLinesThatRequireReinserting =
-      new RegExp(r'\n (\w)', multiLine: true);
+  final _commentLinePrefixes = new RegExp(r'\n\s*\* ?');
+  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s])');
+  final _newLinesThatRequireReinserting = new RegExp(r'\n (\w)');
   // Remove any Windows newlines from the source.
   comment = comment.replaceAll('\r', '');
   // Remove the * prefixes.
@@ -33,8 +38,35 @@ String _cleanComment(String comment) {
   return comment.trim();
 }
 
+/// The LSP contains Interfaces and Namespaces (of constants) with the
+/// same name. This step merges them together into one so that the output
+/// code does not contain two definitions.
+List<ApiItem> _mergeTypes(List<ApiItem> items) {
+  final interfaces = <String, Interface>{};
+  for (var interface in items.whereType<Interface>()) {
+    interfaces[interface.name] = interface;
+  }
+  for (var namespace in items.whereType<Namespace>()) {
+    final matchedInterface = interfaces[namespace.name];
+    if (matchedInterface != null) {
+      matchedInterface.members.addAll(namespace.members);
+    }
+  }
+  // Return the list minus any interfaces that would've been merged above.
+  return items
+      .where((item) =>
+          item is Namespace ? !interfaces.containsKey(item.name) : true)
+      .toList();
+}
+
 List<String> _parseTypes(String baseTypes, String sep) {
   return baseTypes?.split(sep)?.map((t) => t.trim())?.toList() ?? [];
+}
+
+/// Sorts all ApiItems by their name so that generated code is easier to diff
+/// across changes.
+void _sort(List<ApiItem> items) {
+  items.sort((item1, item2) => item1.name.compareTo(item2.name));
 }
 
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
@@ -47,6 +79,7 @@ abstract class ApiItem {
     types.addAll(Interface.extractFrom(code));
     types.addAll(Namespace.extractFrom(code));
     types.addAll(TypeAlias.extractFrom(code));
+    _sort(types);
     return types;
   }
 }
@@ -58,18 +91,18 @@ class Const extends Member {
       : super(name, comment);
 
   static List<Const> extractFrom(String code) {
-    final RegExp _constPattern = new RegExp(
-        _comment +
-            r'''(?:export\s+)?const\s+(\w+)(?::\s+(\w+?))?\s*=\s*([\w\[\]'".]+)\s*;''',
-        multiLine: true);
+    final RegExp _constPattern = new RegExp(_comment +
+        r'''(?:export\s+)?const\s+(\w+)(?::\s+([\w\[\]'".-]+?))?\s*=\s*([\w\[\]'".-]+)\s*(?:;|$)''');
 
-    return _constPattern.allMatches(code).map((m) {
+    final consts = _constPattern.allMatches(code).map((m) {
       final String comment = m.group(1);
       final String name = m.group(2);
       final String type = m.group(3);
       final String value = m.group(4);
       return new Const(name, comment, type, value);
     }).toList();
+    _sort(consts);
+    return consts;
   }
 }
 
@@ -82,11 +115,10 @@ class Field extends Member {
       : super(name, comment);
 
   static List<Field> extractFrom(String code) {
-    final RegExp _fieldPattern = new RegExp(
-        _comment + r'(\w+\??)\s*:\s*([\w\[\]\s|]+)\s*;',
-        multiLine: true);
+    final RegExp _fieldPattern =
+        new RegExp(_comment + r'(\w+\??)\s*:\s*([\w\[\]\s|]+)\s*(?:;|$)');
 
-    return _fieldPattern.allMatches(code).map((m) {
+    final fields = _fieldPattern.allMatches(code).map((m) {
       final String comment = m.group(1);
       String name = m.group(2);
       final List<String> types = _parseTypes(m.group(3), '|');
@@ -100,6 +132,8 @@ class Field extends Member {
       }
       return new Field(name, comment, types, allowsNull, allowsUndefined);
     }).toList();
+    _sort(fields);
+    return fields;
   }
 }
 
@@ -111,14 +145,11 @@ class Interface extends ApiItem {
       : super(name, comment);
 
   static List<Interface> extractFrom(String code) {
-    final RegExp _interfacePattern = new RegExp(
-        _comment +
-            r'(?:export\s+)?interface\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*\{' +
-            _blockBody +
-            '\}',
-        multiLine: true);
+    final RegExp _interfacePattern = new RegExp(_comment +
+        r'(?:export\s+)?interface\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
+        _blockBody);
 
-    return _interfacePattern.allMatches(code).map((match) {
+    final interfaces = _interfacePattern.allMatches(code).map((match) {
       final String comment = match.group(1);
       final String name = match.group(2);
       final List<String> baseTypes = _parseTypes(match.group(3), ',');
@@ -126,6 +157,8 @@ class Interface extends ApiItem {
       final List<Member> members = Member.extractFrom(body);
       return new Interface(name, comment, baseTypes, members);
     }).toList();
+    _sort(interfaces);
+    return interfaces;
   }
 }
 
@@ -137,6 +170,7 @@ abstract class Member extends ApiItem {
     List<Member> members = [];
     members.addAll(Field.extractFrom(code));
     members.addAll(Const.extractFrom(code));
+    _sort(members);
     return members;
   }
 }
@@ -149,16 +183,17 @@ class Namespace extends ApiItem {
 
   static List<Namespace> extractFrom(String code) {
     final RegExp _namespacePattern = new RegExp(
-        _comment + r'(?:export\s+)?namespace\s+(\w+)\s*\{' + _blockBody + '\}',
-        multiLine: true);
+        _comment + r'(?:export\s+)?namespace\s+(\w+)\s*' + _blockBody);
 
-    return _namespacePattern.allMatches(code).map((match) {
+    final namespaces = _namespacePattern.allMatches(code).map((match) {
       final String comment = match.group(1);
       final String name = match.group(2);
       final String body = match.group(3);
       final List<Member> members = Member.extractFrom(body);
       return new Namespace(name, comment, members);
     }).toList();
+    _sort(namespaces);
+    return namespaces;
   }
 }
 
@@ -168,15 +203,16 @@ class TypeAlias extends ApiItem {
   TypeAlias(name, comment, this.baseType) : super(name, comment);
 
   static List<TypeAlias> extractFrom(String code) {
-    final RegExp _typeAliasPattern = new RegExp(
-        _comment + r'type\s+([\w]+)\s+=\s+([\w\[\]]+)\s*;',
-        multiLine: true);
+    final RegExp _typeAliasPattern =
+        new RegExp(_comment + r'type\s+([\w]+)\s+=\s+([\w\[\]]+)\s*;');
 
-    return _typeAliasPattern.allMatches(code).map((match) {
+    final typeAliases = _typeAliasPattern.allMatches(code).map((match) {
       final String comment = match.group(1);
       final String name = match.group(2);
       final String baseType = match.group(3);
       return new TypeAlias(name, comment, baseType);
     }).toList();
+    _sort(typeAliases);
+    return typeAliases;
   }
 }

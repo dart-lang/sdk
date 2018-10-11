@@ -4,15 +4,28 @@
 
 import 'typescript.dart';
 
+Map<String, String> _typeAliases = {};
 String generateDartForTypes(List<ApiItem> types) {
+  // Build the map of type aliases for substitution later.
+  types
+      .whereType<TypeAlias>()
+      .forEach((alias) => _typeAliases[alias.name] = alias.baseType);
   final buffer = new IndentableStringBuffer();
   types.forEach((t) => _writeType(buffer, t));
-  return buffer.toString();
+  return buffer.toString().trim() + '\n'; // Ensure a single trailing newline.
 }
 
+/// Maps a TypeScript type on to a Dart type, including following TypeAliases.
+/// Return value may include a trailing space when comments are included (for
+/// example `String /* Document */`) due to how dartfmt formats these as
+/// type arguments; this may need trimming for correct formatting in other
+/// places.
 String _mapType(String type) {
   if (type.endsWith('[]')) {
     return 'List<${_mapType(type.substring(0, type.length - 2))}>';
+  }
+  if (_typeAliases.containsKey(type)) {
+    return _mapType(_typeAliases[type]) + ' /*$type*/ ';
   }
   const types = <String, String>{
     'boolean': 'bool',
@@ -58,26 +71,40 @@ void _writeDocComment(IndentableStringBuffer buffer, String comment) {
   Iterable<String> lines = comment.split('\n');
   // Wrap at 80 - 4 ('/// ') - indent characters.
   lines = _wrapLines(lines, 80 - 4 - buffer.totalIndent);
-  lines.forEach((l) => buffer.writeIndentedLn('/// ${l.trim()}'));
+  lines.forEach((l) => buffer.writeIndentedLn('/// $l'.trim()));
 }
 
 void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocComment(buffer, field.comment);
   if (field.types.length == 1) {
-    buffer.writeIndented(_mapType(field.types.first));
+    buffer.writeIndented(_mapType(field.types.first).trim());
   } else {
-    buffer.writeIndented('Either<${field.types.map(_mapType).join(', ')}>');
+    // TODO(dantup): Support union types better so that we have type safety from
+    // the outside.
+    buffer.writeIndented(
+        'Object /*Either<${field.types.map(_mapType).join(', ')}>*/');
   }
   buffer.writeln(' ${field.name};');
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeDocComment(buffer, interface.comment);
+
+  // TODO(dantup): Remove this code once this issue is fixed. For now we use this
+  // only to ensure empty classes are formatted without newlines (as dartfmt) does
+  // so that generated code is all dartfmt-clean.
+  if (interface.members.isEmpty) {
+    print(
+        'Interface ${interface.name} was empty. This may suggest an error parsing the spec.');
+    buffer..writeln('class ${interface.name} {}')..writeln();
+    return;
+  }
+
   buffer
     ..writeln('class ${interface.name} {')
     ..indent();
   // TODO(dantup): Generate constructors (inc. type checks for unions)
-  interface.members.forEach((m) => _writeMember(buffer, m));
+  _writeMembers(buffer, interface.members);
   // TODO(dantup): Generate toJson()
   // TODO(dantup): Generate fromJson()
   buffer
@@ -96,12 +123,21 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
   }
 }
 
+void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
+  for (var i = 0; i < members.length; i++) {
+    if (i != 0) {
+      buffer.writeln();
+    }
+    _writeMember(buffer, members[i]);
+  }
+}
+
 void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
   _writeDocComment(buffer, namespace.comment);
   buffer
     ..writeln('abstract class ${namespace.name} {')
     ..indent();
-  namespace.members.forEach((m) => _writeMember(buffer, m));
+  _writeMembers(buffer, namespace.members);
   buffer
     ..outdent()
     ..writeln('}')
@@ -111,17 +147,16 @@ void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
 void _writeType(IndentableStringBuffer buffer, ApiItem type) {
   if (type is Interface) {
     _writeInterface(buffer, type);
-  } else if (type is TypeAlias) {
-    _writeTypeAlias(buffer, type);
   } else if (type is Namespace) {
     _writeNamespace(buffer, type);
+  } else if (type is TypeAlias) {
+    // For now type aliases are not supported, so are collected at the start
+    // of the process in a map, and just replaced with the aliased type during
+    // generation.
+    // _writeTypeAlias(buffer, type);
   } else {
     throw 'Unknown type';
   }
-}
-
-void _writeTypeAlias(IndentableStringBuffer buffer, TypeAlias typeAlias) {
-  print('Skipping type alias ${typeAlias.name}');
 }
 
 class IndentableStringBuffer extends StringBuffer {

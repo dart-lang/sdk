@@ -12,6 +12,17 @@ import 'codegen_dart.dart';
 import 'markdown.dart';
 import 'typescript.dart';
 
+const _generatedFileHeader = '''
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// This file has been automatically generated.  Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
+
+''';
+
 main() async {
   final String script = Platform.script.toFilePath();
   // 3x parent = file -> lsp_spec -> tool -> analysis_server.
@@ -20,12 +31,11 @@ main() async {
   new Directory(outFolder).createSync();
 
   final String spec = await fetchSpec();
-  final List<ApiItem> types =
-      extractTypeScriptBlocks(spec).map(extractTypes).expand((l) => l).toList();
+  final List<ApiItem> types = extractAllTypes(extractTypeScriptBlocks(spec));
   final String output = generateDartForTypes(types);
   // TODO(dantup): Add file header to output file before we start committing it.
   new File(path.join(outFolder, 'protocol_generated.dart'))
-      .writeAsStringSync(output);
+      .writeAsStringSync(_generatedFileHeader + output);
 }
 
 final Uri specUri = Uri.parse(

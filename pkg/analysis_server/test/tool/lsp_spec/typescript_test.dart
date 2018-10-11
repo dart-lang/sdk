@@ -67,20 +67,20 @@ export interface SomeOptions {
     test('flags nullable undefined values', () {
       final String input = '''
 export interface A {
+  canBeBoth?: string | null;
   canBeNeither: string;
 	canBeNull: string | null;
   canBeUndefined?: string;
-  canBeBoth?: string | null;
 }
     ''';
       final List<ApiItem> output = extractTypes(input);
       final Interface interface = output[0];
       expect(interface.members, hasLength(4));
       interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
-      final Field canBeNeither = interface.members[0],
-          canBeNull = interface.members[1],
-          canBeUndefined = interface.members[2],
-          canBeBoth = interface.members[3];
+      final Field canBeBoth = interface.members[0],
+          canBeNeither = interface.members[1],
+          canBeNull = interface.members[2],
+          canBeUndefined = interface.members[3];
       expect(canBeNeither.allowsNull, isFalse);
       expect(canBeNeither.allowsUndefined, isFalse);
       expect(canBeNull.allowsNull, isTrue);
@@ -137,14 +137,14 @@ export namespace ResourceOperationKind {
 	export const Create: ResourceOperationKind = 'create';
 
 	/**
-	 * Supports renaming existing files and folders.
-	 */
-	export const Rename: ResourceOperationKind = 'rename';
-
-	/**
 	 * Supports deleting existing files and folders.
 	 */
 	export const Delete: ResourceOperationKind = 'delete';
+
+	/**
+	 * Supports renaming existing files and folders.
+	 */
+	export const Rename: ResourceOperationKind = 'rename';
 }
     ''';
       final List<ApiItem> output = extractTypes(input);
@@ -154,8 +154,8 @@ export namespace ResourceOperationKind {
       expect(namespace.members, hasLength(3));
       namespace.members.forEach((m) => expect(m, const TypeMatcher<Const>()));
       final Const create = namespace.members[0],
-          rename = namespace.members[1],
-          delete = namespace.members[2];
+          delete = namespace.members[1],
+          rename = namespace.members[2];
       expect(create.name, equals('Create'));
       expect(create.type, equals('ResourceOperationKind'));
       expect(
@@ -168,6 +168,46 @@ export namespace ResourceOperationKind {
       expect(delete.type, equals('ResourceOperationKind'));
       expect(delete.comment,
           equals('Supports deleting existing files and folders.'));
+    });
+
+    test('folds a namespace of constants into an interface', () {
+      final String input = '''
+export interface Thing {
+}
+export namespace Thing {
+	export const b: String = 'string';
+}
+    ''';
+      final List<ApiItem> output = extractTypes(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Const>());
+      final Const b = interface.members[0];
+      expect(b.name, equals('b'));
+    });
+
+    test('sorts types and members', () {
+      final String input = '''
+export interface b {
+	b: string;
+  a: string;
+}
+export interface a {
+	b: string;
+  a: string;
+}
+    ''';
+      final List<ApiItem> output = extractTypes(input);
+      expect(output, hasLength(2));
+      output.forEach((m) => expect(m, const TypeMatcher<Interface>()));
+      output.cast<Interface>().forEach((interface) {
+        interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
+        final fields = interface.members.cast<Field>();
+        expect(fields[0].name, equals('a'));
+        expect(fields[1].name, equals('b'));
+      });
     });
   });
 }

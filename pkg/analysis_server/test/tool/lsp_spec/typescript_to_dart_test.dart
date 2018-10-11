@@ -37,5 +37,21 @@ class SomeOptions {
     ''';
       convertAndCompare(input, expectedOutput);
     });
+
+    test('uses aliases types in place of aliases', () {
+      final String input = '''
+type DocumentUri = string;
+
+export interface SomeDocumentThing {
+	uris: DocumentUri[];
+}
+    ''';
+      final String expectedOutput = '''
+class SomeDocumentThing {
+  List<String /*DocumentUri*/ > uris;
+}
+    ''';
+      convertAndCompare(input, expectedOutput);
+    });
   });
 }
