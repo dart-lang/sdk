@@ -373,10 +373,10 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }
 
-const char* Dart::Cleanup() {
+char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
-    return "VM already terminated.";
+    return strdup("VM already terminated.");
   }
 
   if (FLAG_trace_shutdown) {

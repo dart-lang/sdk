@@ -1011,11 +1011,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
 
 DART_EXPORT char* Dart_Cleanup() {
   CHECK_NO_ISOLATE(Isolate::Current());
-  const char* err_msg = Dart::Cleanup();
-  if (err_msg != NULL) {
-    return strdup(err_msg);
-  }
-  return NULL;
+  return Dart::Cleanup();
 }
 
 DART_EXPORT char* Dart_SetVMFlags(int argc, const char** argv) {

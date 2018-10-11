@@ -24,6 +24,8 @@ class Program;
 
 class Dart : public AllStatic {
  public:
+  // Returns null if initialization succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
   static char* Init(const uint8_t* vm_snapshot_data,
                     const uint8_t* vm_snapshot_instructions,
                     Dart_IsolateCreateCallback create,
@@ -37,7 +39,10 @@ class Dart : public AllStatic {
                     Dart_EntropySource entropy_source,
                     Dart_GetVMServiceAssetsArchive get_service_assets,
                     bool start_kernel_isolate);
-  static const char* Cleanup();
+
+  // Returns null if cleanup succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
+  static char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags);

@@ -480,12 +480,8 @@ class VMTestSuite extends TestSuite {
   void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      // TODO(ahe): Are any of these arguments used or needed?
-      args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
-      // TODO(ahe): This argument is probably ignored by the VM.
-      args.add('--strong');
     }
 
     args.add(testName);
