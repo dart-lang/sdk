@@ -42,6 +42,11 @@ abstract class ClassHierarchy {
   /// True if the component contains another class that is a subtype of given one.
   bool hasProperSubtypes(Class class_);
 
+  // Returns the instantition of each generic supertype implemented by this
+  // class (e.g. getClassAsInstanceOf applied to all superclasses and
+  // interfaces).
+  List<Supertype> genericSupertypesOf(Class class_);
+
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
   ///
@@ -700,6 +705,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
+  List<Supertype> genericSupertypesOf(Class class_) {
+    final supertypes = _infoFor[class_].genericSuperTypes;
+    if (supertypes == null) return const <Supertype>[];
+    // Multiple supertypes can arise from ambiguous supertypes. The first
+    // supertype is the real one; the others are purely informational.
+    return supertypes.values.map((v) => v.first).toList();
+  }
+
+  @override
   ClassHierarchy applyTreeChanges(Iterable<Library> removedLibraries,
       Iterable<Library> ensureKnownLibraries,
       {Component reissueAmbiguousSupertypesFor}) {
@@ -1339,7 +1353,7 @@ class _ClassInfo {
   /// Maps generic supertype classes to the instantiation implemented by this
   /// class.
   ///
-  /// E.g. `List` maps to `List<String>` for a class that directly of indirectly
+  /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
   /// implements `List<String>`.
   Map<Class, List<Supertype>> genericSuperTypes;
 

@@ -7,7 +7,14 @@
 library vm.transformations.type_flow.utils;
 
 import 'package:kernel/ast.dart'
-    show Constructor, FunctionNode, Member, VariableDeclaration;
+    show
+        Class,
+        Constructor,
+        DartType,
+        Procedure,
+        FunctionNode,
+        Member,
+        VariableDeclaration;
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');
@@ -50,6 +57,14 @@ const int kHashMask = 0x3fffffff;
 
 bool hasReceiverArg(Member member) =>
     member.isInstanceMember || (member is Constructor);
+
+// Type arguments to procedures is only supported for factory constructors of
+// generic classes at the moment.
+//
+// TODO(sjindel/tfa): Extend suport to normal generic functions.
+int numTypeParams(Member member) => member is Procedure && member.isFactory
+    ? member.function.typeParameters.length
+    : 0;
 
 /// Returns true if elements in [list] are in strictly increasing order.
 /// List with duplicates is considered not sorted.
@@ -147,4 +162,44 @@ class Statistics {
     ${throwExpressionsPruned} throw expressions pruned
     """);
   }
+}
+
+int typeArgumentsHash(List<DartType> typeArgs) {
+  int hash = 1237;
+  for (var t in typeArgs) {
+    hash = (((hash * 31) & kHashMask) + t.hashCode) & kHashMask;
+  }
+  return hash;
+}
+
+class SubtypePair {
+  final Class subtype;
+  final Class supertype;
+
+  SubtypePair(this.subtype, this.supertype);
+
+  int get hashCode {
+    return subtype.hashCode ^ supertype.hashCode;
+  }
+
+  bool operator ==(Object other) {
+    if (other is SubtypePair) {
+      return subtype == other.subtype && supertype == other.supertype;
+    }
+    return false;
+  }
+}
+
+// Returns the smallest index 'i' such that 'list.skip(i)' is a prefix of
+// 'sublist'.
+int findOverlap(List list, List sublist) {
+  for (int i = 0; i < list.length; ++i)
+    outer:
+    {
+      for (int j = 0; j < sublist.length && i + j < list.length; ++j) {
+        if (list[i + j] != sublist[j]) continue outer;
+      }
+      return i;
+    }
+  return list.length;
 }

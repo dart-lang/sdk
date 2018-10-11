@@ -55,12 +55,19 @@ class StatementVisitor {
   void visitJoin(Join expr) => visitDefault(expr);
   void visitUse(Use expr) => visitDefault(expr);
   void visitCall(Call expr) => visitDefault(expr);
+  void visitExtract(Extract expr) => visitDefault(expr);
+  void visitCreateConcreteType(CreateConcreteType expr) => visitDefault(expr);
+  void visitCreateRuntimeType(CreateRuntimeType expr) => visitDefault(expr);
+  void visitTypeCheck(TypeCheck expr) => visitDefault(expr);
 }
 
 /// Input parameter of the summary.
 class Parameter extends Statement {
   final String name;
+
+  // 'staticType' is null for type parameters to factory constructors.
   final Type staticType;
+
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
@@ -261,6 +268,182 @@ class Call extends Statement {
   }
 }
 
+// Extract a type argument from a ConcreteType (used to extract type arguments
+// from receivers of methods).
+class Extract extends Statement {
+  TypeExpr arg;
+
+  final Class referenceClass;
+  final int paramIndex;
+
+  Extract(this.arg, this.referenceClass, this.paramIndex);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitExtract(this);
+
+  @override
+  String dump() => "$label = _Extract ($arg[$referenceClass/$paramIndex])";
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    Type argType = arg.getComputedType(computedTypes);
+    Type extractedType;
+
+    void extractType(ConcreteType c) {
+      if (c.typeArgs == null) {
+        extractedType = const AnyType();
+      } else {
+        final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
+            c.classNode, referenceClass);
+        final extract = c.typeArgs[interfaceOffset + paramIndex];
+        assertx(extract is AnyType || extract is RuntimeType);
+        if (extractedType == null || extract == extractedType) {
+          extractedType = extract;
+        } else {
+          extractedType = const AnyType();
+        }
+      }
+    }
+
+    // TODO(sjindel/tfa): Support more types here if possible.
+    if (argType is ConcreteType) {
+      extractType(argType);
+    } else if (argType is SetType) {
+      argType.types.forEach(extractType);
+    }
+
+    return extractedType ?? const AnyType();
+  }
+}
+
+// Instantiate a concrete type with type arguments. For example, used to fill in
+// "T = int" in "C<T>" to create "C<int>".
+//
+// The type arguments are factored against the generic interfaces; for more
+// details see 'ClassHierarchyCache.factoredGenericInterfacesOf'.
+class CreateConcreteType extends Statement {
+  final ConcreteType type;
+  final List<TypeExpr> flattenedTypeArgs;
+
+  CreateConcreteType(this.type, this.flattenedTypeArgs);
+
+  @override
+  void accept(StatementVisitor visitor) =>
+      visitor.visitCreateConcreteType(this);
+
+  @override
+  String dump() {
+    int numImmediateTypeArgs = type.classNode.typeParameters.length;
+    return "$label = _CreateConcreteType (${type.classNode} @ "
+        "${flattenedTypeArgs.take(numImmediateTypeArgs)})";
+  }
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    bool hasRuntimeType = false;
+    final types = new List<Type>(flattenedTypeArgs.length);
+    for (int i = 0; i < types.length; ++i) {
+      final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
+      assertx(computed is RuntimeType || computed is AnyType);
+      if (computed is RuntimeType) hasRuntimeType = true;
+      types[i] = computed;
+    }
+    return new ConcreteType(
+        type.classId, type.classNode, hasRuntimeType ? types : null);
+  }
+}
+
+// Similar to "CreateConcreteType", but creates a "RuntimeType" rather than a
+// "ConcreteType". Unlike a "ConcreteType", none of the type arguments can be
+// missing ("AnyType").
+class CreateRuntimeType extends Statement {
+  final Class klass;
+  final List<TypeExpr> flattenedTypeArgs;
+
+  CreateRuntimeType(this.klass, this.flattenedTypeArgs);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitCreateRuntimeType(this);
+
+  @override
+  String dump() => "$label = _CreateRuntimeType ($klass @ "
+      "${flattenedTypeArgs.take(klass.typeParameters.length)})";
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    final types = new List<RuntimeType>(flattenedTypeArgs.length);
+    for (int i = 0; i < types.length; ++i) {
+      final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
+      assertx(computed is RuntimeType || computed is AnyType);
+      if (computed is AnyType) return const AnyType();
+      types[i] = computed;
+    }
+    return new RuntimeType(new InterfaceType(klass), types);
+  }
+}
+
+// Used to simulate a runtime type-check, to determine when it can be skipped.
+// TODO(sjindel/tfa): Unify with Narrow.
+class TypeCheck extends Statement {
+  TypeExpr arg;
+  TypeExpr type;
+
+  bool _canSkip = true;
+
+  // True if a the runtime type-check for this parameter can be skipped on
+  // statically-typed call-sites. (The type-check is only simulated after
+  // narrowing by the static parameter type.)
+  bool get canSkipOnStaticCallSite => _canSkip;
+
+  final VariableDeclaration parameter;
+
+  TypeCheck(this.arg, this.type, this.parameter);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitTypeCheck(this);
+
+  @override
+  String dump() {
+    String result = "$label = _TypeCheck ($arg against $type)";
+    if (parameter != null) {
+      result += " (for parameter ${parameter.name})";
+    }
+    return result;
+  }
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    Type argType = arg.getComputedType(computedTypes);
+    Type checkType = type.getComputedType(computedTypes);
+    // TODO(sjindel/tfa): Narrow the result if possible.
+    assertx(checkType is AnyType || checkType is RuntimeType);
+    if (_canSkip) {
+      if (checkType is AnyType) {
+        // If we don't know what the RHS of the check is going to be, we can't
+        // guarantee that it will pass.
+        if (kPrintTrace) {
+          tracePrint("TypeCheck failed, type is unknown");
+        }
+        _canSkip = false;
+      } else if (checkType is RuntimeType) {
+        _canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
+        if (kPrintTrace && !_canSkip) {
+          tracePrint("TypeCheck of $argType against $checkType failed.");
+        }
+        argType = argType.intersection(
+            Type.fromStatic(checkType.representedTypeRaw), typeHierarchy);
+      } else {
+        assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
+      }
+    }
+    return argType;
+  }
+}
+
 /// Summary is a linear sequence of statements representing a type flow in
 /// one member, function or initializer.
 class Summary {
@@ -318,13 +501,19 @@ class Summary {
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
-      final argType = args[i].specialize(typeHierarchy);
-      param._observeArgumentType(argType, typeHierarchy);
-      types[i] = argType.intersection(param.staticType, typeHierarchy);
+      if (param.staticType != null) {
+        final argType = args[i].specialize(typeHierarchy);
+        param._observeArgumentType(argType, typeHierarchy);
+        // TODO(sjindel/tfa): Perform narrowing inside 'TypeCheck'.
+        types[i] = argType.intersection(param.staticType, typeHierarchy);
+      } else {
+        types[i] = args[i];
+      }
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
       final Parameter param = _statements[i] as Parameter;
+      assertx(param.staticType != null);
       final argType = param.defaultValue.specialize(typeHierarchy);
       param._observeArgumentType(argType, typeHierarchy);
       types[i] = argType;
@@ -379,5 +568,16 @@ class Summary {
       }
     }
     return new Args<Type>(argTypes, names: argNames);
+  }
+
+  List<VariableDeclaration> get staticCallSiteSkipCheckParams {
+    final vars = <VariableDeclaration>[];
+    for (final statement in _statements) {
+      if (statement is TypeCheck && statement.canSkipOnStaticCallSite) {
+        final decl = statement.parameter;
+        if (decl != null) vars.add(decl);
+      }
+    }
+    return vars;
   }
 }

@@ -39,8 +39,9 @@ main() {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir
+        .listSync(recursive: true, followLinks: false)
+        .reversed) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

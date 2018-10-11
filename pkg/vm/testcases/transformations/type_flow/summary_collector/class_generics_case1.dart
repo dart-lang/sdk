@@ -1,0 +1,1 @@
+../transformer/class_generics_case1.dart

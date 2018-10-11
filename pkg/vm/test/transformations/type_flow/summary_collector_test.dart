@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
+import 'package:vm/transformations/type_flow/analysis.dart';
 import 'annotation_matcher.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -29,7 +30,8 @@ class PrintSummaries extends RecursiveVisitor<Null> {
             environment,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(
-                null, new ExpressionPragmaAnnotationParser(coreTypes)));
+                null, new ExpressionPragmaAnnotationParser(coreTypes)),
+            new GenericInterfacesInfoImpl(environment.hierarchy));
 
   String print(TreeNode node) {
     visitLibrary(node);
