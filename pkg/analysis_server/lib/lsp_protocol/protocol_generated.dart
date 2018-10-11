@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+
 class ApplyWorkspaceEditParams {
   /// The edits to apply.
   WorkspaceEdit edit;
@@ -177,7 +179,7 @@ class CodeLensParams {
   TextDocumentIdentifier textDocument;
 }
 
-class CodeLensRegistrationOptions {
+class CodeLensRegistrationOptions extends TextDocumentRegistrationOptions {
   /// Code lens has a resolve provider as well.
   bool resolveProvider;
 }
@@ -410,14 +412,14 @@ class CompletionOptions {
   List<String> triggerCharacters;
 }
 
-class CompletionParams {
+class CompletionParams extends TextDocumentPositionParams {
   /// The completion context. This is only available if the client specifies to
   /// send this using `ClientCapabilities.textDocument.completion.contextSupport
   /// === true`
   CompletionContext context;
 }
 
-class CompletionRegistrationOptions {
+class CompletionRegistrationOptions extends TextDocumentRegistrationOptions {
   /// The server provides support to resolve additional information for a
   /// completion item.
   bool resolveProvider;
@@ -462,7 +464,7 @@ class ConfigurationParams {
 }
 
 /// Create file operation
-class CreateFile {
+class CreateFile extends FileOperation {
   /// Additional options
   CreateFileOptions options;
 
@@ -480,7 +482,7 @@ class CreateFileOptions {
 }
 
 /// Delete file operation
-class DeleteFile {
+class DeleteFile extends FileOperation {
   /// Delete options.
   DeleteFileOptions options;
 
@@ -664,7 +666,7 @@ class DocumentLinkParams {
   TextDocumentIdentifier textDocument;
 }
 
-class DocumentLinkRegistrationOptions {
+class DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions {
   /// Document links have a resolve provider as well.
   bool resolveProvider;
 }
@@ -692,7 +694,8 @@ class DocumentOnTypeFormattingParams {
   TextDocumentIdentifier textDocument;
 }
 
-class DocumentOnTypeFormattingRegistrationOptions {
+class DocumentOnTypeFormattingRegistrationOptions
+    extends TextDocumentRegistrationOptions {
   /// A character on which formatting should be triggered, like `}`.
   String firstTriggerCharacter;
 
@@ -1003,7 +1006,7 @@ abstract class MessageType {
   static const Warning = 2;
 }
 
-class NotificationMessage {
+class NotificationMessage extends Message {
   /// The method to be invoked.
   String method;
 }
@@ -1053,7 +1056,7 @@ class ReferenceContext {
   bool includeDeclaration;
 }
 
-class ReferenceParams {
+class ReferenceParams extends TextDocumentPositionParams {
   ReferenceContext context;
 }
 
@@ -1075,7 +1078,7 @@ class RegistrationParams {
 }
 
 /// Rename file operation
-class RenameFile {
+class RenameFile extends FileOperation {
   /// The new location.
   String newUri;
 
@@ -1113,12 +1116,12 @@ class RenameParams {
   TextDocumentIdentifier textDocument;
 }
 
-class RenameRegistrationOptions {
+class RenameRegistrationOptions extends TextDocumentRegistrationOptions {
   /// Renames should be checked and tested for validity before being executed.
   bool prepareProvider;
 }
 
-class RequestMessage {
+class RequestMessage extends Message {
   /// The request id.
   Object /*Either<num, String>*/ id;
 
@@ -1137,7 +1140,7 @@ abstract class ResourceOperationKind {
   static const Rename = 'rename';
 }
 
-class ResponseMessage {
+class ResponseMessage extends Message {
   /// The request id.
   Object /*Either<num, String>*/ id;
 
@@ -1270,7 +1273,7 @@ class SignatureHelpOptions {
   List<String> triggerCharacters;
 }
 
-class SignatureHelpRegistrationOptions {
+class SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions {
   /// The characters that trigger signature help automatically.
   List<String> triggerCharacters;
 }
@@ -1383,7 +1386,8 @@ abstract class SymbolKind {
 
 /// Describe options to be used when registering for text document change
 /// events.
-class TextDocumentChangeRegistrationOptions {
+class TextDocumentChangeRegistrationOptions
+    extends TextDocumentRegistrationOptions {
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   num syncKind;
@@ -1420,7 +1424,7 @@ class TextDocumentContentChangeEvent {
   String text;
 }
 
-class TextDocumentEdit {
+class TextDocumentEdit extends FileOperation {
   /// The edits to be applied.
   List<TextEdit> edits;
 
@@ -1475,7 +1479,8 @@ abstract class TextDocumentSaveReason {
   static const Manual = 1;
 }
 
-class TextDocumentSaveRegistrationOptions {
+class TextDocumentSaveRegistrationOptions
+    extends TextDocumentRegistrationOptions {
   /// The client is supposed to include the content on save.
   bool includeText;
 }
@@ -1537,7 +1542,7 @@ class UnregistrationParams {
   List<Unregistration> unregisterations;
 }
 
-class VersionedTextDocumentIdentifier {
+class VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
   /// The version number of this document. If a versioned text document
   /// identifier is sent from the server to the client and the file is not open
   /// in the editor (the server has not received an open notification before)
@@ -1587,7 +1592,25 @@ class WorkspaceClientCapabilities {
   List<ResourceOperationKind> resourceOperations;
 }
 
-class WorkspaceEdit {}
+class WorkspaceEdit {
+  /// Holds changes to existing resources.
+  Map<String, List<TextEdit>> changes;
+
+  /// Depending on the client capability
+  /// `workspace.workspaceEdit.resourceOperations` document changes are either
+  /// an array of `TextDocumentEdit`s to express changes to n different text
+  /// documents where each text document edit addresses a specific version of a
+  /// text document. Or it can contain above `TextDocumentEdit`s mixed with
+  /// create, rename and delete file / folder operations.
+  ///
+  /// Whether a client supports versioned document edits is expressed via
+  /// `workspace.workspaceEdit.documentChanges` client capability.
+  ///
+  /// If a client neither supports `documentChanges` nor
+  /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
+  /// using the `changes` property are supported.
+  List<FileOperation> documentChanges;
+}
 
 class WorkspaceFolder {
   /// The name of the workspace folder. Defaults to the uri's basename.

@@ -32,6 +32,7 @@ String _mapType(String type) {
     'string': 'String',
     'number': 'num',
     'any': 'Object',
+    '{ [uri: string]: TextEdit[]; }': 'Map<String, List<TextEdit>>',
   };
   return types[type] ?? type;
 }
@@ -114,8 +115,12 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
     return;
   }
 
+  buffer.writeIndented('class ${interface.name} ');
+  if (interface.baseTypes.isNotEmpty) {
+    buffer.writeIndented('extends ${interface.baseTypes.join(', ')} ');
+  }
   buffer
-    ..writeln('class ${interface.name} {')
+    ..writeln('{')
     ..indent();
   // TODO(dantup): Generate constructors (inc. type checks for unions)
   _writeMembers(buffer, interface.members);
@@ -123,7 +128,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   // TODO(dantup): Generate fromJson()
   buffer
     ..outdent()
-    ..writeln('}')
+    ..writeIndentedLn('}')
     ..writeln();
 }
 

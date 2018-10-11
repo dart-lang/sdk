@@ -5,7 +5,7 @@
 // TODO(dantup): Regex seemed like a good choice when parsing the first few...
 // maybe it's not so great now. We should parse this properly if it turns out
 // there are issues with what we have here.
-const String _blockBody = r'\{([\s\S]*?)\s+\}';
+const String _blockBody = r'\{([\s\S]*?)\s*\n\s*\}';
 const String _comment = r'(?:\/\*\*((?:[\S\s](?!\*\/))+?)\s\*\/)?\s*';
 
 List<ApiItem> extractAllTypes(List<String> code) {
@@ -60,6 +60,11 @@ List<ApiItem> _mergeTypes(List<ApiItem> items) {
 }
 
 List<String> _parseTypes(String baseTypes, String sep) {
+  // Special case for a single complicated type we can't parse easily...
+  if (baseTypes ==
+      '(TextDocumentEdit[] | (TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[])') {
+    return ['FileOperation[]'];
+  }
   return baseTypes?.split(sep)?.map((t) => t.trim())?.toList() ?? [];
 }
 
@@ -115,13 +120,26 @@ class Field extends Member {
       : super(name, comment);
 
   static List<Field> extractFrom(String code) {
-    final RegExp _fieldPattern =
-        new RegExp(_comment + r'(\w+\??)\s*:\s*([\w\[\]\s|]+)\s*(?:;|$)');
+    final RegExp _fieldPattern = new RegExp(
+        _comment + r'([\w\[\]]+\??)\s*:\s*([\w\[\] \|\{\}\(\):;]+)\s*(?:;|$)');
 
-    final fields = _fieldPattern.allMatches(code).map((m) {
+    final fields = _fieldPattern.allMatches(code).where((m) {
+      // Skip over the indexer in FormattingOptions since we don't need this
+      // (for now) and it's complicated to represent.
+      if (m.group(0).contains('[key: string]: boolean | number | string;')) {
+        return false;
+      }
+      return true;
+    }).map((m) {
       final String comment = m.group(1);
       String name = m.group(2);
-      final List<String> types = _parseTypes(m.group(3), '|');
+      String typesString = m.group(3).trim();
+      // Our regex may result in semicolons on the end...
+      // TODO(dantup): Fix this, or make a simple parser.
+      if (typesString.endsWith(';')) {
+        typesString = typesString.substring(0, typesString.length - 1);
+      }
+      final List<String> types = _parseTypes(typesString, '|');
       final bool allowsNull = types.contains('null');
       if (allowsNull) {
         types.remove('null');
@@ -155,10 +173,28 @@ class Interface extends ApiItem {
       final List<String> baseTypes = _parseTypes(match.group(3), ',');
       final String body = match.group(4);
       final List<Member> members = Member.extractFrom(body);
+
+      // Add any special base classes we've added to simplify types.
+      baseTypes.addAll(_getSpecialBaseClasses(name));
+
       return new Interface(name, comment, baseTypes, members);
     }).toList();
     _sort(interfaces);
     return interfaces;
+  }
+}
+
+List<String> _getSpecialBaseClasses(String name) {
+  const fileOperationTypes = [
+    'TextDocumentEdit',
+    'CreateFile',
+    'RenameFile',
+    'DeleteFile'
+  ];
+  if (fileOperationTypes.contains(name)) {
+    return ['FileOperation'];
+  } else {
+    return [];
   }
 }
 
