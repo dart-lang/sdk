@@ -658,8 +658,7 @@ class GenericInferrer {
     }
 
     if (t1 is FunctionType && t2 is FunctionType) {
-      return FunctionTypeImpl.relate(
-          t1, t2, matchSubtype, _typeSystem.instantiateToBounds,
+      return FunctionTypeImpl.relate(t1, t2, matchSubtype,
           parameterRelation: (p1, p2) {
             return _matchSubtypeOf(p2.type, p1.type, null, origin,
                 covariant: !covariant);
@@ -1134,7 +1133,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   @override
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf,
         parameterRelation: isOverrideSubtypeOfParameter,
         // Type parameter bounds are invariant.
         boundsRelation: (t1, t2, p1, p2) =>
@@ -1471,7 +1470,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   /// Check that [f1] is a subtype of [f2].
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf,
         parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type),
         // Type parameter bounds are invariant.
         boundsRelation: (t1, t2, p1, p2) =>

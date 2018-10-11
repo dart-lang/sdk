@@ -790,8 +790,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         this,
         type,
         (DartType t, DartType s) =>
-            (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
-        new StrongTypeSystemImpl(null).instantiateToBounds);
+            (t as TypeImpl).isMoreSpecificThan(s, withDynamic));
   }
 
   @override
@@ -800,8 +799,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
-        (DartType t, DartType s) => t.isAssignableTo(s),
-        typeSystem.instantiateToBounds);
+        (DartType t, DartType s) => t.isAssignableTo(s));
   }
 
   @override
@@ -935,11 +933,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * If [boundsRelation] is omitted, uses [returnRelation]. This is for
    * backwards compatibility, and convenience for Dart 1 type system methods.
    */
-  static bool relate(
-      FunctionType t,
-      DartType other,
+  static bool relate(FunctionType t, DartType other,
       bool returnRelation(DartType t, DartType s),
-      DartType instantiateToBounds(DartType t),
       {bool parameterRelation(ParameterElement t, ParameterElement s),
       bool boundsRelation(DartType bound2, DartType bound1,
           TypeParameterElement formal2, TypeParameterElement formal1)}) {
