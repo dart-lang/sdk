@@ -35,9 +35,13 @@ abstract class CompilerConfiguration {
   final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
+
   bool get _isChecked => _configuration.isChecked;
+
   bool get _isHostChecked => _configuration.isHostChecked;
+
   bool get _useSdk => _configuration.useSdk;
+
   bool get _useEnableAsserts => _configuration.useEnableAsserts;
 
   bool get previewDart2 => !_configuration.noPreviewDart2;
@@ -578,7 +582,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   final bool previewDart2;
 
   bool get _isAndroid => _configuration.system == System.android;
+
   bool get _isArm => _configuration.architecture == Architecture.arm;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
   bool get _isAot => true;
@@ -777,7 +783,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -1033,9 +1043,13 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
 abstract class VMKernelCompilerMixin {
   TestConfiguration get _configuration;
+
   bool get _useSdk;
+
   bool get _isAot;
+
   bool get _isChecked;
+
   bool get _useEnableAsserts;
 
   String get executableScriptSuffix;
