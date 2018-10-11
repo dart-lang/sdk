@@ -832,24 +832,11 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
-    // Import the root library into the builtin library so that we can easily
-    // lookup the main entry point exported from the root library.
-    result = Dart_LibraryImportLibrary(DartUtils::LookupBuiltinLib(), root_lib,
-                                       Dart_Null());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (Options::compile_all()) {
       result = Dart_CompileAll();
       CHECK_RESULT(result);
-    }
-
-    if (Options::parse_all()) {
-      result = Dart_ParseAll();
-      CHECK_RESULT(result);
-      Dart_ExitScope();
-      // Shutdown the isolate.
-      Dart_ShutdownIsolate();
-      return false;
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

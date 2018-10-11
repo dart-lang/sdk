@@ -1357,39 +1357,6 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
   return Error::null();
 }
 
-RawError* Compiler::ParseAllFunctions(const Class& cls) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Error& error = Error::Handle(zone);
-  Array& functions = Array::Handle(zone, cls.functions());
-  Function& func = Function::Handle(zone);
-  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
-  // an empty array.
-  if (functions.IsNull()) {
-    ASSERT(cls.IsDynamicClass());
-    return error.raw();
-  }
-  // Compile all the regular functions.
-  for (int i = 0; i < functions.Length(); i++) {
-    func ^= functions.At(i);
-    ASSERT(!func.IsNull());
-    if (!func.is_abstract() && !func.IsRedirectingFactory()) {
-      if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
-          func.HasOptionalParameters()) {
-        // Skipping optional parameters in mixin application.
-        continue;
-      }
-      error = ParseFunction(thread, func);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-      func.ClearICDataArray();
-      func.ClearCode();
-    }
-  }
-  return error.raw();
-}
-
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
@@ -1912,11 +1879,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
-  return Error::null();
-}
-
-RawError* Compiler::ParseAllFunctions(const Class& cls) {
-  FATAL1("Attempt to parse class %s", cls.ToCString());
   return Error::null();
 }
 

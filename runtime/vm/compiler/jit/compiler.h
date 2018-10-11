@@ -150,7 +150,6 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
-  static RawError* ParseAllFunctions(const Class& cls);
 
   // Eagerly read all bytecode.
   static RawError* ReadAllBytecode(const Class& cls);

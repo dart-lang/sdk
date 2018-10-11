@@ -342,8 +342,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // dropping the lock below |result| may no longer valid.
   Dart_Handle uri =
       Dart_NewStringFromCString(reinterpret_cast<char*>(result->uri));
-  Dart_Handle resolved_uri =
-      Dart_NewStringFromCString(reinterpret_cast<char*>(result->resolved_uri));
   Dart_Handle library_uri = Dart_Null();
   if (result->library_uri != NULL) {
     library_uri =
@@ -423,61 +421,9 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
       return false;
     }
   }
-  intptr_t tag = result->tag;
 
-  // No touching.
-  result = NULL;
-
-  // We must drop the lock here because the tag handler may be recursively
-  // invoked and it will attempt to acquire the lock to queue more work.
-  loader->monitor_->Exit();
-
-  Dart_Handle dart_result = Dart_Null();
-  bool reload_extensions = false;
-
-  switch (tag) {
-    case Dart_kImportTag:
-      dart_result = Dart_LoadLibrary(uri, resolved_uri, source, 0, 0);
-      break;
-    case Dart_kSourceTag: {
-      ASSERT(library_uri != Dart_Null());
-      Dart_Handle library = Dart_LookupLibrary(library_uri);
-      ASSERT(!Dart_IsError(library));
-      dart_result = Dart_LoadSource(library, uri, resolved_uri, source, 0, 0);
-    } break;
-    case Dart_kScriptTag:
-      if (payload_type == DartUtils::kKernelMagicNumber) {
-        // TODO(27590): This code path is only hit when trying to spawn
-        // isolates. We currently do not have support for neither
-        // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
-        // frontend.
-        dart_result = Dart_LoadScriptFromKernel(payload, payload_length);
-      } else {
-        dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
-      }
-      break;
-    default:
-      UNREACHABLE();
-  }
-
-  // Re-acquire the lock before exiting the function (it was held before entry),
-  loader->monitor_->Enter();
-  if (Dart_IsError(dart_result)) {
-    // Remember the error if we encountered one.
-    loader->error_ = dart_result;
-    return false;
-  }
-
-  if (reload_extensions) {
-    dart_result = ReloadNativeExtensions();
-    if (Dart_IsError(dart_result)) {
-      // Remember the error if we encountered one.
-      loader->error_ = dart_result;
-      return false;
-    }
-  }
-
-  return true;
+  UNREACHABLE();
+  return false;
 }
 
 bool Loader::ProcessPayloadResultLocked(Loader* loader,

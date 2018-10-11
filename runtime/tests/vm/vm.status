@@ -326,16 +326,6 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 # Tests that use functionality not supported in Dart 2.
 [ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
-cc/DartAPI_LazyLoadDeoptimizes: SkipByDesign # Issue 33043, Dart_LoadSource unsupported.
-cc/DartAPI_LoadLibraryPatch_Error1: SkipByDesign # Dart_LibraryLoadPatch unsupported.
-cc/DartAPI_LoadLibraryPatch_Error2: SkipByDesign
-cc/DartAPI_LoadLibraryPatch_Error3: SkipByDesign
-cc/DartAPI_LoadPatch: SkipByDesign
-cc/DartAPI_LoadPatchSignatureMismatch: SkipByDesign
-cc/DartAPI_LoadSource: SkipByDesign # Dart_LoadSource unsupported.
-cc/DartAPI_LoadSource_LateLoad: SkipByDesign
-cc/DartAPI_ParsePatchLibrary: SkipByDesign
-cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
 cc/CompileFunctionOnHelperThread: SkipByDesign
 cc/CompileFunction: SkipByDesign
 cc/InvokeDynamic_CompileError: SkipByDesign
@@ -345,7 +335,6 @@ cc/FindCodeObject: SkipByDesign
 cc/DartDynamicResolve: SkipByDesign
 cc/DartStaticResolve: SkipByDesign
 cc/CompileScript: SkipByDesign
-cc/DartAPI_LoadLibraryPatch_1: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors

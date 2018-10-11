@@ -3974,7 +3974,6 @@ class Library : public Object {
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
-  static RawError* ParseAll(Thread* thread);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Eagerly read all bytecode.
   static RawError* ReadAllBytecode();
