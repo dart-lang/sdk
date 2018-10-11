@@ -11,6 +11,7 @@ LibTest/io/FileStat/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lan
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/171
 LibTest/io/Link/stat_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
 LibTest/io/Link/stat_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/165
+LibTest/io/RawDatagramSocket/any_A03_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/timeout_A03_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
