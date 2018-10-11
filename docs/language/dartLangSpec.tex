@@ -8109,9 +8109,9 @@ Evaluation of an expression of the form \code{++$e$} is equivalent to \code{$e$\
 Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e$\,-=\,1}.
 
 \LMHash{}
-If $e$ is an expression of the form \code{-$l$}
+Let $e$ be an expression of the form \code{-$l$}
 where $l$ is an integer literal (\ref{numbers}) with numeric integer value $i$,
-and with static contex type $T$.
+and with static context type $T$.
 If \code{double} is assignable to $T$ and \code{int} is not assignable to $T$,
 then the static type of $e$ is \code{double};
 otherwise the static type of $e$ is \code{int}.
@@ -8119,12 +8119,16 @@ otherwise the static type of $e$ is \code{int}.
 \LMHash{}
 If the static type of $e$ is \code{int} then $e$ evaluates to
 to an instance of the \code{int} class representing the numeric value $-i$.
+If $i$ is zero and the \code{int} class can represent a negative zero value,
+then the resulting instance instead represents that negative zero value.
 It is a compile-time error if the integer $-i$ cannot be represented
 exactly by an instance of \code{int}.
 
 \LMHash{}
 If the static type of $e$ is \code{double} then $e$ evaluates to
 to an instance of the \code{double} class representing the numeric value $-i$.
+If $i$ is zero, the resulting instance instead represents the
+\emph{negative} zero double value, \code{-0.0}.
 It is a compile-time error if the integer $-i$ cannot be represented
 exactly by an instance of \code{double}.
 \commentary{
@@ -11691,7 +11695,7 @@ Description & Operator & Associativity & Precedence \\
 Unary postfix & \code{$e$.}, \code{$e$?.}, \code{$e$++}, \code{$e$-{}-}, \code{$e1$[$e2$]},
 \code{$e$()} & None & 16 \\
 \hline
-Unary prefix & \code{-$e$}, \code{!$e$}, \code{\~{}$e$}, \code{++$e$}, \code{-{}-$e$} & None & 15\\
+Unary prefix & \code{-$e$}, \code{!$e$}, \code{\~{}$e$}, \code{++$e$}, \code{-{}-$e$}, \code{\AWAIT{} $e$} & None & 15\\
 \hline
 Multiplicative & \code{*}, \code{/}, \code{\~{}/}, \code{\%} & Left & 14\\
 \hline
