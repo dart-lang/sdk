@@ -63,6 +63,7 @@ import '../messages.dart'
         noLength,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
+        templateInferredPackageUri,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
@@ -152,8 +153,40 @@ class KernelTarget extends TargetImplementation {
     uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
-  void read(Uri uri) {
-    loader.read(uri, -1, accessor: loader.first);
+  void setEntryPoints(List<Uri> entryPoints) {
+    Map<String, Uri> packagesMap;
+    for (Uri entryPoint in entryPoints) {
+      String scheme = entryPoint.scheme;
+      Uri fileUri;
+      switch (scheme) {
+        case "package":
+        case "dart":
+        case "data":
+          break;
+        default:
+          // Attempt to reverse-lookup [entryPoint] in package config.
+          String asString = "$entryPoint";
+          packagesMap ??= uriTranslator.packages.asMap();
+          for (String packageName in packagesMap.keys) {
+            String prefix = "${packagesMap[packageName]}";
+            if (asString.startsWith(prefix)) {
+              Uri reversed = Uri.parse(
+                  "package:$packageName/${asString.substring(prefix.length)}");
+              if (entryPoint == uriTranslator.translate(reversed)) {
+                loader.addProblem(
+                    templateInferredPackageUri.withArguments(reversed),
+                    -1,
+                    1,
+                    entryPoint);
+                fileUri = entryPoint;
+                entryPoint = reversed;
+                break;
+              }
+            }
+          }
+      }
+      loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
+    }
   }
 
   @override

@@ -59,8 +59,6 @@ import '../fasta/ticker.dart' show Ticker;
 
 import '../fasta/uri_translator.dart' show UriTranslator;
 
-import '../fasta/uri_translator_impl.dart' show UriTranslatorImpl;
-
 import 'libraries_specification.dart'
     show
         LibrariesSpecification,
@@ -95,7 +93,7 @@ class ProcessedOptions {
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  UriTranslatorImpl _uriTranslator;
+  UriTranslator _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
@@ -382,7 +380,7 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator({bool bypassCache: false}) async {
+  Future<UriTranslator> getUriTranslator({bool bypassCache: false}) async {
     if (bypassCache) {
       _uriTranslator = null;
       _packages = null;
@@ -393,7 +391,7 @@ class ProcessedOptions {
       ticker.logMs("Read libraries file");
       var packages = await _getPackages();
       ticker.logMs("Read packages file");
-      _uriTranslator = new UriTranslatorImpl(libraries, packages);
+      _uriTranslator = new UriTranslator(libraries, packages);
     }
     return _uriTranslator;
   }

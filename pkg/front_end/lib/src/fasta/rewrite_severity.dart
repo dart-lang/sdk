@@ -44,7 +44,6 @@ Severity rewriteSeverity(
     switch (path.substring(fastaPath.length + index)) {
       case "command_line.dart":
       case "deprecated_problems.dart":
-      case "entry_points.dart":
       case "kernel/body_builder.dart":
       case "source/diet_listener.dart":
         return severity;

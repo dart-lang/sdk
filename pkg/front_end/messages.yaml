@@ -3213,3 +3213,13 @@ IncorrectTypeArgumentInSupertypeInferred:
 IncorrectTypeArgumentVariable:
   template: "Bound of this variable is violated."
   severity: CONTEXT
+
+InferredPackageUri:
+  template: "Interpreting this as package URI, '#uri'."
+  severity: WARNING
+  frontendInternal: true
+  script:
+    "main.dart": |
+      main() {}
+    ".packages": |
+      example:./

@@ -251,7 +251,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Component componentWithDill;
       try {
-        userCode.read(entryPoint);
+        userCode.setEntryPoints(<Uri>[entryPoint]);
         await userCode.buildOutlines();
 
         // This is not the full component. It is the component including all

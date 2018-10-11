@@ -106,7 +106,7 @@ Future<CompilerResult> generateKernelInternal(
         var kernelTarget =
             new KernelTarget(fs, false, dillTarget, uriTranslator);
         sourceLoader = kernelTarget.loader;
-        options.inputs.forEach(kernelTarget.read);
+        kernelTarget.setEntryPoints(options.inputs);
         Component summaryComponent =
             await kernelTarget.buildOutlines(nameRoot: nameRoot);
         List<int> summary = null;

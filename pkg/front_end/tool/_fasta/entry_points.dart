@@ -25,9 +25,6 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_inputError;
-
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
@@ -243,13 +240,7 @@ class CompileTask {
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
     }
-    Uri uri = c.options.inputs.first;
-    String path = uriTranslator.translate(uri)?.path ?? uri.path;
-    if (path.endsWith(".dart")) {
-      kernelTarget.read(uri);
-    } else {
-      deprecated_inputError(uri, -1, "Unexpected input: $uri");
-    }
+    kernelTarget.setEntryPoints(c.options.inputs);
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {

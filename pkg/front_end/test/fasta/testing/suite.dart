@@ -68,9 +68,6 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:front_end/src/fasta/uri_translator_impl.dart'
-    show UriTranslatorImpl;
-
 export 'package:testing/testing.dart' show Chain, runMe;
 
 const String STRONG_MODE = " strong mode ";
@@ -95,7 +92,7 @@ String generateExpectationName(bool strongMode) {
 }
 
 class FastaContext extends ChainContext {
-  final UriTranslatorImpl uriTranslator;
+  final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
   final bool strongMode;
@@ -302,7 +299,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
-      UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
+      UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
       KernelTarget sourceTarget = new KernelTarget(
@@ -310,7 +307,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
 
       Component p;
       try {
-        sourceTarget.read(description.uri);
+        sourceTarget.setEntryPoints(<Uri>[description.uri]);
         await dillTarget.buildOutlines();
         ValidatingInstrumentation instrumentation;
         if (strongMode) {
