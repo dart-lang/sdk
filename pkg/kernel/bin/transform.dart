@@ -101,11 +101,12 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final Map<String, String> defines = null;
       final VmConstantsBackend backend =
           new VmConstantsBackend(defines, coreTypes);
-      component = constants.transformComponent(component, backend);
+      component =
+          constants.transformComponent(component, backend, legacyMode: true);
       break;
     case 'treeshake':
       component = treeshaker.transformComponent(coreTypes, hierarchy, component,
-          programRoots: programRoots);
+          programRoots: programRoots, legacyMode: true);
       break;
     case 'methodcall':
       component =

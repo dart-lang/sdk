@@ -12,9 +12,9 @@ import '../library_index.dart';
 
 Component transformComponent(
     CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
-    {List<ProgramRoot> programRoots, bool strongMode: false}) {
+    {List<ProgramRoot> programRoots, bool legacyMode: false}) {
   new TreeShaker(coreTypes, hierarchy, component,
-          programRoots: programRoots, strongMode: strongMode)
+          programRoots: programRoots, legacyMode: legacyMode)
       .transform(component);
   return component;
 }
@@ -98,7 +98,7 @@ class TreeShaker {
   final Map<Class, int> numberedClasses;
   final List<Class> classes;
   final Component component;
-  final bool strongMode;
+  final bool legacyMode;
   final List<ProgramRoot> programRoots;
 
   /// Map from classes to set of names that have been dispatched with that class
@@ -179,9 +179,9 @@ class TreeShaker {
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
   TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
-      {bool strongMode: false, List<ProgramRoot> programRoots})
+      {List<ProgramRoot> programRoots, bool legacyMode: false})
       : this._internal(
-            coreTypes, hierarchy, component, strongMode, programRoots);
+            coreTypes, hierarchy, component, legacyMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -229,7 +229,7 @@ class TreeShaker {
   }
 
   TreeShaker._internal(this.coreTypes, this.hierarchy, this.component,
-      this.strongMode, this.programRoots)
+      this.legacyMode, this.programRoots)
       : this._dispatchedNames = new List<Set<Name>>(hierarchy.numberOfClasses),
         this._usedMembersWithHost =
             new List<Set<Member>>(hierarchy.numberOfClasses),
@@ -284,7 +284,7 @@ class TreeShaker {
 
     // Mark overridden members in order to preserve abstract members as
     // necessary.
-    if (strongMode) {
+    if (!legacyMode) {
       for (int i = classes.length - 1; i >= 0; --i) {
         Class class_ = classes[i];
         if (isHierarchyUsed(class_)) {
@@ -669,7 +669,7 @@ class _TreeShakerVisitor extends RecursiveVisitor {
   _TreeShakerVisitor(TreeShaker shaker)
       : this.shaker = shaker,
         this.coreTypes = shaker.coreTypes,
-        this.strongMode = shaker.strongMode,
+        this.strongMode = !shaker.legacyMode,
         this.types = new TypeEnvironment(shaker.coreTypes, shaker.hierarchy) {
     types.errorHandler = handleError;
   }

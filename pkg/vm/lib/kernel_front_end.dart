@@ -159,7 +159,6 @@ Future _performConstantEvaluation(
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants,
         keepFields: true,
-        strongMode: true,
         evaluateAnnotations: true,
         enableAsserts: enableAsserts,
         errorReporter: new ForwardConstantEvaluationErrors(typeEnvironment));

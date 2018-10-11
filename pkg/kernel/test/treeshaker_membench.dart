@@ -46,7 +46,7 @@ main(List<String> args) {
 
   TreeShaker buildTreeShaker() {
     return new TreeShaker(coreTypes, hierarchy, component,
-        strongMode: strongMode);
+        legacyMode: !strongMode);
   }
 
   List<TreeShaker> keepAlive = <TreeShaker>[];

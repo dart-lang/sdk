@@ -182,8 +182,9 @@ class _ConstantEvaluator extends ConstantEvaluator {
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
       {bool enableAsserts})
       : unavailableConstant = InstanceConstant(null, [], {}),
-        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes, true,
-            enableAsserts, const _ErrorReporter()) {
+        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
+            enableAsserts,
+            errorReporter: const _ErrorReporter()) {
     env = EvaluationEnvironment();
   }
 

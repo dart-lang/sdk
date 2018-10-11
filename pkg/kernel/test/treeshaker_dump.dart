@@ -69,7 +69,7 @@ main(List<String> args) {
   CoreTypes coreTypes = new CoreTypes(component);
   ClassHierarchy hierarchy = new ClassHierarchy(component);
   TreeShaker shaker =
-      new TreeShaker(coreTypes, hierarchy, component, strongMode: strong);
+      new TreeShaker(coreTypes, hierarchy, component, legacyMode: !strong);
   int totalClasses = 0;
   int totalInstantiationCandidates = 0;
   int totalMembers = 0;
@@ -132,7 +132,7 @@ main(List<String> args) {
     StringBuffer before = new StringBuffer();
     new Printer(before, syntheticNames: names).writeComponentFile(component);
     new File(beforeFile).writeAsStringSync('$before');
-    new TreeShaker(coreTypes, hierarchy, component, strongMode: strong)
+    new TreeShaker(coreTypes, hierarchy, component, legacyMode: !strong)
         .transform(component);
     StringBuffer after = new StringBuffer();
     new Printer(after, syntheticNames: names).writeComponentFile(component);

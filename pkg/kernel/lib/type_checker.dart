@@ -20,10 +20,9 @@ abstract class TypeChecker {
   TypeEnvironment environment;
 
   TypeChecker(this.coreTypes, this.hierarchy,
-      {bool strongMode: false, this.ignoreSdk: true}) {
-    environment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
-  }
+      {bool legacyMode: false, this.ignoreSdk: true})
+      : environment =
+            new TypeEnvironment(coreTypes, hierarchy, strongMode: !legacyMode);
 
   void checkComponent(Component component) {
     for (var library in component.libraries) {
@@ -819,8 +818,7 @@ class TypeCheckingVisitor
       if (iteratorGetter == null) return const DynamicType();
       var castedIterable = hierarchy.getTypeAsInstanceOf(
           iterable, iteratorGetter.enclosingClass);
-      var iteratorType = Substitution
-          .fromInterfaceType(castedIterable)
+      var iteratorType = Substitution.fromInterfaceType(castedIterable)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
         var currentGetter =
@@ -828,8 +826,7 @@ class TypeCheckingVisitor
         if (currentGetter == null) return const DynamicType();
         var castedIteratorType = hierarchy.getTypeAsInstanceOf(
             iteratorType, currentGetter.enclosingClass);
-        return Substitution
-            .fromInterfaceType(castedIteratorType)
+        return Substitution.fromInterfaceType(castedIteratorType)
             .substituteType(currentGetter.getterType);
       }
     }
