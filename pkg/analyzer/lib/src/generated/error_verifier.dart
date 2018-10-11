@@ -4121,7 +4121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     InterfaceType mixinSupertype = mixinElement.supertype;
     if (mixinSupertype != null) {
       if (!mixinSupertype.isObject ||
-          !mixinElement.isMixinApplication && mixinElement.mixins.length != 0) {
+          !mixinElement.isMixinApplication && mixinElement.mixins.isNotEmpty) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
             mixinName,

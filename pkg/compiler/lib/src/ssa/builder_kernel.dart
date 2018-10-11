@@ -2597,7 +2597,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           new SubGraph(defaultCase, defaultCase)));
     }
     assert(caseHandlers.length == joinBlock.predecessors.length);
-    if (caseHandlers.length != 0) {
+    if (caseHandlers.isNotEmpty) {
       graph.addBlock(joinBlock);
       open(joinBlock);
       if (caseHandlers.length == 1) {

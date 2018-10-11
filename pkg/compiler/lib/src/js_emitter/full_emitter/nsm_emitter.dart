@@ -73,7 +73,7 @@ class NsmEmitter extends CodeEmitterHelper {
       int type, List argNames, Selector selector, jsAst.Name internalName) {
     if (!generateTrivialNsmHandlers) return false;
     // Check for named arguments.
-    if (argNames.length != 0) return false;
+    if (argNames.isNotEmpty) return false;
     if (selector.typeArgumentCount > 0) return false;
     // Check for unexpected name (this doesn't really happen).
     if (internalName is GetterName) return type == 1;
