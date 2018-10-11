@@ -471,6 +471,7 @@ LibTest/io/Stdout/addStream_A01_t01: RuntimeError
 LibTest/io/Stdout/add_A02_t07: RuntimeError
 LibTest/io/WebSocket/connect_A01_t01: RuntimeError
 LibTest/io/WebSocket/connect_A01_t02: RuntimeError
+LibTest/isolate/Isolate/pause_A01_t01: Timeout, Pass
 LibTest/isolate/Isolate/pause_A01_t02: Timeout, Pass
 LibTest/isolate/Isolate/ping_A03_t01: RuntimeError, Pass
 LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
