@@ -22,6 +22,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
                                   TypeTranslator* type_translator,
                                   ActiveClass* active_class);
 
+  bool HasBytecode(intptr_t node_offset);
+
   void ReadMetadata(const Function& function);
 
  private:

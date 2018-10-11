@@ -34,6 +34,11 @@ BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
       type_translator_(*type_translator),
       active_class_(active_class) {}
 
+bool BytecodeMetadataHelper::HasBytecode(intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  return (md_offset >= 0);
+}
+
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),

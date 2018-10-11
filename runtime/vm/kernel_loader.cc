@@ -181,6 +181,7 @@ KernelLoader::KernelLoader(Program* program)
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_),
+      bytecode_metadata_helper_(&helper_, &type_translator_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -347,6 +348,7 @@ KernelLoader::KernelLoader(const Script& script,
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_),
+      bytecode_metadata_helper_(&helper_, &type_translator_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -782,6 +784,13 @@ void KernelLoader::CheckForInitializer(const Field& field) {
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
     if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
+      field.set_has_initializer(true);
+      return;
+    }
+  }
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    if (bytecode_metadata_helper_.HasBytecode(field.kernel_offset() +
+                                              library_kernel_offset_)) {
       field.set_has_initializer(true);
       return;
     }
@@ -1811,37 +1820,46 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
                                           FieldHelper* field_helper) {
   Tag tag = helper_.PeekTag();
-  if (field_helper->IsStatic() && tag == kNothing) {
-    // Static fields without an initializer are implicitly initialized to null.
-    // We do not need a getter.
-    field.SetStaticValue(Instance::Handle(Z), true);
-    return;
-  }
   if (tag == kSomething) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
-    if (field_helper->IsStatic()) {
-      // Static fields with initializers either have the static value set to the
-      // initializer value if it is simple enough or else set to an
-      // uninitialized sentinel.
-      if (has_simple_initializer) {
+    if (has_simple_initializer) {
+      if (field_helper->IsStatic()) {
         // We do not need a getter.
         field.SetStaticValue(converter.SimpleValue(), true);
         return;
-      }
-      // We do need a getter that evaluates the initializer if necessary.
-      field.SetStaticValue(Object::sentinel(), true);
-    } else if (has_simple_initializer) {
-      // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-      // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
-      // details.
-      field.RecordStore(converter.SimpleValue());
-      if (!converter.SimpleValue().IsNull() &&
-          converter.SimpleValue().IsDouble()) {
-        field.set_is_double_initialized(true);
+      } else {
+        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
+        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
+        // details.
+        field.RecordStore(converter.SimpleValue());
+        if (!converter.SimpleValue().IsNull() &&
+            converter.SimpleValue().IsDouble()) {
+          field.set_is_double_initialized(true);
+        }
       }
     }
+  }
+
+  if (field_helper->IsStatic()) {
+    bool has_initializer = (tag == kSomething);
+
+    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+      has_initializer = has_initializer ||
+                        bytecode_metadata_helper_.HasBytecode(
+                            field.kernel_offset() + library_kernel_offset_);
+    }
+
+    if (!has_initializer) {
+      // Static fields without an initializer are implicitly initialized to
+      // null. We do not need a getter.
+      field.SetStaticValue(Instance::null_instance(), true);
+      return;
+    }
+
+    // We do need a getter that evaluates the initializer if necessary.
+    field.SetStaticValue(Object::sentinel(), true);
   }
 
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);

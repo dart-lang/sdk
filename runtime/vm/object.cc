@@ -5940,7 +5940,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kIrregexpFunction:
       return false;
     case RawFunction::kImplicitStaticFinalGetter:
-      return kernel::IsFieldInitializer(*this, zone);
+      return kernel::IsFieldInitializer(*this, zone) || is_const();
     default:
       return true;
   }

@@ -1075,6 +1075,7 @@ abstract class VMKernelCompilerMixin {
 
     if (_configuration.useKernelBytecode) {
       args.add('--gen-bytecode');
+      args.add('--drop-ast');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),

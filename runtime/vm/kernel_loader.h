@@ -8,6 +8,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/bit_vector.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
@@ -344,6 +345,7 @@ class KernelLoader : public ValueObject {
   KernelReaderHelper helper_;
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  BytecodeMetadataHelper bytecode_metadata_helper_;
 
   Class& external_name_class_;
   Field& external_name_field_;

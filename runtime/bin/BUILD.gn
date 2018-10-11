@@ -843,6 +843,7 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
 
   args = [
     "--gen-bytecode",
+    "--drop-ast",
     "--no-embed-sources",
     "--platform",
     rebase_path(platform_dill),
