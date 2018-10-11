@@ -1067,6 +1067,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    listener?.handleInvalidTypeArguments(token);
+  }
+
+  @override
   void handleInvalidTypeReference(Token token) {
     listener?.handleInvalidTypeReference(token);
   }

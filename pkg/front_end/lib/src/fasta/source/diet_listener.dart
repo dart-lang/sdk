@@ -181,6 +181,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+  }
+
+  @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
   }

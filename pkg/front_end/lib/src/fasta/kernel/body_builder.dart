@@ -3387,6 +3387,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
+  }
+
+  @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {

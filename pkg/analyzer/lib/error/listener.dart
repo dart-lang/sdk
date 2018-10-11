@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:source_span/source_span.dart';
 
 /**
@@ -160,6 +161,16 @@ class ErrorReporter {
   void reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
     reportErrorForOffset(errorCode, token.offset, token.length, arguments);
+  }
+
+  /**
+   * Report an error with the given [errorCode] and [message]. The location of
+   * the error is specified by the given [offset] and [length].
+   */
+  void reportErrorMessage(
+      ErrorCode errorCode, int offset, int length, Message message) {
+    _errorListener.onError(new AnalysisError.forValues(
+        _source, offset, length, errorCode, message.message, message.tip));
   }
 
   /**

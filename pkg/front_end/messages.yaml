@@ -1258,7 +1258,7 @@ ConstructorWithTypeParameters:
 ConstructorWithTypeArguments:
   template: "A constructor invocation can't have type arguments on the constructor name."
   tip: "Try to place the type arguments on the class name."
-  analyzerCode: UNDEFINED_CLASS
+  analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
 

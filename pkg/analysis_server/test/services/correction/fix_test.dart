@@ -5535,7 +5535,6 @@ class C<E> {
 ''');
   }
 
-  @failingTest
   test_moveTypeArgumentsToClass_explicitNew_BAD_alreadyThere() async {
     await resolveTestUnit('''
 main() {

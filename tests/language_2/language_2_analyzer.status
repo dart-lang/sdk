@@ -94,6 +94,9 @@ mixin_supertype_subclass_test/05: MissingCompileTimeError, MissingStaticWarning 
 mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 named_constructor_test/01: MissingCompileTimeError # Issue 34671
+named_constructor_test/02: MissingCompileTimeError # Is now a static type warning - Issue 34403
+named_constructor_test/06: MissingCompileTimeError # Is now a static type warning - Issue 34403
+named_constructor_test/09: MissingCompileTimeError # Is now a static type warning - Issue 34403
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning

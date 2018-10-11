@@ -47,7 +47,6 @@ main() {
 //    );
   }
 
-  @failingTest
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
     newFile('/test/lib/a.dart', content: '''
 class Foo<X> {

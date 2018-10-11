@@ -940,6 +940,12 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
+  }
+
+  @override
   void handleScript(Token token) {
     debugEvent("Script");
   }

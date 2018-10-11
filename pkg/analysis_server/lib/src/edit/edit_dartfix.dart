@@ -25,6 +25,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit, SourceFileEdit;
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
@@ -288,6 +289,12 @@ abstract class LinterFix implements ErrorReporter {
   @override
   void reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorMessage(
+      ErrorCode errorCode, int offset, int length, Message message) {
     // ignored
   }
 

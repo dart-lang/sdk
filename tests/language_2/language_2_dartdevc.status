@@ -173,6 +173,9 @@ mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 named_constructor_test/01: Crash # Issue 34671
+named_constructor_test/02: MissingCompileTimeError # Is now a static type warning - Issue 34403
+named_constructor_test/06: MissingCompileTimeError # Is now a static type warning - Issue 34403
+named_constructor_test/09: MissingCompileTimeError # Is now a static type warning - Issue 34403
 nested_generic_closure_test: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
