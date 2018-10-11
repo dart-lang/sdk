@@ -2,7 +2,7 @@
 //
 // pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
 //   T.String method() => "Hello, World!";
-//   ^
+//   ^^^^^^^^
 //
 // pkg/front_end/testcases/type_variable_prefix.dart:8:24: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'invalid-type'.
 // Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
@@ -18,7 +18,7 @@
 //
 // pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
 //   T.String method() => "Hello, World!";
-//   ^
+//   ^^^^^^^^
 
 library;
 import self as self;

@@ -109,7 +109,7 @@
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:57:19: Error: Type 'C' not found.
+// pkg/front_end/testcases/duplicated_declarations.dart:57:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
 //
@@ -220,7 +220,7 @@
 //   values,
 //   ^^^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:57:19: Error: Type 'C' not found.
+// pkg/front_end/testcases/duplicated_declarations.dart:57:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
 

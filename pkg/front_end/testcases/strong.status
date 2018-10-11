@@ -191,6 +191,7 @@ regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31299: TypeCheckError
+regress/issue_32200: RuntimeError # Invalid type.
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError

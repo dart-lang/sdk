@@ -3,6 +3,11 @@
 // pkg/front_end/testcases/regress/issue_32200.dart:8:3: Error: 'self.Foo' can't be used as a type because 'self' doesn't refer to an import prefix.
 //   self.Foo self;
 //   ^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_32200.dart:13:19: Error: A value of type '#lib1::Foo' can't be assigned to a variable of type 'invalid-type'.
+// Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
+//   instance.self = instance;
+//                   ^
 
 // Unhandled errors:
 //
@@ -15,12 +20,15 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field self::Foo self = null;
+  field invalid-type self = null;
   synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
   self::Foo instance = new self::Foo::•();
-  instance.{self::Foo::self} = instance;
+  instance.{self::Foo::self} = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/regress/issue_32200.dart:13:19: Error: A value of type '#lib1::Foo' can't be assigned to a variable of type 'invalid-type'.
+Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
+  instance.self = instance;
+                  ^" in let final dynamic #t2 = instance in null;
 }
