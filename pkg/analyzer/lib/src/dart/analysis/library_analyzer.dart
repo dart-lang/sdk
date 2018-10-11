@@ -335,7 +335,6 @@ class LibraryAnalyzer {
         errorReporter,
         _libraryElement,
         _typeProvider,
-        new InheritanceManager(_libraryElement),
         _inheritance,
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);

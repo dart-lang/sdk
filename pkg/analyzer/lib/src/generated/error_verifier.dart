@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -74,12 +73,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager _inheritanceManager;
-
-  /**
-   * The manager for the inheritance mappings.
-   */
-  final InheritanceManager2 _inheritanceManager2;
+  final InheritanceManager2 _inheritanceManager;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -292,13 +286,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(
-      ErrorReporter errorReporter,
-      this._currentLibrary,
-      this._typeProvider,
-      this._inheritanceManager,
-      this._inheritanceManager2,
-      this.enableSuperMixins,
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, this.enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
@@ -2449,10 +2438,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited = _inheritanceManager2
+      ExecutableElement inherited = _inheritanceManager
           .getInherited(enclosingType, new Name(libraryUri, name))
           ?.element;
-      inherited ??= _inheritanceManager2
+      inherited ??= _inheritanceManager
           .getInherited(enclosingType, new Name(libraryUri, '$name='))
           ?.element;
 
@@ -2478,10 +2467,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited = _inheritanceManager2
+      ExecutableElement inherited = _inheritanceManager
           .getInherited(enclosingType, new Name(libraryUri, name))
           ?.element;
-      inherited ??= _inheritanceManager2
+      inherited ??= _inheritanceManager
           .getInherited(enclosingType, new Name(libraryUri, '$name='))
           ?.element;
 
@@ -4163,7 +4152,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = new Name(mixinLibraryUri, name);
 
-      var superMemberType = _inheritanceManager2.getMember(
+      var superMemberType = _inheritanceManager.getMember(
           enclosingType, nameObject,
           forMixinIndex: mixinIndex, forSuper: true);
 
@@ -4177,7 +4166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
 
       FunctionType mixinMemberType =
-          _inheritanceManager2.getMember(mixinType, nameObject);
+          _inheritanceManager.getMember(mixinType, nameObject);
 
       if (mixinMemberType != null &&
           !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
