@@ -7770,10 +7770,6 @@ abstract class TypeParameterizedElementMixin
 /// Interface used by linker serialization methods to convert type parameter
 /// references into De Bruijn indices.
 abstract class TypeParameterSerializationContext {
-  /// Return an object representing the location of this element in the element
-  /// model. The object can be used to locate this element at a later time.
-  ElementLocation get location;
-
   /// Return the given [typeParameter]'s de Bruijn index in this context, or
   /// `null` if it's not in scope.
   ///

@@ -206,7 +206,7 @@ EntityRefBuilder _createLinkedType(
       result.paramReference = deBruijnIndex;
     } else {
       throw new StateError('The type parameter $type (in ${element?.location}) '
-          'is out of scope on ${typeParameterContext?.location}.');
+          'is out of scope.');
     }
     return result;
   } else if (type is FunctionType) {
@@ -3392,10 +3392,6 @@ class InlineFunctionTypeParameterContext
 
   InlineFunctionTypeParameterContext(
       this._functionTypeElement, this._usageContext);
-
-  @override
-  ElementLocation get location =>
-      throw new UnimplementedError('TODO(paulberry)');
 
   @override
   int computeDeBruijnIndex(TypeParameterElement typeParameter,
