@@ -35,14 +35,9 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
-  new Path('tests/corelib'),
   new Path('tests/corelib_2'),
-  new Path('tests/html'),
-  new Path('tests/isolate'),
   new Path('tests/kernel'),
-  new Path('tests/language'),
   new Path('tests/language_2'),
-  new Path('tests/lib'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
   new Path('tests/standalone_2'),
@@ -150,7 +145,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
 
       for (var key in configuration.selectors.keys) {
-        if (['co19', 'co19_2'].contains(key)) {
+        if (key == 'co19_2') {
           testSuites.add(new Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
                 configuration.compiler == Compiler.dartk ||

@@ -26,7 +26,7 @@ application_snapshot("generate_dartanalyzer_snapshot") {
     # TODO(34616): This is broken on Fuchsia.
     # "--dart-sdk=" + rebase_path("../../sdk/"),
     # "--train-snapshot",
-    # rebase_path("../../tests/language/first_test.dart")
+    # rebase_path("../../tests/language_2/first_test.dart")
   ]
   name = "dartanalyzer"
 }

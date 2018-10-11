@@ -36,7 +36,6 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
   "co19_2_rev": "9484b81650d8c5bedf72abc541960dd1c90b2329",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
@@ -174,9 +173,6 @@ deps = {
       ],
       "dep_type": "cipd",
   },
-
-  Var("dart_root") + "/tests/co19/src":
-      Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
 
   Var("dart_root") + "/tests/co19_2/src":
       Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +

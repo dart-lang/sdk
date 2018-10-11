@@ -25,15 +25,10 @@
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -63,15 +58,10 @@
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -118,15 +108,10 @@
       "tests/angular/",
       "tests/co19_2/",
       "tests/compiler/",
-      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
-      "tests/html/",
-      "tests/isolate/",
       "tests/kernel/",
-      "tests/language/",
       "tests/language_2/",
-      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -915,7 +900,7 @@
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js_hostasserts"
         },
@@ -982,7 +967,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1053,7 +1038,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1114,7 +1099,7 @@
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1124,7 +1109,7 @@
             "-ndart2js-minified-faststartup-linux-d8",
             "--dart2js-batch"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1196,7 +1181,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },
@@ -1207,7 +1192,7 @@
             "--dart2js-batch",
             "--reset-browser-configuration"
           ],
-          "exclude_tests": ["observatory_ui", "co19"],
+          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },

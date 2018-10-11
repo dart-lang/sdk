@@ -549,8 +549,6 @@ class StandardTestSuite extends TestSuite {
   Set<String> _testListPossibleFilenames;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
-  static final Uri legacyCo19SuiteLocation =
-      Repository.uri.resolve("tests/co19/");
 
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
@@ -1256,8 +1254,7 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Uri uri) {
     if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if ("$uri".startsWith("$co19SuiteLocation") ||
-        "$uri".startsWith("$legacyCo19SuiteLocation")) {
+    } else if ("$uri".startsWith("$co19SuiteLocation")) {
       return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
@@ -1550,7 +1547,7 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
 
   AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
-            ['tests/lib/analyzer/analyze_library.status']);
+            ['tests/lib_2/analyzer/analyze_library.status']);
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
       const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];
