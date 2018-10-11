@@ -157,7 +157,7 @@ io/socket_port_test: Pass, Crash
 [ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 io/web_socket_ping_test: Crash, Pass
 
-[ $mode == product && $system == macos ]
+[ $system == macos ]
 io/http_requested_uri_test: Pass, Timeout # Issue 34760
 io/http_response_deadline_test: Pass, Timeout # Issue 34760
 io/https_server_test: Pass, Timeout # Issue 34760
