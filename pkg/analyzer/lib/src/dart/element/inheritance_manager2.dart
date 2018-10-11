@@ -43,11 +43,18 @@ class InheritanceManager2 {
 
   InheritanceManager2(this._typeSystem);
 
+  /// Return the member with the given [name] that the class inherits from the
+  /// mixins, superclasses, or interfaces; or `null` if no member is inherited.
+  FunctionType getInherited(InterfaceType type, Name name) {
+    var interface = getInterface(type);
+    return interface._inherited[name];
+  }
+
   /// Return the interface of the given [type].  It might include private
   /// members, not necessary accessible in all libraries.
   Interface getInterface(InterfaceType type) {
     if (type == null) {
-      return const Interface._(const {}, const [{}], const []);
+      return const Interface._(const {}, const {}, const [{}], const []);
     }
 
     var result = _interfaces[type];
@@ -55,7 +62,12 @@ class InheritanceManager2 {
       return result;
     }
 
-    _interfaces[type] = const Interface._(const {}, const [{}], const []);
+    _interfaces[type] = const Interface._(
+      const {},
+      const {},
+      const [{}],
+      const [],
+    );
     Map<Name, FunctionType> map = {};
     List<Map<Name, FunctionType>> superImplemented = [];
     List<Conflict> conflicts = null;
@@ -109,8 +121,16 @@ class InheritanceManager2 {
     // signature becomes the signature of the class's interface.
     conflicts = _findMostSpecificFromNamedCandidates(map, namedCandidates);
 
+    // Get one candidate for each name.
+    Map<Name, FunctionType> inherited = {};
+    for (var name in namedCandidates.keys) {
+      var candidates = namedCandidates[name];
+      inherited[name] = candidates.last;
+    }
+
     var interface = new Interface._(
       map,
+      inherited,
       superImplemented,
       conflicts ?? const [],
     );
@@ -366,6 +386,10 @@ class Interface {
   /// The map of names to their signature in the interface.
   final Map<Name, FunctionType> map;
 
+  /// The map of names to their signature from the mixins, superclasses,
+  /// or interfaces.
+  final Map<Name, FunctionType> _inherited;
+
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
@@ -377,7 +401,12 @@ class Interface {
   /// members of the class.
   final List<Conflict> conflicts;
 
-  const Interface._(this.map, this._superImplemented, this.conflicts);
+  const Interface._(
+    this.map,
+    this._inherited,
+    this._superImplemented,
+    this.conflicts,
+  );
 }
 
 /// A public name, or a private name qualified by a library URI.

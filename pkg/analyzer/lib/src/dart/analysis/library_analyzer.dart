@@ -220,9 +220,10 @@ class LibraryAnalyzer {
         typeSystem: _context.typeSystem));
 
     unit.accept(new OverrideVerifier(
-        errorReporter,
-        new InheritanceManager(_libraryElement,
-            includeAbstractFromSuperclasses: true)));
+      _inheritance,
+      _libraryElement,
+      errorReporter,
+    ));
 
     new ToDoFinder(errorReporter).findIn(unit);
 

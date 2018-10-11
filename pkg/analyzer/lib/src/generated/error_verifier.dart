@@ -2441,16 +2441,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_enclosingClass == null) {
       return;
     }
+    InterfaceType enclosingType = _enclosingClass.type;
+    Uri libraryUri = _currentLibrary.source.uri;
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (MethodElement method in _enclosingClass.methods) {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      inherited ??=
-          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+      ExecutableElement inherited = _inheritanceManager2
+          .getInherited(enclosingType, new Name(libraryUri, name))
+          ?.element;
+      inherited ??= _inheritanceManager2
+          .getInherited(enclosingType, new Name(libraryUri, '$name='))
+          ?.element;
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2474,10 +2478,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      inherited ??=
-          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+      ExecutableElement inherited = _inheritanceManager2
+          .getInherited(enclosingType, new Name(libraryUri, name))
+          ?.element;
+      inherited ??= _inheritanceManager2
+          .getInherited(enclosingType, new Name(libraryUri, '$name='))
+          ?.element;
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(

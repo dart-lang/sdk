@@ -723,29 +723,6 @@ class B extends A {
     verify([source]);
   }
 
-  @FailingTest(
-      reason: 'We should not use types here. '
-          'There is a member in a superinterface, so we override something.')
-  test_overrideOnNonOverridingMethod_dontUseInterface() async {
-    Source source = addSource(r'''
-abstract class A {
-  void foo(int _);
-}
-
-abstract class B {
-  void foo(double _);
-}
-
-abstract class X implements A, B {
-  @override
-  void foo(Object _) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_overrideOnNonOverridingMethod_inInterface() async {
     Source source = addSource(r'''
 class A {
@@ -755,6 +732,26 @@ class B implements A {
   @override
   int m() => 1;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_overrideOnNonOverridingMethod_inInterfaces() async {
+    Source source = addSource(r'''
+abstract class I {
+  void foo(int _);
+}
+
+abstract class J {
+  void foo(String _);
+}
+
+class C implements I, J {
+  @override
+  void foo(Object _) {}
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

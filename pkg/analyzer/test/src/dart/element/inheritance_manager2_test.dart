@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,6 +24,94 @@ class InheritanceManager2Test extends DriverResolutionTest {
     await super.resolveTestFile();
     manager = new InheritanceManager2(
       result.unit.declaredElement.context.typeSystem,
+    );
+  }
+
+  test_getInherited_closestSuper() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+
+class X extends B {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getInherited('X', 'foo'),
+      same(findElement.method('foo', of: 'B')),
+    );
+  }
+
+  test_getInherited_interfaces() async {
+    addTestFile('''
+abstract class I {
+  void foo();
+}
+
+abstrac class J {
+  void foo();
+}
+
+class X implements I, J {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getInherited('X', 'foo'),
+      same(findElement.method('foo', of: 'J')),
+    );
+  }
+
+  test_getInherited_mixin() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+mixin M {
+  void foo() {}
+}
+
+class X extends A with M {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getInherited('X', 'foo'),
+      same(findElement.method('foo', of: 'M')),
+    );
+  }
+
+  test_getInherited_preferImplemented() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class I {
+  void foo() {}
+}
+
+class X extends A implements I {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getInherited('X', 'foo'),
+      same(findElement.method('foo', of: 'A')),
     );
   }
 
@@ -122,5 +211,10 @@ class X extends A implements I {
       new Name(null, 'foo'),
     );
     expect(member.element, findElement.method('foo', of: 'X'));
+  }
+
+  ExecutableElement _getInherited(String className, String name) {
+    var type = findElement.class_(className).type;
+    return manager.getInherited(type, new Name(null, name)).element;
   }
 }

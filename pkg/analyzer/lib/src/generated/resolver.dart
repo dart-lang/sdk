@@ -3898,27 +3898,27 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor {
+  /// The inheritance manager used to find overridden methods.
+  final InheritanceManager2 _inheritance;
+
+  /// The URI of the library being verified.
+  final Uri _libraryUri;
+
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager _manager;
+  /// The current class or mixin.
+  InterfaceType _currentType;
 
-  /// The [ClassElement] of the current [ClassDeclaration].
-  ClassElement _currentClass;
-
-  /// Initialize a newly created verifier to look for inappropriate uses of the
-  /// override annotation.
-  ///
-  /// @param errorReporter the error reporter used to report errors
-  /// @param manager the inheritance manager used to find overridden methods
-  OverrideVerifier(this._errorReporter, this._manager);
+  OverrideVerifier(
+      this._inheritance, LibraryElement library, this._errorReporter)
+      : _libraryUri = library.source.uri;
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentType = node.declaredElement.type;
     super.visitClassDeclaration(node);
-    _currentClass = null;
+    _currentType = null;
   }
 
   @override
@@ -3967,14 +3967,15 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitMixinDeclaration(MixinDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentType = node.declaredElement.type;
     super.visitMixinDeclaration(node);
-    _currentClass = null;
+    _currentType = null;
   }
 
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
-    return _manager.lookupInheritance(_currentClass, member.name) != null;
+    var name = new Name(_libraryUri, member.name);
+    return _inheritance.getInherited(_currentType, name) != null;
   }
 }
 
