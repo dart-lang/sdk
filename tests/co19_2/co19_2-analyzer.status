@@ -216,8 +216,8 @@ LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t08: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t09: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_neg_assign_l1_t19: CompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 33995
-LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 33308
+LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t01: MissingCompileTimeError # Issue 34613
+LanguageFeatures/Instantiate-to-bound/interface/interface_neg_assign_l2_t02: MissingCompileTimeError # Issue 34613
 LanguageFeatures/Instantiate-to-bound/mixin/mixin_neg_l1_t02: MissingCompileTimeError # Issue 33596
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_neg_l2_t02: MissingCompileTimeError # Bad test
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_named_extends_pos_l2_t01: CompileTimeError # Bad test

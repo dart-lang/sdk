@@ -1177,7 +1177,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool isConst: false}) {
     lastInferredSubstitution = null;
     lastCalleeType = null;
-    var calleeTypeParameters = calleeType.typeParameters;
+    List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
       // that already exists as part of inference (e.g. the type of an

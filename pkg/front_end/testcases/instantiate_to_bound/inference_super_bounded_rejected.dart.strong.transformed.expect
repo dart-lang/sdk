@@ -1,7 +1,7 @@
 // Unhandled errors:
 //
-// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Can't use a super-bounded type for instance creation. Got '#lib1::B<dart.core::Comparable<dynamic>>'.
-// Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.
+// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Inferred type argument 'dart.core::Comparable<dynamic>' violates the corresponding type variable bound of 'B::'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
 // var y = new B();
 //             ^
 

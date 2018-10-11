@@ -842,6 +842,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       accessProblem = message;
     }
   }
+
+  void checkBoundsInOutline(covariant typeEnvironment);
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to

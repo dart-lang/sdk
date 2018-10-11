@@ -831,6 +831,17 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked overrides");
   }
 
+  void checkBounds() {
+    if (!target.strongMode) return;
+
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+      }
+    });
+    ticker.logMs("Checked type arguments of supers against the bounds");
+  }
+
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {

@@ -6,7 +6,7 @@
 library fasta.kernel_api;
 
 export 'package:kernel/type_algebra.dart'
-    show instantiateToBounds, Substitution;
+    show Substitution, instantiateToBounds, substitute;
 
 export 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -17,6 +17,8 @@ export 'package:kernel/core_types.dart' show CoreTypes;
 export 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 export 'package:kernel/text/ast_to_text.dart' show NameSystem;
+
+export 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 

@@ -2840,10 +2840,6 @@ AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
   analyzerCode: AMBIGUOUS_SUPERTYPES
 
-CantUseSuperBoundedTypeForInstanceCreation:
-  template: "Can't use a super-bounded type for instance creation. Got '#type'."
-  tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
-
 MixinInferenceNoMatchingClass:
   template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
@@ -3173,3 +3169,47 @@ RedirectingFactoryIncompatibleTypeArgument:
 SyntheticToken:
   template: "This couldn't be parsed."
   frontendInternal: true
+
+IncorrectTypeArgument:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class C<T extends num> {}
+    main() { new C<String>(); }
+
+IncorrectTypeArgumentInSupertype:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends num> {}
+    class B extends A<String> {}
+
+IncorrectTypeArgumentInReturnType:
+  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the return type."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends num> {}
+    A<String> foo() => null;
+
+IncorrectTypeArgumentInferred:
+  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    void foo<T extends num>(T t) {}
+    main() { foo("bar"); }
+
+IncorrectTypeArgumentInSupertypeInferred:
+  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class A<T extends A<T>> {}
+    class B extends A {}
+
+IncorrectTypeArgumentVariable:
+  template: "Bound of this variable is violated."
+  severity: CONTEXT
