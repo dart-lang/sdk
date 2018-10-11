@@ -33,10 +33,6 @@ const_cast2_test/none: CompileTimeError
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
-constructor_reference_test/07: Crash # Issue 34671
-constructor_reference_test/08: Crash # Issue 34671
-constructor_reference_test/27: MissingCompileTimeError # Issue https://github.com/dart-lang/sdk/issues/34403
-constructor_reference_test/28: Crash # Issue 34671
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
@@ -172,10 +168,6 @@ mixin_type_parameter_inference_test/08: RuntimeError
 mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
-named_constructor_test/01: Crash # Issue 34671
-named_constructor_test/02: MissingCompileTimeError # Is now a static type warning - Issue 34403
-named_constructor_test/06: MissingCompileTimeError # Is now a static type warning - Issue 34403
-named_constructor_test/09: MissingCompileTimeError # Is now a static type warning - Issue 34403
 nested_generic_closure_test: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
