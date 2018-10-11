@@ -826,13 +826,14 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
   platform_dill = "$root_out_dir/vm_platform_strong.dill"
 
   output = "$root_out_dir/gen_kernel_bytecode.dill"
+  depfile = "$target_gen_dir/gen_kernel_bytecode.dill.d"
   outputs = [
     output,
+    depfile,
   ]
 
   script = "../../pkg/vm/bin/gen_kernel.dart"
 
-  depfile = "$target_gen_dir/gen_kernel_bytecode.dill.d"
   abs_depfile = rebase_path(depfile)
   rebased_output = rebase_path(output, root_out_dir)
   vm_args = [
