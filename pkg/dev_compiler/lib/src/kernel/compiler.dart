@@ -3342,6 +3342,11 @@ class ProgramCompiler extends Object
             [_nullParameterCheck(_emitVariableRef(node.variable)), body]);
       }
 
+      if (variableIsReferenced(node.variable.name, iterable)) {
+        var temp = JS.TemporaryId('iter');
+        return JS.Block(
+            [iterable.toVariableDeclaration(temp), JS.ForOf(init, temp, body)]);
+      }
       return JS.ForOf(init, iterable, body);
     });
   }

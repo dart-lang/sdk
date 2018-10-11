@@ -53,6 +53,7 @@ f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
 field_wierd_name_test: Crash
+for_test/01: MissingCompileTimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: CompileTimeError
 function_propagation_test: RuntimeError

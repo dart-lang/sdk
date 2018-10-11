@@ -5498,12 +5498,18 @@ class CodeGenerator extends Object
 
     var init = _visitExpression(node.identifier);
     var iterable = _visitExpression(node.iterable);
+
     var body = _visitScope(node.body);
     if (init == null) {
-      var id = node.loopVariable.identifier;
-      init = js.call('let #', _emitVariableDef(id));
+      var id = _emitVariableDef(node.loopVariable.identifier);
+      init = js.call('let #', id);
       if (_annotatedNullCheck(node.loopVariable.declaredElement)) {
         body = JS.Block([_nullParameterCheck(JS.Identifier(id.name)), body]);
+      }
+      if (variableIsReferenced(id.name, iterable)) {
+        var temp = JS.TemporaryId('iter');
+        return JS.Block(
+            [iterable.toVariableDeclaration(temp), JS.ForOf(init, temp, body)]);
       }
     }
     return JS.ForOf(init, iterable, body);
@@ -5512,10 +5518,10 @@ class CodeGenerator extends Object
   JS.Statement _emitAwaitFor(ForEachStatement node) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
-    // var iter = new StreamIterator(stream);
+    // let iter = new StreamIterator(stream);
     // try {
     //   while (await iter.moveNext()) {
-    //     var value = iter.current;
+    //     let value = iter.current;
     //     ...
     //   }
     // } finally {

@@ -29,7 +29,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
 import 'package:dev_compiler/src/analyzer/module_compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
+    show CompilerOptions, JSModuleFile, ModuleCompiler;
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';

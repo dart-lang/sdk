@@ -44,18 +44,23 @@ import 'extension_types.dart' show ExtensionTypeSet;
 
 /// Compiles a set of Dart files into a single JavaScript module.
 ///
-/// For a single [BuildUnit] definition, this will produce a [JSModuleFile].
-/// Those objects are record types that record the data consumed and produced
-/// for a single compile.
+/// For a single build unit, this will produce a [JSModuleFile].
+///
+/// A build unit is a collection of Dart sources that is sufficient to be
+/// compiled together. This can be as small as a single Dart library file, but
+/// if the library has parts, or if the library has cyclic dependencies on other
+/// libraries, those must be included as well. A common build unit is the lib
+/// directory of a Dart package.
 ///
 /// This class exists to cache global state associated with a single in-memory
-/// AnalysisContext, such as information about extension types in the Dart SDK.
-/// It can be used once to produce a single module, or reused to save warm-up
-/// time. (Currently there is no warm up, but there may be in the future.)
+/// [AnalysisContext], such as information about extension types in the Dart
+/// SDK. It can be used once to produce a single module, or reused to save
+/// warm-up time. (Currently there is no warm up, but there may be in the
+/// future.)
 ///
 /// The SDK source code is assumed to be immutable for the life of this class.
 ///
-/// For all other files, it is up to the [AnalysisContext] to decide whether or
+/// For all other files, it is up to the analysis context to decide whether or
 /// not any caching is performed. By default an analysis context will assume
 /// sources are immutable for the life of the context, and cache information
 /// about them.
