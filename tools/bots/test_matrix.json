@@ -145,7 +145,8 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
-      ".packages"
+      ".packages",
+      ".vpython"
     ]
   },
   "configurations": {
