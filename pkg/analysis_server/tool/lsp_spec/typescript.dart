@@ -23,7 +23,7 @@ String _cleanComment(String comment) {
     return null;
   }
   final _commentLinePrefixes = new RegExp(r'\n\s*\* ?');
-  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s])');
+  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s\-*])');
   final _newLinesThatRequireReinserting = new RegExp(r'\n (\w)');
   // Remove any Windows newlines from the source.
   comment = comment.replaceAll('\r', '');

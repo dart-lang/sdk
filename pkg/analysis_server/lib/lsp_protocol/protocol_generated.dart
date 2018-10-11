@@ -85,21 +85,34 @@ abstract class CodeActionKind {
   /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
   /// Example extract actions:
-  ///  - Extract method - Extract function - Extract variable - Extract
-  /// interface from class - ...
+  ///
+  /// - Extract method
+  /// - Extract function
+  /// - Extract variable
+  /// - Extract interface from class
+  /// - ...
   static const RefactorExtract = 'refactor.extract';
 
   /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
   /// Example inline actions:
-  ///  - Inline function - Inline variable - Inline constant - ...
+  ///
+  /// - Inline function
+  /// - Inline variable
+  /// - Inline constant
+  /// - ...
   static const RefactorInline = 'refactor.inline';
 
   /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
   /// Example rewrite actions:
-  ///  - Convert JavaScript function to class - Add or remove parameter -
-  /// Encapsulate field - Make method static - Move method to base class - ...
+  ///
+  /// - Convert JavaScript function to class
+  /// - Add or remove parameter
+  /// - Encapsulate field
+  /// - Make method static
+  /// - Move method to base class
+  /// - ...
   static const RefactorRewrite = 'refactor.rewrite';
 
   /// Base kind for source actions: `source`
@@ -305,7 +318,8 @@ class CompletionItem {
   String label;
 
   /// Select this item when showing.
-  ///  *Note* that only one completion item can be selected and that the tool /
+  ///
+  /// *Note* that only one completion item can be selected and that the tool /
   /// client decides which item that is. The rule is that the *first* item of
   /// those that match best is selected.
   bool preselect;
@@ -316,7 +330,8 @@ class CompletionItem {
 
   /// An edit which is applied to a document when selecting this completion.
   /// When an edit is provided the value of `insertText` is ignored.
-  ///  *Note:* The range of the edit must be a single line range and it must
+  ///
+  /// *Note:* The range of the edit must be a single line range and it must
   /// contain the position at which completion has been requested.
   TextEdit textEdit;
 }
@@ -941,7 +956,8 @@ class LogMessageParams {
 /// 		'someCode();',
 /// 		'```'
 /// 	].join('\n') }; ```
-///  *Please Note* that clients might sanitize the return markdown. A client
+///
+/// *Please Note* that clients might sanitize the return markdown. A client
 /// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent {
   /// The type of the Markup

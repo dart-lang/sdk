@@ -101,6 +101,13 @@ export interface A {
  * Blank lines should remain in-tact, as should:
  *   - Indented
  *   - Things
+ * 
+ * Some docs have:
+ * - List items that are not indented
+ * 
+ * Sometimes after a blank line we'll have a note.
+ * 
+ * *Note* that something.
  */
 export interface A {
   a: a;
@@ -113,7 +120,14 @@ Describes the what this class in lots of words that wrap onto multiple lines tha
 
 Blank lines should remain in-tact, as should:
   - Indented
-  - Things'''));
+  - Things
+
+Some docs have:
+- List items that are not indented
+
+Sometimes after a blank line we'll have a note.
+
+*Note* that something.'''));
     });
 
     test('parses a type alias', () {
