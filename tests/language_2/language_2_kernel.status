@@ -1022,9 +1022,6 @@ async_return_types_test/nestedFuture: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
 malbounded_type_test_test/03: Fail
 malbounded_type_test_test/04: Fail
-mixin_invalid_bound2_test/08: Fail
-mixin_invalid_bound2_test/09: Fail
-mixin_invalid_bound2_test/10: Fail
 regress_30339_test: RuntimeError
 
 [ $runtime == vm && !$checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
