@@ -550,7 +550,8 @@ static void CreateAndWriteDependenciesFile() {
 }
 
 static void LoadBytecode() {
-  if (Dart_IsVMFlagSet("enable_interpreter") &&
+  if ((Dart_IsVMFlagSet("enable_interpreter") ||
+       Dart_IsVMFlagSet("use_bytecode_compiler")) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_ReadAllBytecode();
     CHECK_RESULT(result);

@@ -1346,7 +1346,8 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode()) {
+    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode() &&
+        !func.HasCode()) {
       RawError* error =
           kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
       if (error != Error::null()) {

@@ -773,7 +773,8 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
 }
 
 static void LoadBytecode() {
-  if (Dart_IsVMFlagSet("enable_interpreter")) {
+  if (Dart_IsVMFlagSet("enable_interpreter") ||
+      Dart_IsVMFlagSet("use_bytecode_compiler")) {
     Dart_Handle result = Dart_ReadAllBytecode();
     CHECK_RESULT(result);
   }
