@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/one_phase_summaries_selector.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
@@ -432,8 +431,7 @@ class FileState {
           _fsState._byteStore.put(apiSignatureKey, apiSignatureBytes);
         }
         if (unlinkedUnitBytes == null) {
-          var unlinkedUnit = serializeAstUnlinked(unit,
-              serializeInferrableFields: !enableOnePhaseSummaries);
+          var unlinkedUnit = serializeAstUnlinked(unit);
           var definedNames = computeDefinedNames(unit);
           var referencedNames = computeReferencedNames(unit).toList();
           var subtypedNames = computeSubtypedNames(unit).toList();

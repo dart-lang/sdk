@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/one_phase_summaries_selector.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -18,11 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/one_phase.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -118,47 +114,16 @@ class LibraryContext {
       });
 
       Map<String, LinkedLibraryBuilder> linkedLibraries = {};
-      if (enableOnePhaseSummaries) {
-        var uriToUnit = <String, CompilationUnit>{};
-        logger.run('Parse files', () {
-          for (var library in libraryFilesToLink) {
-            for (var file in library.libraryFiles) {
-              uriToUnit[file.uriStr] = file.parse();
-            }
-          }
-          logger.writeln('Parsed ${uriToUnit.length} files.');
-        });
-
-        logger.run('Link libraries', () {
-          var assembler = new PackageBundleAssembler();
-          summarize(uriToUnit, store, assembler, (_) => null, true);
-
-          var bundle = assembler.assemble();
-          for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-            var uri = bundle.linkedLibraryUris[i];
-
-            // TODO(scheglov) At the moment we might get parts here.
-            if (!libraries.containsKey(uri)) {
-              continue;
-            }
-
-            linkedLibraries[uri] = bundle.linkedLibraries[i];
-          }
-
-          logger.writeln('Linked ${linkedLibraries.length} libraries.');
-        });
-      } else {
-        logger.run('Link libraries', () {
-          linkedLibraries = link(libraryUrisToLink, (String uri) {
-            LinkedLibrary linkedLibrary = store.linkedMap[uri];
-            return linkedLibrary;
-          }, (String uri) {
-            UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
-            return unlinkedUnit;
-          }, (_) => null);
-          logger.writeln('Linked ${linkedLibraries.length} libraries.');
-        });
-      }
+      logger.run('Link libraries', () {
+        linkedLibraries = link(libraryUrisToLink, (String uri) {
+          LinkedLibrary linkedLibrary = store.linkedMap[uri];
+          return linkedLibrary;
+        }, (String uri) {
+          UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
+          return unlinkedUnit;
+        }, (_) => null);
+        logger.writeln('Linked ${linkedLibraries.length} libraries.');
+      });
 
       for (String uri in linkedLibraries.keys) {
         LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
