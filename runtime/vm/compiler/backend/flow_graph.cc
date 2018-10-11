@@ -21,6 +21,8 @@
 namespace dart {
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+// Smi->Int32 widening pass is disabled due to dartbug.com/32619.
+DEFINE_FLAG(bool, use_smi_widening, false, "Enable Smi->Int32 widening pass.");
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
@@ -1863,6 +1865,10 @@ static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
 }
 
 void FlowGraph::WidenSmiToInt32() {
+  if (!FLAG_use_smi_widening) {
+    return;
+  }
+
   GrowableArray<BinarySmiOpInstr*> candidates;
 
   // Step 1. Collect all instructions that potentially benefit from widening of
