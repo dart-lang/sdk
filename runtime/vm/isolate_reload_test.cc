@@ -98,9 +98,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
       "main() {\n"
       "  return 42;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -158,9 +155,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
       "WhatsTheMeaningOfAllThis() {\n"
       "  return 42;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -229,9 +223,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
       "  State(this.t);\n"
       "  T howAreTheThings() => t;\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -312,9 +303,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
           "  first() => t;\n"
           "}\n"
           "doWork() => new MyAccountState(<dynamic>[42, 'abc']).first();\n"
-      },
-      {
-          "file:///.packages", "untitled:/"
       }};
   // clang-format on
 

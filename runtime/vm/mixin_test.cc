@@ -29,9 +29,6 @@ TEST_CASE(Mixin_PrivateSuperResolution) {
       "main() {\n"
       "  return new C().bar();\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 

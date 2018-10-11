@@ -237,7 +237,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       url, source,
     },
     {
-      "file:///.packages", "untitled:/"
+      "file:///.packages", ""
     }};
   // clang-format on
   return CompileTestScriptWithDFE(

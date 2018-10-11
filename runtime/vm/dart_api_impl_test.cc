@@ -6049,7 +6049,7 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
   Dart_SourceFile sourcefiles[] = {
       {"file:///bar/main.dart", kScriptChars},
       {"file:///baz/lib.dart", kLibraryChars},
-      {"file:///bar/.packages", "untitled:/"},
+      {"file:///bar/.packages", ""},
   };
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(
