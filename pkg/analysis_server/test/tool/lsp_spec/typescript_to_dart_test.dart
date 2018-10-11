@@ -53,5 +53,25 @@ class SomeDocumentThing {
     ''';
       convertAndCompare(input, expectedOutput);
     });
+
+    test('outputs references in comments in the correct format', () {
+      final String input = '''
+export interface One {
+}
+
+/**
+ *  This may refer to [a one](#One) or just [One](#One).
+ */
+export interface Two {
+}
+    ''';
+      final String expectedOutput = '''
+class One {}
+
+/// This may refer to a one ([One]) or just [One].
+class Two {}
+    ''';
+      convertAndCompare(input, expectedOutput);
+    });
   });
 }

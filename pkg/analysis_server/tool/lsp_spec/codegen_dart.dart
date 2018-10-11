@@ -36,6 +36,19 @@ String _mapType(String type) {
   return types[type] ?? type;
 }
 
+String _rewriteCommentReference(String comment) {
+  final commentReferencePattern = new RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
+  return comment.replaceAllMapped(commentReferencePattern, (m) {
+    final description = m.group(1);
+    final reference = m.group(2);
+    if (description == reference) {
+      return '[$reference]';
+    } else {
+      return '$description ([$reference])';
+    }
+  });
+}
+
 Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
   lines = lines.map((l) => l.trimRight()).toList();
   for (var line in lines) {
@@ -68,6 +81,7 @@ void _writeDocComment(IndentableStringBuffer buffer, String comment) {
   if (comment == null || comment.length == 0) {
     return;
   }
+  comment = _rewriteCommentReference(comment);
   Iterable<String> lines = comment.split('\n');
   // Wrap at 80 - 4 ('/// ') - indent characters.
   lines = _wrapLines(lines, 80 - 4 - buffer.totalIndent);

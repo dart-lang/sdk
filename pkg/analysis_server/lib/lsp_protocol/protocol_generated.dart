@@ -189,7 +189,7 @@ class ColorInformation {
 }
 
 class ColorPresentation {
-  /// An optional array of additional [text edits](#TextEdit) that are applied
+  /// An optional array of additional text edits ([TextEdit]) that are applied
   /// when selecting this color presentation. Edits must not overlap with the
   /// main [edit](#ColorPresentation.textEdit) nor with themselves.
   List<TextEdit> additionalTextEdits;
@@ -199,7 +199,7 @@ class ColorPresentation {
   /// this color presentation.
   String label;
 
-  /// An [edit](#TextEdit) which is applied to a document when selecting this
+  /// An edit ([TextEdit]) which is applied to a document when selecting this
   /// presentation for the color.  When `falsy` the
   /// [label](#ColorPresentation.label) is used.
   TextEdit textEdit;
@@ -374,7 +374,7 @@ abstract class CompletionItemKind {
   static const Variable = 6;
 }
 
-/// Represents a collection of [completion items](#CompletionItem) to be
+/// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
 class CompletionList {
   /// This list it not complete. Further typing should result in recomputing
@@ -804,8 +804,8 @@ class FoldingRange {
 
   /// Describes the kind of the folding range such as `comment' or 'region'. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
-  /// all comments'. See [FoldingRangeKind](#FoldingRangeKind) for an
-  /// enumeration of standardized kinds.
+  /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
+  /// kinds.
   String kind;
 
   /// The zero-based character offset from where the folded range starts. If not
@@ -1087,8 +1087,7 @@ class RenameOptions {
 
 class RenameParams {
   /// The new name of the symbol. If the given name is not valid the request
-  /// must return a [ResponseError](#ResponseError) with an appropriate message
-  /// set.
+  /// must return a [ResponseError] with an appropriate message set.
   String newName;
 
   /// The position at which this request was sent.
