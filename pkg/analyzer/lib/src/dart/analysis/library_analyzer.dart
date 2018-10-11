@@ -51,6 +51,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   LibraryElement _libraryElement;
+  LibraryScope _libraryScope;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -100,6 +101,7 @@ class LibraryAnalyzer {
     try {
       _libraryElement = _resynthesizer
           .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+      _libraryScope = new LibraryScope(_libraryElement);
 
       _resolveDirectives(units);
 
@@ -575,10 +577,9 @@ class LibraryAnalyzer {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
-    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,
-        nameScope: libraryScope));
+        nameScope: _libraryScope));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -591,7 +592,7 @@ class LibraryAnalyzer {
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: libraryScope));
+        nameScope: _libraryScope));
 
     unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
         source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
