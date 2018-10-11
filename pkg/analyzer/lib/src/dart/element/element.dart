@@ -7676,7 +7676,10 @@ class TypeParameterElementImpl extends ElementImpl
 
 /// Mixin representing an element which can have type parameters.
 abstract class TypeParameterizedElementMixin
-    implements TypeParameterizedElement, ElementImpl {
+    implements
+        TypeParameterizedElement,
+        ElementImpl,
+        TypeParameterSerializationContext {
   /// A cached list containing the type parameters declared by this element
   /// directly, or `null` if the elements have not been created yet. This does
   /// not include type parameters that are declared by any enclosing elements.
@@ -7727,10 +7730,7 @@ abstract class TypeParameterizedElementMixin
   /// TODO(scheglov) make private after switching linker to Impl
   List<UnlinkedTypeParam> get unlinkedTypeParams;
 
-  /// Return the given [typeParameter]'s de Bruijn index in this context, or
-  /// `null` if it's not in scope.
-  ///
-  /// If an [offset] is provided, then it is added to the computed index.
+  @override
   int computeDeBruijnIndex(TypeParameterElement typeParameter,
       {int offset = 0}) {
     if (typeParameter.enclosingElement == this) {
@@ -7759,6 +7759,20 @@ abstract class TypeParameterizedElementMixin
       throw new RangeError('Invalid type parameter index');
     }
   }
+}
+
+/// Interface used by linker serialization methods to convert type parameter
+/// references into De Bruijn indices.
+abstract class TypeParameterSerializationContext {
+  /// Return an object representing the location of this element in the element
+  /// model. The object can be used to locate this element at a later time.
+  ElementLocation get location;
+
+  /// Return the given [typeParameter]'s de Bruijn index in this context, or
+  /// `null` if it's not in scope.
+  ///
+  /// If an [offset] is provided, then it is added to the computed index.
+  int computeDeBruijnIndex(TypeParameterElement typeParameter, {int offset: 0});
 }
 
 /// Container with information about explicit top-level property accessors and

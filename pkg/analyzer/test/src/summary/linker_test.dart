@@ -443,7 +443,6 @@ class C extends A<int> {
     expect(fType.parameters[0].type.toString(), 'int');
   }
 
-  @failingTest
   void test_inferredType_parameter_genericFunctionType_asTypeArgument() {
     var bundle = createPackageBundle('''
 class A<T> {

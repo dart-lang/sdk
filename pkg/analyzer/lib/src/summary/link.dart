@@ -181,7 +181,7 @@ List<EntityRef> _collectTypedefRhsTypes(UnlinkedTypedef unlinkedTypedef) {
 EntityRefBuilder _createLinkedType(
     DartType type,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext,
+    TypeParameterSerializationContext typeParameterContext,
     {int slot}) {
   EntityRefBuilder result = new EntityRefBuilder(slot: slot);
   if (type is InterfaceType) {
@@ -247,7 +247,8 @@ EntityRefBuilder _createLinkedType(
     }
     if (element is GenericFunctionTypeElementImpl) {
       // Function types are their own type parameter context
-      typeParameterContext = element;
+      typeParameterContext =
+          new InlineFunctionTypeParameterContext(element, typeParameterContext);
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -309,7 +310,7 @@ void _relink(
 UnlinkedParamBuilder _serializeSyntheticParam(
     ParameterElement parameter,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
   if (parameter.isNotOptional) {
@@ -343,7 +344,7 @@ UnlinkedParamBuilder _serializeSyntheticParam(
 UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
     TypeParameterElement typeParameter,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   TypeParameterElementImpl impl = typeParameter as TypeParameterElementImpl;
   EntityRefBuilder boundBuilder = typeParameter.bound != null
       ? _createLinkedType(
@@ -387,7 +388,7 @@ void _storeTypeArguments(
     List<DartType> typeArguments,
     EntityRefBuilder encodedType,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterizedElementMixin typeParameterContext) {
+    TypeParameterSerializationContext typeParameterContext) {
   int count = typeArguments.length;
   List<EntityRefBuilder> encodedTypeArguments =
       new List<EntityRefBuilder>(count);
@@ -1645,7 +1646,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   /// Store the given [linkedType] in the given [slot] of the this compilation
   /// unit's linked type list.
   void _storeLinkedType(int slot, DartType linkedType,
-      TypeParameterizedElementMixin typeParameterContext) {
+      TypeParameterSerializationContext typeParameterContext) {
     if (slot != 0) {
       if (linkedType != null && !linkedType.isDynamic) {
         _linkedUnit.types.add(_createLinkedType(
@@ -3362,6 +3363,34 @@ class GenericTypeAliasElementForLink extends Object
 
   @override
   String toString() => '$enclosingElement.$name';
+}
+
+/// Context for serializing a possibly generic function type that is used in
+/// another context.
+class InlineFunctionTypeParameterContext
+    implements TypeParameterSerializationContext {
+  final GenericFunctionTypeElementImpl _functionTypeElement;
+
+  final TypeParameterSerializationContext _usageContext;
+
+  InlineFunctionTypeParameterContext(
+      this._functionTypeElement, this._usageContext);
+
+  @override
+  ElementLocation get location =>
+      throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  int computeDeBruijnIndex(TypeParameterElement typeParameter,
+      {int offset: 0}) {
+    var typeFormals = _functionTypeElement.typeParameters;
+    var numTypeFormals = typeFormals.length;
+    for (int i = 0; i < numTypeFormals; i++) {
+      if (typeFormals[i] == typeParameter) return i + offset + 1;
+    }
+    return _usageContext.computeDeBruijnIndex(typeParameter,
+        offset: offset + numTypeFormals);
+  }
 }
 
 /// Specialization of [DependencyWalker] for linking library cycles.
