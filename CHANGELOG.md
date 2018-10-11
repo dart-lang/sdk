@@ -4,6 +4,16 @@
 
 ### Language
 
+*   Allow integer literals to be used in double contexts.
+    An integer literal used in a place where a double is required is now
+    interpreted as a double value. The numerical value of the literal needs
+    to be precisely representable as a double value.
+
+*   Integer literals compiled to JavaScript are now allowed to have any
+    value that can be exactly represented as a JavaScript `Number`.
+    They were previously limited to such numbers that were also representable
+    as signed 64-bit integers.
+
 ### Core library changes
 
 ### Dart VM
