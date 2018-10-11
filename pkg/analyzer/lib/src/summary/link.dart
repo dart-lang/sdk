@@ -3088,6 +3088,7 @@ class FunctionTypeAliasElementForLink extends Object
 
   FunctionTypeImpl _type;
   DartType _returnType;
+  GenericFunctionTypeElementForLink _function;
 
   FunctionTypeAliasElementForLink(
       this.enclosingElement, this._unlinkedTypedef) {
@@ -3107,6 +3108,11 @@ class FunctionTypeAliasElementForLink extends Object
 
   @override
   CompilationUnitElementForLink get enclosingUnit => enclosingElement;
+
+  @override
+  GenericFunctionTypeElementImpl get function =>
+      _function ??= new GenericFunctionTypeElementForLink(enclosingUnit, this,
+          const [], _unlinkedTypedef.returnType, _unlinkedTypedef.parameters);
 
   @override
   String get identifier => _unlinkedTypedef.name;
@@ -3159,8 +3165,7 @@ class FunctionTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.forTypedef(this,
-            typeArguments: typeArguments);
+        return GenericTypeAliasElementImpl.doInstantiate(this, typeArguments);
       }
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
@@ -3266,12 +3271,14 @@ class GenericTypeAliasElementForLink extends Object
         ParameterParentElementForLink,
         ReferenceableElementForLink,
         SimplyBoundableForLinkMixin
-    implements FunctionTypeAliasElementForLink, ElementImpl {
+    implements FunctionTypeAliasElementForLink, GenericTypeAliasElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
 
   /// The unlinked representation of the typedef in the summary.
   final UnlinkedTypedef _unlinkedTypedef;
+
+  GenericFunctionTypeElementForLink _function;
 
   GenericTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef) {
     _initSimplyBoundable();
@@ -3290,6 +3297,17 @@ class GenericTypeAliasElementForLink extends Object
 
   @override
   CompilationUnitElementForLink get enclosingUnit => enclosingElement;
+
+  @override
+  GenericFunctionTypeElementImpl get function {
+    var unlinkedType = _unlinkedTypedef.returnType;
+    return _function ??= new GenericFunctionTypeElementForLink(
+        enclosingUnit,
+        this,
+        unlinkedType.typeParameters,
+        unlinkedType.syntheticReturnType,
+        unlinkedType.syntheticParams);
+  }
 
   @override
   String get identifier => _unlinkedTypedef.name;
@@ -3346,8 +3364,7 @@ class GenericTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.forTypedef(this,
-            typeArguments: typeArguments);
+        return GenericTypeAliasElementImpl.doInstantiate(this, typeArguments);
       }
     } else {
       return new FunctionTypeImpl.forTypedef(this);

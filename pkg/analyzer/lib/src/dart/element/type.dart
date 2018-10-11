@@ -401,15 +401,12 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Initialize a newly created function type to be declared by the given
    * [element].
    *
-   * If [typeArguments] are provided, they are used to instantiate the typedef.
-   *
    * Note: this constructor mishandles generics.
    * See https://github.com/dart-lang/sdk/issues/34657.
    */
-  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      {List<DartType> typeArguments}) {
-    return new _FunctionTypeImplLazy._(element, element?.name, null,
-        typeArguments, null, null, typeArguments != null);
+  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element) {
+    return new _FunctionTypeImplLazy._(
+        element, element?.name, null, null, null, null, false);
   }
 
   /**

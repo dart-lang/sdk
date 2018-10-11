@@ -4566,11 +4566,23 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   FunctionType instantiate(List<DartType> argumentTypes) {
-    if (argumentTypes.length != typeParameters.length) {
+    return doInstantiate(this, argumentTypes);
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    function?.accept(visitor);
+  }
+
+  static FunctionType doInstantiate(
+      FunctionTypeAliasElement element, List<DartType> argumentTypes) {
+    if (argumentTypes.length != element.typeParameters.length) {
       throw new ArgumentError('Wrong number of type arguments supplied');
     }
-    if (typeParameters.isEmpty) return function.type;
-    return typeAfterSubstitution(argumentTypes);
+    if (element.typeParameters.isEmpty) return element.function.type;
+    return typeAfterSubstitution(element, argumentTypes);
   }
 
   /// Return the type of the function defined by this typedef after substituting
@@ -4578,13 +4590,14 @@ class GenericTypeAliasElementImpl extends ElementImpl
   /// (but not the type parameters defined by the function). If the number of
   /// [typeArguments] does not match the number of type parameters, then
   /// `dynamic` will be used in place of each of the type arguments.
-  FunctionType typeAfterSubstitution(List<DartType> typeArguments) {
-    GenericFunctionTypeElement function = this.function;
+  static FunctionType typeAfterSubstitution(
+      FunctionTypeAliasElement element, List<DartType> typeArguments) {
+    GenericFunctionTypeElement function = element.function;
     if (function == null) {
       return null;
     }
     FunctionType functionType = function.type;
-    List<TypeParameterElement> parameterElements = typeParameters;
+    List<TypeParameterElement> parameterElements = element.typeParameters;
     List<DartType> parameterTypes =
         TypeParameterTypeImpl.getTypes(parameterElements);
     int parameterCount = parameterTypes.length;
@@ -4594,13 +4607,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
     }
     return functionType.substitute2(typeArguments, parameterTypes);
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(typeParameters, visitor);
-    function?.accept(visitor);
   }
 }
 

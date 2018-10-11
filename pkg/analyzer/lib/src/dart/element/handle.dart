@@ -699,6 +699,9 @@ class FunctionTypeAliasElementHandle extends ElementHandle
       super.enclosingElement as CompilationUnitElement;
 
   @override
+  GenericFunctionTypeElement get function => actualElement.function;
+
+  @override
   bool get isSimplyBounded => actualElement.isSimplyBounded;
 
   @override

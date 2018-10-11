@@ -1056,7 +1056,8 @@ class _ReferenceInfo extends ReferenceInfo {
       } else {
         typeArguments = _dynamicTypeArguments;
       }
-      return actualElement.typeAfterSubstitution(typeArguments);
+      return GenericTypeAliasElementImpl.typeAfterSubstitution(
+          actualElement, typeArguments);
     } else if (element is FunctionTypedElement) {
       if (element is FunctionTypeAliasElementHandle) {
         List<DartType> typeArguments;
@@ -1086,8 +1087,7 @@ class _ReferenceInfo extends ReferenceInfo {
         } else {
           typeArguments = _dynamicTypeArguments;
         }
-        return new FunctionTypeImpl.forTypedef(element,
-            typeArguments: typeArguments);
+        return element.instantiate(typeArguments);
       } else {
         FunctionTypedElementComputer computer;
         if (implicitFunctionTypeIndices.isNotEmpty) {

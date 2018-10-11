@@ -1111,6 +1111,10 @@ abstract class FunctionTypeAliasElement
   @override
   CompilationUnitElement get enclosingElement;
 
+  /// Return the generic function type element representing the generic function
+  /// type on the right side of the equals.
+  GenericFunctionTypeElement get function;
+
   @override
   TypeAlias computeNode();
 
@@ -1154,11 +1158,7 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 /// parameter.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {
-  /// Return the generic function type element representing the generic function
-  /// type on the right side of the equals.
-  GenericFunctionTypeElement get function;
-}
+abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.

@@ -7301,7 +7301,9 @@ class TypeNameResolver {
         }
       }
       if (element is GenericTypeAliasElementImpl) {
-        type = element.typeAfterSubstitution(typeArguments) ?? dynamicType;
+        type = GenericTypeAliasElementImpl.typeAfterSubstitution(
+                element, typeArguments) ??
+            dynamicType;
       } else {
         type = typeSystem.instantiateType(type, typeArguments);
       }
@@ -7309,7 +7311,9 @@ class TypeNameResolver {
       if (element is GenericTypeAliasElementImpl) {
         List<DartType> typeArguments =
             typeSystem.instantiateTypeFormalsToBounds(element.typeParameters);
-        type = element.typeAfterSubstitution(typeArguments) ?? dynamicType;
+        type = GenericTypeAliasElementImpl.typeAfterSubstitution(
+                element, typeArguments) ??
+            dynamicType;
       } else {
         DartType redirectedType =
             _inferTypeArgumentsForRedirectedConstructor(node, type);
