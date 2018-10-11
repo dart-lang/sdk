@@ -277,13 +277,7 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 }
 
 SemiSpace::~SemiSpace() {
-  if (reserved_ != NULL) {
-#if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte,
-           size_in_words() << kWordSizeLog2);
-#endif  // defined(DEBUG)
-    delete reserved_;
-  }
+  delete reserved_;
 }
 
 Mutex* SemiSpace::mutex_ = NULL;
@@ -303,25 +297,32 @@ void SemiSpace::Cleanup() {
 }
 
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
+  SemiSpace* result = nullptr;
   {
     MutexLocker locker(mutex_);
     // TODO(koda): Cache one entry per size.
-    if (cache_ != NULL && cache_->size_in_words() == size_in_words) {
-      SemiSpace* result = cache_;
-      cache_ = NULL;
-      return result;
+    if (cache_ != nullptr && cache_->size_in_words() == size_in_words) {
+      result = cache_;
+      cache_ = nullptr;
     }
   }
+  if (result != nullptr) {
+#ifdef DEBUG
+    result->reserved_->Protect(VirtualMemory::kReadWrite);
+#endif
+    return result;
+  }
+
   if (size_in_words == 0) {
-    return new SemiSpace(NULL);
+    return new SemiSpace(nullptr);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
     const bool kExecutable = false;
     VirtualMemory* memory =
         VirtualMemory::Allocate(size_in_bytes, kExecutable, name);
-    if (memory == NULL) {
+    if (memory == nullptr) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
-      return NULL;
+      return nullptr;
     }
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size_in_bytes);
@@ -332,12 +333,13 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 
 void SemiSpace::Delete() {
 #ifdef DEBUG
-  if (reserved_ != NULL) {
+  if (reserved_ != nullptr) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
+    reserved_->Protect(VirtualMemory::kNoAccess);
   }
 #endif
-  SemiSpace* old_cache = NULL;
+  SemiSpace* old_cache = nullptr;
   {
     MutexLocker locker(mutex_);
     old_cache = cache_;
