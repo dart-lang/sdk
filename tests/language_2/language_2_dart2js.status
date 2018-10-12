@@ -161,8 +161,6 @@ canonical_const2_test: RuntimeError, OK # non JS number semantics
 checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-compile_time_constant_o_test/01: MissingCompileTimeError
-compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -215,7 +213,6 @@ const_constructor2_test/18: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
@@ -442,20 +439,11 @@ class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 config_import_corelib_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
-identical_const_test/01: MissingCompileTimeError
-identical_const_test/02: MissingCompileTimeError
-identical_const_test/03: MissingCompileTimeError
-identical_const_test/04: MissingCompileTimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -490,22 +478,13 @@ call_with_no_such_method_test: RuntimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 config_import_corelib_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
-identical_const_test/01: MissingCompileTimeError
-identical_const_test/02: MissingCompileTimeError
-identical_const_test/03: MissingCompileTimeError
-identical_const_test/04: MissingCompileTimeError
 invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_test: RuntimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 library_env_test/has_no_html_support: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 mixin_generic_test: RuntimeError # Issue 12605
 mixin_mixin_type_arguments_test: RuntimeError
@@ -530,8 +509,6 @@ bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 closure_type_arguments_test: Crash # Issue 34272
-compile_time_constant_o_test/01: MissingCompileTimeError
-compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
@@ -539,7 +516,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
-const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError

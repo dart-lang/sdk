@@ -22,6 +22,13 @@
 
 #### Pub
 
+#### dart2js
+
+*   Breaking change: duplicate keys in a const map are not allowed and produce a
+    compile-time error.  Dart2js used to report this as a warning before. Note
+    this is already an error in dartanalyzer and DDC and will be an error in
+    other tools in the future as well.
+
 #### Other Tools
 
 ## 2.1.0-dev.7.0

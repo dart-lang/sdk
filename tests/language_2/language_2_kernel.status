@@ -263,19 +263,11 @@ const_optional_args_test/01: MissingCompileTimeError
 # compile-time errors).
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartkb && $compiler != dartkp && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_syntax_test/05: MissingCompileTimeError
-
-[ $compiler != dart2analyzer && $compiler != dart2js && $fasta && $strong ]
-super_call4_test/01: MissingCompileTimeError
-
-# The precomilation and bytecode configurations use a kernel2kernel constants evaluator
-# which is is more correct than fasta/vm in JIT mode (i.e. it catches more
-# compile-time errors).
-[ $compiler != dart2analyzer && $compiler != dartkb && $compiler != dartkp && $fasta ]
 compile_time_constant_o_test/01: MissingCompileTimeError # Issue 32983
 compile_time_constant_o_test/02: MissingCompileTimeError # Issue 32983
+const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError # Issue 32983
+const_syntax_test/05: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError # Issue 32983
 identical_const_test/02: MissingCompileTimeError # Issue 32983
 identical_const_test/03: MissingCompileTimeError # Issue 32983
@@ -284,12 +276,15 @@ identical_const_test/04: MissingCompileTimeError # Issue 32983
 # The precomilation and bytecode configurations use a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
 # compile-time errors).
-[ $compiler != dart2analyzer && $compiler != dartkb && $compiler != dartkp && $fasta && $strong ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartkb && $compiler != dartkp && $fasta && $strong ]
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
+
+[ $compiler != dart2analyzer && $compiler != dart2js && $fasta && $strong ]
+super_call4_test/01: MissingCompileTimeError
 
 [ $compiler != dart2analyzer && $fasta ]
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.

@@ -481,7 +481,7 @@ class MapConstantExpression extends ConstantExpression {
         return new NonConstantValue();
       }
       if (map.containsKey(key)) {
-        environment.reportWarning(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
+        environment.reportError(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
       }
       map[key] = value;
     }
