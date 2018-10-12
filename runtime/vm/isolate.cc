@@ -1010,7 +1010,7 @@ Isolate::~Isolate() {
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
   delete kernel_data_lib_cache_mutex_;
-  kernel_data_class_cache_mutex_ = NULL;
+  kernel_data_lib_cache_mutex_ = NULL;
   delete kernel_data_class_cache_mutex_;
   kernel_data_class_cache_mutex_ = NULL;
   delete pending_deopts_;
