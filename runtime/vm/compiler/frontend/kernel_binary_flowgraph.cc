@@ -3958,15 +3958,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
                                                           TokenPosition* p) {
-  if (is_const) {
-    const intptr_t offset = ReaderOffset() - 1;           // Include the tag.
-    (p != NULL) ? * p = ReadPosition() : ReadPosition();  // read position.
-
-    SetOffset(offset);
-    SkipExpression();  // read past this StaticInvocation.
-    return Constant(constant_evaluator_.EvaluateStaticInvocation(offset));
-  }
-
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   TokenPosition position = ReadPosition();     // read position.
   if (p != NULL) *p = position;
