@@ -42,6 +42,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         VariableGet;
 
+import 'package:kernel/clone.dart' show CloneVisitor;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
@@ -134,6 +136,8 @@ class KernelTarget extends TargetImplementation {
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
+
+  final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
@@ -287,7 +291,7 @@ class KernelTarget extends TargetImplementation {
           loader.finishTypeVariables(objectClassBuilder, dynamicType);
           loader.buildComponent();
           installDefaultSupertypes();
-          installDefaultConstructors(myClasses);
+          installSyntheticConstructors(myClasses);
           loader.resolveConstructors();
           component = link(new List<Library>.from(loader.libraries),
               nameRoot: nameRoot);
@@ -331,6 +335,7 @@ class KernelTarget extends TargetImplementation {
         () async {
           ticker.logMs("Building component");
           await loader.buildBodies();
+          finishClonedParameters();
           loader.finishDeferredLoadTearoffs();
           loader.finishNoSuchMethodForwarders();
           List<SourceClassBuilder> myClasses = collectMyClasses();
@@ -491,14 +496,19 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed Object as implicit superclass");
   }
 
-  void installDefaultConstructors(List<SourceClassBuilder> builders) {
+  void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.target != objectClass) {
-        installDefaultConstructor(builder);
+        if (builder.isPatch) continue;
+        if (builder.isMixinApplication) {
+          installForwardingConstructors(builder);
+        } else {
+          installDefaultConstructor(builder);
+        }
       }
     }
-    ticker.logMs("Installed default constructors");
+    ticker.logMs("Installed synthetic constructors");
   }
 
   KernelClassBuilder get objectClassBuilder => objectType.declaration;
@@ -507,68 +517,71 @@ class KernelTarget extends TargetImplementation {
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
-    if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
+    assert(!builder.isMixinApplication);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.target.constructors.isNotEmpty) return;
     if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
     for (Procedure proc in builder.target.procedures) {
       if (proc.isFactory) return;
     }
-    if (builder.isPatch) return;
 
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](
+    /// From [Dart Programming Language Specification, 4th Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    if (builder.isNamedMixinApplication) {
-      /// >A mixin application of the form S with M; defines a class C with
-      /// >superclass S.
-      /// >...
+    /// >Iff no constructor is specified for a class C, it implicitly has a
+    /// >default constructor C() : super() {}, unless C is class Object.
+    // The superinitializer is installed below in [finishConstructors].
+    builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+  }
 
-      /// >Let LM be the library in which M is declared. For each generative
-      /// >constructor named qi(Ti1 ai1, . . . , Tiki aiki), i in 1..n of S
-      /// >that is accessible to LM , C has an implicitly declared constructor
-      /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
-      /// >super(ai1,...,aiki);.
-      TypeDeclarationBuilder supertype = builder;
-      while (supertype.isMixinApplication) {
-        SourceClassBuilder named = supertype;
-        TypeBuilder type = named.supertype;
-        if (type is NamedTypeBuilder) {
-          supertype = type.declaration;
-        } else {
-          unhandled("${type.runtimeType}", "installDefaultConstructor",
-              builder.charOffset, builder.fileUri);
-        }
-      }
-      if (supertype is KernelClassBuilder) {
+  void installForwardingConstructors(SourceClassBuilder builder) {
+    assert(builder.isMixinApplication);
+    if (builder.library.loader != loader) return;
+    if (builder.target.constructors.isNotEmpty) {
+      // These were installed by a subclass in the recursive call below.
+      return;
+    }
+
+    /// From [Dart Programming Language Specification, 4th Edition](
+    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
+    /// >A mixin application of the form S with M; defines a class C with
+    /// >superclass S.
+    /// >...
+
+    /// >Let LM be the library in which M is declared. For each generative
+    /// >constructor named qi(Ti1 ai1, . . . , Tiki aiki), i in 1..n of S
+    /// >that is accessible to LM , C has an implicitly declared constructor
+    /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
+    /// >super(ai1,...,aiki);.
+    TypeBuilder type = builder.supertype;
+    TypeDeclarationBuilder supertype;
+    if (type is NamedTypeBuilder) {
+      supertype = type.declaration;
+    } else {
+      unhandled("${type.runtimeType}", "installForwardingConstructors",
+          builder.charOffset, builder.fileUri);
+    }
+    if (supertype.isMixinApplication) {
+      installForwardingConstructors(supertype);
+    }
+    if (supertype is KernelClassBuilder) {
+      if (supertype.cls.constructors.isEmpty) {
+        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+      } else {
         Map<TypeParameter, DartType> substitutionMap =
             computeKernelSubstitutionMap(
                 builder.getSubstitutionMap(supertype, builder.fileUri,
                     builder.charOffset, dynamicType),
                 builder.parent);
-        if (supertype.cls.constructors.isEmpty) {
-          builder
-              .addSyntheticConstructor(makeDefaultConstructor(builder.target));
-        } else {
-          for (Constructor constructor in supertype.cls.constructors) {
-            builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-                builder.target,
-                builder.cls.mixin,
-                constructor,
-                substitutionMap));
-          }
+        for (Constructor constructor in supertype.cls.constructors) {
+          builder.addSyntheticConstructor(makeMixinApplicationConstructor(
+              builder.target, builder.cls.mixin, constructor, substitutionMap));
         }
-      } else if (supertype is InvalidTypeBuilder) {
-        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
-      } else {
-        unhandled("${supertype.runtimeType}", "installDefaultConstructor",
-            builder.charOffset, builder.fileUri);
       }
-    } else {
-      /// >Iff no constructor is specified for a class C, it implicitly has a
-      /// >default constructor C() : super() {}, unless C is class Object.
-      // The superinitializer is installed below in [finishConstructors].
+    } else if (supertype is InvalidTypeBuilder) {
       builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+    } else {
+      unhandled("${supertype.runtimeType}", "installForwardingConstructors",
+          builder.charOffset, builder.fileUri);
     }
   }
 
@@ -606,7 +619,9 @@ class KernelTarget extends TargetImplementation {
       positional.add(new VariableGet(positionalParameters.last));
     }
     for (VariableDeclaration formal in constructor.function.namedParameters) {
-      namedParameters.add(copyFormal(formal));
+      VariableDeclaration clone = copyFormal(formal);
+      clonedFormals..add(formal)..add(clone)..add(substitutionMap);
+      namedParameters.add(clone);
       named.add(new NamedExpression(
           formal.name, new VariableGet(namedParameters.last)));
     }
@@ -621,6 +636,27 @@ class KernelTarget extends TargetImplementation {
         name: constructor.name,
         initializers: <Initializer>[initializer],
         isSynthetic: true);
+  }
+
+  void finishClonedParameters() {
+    for (int i = 0; i < clonedFormals.length; i += 3) {
+      // Note that [original] may itself be clone. If so, it was added to
+      // [clonedFormals] before [clone], so it's initializers are already in
+      // place.
+      VariableDeclaration original = clonedFormals[i];
+      VariableDeclaration clone = clonedFormals[i + 1];
+      if (original.initializer != null) {
+        // TODO(ahe): It is unclear if it is legal to use type variables in
+        // default values, but Fasta is currently allowing it, and the VM
+        // accepts it. If it isn't legal, the we can speed this up by using a
+        // single cloner without substitution.
+        CloneVisitor cloner =
+            new CloneVisitor(typeSubstitution: clonedFormals[i + 2]);
+        clone.initializer = cloner.clone(original.initializer)..parent = clone;
+      }
+    }
+    clonedFormals.clear();
+    ticker.logMs("Cloned default values of formals");
   }
 
   Constructor makeDefaultConstructor(Class enclosingClass) {

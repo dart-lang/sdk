@@ -39,6 +39,9 @@ class F extends core::Object implements self::B {
     ;
 }
 abstract class _G&Object&B = core::Object with self::B {
+  synthetic constructor •() → self::_G&Object&B
+    : super core::Object::•()
+    ;
 }
 class G extends self::_G&Object&B {
   field dynamic x = null;

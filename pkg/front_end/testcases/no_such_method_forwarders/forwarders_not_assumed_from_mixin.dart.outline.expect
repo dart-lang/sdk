@@ -16,6 +16,9 @@ class A extends core::Object implements self::I {
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
 }
 abstract class _B&Object&A = core::Object with self::A {
+  synthetic constructor •() → self::_B&Object&A
+    : super core::Object::•()
+    ;
 }
 class B extends self::_B&Object&A {
   synthetic constructor •() → self::B

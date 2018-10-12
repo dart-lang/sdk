@@ -18,7 +18,7 @@ class M1 extends core::Object implements self::I<core::int> {
     ;
 }
 abstract class _A&M1&M0 extends self::M1 implements self::M0<core::int, core::int> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_A&M1&M0
     : super self::M1::•()
     ;
 }

@@ -43,6 +43,9 @@ class Bad extends core::Object {
   static factory WrongName() → self::Bad {}
 }
 abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin {
+  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
+    : super lib::Supertype::•()
+    ;
 }
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → self::WithMixin

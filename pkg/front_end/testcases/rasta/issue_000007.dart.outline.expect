@@ -13,6 +13,9 @@ class Mixin extends core::Object {
     ;
 }
 abstract class _Sub&Base&Mixin = self::Base with self::Mixin {
+  synthetic constructor •() → self::_Sub&Base&Mixin
+    : super self::Base::•()
+    ;
 }
 class Sub extends self::_Sub&Base&Mixin {
   synthetic constructor •() → self::Sub

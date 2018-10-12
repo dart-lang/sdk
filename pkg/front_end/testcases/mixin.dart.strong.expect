@@ -3,8 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 abstract class _B&Object&M1 = core::Object with self::M1 {
+  synthetic constructor •() → self::_B&Object&M1
+    : super core::Object::•()
+    ;
 }
 abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 {
+  synthetic constructor •() → self::_B&Object&M1&M2
+    : super self::_B&Object&M1::•()
+    ;
 }
 class B extends self::_B&Object&M1&M2 {
   constructor •(dynamic value) → self::B
@@ -26,8 +32,14 @@ abstract class M2 extends core::Object {
     return core::print("M2");
 }
 abstract class _C&Object&M1 = core::Object with self::M1 {
+  synthetic constructor •() → self::_C&Object&M1
+    : super core::Object::•()
+    ;
 }
 abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 {
+  synthetic constructor •() → self::_C&Object&M1&M2
+    : super self::_C&Object&M1::•()
+    ;
 }
 class C extends self::_C&Object&M1&M2 {
   constructor •(dynamic value) → self::C
@@ -42,6 +54,9 @@ abstract class G1<T extends core::Object = dynamic> extends core::Object {
     return core::print(self::G1::T);
 }
 abstract class _D&Object&G1<S extends core::Object = dynamic> = core::Object with self::G1<self::_D&Object&G1::S> {
+  synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S>
+    : super core::Object::•()
+    ;
 }
 class D<S extends core::Object = dynamic> extends self::_D&Object&G1<self::D::S> {
   synthetic constructor •() → self::D<self::D::S>

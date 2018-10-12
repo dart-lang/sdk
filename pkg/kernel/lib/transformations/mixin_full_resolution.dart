@@ -74,25 +74,11 @@ class MixinFullResolution {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
-        final bool hasTransformedSuperclass =
-            transformedClasses.contains(class_.superclass);
-
         for (var procedure in class_.procedures) {
           if (procedure.containsSuperCalls) {
             new SuperCallResolutionTransformer(
                     hierarchy, coreTypes, class_.superclass, targetInfo)
                 .visit(procedure);
-          }
-        }
-        for (var constructor in class_.constructors) {
-          if (constructor.containsSuperCalls) {
-            new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass, targetInfo)
-                .visit(constructor);
-          }
-          if (hasTransformedSuperclass && constructor.initializers.length > 0) {
-            new SuperInitializerResolutionTransformer(class_.superclass)
-                .transformInitializers(constructor.initializers);
           }
         }
       }
@@ -220,20 +206,7 @@ class MixinFullResolution {
       }
       class_.addMember(clone);
     }
-    // For each generative constructor in the superclass we make a
-    // corresponding forwarding constructor in the subclass.
-    // Named mixin applications already have constructors, so only build the
-    // constructors for anonymous mixin applications.
-    if (class_.constructors.isEmpty) {
-      var superclassSubstitution = getSubstitutionMap(class_.supertype);
-      var superclassCloner =
-          new CloneVisitor(typeSubstitution: superclassSubstitution);
-      for (var superclassConstructor in class_.superclass.constructors) {
-        var forwardingConstructor =
-            buildForwardingConstructor(superclassCloner, superclassConstructor);
-        class_.addMember(forwardingConstructor);
-      }
-    }
+    assert(class_.constructors.isNotEmpty);
 
     // This class implements the mixin type. Also, backends rely on the fact
     // that eliminated mixin is appended into the end of interfaces list.
@@ -244,52 +217,6 @@ class MixinFullResolution {
 
     // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
     class_.isEliminatedMixin = true;
-  }
-
-  Constructor buildForwardingConstructor(
-      CloneVisitor cloner, Constructor superclassConstructor) {
-    var superFunction = superclassConstructor.function;
-
-    // We keep types and default values for the parameters but always mark the
-    // parameters as final (since we just forward them to the super
-    // constructor).
-    VariableDeclaration cloneVariable(VariableDeclaration variable) {
-      VariableDeclaration clone = cloner.clone(variable);
-      clone.isFinal = true;
-      return clone;
-    }
-
-    // Build a [FunctionNode] which has the same parameters as the one in the
-    // superclass constructor.
-    var positionalParameters =
-        superFunction.positionalParameters.map(cloneVariable).toList();
-    var namedParameters =
-        superFunction.namedParameters.map(cloneVariable).toList();
-    var function = new FunctionNode(new EmptyStatement(),
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: superFunction.requiredParameterCount,
-        returnType: const VoidType());
-
-    // Build a [SuperInitializer] which takes all positional/named parameters
-    // and forward them to the super class constructor.
-    var positionalArguments = <Expression>[];
-    for (var variable in positionalParameters) {
-      positionalArguments.add(new VariableGet(variable));
-    }
-    var namedArguments = <NamedExpression>[];
-    for (var variable in namedParameters) {
-      namedArguments
-          .add(new NamedExpression(variable.name, new VariableGet(variable)));
-    }
-    var superInitializer = new SuperInitializer(superclassConstructor,
-        new Arguments(positionalArguments, named: namedArguments));
-
-    // Assemble the constructor.
-    return new Constructor(function,
-        name: superclassConstructor.name,
-        initializers: <Initializer>[superInitializer],
-        isSynthetic: true);
   }
 }
 

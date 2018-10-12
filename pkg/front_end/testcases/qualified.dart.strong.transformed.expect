@@ -26,7 +26,7 @@ class Bad extends core::Object {
   static factory WrongName() → self::Bad {}
 }
 abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib::Mixin {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::_WithMixin&Supertype&Mixin
     : super lib::Supertype::•()
     ;
   method /* from org-dartlang-testcase:///qualified_lib.dart */ foo() → dynamic {
