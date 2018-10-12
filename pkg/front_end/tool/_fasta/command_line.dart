@@ -389,7 +389,7 @@ ProcessedOptions analyzeCommandLine(
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          computePlatformBinariesLocation().resolve(
+          computePlatformBinariesLocation(forceBuildDir: true).resolve(
               legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()

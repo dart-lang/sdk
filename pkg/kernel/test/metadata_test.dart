@@ -149,8 +149,8 @@ List<int> toBinary(Component p) {
 
 main() {
   test('annotate-serialize-deserialize-validate', () async {
-    final Uri platform =
-        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+    final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
+        .resolve("vm_platform_strong.dill");
     final List<int> platformBinary =
         await new File(platform.toFilePath()).readAsBytes();
 

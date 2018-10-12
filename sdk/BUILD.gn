@@ -67,9 +67,6 @@ declare_args() {
 #.........dart2js_server_platform.dill
 #.........dart2js_platform_strong.dill
 #.........dart2js_server_platform_strong.dill
-#.........vm_outline.dill
-#.........vm_outline_strong.dill
-#.........vm_platform.dill
 #.........vm_platform_strong.dill
 #.........dev_compiler/
 # ......async/
@@ -500,9 +497,6 @@ copy("copy_vm_dill_files") {
     "../runtime/vm:kernel_platform_files",
   ]
   sources = [
-    "$root_out_dir/vm_outline.dill",
-    "$root_out_dir/vm_outline_strong.dill",
-    "$root_out_dir/vm_platform.dill",
     "$root_out_dir/vm_platform_strong.dill",
   ]
   outputs = [

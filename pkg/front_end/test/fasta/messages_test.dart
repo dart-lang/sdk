@@ -458,7 +458,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
-          ..sdkSummary = computePlatformBinariesLocation()
+          ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)

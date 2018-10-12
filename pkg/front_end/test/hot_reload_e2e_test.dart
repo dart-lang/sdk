@@ -291,7 +291,7 @@ main() {
   });
 }
 
-final Uri sdkRoot = computePlatformBinariesLocation();
+final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
 IncrementalKernelGenerator createIncrementalCompiler(
     String entry, FileSystem fs) {

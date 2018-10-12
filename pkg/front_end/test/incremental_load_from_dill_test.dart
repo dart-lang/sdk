@@ -181,7 +181,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
 }
 
 Future<Null> newWorldTest(bool strong, List worlds) async {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
   final Uri initializeFrom = base.resolve("initializeFrom.dill");
@@ -356,7 +356,7 @@ void checkIsEqual(List<int> a, List<int> b) {
 }
 
 CompilerOptions getOptions(bool strong) {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..target = new VmTarget(new TargetFlags(legacyMode: !strong))

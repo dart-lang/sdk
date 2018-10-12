@@ -56,7 +56,7 @@ class Context extends ChainContext {
 }
 
 CompilerOptions getOptions(bool strong) {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
@@ -66,11 +66,9 @@ CompilerOptions getOptions(bool strong) {
     }
     ..legacyMode = !strong;
   if (strong) {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
   }
   return options;
 }

@@ -88,7 +88,7 @@ class Tester {
   }
 
   initialize() async {
-    sdkRoot = computePlatformBinariesLocation();
+    sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     base = Uri.parse("org-dartlang-test:///");
     sdkSummary = base.resolve("vm_platform.dill");
     initializeFrom = base.resolve("initializeFrom.dill");

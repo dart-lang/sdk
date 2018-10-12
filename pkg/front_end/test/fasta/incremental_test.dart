@@ -203,7 +203,8 @@ Future<Context> createContext(
 
   /// The actual location of the dill file.
   final Uri sdkSummaryFile =
-      computePlatformBinariesLocation().resolve("vm_platform.dill");
+      computePlatformBinariesLocation(forceBuildDir: true)
+          .resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 

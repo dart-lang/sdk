@@ -209,7 +209,7 @@ class FastaContext extends ChainContext {
         vm,
         strongMode,
         platformBinaries == null
-            ? computePlatformBinariesLocation()
+            ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
         ignoreExpectations,
