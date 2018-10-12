@@ -126,6 +126,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   final ClassHierarchy hierarchy;
 
+  @override
   final CoreTypes coreTypes;
 
   final bool isInstanceMember;

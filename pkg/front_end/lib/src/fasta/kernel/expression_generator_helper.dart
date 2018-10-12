@@ -49,8 +49,6 @@ import 'kernel_builder.dart'
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get library;
 
-  Uri get uri;
-
   TypePromoter get typePromoter;
 
   int get functionNestingLevel;

@@ -539,3 +539,43 @@ abstract class StatementVisitor1<R, T> {
   R visitFunctionDeclaration(FunctionDeclaration node, T arg) =>
       defaultStatement(node, arg);
 }
+
+abstract class BodyVisitor1<R, T> extends ExpressionVisitor1<R, T>
+    implements StatementVisitor1<R, T> {
+  const BodyVisitor1();
+
+  R defaultStatement(Statement node, T arg) => null;
+  R visitExpressionStatement(ExpressionStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitBlock(Block node, T arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, T arg) => defaultStatement(node, arg);
+  R visitEmptyStatement(EmptyStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitAssertStatement(AssertStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitLabeledStatement(LabeledStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitBreakStatement(BreakStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitWhileStatement(WhileStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitDoStatement(DoStatement node, T arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, T arg) => defaultStatement(node, arg);
+  R visitForInStatement(ForInStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitSwitchStatement(SwitchStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitIfStatement(IfStatement node, T arg) => defaultStatement(node, arg);
+  R visitReturnStatement(ReturnStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitTryCatch(TryCatch node, T arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, T arg) => defaultStatement(node, arg);
+  R visitYieldStatement(YieldStatement node, T arg) =>
+      defaultStatement(node, arg);
+  R visitVariableDeclaration(VariableDeclaration node, T arg) =>
+      defaultStatement(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, T arg) =>
+      defaultStatement(node, arg);
+}

@@ -22,7 +22,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
 
-import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
@@ -86,6 +86,7 @@ import 'kernel_builder.dart' show KernelLibraryBuilder;
 import 'kernel_expression_generator.dart' show makeLet;
 
 part "inference_visitor.dart";
+part "inferred_type_visitor.dart";
 
 /// Indicates whether type inference involving conditional expressions should
 /// always use least upper bound.
@@ -1955,32 +1956,20 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // those subexpressions.
     if (!typeNeeded && isTopLevel) return null;
 
+    InferenceVistor visitor = new InferenceVistor(this);
     if (expression is ExpressionJudgment) {
-      // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
-      // of type inference is correct for this kind of statement.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      expression.acceptInference(new InferenceVistor(this), typeContext);
-      DartType inferredType = expression.inferredType;
-      if (inferredType is VoidType && !isVoidAllowed) {
-        if (expression.parent is! ArgumentsJudgment) {
-          helper?.addProblem(
-              messageVoidExpression, expression.fileOffset, noLength);
-        }
-      }
-      return inferredType;
-    } else if (expression is IntLiteral) {
-      return coreTypes.intClass.rawType;
-    } else if (expression is DoubleLiteral) {
-      return coreTypes.doubleClass.rawType;
+      expression.acceptInference(visitor, typeContext);
     } else {
-      // Encountered an expression type for which type inference is not yet
-      // implemented, so just infer dynamic for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-      return typeNeeded ? const DynamicType() : null;
+      expression.accept1(visitor, typeContext);
     }
+    DartType inferredType = getInferredType(expression, helper);
+    if (inferredType is VoidType && !isVoidAllowed) {
+      if (expression.parent is! ArgumentsJudgment) {
+        helper?.addProblem(
+            messageVoidExpression, expression.fileOffset, noLength);
+      }
+    }
+    return inferredType;
   }
 
   @override

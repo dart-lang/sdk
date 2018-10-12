@@ -4,10 +4,31 @@
 
 part of "kernel_shadow_ast.dart";
 
-class InferenceVistor {
+class InferenceVistor extends BodyVisitor1<void, DartType> {
   final ShadowTypeInferrer inferrer;
 
   InferenceVistor(this.inferrer);
+
+  @override
+  void defaultExpression(Expression node, DartType typeContext) {
+    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+        inferrer.helper.uri);
+  }
+
+  @override
+  void defaultStatement(Statement node, DartType _) {
+    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+        inferrer.helper.uri);
+  }
+
+  @override
+  void visitInvalidExpression(InvalidExpression node, DartType typeContext) {}
+
+  @override
+  void visitIntLiteral(IntLiteral node, DartType typeContext) {}
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node, DartType typeContext) {}
 
   void visitAsJudgment(AsJudgment node, DartType typeContext) {
     inferrer.inferExpression(node.judgment, const UnknownType(), false,

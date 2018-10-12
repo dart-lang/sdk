@@ -4,11 +4,17 @@
 
 import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
 import '../kernel/kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 
 abstract class InferenceHelper {
+  CoreTypes get coreTypes;
+
+  Uri get uri;
+
   SyntheticExpressionJudgment buildProblem(
       Message message, int charOffset, int length,
       {List<LocatedMessage> context, bool suppressMessage});
