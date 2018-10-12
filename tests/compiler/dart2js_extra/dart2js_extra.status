@@ -60,7 +60,6 @@ private_symbol_literal_test/06: MissingCompileTimeError
 regress/4562_test/none: CompileTimeError
 round_constant_folding_test: CompileTimeError
 statements_test: Fail
-type_constant_switch_test/01: MissingCompileTimeError
 typed_locals_test: Pass, Fail
 
 [ $compiler != dart2js ]

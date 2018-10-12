@@ -910,6 +910,71 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   Null visitSwitchStatement(ir.SwitchStatement node) {
     visitNode(node.expression);
     visitNodes(node.cases);
+
+    // TODO(32557): Remove this when issue 32557 is fixed.
+    ir.TreeNode firstCase;
+    DartType firstCaseType;
+    DiagnosticMessage error;
+    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
+
+    bool overridesEquals(InterfaceType type) {
+      if (type == commonElements.symbolImplementationType) {
+        // Treat symbol constants as if Symbol doesn't override `==`.
+        return false;
+      }
+      ClassEntity cls = type.element;
+      MemberEntity member =
+          elementMap.elementEnvironment.lookupClassMember(cls, '==');
+      return member.enclosingClass != commonElements.objectClass;
+    }
+
+    for (ir.SwitchCase switchCase in node.cases) {
+      for (ir.Expression expression in switchCase.expressions) {
+        ConstantValue value = elementMap.getConstantValue(expression);
+        DartType type = value.getType(elementMap.commonElements);
+        if (firstCaseType == null) {
+          firstCase = expression;
+          firstCaseType = type;
+
+          // We only report the bad type on the first class element. All others
+          // get a "type differs" error.
+          if (type == commonElements.doubleType) {
+            reporter.reportErrorMessage(
+                computeSourceSpanFromTreeNode(expression),
+                MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+                {'type': "double"});
+          } else if (type == commonElements.functionType) {
+            reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
+                MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
+          } else if (value.isObject && overridesEquals(type)) {
+            reporter.reportErrorMessage(
+                computeSourceSpanFromTreeNode(firstCase),
+                MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+                {'type': type});
+          }
+        } else {
+          if (type != firstCaseType) {
+            if (error == null) {
+              error = reporter.createMessage(
+                  computeSourceSpanFromTreeNode(node),
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+                  {'type': firstCaseType});
+              infos.add(reporter.createMessage(
+                  computeSourceSpanFromTreeNode(firstCase),
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                  {'type': firstCaseType}));
+            }
+            infos.add(reporter.createMessage(
+                computeSourceSpanFromTreeNode(expression),
+                MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                {'type': type}));
+          }
+        }
+      }
+    }
+    if (error != null) {
+      reporter.reportError(error, infos);
+    }
   }
 
   @override

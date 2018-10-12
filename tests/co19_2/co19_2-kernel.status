@@ -215,8 +215,6 @@ Language/Statements/Continue/async_loops_t10: CompileTimeError
 Language/Statements/Continue/control_transfer_t08: CompileTimeError
 Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
-Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
-Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t01: MissingCompileTimeError # Issue 34637
@@ -377,6 +375,8 @@ Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
 [ $compiler != dart2js && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError # Issue 34191
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
+Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
+Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 Language/Classes/definition_t23: CompileTimeError
