@@ -514,7 +514,9 @@ abstract class SubtypeTester {
         // Termination: if there are no cyclically bound type parameters, this
         // recursive call can only occur a finite number of times before
         // reaching a shrinking recursive call (or terminating).
-        if (!isSubtypeOf(superParameter.bound, subBound)) {
+        // TODO(dmitryas): Replace it with one recursive descent instead of two.
+        if (!isSubtypeOf(superParameter.bound, subBound) ||
+            !isSubtypeOf(subBound, superParameter.bound)) {
           return false;
         }
       }
