@@ -648,8 +648,8 @@ class ProgramBuilder {
         _rtiEncoder,
         _jsInteropAnalysis);
 
-    void visitMember(MemberEntity member) {
-      if (member.isInstanceMember && !member.isAbstract && !member.isField) {
+    void visitInstanceMember(MemberEntity member) {
+      if (!member.isAbstract && !member.isField) {
         if (member is! JSignatureMethod) {
           Method method = _buildMethod(member);
           if (method != null) methods.add(method);
@@ -665,6 +665,12 @@ class ProgramBuilder {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
+      }
+    }
+
+    void visitMember(MemberEntity member) {
+      if (member.isInstanceMember) {
+        visitInstanceMember(member);
       }
     }
 
