@@ -278,12 +278,25 @@ LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l1_t05: Mi
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_neg_l2_t02: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/typedef_ret_extends_pos_l2_t01: CompileTimeError # Issue 34613
 LanguageFeatures/Super_Mixins/declarations_neg_t01/none: CompileTimeError
+LanguageFeatures/Super_Mixins/declarations_neg_t02/none: CompileTimeError
+LanguageFeatures/Super_Mixins/declarations_t01: CompileTimeError
 LanguageFeatures/Super_Mixins/mixin_application_neg_t01/none: CompileTimeError
 LanguageFeatures/Super_Mixins/mixin_application_neg_t03/none: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_application_t01: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_application_t02: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_application_t03: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_application_t04: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_applying_t01: CompileTimeError
 LanguageFeatures/Super_Mixins/mixin_member_neg_t01: CompileTimeError
 LanguageFeatures/Super_Mixins/mixin_member_neg_t02: CompileTimeError
-LanguageFeatures/Super_Mixins/super_invocation_neg_t01/03: MissingCompileTimeError
+LanguageFeatures/Super_Mixins/mixin_member_t01: CompileTimeError
+LanguageFeatures/Super_Mixins/mixin_member_t02: CompileTimeError
+LanguageFeatures/Super_Mixins/more_specific_t01: CompileTimeError
+LanguageFeatures/Super_Mixins/super_invocation_neg_t01/none: CompileTimeError
 LanguageFeatures/Super_Mixins/super_invocation_t01: CompileTimeError
+LanguageFeatures/Super_Mixins/syntax_t01: CompileTimeError
+LanguageFeatures/Super_Mixins/syntax_t02: CompileTimeError
+LanguageFeatures/Super_Mixins/syntax_t04: CompileTimeError
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Link/renameSync_A02_t01: RuntimeError, Pass

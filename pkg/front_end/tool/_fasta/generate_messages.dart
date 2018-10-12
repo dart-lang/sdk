@@ -227,25 +227,16 @@ StringBuffer buffer;""");
         break;
 
       case "type":
-        parameters.add("DartType _type");
-        ensureNameSystem();
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-String type = '$buffer';
-""");
-        arguments.add("'type': _type");
-        break;
-
       case "type2":
-        parameters.add("DartType _type2");
+      case "type3":
+        parameters.add("DartType _${name}");
         ensureNameSystem();
-        conversions.add(r"""
+        conversions.add("""
 buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-String type2 = '$buffer';
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_${name});
+String ${name} = '\$buffer';
 """);
-        arguments.add("'type2': _type2");
+        arguments.add("'${name}': _${name}");
         break;
 
       case "uri":

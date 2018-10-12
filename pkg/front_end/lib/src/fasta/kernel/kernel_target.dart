@@ -300,6 +300,7 @@ class KernelTarget extends TargetImplementation {
           loader.checkAbstractMembers(myClasses);
           loader.checkRedirectingFactories(myClasses);
           loader.addNoSuchMethodForwarders(myClasses);
+          loader.checkMixinApplications(myClasses);
           return component;
         },
         () => loader?.currentUriForCrashReporting,

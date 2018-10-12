@@ -5942,6 +5942,46 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3)>
+    templateMixinApplicationIncompatibleSupertype = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3)>(
+        messageTemplate:
+            r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
+        withArguments: _withArgumentsMixinApplicationIncompatibleSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2, DartType _type3)>
+    codeMixinApplicationIncompatibleSupertype = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3)>(
+        "MixinApplicationIncompatibleSupertype",
+        templateMixinApplicationIncompatibleSupertype,
+        analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationIncompatibleSupertype(
+    DartType _type, DartType _type2, DartType _type3) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type3);
+  String type3 = '$buffer';
+
+  return new Message(codeMixinApplicationIncompatibleSupertype,
+      message:
+          """'${type}' doesn't implement '${type2}' so it can't be used with '${type3}'.""",
+      arguments: {'type': _type, 'type2': _type2, 'type3': _type3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(
         String name,
         String name2,

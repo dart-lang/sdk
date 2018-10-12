@@ -891,6 +891,18 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Added noSuchMethod forwarders");
   }
 
+  void checkMixinApplications(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        Class mixedInClass = builder.cls.mixedInClass;
+        if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
+          builder.checkMixinApplication(hierarchy);
+        }
+      }
+    }
+    ticker.logMs("Checked mixin declaration applications");
+  }
+
   void createTypeInferenceEngine() {
     typeInferenceEngine =
         new ShadowTypeInferenceEngine(instrumentation, target.strongMode);

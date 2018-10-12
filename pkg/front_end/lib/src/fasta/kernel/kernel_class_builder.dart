@@ -68,6 +68,7 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInSupertypeInferred,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
+        templateMixinApplicationIncompatibleSupertype,
         templateNamedMixinOverrideContext,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
@@ -1293,6 +1294,26 @@ abstract class KernelClassBuilder
     return isMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
+  }
+
+  void checkMixinApplication(ClassHierarchy hierarchy) {
+    // A mixin declaration can only be applied to a class that implements all
+    // the declaration's superclass constraints.
+    InterfaceType supertype = cls.supertype.asInterfaceType;
+    Substitution substitution = Substitution.fromSupertype(cls.mixedInType);
+    for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
+      InterfaceType interface =
+          substitution.substituteSupertype(constraint).asInterfaceType;
+      if (hierarchy.getTypeAsInstanceOf(supertype, interface.classNode) !=
+          interface) {
+        library.addProblem(
+            templateMixinApplicationIncompatibleSupertype.withArguments(
+                supertype, interface, cls.mixedInType.asInterfaceType),
+            cls.fileOffset,
+            noLength,
+            cls.fileUri);
+      }
+    }
   }
 
   @override

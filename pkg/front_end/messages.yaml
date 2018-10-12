@@ -3223,3 +3223,12 @@ InferredPackageUri:
       main() {}
     ".packages": |
       example:./
+
+MixinApplicationIncompatibleSupertype:
+  template: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
+  analyzerCode: MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
+  script: >-
+    class I {}
+    mixin M on I {}
+    class C = Object with M;
+
