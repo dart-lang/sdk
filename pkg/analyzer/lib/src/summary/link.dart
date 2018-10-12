@@ -801,8 +801,23 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
-  List<InterfaceType> get superclassConstraints => _superclassConstraints ??=
-      _unlinkedClass.superclassConstraints.map(_computeInterfaceType).toList();
+  List<InterfaceType> get superclassConstraints {
+    if (_superclassConstraints == null) {
+      if (isMixin) {
+        _superclassConstraints = _unlinkedClass.superclassConstraints
+            .map(_computeInterfaceType)
+            .toList();
+        if (_superclassConstraints.isEmpty) {
+          _superclassConstraints = [
+            enclosingElement.enclosingElement._linker.typeProvider.objectType
+          ];
+        }
+      } else {
+        _superclassConstraints = const <InterfaceType>[];
+      }
+    }
+    return _superclassConstraints;
+  }
 
   @override
   InterfaceType get supertype {
@@ -1602,11 +1617,13 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   /// Perform type inference and const cycle detection on this
   /// compilation unit.
   void link() {
+    var typeSystem = library._linker.typeSystem;
+    // TODO(scheglov) Reuse InheritanceManager2 for the whole linking.
+    var inheritance = new InheritanceManager2(typeSystem);
     new InstanceMemberInferrer(
-            enclosingElement._linker.typeProvider,
-            (clazz) =>
-                (clazz.library as LibraryElementInBuildUnit).inheritanceManager)
-        .inferCompilationUnit(this);
+      typeSystem.typeProvider,
+      inheritance,
+    ).inferCompilationUnit(this);
     for (TopLevelVariableElementForLink variable in topLevelVariables) {
       variable.link(this);
     }

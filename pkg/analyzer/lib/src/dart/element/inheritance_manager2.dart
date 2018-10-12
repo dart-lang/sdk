@@ -43,11 +43,10 @@ class InheritanceManager2 {
 
   InheritanceManager2(this._typeSystem);
 
-  /// Return the member with the given [name] that the class inherits from the
+  /// Return the member with the given [name] that the [type] inherits from the
   /// mixins, superclasses, or interfaces; or `null` if no member is inherited.
   FunctionType getInherited(InterfaceType type, Name name) {
-    var interface = getInterface(type);
-    return interface._inherited[name];
+    return getOverridden(type, name)?.last;
   }
 
   /// Return the interface of the given [type].  It might include private
@@ -121,16 +120,9 @@ class InheritanceManager2 {
     // signature becomes the signature of the class's interface.
     conflicts = _findMostSpecificFromNamedCandidates(map, namedCandidates);
 
-    // Get one candidate for each name.
-    Map<Name, FunctionType> inherited = {};
-    for (var name in namedCandidates.keys) {
-      var candidates = namedCandidates[name];
-      inherited[name] = candidates.last;
-    }
-
     var interface = new Interface._(
       map,
-      inherited,
+      namedCandidates,
       superImplemented,
       conflicts ?? const [],
     );
@@ -169,6 +161,14 @@ class InheritanceManager2 {
     return getInterface(type).map[name];
   }
 
+  /// Return all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in the [type], would override; or `null`
+  /// if no members would be overridden.
+  List<FunctionType> getOverridden(InterfaceType type, Name name) {
+    var interface = getInterface(type);
+    return interface._overridden[name];
+  }
+
   void _addCandidate(Map<Name, List<FunctionType>> namedCandidates, Name name,
       FunctionType candidate) {
     var candidates = namedCandidates[name];
@@ -182,9 +182,11 @@ class InheritanceManager2 {
 
   void _addCandidates(
       Map<Name, List<FunctionType>> namedCandidates, InterfaceType type) {
-    getInterface(type).map.forEach((name, candidate) {
+    var map = getInterface(type).map;
+    for (var name in map.keys) {
+      var candidate = map[name];
       _addCandidate(namedCandidates, name, candidate);
-    });
+    }
   }
 
   void _addTypeMembers(Map<Name, FunctionType> map, InterfaceType type) {
@@ -386,9 +388,9 @@ class Interface {
   /// The map of names to their signature in the interface.
   final Map<Name, FunctionType> map;
 
-  /// The map of names to their signature from the mixins, superclasses,
+  /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, FunctionType> _inherited;
+  final Map<Name, List<FunctionType>> _overridden;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
@@ -403,7 +405,7 @@ class Interface {
 
   const Interface._(
     this.map,
-    this._inherited,
+    this._overridden,
     this._superImplemented,
     this.conflicts,
   );
