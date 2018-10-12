@@ -2980,6 +2980,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (qualifier is TypeUseGenerator) {
         type = qualifier;
         if (typeArguments != null) {
+          // TODO(ahe): Point to the type arguments instead.
           addProblem(fasta.messageConstructorWithTypeArguments,
               identifier.charOffset, identifier.name.length);
         }
@@ -3283,6 +3284,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Constness constness) {
     if (arguments == null) {
       return buildProblem(fasta.messageMissingArgumentList,
+          nameToken.charOffset, nameToken.length);
+    }
+    if (name.isNotEmpty && arguments.types.isNotEmpty) {
+      // TODO(ahe): Point to the type arguments instead.
+      addProblem(fasta.messageConstructorWithTypeArguments,
           nameToken.charOffset, nameToken.length);
     }
 

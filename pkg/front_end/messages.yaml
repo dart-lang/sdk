@@ -1261,6 +1261,7 @@ ConstructorWithTypeArguments:
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
+    - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
 
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
