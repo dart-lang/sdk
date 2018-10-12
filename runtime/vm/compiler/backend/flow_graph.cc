@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_state.h"
@@ -45,14 +46,14 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       postorder_(),
       reverse_postorder_(),
       optimized_block_order_(),
-      constant_null_(NULL),
-      constant_dead_(NULL),
+      constant_null_(nullptr),
+      constant_dead_(nullptr),
       licm_allowed_(true),
       prologue_info_(prologue_info),
-      loop_headers_(NULL),
-      loop_invariant_loads_(NULL),
+      loop_hierarchy_(nullptr),
+      loop_invariant_loads_(nullptr),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
-      await_token_positions_(NULL),
+      await_token_positions_(nullptr),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
@@ -247,8 +248,7 @@ void FlowGraph::DiscoverBlocks() {
     reverse_postorder_.Add(postorder_[block_count - i - 1]);
   }
 
-  loop_headers_ = NULL;
-  loop_invariant_loads_ = NULL;
+  ResetLoopHierarchy();
 }
 
 void FlowGraph::MergeBlocks() {
@@ -1513,16 +1513,14 @@ void FlowGraph::RemoveRedefinitions() {
   }
 }
 
-// Find the natural loop for the back edge m->n and attach loop information
-// to block n (loop header). The algorithm is described in "Advanced Compiler
-// Design & Implementation" (Muchnick) p192.
-BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const {
+BitVector* FlowGraph::FindLoopBlocks(BlockEntryInstr* m,
+                                     BlockEntryInstr* n) const {
   GrowableArray<BlockEntryInstr*> stack;
-  BitVector* loop = new (zone()) BitVector(zone(), preorder_.length());
+  BitVector* loop_blocks = new (zone()) BitVector(zone(), preorder_.length());
 
-  loop->Add(n->preorder_number());
+  loop_blocks->Add(n->preorder_number());
   if (n != m) {
-    loop->Add(m->preorder_number());
+    loop_blocks->Add(m->preorder_number());
     stack.Add(m);
   }
 
@@ -1530,57 +1528,69 @@ BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const {
     BlockEntryInstr* p = stack.RemoveLast();
     for (intptr_t i = 0; i < p->PredecessorCount(); ++i) {
       BlockEntryInstr* q = p->PredecessorAt(i);
-      if (!loop->Contains(q->preorder_number())) {
-        loop->Add(q->preorder_number());
+      if (!loop_blocks->Contains(q->preorder_number())) {
+        loop_blocks->Add(q->preorder_number());
         stack.Add(q);
       }
     }
   }
-  return loop;
+  return loop_blocks;
 }
 
-ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
+void FlowGraph::LinkToInner(LoopInfo* loop) const {
+  for (; loop != nullptr; loop = loop->next()) {
+    if (FLAG_trace_optimization) {
+      THR_Print("%s {", loop->ToCString());
+      for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+        THR_Print(" B%" Pd, preorder_[it.Current()]->block_id());
+      }
+      THR_Print(" }\n");
+    }
+    LinkToInner(loop->inner());
+    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+      BlockEntryInstr* block = preorder_[it.Current()];
+      if (block->loop_info() == nullptr) {
+        block->set_loop_info(loop);
+      }
+    }
+  }
+}
+
+LoopHierarchy* FlowGraph::ComputeLoops() const {
+  // Iterate over all entry blocks in the flow graph to attach
+  // loop information to each loop header.
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
       new (zone()) ZoneGrowableArray<BlockEntryInstr*>();
-
-  // Iterate over all entry blocks in the flow graph.
   for (BlockIterator it = postorder_iterator(); !it.Done(); it.Advance()) {
     BlockEntryInstr* block = it.Current();
-    // Reset loop information (since this may recompute
-    // loop information on a modified flow graph).
+    // Reset loop information on every entry block (since this method
+    // may recompute loop information on a modified flow graph).
     block->set_loop_info(nullptr);
     // Iterate over predecessors to find back edges.
     for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       if (block->Dominates(pred)) {
-        if (FLAG_trace_optimization) {
-          OS::PrintErr("Back edge B%" Pd " -> B%" Pd "\n", pred->block_id(),
-                       block->block_id());
-        }
-        BitVector* loop_info = FindLoop(pred, block);
         // Identify the block as a loop header and add the blocks in the
         // loop to the loop information. Loops that share the same loop
         // header are treated as one loop by merging these blocks.
+        BitVector* loop_blocks = FindLoopBlocks(pred, block);
         if (block->loop_info() == nullptr) {
-          block->set_loop_info(loop_info);
+          intptr_t id = loop_headers->length();
+          block->set_loop_info(new (zone()) LoopInfo(id, block, loop_blocks));
           loop_headers->Add(block);
         } else {
-          block->loop_info()->AddAll(loop_info);
+          ASSERT(block->loop_info()->header() == block);
+          block->loop_info()->AddBlocks(loop_blocks);
         }
       }
     }
   }
-  if (FLAG_trace_optimization) {
-    for (intptr_t i = 0; i < loop_headers->length(); ++i) {
-      BlockEntryInstr* header = (*loop_headers)[i];
-      OS::PrintErr("Loop header B%" Pd "\n", header->block_id());
-      for (BitVector::Iterator it(header->loop_info()); !it.Done();
-           it.Advance()) {
-        OS::PrintErr("  B%" Pd "\n", preorder_[it.Current()]->block_id());
-      }
-    }
-  }
-  return loop_headers;
+
+  // Build the loop hierarchy and link every entry block to
+  // the closest enveloping loop in loop hierarchy.
+  LoopHierarchy* loop_hierarchy = new (zone()) LoopHierarchy(loop_headers);
+  LinkToInner(loop_hierarchy->first());
+  return loop_hierarchy;
 }
 
 intptr_t FlowGraph::InstructionCount() const {
@@ -1864,6 +1874,15 @@ static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
   }
 }
 
+// Maps an entry block to its closest enveloping loop id, or -1 if none.
+static intptr_t LoopId(BlockEntryInstr* block) {
+  LoopInfo* loop = block->loop_info();
+  if (loop != nullptr) {
+    return loop->id();
+  }
+  return -1;
+}
+
 void FlowGraph::WidenSmiToInt32() {
   if (!FLAG_use_smi_widening) {
     return;
@@ -1894,19 +1913,7 @@ void FlowGraph::WidenSmiToInt32() {
   // gain: we are going to assume that only conversion occurring inside the
   // same loop should be counted against the gain, all other conversions
   // can be hoisted and thus cost nothing compared to the loop cost itself.
-  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers = LoopHeaders();
-
-  GrowableArray<intptr_t> loops(preorder().length());
-  for (intptr_t i = 0; i < preorder().length(); i++) {
-    loops.Add(-1);
-  }
-
-  for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
-    for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
-         !loop_it.Done(); loop_it.Advance()) {
-      loops[loop_it.Current()] = loop_id;
-    }
-  }
+  GetLoopHierarchy();
 
   // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
   // and PhiInstr that depend on it and that it depends on and count amount of
@@ -1950,7 +1957,7 @@ void FlowGraph::WidenSmiToInt32() {
         }
       }
 
-      const intptr_t defn_loop = loops[defn->GetBlock()->preorder_number()];
+      const intptr_t defn_loop = LoopId(defn->GetBlock());
 
       // Process all inputs.
       for (intptr_t k = 0; k < defn->InputCount(); k++) {
@@ -1965,7 +1972,7 @@ void FlowGraph::WidenSmiToInt32() {
           if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
-        } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
+        } else if (defn_loop == LoopId(input->GetBlock()) &&
                    (input->Type()->ToCid() == kSmiCid)) {
           // Input comes from the same loop, is known to be smi and requires
           // untagging.
@@ -2010,7 +2017,7 @@ void FlowGraph::WidenSmiToInt32() {
             THR_Print("^ [%" Pd "] (u) %s\n", gain,
                       use->instruction()->ToCString());
           }
-        } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
+        } else if (defn_loop == LoopId(instr->GetBlock())) {
           gain--;
           if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("v [%" Pd "] (u) %s\n", gain,

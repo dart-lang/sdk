@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -508,29 +509,11 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
-static void LoopInfoComment(
-    Assembler* assembler,
-    const BlockEntryInstr& block,
-    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers) {
-  if (Assembler::EmittingComments()) {
-    for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
-      for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
-           !loop_it.Done(); loop_it.Advance()) {
-        if (loop_it.Current() == block.preorder_number()) {
-          assembler->Comment("  Loop %" Pd "", loop_id);
-        }
-      }
-    }
-  }
-}
-
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
-  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
   if (Assembler::EmittingComments()) {
-    // 'loop_headers' were cleared, recompute.
-    loop_headers = flow_graph().ComputeLoops();
-    ASSERT(loop_headers != NULL);
+    // The loop_info fields were cleared, recompute.
+    flow_graph().ComputeLoops();
   }
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
@@ -549,7 +532,11 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 #endif
 
-    LoopInfoComment(assembler(), *entry, *loop_headers);
+    if (Assembler::EmittingComments()) {
+      for (LoopInfo* l = entry->loop_info(); l != nullptr; l = l->outer()) {
+        assembler()->Comment("  Loop %" Pd "", l->id());
+      }
+    }
 
     entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();

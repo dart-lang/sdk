@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 
 namespace dart {
 
@@ -137,10 +138,10 @@ static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
     return NULL;
   }
 
-  BitVector* loop_info = phi->block()->loop_info();
+  BitVector* loop_blocks = phi->block()->loop_info()->blocks();
 
   const intptr_t backedge_idx =
-      loop_info->Contains(phi->block()->PredecessorAt(0)->preorder_number())
+      loop_blocks->Contains(phi->block()->PredecessorAt(0)->preorder_number())
           ? 0
           : 1;
 
@@ -163,6 +164,7 @@ static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
   return NULL;
 }
 
+// TODO(ajcbik): move induction variable recognition in loop framework
 void RangeAnalysis::DiscoverSimpleInductionVariables() {
   GrowableArray<InductionVariableInfo*> loop_variables;
 
@@ -171,7 +173,8 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
     BlockEntryInstr* block = block_it.Current();
 
     JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL && join->loop_info() != NULL) {
+    if (join != NULL && join->loop_info() != NULL &&
+        join->loop_info()->header() == join) {
       loop_variables.Clear();
 
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
@@ -753,7 +756,7 @@ class Scheduler {
  public:
   explicit Scheduler(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
-        loop_headers_(flow_graph->LoopHeaders()),
+        loop_headers_(flow_graph->GetLoopHierarchy().headers()),
         pre_headers_(loop_headers_.length()) {
     for (intptr_t i = 0; i < loop_headers_.length(); i++) {
       pre_headers_.Add(loop_headers_[i]->ImmediateDominator());

@@ -33,6 +33,7 @@ class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
+class LoopInfo;
 class ParsedFunction;
 class Range;
 class RangeAnalysis;
@@ -1349,8 +1350,9 @@ class BlockEntryInstr : public Instruction {
   // True for blocks inside a try { } region.
   bool InsideTryBlock() const { return try_index_ != kInvalidTryIndex; }
 
-  BitVector* loop_info() const { return loop_info_; }
-  void set_loop_info(BitVector* loop_info) { loop_info_ = loop_info; }
+  // Loop related methods.
+  LoopInfo* loop_info() const { return loop_info_; }
+  void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
 
   virtual BlockEntryInstr* GetBlock() { return this; }
 
@@ -1381,12 +1383,12 @@ class BlockEntryInstr : public Instruction {
         try_index_(try_index),
         preorder_number_(-1),
         postorder_number_(-1),
-        dominator_(NULL),
+        dominator_(nullptr),
         dominated_blocks_(1),
         last_instruction_(NULL),
         offset_(-1),
-        parallel_move_(NULL),
-        loop_info_(NULL) {}
+        parallel_move_(nullptr),
+        loop_info_(nullptr) {}
 
   // Perform a depth first search to find OSR entry and
   // link it to the given graph entry.
@@ -1422,9 +1424,8 @@ class BlockEntryInstr : public Instruction {
   // connect live ranges at the start of the block.
   ParallelMoveInstr* parallel_move_;
 
-  // Bit vector containing loop blocks for a loop header indexed by block
-  // preorder number.
-  BitVector* loop_info_;
+  // Closest enveloping loop in loop hierarchy (nullptr at nesting depth 0).
+  LoopInfo* loop_info_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };

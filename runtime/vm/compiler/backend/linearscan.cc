@@ -1601,6 +1601,8 @@ void FlowGraphAllocator::DiscoverLoops() {
   //
   // TODO(vegorov): consider using a generic algorithm to correctly discover
   // both headers of reducible and irreducible loops.
+  //
+  // TODO(ajcbik): this looks like it can use the new loop hierarchy instead.
   BlockInfo* current_loop = NULL;
 
   intptr_t loop_id = 0;  // All loop headers have a unique id.
