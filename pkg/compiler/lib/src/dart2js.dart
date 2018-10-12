@@ -7,6 +7,7 @@ library dart2js.cmdline;
 import 'dart:async' show Future;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
+import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:package_config/discovery.dart' show findPackages;
@@ -20,7 +21,7 @@ import 'util/command_line.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
-const String LIBRARY_ROOT = '../../../../../sdk';
+const String LIBRARY_ROOT = '../../../../sdk';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 /**
@@ -561,9 +562,13 @@ void fail(String message) {
 }
 
 Future<api.CompilationResult> compilerMain(List<String> arguments,
-    {fe.InitializedCompilerState kernelInitializedCompilerState}) {
-  var root = uriPathToNative("/$LIBRARY_ROOT");
-  arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
+    {fe.InitializedCompilerState kernelInitializedCompilerState}) async {
+  Uri script = Platform.script;
+  if (script.isScheme("package")) {
+    script = await Isolate.resolvePackageUri(script);
+  }
+  Uri libraryRoot = script.resolve(LIBRARY_ROOT);
+  arguments = <String>['--library-root=${libraryRoot.toFilePath()}']
     ..addAll(arguments);
   return compile(arguments,
       kernelInitializedCompilerState: kernelInitializedCompilerState);
