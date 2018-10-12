@@ -99,9 +99,42 @@ This mechanism does not require any grammar modifications.
 
 ## Static analysis
 
-Let _G_ be a generic class or parameterized type alias with formal type
-parameter declarations
-_F<sub>1</sub> .. F<sub>k</sub>_ containing formal type parameters
+We will define simple bounds, but at first we need an auxiliary concept.
+Let _T_ be a type of the form `typeName`. A type _S_ then _contains_ _T_
+if one of the following conditions hold:
+
+- _S_ is of the form `typeName`, and _S_ is _T_.
+- _S_ is of the form `typeName typeArguments`, and one of the type
+  arguments contains _T_.
+- _S_ is of the form `typeName typeArguments?` where `typeName` denotes a
+  type alias _F_, and the body of _F_ contains _T_.
+- _S_ is of the form
+  `returnType? 'Function' typeParameters? parameterTypeList` and
+  `returnType?` contains _T_, or a bound in `typeParameters?` contains _T_,
+  or the type of a parameter in `parameterTypeList` contains _T_.
+
+*Multiple cases may be applicable, e.g., when a type alias is applied to a
+list of actual type arguments, and the type alias body as well as some type
+arguments may contain _T_.*
+
+*In the rule about type aliases, _F_ may or may not be parameterized, and
+it may or may not receive type arguments. However, there is no need to
+consider the result of substituting actual type arguments for formal type
+parameters in the body of the type alias, because we only need to inspect
+all types of the form `typeName` contained in its body, and they are not
+affected by such a substitution.*
+
+*It is understood that name capture is avoided, that is, a type _S_ does
+not contain `p.C` even if _S_ contains `F` which denotes a type alias whose
+body contains the syntax `p.C`, say, as a return type, if `p` has different
+meanings in _S_ and in the body of _F_. This could occur because _S_ and
+_F_ are declared in different libraries. Similarly, when a type parameter
+bound _B_ contains a type variable `X` from the enclosing class, it is
+never because `X` is contained in the body of a type alias, it will always
+be as a syntactic subterm of _B_.*
+
+Let _G_ be a generic class or parameterized type alias with _k_ formal type
+parameter declarations containing formal type parameters
 _X<sub>1</sub> .. X<sub>k</sub>_ and bounds
 _B<sub>1</sub> .. B<sub>k</sub>_. We say that the formal type parameter
 _X<sub>j</sub>_ has a _simple bound_ when one of the following requirements
@@ -110,8 +143,8 @@ is satisfied:
 1. _B<sub>j</sub>_ is omitted.
 
 2. _B<sub>j</sub>_ is included, but does not contain any of _X<sub>1</sub>
-   .. X<sub>k</sub>_. If _B<sub>j</sub>_ contains a type _T_ on the form
-   `qualified` (*for instance, `C` or `p.D`*) which denotes a generic class
+   .. X<sub>k</sub>_. If _B<sub>j</sub>_ contains a type _T_ of the form
+   `typeName` (*for instance, `C` or `p.D`*) which denotes a generic class
    or parameterized type alias _G<sub>1</sub>_ (*that is, _T_ is a raw type*),
    every type argument of _G<sub>1</sub>_ has a simple bound.
 
@@ -130,7 +163,7 @@ involved types to be "simple enough". We impose the following constraint on
 all bounds because any generic type may be used as a raw type.*
 
 It is a compile-time error if a formal parameter bound _B_ contains a type
-_T_ on the form `qualified` and _T_ denotes a generic class or parameterized
+_T_ on the form `typeName` and _T_ denotes a generic class or parameterized
 type alias _G_ (*that is, _T_ is a raw type*), unless every formal type
 parameter of _G_ has a simple bound.
 
@@ -140,7 +173,7 @@ compile-time error because the bound `C` is raw, and the formal type
 parameter `X` that corresponds to the omitted type argument does not have a
 simple bound.*
 
-When a type annotation _T_ on the form `qualified` denotes a generic class
+When a type annotation _T_ on the form `typeName` denotes a generic class
 or parameterized type alias (*so _T_ is raw*), instantiate to bound is used
 to provide the missing type argument list. It is a compile-time error if
 the instantiate to bound process fails.
@@ -157,7 +190,7 @@ bound would still be used in cases where no information is available to
 infer the omitted type arguments, e.g., for `List xs = [];`.*
 
 *When type inference is providing actual type arguments for a term _G_ on
-the form `qualified` which denotes a generic class or a parameterized type
+the form `typeName` which denotes a generic class or a parameterized type
 alias, instantiate to bound may be used to provide the value for type
 arguments where no information is available for inferring such an actual
 type argument. This document does not specify how inference interacts with
@@ -166,7 +199,7 @@ of inference. We will hence proceed to specify instantiate to bound as it
 applies to a type argument list which is omitted, such that a value for all
 the actual type arguments must be computed.*
 
-Let _T_ be a `qualified` term which denotes a generic class or
+Let _T_ be a `typeName` term which denotes a generic class or
 parameterized type alias _G_ (*so _T_ is a raw type*), let
 _F<sub>1</sub> .. F<sub>k</sub>_ be the formal type
 parameter declarations in the declaration of _G_, with type parameters
