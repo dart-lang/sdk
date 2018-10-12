@@ -16,23 +16,22 @@ import 'package:kernel/ast.dart'
         TypedefType,
         VariableDeclaration;
 
-import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/core_types.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../../base/instrumentation.dart';
+import '../../base/instrumentation.dart' show Instrumentation;
 
-import '../builder/library_builder.dart';
+import '../kernel/kernel_builder.dart'
+    show LibraryBuilder, KernelLibraryBuilder;
 
-import '../kernel/kernel_shadow_ast.dart';
+import '../kernel/kernel_shadow_ast.dart' show ShadowField;
 
 import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
-import '../source/source_library_builder.dart';
+import 'type_inferrer.dart' show TypeInferrer, TypeInferrerImpl;
 
-import 'type_inferrer.dart';
-
-import 'type_schema_environment.dart';
+import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
@@ -239,7 +238,7 @@ abstract class TypeInferenceEngine {
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].

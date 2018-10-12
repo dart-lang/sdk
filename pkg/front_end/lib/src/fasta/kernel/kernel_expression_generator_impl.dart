@@ -92,10 +92,20 @@ class ThisAccessGenerator extends KernelGenerator {
           helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
         return new SuperPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+            helper,
+            // TODO(ahe): This is not the 'super' token.
+            send.token,
+            name,
+            getter,
+            setter);
       } else {
         return new ThisPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+            helper,
+            // TODO(ahe): This is not the 'this' token.
+            send.token,
+            name,
+            getter,
+            setter);
       }
     }
   }

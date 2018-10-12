@@ -89,6 +89,8 @@ import '../fasta_codes.dart'
         templateUndefinedMethod,
         templateUndefinedSetter;
 
+import '../kernel/kernel_builder.dart' show KernelLibraryBuilder;
+
 import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
@@ -105,8 +107,6 @@ import '../kernel/kernel_shadow_ast.dart'
 import '../names.dart' show callName;
 
 import '../problems.dart' show unexpected, unhandled;
-
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -548,7 +548,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
-  final SourceLibraryBuilder library;
+  final KernelLibraryBuilder library;
 
   InferenceHelper helper;
 

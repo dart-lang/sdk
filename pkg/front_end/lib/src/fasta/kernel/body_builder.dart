@@ -4939,7 +4939,8 @@ Block combineStatements(Statement statement, Statement body) {
     statement.parent = body;
     return body;
   } else {
-    return new Block(<Statement>[statement, body]);
+    return new Block(<Statement>[statement, body])
+      ..fileOffset = statement.fileOffset;
   }
 }
 
