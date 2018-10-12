@@ -10,7 +10,9 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
@@ -21,6 +23,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -28,17 +31,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
-
-/**
- * The type of the function that is notified about an error during parsing.
- */
-typedef void FileParseExceptionHandler(
-    FileState file, exception, StackTrace stackTrace);
 
 /**
  * [FileContentOverlay] is used to temporary override content of files.
@@ -377,10 +371,7 @@ class FileState {
       return PerformanceStatistics.parse.makeCurrentWhile(() {
         return _parse(errorListener);
       });
-    } catch (exception, stackTrace) {
-      if (_fsState.parseExceptionHandler != null) {
-        _fsState.parseExceptionHandler(this, exception, stackTrace);
-      }
+    } catch (_) {
       return _createEmptyCompilationUnit();
     }
   }
@@ -731,15 +722,6 @@ class FileSystemState {
   final SummaryDataStore externalSummaries;
 
   /**
-   * The optional handler for scanning and parsing exceptions.
-   *
-   * We hope that these exceptions never happen, but we might need to get
-   * additional information if there are exception when we are replacing
-   * Analyzer's scanner and parser with implementations from FrontEnd.
-   */
-  final FileParseExceptionHandler parseExceptionHandler;
-
-  /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
@@ -807,10 +789,11 @@ class FileSystemState {
     this._unlinkedSalt,
     this._linkedSalt, {
     this.externalSummaries,
-    this.parseExceptionHandler,
   }) {
-    _fileContentCache =
-        _FileContentCache.getInstance(_resourceProvider, _contentOverlay);
+    _fileContentCache = _FileContentCache.getInstance(
+      _resourceProvider,
+      _contentOverlay,
+    );
     _testView = new FileSystemStateTestView(this);
   }
 

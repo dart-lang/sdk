@@ -1282,8 +1282,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext?.dispose();
         }
       } catch (exception, stackTrace) {
-        String contextKey = _storeExceptionContextDuringAnalysis(
-            path, library, exception, stackTrace);
+        String contextKey =
+            _storeExceptionContext(path, library, exception, stackTrace);
         throw new _ExceptionState(exception, stackTrace, contextKey);
       }
     });
@@ -1351,16 +1351,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _createFileTracker() {
     _fillSalt();
     _fsState = new FileSystemState(
-        _logger,
-        _byteStore,
-        _contentOverlay,
-        _resourceProvider,
-        sourceFactory,
-        analysisOptions,
-        _unlinkedSalt,
-        _linkedSalt,
-        externalSummaries: _externalSummaries,
-        parseExceptionHandler: _storeExceptionContextDuringParsing);
+      _logger,
+      _byteStore,
+      _contentOverlay,
+      _resourceProvider,
+      sourceFactory,
+      analysisOptions,
+      _unlinkedSalt,
+      _linkedSalt,
+      externalSummaries: _externalSummaries,
+    );
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
   }
 
@@ -1573,9 +1573,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String _storeExceptionContext(AnalysisDriverExceptionContextBuilder builder) {
+  String _storeExceptionContext(
+      String path, FileState libraryFile, exception, StackTrace stackTrace) {
+    if (allowedNumberOfContextsToWrite <= 0) {
+      return null;
+    } else {
+      allowedNumberOfContextsToWrite--;
+    }
     try {
-      List<int> bytes = builder.toBuffer();
+      List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
+          .transitiveFiles
+          .map((file) => new AnalysisDriverExceptionFileBuilder(
+              path: file.path, content: file.content))
+          .toList();
+      contextFiles.sort((a, b) => a.path.compareTo(b.path));
+      AnalysisDriverExceptionContextBuilder contextBuilder =
+          new AnalysisDriverExceptionContextBuilder(
+              path: path,
+              exception: exception.toString(),
+              stackTrace: stackTrace.toString(),
+              files: contextFiles);
+      List<int> bytes = contextBuilder.toBuffer();
 
       String _twoDigits(int n) {
         if (n >= 10) return '$n';
@@ -1599,53 +1617,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
       _byteStore.put(key, bytes);
       return key;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _storeExceptionContextDuringAnalysis(
-      String path, FileState libraryFile, exception, StackTrace stackTrace) {
-    if (allowedNumberOfContextsToWrite <= 0) {
-      return null;
-    } else {
-      allowedNumberOfContextsToWrite--;
-    }
-    try {
-      List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
-          .transitiveFiles
-          .map((file) => new AnalysisDriverExceptionFileBuilder(
-              path: file.path, content: file.content))
-          .toList();
-      contextFiles.sort((a, b) => a.path.compareTo(b.path));
-      AnalysisDriverExceptionContextBuilder contextBuilder =
-          new AnalysisDriverExceptionContextBuilder(
-              path: path,
-              exception: exception.toString(),
-              stackTrace: stackTrace.toString(),
-              files: contextFiles);
-      return _storeExceptionContext(contextBuilder);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _storeExceptionContextDuringParsing(
-      FileState file, exception, StackTrace stackTrace) {
-    if (allowedNumberOfContextsToWrite <= 0) {
-      return null;
-    } else {
-      allowedNumberOfContextsToWrite--;
-    }
-    try {
-      var fileBuilder = new AnalysisDriverExceptionFileBuilder(
-          path: file.path, content: file.content);
-      var contextBuilder = new AnalysisDriverExceptionContextBuilder(
-          path: file.path,
-          exception: exception.toString(),
-          stackTrace: stackTrace.toString(),
-          files: [fileBuilder]);
-      return _storeExceptionContext(contextBuilder);
     } catch (_) {
       return null;
     }
