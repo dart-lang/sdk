@@ -15,11 +15,11 @@ main() {
     String p(String filePath) => context.convertPath(filePath);
 
     Options parse(List<String> args,
-        {bool dryRun = false,
-        String errorOut,
+        {String errorOut,
         int exitCode,
         bool force = false,
         String normalOut,
+        bool overwrite = false,
         List<String> targetSuffixes,
         bool verbose = false}) {
       Options options;
@@ -39,8 +39,8 @@ main() {
       } else {
         expect(actualExitCode, isNull, reason: 'exit code');
       }
-      expect(options.dryRun, dryRun);
       expect(options.force, force);
+      expect(options.overwrite, overwrite);
       expect(options.verbose, verbose);
       expect(path.isAbsolute(options.sdkPath), isTrue, reason: options.sdkPath);
       for (String target in options.targets) {
@@ -59,12 +59,12 @@ main() {
       context = new TestContext();
     });
 
-    test('dryRun', () {
-      parse(['--dry-run', 'foo'], dryRun: true, targetSuffixes: ['foo']);
-    });
-
     test('force', () {
       parse(['--force', 'foo'], force: true, targetSuffixes: ['foo']);
+    });
+
+    test('help', () {
+      parse(['--help'], errorOut: 'Display this help message', exitCode: 1);
     });
 
     test('invalid option', () {
@@ -75,6 +75,10 @@ main() {
     test('invalid target', () {
       parse(['foo.dart'],
           errorOut: 'Expected directory, but found', exitCode: 15);
+    });
+
+    test('overwrite', () {
+      parse(['--overwrite', 'foo'], overwrite: true, targetSuffixes: ['foo']);
     });
 
     test('simple', () {

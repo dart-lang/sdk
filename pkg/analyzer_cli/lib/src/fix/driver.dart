@@ -22,8 +22,8 @@ class Driver {
 
   Completer serverConnected;
   Completer analysisComplete;
-  bool dryRun;
   bool force;
+  bool overwrite;
   bool verbose;
   List<String> targets;
 
@@ -33,8 +33,8 @@ class Driver {
   Future start(List<String> args) async {
     final options = Options.parse(args, context);
 
-    dryRun = options.dryRun;
     force = options.force;
+    overwrite = options.overwrite;
     verbose = options.verbose;
     targets = options.targets;
 
@@ -162,9 +162,8 @@ class Driver {
         context.print('Rerun with --$forceOption to apply these changes.');
         return false;
       }
-    }
-    if (dryRun) {
-      context.print('Dry run complete. No changes applied.');
+    } else if (!overwrite) {
+      context.print('Rerun with --$overwriteOption to apply these changes.');
       return false;
     }
     return true;
@@ -274,15 +273,28 @@ class Driver {
 
   void onAnalysisErrors(AnalysisErrorsParams params) {
     List<AnalysisError> errors = params.errors;
+    bool foundAtLeastOneError = false;
     if (errors.isNotEmpty && isTarget(params.file)) {
-      resetProgress();
-      context.print(params.file);
       for (AnalysisError error in errors) {
-        Location loc = error.location;
-        context.print('  ${error.message}'
-            ' at ${loc.startLine}:${loc.startColumn}');
+        if (error.code == 'wrong_number_of_type_arguments_constructor') {
+          // Do not show errors that will be automatically fixed.
+
+          // TODO(danrubel): Rather than checking the error.code with
+          // specific strings, add something to the error indicating that
+          // it will be automatically fixed by edit.dartfix.
+        } else {
+          if (!foundAtLeastOneError) {
+            foundAtLeastOneError = true;
+            resetProgress();
+            context.print(params.file);
+          }
+          Location loc = error.location;
+          context.print('  ${error.message}'
+              ' at ${loc.startLine}:${loc.startColumn}');
+        }
       }
-    } else {
+    }
+    if (!foundAtLeastOneError) {
       showProgress();
     }
   }

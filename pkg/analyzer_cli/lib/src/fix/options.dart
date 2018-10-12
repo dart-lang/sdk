@@ -12,8 +12,8 @@ class Options {
   final Context context;
 
   List<String> targets;
-  bool dryRun;
   bool force;
+  bool overwrite;
   String sdkPath;
   bool verbose;
 
@@ -24,11 +24,9 @@ class Options {
     final parser = new ArgParser(allowTrailingOptions: true);
 
     parser
-      ..addOption(_sdkPathOption, help: 'The path to the Dart SDK.')
-      ..addFlag(_dryRunOption,
-          abbr: 'n',
-          help: 'Calculate and display the recommended changes,'
-              ' but exit before applying them',
+      ..addFlag(overwriteOption,
+          abbr: 'w',
+          help: 'Overwrite files with the recommended changes.',
           defaultsTo: false,
           negatable: false)
       ..addFlag(forceOption,
@@ -58,13 +56,13 @@ class Options {
 
     if (results[_helpOption] as bool) {
       _showUsage(parser, context);
-      context.exit(0);
+      context.exit(1);
     }
 
     options._fromArgs(results);
 
-    // Check Dart SDK, and infer if unspecified.
-    options.sdkPath ??= getSdkPath(args);
+    // Infer the Dart SDK location
+    options.sdkPath = getSdkPath(args);
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       context.stderr.writeln('No Dart SDK found.');
@@ -110,9 +108,8 @@ class Options {
 
   void _fromArgs(ArgResults results) {
     targets = results.rest;
-    dryRun = results[_dryRunOption] as bool;
     force = results[forceOption] as bool;
-    sdkPath = results[_sdkPathOption] as String;
+    overwrite = results[overwriteOption] as bool;
     verbose = results[_verboseOption] as bool;
   }
 
@@ -132,8 +129,7 @@ class Options {
 }
 
 const _binaryName = 'dartfix';
-const _dryRunOption = 'dry-run';
 const forceOption = 'force';
 const _helpOption = 'help';
-const _sdkPathOption = 'dart-sdk';
+const overwriteOption = 'overwrite';
 const _verboseOption = 'verbose';

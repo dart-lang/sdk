@@ -61,15 +61,15 @@ class EditDartFix {
     // Validate each included file and directory.
     final resourceProvider = server.resourceProvider;
     final contextManager = server.contextManager;
-    for (String path in params.included) {
-      if (!server.isValidFilePath(path)) {
-        return new Response.invalidFilePathFormat(request, path);
+    for (String filePath in params.included) {
+      if (!server.isValidFilePath(filePath)) {
+        return new Response.invalidFilePathFormat(request, filePath);
       }
-      Resource res = resourceProvider.getResource(path);
+      Resource res = resourceProvider.getResource(filePath);
       if (!res.exists ||
-          !(contextManager.includedPaths.contains(path) ||
-              contextManager.isInAnalysisRoot(path))) {
-        return new Response.fileNotAnalyzed(request, path);
+          !(contextManager.includedPaths.contains(filePath) ||
+              contextManager.isInAnalysisRoot(filePath))) {
+        return new Response.fileNotAnalyzed(request, filePath);
       }
       if (res is Folder) {
         fixFolders.add(res);
@@ -177,52 +177,74 @@ class EditDartFix {
   Future<bool> fixError(AnalysisResult result, AnalysisError error) async {
     if (error.errorCode ==
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
-      return fixConstructorTypeArguments(result, error);
-    }
-    return false;
-  }
+      // TODO(danrubel): Rather than comparing the error codes individually,
+      // it would be better if each error code could specify
+      // whether or not it could be fixed automatically.
 
-  Future<bool> fixConstructorTypeArguments(
-      AnalysisResult result, AnalysisError error) async {
+      // Fall through to calculate and apply the fix
+    } else {
+      // This error cannot be automatically fixed
+      return false;
+    }
+
+    final location = '${locationDescription(result, error.offset)}';
     final dartContext = new DartFixContextImpl(
         new FixContextImpl(
             server.resourceProvider, result.driver, error, result.errors),
         new AstProviderForDriver(result.driver),
         result.unit);
     final processor = new FixProcessor(dartContext);
-    Fix fix = await processor.computeFix(error.errorCode);
+    Fix fix = await processor.computeFix();
     if (fix != null) {
-      addFix(
-        fix.change.message ??
-            'Fix type arguments on constructor call'
-            ' in ${path.basename(result.path)}',
-        fix.change,
-      );
+      addFix('${fix.change.message} in $location', fix.change);
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      addRecommendation('Could not fix type arguments on constructor call'
-          ' in ${path.basename(result.path)}');
+      addRecommendation('Could not fix ${error.message} in $location');
     }
     return true;
   }
 
   /// Return `true` if the path in within the set of `included` files
   /// or is within an `included` directory.
-  bool isIncluded(String path) {
-    if (path != null) {
+  bool isIncluded(String filePath) {
+    if (filePath != null) {
       for (File file in fixFiles) {
-        if (file.path == path) {
+        if (file.path == filePath) {
           return true;
         }
       }
       for (Folder folder in fixFolders) {
-        if (folder.contains(path)) {
+        if (folder.contains(filePath)) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  /// Return a human readable description of the specified offset and file.
+  String locationDescription(AnalysisResult result, int offset) {
+    // TODO(danrubel): Pass the location back to the client along with the
+    // message indicating what was or was not automatically fixed
+    // rather than interpreting and integrating the location into the message.
+    final description = new StringBuffer();
+    // Determine the relative path
+    for (Folder folder in fixFolders) {
+      if (folder.contains(result.path)) {
+        description.write(path.relative(result.path, from: folder.path));
+        break;
+      }
+    }
+    if (description.isEmpty) {
+      description.write(result.path);
+    }
+    // Determine the line and column number
+    if (offset >= 0) {
+      final loc = result.unit.lineInfo.getLocation(offset);
+      description.write(':${loc.lineNumber}');
+    }
+    return description.toString();
   }
 }
 
@@ -317,8 +339,8 @@ class PreferMixinFix extends LinterFix {
       [List<Object> arguments]) {
     TypeName type = node;
     Element element = type.name.staticElement;
-    String path = element.source?.fullName;
-    if (path != null && dartFix.isIncluded(path)) {
+    String filePath = element.source?.fullName;
+    if (filePath != null && dartFix.isIncluded(filePath)) {
       classesToConvert.add(element);
     }
   }
@@ -331,8 +353,8 @@ class PreferMixinFix extends LinterFix {
   }
 
   void convertClassToMixin(Element elem) async {
-    String path = elem.source?.fullName;
-    AnalysisResult result = await dartFix.server.getAnalysisResult(path);
+    AnalysisResult result =
+        await dartFix.server.getAnalysisResult(elem.source?.fullName);
 
     // TODO(danrubel): Verify that class can be converted
     for (CompilationUnitMember declaration in result.unit.declarations) {
@@ -343,16 +365,19 @@ class PreferMixinFix extends LinterFix {
                 dartFix, elem.source, result.unit, declaration.name));
         List<Assist> assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
+        final location = dartFix.locationDescription(result, elem.nameOffset);
         if (assists.isNotEmpty) {
           for (Assist assist in assists) {
             dartFix.addFix(
-                'Convert class to mixin: ${elem.name}', assist.change);
+                'Convert ${elem.displayName} to a mixin in $location',
+                assist.change);
           }
         } else {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
-          dartFix.addRecommendation('Could not convert ${elem.name} to a mixin'
-              ' because the class contains a constructor.');
+          dartFix.addRecommendation(
+              'Could not convert ${elem.displayName} to a mixin'
+              ' because the class contains a constructor in $location');
         }
       }
     }

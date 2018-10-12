@@ -633,8 +633,10 @@ class FixProcessor {
     return fixes;
   }
 
-  Future<Fix> computeFix(ErrorCode errorCode) async {
-    return null;
+  Future<Fix> computeFix() async {
+    List<Fix> fixes = await compute();
+    fixes.sort(Fix.SORT_BY_RELEVANCE);
+    return fixes.isNotEmpty ? fixes.first : null;
   }
 
   Future<void> _addFix_addAsync() async {
