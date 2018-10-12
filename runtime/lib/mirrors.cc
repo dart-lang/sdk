@@ -686,50 +686,54 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
     canonical_uri ^= result.raw();
   }
 
-  // Create a new library if it does not exist yet.
+  // Return the existing library if it has already been loaded.
   Library& library =
       Library::Handle(zone, Library::LookupLibrary(thread, canonical_uri));
-  if (library.IsNull()) {
-    library = Library::New(canonical_uri);
-    library.Register(thread);
+  if (!library.IsNull()) {
+    return CreateLibraryMirror(thread, library);
   }
 
-  // Ensure loading started.
-  if (library.LoadNotStarted()) {
-    library.SetLoadRequested();
-
-    isolate->BlockClassFinalization();
-    Object& result = Object::Handle(zone);
-    {
-      TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      Dart_Handle retval = handler(
-          Dart_kImportTag,
-          Api::NewHandle(thread, isolate->object_store()->root_library()),
-          Api::NewHandle(thread, canonical_uri.raw()));
-      result = Api::UnwrapHandle(retval);
+  // Request the embedder to load the library.
+  isolate->BlockClassFinalization();
+  Object& result = Object::Handle(zone);
+  {
+    TransitionVMToNative transition(thread);
+    Api::Scope api_scope(thread);
+    Dart_Handle retval =
+        handler(Dart_kImportTag,
+                Api::NewHandle(thread, isolate->object_store()->root_library()),
+                Api::NewHandle(thread, canonical_uri.raw()));
+    result = Api::UnwrapHandle(retval);
+  }
+  isolate->UnblockClassFinalization();
+  if (result.IsError()) {
+    if (result.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
     }
-    isolate->UnblockClassFinalization();
-    if (result.IsError()) {
-      if (result.IsLanguageError()) {
-        Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
-      }
-      Exceptions::PropagateError(Error::Cast(result));
-    }
+    Exceptions::PropagateError(Error::Cast(result));
   }
 
-  if (!library.Loaded()) {
-    // This code assumes a synchronous tag handler (which dart::bin and tonic
-    // provide). Strictly though we should complete a future in response to
-    // Dart_FinalizeLoading.
-    UNIMPLEMENTED();
-  }
+  // This code assumes a synchronous tag handler (which dart::bin and tonic
+  // provide). Strictly though we should complete a future in response to
+  // Dart_FinalizeLoading.
 
   if (!ClassFinalizer::ProcessPendingClasses()) {
     Exceptions::PropagateError(Error::Handle(thread->sticky_error()));
   }
 
-  return CreateLibraryMirror(thread, library);
+  // Prefer the tag handler's idea of which library is represented by the URI.
+  if (result.IsLibrary()) {
+    return CreateLibraryMirror(thread, Library::Cast(result));
+  }
+
+  if (result.IsNull()) {
+    library = Library::LookupLibrary(thread, canonical_uri);
+    if (!library.IsNull()) {
+      return CreateLibraryMirror(thread, library);
+    }
+  }
+
+  FATAL("Non-library from tag handler");
 }
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
