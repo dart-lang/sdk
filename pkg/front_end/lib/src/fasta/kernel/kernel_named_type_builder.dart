@@ -31,11 +31,13 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message) {
+  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message,
+      {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
     return new KernelInvalidTypeBuilder(
-        flattenName(name, message.charOffset, message.uri), message);
+        flattenName(name, message.charOffset, message.uri), message,
+        context: context);
   }
 
   Supertype handleInvalidSupertype(

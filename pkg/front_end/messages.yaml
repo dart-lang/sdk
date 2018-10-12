@@ -1425,6 +1425,10 @@ NotAType:
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
 
+NotATypeContext:
+  template: "This isn't a type."
+  severity: CONTEXT
+
 NotAPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
   severity: ERROR_LEGACY_WARNING

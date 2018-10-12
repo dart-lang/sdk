@@ -84,7 +84,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   @override
-  buildInvalidType(LocatedMessage message) {
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
     return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 

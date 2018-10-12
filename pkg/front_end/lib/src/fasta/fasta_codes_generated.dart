@@ -6393,6 +6393,13 @@ Message _withArgumentsNotAType(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNotATypeContext = messageNotATypeContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNotATypeContext = const MessageCode("NotATypeContext",
+    severity: Severity.context, message: r"""This isn't a type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNotAnLvalue = messageNotAnLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

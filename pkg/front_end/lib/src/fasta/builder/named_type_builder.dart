@@ -6,11 +6,12 @@ library fasta.named_type_builder;
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         Message,
         Template,
         noLength,
         templateMissingExplicitTypeArguments,
+        messageNotATypeContext,
+        LocatedMessage,
         templateNotAType,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
@@ -42,7 +43,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   NamedTypeBuilder(this.name, this.arguments);
 
   @override
-  InvalidTypeBuilder<T, R> buildInvalidType(LocatedMessage message);
+  InvalidTypeBuilder<T, R> buildInvalidType(LocatedMessage message,
+      {List<LocatedMessage> context});
 
   @override
   void bind(TypeDeclarationBuilder declaration) {
@@ -108,11 +110,20 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     Template<Message Function(String name)> template =
         member == null ? templateTypeNotFound : templateNotAType;
     String flatName = flattenName(name, charOffset, fileUri);
+    List<LocatedMessage> context;
+    if (member != null) {
+      context = <LocatedMessage>[
+        messageNotATypeContext.withLocation(member.fileUri, member.charOffset,
+            name is Identifier ? name.name.length : "$name".length)
+      ];
+    }
     int length =
         name is Identifier ? name.endCharOffset - charOffset : flatName.length;
-    declaration = buildInvalidType(template
-        .withArguments(flatName)
-        .withLocation(fileUri, charOffset, length));
+    declaration = buildInvalidType(
+        template
+            .withArguments(flatName)
+            .withLocation(fileUri, charOffset, length),
+        context: context);
   }
 
   @override

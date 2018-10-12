@@ -4498,8 +4498,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       return new UnresolvedType<KernelTypeBuilder>(
           new KernelNamedTypeBuilder(typeParameter.name, null)
-            ..bind(new KernelInvalidTypeBuilder(
-                typeParameter.name, message, suppressMessage)),
+            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message,
+                suppressMessage: suppressMessage)),
           unresolved.charOffset,
           unresolved.fileUri);
     }

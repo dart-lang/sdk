@@ -42,7 +42,7 @@ abstract class TypeBuilder {
 
   build(LibraryBuilder library);
 
-  buildInvalidType(LocatedMessage message);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context});
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 }
