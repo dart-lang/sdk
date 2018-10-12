@@ -76,6 +76,7 @@ partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
+private_method_tearoff_test: RuntimeError
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]

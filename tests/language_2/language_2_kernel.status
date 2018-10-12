@@ -153,6 +153,7 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartdevk ]
 mixin_method_override_test/G5: Skip # Issue 34354
+private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError

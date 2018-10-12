@@ -756,10 +756,7 @@ abstract class KernelClassBuilder
   /// class was modified.
   bool addNoSuchMethodForwarders(
       KernelTarget target, ClassHierarchy hierarchy) {
-    if (cls.isAbstract ||
-        !hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass)) {
-      return false;
-    }
+    if (cls.isAbstract) return false;
 
     Set<Name> existingForwardersNames = new Set<Name>();
     Set<Name> existingSetterForwardersNames = new Set<Name>();
@@ -768,14 +765,19 @@ abstract class KernelClassBuilder
         leastConcreteSuperclass != null && leastConcreteSuperclass.isAbstract) {
       leastConcreteSuperclass = leastConcreteSuperclass.superclass;
     }
-    if (leastConcreteSuperclass != null &&
-        hasUserDefinedNoSuchMethod(
-            leastConcreteSuperclass, hierarchy, target.objectClass)) {
+    if (leastConcreteSuperclass != null) {
+      bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
+          leastConcreteSuperclass, hierarchy, target.objectClass);
       List<Member> concrete =
           hierarchy.getDispatchTargets(leastConcreteSuperclass);
       for (Member member
           in hierarchy.getInterfaceMembers(leastConcreteSuperclass)) {
-        if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
+        if ((superHasUserDefinedNoSuchMethod ||
+                leastConcreteSuperclass.enclosingLibrary.compareTo(
+                            member.enclosingClass.enclosingLibrary) !=
+                        0 &&
+                    member.name.isPrivate) &&
+            ClassHierarchy.findMemberByName(concrete, member.name) == null) {
           existingForwardersNames.add(member.name);
         }
       }
@@ -797,9 +799,23 @@ abstract class KernelClassBuilder
     List<Member> concrete = hierarchy.getDispatchTargets(cls);
     List<Member> declared = hierarchy.getDeclaredMembers(cls);
 
+    bool clsHasUserDefinedNoSuchMethod =
+        hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
     bool changed = false;
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
+      // We generate a noSuchMethod forwarder for [member] in [cls] if the
+      // following three conditions are satisfied simultaneously:
+      // 1) There is a user-defined noSuchMethod in [cls] or [member] is private
+      //    and the enclosing library of [member] is different from that of
+      //    [cls].
+      // 2) There is no implementation of [member] in [cls].
+      // 3) The superclass of [cls] has no forwarder for [member].
       if (member is Procedure &&
+          (clsHasUserDefinedNoSuchMethod ||
+              cls.enclosingLibrary
+                          .compareTo(member.enclosingClass.enclosingLibrary) !=
+                      0 &&
+                  member.name.isPrivate) &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
@@ -811,7 +827,9 @@ abstract class KernelClassBuilder
         }
         existingForwardersNames.add(member.name);
         changed = true;
+        continue;
       }
+
       if (member is Field &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
