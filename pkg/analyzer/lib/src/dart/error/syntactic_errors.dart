@@ -87,16 +87,9 @@ class ParserErrorCode extends ErrorCode {
       'CONST_ENUM', "Enums can't be declared to be 'const'.",
       correction: "Try removing the 'const' keyword.");
 
-  static const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
-      'CONST_FACTORY',
-      "Only redirecting factory constructors can be declared to be 'const'.",
-      correction: "Try removing the 'const' keyword, or "
-          "replacing the body with '=' followed by a valid target.");
+  static const ParserErrorCode CONST_FACTORY = _CONST_FACTORY;
 
-  static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
-      'CONST_METHOD',
-      "Getters, setters and methods can't be declared to be 'const'.",
-      correction: "Try removing the 'const' keyword.");
+  static const ParserErrorCode CONST_METHOD = _CONST_METHOD;
 
   static const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
       'CONST_TYPEDEF', "Type aliases can't be declared to be 'const'.",
@@ -108,28 +101,16 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
       _CONTINUE_OUTSIDE_OF_LOOP;
 
-  static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
-      'CONTINUE_WITHOUT_LABEL_IN_CASE',
-      "A continue statement in a switch statement must have a label as a target.",
-      correction:
-          "Try adding a label associated with one of the case clauses to the continue statement.");
+  static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE =
+      _CONTINUE_WITHOUT_LABEL_IN_CASE;
 
-  static const ParserErrorCode COVARIANT_AFTER_FINAL = const ParserErrorCode(
-      'COVARIANT_AFTER_FINAL',
-      "The modifier 'covariant' should be before the modifier 'final'.",
-      correction: "Try re-ordering the modifiers.");
+  static const ParserErrorCode COVARIANT_AFTER_FINAL = _COVARIANT_AFTER_FINAL;
 
   static const ParserErrorCode COVARIANT_AFTER_VAR = _COVARIANT_AFTER_VAR;
 
-  static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
-      'COVARIANT_AND_STATIC',
-      "Members can't be declared to be both 'covariant' and 'static'.",
-      correction: "Try removing either the 'covariant' or 'static' keyword.");
+  static const ParserErrorCode COVARIANT_AND_STATIC = _COVARIANT_AND_STATIC;
 
-  static const ParserErrorCode COVARIANT_MEMBER = const ParserErrorCode(
-      'COVARIANT_MEMBER',
-      "Getters, setters and methods can't be declared to be 'covariant'.",
-      correction: "Try removing the 'covariant' keyword.");
+  static const ParserErrorCode COVARIANT_MEMBER = _COVARIANT_MEMBER;
 
   static const ParserErrorCode COVARIANT_TOP_LEVEL_DECLARATION =
       const ParserErrorCode('COVARIANT_TOP_LEVEL_DECLARATION',
@@ -141,11 +122,7 @@ class ParserErrorCode extends ErrorCode {
       "A constructor can't be declared to be 'covariant'.",
       correction: "Try removing the keyword 'covariant'.");
 
-  static const ParserErrorCode DEFERRED_AFTER_PREFIX = const ParserErrorCode(
-      'DEFERRED_AFTER_PREFIX',
-      "The deferred keyword should come"
-      " immediately before the prefix ('as' clause).",
-      correction: "Try moving the deferred keyword before the prefix.");
+  static const ParserErrorCode DEFERRED_AFTER_PREFIX = _DEFERRED_AFTER_PREFIX;
 
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
       const ParserErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE',
@@ -153,9 +130,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the default value.");
 
   static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION =
-      const ParserErrorCode('DIRECTIVE_AFTER_DECLARATION',
-          "Directives must appear before any declarations.",
-          correction: "Try moving the directive before any declarations.");
+      _DIRECTIVE_AFTER_DECLARATION;
 
   /**
    * Parameters:
@@ -175,9 +150,7 @@ class ParserErrorCode extends ErrorCode {
    * Parameters:
    * 0: the modifier that was duplicated
    */
-  static const ParserErrorCode DUPLICATED_MODIFIER = const ParserErrorCode(
-      'DUPLICATED_MODIFIER', "The modifier '{0}' was already specified.",
-      correction: "Try removing all but one occurance of the modifier.");
+  static const ParserErrorCode DUPLICATED_MODIFIER = _DUPLICATED_MODIFIER;
 
   static const ParserErrorCode DUPLICATE_PREFIX = const ParserErrorCode(
       'DUPLICATE_PREFIX',

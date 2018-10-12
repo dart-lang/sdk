@@ -1403,7 +1403,7 @@ const Code<Null> codeConstFactory = messageConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstFactory = const MessageCode("ConstFactory",
-    analyzerCodes: <String>["CONST_FACTORY"],
+    index: 62,
     message:
         r"""Only redirecting factory constructors can be declared to be 'const'.""",
     tip:
@@ -1466,7 +1466,7 @@ const Code<Null> codeConstMethod = messageConstMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstMethod = const MessageCode("ConstMethod",
-    analyzerCodes: <String>["CONST_METHOD"],
+    index: 63,
     message:
         r"""Getters, setters and methods can't be declared to be 'const'.""",
     tip: r"""Try removing the 'const' keyword.""");
@@ -1629,7 +1629,7 @@ const Code<Null> codeContinueWithoutLabelInCase =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
     "ContinueWithoutLabelInCase",
-    analyzerCodes: <String>["CONTINUE_WITHOUT_LABEL_IN_CASE"],
+    index: 64,
     message:
         r"""A continue statement in a switch statement must have a label as a target.""",
     tip:
@@ -1665,7 +1665,7 @@ const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAfterFinal = const MessageCode(
     "CovariantAfterFinal",
-    analyzerCodes: <String>["COVARIANT_AFTER_FINAL"],
+    index: 65,
     message:
         r"""The modifier 'covariant' should be before the modifier 'final'.""",
     tip: r"""Try re-ordering the modifiers.""");
@@ -1687,7 +1687,7 @@ const Code<Null> codeCovariantAndStatic = messageCovariantAndStatic;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAndStatic = const MessageCode(
     "CovariantAndStatic",
-    analyzerCodes: <String>["COVARIANT_AND_STATIC"],
+    index: 66,
     message:
         r"""Members can't be declared to be both 'covariant' and 'static'.""",
     tip: r"""Try removing either the 'covariant' or 'static' keyword.""");
@@ -1697,7 +1697,7 @@ const Code<Null> codeCovariantMember = messageCovariantMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantMember = const MessageCode("CovariantMember",
-    analyzerCodes: <String>["COVARIANT_MEMBER"],
+    index: 67,
     message:
         r"""Getters, setters and methods can't be declared to be 'covariant'.""",
     tip: r"""Try removing the 'covariant' keyword.""");
@@ -1861,7 +1861,7 @@ const Code<Null> codeDeferredAfterPrefix = messageDeferredAfterPrefix;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDeferredAfterPrefix = const MessageCode(
     "DeferredAfterPrefix",
-    analyzerCodes: <String>["DEFERRED_AFTER_PREFIX"],
+    index: 68,
     message:
         r"""The deferred keyword should come immediately before the prefix ('as' clause).""",
     tip: r"""Try moving the deferred keyword before the prefix.""");
@@ -2055,7 +2055,7 @@ const Code<Null> codeDirectiveAfterDeclaration =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
     "DirectiveAfterDeclaration",
-    analyzerCodes: <String>["DIRECTIVE_AFTER_DECLARATION"],
+    index: 69,
     message: r"""Directives must appear before any declarations.""",
     tip: r"""Try moving the directive before any declarations.""");
 
@@ -2403,7 +2403,7 @@ const Template<Message Function(Token token)> templateDuplicatedModifier =
 const Code<Message Function(Token token)> codeDuplicatedModifier =
     const Code<Message Function(Token token)>(
         "DuplicatedModifier", templateDuplicatedModifier,
-        analyzerCodes: <String>["DUPLICATED_MODIFIER"]);
+        index: 70);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedModifier(Token token) {

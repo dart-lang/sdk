@@ -14951,6 +14951,9 @@ main() {
   }
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters_34403() {
+    if (!usingFastaParser) {
+      return;
+    }
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
     assertErrorsWithCodes(
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);

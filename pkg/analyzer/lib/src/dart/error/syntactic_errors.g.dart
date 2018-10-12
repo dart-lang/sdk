@@ -69,6 +69,15 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _CONST_AND_VAR,
   _CONST_CLASS,
   _VAR_AS_TYPE_NAME,
+  _CONST_FACTORY,
+  _CONST_METHOD,
+  _CONTINUE_WITHOUT_LABEL_IN_CASE,
+  _COVARIANT_AFTER_FINAL,
+  _COVARIANT_AND_STATIC,
+  _COVARIANT_MEMBER,
+  _DEFERRED_AFTER_PREFIX,
+  _DIRECTIVE_AFTER_DECLARATION,
+  _DUPLICATED_MODIFIER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -118,15 +127,59 @@ const ParserErrorCode _CONST_CLASS = const ParserErrorCode(
     correction:
         "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).");
 
+const ParserErrorCode _CONST_FACTORY = const ParserErrorCode('CONST_FACTORY',
+    r"Only redirecting factory constructors can be declared to be 'const'.",
+    correction:
+        "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.");
+
+const ParserErrorCode _CONST_METHOD = const ParserErrorCode('CONST_METHOD',
+    r"Getters, setters and methods can't be declared to be 'const'.",
+    correction: "Try removing the 'const' keyword.");
+
 const ParserErrorCode _CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'CONTINUE_OUTSIDE_OF_LOOP',
     r"A continue statement can't be used outside of a loop or switch statement.",
     correction: "Try removing the continue statement.");
 
+const ParserErrorCode _CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
+    'CONTINUE_WITHOUT_LABEL_IN_CASE',
+    r"A continue statement in a switch statement must have a label as a target.",
+    correction:
+        "Try adding a label associated with one of the case clauses to the continue statement.");
+
+const ParserErrorCode _COVARIANT_AFTER_FINAL = const ParserErrorCode(
+    'COVARIANT_AFTER_FINAL',
+    r"The modifier 'covariant' should be before the modifier 'final'.",
+    correction: "Try re-ordering the modifiers.");
+
 const ParserErrorCode _COVARIANT_AFTER_VAR = const ParserErrorCode(
     'COVARIANT_AFTER_VAR',
     r"The modifier 'covariant' should be before the modifier 'var'.",
     correction: "Try re-ordering the modifiers.");
+
+const ParserErrorCode _COVARIANT_AND_STATIC = const ParserErrorCode(
+    'COVARIANT_AND_STATIC',
+    r"Members can't be declared to be both 'covariant' and 'static'.",
+    correction: "Try removing either the 'covariant' or 'static' keyword.");
+
+const ParserErrorCode _COVARIANT_MEMBER = const ParserErrorCode(
+    'COVARIANT_MEMBER',
+    r"Getters, setters and methods can't be declared to be 'covariant'.",
+    correction: "Try removing the 'covariant' keyword.");
+
+const ParserErrorCode _DEFERRED_AFTER_PREFIX = const ParserErrorCode(
+    'DEFERRED_AFTER_PREFIX',
+    r"The deferred keyword should come immediately before the prefix ('as' clause).",
+    correction: "Try moving the deferred keyword before the prefix.");
+
+const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
+    'DIRECTIVE_AFTER_DECLARATION',
+    r"Directives must appear before any declarations.",
+    correction: "Try moving the directive before any declarations.");
+
+const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
+    'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
+    correction: "Try removing all but one occurance of the modifier.");
 
 const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCode(
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',

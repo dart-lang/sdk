@@ -59,30 +59,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, offset, length);
         return;
-      case "CONST_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_FACTORY, offset, length);
-        return;
-      case "CONST_METHOD":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_METHOD, offset, length);
-        return;
       case "CONST_NOT_INITIALIZED":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
-        return;
-      case "CONTINUE_WITHOUT_LABEL_IN_CASE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, offset, length);
-        return;
-      case "COVARIANT_AFTER_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
-        return;
-      case "COVARIANT_AND_STATIC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
         return;
       case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
         errorReporter?.reportErrorForOffset(
@@ -102,25 +82,9 @@ class FastaErrorReporter {
             length,
             [arguments['name']]);
         return;
-      case "COVARIANT_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_MEMBER, offset, length);
-        return;
-      case "DEFERRED_AFTER_PREFIX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);
-        return;
-      case "DIRECTIVE_AFTER_DECLARATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
-        return;
       case "DUPLICATE_DEFERRED":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
-        return;
-      case "DUPLICATED_MODIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [lexeme()]);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(

@@ -479,9 +479,10 @@ TypedefInClass:
     - "abstract class C { typedef int F(int x); }"
 
 CovariantMember:
+  index: 67
   template: "Getters, setters and methods can't be declared to be 'covariant'."
   tip: "Try removing the 'covariant' keyword."
-  analyzerCode: COVARIANT_MEMBER
+  analyzerCode: ParserErrorCode.COVARIANT_MEMBER
   script:
     - "static covariant get x => 0;"
     - "covariant int m() => 0;"
@@ -532,9 +533,10 @@ ConstAndVar:
     - "class C { var const x; }"
 
 ConstFactory:
+  index: 62
   template: "Only redirecting factory constructors can be declared to be 'const'."
   tip: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
-  analyzerCode: CONST_FACTORY
+  analyzerCode: ParserErrorCode.CONST_FACTORY
   script:
     - "class C { const factory C() {} }"
 
@@ -575,16 +577,18 @@ ConstConstructorWithBody:
     - "class C { const C() {} }"
 
 ConstMethod:
+  index: 63
   template: "Getters, setters and methods can't be declared to be 'const'."
   tip: "Try removing the 'const' keyword."
-  analyzerCode: CONST_METHOD
+  analyzerCode: ParserErrorCode.CONST_METHOD
   script:
     - "class C { const m() {} }"
 
 CovariantAfterFinal:
+  index: 65
   template: "The modifier 'covariant' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: COVARIANT_AFTER_FINAL
+  analyzerCode: ParserErrorCode.COVARIANT_AFTER_FINAL
   script:
     - "final covariant f;"
 
@@ -597,17 +601,19 @@ CovariantAfterVar:
     - "var covariant f;"
 
 CovariantAndStatic:
+  index: 66
   template: "Members can't be declared to be both 'covariant' and 'static'."
   tip: "Try removing either the 'covariant' or 'static' keyword."
-  analyzerCode: COVARIANT_AND_STATIC
+  analyzerCode: ParserErrorCode.COVARIANT_AND_STATIC
   script:
     - "class C { covariant static A f; }"
     - "class C { static covariant A f; }"
 
 DuplicatedModifier:
+  index: 70
   template: "The modifier '#lexeme' was already specified."
   tip: "Try removing all but one occurance of the modifier."
-  analyzerCode: DUPLICATED_MODIFIER
+  analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
@@ -860,9 +866,10 @@ ContinueLabelNotTarget:
   analyzerCode: LABEL_UNDEFINED
 
 ContinueWithoutLabelInCase:
+  index: 64
   template: "A continue statement in a switch statement must have a label as a target."
   tip: "Try adding a label associated with one of the case clauses to the continue statement."
-  analyzerCode: CONTINUE_WITHOUT_LABEL_IN_CASE
+  analyzerCode: ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE
   script:
     - "main() { switch (x) {case 1: continue;} }"
 
@@ -1643,9 +1650,10 @@ MissingPrefixInDeferredImport:
   analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
 
 DeferredAfterPrefix:
+  index: 68
   template: "The deferred keyword should come immediately before the prefix ('as' clause)."
   tip: "Try moving the deferred keyword before the prefix."
-  analyzerCode: DEFERRED_AFTER_PREFIX
+  analyzerCode: ParserErrorCode.DEFERRED_AFTER_PREFIX
 
 DuplicateDeferred:
   template: "An import directive can only have one 'deferred' keyword."
@@ -2051,9 +2059,10 @@ ExportAfterPart:
     - "part 'foo.dart'; export 'bar.dart';"
 
 DirectiveAfterDeclaration:
+  index: 69
   template: "Directives must appear before any declarations."
   tip: "Try moving the directive before any declarations."
-  analyzerCode: DIRECTIVE_AFTER_DECLARATION
+  analyzerCode: ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
   script:
     - "class foo { } import 'bar.dart';"
     - "class foo { } export 'bar.dart';"
