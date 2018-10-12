@@ -3407,13 +3407,13 @@ intTypeCast(value) {
 
 void propertyTypeError(value, property) {
   String name = isCheckPropertyToJsConstructorName(property);
-  throw new TypeErrorImplementation(value, name);
+  throw new TypeErrorImplementation(value, unminifyOrTag(name));
 }
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(value, expectedType);
+  String name = isCheckPropertyToJsConstructorName(property);
+  throw new CastErrorImplementation(value, unminifyOrTag(name));
 }
 
 /**
@@ -3537,12 +3537,12 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value == null) return value;
   if (value is List) return value;
-  throw new TypeErrorImplementation(value, 'List');
+  throw new TypeErrorImplementation(value, 'List<dynamic>');
 }
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(value, 'List');
+  throw new CastErrorImplementation(value, 'List<dynamic>');
 }
 
 listSuperTypeCheck(value, property) {

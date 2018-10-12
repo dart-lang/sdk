@@ -19,9 +19,8 @@
     "Dynamic access of '_js_helper::_self'.": 1,
     "Dynamic access of '_js_helper::_target'.": 1,
     "Dynamic access of '_js_helper::_receiver'.": 1,
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of 'substring'.": 1
+    "Dynamic access of 'length'.": 2,
+    "Dynamic invocation of '>='.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/string_helper.dart": {
     "Dynamic invocation of '<'.": 1,
