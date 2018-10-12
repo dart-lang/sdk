@@ -30,7 +30,7 @@ class Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager2 {
-  final StrongTypeSystemImpl _typeSystem;
+  final TypeSystem _typeSystem;
 
   /// Cached instance interfaces for [InterfaceType].
   final Map<InterfaceType, Interface> _interfaces = {};

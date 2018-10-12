@@ -2248,7 +2248,7 @@ class B {}
     String path = provider.convertPath('/test.dart');
     addSource(path, content);
 
-    StrongTypeSystemImpl typeSystem = await session.typeSystem;
+    TypeSystem typeSystem = await session.typeSystem;
     var b = await _getClassElement(path, 'B');
     var inherited = new InheritanceManager2(typeSystem).getInherited(
       b.type,

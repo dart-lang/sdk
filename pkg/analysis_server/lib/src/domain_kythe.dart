@@ -58,8 +58,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
           <KytheGetKytheEntriesResult>[];
       AnalysisResult result = await server.getAnalysisResult(file);
       CompilationUnit unit = result?.unit;
-      StrongTypeSystemImpl typeSystem =
-          result.libraryElement.context.typeSystem;
+      TypeSystem typeSystem = result.libraryElement.context.typeSystem;
       if (unit != null && result.exists) {
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
