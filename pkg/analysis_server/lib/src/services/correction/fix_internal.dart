@@ -1970,20 +1970,20 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
-    List<ExecutableElement> elements =
+    List<FunctionType> signatures =
         InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
-    elements.sort((Element a, Element b) {
-      int names = compareStrings(a.displayName, b.displayName);
+    signatures.sort((FunctionType a, FunctionType b) {
+      int names = compareStrings(a.element.displayName, b.element.displayName);
       if (names != 0) {
         return names;
       }
-      if (a.kind == ElementKind.GETTER) {
+      if (a.element.kind == ElementKind.GETTER) {
         return -1;
       }
       return 1;
     });
-    int numElements = elements.length;
+    int numElements = signatures.length;
 
     ClassMemberLocation location =
         utils.prepareNewClassMemberLocation(targetClass, (_) => true);
@@ -1992,9 +1992,6 @@ class FixProcessor {
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(location.offset, (DartEditBuilder builder) {
-        // TODO(brianwilkerson) Compare with builder.writeOverrideOfInheritedMember
-        // The builder method doesn't merge getter/setter pairs into fields.
-
         // Separator management.
         int numOfMembersWritten = 0;
         void addSeparatorBetweenDeclarations() {
@@ -2009,14 +2006,15 @@ class FixProcessor {
         }
 
         // merge getter/setter pairs into fields
-        for (int i = 0; i < elements.length; i++) {
-          ExecutableElement element = elements[i];
-          if (element.kind == ElementKind.GETTER && i + 1 < elements.length) {
-            ExecutableElement nextElement = elements[i + 1];
+        for (int i = 0; i < signatures.length; i++) {
+          FunctionType signature = signatures[i];
+          ExecutableElement element = signature.element;
+          if (element.kind == ElementKind.GETTER && i + 1 < signatures.length) {
+            ExecutableElement nextElement = signatures[i + 1].element;
             if (nextElement.kind == ElementKind.SETTER) {
               // remove this and the next elements, adjust iterator
-              elements.removeAt(i + 1);
-              elements.removeAt(i);
+              signatures.removeAt(i + 1);
+              signatures.removeAt(i);
               i--;
               numElements--;
               // separator
@@ -2026,7 +2024,7 @@ class FixProcessor {
               builder.write(eol);
               // add field
               builder.write(prefix);
-              builder.writeType(element.type.returnType, required: true);
+              builder.writeType(signature.returnType, required: true);
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');
@@ -2034,10 +2032,9 @@ class FixProcessor {
           }
         }
         // add elements
-        for (ExecutableElement element in elements) {
+        for (FunctionType signature in signatures) {
           addSeparatorBetweenDeclarations();
-          _addFix_createMissingOverridesForBuilder(
-              builder, targetClass, element);
+          builder.writeOverrideOfInheritedMember(signature);
         }
         builder.write(location.suffix);
       });
@@ -2045,65 +2042,6 @@ class FixProcessor {
     changeBuilder.setSelection(new Position(file, location.offset));
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_OVERRIDES,
         args: [numElements]);
-  }
-
-  void _addFix_createMissingOverridesForBuilder(DartEditBuilder builder,
-      ClassDeclaration targetClass, ExecutableElement element) {
-    utils.targetExecutableElement = element;
-    // prepare environment
-    String prefix = utils.getIndent(1);
-    String prefix2 = utils.getIndent(2);
-    // may be property
-    ElementKind elementKind = element.kind;
-    bool isGetter = elementKind == ElementKind.GETTER;
-    bool isSetter = elementKind == ElementKind.SETTER;
-    bool isMethod = elementKind == ElementKind.METHOD;
-    bool isOperator = isMethod && (element as MethodElement).isOperator;
-    if (isGetter) {
-      builder.write('// TODO: implement ${element.displayName}');
-      builder.write(eol);
-      builder.write(prefix);
-    }
-    // @override
-    builder.write('@override');
-    builder.write(eol);
-    builder.write(prefix);
-    // return type
-    if (!isSetter) {
-      if (builder.writeType(element.type.returnType,
-          methodBeingCopied: element)) {
-        builder.write(' ');
-      }
-    }
-    // keyword
-    if (isGetter) {
-      builder.write('get ');
-    } else if (isSetter) {
-      builder.write('set ');
-    } else if (isOperator) {
-      builder.write('operator ');
-    }
-    // name
-    builder.write(element.displayName);
-    builder.writeTypeParameters(element.typeParameters,
-        methodBeingCopied: element);
-    // parameters + body
-    if (isGetter) {
-      builder.write(' => null;');
-    } else {
-      List<ParameterElement> parameters = element.parameters;
-      builder.writeParameters(parameters, methodBeingCopied: element);
-      builder.write(' {');
-      // TO-DO
-      builder.write(eol);
-      builder.write(prefix2);
-      builder.write('// TODO: implement ${element.displayName}');
-      builder.write(eol);
-      // close method
-      builder.write(prefix);
-      builder.write('}');
-    }
-    utils.targetExecutableElement = null;
   }
 
   Future<void> _addFix_createMixin() async {

@@ -70,9 +70,9 @@ class InheritanceOverrideVerifier {
     }
   }
 
-  /// Returns [ExecutableElement]s that are in the interface of the given
-  /// class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
+  /// Returns [FunctionType]s of members that are in the interface of the
+  /// given class, but don't have concrete implementations.
+  static List<FunctionType> missingOverrides(ClassDeclaration node) {
     return node.name.getProperty(_missingOverridesKey) ?? const [];
   }
 }
@@ -173,7 +173,7 @@ class _ClassVerifier {
     _checkForMismatchedAccessorTypes(interfaceMembers);
 
     if (!classElement.isAbstract) {
-      List<ExecutableElement> inheritedAbstractMembers = null;
+      List<FunctionType> inheritedAbstract = null;
 
       for (var name in interfaceMembers.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {
@@ -187,8 +187,8 @@ class _ClassVerifier {
         if (concreteType == null) {
           if (!classElement.hasNoSuchMethod) {
             if (!_reportConcreteClassWithAbstractMember(name.name)) {
-              inheritedAbstractMembers ??= [];
-              inheritedAbstractMembers.add(interfaceType.element);
+              inheritedAbstract ??= [];
+              inheritedAbstract.add(interfaceType);
             }
           }
           continue;
@@ -222,7 +222,7 @@ class _ClassVerifier {
         }
       }
 
-      _reportInheritedAbstractMembers(inheritedAbstractMembers);
+      _reportInheritedAbstractMembers(inheritedAbstract);
     }
   }
 
@@ -440,18 +440,20 @@ class _ClassVerifier {
     }
   }
 
-  void _reportInheritedAbstractMembers(List<ExecutableElement> elements) {
-    if (elements == null) {
+  void _reportInheritedAbstractMembers(List<FunctionType> types) {
+    if (types == null) {
       return;
     }
 
     classNameNode.setProperty(
       InheritanceOverrideVerifier._missingOverridesKey,
-      elements,
+      types,
     );
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
+    for (FunctionType type in types) {
+      ExecutableElement element = type.element;
+
       String prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {
@@ -465,7 +467,7 @@ class _ClassVerifier {
       var elementName = element.displayName;
       var enclosingElement = element.enclosingElement;
       if (enclosingElement != null) {
-        var enclosingName = element.enclosingElement.displayName;
+        var enclosingName = enclosingElement.displayName;
         description = "$prefix$enclosingName.$elementName";
       } else {
         description = "$prefix$elementName";

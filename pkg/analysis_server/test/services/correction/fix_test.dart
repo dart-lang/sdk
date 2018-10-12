@@ -3744,7 +3744,7 @@ class MyEmulator extends Emulator {
   test_createMissingOverrides_functionTypedParameter() async {
     await resolveTestUnit('''
 abstract class A {
-  forEach(int f(double p1, String p2));
+  void forEach(int f(double p1, String p2));
 }
 
 class B extends A {
@@ -3752,12 +3752,12 @@ class B extends A {
 ''');
     await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
 abstract class A {
-  forEach(int f(double p1, String p2));
+  void forEach(int f(double p1, String p2));
 }
 
 class B extends A {
   @override
-  forEach(int Function(double p1, String p2) f) {
+  void forEach(int Function(double p1, String p2) f) {
     // TODO: implement forEach
   }
 }
@@ -3785,8 +3785,8 @@ abstract class IterableMixin<T> {
 }
 
 class Test extends IterableMixin<int> {
-  // TODO: implement iterator
   @override
+  // TODO: implement iterator
   Iterator<int> get iterator => null;
 }
 ''');
@@ -3810,6 +3810,7 @@ class Test<V> extends ItemProvider<V> {
   @override
   List<V> getItems() {
     // TODO: implement getItems
+    return null;
   }
 }
 ''');
@@ -3832,12 +3833,12 @@ abstract class A {
 }
 
 class B extends A {
-  // TODO: implement g1
   @override
+  // TODO: implement g1
   get g1 => null;
 
-  // TODO: implement g2
   @override
+  // TODO: implement g2
   int get g2 => null;
 }
 ''');
@@ -3863,6 +3864,7 @@ class B extends A {
   @override
   Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {
     // TODO: implement g
+    return null;
   }
 }
 ''');
@@ -3904,7 +3906,7 @@ class B implements A {
   test_createMissingOverrides_method() async {
     await resolveTestUnit('''
 abstract class A {
-  m1();
+  void m1();
   int m2();
   String m3(int p1, double p2, Map<int, List<String>> p3);
   String m4(p1, p2);
@@ -3917,7 +3919,7 @@ class B extends A {
 ''');
     String expectedCode = '''
 abstract class A {
-  m1();
+  void m1();
   int m2();
   String m3(int p1, double p2, Map<int, List<String>> p3);
   String m4(p1, p2);
@@ -3927,33 +3929,38 @@ abstract class A {
 
 class B extends A {
   @override
-  m1() {
+  void m1() {
     // TODO: implement m1
   }
 
   @override
   int m2() {
     // TODO: implement m2
+    return null;
   }
 
   @override
   String m3(int p1, double p2, Map<int, List<String>> p3) {
     // TODO: implement m3
+    return null;
   }
 
   @override
   String m4(p1, p2) {
     // TODO: implement m4
+    return null;
   }
 
   @override
   String m5(p1, [int p2 = 2, int p3, p4 = 4]) {
     // TODO: implement m5
+    return null;
   }
 
   @override
   String m6(p1, {int p2 = 2, int p3, p4 = 4}) {
     // TODO: implement m6
+    return null;
   }
 }
 ''';
@@ -4020,6 +4027,45 @@ class B implements A {
   @override
   E1 foo<E1, E2 extends C<int>>(V<E2> v) {
     // TODO: implement foo
+    return null;
+  }
+}
+''');
+  }
+
+  test_createMissingOverrides_method_genericClass2() async {
+    await resolveTestUnit('''
+class A<R> {
+  R foo(int a) => null;
+}
+
+class B<R> extends A<R> {
+  R bar(double b) => null;
+}
+
+class X implements B<bool> {
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+class A<R> {
+  R foo(int a) => null;
+}
+
+class B<R> extends A<R> {
+  R bar(double b) => null;
+}
+
+class X implements B<bool> {
+  @override
+  bool bar(double b) {
+    // TODO: implement bar
+    return null;
+  }
+
+  @override
+  bool foo(int a) {
+    // TODO: implement foo
+    return null;
   }
 }
 ''');
@@ -4044,6 +4090,7 @@ class B<K, V> implements A<K, V> {
   @override
   List<T> foo<T extends V>(K key) {
     // TODO: implement foo
+    return null;
   }
 }
 ''');
@@ -4095,6 +4142,7 @@ class B extends A {
   @override
   int operator [](int index) {
     // TODO: implement []
+    return null;
   }
 
   @override
@@ -4125,17 +4173,17 @@ abstract class A {
 
 class B extends A {
   @override
-  set s1(x) {
+  void set s1(x) {
     // TODO: implement s1
   }
 
   @override
-  set s2(int x) {
+  void set s2(int x) {
     // TODO: implement s2
   }
 
   @override
-  set s3(String x) {
+  void set s3(String x) {
     // TODO: implement s3
   }
 }
