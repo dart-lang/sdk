@@ -387,7 +387,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeOverrideOfInheritedMember(
+  void writeOverride(
     FunctionType signature, {
     StringBuffer displayTextBuffer,
     String returnTypeGroupName,

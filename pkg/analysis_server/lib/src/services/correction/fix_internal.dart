@@ -2034,7 +2034,7 @@ class FixProcessor {
         // add elements
         for (FunctionType signature in signatures) {
           addSeparatorBetweenDeclarations();
-          builder.writeOverrideOfInheritedMember(signature);
+          builder.writeOverride(signature);
         }
         builder.write(location.suffix);
       });

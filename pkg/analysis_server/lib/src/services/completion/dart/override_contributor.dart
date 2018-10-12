@@ -79,7 +79,7 @@ class OverrideContributor implements DartCompletionContributor {
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
         ExecutableElement element = signature.element;
-        builder.writeOverrideOfInheritedMember(
+        builder.writeOverride(
           signature,
           displayTextBuffer: displayTextBuffer,
           invokeSuper: !element.isAbstract,
