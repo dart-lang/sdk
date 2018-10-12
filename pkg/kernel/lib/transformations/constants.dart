@@ -343,6 +343,13 @@ class ConstantsTransformer extends Transformer {
     return super.visitConstructorInvocation(node);
   }
 
+  visitStaticInvocation(StaticInvocation node) {
+    if (node.isConst) {
+      return tryEvaluateAndTransformWithContext(node, node);
+    }
+    return super.visitStaticInvocation(node);
+  }
+
   tryEvaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
     final Constant constant = tryEvaluateWithContext(treeContext, node);
     return constant != null ? new ConstantExpression(constant) : node;
