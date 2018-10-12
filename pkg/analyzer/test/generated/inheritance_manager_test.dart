@@ -1038,6 +1038,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(_inheritanceManager.lookupMember(classA, setterName), isNull);
   }
 
+  @deprecated
   void test_lookupOverrides_noParentClasses() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
@@ -1048,6 +1049,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
         _inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
   }
 
+  @deprecated
   void test_lookupOverrides_overrideBaseClass() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
@@ -1063,6 +1065,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(overrides, unorderedEquals([methodMinA]));
   }
 
+  @deprecated
   void test_lookupOverrides_overrideInterface() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
@@ -1079,6 +1082,7 @@ class InheritanceManagerTest extends Object with ResourceProviderMixin {
     expect(overrides, unorderedEquals([methodMinA]));
   }
 
+  @deprecated
   void test_lookupOverrides_overrideTwoInterfaces() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";

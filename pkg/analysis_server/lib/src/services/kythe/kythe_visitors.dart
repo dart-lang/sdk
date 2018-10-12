@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -94,7 +94,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   final ResourceProvider resourceProvider;
   final List<KytheEntry> entries;
   final String corpus;
-  final InheritanceManager _inheritanceManager;
+  final InheritanceManager2 _inheritanceManager;
   final String _contents;
 
   String _enclosingFilePath = '';
@@ -695,19 +695,19 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
           returnNode: node.returnType);
 
       // override edges
-      List<ExecutableElement> overriddenList =
-          _inheritanceManager.lookupOverrides(_enclosingClassElement,
-              resolutionMap.elementDeclaredByMethodDeclaration(node).name);
-      for (ExecutableElement overridden in overriddenList) {
-        if (overridden is MultiplyInheritedExecutableElement) {
-          for (ExecutableElement elt in overridden.inheritedElements) {
-            addEdge(methodVName, schema.OVERRIDES_EDGE,
-                _vNameFromElement(elt, schema.FUNCTION_KIND));
-          }
-        } else {
-          addEdge(methodVName, schema.OVERRIDES_EDGE,
-              _vNameFromElement(overridden, schema.FUNCTION_KIND));
-        }
+      var overriddenSignatures = _inheritanceManager.getOverridden(
+        _enclosingClassElement.type,
+        new Name(
+          _enclosingClassElement.library.source.uri,
+          node.declaredElement.name,
+        ),
+      );
+      for (FunctionType signature in overriddenSignatures) {
+        addEdge(
+          methodVName,
+          schema.OVERRIDES_EDGE,
+          _vNameFromElement(signature.element, schema.FUNCTION_KIND),
+        );
       }
 
       // visit children
