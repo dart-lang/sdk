@@ -27,7 +27,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit, SourceFileEdit;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
 
 class EditDartFix {
@@ -200,7 +199,7 @@ class EditDartFix {
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      addRecommendation('Could not fix ${error.message} in $location');
+      addRecommendation('Could not fix "${error.message}" in $location');
     }
     return true;
   }
@@ -232,7 +231,8 @@ class EditDartFix {
     // Determine the relative path
     for (Folder folder in fixFolders) {
       if (folder.contains(result.path)) {
-        description.write(path.relative(result.path, from: folder.path));
+        description.write(server.resourceProvider.pathContext
+            .relative(result.path, from: folder.path));
         break;
       }
     }
@@ -356,7 +356,6 @@ class PreferMixinFix extends LinterFix {
     AnalysisResult result =
         await dartFix.server.getAnalysisResult(elem.source?.fullName);
 
-    // TODO(danrubel): Verify that class can be converted
     for (CompilationUnitMember declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {

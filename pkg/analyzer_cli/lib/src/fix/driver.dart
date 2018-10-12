@@ -162,7 +162,7 @@ class Driver {
         context.print('Rerun with --$forceOption to apply these changes.');
         return false;
       }
-    } else if (!overwrite) {
+    } else if (!overwrite && !force) {
       context.print('Rerun with --$overwriteOption to apply these changes.');
       return false;
     }
@@ -276,13 +276,7 @@ class Driver {
     bool foundAtLeastOneError = false;
     if (errors.isNotEmpty && isTarget(params.file)) {
       for (AnalysisError error in errors) {
-        if (error.code == 'wrong_number_of_type_arguments_constructor') {
-          // Do not show errors that will be automatically fixed.
-
-          // TODO(danrubel): Rather than checking the error.code with
-          // specific strings, add something to the error indicating that
-          // it will be automatically fixed by edit.dartfix.
-        } else {
+        if (!shouldFilterError(error)) {
           if (!foundAtLeastOneError) {
             foundAtLeastOneError = true;
             resetProgress();
@@ -331,6 +325,16 @@ class Driver {
       context.print();
     }
     progressCount = 0;
+  }
+
+  bool shouldFilterError(AnalysisError error) {
+    // Do not show TODOs or errors that will be automatically fixed.
+
+    // TODO(danrubel): Rather than checking the error.code with
+    // specific strings, add something to the error indicating that
+    // it will be automatically fixed by edit.dartfix.
+    return error.type.name == 'TODO' ||
+        error.code == 'wrong_number_of_type_arguments_constructor';
   }
 
   void showProgress() {
