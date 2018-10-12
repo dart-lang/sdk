@@ -5495,7 +5495,6 @@ class A {
 ''');
   }
 
-  @failingTest
   test_moveTypeArgumentsToClass_explicitConst() async {
     await resolveTestUnit('''
 main() {
@@ -5515,7 +5514,6 @@ class C<E> {
 ''');
   }
 
-  @failingTest
   test_moveTypeArgumentsToClass_explicitNew() async {
     await resolveTestUnit('''
 main() {
@@ -5559,7 +5557,6 @@ class C<E> {
     await assertNoFix(DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS);
   }
 
-  @failingTest
   test_moveTypeArgumentsToClass_implicitConst() async {
     await resolveTestUnit('''
 main() {
@@ -5579,7 +5576,6 @@ class C<E> {
 ''');
   }
 
-  @failingTest
   test_moveTypeArgumentsToClass_implicitNew() async {
     await resolveTestUnit('''
 main() {
@@ -5733,10 +5729,7 @@ main(A a) {
 ''');
   }
 
-  @failingTest
   test_removeTypeArguments_explicitConst() async {
-    // Failing because we're producing an error with the code
-    // CompileTimeErrorCode.UNDEFINED_CLASS (with a class name of `C.named`).
     await resolveTestUnit('''
 main() {
   const C.named<int>();

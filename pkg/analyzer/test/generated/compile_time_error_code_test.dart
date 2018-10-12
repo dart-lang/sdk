@@ -6398,7 +6398,7 @@ f() {
   return const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 

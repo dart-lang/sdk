@@ -2576,10 +2576,11 @@ class FixProcessor {
   Future<void> _addFix_moveTypeArgumentsToClass() async {
     if (coveredNode is TypeArgumentList) {
       TypeArgumentList typeArguments = coveredNode;
-      if (typeArguments.parent is! TypeName) {
+      if (typeArguments.parent is! InstanceCreationExpression) {
         return;
       }
-      TypeName typeName = typeArguments.parent;
+      InstanceCreationExpression creation = typeArguments.parent;
+      TypeName typeName = creation.constructorName.type;
       if (typeName.typeArguments != null) {
         return;
       }

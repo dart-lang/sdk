@@ -7118,30 +7118,25 @@ class TypeNameResolver {
     // check element
     bool elementValid = element is! MultiplyDefinedElement;
     if (elementValid &&
+        element != null &&
         element is! ClassElement &&
         _isTypeNameInInstanceCreationExpression(node)) {
       SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
       InstanceCreationExpression creation =
           node.parent.parent as InstanceCreationExpression;
       if (creation.isConst) {
-        if (element == null) {
-          reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, [typeName]);
-        } else {
-          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-              typeNameSimple, [typeName]);
-        }
+        reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+            typeNameSimple, [typeName]);
         elementValid = false;
       } else {
-        if (element != null) {
-          reportErrorForNode(
-              StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
-          elementValid = false;
-        }
+        reportErrorForNode(
+            StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
+        elementValid = false;
       }
     }
     if (elementValid && element == null) {
       // We couldn't resolve the type name.
+      elementValid = false;
       // TODO(jwren) Consider moving the check for
       // CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE from the
       // ErrorVerifier, so that we don't have two errors on a built in
@@ -7178,8 +7173,9 @@ class TypeNameResolver {
       } else if (typeName is PrefixedIdentifier &&
           node.parent is ConstructorName &&
           argumentList != null) {
-        SimpleIdentifier prefix = typeName.prefix;
-        SimpleIdentifier identifier = typeName.identifier;
+        SimpleIdentifier prefix = (typeName as PrefixedIdentifier).prefix;
+        SimpleIdentifier identifier =
+            (typeName as PrefixedIdentifier).identifier;
         Element prefixElement = nameScope.lookup(prefix, definingLibrary);
         ConstructorElement constructorElement;
         if (prefixElement is ClassElement) {
@@ -7192,15 +7188,32 @@ class TypeNameResolver {
               argumentList,
               [prefix.name, identifier.name]);
           prefix.staticElement = prefixElement;
-          prefix.staticType = constructorElement.enclosingElement.type;
+          prefix.staticType = (prefixElement as ClassElement).type;
           identifier.staticElement = constructorElement;
           identifier.staticType = constructorElement.type;
           typeName.staticType = constructorElement.enclosingElement.type;
-          (node.parent as ConstructorName).staticElement = constructorElement;
           AstNode grandParent = node.parent.parent;
-          if (grandParent is InstanceCreationExpression) {
+          if (grandParent is InstanceCreationExpressionImpl) {
             grandParent.staticElement = constructorElement;
             grandParent.staticType = typeName.staticType;
+            //
+            // Re-write the AST to reflect the resolution.
+            //
+            AstFactory astFactory = new AstFactoryImpl();
+            TypeName newTypeName = astFactory.typeName(prefix, null);
+            ConstructorName newConstructorName = astFactory.constructorName(
+                newTypeName,
+                (typeName as PrefixedIdentifier).period,
+                identifier);
+            newConstructorName.staticElement = constructorElement;
+            NodeReplacer.replace(node.parent, newConstructorName);
+            grandParent.typeArguments = node.typeArguments;
+            // Re-assign local variables that have effectively changed.
+            node = newTypeName;
+            typeName = prefix;
+            element = prefixElement;
+            argumentList = null;
+            elementValid = true;
           }
         } else {
           reportErrorForNode(
@@ -7210,7 +7223,6 @@ class TypeNameResolver {
         reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
-      elementValid = false;
     }
     if (!elementValid) {
       if (element is MultiplyDefinedElement) {
