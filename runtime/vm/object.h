@@ -4117,7 +4117,9 @@ class KernelProgramInfo : public Object {
                                    const ExternalTypedData& metadata_payload,
                                    const ExternalTypedData& metadata_mappings,
                                    const ExternalTypedData& constants_table,
-                                   const Array& scripts);
+                                   const Array& scripts,
+                                   const Array& libraries_cache,
+                                   const Array& classes_cache);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
@@ -4165,6 +4167,20 @@ class KernelProgramInfo : public Object {
       const GrowableObjectArray& candidates) const;
 
   RawScript* ScriptAt(intptr_t index) const;
+
+  RawArray* libraries_cache() const { return raw_ptr()->libraries_cache_; }
+  void set_libraries_cache(const Array& cache) const;
+  RawLibrary* LookupLibrary(Thread* thread, const Smi& name_index) const;
+  RawLibrary* InsertLibrary(Thread* thread,
+                            const Smi& name_index,
+                            const Library& lib) const;
+
+  RawArray* classes_cache() const { return raw_ptr()->classes_cache_; }
+  void set_classes_cache(const Array& cache) const;
+  RawClass* LookupClass(Thread* thread, const Smi& name_index) const;
+  RawClass* InsertClass(Thread* thread,
+                        const Smi& name_index,
+                        const Class& klass) const;
 
  private:
   static RawKernelProgramInfo* New();
@@ -7080,6 +7096,18 @@ class Smi : public Integer {
   friend class Object;
   friend class ReusableSmiHandleScope;
   friend class Thread;
+};
+
+class SmiTraits : AllStatic {
+ public:
+  static const char* Name() { return "SmiTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return Smi::Cast(a).Value() == Smi::Cast(b).Value();
+  }
+
+  static uword Hash(const Object& obj) { return Smi::Cast(obj).Value(); }
 };
 
 class Mint : public Integer {
