@@ -247,19 +247,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static String _TO_INT_METHOD_NAME = "toInt";
 
-  static final _templateExtension = '.template';
-
-  static final _testDir = '${path.separator}test${path.separator}';
-
-  static final _testingDir = '${path.separator}testing${path.separator}';
-
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl _enclosingClass;
 
   /// A flag indicating whether a surrounding member (compilation unit or class)
   /// is deprecated.
-  bool inDeprecatedMember;
+  bool _inDeprecatedMember;
 
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
@@ -272,10 +266,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   final InterfaceType _futureNullType;
 
   /// The type system primitives
-  TypeSystem _typeSystem;
+  final TypeSystem _typeSystem;
 
   /// The current library
-  LibraryElement _currentLibrary;
+  final LibraryElement _currentLibrary;
+
+  final _InvalidAccessVerifier _invalidAccessVerifier;
 
   /// Create a new instance of the [BestPracticesVerifier].
   ///
@@ -285,8 +281,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
-        _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider) {
-    inDeprecatedMember = _currentLibrary.hasDeprecated;
+        _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
+        _invalidAccessVerifier =
+            new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
+    _inDeprecatedMember = _currentLibrary.hasDeprecated;
   }
 
   @override
@@ -348,22 +346,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElementImpl outerClass = _enclosingClass;
-    bool wasInDeprecatedMember = inDeprecatedMember;
-    ClassElement element =
-        AbstractClassElementImpl.getImpl(node.declaredElement);
+    var element = AbstractClassElementImpl.getImpl(node.declaredElement);
+    _enclosingClass = element;
+    _invalidAccessVerifier._enclosingClass = element;
+
+    bool wasInDeprecatedMember = _inDeprecatedMember;
     if (element != null && element.hasDeprecated) {
-      inDeprecatedMember = true;
+      _inDeprecatedMember = true;
     }
+
     try {
-      _enclosingClass = element;
       // Commented out until we decide that we want this hint in the analyzer
       //    checkForOverrideEqualsButNotHashCode(node);
       _checkForImmutable(node);
       return super.visitClassDeclaration(node);
     } finally {
-      _enclosingClass = outerClass;
-      inDeprecatedMember = wasInDeprecatedMember;
+      _enclosingClass = null;
+      _invalidAccessVerifier._enclosingClass = null;
+      _inDeprecatedMember = wasInDeprecatedMember;
     }
   }
 
@@ -395,17 +395,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    bool wasInDeprecatedMember = inDeprecatedMember;
+    bool wasInDeprecatedMember = _inDeprecatedMember;
     ExecutableElement element = node.declaredElement;
     if (element != null && element.hasDeprecated) {
-      inDeprecatedMember = true;
+      _inDeprecatedMember = true;
     }
     try {
       _checkForMissingReturn(
           node.returnType, node.functionExpression.body, element, node);
       return super.visitFunctionDeclaration(node);
     } finally {
-      inDeprecatedMember = wasInDeprecatedMember;
+      _inDeprecatedMember = wasInDeprecatedMember;
     }
   }
 
@@ -439,10 +439,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    bool wasInDeprecatedMember = inDeprecatedMember;
+    bool wasInDeprecatedMember = _inDeprecatedMember;
     ExecutableElement element = node.declaredElement;
     if (element != null && element.hasDeprecated) {
-      inDeprecatedMember = true;
+      _inDeprecatedMember = true;
     }
     try {
       // This was determined to not be a good hint, see: dartbug.com/16029
@@ -451,7 +451,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _checkForUnnecessaryNoSuchMethod(node);
       return super.visitMethodDeclaration(node);
     } finally {
-      inDeprecatedMember = wasInDeprecatedMember;
+      _inDeprecatedMember = wasInDeprecatedMember;
     }
   }
 
@@ -465,6 +465,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _checkForDeprecatedMemberUse(callElement, node);
     }
     return super.visitMethodInvocation(node);
+  }
+
+  @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    _enclosingClass = node.declaredElement;
+    _invalidAccessVerifier._enclosingClass = _enclosingClass;
+    try {
+      return super.visitMixinDeclaration(node);
+    } finally {
+      _enclosingClass = null;
+      _invalidAccessVerifier._enclosingClass = null;
+    }
   }
 
   @override
@@ -495,7 +507,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
-    _checkForInvalidAccess(node);
+    _invalidAccessVerifier.verify(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -615,7 +627,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
 
-    if (!inDeprecatedMember &&
+    if (!_inDeprecatedMember &&
         element != null &&
         isDeprecated(element) &&
         !isLocalParameter(element, node)) {
@@ -780,155 +792,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         hasOrInheritsNonFinalInstanceField(
             element, new HashSet<ClassElement>())) {
       _errorReporter.reportErrorForNode(HintCode.MUST_BE_IMMUTABLE, node.name);
-    }
-  }
-
-  /// Produces a hint if [identifier] is accessed from an invalid location. In
-  /// particular:
-  ///
-  /// * if the given identifier is a protected closure, field or
-  ///   getter/setter, method closure or invocation accessed outside a subclass,
-  ///   or accessed outside the library wherein the identifier is declared, or
-  /// * if the given identifier is a closure, field, getter, setter, method
-  ///   closure or invocation which is annotated with `visibleForTemplate`, and
-  ///   is accessed outside of the defining library, and the current library
-  ///   does not have the suffix '.template' in its source path, or
-  /// * if the given identifier is a closure, field, getter, setter, method
-  ///   closure or invocation which is annotated with `visibleForTesting`, and
-  ///   is accessed outside of the defining library, and the current library
-  ///   does not have a directory named 'test' or 'testing' in its path.
-  void _checkForInvalidAccess(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext()) {
-      return;
-    }
-
-    bool isProtected(Element element) {
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is ClassElement &&
-          (element.hasProtected || element.variable.hasProtected)) {
-        return true;
-      }
-      if (element is MethodElement &&
-          element.enclosingElement is ClassElement &&
-          element.hasProtected) {
-        return true;
-      }
-      return false;
-    }
-
-    bool isVisibleForTemplate(Element element) {
-      if (element == null) {
-        return false;
-      }
-      if (element.hasVisibleForTemplate) {
-        return true;
-      }
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is ClassElement &&
-          element.variable.hasVisibleForTemplate) {
-        return true;
-      }
-      return false;
-    }
-
-    bool isVisibleForTesting(Element element) {
-      if (element == null) {
-        return false;
-      }
-      if (element.hasVisibleForTesting) {
-        return true;
-      }
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is ClassElement &&
-          element.variable.hasVisibleForTesting) {
-        return true;
-      }
-      return false;
-    }
-
-    bool inCommentReference(SimpleIdentifier identifier) =>
-        identifier.getAncestor((AstNode node) => node is CommentReference) !=
-        null;
-
-    bool inCurrentLibrary(Element element) =>
-        element.library == _currentLibrary;
-
-    bool inExportDirective(SimpleIdentifier identifier) =>
-        identifier.parent is Combinator &&
-        identifier.parent.parent is ExportDirective;
-
-    bool inTemplateSource(LibraryElement library) =>
-        library.definingCompilationUnit.source.fullName
-            .contains(_templateExtension);
-
-    bool inTestDirectory(LibraryElement library) =>
-        library.definingCompilationUnit.source.fullName.contains(_testDir) ||
-        library.definingCompilationUnit.source.fullName.contains(_testingDir);
-
-    Element element = identifier.staticElement;
-    if (!isProtected(element) &&
-        !isVisibleForTemplate(element) &&
-        !isVisibleForTesting(element)) {
-      // Without any of these annotations, the access is valid.
-      return;
-    }
-
-    if (isProtected(element)) {
-      if (inCurrentLibrary(element) || inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked
-        // `visibleForTesting`, the "visibilities" are unioned.
-        return;
-      }
-      ClassElement definingClass = element.enclosingElement;
-      ClassOrMixinDeclaration accessingClass = identifier
-          .getAncestor((AstNode node) => node is ClassOrMixinDeclaration);
-      if (_hasTypeOrSuperType(
-          accessingClass?.declaredElement, definingClass.type)) {
-        return;
-      }
-    }
-    if (isVisibleForTemplate(element)) {
-      if (inCurrentLibrary(element) ||
-          inTemplateSource(_currentLibrary) ||
-          inExportDirective(identifier) ||
-          inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked `protected`,
-        // the "visibilities" are unioned.
-        return;
-      }
-    }
-    if (isVisibleForTesting(element)) {
-      if (inCurrentLibrary(element) ||
-          inTestDirectory(_currentLibrary) ||
-          inExportDirective(identifier) ||
-          inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked `protected`,
-        // the "visibilities" are unioned.
-        return;
-      }
-    }
-
-    // At this point, [identifier] was not cleared as protected access, nor
-    // cleared as access for templates or testing. Report the appropriate
-    // violation(s).
-    Element definingClass = element.enclosingElement;
-    if (isProtected(element)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          identifier,
-          [identifier.name.toString(), definingClass.source.uri]);
-    }
-    if (isVisibleForTemplate(element)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-          identifier,
-          [identifier.name.toString(), definingClass.source.uri]);
-    }
-    if (isVisibleForTesting(element)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          identifier,
-          [identifier.name.toString(), definingClass.source.uri]);
     }
   }
 
@@ -1314,16 +1177,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //    }
 //    return false;
 //  }
-
-  bool _hasTypeOrSuperType(ClassElement element, InterfaceType type) {
-    if (element == null) {
-      return false;
-    }
-    ClassElement typeElement = type.element;
-    return element == typeElement ||
-        element.allSupertypes
-            .any((InterfaceType t) => t.element == typeElement);
-  }
 
   /// Return `true` if the given [type] represents `Future<void>`.
   bool _isFutureVoid(DartType type) {
@@ -9506,6 +9359,168 @@ class VariableResolverVisitor extends ScopedVisitor {
   Object visitTypeName(TypeName node) {
     return null;
   }
+}
+
+class _InvalidAccessVerifier {
+  static final _templateExtension = '.template';
+  static final _testDir = '${path.separator}test${path.separator}';
+  static final _testingDir = '${path.separator}testing${path.separator}';
+
+  final ErrorReporter _errorReporter;
+  final LibraryElement _library;
+
+  bool _inTemplateSource;
+  bool _inTestDirectory;
+
+  ClassElement _enclosingClass;
+
+  _InvalidAccessVerifier(this._errorReporter, this._library) {
+    var path = _library.source.fullName;
+    _inTemplateSource = path.contains(_templateExtension);
+    _inTestDirectory = path.contains(_testDir) || path.contains(_testingDir);
+  }
+
+  /// Produces a hint if [identifier] is accessed from an invalid location. In
+  /// particular:
+  ///
+  /// * if the given identifier is a protected closure, field or
+  ///   getter/setter, method closure or invocation accessed outside a subclass,
+  ///   or accessed outside the library wherein the identifier is declared, or
+  /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTemplate`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have the suffix '.template' in its source path, or
+  /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTesting`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have a directory named 'test' or 'testing' in its path.
+  void verify(SimpleIdentifier identifier) {
+    if (identifier.inDeclarationContext() || _inCommentReference(identifier)) {
+      return;
+    }
+
+    Element element = identifier.staticElement;
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    bool hasProtected = _hasProtected(element);
+    if (hasProtected) {
+      ClassElement definingClass = element.enclosingElement;
+      if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
+        return;
+      }
+    }
+
+    bool hasVisibleForTemplate = _hasVisibleForTemplate(element);
+    if (hasVisibleForTemplate) {
+      if (_inTemplateSource || _inExportDirective(identifier)) {
+        return;
+      }
+    }
+
+    bool hasVisibleForTesting = _hasVisibleForTesting(element);
+    if (hasVisibleForTesting) {
+      if (_inTestDirectory || _inExportDirective(identifier)) {
+        return;
+      }
+    }
+
+    // At this point, [identifier] was not cleared as protected access, nor
+    // cleared as access for templates or testing. Report the appropriate
+    // violation(s).
+    Element definingClass = element.enclosingElement;
+    if (hasProtected) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name, definingClass.source.uri]);
+    }
+    if (hasVisibleForTemplate) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+          identifier,
+          [identifier.name, definingClass.source.uri]);
+    }
+    if (hasVisibleForTesting) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+          identifier,
+          [identifier.name, definingClass.source.uri]);
+    }
+  }
+
+  bool _hasProtected(Element element) {
+    if (element is PropertyAccessorElement &&
+        element.enclosingElement is ClassElement &&
+        (element.hasProtected || element.variable.hasProtected)) {
+      return true;
+    }
+    if (element is MethodElement &&
+        element.enclosingElement is ClassElement &&
+        element.hasProtected) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _hasTypeOrSuperType(ClassElement element, ClassElement superElement) {
+    if (element == null) {
+      return false;
+    }
+    if (element == superElement) {
+      return true;
+    }
+    // TODO(scheglov) `allSupertypes` is very expensive
+    var allSupertypes = element.allSupertypes;
+    for (var i = 0; i < allSupertypes.length; i++) {
+      var supertype = allSupertypes[i];
+      if (supertype.element == superElement) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _hasVisibleForTemplate(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element.hasVisibleForTemplate) {
+      return true;
+    }
+    if (element is PropertyAccessorElement &&
+        element.enclosingElement is ClassElement &&
+        element.variable.hasVisibleForTemplate) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _hasVisibleForTesting(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element.hasVisibleForTesting) {
+      return true;
+    }
+    if (element is PropertyAccessorElement &&
+        element.enclosingElement is ClassElement &&
+        element.variable.hasVisibleForTesting) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _inCommentReference(SimpleIdentifier identifier) {
+    return identifier.parent is CommentReference;
+  }
+
+  bool _inCurrentLibrary(Element element) => element.library == _library;
+
+  bool _inExportDirective(SimpleIdentifier identifier) =>
+      identifier.parent is Combinator &&
+      identifier.parent.parent is ExportDirective;
 }
 
 /// An object used to track the usage of labels within a single label scope.

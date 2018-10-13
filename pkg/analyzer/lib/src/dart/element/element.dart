@@ -2579,16 +2579,40 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get hasAlwaysThrows =>
-      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
+  bool get hasAlwaysThrows {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isAlwaysThrows) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
-  bool get hasDeprecated =>
-      metadata.any((ElementAnnotation annotation) => annotation.isDeprecated);
+  bool get hasDeprecated {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
-  bool get hasFactory =>
-      metadata.any((ElementAnnotation annotation) => annotation.isFactory);
+  bool get hasFactory {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isFactory) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   int get hashCode {
@@ -2601,53 +2625,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get hasIsTest =>
-      metadata.any((ElementAnnotation annotation) => annotation.isIsTest);
-
-  @override
-  bool get hasIsTestGroup =>
-      metadata.any((ElementAnnotation annotation) => annotation.isIsTestGroup);
-
-  @override
-  bool get hasJS =>
-      metadata.any((ElementAnnotation annotation) => annotation.isJS);
-
-  @override
-  bool get hasOverride =>
-      metadata.any((ElementAnnotation annotation) => annotation.isOverride);
-
-  @override
-  bool get hasProtected =>
-      metadata.any((ElementAnnotation annotation) => annotation.isProtected);
-
-  @override
-  bool get hasRequired =>
-      metadata.any((ElementAnnotation annotation) => annotation.isRequired);
-
-  @override
-  bool get hasSealed =>
-      metadata.any((ElementAnnotation annotation) => annotation.isSealed);
-
-  @override
-  bool get hasVisibleForTemplate => metadata
-      .any((ElementAnnotation annotation) => annotation.isVisibleForTemplate);
-
-  @override
-  bool get hasVisibleForTesting => metadata
-      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
-
-  /// Return an identifier that uniquely identifies this element among the
-  /// children of this element's parent.
-  String get identifier => name;
-
-  @override
-  bool get isAlwaysThrows =>
-      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
-
-  @override
-  bool get isDeprecated {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isDeprecated) {
+  bool get hasIsTest {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isIsTest) {
         return true;
       }
     }
@@ -2655,9 +2637,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get isFactory {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isFactory) {
+  bool get hasIsTestGroup {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isIsTestGroup) {
         return true;
       }
     }
@@ -2665,8 +2649,10 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get isJS {
-    for (ElementAnnotation annotation in metadata) {
+  bool get hasJS {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
       if (annotation.isJS) {
         return true;
       }
@@ -2675,14 +2661,95 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get isOverride {
-    for (ElementAnnotation annotation in metadata) {
+  bool get hasOverride {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
       if (annotation.isOverride) {
         return true;
       }
     }
     return false;
   }
+
+  @override
+  bool get hasProtected {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasRequired {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isRequired) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasSealed {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isSealed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForTemplate {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isVisibleForTemplate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForTesting {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isVisibleForTesting) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return an identifier that uniquely identifies this element among the
+  /// children of this element's parent.
+  String get identifier => name;
+
+  @override
+  bool get isAlwaysThrows => hasAlwaysThrows;
+
+  @override
+  bool get isDeprecated => hasDeprecated;
+
+  @override
+  bool get isFactory => hasFactory;
+
+  @override
+  bool get isJS => hasJS;
+
+  @override
+  bool get isOverride => hasOverride;
 
   @override
   bool get isPrivate {
@@ -2694,27 +2761,13 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get isProtected {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isProtected) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isProtected => hasProtected;
 
   @override
   bool get isPublic => !isPrivate;
 
   @override
-  bool get isRequired {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isRequired) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isRequired => hasRequired;
 
   /// Return `true` if this element is resynthesized from a summary.
   bool get isResynthesized => enclosingUnit?.resynthesizerContext != null;
@@ -2727,12 +2780,8 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
-  bool get isVisibleForTemplate => metadata
-      .any((ElementAnnotation annotation) => annotation.isVisibleForTemplate);
-
   @override
-  bool get isVisibleForTesting => metadata
-      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
+  bool get isVisibleForTesting => hasVisibleForTesting;
 
   @override
   LibraryElement get library =>
@@ -2968,7 +3017,7 @@ abstract class ElementImpl implements Element {
 
   /// If the given [type] is a generic function type, then the element
   /// associated with the type is implicitly a child of this element and should
-  /// be visted by the given [visitor].
+  /// be visited by the given [visitor].
   void _safelyVisitPossibleChild(DartType type, ElementVisitor visitor) {
     Element element = type?.element;
     if (element is GenericFunctionTypeElementImpl &&
