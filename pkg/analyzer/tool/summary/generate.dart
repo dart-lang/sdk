@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,8 +17,6 @@
  * the entity being built into the given FlatBuffer and returns the `Offset`
  * reference to it.
  */
-library analyzer.tool.summary.generate;
-
 import 'dart:convert';
 import 'dart:io';
 
