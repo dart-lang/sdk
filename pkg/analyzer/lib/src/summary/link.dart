@@ -3729,8 +3729,6 @@ class LibraryElementInBuildUnit
   /// graph.
   LibraryNode _libraryNode;
 
-  InheritanceManager _inheritanceManager;
-
   List<ImportElement> _imports;
 
   List<PrefixElement> _prefixes;
@@ -3744,10 +3742,6 @@ class LibraryElementInBuildUnit
   List<ImportElement> get imports =>
       _imports ??= LibraryElementImpl.buildImportsFromSummary(this,
           _unlinkedDefiningUnit.imports, _linkedLibrary.importDependencies);
-
-  /// Get the inheritance manager for this library (creating it if necessary).
-  InheritanceManager get inheritanceManager =>
-      _inheritanceManager ??= new InheritanceManager(this);
 
   @override
   LibraryCycleForLink get libraryCycleForLink {

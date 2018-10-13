@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -3999,11 +3998,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// resolution. The [nameScope] is the scope used to resolve identifiers in
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on [definingLibrary] and
-  /// [typeProvider]. The [inheritanceManager] is used to perform inheritance
-  /// lookups.  If `null` or unspecified, a new [InheritanceManager] will be
-  /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
-  /// create the type analyzer.  If `null` or unspecified, a type analyzer of
-  /// type [StaticTypeAnalyzer] will be created.
+  /// [typeProvider].
   PartialResolverVisitor(
       InheritanceManager2 inheritance,
       LibraryElement definingLibrary,
@@ -4229,11 +4224,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// resolution. The [nameScope] is the scope used to resolve identifiers in
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on [definingLibrary] and
-  /// [typeProvider]. The [inheritanceManager] is used to perform inheritance
-  /// lookups.  If `null` or unspecified, a new [InheritanceManager] will be
-  /// created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
-  /// create the type analyzer.  If `null` or unspecified, a type analyzer of
-  /// type [StaticTypeAnalyzer] will be created.
+  /// [typeProvider].
   ResolverVisitor(
       this.inheritance,
       LibraryElement definingLibrary,
