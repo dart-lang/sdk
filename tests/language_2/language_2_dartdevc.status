@@ -20,6 +20,7 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 bug32372_test: RuntimeError
+bug32372_test: Skip
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
@@ -100,9 +101,12 @@ issue31596_super_test/05: CompileTimeError
 issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
+issue32353_2_test: Skip
 issue32353_test: RuntimeError
+issue32353_test: Skip
 issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
 issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
+issue34404_flutter_test: Skip
 issue34498_test: MissingCompileTimeError # Issue 34500
 issue34635_test: MissingCompileTimeError
 issue34636_test: MissingCompileTimeError
@@ -149,16 +153,28 @@ mixin_declaration/mixin_declaration_inference_valid_C13_test: CompileTimeError #
 mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/34164
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Analyzer chooses wrong(?) super method.
 mixin_method_override_test/01: MissingCompileTimeError
+mixin_of_mixin_test: Skip
+mixin_super_2_test: Skip
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_test: RuntimeError
+mixin_super_test: Skip
 mixin_super_use_test: RuntimeError
+mixin_super_use_test: Skip
+mixin_superclass_test: Skip
+mixin_supertype_subclass2_test: Skip
+mixin_supertype_subclass3_test: Skip
+mixin_supertype_subclass4_test: Skip
+mixin_supertype_subclass_test: Skip
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_error_test: Skip
+mixin_type_parameter_inference_previous_mixin_test: Skip
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_test: Skip
 mixin_type_parameter_inference_test/01: CompileTimeError
 mixin_type_parameter_inference_test/02: CompileTimeError
 mixin_type_parameter_inference_test/03: CompileTimeError
