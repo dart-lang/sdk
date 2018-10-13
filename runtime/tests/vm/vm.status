@@ -17,6 +17,7 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fail
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
+cc/Profiler_FunctionInline: Pass, Fail # Flaky failure.
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
