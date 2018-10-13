@@ -1617,12 +1617,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   /// Perform type inference and const cycle detection on this
   /// compilation unit.
   void link() {
-    var typeSystem = library._linker.typeSystem;
-    // TODO(scheglov) Reuse InheritanceManager2 for the whole linking.
-    var inheritance = new InheritanceManager2(typeSystem);
     new InstanceMemberInferrer(
-      typeSystem.typeProvider,
-      inheritance,
+      library._linker.typeProvider,
+      library._linker.inheritanceManager,
     ).inferCompilationUnit(this);
     for (TopLevelVariableElementForLink variable in topLevelVariables) {
       variable.link(this);
@@ -3912,8 +3909,10 @@ class Linker {
   SpecialTypeElementForLink _voidElement;
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
+  InheritanceManager2 _inheritanceManager;
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
+
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.getAst) {
     // Create elements for the libraries to be linked.  The rest of
@@ -3949,6 +3948,10 @@ class Linker {
   /// Get the element representing `dynamic`.
   SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
+
+  /// Get an instance of [InheritanceManager2] for use during linking.
+  InheritanceManager2 get inheritanceManager =>
+      _inheritanceManager ??= new InheritanceManager2(typeSystem);
 
   /// Indicates whether type inference should use strong mode rules.
   @deprecated
