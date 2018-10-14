@@ -3858,9 +3858,10 @@ class PartialResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {bool forAnalysisDriver: false,
+      Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            forAnalysisDriver: forAnalysisDriver, nameScope: nameScope);
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
@@ -4067,6 +4068,11 @@ class ResolverVisitor extends ScopedVisitor {
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
+  /**
+   * Whether this resolver is used inside Analysis Driver.
+   */
+  final bool forAnalysisDriver;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -4084,9 +4090,10 @@ class ResolverVisitor extends ScopedVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope,
+      {this.forAnalysisDriver: false,
+      Scope nameScope,
       bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      bool reportConstEvaluationErrors: true})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
@@ -4318,7 +4325,11 @@ class ResolverVisitor extends ScopedVisitor {
       // Analyzer ignores annotations on "part of" directives.
       assert(parent is PartOfDirective);
     } else {
-      elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
+      if (forAnalysisDriver) {
+        elementAnnotationImpl.annotationAst = node;
+      } else {
+        elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
+      }
     }
     return null;
   }
@@ -4670,8 +4681,12 @@ class ResolverVisitor extends ScopedVisitor {
       _enclosingFunction = outerFunction;
     }
     ConstructorElementImpl constructor = node.declaredElement;
-    constructor.constantInitializers =
-        _createCloner().cloneNodeList(node.initializers);
+    if (forAnalysisDriver) {
+      constructor.constantInitializers = node.initializers;
+    } else {
+      constructor.constantInitializers =
+          _createCloner().cloneNodeList(node.initializers);
+    }
     return null;
   }
 
@@ -4738,8 +4753,13 @@ class ResolverVisitor extends ScopedVisitor {
     // during constant evaluation.
     if (element is ConstVariableElement &&
         !_hasSerializedConstantInitializer(element)) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNode(node.defaultValue);
+      if (forAnalysisDriver) {
+        (element as ConstVariableElement).constantInitializer =
+            node.defaultValue;
+      } else {
+        (element as ConstVariableElement).constantInitializer =
+            _createCloner().cloneNode(node.defaultValue);
+      }
     }
     return null;
   }
@@ -5414,8 +5434,13 @@ class ResolverVisitor extends ScopedVisitor {
     // they occur in a class with a const constructor, they will be needed to
     // evaluate the const constructor).
     if (element is ConstVariableElement) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNode(node.initializer);
+      if (forAnalysisDriver) {
+        (element as ConstVariableElement).constantInitializer =
+            node.initializer;
+      } else {
+        (element as ConstVariableElement).constantInitializer =
+            _createCloner().cloneNode(node.initializer);
+      }
     }
     return null;
   }
