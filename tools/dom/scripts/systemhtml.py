@@ -820,11 +820,11 @@ promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
   "ImageCapture.takePhoto": { "type": "Blob" },
   "ImageCapture.grabFrame": { "type": "ImageBitmap" },
   "Navigator.getInstalledRelatedApps": { "type": "RelatedApplication" },
+  "OffscreenCanvas.convertToBlob": { "type": "Blob" },
   "MediaCapabilities.decodingInfo": { "type": "MediaCapabilitiesInfo" },
   "MediaCapabilities.encodingInfo": { "type": "MediaCapabilitiesInfo" },
   "MediaDevices.enumerateDevices": { "type": "List<MediaDeviceInfo>" },
   "MediaDevices.getUserMedia": { "type": "MediaStream" },
-  "MediaStreamTrack.applyConstraints": { "type": "MediaTrackConstraints" },
   "ServiceWorkerRegistration.getNotifications": { "type": "List<Notification>" },
   "PaymentInstruments.delete": { "type": "bool" },
   "PaymentInstruments.get": { "type": "dictionary" },
@@ -867,6 +867,13 @@ promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
   "BaseAudioContext.decodeAudioData": { "type": "AudioBuffer" },
   "OfflineAudioContext.startRendering": { "type": "AudioBuffer" },
 })
+
+promise_generateCall = monitored.Set('systemhtml.promise_generateCall', [
+   "Navigator.requestKeyboardLock",
+])
+
+def _IsPromiseOperationGenerateCall(interface_operation):
+    return interface_operation in promise_generateCall
 
 def _GetPromiseOperationType(interface_operation):
   if interface_operation in promise_operations:
@@ -1297,11 +1304,17 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddInterfaceOperation(info, html_name)
     elif info.callback_args:
       self._AddFutureifiedOperation(info, html_name)
-    elif any(self._OperationRequiresConversions(op) for op in info.overloads):
-      # Any conversions needed?
-      self._AddOperationWithConversions(info, html_name)
     else:
-      self._AddDirectNativeOperation(info, html_name)
+      if any(self._OperationRequiresConversions(op) for op in info.overloads):
+        lookupOp = "%s.%s" % (self._interface.id, html_name)
+        if (_GetPromiseOperationType(lookupOp) or info.type_name == 'Promise') and \
+          not _IsPromiseOperationGenerateCall(lookupOp):
+            self._AddDirectNativeOperation(info, html_name)
+        else:
+          # Any conversions needed?
+          self._AddOperationWithConversions(info, html_name)
+      else:
+        self._AddDirectNativeOperation(info, html_name)
 
   def _computeResultType(self, checkType):
     # TODO(terry): Work around bug in dart2js compiler e.g.,
@@ -1323,17 +1336,50 @@ class Dart2JSBackend(HtmlDartGenerator):
     argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
     return '    JS("", "#.$NAME(%s)", this, %s)' % (argsPound, argsNames)
 
-  def _promiseToFutureCode(self, argsNames):
+  """ If argument conversionsMapToDictionary is a list first entry is argument
+      name and second entry signals if argument is optional (True). """
+  def _promiseToFutureCode(self, argsNames, conversionsMapToDictionary=None):
     numberArgs = argsNames.count(',') + 1
     jsCall = self._zeroArgs(argsNames) if len(argsNames) == 0 else \
         self._manyArgs(numberArgs, argsNames)
 
-    futureTemplate = [
-    '\n'
-    '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) => $PROMISE_CALL(',
-    jsCall,
-    ');\n'
-    ]
+    futureTemplate = []
+    if conversionsMapToDictionary is None:
+      futureTemplate = [
+        '\n'
+        '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) => $PROMISE_CALL(', jsCall, ');\n'
+      ]
+    else:
+      mapArg = conversionsMapToDictionary[0]
+      tempVariable = '%s_dict' % mapArg
+      mapArgOptional = conversionsMapToDictionary[1]
+
+      if argsNames.endswith('%s' % mapArg):
+        argsNames = '%s_dict' % argsNames
+        jsCall = self._zeroArgs(argsNames) if len(argsNames) == 0 else \
+            self._manyArgs(numberArgs, argsNames)
+      if mapArgOptional:
+        futureTemplate = [
+          # We will need to convert the Map argument to a Dictionary, test if mapArg is there (optional) then convert.
+          '\n'
+          '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) {\n',
+          '    var ', tempVariable, ' = null;\n',
+          '    if (', mapArg, ' != null) {\n',
+          '      ', tempVariable, ' = convertDartToNative_Dictionary(', mapArg, ');\n',
+          '    }\n',
+          '    return $PROMISE_CALL(', jsCall, ');\n',
+          '  }\n'
+        ]
+      else:
+        futureTemplate = [
+          # We will need to convert the Map argument to a Dictionary, the Map argument is not optional.
+          '\n'
+          '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) {\n',
+          '    var ', tempVariable, ' = convertDartToNative_Dictionary(', mapArg, ');\n',
+          '    return $PROMISE_CALL(', jsCall, ');\n',
+          '  }\n'
+        ]
+
     return "".join(futureTemplate)
 
   def _AddDirectNativeOperation(self, info, html_name):
@@ -1363,7 +1409,8 @@ class Dart2JSBackend(HtmlDartGenerator):
           promiseType = 'Future<%s>' % paramType
 
       argsNames = info.ParametersAsArgumentList()
-      codeTemplate = self._promiseToFutureCode(argsNames)
+      dictionary_argument = info.dictionaryArgumentName();
+      codeTemplate = self._promiseToFutureCode(argsNames, dictionary_argument)
       self._members_emitter.Emit(codeTemplate,
         RENAME=self._RenamingAnnotation(info.declared_name, html_name),
         METADATA=self._Metadata(info.type_name, info.declared_name,
@@ -1413,7 +1460,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       target = '_%s_%d' % (
           html_name[1:] if html_name.startswith('_') else html_name, version);
 
-      (target_parameters, arguments) = self._ConvertArgumentTypes(
+      (target_parameters, arguments, calling_params) = self._ConvertArgumentTypes(
           stmts_emitter, operation.arguments, argument_count, info)
 
       argument_list = ', '.join(arguments)
@@ -1426,14 +1473,34 @@ class Dart2JSBackend(HtmlDartGenerator):
 
       call_emitter.Emit(call)
 
-      self._members_emitter.Emit(
-          '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
-          RENAME=self._RenamingAnnotation(info.declared_name, target),
-          METADATA=self._Metadata(info.type_name, info.declared_name, None),
-          MODIFIERS='static ' if info.IsStatic() else '',
-          TYPE=TypeOrNothing(native_return_type),
-          TARGET=target,
-          PARAMS=', '.join(target_parameters))
+      if (native_return_type == 'Future'):
+        hashArgs = ''
+        if argument_count > 0:
+          if argument_count < 20:
+            hashArgs = '#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#'[:argument_count * 2 - 1]
+          else:
+            print "ERROR: Arguments exceede 20 - please fix Python code to handle more."
+        self._members_emitter.Emit(
+            '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) =>\n'
+            '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)", this$CALLING_PARAMS));\n',
+            RENAME=self._RenamingAnnotation(info.declared_name, target),
+            METADATA=self._Metadata(info.type_name, info.declared_name, None),
+            MODIFIERS='static ' if info.IsStatic() else '',
+            TYPE=TypeOrNothing(native_return_type),
+            TARGET=target,
+            PARAMS=', '.join(target_parameters),
+            JSNAME=operation.id,
+            HASH_STR=hashArgs,
+            CALLING_PARAMS=calling_params)
+      else:
+        self._members_emitter.Emit(
+            '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
+            RENAME=self._RenamingAnnotation(info.declared_name, target),
+            METADATA=self._Metadata(info.type_name, info.declared_name, None),
+            MODIFIERS='static ' if info.IsStatic() else '',
+            TYPE=TypeOrNothing(native_return_type),
+            TARGET=target,
+            PARAMS=', '.join(target_parameters))
 
     # private methods don't need named arguments.
     full_name = '%s.%s' % (self._interface.id, info.declared_name)

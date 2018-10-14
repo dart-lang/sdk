@@ -1,6 +1,109 @@
 ## 2.1.0-dev.XX.0
-(Add new changes here, and they will be copied to the change section for the
-  next dev version)
+
+#### `dart:html`
+Fixed Service Workers and any Promise/Future API with a Dictionary parameter.
+
+APIs in dart:html (that take a Dictionary) will receive a Dart Map parameter.  The Map parameter
+must be converted to a Dictionary before passing to the browser's API.  Before this change,
+any Promise/Future API with a Map/Dictionary parameter never called the Promise and didn't
+return a Dart Future - now it does.
+
+This caused a number of breaks especially in Service Workers (register, etc.).  Here is a
+complete list of the fixed APIs:
+
+BackgroundFetchManager
+    Future<BackgroundFetchRegistration> fetch(String id, Object requests, [Map options])
+
+CacheStorage
+    Future match(/*RequestInfo*/ request, [Map options])
+
+CanMakePayment
+    Future<List<Client>> matchAll([Map options])
+
+CookieStore
+    Future getAll([Map options])
+    Future set(String name, String value, [Map options])
+
+CredentialsContainer
+    Future get([Map options])
+    Future create([Map options])
+
+ImageCapture
+    Future setOptions(Map photoSettings)
+
+MediaCapabilities
+    Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)
+    Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)
+
+MediaStreamTrack
+    Future applyConstraints([Map constraints])
+
+Navigator
+    Future requestKeyboardLock([List<String> keyCodes])
+    Future requestMidiAccess([Map options])
+    Future share([Map data])
+
+OffscreenCanvas
+    Future<Blob> convertToBlob([Map options])
+
+PaymentInstruments
+    Future set(String instrumentKey, Map details)
+
+Permissions
+    Future<PermissionStatus> query(Map permission)
+    Future<PermissionStatus> request(Map permissions)
+    Future<PermissionStatus> revoke(Map permission)
+
+PushManager
+    Future permissionState([Map options])
+    Future<PushSubscription> subscribe([Map options])
+
+RtcPeerConnection
+    * **CHANGED** Future createAnswer([options_OR_successCallback,
+                                       RtcPeerConnectionErrorCallback failureCallback,
+                                       Map mediaConstraints])
+    Future<RtcSessionDescription> createAnswer([Map options])
+    * **CHANGED** Future createOffer([options_OR_successCallback,
+                                      RtcPeerConnectionErrorCallback failureCallback,
+                                      Map rtcOfferOptions])
+    Future<RtcSessionDescription> createOffer([Map options])
+    * **CHANGED** Future setLocalDescription(Map description, VoidCallback successCallback,
+                                             [RtcPeerConnectionErrorCallback failureCallback])
+    Future setLocalDescription(Map description)
+    * **CHANGED** Future setLocalDescription(Map description, VoidCallback successCallback,
+                                             [RtcPeerConnectionErrorCallback failureCallback])
+    Future setRemoteDescription(Map description)
+
+ServiceWorkerContainer
+    Future<ServiceWorkerRegistration> register(String url, [Map options])
+
+ServiceWorkerRegistration
+    Future<List<Notification>> getNotifications([Map filter])
+    Future showNotification(String title, [Map options])
+
+VRDevice
+    Future requestSession([Map options])
+    Future supportsSession([Map options])
+
+VRSession
+    Future requestFrameOfReference(String type, [Map options])
+
+Window
+    Future fetch(/*RequestInfo*/ input, [Map init])
+
+WorkerGlobalScope
+    Future fetch(/*RequestInfo*/ input, [Map init])
+
+In addition, exposed Service Worker "self" as a static getter named "instance".  The
+instance is exposed on four different Service Worker classes and can throw a InstanceTypeError
+if the instance isn't of the class expected (WorkerGlobalScope.instance will always work
+and not throw):
+
+*   SharedWorkerGlobalScope.instance
+*   DedicatedWorkerGlobalScope.instance
+*   ServiceWorkerGlobalScope.instance
+*   WorkerGlobalScope.instance
+
 
 ### Language
 

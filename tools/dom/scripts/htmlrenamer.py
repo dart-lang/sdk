@@ -202,8 +202,6 @@ convert_to_future_members = monitored.Set(
   'FontLoader.notifyWhenFontsReady',
   'MediaStreamTrack.getSources',
   'Notification.requestPermission',
-  'RTCPeerConnection.setLocalDescription',
-  'RTCPeerConnection.setRemoteDescription',
   'SQLTransaction.executeSql',
   'StorageInfo.requestQuota',
   'StorageQuota.requestQuota',
@@ -216,6 +214,7 @@ convert_to_future_members = monitored.Set(
 # DDC Exposed Classes
 ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
   'DirectoryEntry': {
+      'getDirectory': [ '' ],
       'getFile': [
           'applyExtension(\'FileEntry\', value);',
       ]
@@ -423,8 +422,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'ParentNode.lastElementChild',
   'ParentNode.querySelectorAll',
   'Range.getClientRects',
-  'RTCPeerConnection.createAnswer',
-  'RTCPeerConnection.createOffer',
   'Screen.availHeight',
   'Screen.availLeft',
   'Screen.availTop',
@@ -579,6 +576,9 @@ overloaded_and_renamed = monitored.Set(
   'CanvasRenderingContext2D.stroke',
   'Navigator.sendBeacon',
 ])
+
+def convertedFutureMembers(member):
+  return member in convert_to_future_members
 
 for member in convert_to_future_members:
   if member in renamed_html_members:
