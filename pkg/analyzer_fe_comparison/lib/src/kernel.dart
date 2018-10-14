@@ -101,7 +101,9 @@ class _KernelVisitor extends TreeVisitor<void> {
     if (class_.isAnonymousMixin) return null;
     var kind = class_.isEnum
         ? 'Enum'
-        : class_.isMixinApplication ? 'MixinApplication' : 'Class';
+        : class_.isMixinApplication
+            ? 'MixinApplication'
+            : class_.isMixinDeclaration ? 'Mixin' : 'Class';
     var children = <ComparisonNode>[];
     var visitor = _KernelVisitor(children);
     if (class_.isEnum) {
@@ -115,22 +117,40 @@ class _KernelVisitor extends TreeVisitor<void> {
       visitor._visitTypeParameters(class_.typeParameters);
       if (class_.supertype != null) {
         var declaredSupertype = class_.supertype.asInterfaceType;
-        var mixedInTypes = <DartType>[];
-        if (class_.isMixinApplication) {
-          mixedInTypes.add(class_.mixedInType.asInterfaceType);
-        }
-        while (declaredSupertype.classNode.isAnonymousMixin) {
-          // Since we're walking from the class to its declared supertype, we
-          // encounter the mixins in the reverse order that they were declared,
-          // so we have to use [List.insert] to add them to [mixedInTypes].
-          mixedInTypes.insert(
-              0, declaredSupertype.classNode.mixedInType.asInterfaceType);
-          declaredSupertype =
-              declaredSupertype.classNode.supertype.asInterfaceType;
-        }
-        children.add(_TypeVisitor.translate('Extends: ', declaredSupertype));
-        for (int i = 0; i < mixedInTypes.length; i++) {
-          children.add(_TypeVisitor.translate('Mixin $i: ', mixedInTypes[i]));
+        if (class_.isMixinDeclaration) {
+          // Kernel represents a mixin declaration such as:
+          //   mixin M on S0, S1 {...}
+          // By desugaring it to two classes:
+          //   abstract class _M&S0&S1 implements S0, S1 {}
+          //   abstract class M extends M&S0&S1 {...}
+          List<Supertype> superclassImplements;
+          if (declaredSupertype.classNode.isAnonymousMixin) {
+            superclassImplements = declaredSupertype.classNode.implementedTypes;
+          } else {
+            superclassImplements = [class_.supertype];
+          }
+          for (int i = 0; i < superclassImplements.length; i++) {
+            children.add(_TypeVisitor.translate(
+                'On $i: ', superclassImplements[i].asInterfaceType));
+          }
+        } else {
+          var mixedInTypes = <DartType>[];
+          if (class_.isMixinApplication) {
+            mixedInTypes.add(class_.mixedInType.asInterfaceType);
+          }
+          while (declaredSupertype.classNode.isAnonymousMixin) {
+            // Since we're walking from the class to its declared supertype, we
+            // encounter the mixins in the reverse order that they were declared,
+            // so we have to use [List.insert] to add them to [mixedInTypes].
+            mixedInTypes.insert(
+                0, declaredSupertype.classNode.mixedInType.asInterfaceType);
+            declaredSupertype =
+                declaredSupertype.classNode.supertype.asInterfaceType;
+          }
+          children.add(_TypeVisitor.translate('Extends: ', declaredSupertype));
+          for (int i = 0; i < mixedInTypes.length; i++) {
+            children.add(_TypeVisitor.translate('Mixin $i: ', mixedInTypes[i]));
+          }
         }
       }
       for (int i = 0; i < class_.implementedTypes.length; i++) {
