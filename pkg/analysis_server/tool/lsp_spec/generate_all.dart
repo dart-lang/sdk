@@ -35,7 +35,7 @@ main() async {
   final String spec = await fetchSpec();
   final List<ApiItem> types = extractAllTypes(extractTypeScriptBlocks(spec));
   final String output = generateDartForTypes(types);
-  // TODO(dantup): Add file header to output file before we start committing it.
+
   new File(path.join(outFolder, 'protocol_generated.dart'))
       .writeAsStringSync(_generatedFileHeader + output);
 }
