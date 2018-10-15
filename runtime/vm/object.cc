@@ -1215,8 +1215,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::VMHeapObjectTag::update(
-          obj.raw()->ptr()->IsVMHeapObject(), new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
+                                                    new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1232,7 +1232,10 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = obj.CompareAndSwapTags(old_tags, new_tags);
+        // We can't use obj.CompareAndSwapTags here because we don't have a
+        // handle for the new object.
+        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
+                                                      old_tags, new_tags);
       } while (tags != old_tags);
     }
   }

@@ -1054,6 +1054,7 @@ LibTest/typed_data/Uint16List/any_A01_t01: RuntimeError
 LibTest/typed_data/Uint16List/every_A01_t01: RuntimeError
 LibTest/typed_data/Uint32List/any_A01_t01: RuntimeError
 LibTest/typed_data/Uint32List/every_A01_t01: RuntimeError
+LibTest/typed_data/Uint32List/shuffle_A01_t01: RuntimeError, Pass
 LibTest/typed_data/Uint64List/any_A01_t01: RuntimeError
 LibTest/typed_data/Uint64List/every_A01_t01: RuntimeError
 LibTest/typed_data/Uint64List/last_A01_t02: RuntimeError
