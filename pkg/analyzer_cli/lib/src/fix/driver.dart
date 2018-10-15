@@ -5,11 +5,11 @@ import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:analyzer_cli/src/fix/options.dart';
 import 'package:analyzer_cli/src/fix/server.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 
