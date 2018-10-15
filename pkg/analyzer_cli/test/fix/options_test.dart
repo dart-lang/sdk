@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_cli/src/fix/options.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -11,21 +12,24 @@ import 'test_context.dart';
 main() {
   group('Options', () {
     TestContext context;
+    Logger logger;
 
     String p(String filePath) => context.convertPath(filePath);
 
-    Options parse(List<String> args,
-        {String errorOut,
-        int exitCode,
-        bool force = false,
-        String normalOut,
-        bool overwrite = false,
-        List<String> targetSuffixes,
-        bool verbose = false}) {
+    Options parse(
+      List<String> args, {
+      String errorOut,
+      int exitCode,
+      bool force = false,
+      String normalOut,
+      bool overwrite = false,
+      List<String> targetSuffixes,
+      bool verbose = false,
+    }) {
       Options options;
       int actualExitCode;
       try {
-        options = Options.parse(args, context);
+        options = Options.parse(args, context, logger: logger);
       } on TestExit catch (e) {
         actualExitCode = e.code;
       }
@@ -57,6 +61,7 @@ main() {
 
     setUp(() {
       context = new TestContext();
+      logger = new _TestLogger(context);
     });
 
     test('force', () {
@@ -109,4 +114,35 @@ void expectContains(Iterable<String> collection, String suffix) {
     }
   }
   fail('Expected one of $collection\n  to end with "$suffix"');
+}
+
+class _TestLogger implements Logger {
+  final TestContext context;
+  final Ansi ansi;
+
+  _TestLogger(this.context) : this.ansi = new Ansi(false);
+
+  @override
+  void flush() {}
+
+  @override
+  bool get isVerbose => false;
+
+  @override
+  Progress progress(String message) {
+    return new SimpleProgress(this, message);
+  }
+
+  @override
+  void stderr(String message) {
+    context.stderr.writeln(message);
+  }
+
+  @override
+  void stdout(String message) {
+    context.stdout.writeln(message);
+  }
+
+  @override
+  void trace(String message) {}
 }
