@@ -131,13 +131,25 @@ class Field extends Member {
       }
       return true;
     }).map((m) {
-      final String comment = m.group(1);
+      String comment = m.group(1);
       String name = m.group(2);
       String typesString = m.group(3).trim();
       // Our regex may result in semicolons on the end...
       // TODO(dantup): Fix this, or make a simple parser.
       if (typesString.endsWith(';')) {
         typesString = typesString.substring(0, typesString.length - 1);
+      }
+      // Some fields have weird comments like this in the spec:
+      //     {@link MessageType}
+      // These seem to be the correct type of the field, while the field is
+      // marked with number.
+      if (comment != null) {
+        final RegExp _linkTypePattern = new RegExp(r'See \{@link (\w+)\}\.?');
+        final linkTypeMatch = _linkTypePattern.firstMatch(comment);
+        if (linkTypeMatch != null) {
+          typesString = linkTypeMatch.group(1);
+          comment = comment.replaceAll(_linkTypePattern, '');
+        }
       }
       final List<String> types = _parseTypes(typesString, '|');
       final bool allowsNull = types.contains('null');

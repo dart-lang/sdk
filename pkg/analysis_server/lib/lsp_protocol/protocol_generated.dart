@@ -854,30 +854,33 @@ class DocumentRangeFormattingParams {
 /// have two ranges: one that encloses its definition and one that points to its
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol {
+  DocumentSymbol(this.children, this.deprecated, this.detail, this.kind,
+      this.name, this.range, this.selectionRange);
+
   /// Children of this symbol, e.g. properties of a class.
-  List<DocumentSymbol> children;
+  final List<DocumentSymbol> children;
 
   /// Indicates if this symbol is deprecated.
-  bool deprecated;
+  final bool deprecated;
 
   /// More detail for this symbol, e.g the signature of a function.
-  String detail;
+  final String detail;
 
   /// The kind of this symbol.
-  SymbolKind kind;
+  final SymbolKind kind;
 
   /// The name of this symbol.
-  String name;
+  final String name;
 
   /// The range enclosing this symbol not including leading/trailing whitespace
   /// but everything else like comments. This information is typically used to
   /// determine if the clients cursor is inside the symbol to reveal in the
   /// symbol in the UI.
-  Range range;
+  final Range range;
 
   /// The range that should be selected and revealed when this symbol is being
   /// picked, e.g the name of a function. Must be contained by the `range`.
-  Range selectionRange;
+  final Range selectionRange;
 }
 
 class DocumentSymbolParams {
@@ -1126,8 +1129,8 @@ class LogMessageParams {
   /// The actual message
   final String message;
 
-  /// The message type. See {@link MessageType}
-  final num type;
+  /// The message type.
+  final MessageType type;
 }
 
 /// A `MarkupContent` literal represents a string value which content is
@@ -1509,8 +1512,8 @@ class ShowMessageParams {
   /// The actual message.
   final String message;
 
-  /// The message type. See {@link MessageType}.
-  final num type;
+  /// The message type.
+  final MessageType type;
 }
 
 class ShowMessageRequestParams {
@@ -1522,8 +1525,8 @@ class ShowMessageRequestParams {
   /// The actual message
   final String message;
 
-  /// The message type. See {@link MessageType}
-  final num type;
+  /// The message type.
+  final MessageType type;
 }
 
 /// Signature help represents the signature of something callable. There can be
