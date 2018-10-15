@@ -220,7 +220,6 @@ class TypeEnvironment extends SubtypeTester {
   // to typedefs are preserved in the Kernel output.
   List<Object> findBoundViolations(DartType type,
       {bool allowSuperBounded = false,
-      bool isCovariant = true,
       Map<FunctionType, List<DartType>> typedefInstantiations}) {
     List<TypeParameter> variables;
     List<DartType> arguments;
@@ -241,7 +240,6 @@ class TypeEnvironment extends SubtypeTester {
           typedefReference: null);
       typedefRhsResult = findBoundViolations(cloned,
           allowSuperBounded: true,
-          isCovariant: isCovariant,
           typedefInstantiations: typedefInstantiations);
       type = new TypedefType(functionType.typedef, typedefInstantiations[type]);
     }
@@ -254,23 +252,26 @@ class TypeEnvironment extends SubtypeTester {
       arguments = type.typeArguments;
     } else if (type is FunctionType) {
       List<Object> result = <Object>[];
+      for (TypeParameter parameter in type.typeParameters) {
+        result.addAll(findBoundViolations(parameter.bound,
+                allowSuperBounded: true,
+                typedefInstantiations: typedefInstantiations) ??
+            const <Object>[]);
+      }
       for (DartType formal in type.positionalParameters) {
         result.addAll(findBoundViolations(formal,
                 allowSuperBounded: true,
-                isCovariant: !isCovariant,
                 typedefInstantiations: typedefInstantiations) ??
             const <Object>[]);
       }
       for (NamedType named in type.namedParameters) {
         result.addAll(findBoundViolations(named.type,
                 allowSuperBounded: true,
-                isCovariant: !isCovariant,
                 typedefInstantiations: typedefInstantiations) ??
             const <Object>[]);
       }
       result.addAll(findBoundViolations(type.returnType,
               allowSuperBounded: true,
-              isCovariant: isCovariant,
               typedefInstantiations: typedefInstantiations) ??
           const <Object>[]);
       return result.isEmpty ? null : result;
@@ -296,7 +297,6 @@ class TypeEnvironment extends SubtypeTester {
 
       List<Object> violations = findBoundViolations(arguments[i],
           allowSuperBounded: true,
-          isCovariant: isCovariant,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {
         argumentsResult ??= <Object>[];
@@ -317,7 +317,7 @@ class TypeEnvironment extends SubtypeTester {
     if (!allowSuperBounded) return result;
 
     result = null;
-    type = convertSuperBoundedToRegularBounded(type, isCovariant: isCovariant);
+    type = convertSuperBoundedToRegularBounded(type);
     List<DartType> argumentsToReport = arguments.toList();
     if (type is InterfaceType) {
       variables = type.classNode.typeParameters;
@@ -370,7 +370,6 @@ class TypeEnvironment extends SubtypeTester {
 
       List<Object> violations = findBoundViolations(arguments[i],
           allowSuperBounded: true,
-          isCovariant: true,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {
         result ??= <Object>[];

@@ -211,11 +211,6 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fast
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
-instantiate_to_bounds_super_bounded_test/54: CompileTimeError # Issue 34613
-instantiate_to_bounds_super_bounded_test/55: CompileTimeError # Issue 34613
-instantiate_to_bounds_super_bounded_test/56: CompileTimeError # Issue 34613
-instantiate_to_bounds_super_bounded_test/57: CompileTimeError # Issue 34613
-instantiate_to_bounds_super_bounded_test/58: CompileTimeError # Issue 34613
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
 issue34488_test/01: MissingCompileTimeError # Issue 34488
