@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -438,6 +438,11 @@ abstract class IntegrationTestMixin {
    *
    *   The name of the function being invoked at the given offset.
    *
+   * parameters: List<ParameterInfo>
+   *
+   *   A list of information about each of the parameters of the function being
+   *   invoked.
+   *
    * dartdoc: String (optional)
    *
    *   The dartdoc associated with the function being invoked. Other than the
@@ -445,11 +450,6 @@ abstract class IntegrationTestMixin {
    *   case of a block comment, the dartdoc is unprocessed markdown. This data
    *   is omitted if there is no referenced element, or if the element has no
    *   dartdoc.
-   *
-   * parameters: List<ParameterInfo>
-   *
-   *   A list of information about each of the parameters of the function being
-   *   invoked.
    */
   Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
       String file, int offset) async {

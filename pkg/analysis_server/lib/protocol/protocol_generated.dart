@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -2017,8 +2017,8 @@ class AnalysisGetSignatureParams implements RequestParams {
  *
  * {
  *   "name": String
- *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
+ *   "dartdoc": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2026,9 +2026,9 @@ class AnalysisGetSignatureParams implements RequestParams {
 class AnalysisGetSignatureResult implements ResponseResult {
   String _name;
 
-  String _dartdoc;
-
   List<ParameterInfo> _parameters;
+
+  String _dartdoc;
 
   /**
    * The name of the function being invoked at the given offset.
@@ -2041,6 +2041,21 @@ class AnalysisGetSignatureResult implements ResponseResult {
   void set name(String value) {
     assert(value != null);
     this._name = value;
+  }
+
+  /**
+   * A list of information about each of the parameters of the function being
+   * invoked.
+   */
+  List<ParameterInfo> get parameters => _parameters;
+
+  /**
+   * A list of information about each of the parameters of the function being
+   * invoked.
+   */
+  void set parameters(List<ParameterInfo> value) {
+    assert(value != null);
+    this._parameters = value;
   }
 
   /**
@@ -2063,26 +2078,11 @@ class AnalysisGetSignatureResult implements ResponseResult {
     this._dartdoc = value;
   }
 
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
-  List<ParameterInfo> get parameters => _parameters;
-
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
-  void set parameters(List<ParameterInfo> value) {
-    assert(value != null);
-    this._parameters = value;
-  }
-
   AnalysisGetSignatureResult(String name, List<ParameterInfo> parameters,
       {String dartdoc}) {
     this.name = name;
-    this.dartdoc = dartdoc;
     this.parameters = parameters;
+    this.dartdoc = dartdoc;
   }
 
   factory AnalysisGetSignatureResult.fromJson(
@@ -2097,11 +2097,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "name");
       }
-      String dartdoc;
-      if (json.containsKey("dartdoc")) {
-        dartdoc =
-            jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
-      }
       List<ParameterInfo> parameters;
       if (json.containsKey("parameters")) {
         parameters = jsonDecoder.decodeList(
@@ -2111,6 +2106,11 @@ class AnalysisGetSignatureResult implements ResponseResult {
                 new ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
+      }
+      String dartdoc;
+      if (json.containsKey("dartdoc")) {
+        dartdoc =
+            jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
       }
       return new AnalysisGetSignatureResult(name, parameters, dartdoc: dartdoc);
     } else {
@@ -2130,11 +2130,11 @@ class AnalysisGetSignatureResult implements ResponseResult {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["name"] = name;
+    result["parameters"] =
+        parameters.map((ParameterInfo value) => value.toJson()).toList();
     if (dartdoc != null) {
       result["dartdoc"] = dartdoc;
     }
-    result["parameters"] =
-        parameters.map((ParameterInfo value) => value.toJson()).toList();
     return result;
   }
 
@@ -2150,9 +2150,9 @@ class AnalysisGetSignatureResult implements ResponseResult {
   bool operator ==(other) {
     if (other is AnalysisGetSignatureResult) {
       return name == other.name &&
-          dartdoc == other.dartdoc &&
           listEqual(parameters, other.parameters,
-              (ParameterInfo a, ParameterInfo b) => a == b);
+              (ParameterInfo a, ParameterInfo b) => a == b) &&
+          dartdoc == other.dartdoc;
     }
     return false;
   }
@@ -2161,8 +2161,8 @@ class AnalysisGetSignatureResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
