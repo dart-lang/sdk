@@ -10,10 +10,21 @@ import 'dart:io' show Platform, Process, ProcessResult, stderr, stdout;
 
 import '../fasta/colors.dart' show ALL_CODES, TERMINAL_CAPABILITIES;
 
+import 'diagnostic_message.dart' show DiagnosticMessage;
+
 /// True if we should enable colors in output.
 ///
 /// We enable colors only when both [stdout] and [stderr] support ANSI escapes.
 final bool enableTerminalColors = _computeEnableColors();
+
+void printDiagnosticMessage(
+    DiagnosticMessage message, void Function(String) println) {
+  if (enableTerminalColors) {
+    message.ansiFormatted.forEach(println);
+  } else {
+    message.plainTextFormatted.forEach(println);
+  }
+}
 
 /// On Windows, colors are enabled if both stdout and stderr supports ANSI
 /// escapes.  On other platforms, we rely on the external programs `tty` and
