@@ -589,7 +589,7 @@ class FlowGraphCompiler : public ValueObject {
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
 
-  bool NeedsEdgeCounter(TargetEntryInstr* block);
+  bool NeedsEdgeCounter(BlockEntryInstr* block);
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)

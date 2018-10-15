@@ -6,6 +6,7 @@
 
 #include "vm/compiler/frontend/flow_graph_builder.h"
 
+#include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
@@ -229,7 +230,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
   }
 }
 
-void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
+void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
   ASSERT(call_->previous() != NULL);
   ASSERT(call_->next() != NULL);
   BlockEntryInstr* call_block = call_->GetBlock();
@@ -260,7 +261,11 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
                                    CompilerState::Current().GetNextDeoptId()),
         CompilerState::Current().GetNextDeoptId());  // No number check.
     branch->InheritDeoptTarget(zone(), call_);
-    *branch->true_successor_address() = callee_entry;
+
+    auto true_target = BranchSimplifier::ToTargetEntry(zone(), callee_entry);
+    callee_entry->ReplaceAsPredecessorWith(true_target);
+
+    *branch->true_successor_address() = true_target;
     *branch->false_successor_address() = false_block;
 
     call_->previous()->AppendInstruction(branch);
@@ -271,7 +276,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     call_->ReplaceUsesWith(caller_graph_->constant_null());
 
     // Update dominator tree.
-    call_block->AddDominatedBlock(callee_entry);
+    call_block->AddDominatedBlock(true_target);
     call_block->AddDominatedBlock(false_block);
 
   } else {

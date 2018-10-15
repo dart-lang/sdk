@@ -194,6 +194,7 @@ class BaseFlowGraphBuilder {
   ArgumentArray GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
+  FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 

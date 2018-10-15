@@ -15,6 +15,8 @@ class Field;
 class FlowGraph;
 class ForwardInstructionIterator;
 class Function;
+class FunctionEntryInstr;
+class GraphEntryInstr;
 class ICData;
 class InstanceCallInstr;
 class Instruction;
@@ -134,7 +136,8 @@ class FlowGraphInliner : ValueObject {
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
-                                        TargetEntryInstr** entry,
+                                        GraphEntryInstr* graph_entry,
+                                        FunctionEntryInstr** entry,
                                         Instruction** last,
                                         SpeculativeInliningPolicy* policy,
                                         ExactnessInfo* exactness = nullptr);

@@ -243,25 +243,15 @@ void SSALivenessAnalysis::ComputeInitialSets() {
           }
         }
       }
-    } else if (block->IsCatchBlockEntry()) {
-      // Process initial definitions.
-      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
-      for (intptr_t i = 0; i < catch_entry->initial_definitions()->length();
-           i++) {
-        Definition* def = (*catch_entry->initial_definitions())[i];
+    } else if (auto entry = block->AsBlockEntryWithInitialDefs()) {
+      // Process initial definitions, i.e. parameters and special parameters.
+      for (intptr_t i = 0; i < entry->initial_definitions()->length(); i++) {
+        Definition* def = (*entry->initial_definitions())[i];
         const intptr_t vreg = def->ssa_temp_index();
-        kill_[catch_entry->postorder_number()]->Add(vreg);
-        live_in_[catch_entry->postorder_number()]->Remove(vreg);
+        kill_[entry->postorder_number()]->Add(vreg);
+        live_in_[entry->postorder_number()]->Remove(vreg);
       }
     }
-  }
-
-  // Process initial definitions, ie, constants and incoming parameters.
-  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); i++) {
-    Definition* def = (*graph_entry_->initial_definitions())[i];
-    const intptr_t vreg = def->ssa_temp_index();
-    kill_[graph_entry_->postorder_number()]->Add(vreg);
-    live_in_[graph_entry_->postorder_number()]->Remove(vreg);
   }
 }
 
@@ -584,20 +574,28 @@ void FlowGraphAllocator::BuildLiveRanges() {
       }
     }
 
-    if (block->IsJoinEntry()) {
-      ConnectIncomingPhiMoves(block->AsJoinEntry());
-    } else if (block->IsCatchBlockEntry()) {
+    if (auto join_entry = block->AsJoinEntry()) {
+      ConnectIncomingPhiMoves(join_entry);
+    } else if (auto catch_entry = block->AsCatchBlockEntry()) {
       // Process initial definitions.
-      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
-
       ProcessEnvironmentUses(catch_entry, catch_entry);  // For lazy deopt
-
       for (intptr_t i = 0; i < catch_entry->initial_definitions()->length();
            i++) {
         Definition* defn = (*catch_entry->initial_definitions())[i];
         LiveRange* range = GetLiveRange(defn->ssa_temp_index());
         range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
         ProcessInitialDefinition(defn, range, catch_entry);
+      }
+    } else if (auto entry = block->AsBlockEntryWithInitialDefs()) {
+      ASSERT(block->IsFunctionEntry() || block->IsOsrEntry());
+      auto& initial_definitions = *entry->initial_definitions();
+      for (intptr_t i = 0; i < initial_definitions.length(); i++) {
+        Definition* defn = initial_definitions[i];
+        ASSERT(!defn->HasPairRepresentation());
+        LiveRange* range = GetLiveRange(defn->ssa_temp_index());
+        range->AddUseInterval(entry->start_pos(), entry->start_pos() + 2);
+        range->DefineAt(entry->start_pos());
+        ProcessInitialDefinition(defn, range, entry);
       }
     }
   }
@@ -729,10 +727,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     range->set_assigned_location(loc);
     if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
-      if (range->End() > kNormalEntryPos) {
-        SplitInitialDefinitionAt(range, kNormalEntryPos);
+      if (range->End() > (block->lifetime_position() + 2)) {
+        SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
       }
       ConvertAllUses(range);
+      BlockLocation(loc, block->lifetime_position(),
+                    block->lifetime_position() + 2);
       return;
     }
   } else {
@@ -2504,18 +2504,17 @@ MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
                                             Location from) {
   ASSERT(!IsBlockEntry(pos));
 
-  if (pos < kNormalEntryPos) {
-    ASSERT(pos > 0);
-    // Parallel moves added to the GraphEntry (B0) will be added at the start
-    // of the normal entry (B1)
-    BlockEntryInstr* entry = InstructionAt(kNormalEntryPos)->AsBlockEntry();
-    return entry->GetParallelMove()->AddMove(to, from);
-  }
-
-  Instruction* instr = InstructionAt(pos);
+  // Now that the GraphEntry (B0) does no longer have any parameter instructions
+  // in it so we should not attempt to add parallel moves to it.
+  ASSERT(pos >= kNormalEntryPos);
 
   ParallelMoveInstr* parallel_move = NULL;
-  if (IsInstructionStartPosition(pos)) {
+  Instruction* instr = InstructionAt(pos);
+  if (auto entry = instr->AsFunctionEntry()) {
+    // Parallel moves added to the FunctionEntry will be added after the block
+    // entry.
+    parallel_move = CreateParallelMoveAfter(entry, pos);
+  } else if (IsInstructionStartPosition(pos)) {
     parallel_move = CreateParallelMoveBefore(instr, pos);
   } else {
     parallel_move = CreateParallelMoveAfter(instr, pos);
@@ -2886,10 +2885,11 @@ static Representation RepresentationForRange(Representation definition_rep) {
 }
 
 void FlowGraphAllocator::CollectRepresentations() {
-  // Parameters.
+  // Constants.
   GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
-  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); ++i) {
-    Definition* def = (*graph_entry->initial_definitions())[i];
+  auto initial_definitions = graph_entry->initial_definitions();
+  for (intptr_t i = 0; i < initial_definitions->length(); ++i) {
+    Definition* def = (*initial_definitions)[i];
     value_representations_[def->ssa_temp_index()] =
         RepresentationForRange(def->representation());
     ASSERT(!def->HasPairRepresentation());
@@ -2899,20 +2899,15 @@ void FlowGraphAllocator::CollectRepresentations() {
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
 
-    // Catch entry.
-    if (block->IsCatchBlockEntry()) {
-      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
-      for (intptr_t i = 0; i < catch_entry->initial_definitions()->length();
-           ++i) {
-        Definition* def = (*catch_entry->initial_definitions())[i];
+    if (auto entry = block->AsBlockEntryWithInitialDefs()) {
+      initial_definitions = entry->initial_definitions();
+      for (intptr_t i = 0; i < initial_definitions->length(); ++i) {
+        Definition* def = (*initial_definitions)[i];
         ASSERT(!def->HasPairRepresentation());
         value_representations_[def->ssa_temp_index()] =
             RepresentationForRange(def->representation());
       }
-    }
-    // Phis.
-    if (block->IsJoinEntry()) {
-      JoinEntryInstr* join = block->AsJoinEntry();
+    } else if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
         ASSERT(phi != NULL && phi->ssa_temp_index() >= 0);
@@ -2924,6 +2919,7 @@ void FlowGraphAllocator::CollectRepresentations() {
         }
       }
     }
+
     // Normal instructions.
     for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
          instr_it.Advance()) {

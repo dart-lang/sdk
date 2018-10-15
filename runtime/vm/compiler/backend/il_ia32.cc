@@ -5926,8 +5926,11 @@ void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->CanFallThroughTo(normal_entry())) {
-    __ jmp(compiler->GetJumpLabel(normal_entry()));
+  BlockEntryInstr* entry = normal_entry();
+  if (entry == nullptr) entry = osr_entry();
+
+  if (!compiler->CanFallThroughTo(entry)) {
+    __ jmp(compiler->GetJumpLabel(entry));
   }
 }
 

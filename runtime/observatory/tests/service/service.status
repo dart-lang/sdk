@@ -104,7 +104,7 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 *: SkipByDesign
 
 [ $compiler == dartk || $compiler == dartkp ]
-rewind_test: Pass, RuntimeError, Slow # Issue 34287
+rewind_test: Pass, Slow
 
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]

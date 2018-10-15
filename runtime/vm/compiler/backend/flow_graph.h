@@ -150,10 +150,6 @@ class FlowGraph : public ZoneAllocated {
     return num_direct_parameters_ - variable->index().value();
   }
 
-  bool IsEntryPoint(BlockEntryInstr* target) const {
-    return graph_entry()->IsEntryPoint(target);
-  }
-
   // Flow graph orders.
   const GrowableArray<BlockEntryInstr*>& preorder() const { return preorder_; }
   const GrowableArray<BlockEntryInstr*>& postorder() const {
@@ -230,7 +226,9 @@ class FlowGraph : public ZoneAllocated {
   intptr_t InstructionCount() const;
 
   ConstantInstr* GetConstant(const Object& object);
-  void AddToInitialDefinitions(Definition* defn);
+  void AddToGraphInitialDefinitions(Definition* defn);
+  void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
+                               Definition* defn);
 
   enum UseKind { kEffect, kValue };
 
@@ -428,7 +426,21 @@ class FlowGraph : public ZoneAllocated {
   void RenameRecursive(BlockEntryInstr* block_entry,
                        GrowableArray<Definition*>* env,
                        GrowableArray<PhiInstr*>* live_phis,
-                       VariableLivenessAnalysis* variable_liveness);
+                       VariableLivenessAnalysis* variable_liveness,
+                       ZoneGrowableArray<Definition*>* inlining_parameters);
+
+  void PopulateEnvironmentFromFunctionEntry(
+      FunctionEntryInstr* function_entry,
+      GrowableArray<Definition*>* env,
+      GrowableArray<PhiInstr*>* live_phis,
+      VariableLivenessAnalysis* variable_liveness,
+      ZoneGrowableArray<Definition*>* inlining_parameters);
+
+  void PopulateEnvironmentFromOsrEntry(OsrEntryInstr* osr_entry,
+                                       GrowableArray<Definition*>* env);
+
+  void PopulateEnvironmentFromCatchEntry(CatchBlockEntryInstr* catch_entry,
+                                         GrowableArray<Definition*>* env);
 
   void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 

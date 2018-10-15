@@ -48,13 +48,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
     UNREACHABLE();
   }
 
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
+  B->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
+  B->graph_entry_->set_normal_entry(normal_entry);
 
   Fragment body(normal_entry);
-  body +=
-      flow_graph_builder_->CheckStackOverflowInPrologue(field_helper.position_);
+  body += B->CheckStackOverflowInPrologue(field_helper.position_);
   if (field_helper.IsConst()) {
     // this will (potentially) read the initializer, but reset the position.
     body += Constant(Instance::ZoneHandle(
@@ -66,9 +67,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
-  return new (Z)
-      FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->last_used_block_id_, prologue_info);
+  return new (Z) FlowGraph(*parsed_function(), B->graph_entry_,
+                           B->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -88,9 +88,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
   Field& field = Field::ZoneHandle(
       Z, H.LookupFieldByKernelField(field_helper.canonical_name_));
 
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
+  B->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
+  B->graph_entry_->set_normal_entry(normal_entry);
 
   Fragment body(normal_entry);
   if (is_setter) {
@@ -465,7 +467,7 @@ Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
 }
 
 void StreamingFlowGraphBuilder::RecordUncheckedEntryPoint(
-    TargetEntryInstr* extra_entry) {
+    FunctionEntryInstr* extra_entry) {
   if (!B->IsInlining()) {
     B->graph_entry_->set_unchecked_entry(extra_entry);
   } else if (B->InliningUncheckedEntry()) {
@@ -497,13 +499,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // The prologue builder needs the default parameter values.
   SetupDefaultParameterValues();
 
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  flow_graph_builder_->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = flow_graph_builder_->BuildFunctionEntry(
+      flow_graph_builder_->graph_entry_);
+  flow_graph_builder_->graph_entry_->set_normal_entry(normal_entry);
+
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
 
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
 
   const Fragment prologue =
       flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
@@ -604,7 +610,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   body += Return(function_node_helper.end_position_);
 
   // Setup multiple entrypoints if useful.
-  TargetEntryInstr* extra_entry = nullptr;
+  FunctionEntryInstr* extra_entry = nullptr;
   if (function.MayHaveUncheckedEntryPoint(I)) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the 'this_variable'), but we don't need it on the unchecked
@@ -653,13 +659,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   // The prologue builder needs the default parameter values.
   SetupDefaultParameterValues();
 
-  TargetEntryInstr* normal_entry = B->BuildTargetEntry();
+  B->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
+  B->graph_entry_->set_normal_entry(normal_entry);
+
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       B->BuildPrologue(normal_entry, &prologue_info);
-
-  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), normal_entry,
-                                            Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
   body += B->CheckStackOverflowInPrologue(function.token_pos());
@@ -1157,22 +1165,22 @@ Fragment StreamingFlowGraphBuilder::PushAllArguments(PushedArguments* pushed) {
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
+  const Function& dart_function = parsed_function()->function();
+
   // The prologue builder needs the default parameter values.
   SetupDefaultParameterValues();
 
-  const Function& dart_function = parsed_function()->function();
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
-  PrologueInfo prologue_info(-1, -1);
-  BlockEntryInstr* instruction_cursor =
-      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), B->osr_id_);
 
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, flow_graph_builder_->osr_id_);
+  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
+  B->graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+  auto instruction_cursor = B->BuildPrologue(normal_entry, &prologue_info);
 
   Fragment body;
   if (!dart_function.is_native()) {
-    body += flow_graph_builder_->CheckStackOverflowInPrologue(
-        dart_function.token_pos());
+    body += B->CheckStackOverflowInPrologue(dart_function.token_pos());
   }
 
   ASSERT(parsed_function()->node_sequence()->scope()->num_context_variables() ==
@@ -1240,14 +1248,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
 
   instruction_cursor->LinkTo(body.entry);
 
-  GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
+  GraphEntryInstr* graph_entry = B->graph_entry_;
   // When compiling for OSR, use a depth first search to find the OSR
   // entry and make graph entry jump to it instead of normal entry.
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
-  if (flow_graph_builder_->IsCompiledForOsr()) {
-    graph_entry->RelinkToOsrEntry(Z,
-                                  flow_graph_builder_->last_used_block_id_ + 1);
+  if (B->IsCompiledForOsr()) {
+    graph_entry->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
   }
   return new (Z) FlowGraph(*parsed_function(), graph_entry,
                            B->last_used_block_id_, prologue_info);
@@ -1647,7 +1654,7 @@ Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-TargetEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
+FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
     Fragment shared_prologue_linked_in,
     Fragment skippable_checks,
     Fragment body) {
@@ -1664,7 +1671,7 @@ TargetEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   normal_entry += Drop();
   normal_entry += Goto(join_entry);
 
-  auto* extra_target_entry = B->BuildTargetEntry();
+  auto* extra_target_entry = B->BuildFunctionEntry(B->graph_entry_);
   Fragment extra_entry(extra_target_entry);
   extra_entry += IntConstant(UncheckedEntryPointStyle::kSharedWithVariable);
   extra_entry += StoreLocal(TokenPosition::kNoSource,
@@ -1694,14 +1701,14 @@ TargetEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   return extra_target_entry;
 }
 
-TargetEntryInstr* StreamingFlowGraphBuilder::BuildSeparateUncheckedEntryPoint(
+FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSeparateUncheckedEntryPoint(
     BlockEntryInstr* normal_entry,
     Fragment normal_prologue,
     Fragment extra_prologue,
     Fragment shared_prologue,
     Fragment body) {
   auto* join_entry = BuildJoinEntry();
-  auto* extra_entry = B->BuildTargetEntry();
+  auto* extra_entry = B->BuildFunctionEntry(B->graph_entry_);
 
   Fragment normal(normal_entry);
   normal += IntConstant(UncheckedEntryPointStyle::kNone);
@@ -1779,14 +1786,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   }
 
   const Function& dart_function = parsed_function()->function();
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+
+  auto graph_entry = flow_graph_builder_->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), flow_graph_builder_->osr_id_);
+
+  auto normal_entry = flow_graph_builder_->BuildFunctionEntry(graph_entry);
+  graph_entry->set_normal_entry(normal_entry);
+
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
-
-  GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_ =
-      new (Z) GraphEntryInstr(*parsed_function(), normal_entry,
-                              flow_graph_builder_->osr_id_);
 
   // The 'every_time_prologue' runs first and is run when resuming from yield
   // points.
@@ -1818,7 +1827,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   Fragment function(instruction_cursor);
   if (yield_continuations().is_empty()) {
-    TargetEntryInstr* extra_entry = nullptr;
+    FunctionEntryInstr* extra_entry = nullptr;
     switch (extra_entry_point_style) {
       case UncheckedEntryPointStyle::kNone: {
         function += every_time_prologue + first_time_prologue +

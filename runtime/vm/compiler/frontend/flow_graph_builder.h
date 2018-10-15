@@ -40,7 +40,7 @@ class InlineExitCollector : public ZoneAllocated {
   //
   // After inlining the caller graph will have correctly adjusted the use
   // lists.  The block orders will need to be recomputed.
-  void ReplaceCall(TargetEntryInstr* callee_entry);
+  void ReplaceCall(BlockEntryInstr* callee_entry);
 
  private:
   struct Data {

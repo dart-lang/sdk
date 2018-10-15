@@ -1446,9 +1446,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   ProcessICDataInObjectPool(object_pool_);
 
-  TargetEntryInstr* normal_entry = B->BuildTargetEntry();
   GraphEntryInstr* graph_entry =
-      new (Z) GraphEntryInstr(*parsed_function_, normal_entry, B->osr_id_);
+      new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
+
+  auto normal_entry = B->BuildFunctionEntry(graph_entry);
+  graph_entry->set_normal_entry(normal_entry);
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(Z, bytecode.pc_descriptors());

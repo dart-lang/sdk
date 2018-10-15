@@ -56,7 +56,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraph();
 
  private:
-  BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,
+  BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);

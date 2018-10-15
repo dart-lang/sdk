@@ -212,8 +212,9 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
 }
 
 void RangeAnalysis::CollectValues() {
-  const GrowableArray<Definition*>& initial =
-      *flow_graph_->graph_entry()->initial_definitions();
+  auto graph_entry = flow_graph_->graph_entry();
+
+  auto& initial = *graph_entry->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* current = initial[i];
     if (IsIntegerDefinition(current)) {
@@ -221,23 +222,26 @@ void RangeAnalysis::CollectValues() {
     }
   }
 
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-
-    if (block->IsGraphEntry() || block->IsCatchBlockEntry()) {
-      const GrowableArray<Definition*>& initial =
-          block->IsGraphEntry()
-              ? *block->AsGraphEntry()->initial_definitions()
-              : *block->AsCatchBlockEntry()->initial_definitions();
-      for (intptr_t i = 0; i < initial.length(); ++i) {
-        Definition* current = initial[i];
+  for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
+    auto successor = graph_entry->SuccessorAt(i);
+    if (successor->IsFunctionEntry() || successor->IsCatchBlockEntry()) {
+      auto function_entry = successor->AsFunctionEntry();
+      auto catch_entry = successor->AsCatchBlockEntry();
+      const auto& initial = function_entry != nullptr
+                                ? *function_entry->initial_definitions()
+                                : *catch_entry->initial_definitions();
+      for (intptr_t j = 0; j < initial.length(); ++j) {
+        Definition* current = initial[j];
         if (IsIntegerDefinition(current)) {
           values_.Add(current);
         }
       }
     }
+  }
 
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
     JoinEntryInstr* join = block->AsJoinEntry();
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
@@ -693,14 +697,28 @@ void RangeAnalysis::InferRanges() {
   // Collect integer definitions (including constraints) in the reverse
   // postorder. This improves convergence speed compared to iterating
   // values_ and constraints_ array separately.
-  const GrowableArray<Definition*>& initial =
-      *flow_graph_->graph_entry()->initial_definitions();
+  auto graph_entry = flow_graph_->graph_entry();
+  const auto& initial = *graph_entry->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* definition = initial[i];
     if (set->Contains(definition->ssa_temp_index())) {
       definitions_.Add(definition);
     }
   }
+
+  for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
+    auto successor = graph_entry->SuccessorAt(i);
+    if (auto function_entry = successor->AsFunctionEntry()) {
+      const auto& initial = *function_entry->initial_definitions();
+      for (intptr_t j = 0; j < initial.length(); ++j) {
+        Definition* definition = initial[j];
+        if (set->Contains(definition->ssa_temp_index())) {
+          definitions_.Add(definition);
+        }
+      }
+    }
+  }
+
   CollectDefinitions(set);
 
   // Perform an iteration of range inference just propagating ranges

@@ -21,6 +21,7 @@ namespace dart {
 
 class BitVector;
 class BlockEntryInstr;
+class BlockEntryWithInitialDefs;
 class BoxIntegerInstr;
 class BufferFormatter;
 class CallTargets;
@@ -484,6 +485,8 @@ struct InstrAttrs {
   M(GraphEntry, kNoGC)                                                         \
   M(JoinEntry, kNoGC)                                                          \
   M(TargetEntry, kNoGC)                                                        \
+  M(FunctionEntry, kNoGC)                                                      \
+  M(OsrEntry, kNoGC)                                                           \
   M(IndirectEntry, kNoGC)                                                      \
   M(CatchBlockEntry, kNoGC)                                                    \
   M(Phi, kNoGC)                                                                \
@@ -903,6 +906,8 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
 
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
+  DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
+                                 BlockEntryWithInitialDefs)
   FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
@@ -1283,6 +1288,7 @@ class BlockEntryInstr : public Instruction {
   }
 
   void AddDominatedBlock(BlockEntryInstr* block) {
+    ASSERT(!block->IsFunctionEntry() || this->IsGraphEntry());
     block->set_dominator(this);
     dominated_blocks_.Add(block);
   }
@@ -1476,10 +1482,37 @@ class BackwardInstructionIterator : public ValueObject {
   Instruction* current_;
 };
 
-class GraphEntryInstr : public BlockEntryInstr {
+// Base class shared by all block entries which define initial definitions.
+//
+// The initial definitions define parameters, special parameters and constants.
+class BlockEntryWithInitialDefs : public BlockEntryInstr {
+ public:
+  BlockEntryWithInitialDefs(intptr_t block_id,
+                            intptr_t try_index,
+                            intptr_t deopt_id)
+      : BlockEntryInstr(block_id, try_index, deopt_id) {}
+
+  GrowableArray<Definition*>* initial_definitions() {
+    return &initial_definitions_;
+  }
+
+  virtual bool IsBlockEntryWithInitialDefs() { return true; }
+  virtual BlockEntryWithInitialDefs* AsBlockEntryWithInitialDefs() {
+    return this;
+  }
+
+ protected:
+  void PrintInitialDefinitionsTo(BufferFormatter* f) const;
+
+ private:
+  GrowableArray<Definition*> initial_definitions_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockEntryWithInitialDefs);
+};
+
+class GraphEntryInstr : public BlockEntryWithInitialDefs {
  public:
   GraphEntryInstr(const ParsedFunction& parsed_function,
-                  TargetEntryInstr* normal_entry,
                   intptr_t osr_id);
 
   DECLARE_INSTRUCTION(GraphEntry)
@@ -1500,9 +1533,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     indirect_entries_.Add(entry);
   }
 
-  GrowableArray<Definition*>* initial_definitions() {
-    return &initial_definitions_;
-  }
   ConstantInstr* constant_null();
 
   void RelinkToOsrEntry(Zone* zone, intptr_t max_block_id);
@@ -1526,12 +1556,14 @@ class GraphEntryInstr : public BlockEntryInstr {
     ASSERT(count >= 0);
     fixed_slot_count_ = count;
   }
-  TargetEntryInstr* normal_entry() const { return normal_entry_; }
-  TargetEntryInstr* unchecked_entry() const { return unchecked_entry_; }
-  void set_normal_entry(TargetEntryInstr* entry) { normal_entry_ = entry; }
-  void set_unchecked_entry(TargetEntryInstr* target) {
+  FunctionEntryInstr* normal_entry() const { return normal_entry_; }
+  FunctionEntryInstr* unchecked_entry() const { return unchecked_entry_; }
+  void set_normal_entry(FunctionEntryInstr* entry) { normal_entry_ = entry; }
+  void set_unchecked_entry(FunctionEntryInstr* target) {
     unchecked_entry_ = target;
   }
+  OsrEntryInstr* osr_entry() const { return osr_entry_; }
+  void set_osr_entry(OsrEntryInstr* entry) { osr_entry_ = entry; }
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -1541,13 +1573,6 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   const GrowableArray<IndirectEntryInstr*>& indirect_entries() const {
     return indirect_entries_;
-  }
-
-  bool IsEntryPoint(BlockEntryInstr* entry) const {
-    if (TargetEntryInstr* target = entry->AsTargetEntry()) {
-      return target == normal_entry_ || target == unchecked_entry_;
-    }
-    return false;
   }
 
   bool HasSingleEntryPoint() const {
@@ -1561,12 +1586,12 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
   const ParsedFunction& parsed_function_;
-  TargetEntryInstr* normal_entry_;
-  TargetEntryInstr* unchecked_entry_ = nullptr;
+  FunctionEntryInstr* normal_entry_ = nullptr;
+  FunctionEntryInstr* unchecked_entry_ = nullptr;
+  OsrEntryInstr* osr_entry_ = nullptr;
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   // Indirect targets are blocks reachable only through indirect gotos.
   GrowableArray<IndirectEntryInstr*> indirect_entries_;
-  GrowableArray<Definition*> initial_definitions_;
   const intptr_t osr_id_;
   intptr_t entry_count_;
   intptr_t spill_slot_count_;
@@ -1680,6 +1705,88 @@ class TargetEntryInstr : public BlockEntryInstr {
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
 
+// Represents an entrypoint to a function which callers can invoke (i.e. not
+// used for OSR entries).
+//
+// The flow graph builder might decide to create create multiple entrypoints
+// (e.g. checked/unchecked entrypoints) and will attach those to the
+// [GraphEntryInstr].
+//
+// Every entrypoint has it's own initial definitions.  The SSA renaming
+// will insert phi's for parameter instructions if necessary.
+class FunctionEntryInstr : public BlockEntryWithInitialDefs {
+ public:
+  FunctionEntryInstr(GraphEntryInstr* graph_entry,
+                     intptr_t block_id,
+                     intptr_t try_index,
+                     intptr_t deopt_id)
+      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+        graph_entry_(graph_entry) {}
+
+  DECLARE_INSTRUCTION(FunctionEntry)
+
+  virtual intptr_t PredecessorCount() const {
+    return (graph_entry_ == nullptr) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT(index == 0 && graph_entry_ != nullptr);
+    return graph_entry_;
+  }
+
+  GraphEntryInstr* graph_entry() const { return graph_entry_; }
+
+  PRINT_TO_SUPPORT
+
+ private:
+  virtual void ClearPredecessors() { graph_entry_ = nullptr; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(graph_entry_ == nullptr && predecessor->IsGraphEntry());
+    graph_entry_ = predecessor->AsGraphEntry();
+  }
+
+  GraphEntryInstr* graph_entry_;
+
+  DISALLOW_COPY_AND_ASSIGN(FunctionEntryInstr);
+};
+
+// Represents an OSR entrypoint to a function.
+//
+// The OSR entry has it's own initial definitions.
+class OsrEntryInstr : public BlockEntryWithInitialDefs {
+ public:
+  OsrEntryInstr(GraphEntryInstr* graph_entry,
+                intptr_t block_id,
+                intptr_t try_index,
+                intptr_t deopt_id)
+      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+        graph_entry_(graph_entry) {}
+
+  DECLARE_INSTRUCTION(OsrEntry)
+
+  virtual intptr_t PredecessorCount() const {
+    return (graph_entry_ == nullptr) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT(index == 0 && graph_entry_ != nullptr);
+    return graph_entry_;
+  }
+
+  GraphEntryInstr* graph_entry() const { return graph_entry_; }
+
+  PRINT_TO_SUPPORT
+
+ private:
+  virtual void ClearPredecessors() { graph_entry_ = nullptr; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(graph_entry_ == nullptr && predecessor->IsGraphEntry());
+    graph_entry_ = predecessor->AsGraphEntry();
+  }
+
+  GraphEntryInstr* graph_entry_;
+
+  DISALLOW_COPY_AND_ASSIGN(OsrEntryInstr);
+};
+
 class IndirectEntryInstr : public JoinEntryInstr {
  public:
   IndirectEntryInstr(intptr_t block_id,
@@ -1699,7 +1806,7 @@ class IndirectEntryInstr : public JoinEntryInstr {
   const intptr_t indirect_id_;
 };
 
-class CatchBlockEntryInstr : public BlockEntryInstr {
+class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  public:
   CatchBlockEntryInstr(TokenPosition handler_token_pos,
                        bool is_generated,
@@ -1714,7 +1821,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        const LocalVariable* stacktrace_var,
                        const LocalVariable* raw_exception_var,
                        const LocalVariable* raw_stacktrace_var)
-      : BlockEntryInstr(block_id, try_index, deopt_id),
+      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
         graph_entry_(graph_entry),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
@@ -1755,9 +1862,6 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   // Returns try index for the try block to which this catch handler
   // corresponds.
   intptr_t catch_try_index() const { return catch_try_index_; }
-  GrowableArray<Definition*>* initial_definitions() {
-    return &initial_definitions_;
-  }
 
   PRINT_TO_SUPPORT
 
@@ -2281,7 +2385,7 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
 };
 
-// Unwinds the current frame and taill calls a target.
+// Unwinds the current frame and tail calls a target.
 //
 // The return address saved by the original caller of this frame will be in it's
 // usual location (stack or LR).  The arguments descriptor supplied by the

@@ -274,7 +274,8 @@ bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
          !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry() && !flow_graph().IsEntryPoint(block);
+         !block->IsIndirectEntry() && !block->IsFunctionEntry() &&
+         !block->IsOsrEntry();
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -324,10 +325,14 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-  TargetEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
+  BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
   }
+  if (entry == nullptr) {
+    entry = flow_graph().graph_entry()->osr_entry();
+  }
+  ASSERT(entry != nullptr);
   Label* target = GetJumpLabel(entry);
 
   if (target->IsBound()) {
@@ -1331,11 +1336,11 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 
 #if !defined(TARGET_ARCH_DBC)
 // TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
-bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
+bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
-  return FLAG_reorder_basic_blocks && (!block->last_instruction()->IsGoto() ||
-                                       flow_graph().IsEntryPoint(block));
+  return FLAG_reorder_basic_blocks &&
+         (!block->last_instruction()->IsGoto() || block->IsFunctionEntry());
 }
 
 // Allocate a register that is not explictly blocked.

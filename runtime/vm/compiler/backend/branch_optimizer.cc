@@ -61,7 +61,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
 }
 
 JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
-                                              TargetEntryInstr* target) {
+                                              BlockEntryInstr* target) {
   // Convert a target block into a join block.  Branches will be duplicated
   // so the former true and false targets become joins of the control flows
   // from all the duplicated branches.
@@ -72,6 +72,17 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
   join->set_last_instruction(target->last_instruction());
   target->UnuseAllInputs();
   return join;
+}
+
+TargetEntryInstr* BranchSimplifier::ToTargetEntry(Zone* zone,
+                                                  BlockEntryInstr* target) {
+  auto replacement = new (zone)
+      TargetEntryInstr(target->block_id(), target->try_index(), DeoptId::kNone);
+  replacement->InheritDeoptTarget(zone, target);
+  replacement->LinkTo(target->next());
+  replacement->set_last_instruction(target->last_instruction());
+  target->UnuseAllInputs();
+  return replacement;
 }
 
 BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,

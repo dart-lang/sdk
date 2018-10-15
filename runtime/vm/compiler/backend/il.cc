@@ -1044,25 +1044,22 @@ const Object& Value::BoundConstant() const {
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
-                                 TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
-    : BlockEntryInstr(0,
-                      kInvalidTryIndex,
-                      CompilerState::Current().GetNextDeoptId()),
+    : BlockEntryWithInitialDefs(0,
+                                kInvalidTryIndex,
+                                CompilerState::Current().GetNextDeoptId()),
       parsed_function_(parsed_function),
-      normal_entry_(normal_entry),
       catch_entries_(),
       indirect_entries_(),
-      initial_definitions_(),
       osr_id_(osr_id),
       entry_count_(0),
       spill_slot_count_(0),
       fixed_slot_count_(0) {}
 
 ConstantInstr* GraphEntryInstr::constant_null() {
-  ASSERT(initial_definitions_.length() > 0);
-  for (intptr_t i = 0; i < initial_definitions_.length(); ++i) {
-    ConstantInstr* defn = initial_definitions_[i]->AsConstant();
+  ASSERT(initial_definitions()->length() > 0);
+  for (intptr_t i = 0; i < initial_definitions()->length(); ++i) {
+    ConstantInstr* defn = (*initial_definitions())[i]->AsConstant();
     if (defn != NULL && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
@@ -1550,10 +1547,21 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      GotoInstr* goto_join = new GotoInstr(
-          AsJoinEntry(), CompilerState::Current().GetNextDeoptId());
+      auto normal_entry = graph_entry->normal_entry();
+      auto osr_entry = new OsrEntryInstr(graph_entry, normal_entry->block_id(),
+                                         normal_entry->try_index(),
+                                         normal_entry->deopt_id());
+
+      auto goto_join = new GotoInstr(AsJoinEntry(),
+                                     CompilerState::Current().GetNextDeoptId());
       goto_join->CopyDeoptIdFrom(*parent);
-      graph_entry->normal_entry()->LinkTo(goto_join);
+      osr_entry->LinkTo(goto_join);
+
+      // Remove normal function entries & add osr entry.
+      graph_entry->set_normal_entry(nullptr);
+      graph_entry->set_unchecked_entry(nullptr);
+      graph_entry->set_osr_entry(osr_entry);
+
       return true;
     }
   }
@@ -1734,16 +1742,25 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
 }
 
 intptr_t GraphEntryInstr::SuccessorCount() const {
-  return 1 + (unchecked_entry() == nullptr ? 0 : 1) + catch_entries_.length();
+  return (normal_entry() == nullptr ? 0 : 1) +
+         (unchecked_entry() == nullptr ? 0 : 1) +
+         (osr_entry() == nullptr ? 0 : 1) + catch_entries_.length();
 }
 
 BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
-  if (index == 0) return normal_entry_;
-  if (unchecked_entry() != nullptr) {
-    if (index == 1) return unchecked_entry();
-    return catch_entries_[index - 2];
+  if (normal_entry() != nullptr) {
+    if (index == 0) return normal_entry_;
+    index--;
   }
-  return catch_entries_[index - 1];
+  if (unchecked_entry() != nullptr) {
+    if (index == 0) return unchecked_entry();
+    index--;
+  }
+  if (osr_entry() != nullptr) {
+    if (index == 0) return osr_entry();
+    index--;
+  }
+  return catch_entries_[index];
 }
 
 intptr_t BranchInstr::SuccessorCount() const {
@@ -3643,24 +3660,57 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary(Zone* zone,
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
+  // TODO(kusterman): Remove duplicate between
+  // {TargetEntryInstr,FunctionEntryInstr}::EmitNativeCode.
+  if (!compiler->is_optimizing()) {
+#if !defined(TARGET_ARCH_DBC)
+    // TODO(vegorov) re-enable edge counters on DBC if we consider them
+    // beneficial for the quality of the optimized bytecode.
+    if (compiler->NeedsEdgeCounter(this)) {
+      compiler->EmitEdgeCounter(preorder_number());
+    }
+#endif
+
+    // The deoptimization descriptor points after the edge counter code for
+    // uniformity with ARM, where we can reuse pattern matching code that
+    // matches backwards from the end of the pattern.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
+                                   TokenPosition::kNoSource);
+  }
+  if (HasParallelMove()) {
+    if (Assembler::EmittingComments()) {
+      compiler->EmitComment(parallel_move());
+    }
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+}
+
+LocationSummary* FunctionEntryInstr::MakeLocationSummary(
+    Zone* zone,
+    bool optimizing) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+
   // In the AOT compiler we want to reduce code size, so generate no
   // fall-through code in [FlowGraphCompiler::CompileGraph()].
   // (As opposed to here where we don't check for the return value of
   // [Intrinsify]).
   if (!FLAG_precompiled_mode) {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-    if (compiler->flow_graph().IsEntryPoint(this)) {
-      // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-      // entrypoints, so we generate several times the same intrinsification &
-      // frame setup.  That's why we cannot rely on the constant pool being
-      // `false` when we come in here.
-      __ set_constant_pool_allowed(false);
-      // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-      // (meaning the function was fully intrinsified).
-      compiler->TryIntrinsify();
-      compiler->EmitPrologue();
-      ASSERT(__ constant_pool_allowed());
-    }
+    // NOTE: Because in JIT X64/ARM mode the graph can have multiple
+    // entrypoints, so we generate several times the same intrinsification &
+    // frame setup.  That's why we cannot rely on the constant pool being
+    // `false` when we come in here.
+    __ set_constant_pool_allowed(false);
+    // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
+    // (meaning the function was fully intrinsified).
+    compiler->TryIntrinsify();
+    compiler->EmitPrologue();
+    ASSERT(__ constant_pool_allowed());
 #endif
   }
 
@@ -3679,6 +3729,35 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }
+  if (HasParallelMove()) {
+    if (Assembler::EmittingComments()) {
+      compiler->EmitComment(parallel_move());
+    }
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+}
+
+LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
+                                                    bool optimizing) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(compiler->is_optimizing());
+  __ Bind(compiler->GetJumpLabel(this));
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
+  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
+  // entrypoints, so we generate several times the same intrinsification &
+  // frame setup.  That's why we cannot rely on the constant pool being
+  // `false` when we come in here.
+  __ set_constant_pool_allowed(false);
+  compiler->EmitPrologue();
+  ASSERT(__ constant_pool_allowed());
+#endif
+
   if (HasParallelMove()) {
     if (Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());

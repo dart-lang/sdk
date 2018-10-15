@@ -129,13 +129,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                      Fragment* explicit_checks,
                                      Fragment* implicit_checks);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
-  TargetEntryInstr* BuildSeparateUncheckedEntryPoint(
+  FunctionEntryInstr* BuildSeparateUncheckedEntryPoint(
       BlockEntryInstr* normal_entry,
       Fragment normal_prologue,
       Fragment extra_prologue,
       Fragment shared_prologue,
       Fragment body);
-  TargetEntryInstr* BuildSharedUncheckedEntryPoint(
+  FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
       Fragment prologue_from_normal_entry,
       Fragment skippable_checks,
       Fragment body);
@@ -149,7 +149,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Fragment& every_time_prologue,
       const Fragment& type_args_handling);
 
-  void RecordUncheckedEntryPoint(TargetEntryInstr* extra_entry);
+  void RecordUncheckedEntryPoint(FunctionEntryInstr* extra_entry);
 
   void loop_depth_inc();
   void loop_depth_dec();

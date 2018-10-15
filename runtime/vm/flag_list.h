@@ -203,7 +203,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \
-  P(enable_multiple_entrypoints, bool, false,                                  \
+  P(enable_multiple_entrypoints, bool, true,                                   \
     "Enable multiple entrypoints per-function and related optimizations.")     \
   R(enable_testing_pragmas, false, bool, false,                                \
     "Enable magical pragmas for testing purposes. Use at your own risk!")      \
