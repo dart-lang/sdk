@@ -102,7 +102,8 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowField,
         ShadowMember,
         VariableDeclarationJudgment,
-        getExplicitTypeArguments;
+        getExplicitTypeArguments,
+        getInferredType;
 
 import '../names.dart' show callName;
 
@@ -439,6 +440,14 @@ enum MethodContravarianceCheckKind {
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer {
+  final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
+
+  final CoreTypes coreTypes;
+
+  TypeInferrer(this.coreTypes);
+
+  KernelLibraryBuilder get library;
+
   /// Gets the [TypePromoter] that can be used to perform type promotion within
   /// this method body or initializer.
   TypePromoter get typePromoter;
@@ -473,6 +482,20 @@ abstract class TypeInferrer {
   /// expression.
   void inferParameterInitializer(InferenceHelper helper,
       kernel.Expression initializer, DartType declaredType);
+
+  DartType storeInferredType(TreeNode node, DartType type) {
+    if (node is ExpressionJudgment) {
+      return node.inferredType = type;
+    } else {
+      assert(!inferredTypesMap.containsKey(node));
+      return inferredTypesMap[node] = type;
+    }
+  }
+
+  DartType readInferredType(TreeNode node) {
+    assert(inferredTypesMap.containsKey(node));
+    return inferredTypesMap[node];
+  }
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -486,7 +509,10 @@ class TypeInferrerDisabled extends TypeInferrer {
   @override
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
-  TypeInferrerDisabled(this.typeSchemaEnvironment);
+  TypeInferrerDisabled(this.typeSchemaEnvironment) : super(null);
+
+  @override
+  KernelLibraryBuilder get library => null;
 
   @override
   Uri get uri => null;
@@ -536,8 +562,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// should apply.
   final bool isTopLevel;
 
-  final CoreTypes coreTypes;
-
   final bool strongMode;
 
   final ClassHierarchy classHierarchy;
@@ -548,6 +572,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
+  @override
   final KernelLibraryBuilder library;
 
   InferenceHelper helper;
@@ -566,12 +591,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : coreTypes = engine.coreTypes,
-        strongMode = engine.strongMode,
+      : strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
-        isTopLevel = topLevel;
+        isTopLevel = topLevel,
+        super(engine.coreTypes);
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -1602,12 +1627,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  void inferPropertyGet(
-      ExpressionJudgment expression,
-      ExpressionJudgment receiver,
-      int fileOffset,
-      bool forSyntheticToken,
-      DartType typeContext,
+  void inferPropertyGet(Expression expression, Expression receiver,
+      int fileOffset, bool forSyntheticToken, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
       Object interfaceMember,
@@ -1618,7 +1639,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverType = thisType;
     } else {
       inferExpression(receiver, const UnknownType(), true);
-      receiverType = receiver.inferredType;
+      receiverType = getInferredType(receiver, this);
     }
     if (strongMode) {
       receiverVariable?.type = receiverType;
@@ -1646,7 +1667,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
     }
-    expression.inferredType = inferredType;
+    storeInferredType(expression, inferredType);
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.

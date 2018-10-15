@@ -2154,11 +2154,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return null;
   }
 
-  List<ExpressionJudgment> buildForInitExpressions(variableOrExpression) {
-    if (variableOrExpression is ExpressionJudgment) {
-      return <ExpressionJudgment>[variableOrExpression];
+  List<Expression> buildForInitExpressions(variableOrExpression) {
+    if (variableOrExpression is Expression) {
+      return <Expression>[variableOrExpression];
     } else if (variableOrExpression is ExpressionStatementJudgment) {
-      return <ExpressionJudgment>[variableOrExpression.expression];
+      return <Expression>[variableOrExpression.expression];
     }
     return null;
   }
@@ -2175,7 +2175,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     variableOrExpression = variableOrExpression is Generator
         ? variableOrExpression.buildForEffect()
         : variableOrExpression;
-    List<ExpressionJudgment> initializers =
+    List<Expression> initializers =
         buildForInitExpressions(variableOrExpression);
     List<VariableDeclaration> variableList = initializers == null
         ? buildForInitVariableDeclarations(variableOrExpression)

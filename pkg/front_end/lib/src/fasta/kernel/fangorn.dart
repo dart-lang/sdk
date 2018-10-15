@@ -9,7 +9,9 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsExpression,
         AssertInitializer,
+        AwaitExpression,
         Block,
         Catch,
         DartType,
@@ -64,10 +66,8 @@ import 'kernel_expression_generator.dart'
 import 'kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
-        AsJudgment,
         AssertInitializerJudgment,
         AssertStatementJudgment,
-        AwaitJudgment,
         BlockJudgment,
         BoolJudgment,
         BreakJudgment,
@@ -257,7 +257,8 @@ class Fangorn extends Forest {
 
   @override
   Expression asExpression(Expression expression, DartType type, Token token) {
-    return new AsJudgment(expression, type)..fileOffset = offsetForToken(token);
+    return new AsExpression(expression, type)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -315,7 +316,7 @@ class Fangorn extends Forest {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new AwaitJudgment(operand)..fileOffset = offsetForToken(token);
+    return new AwaitExpression(operand)..fileOffset = offsetForToken(token);
   }
 
   @override

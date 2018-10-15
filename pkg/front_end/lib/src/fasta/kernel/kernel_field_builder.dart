@@ -88,7 +88,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
     var typeInferrer = library.loader.typeInferenceEngine
-        .createTopLevelTypeInferrer(field.enclosingClass?.thisType, field);
+        .createTopLevelTypeInferrer(
+            field.enclosingClass?.thisType, field, null);
     if (hasInitializer) {
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(initializerTokenForInference);

@@ -88,7 +88,6 @@ export 'kernel_shadow_ast.dart'
         ConstructorInvocationJudgment,
         ContinueSwitchJudgment,
         DeferredCheckJudgment,
-        ExpressionJudgment,
         ExpressionStatementJudgment,
         FactoryConstructorInvocationJudgment,
         ShadowFieldInitializer,

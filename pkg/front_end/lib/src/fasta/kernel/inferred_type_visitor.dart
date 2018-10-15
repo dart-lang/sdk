@@ -4,38 +4,47 @@
 
 part of "kernel_shadow_ast.dart";
 
-DartType getInferredType(Expression expression, InferenceHelper helper) {
+DartType getInferredType(Expression expression, TypeInferrer inferrer) {
   if (expression is ExpressionJudgment) {
     return expression.inferredType;
   } else {
-    return expression.accept1(const InferredTypeVisitor(), helper);
+    return expression.accept1(const InferredTypeVisitor(), inferrer);
   }
 }
 
-class InferredTypeVisitor
-    extends ExpressionVisitor1<DartType, InferenceHelper> {
+class InferredTypeVisitor extends ExpressionVisitor1<DartType, TypeInferrer> {
   const InferredTypeVisitor();
 
   @override
-  DartType defaultExpression(Expression node, InferenceHelper helper) {
-    unhandled(
-        "${node.runtimeType}", "getInferredType", node.fileOffset, helper.uri);
+  DartType defaultExpression(Expression node, TypeInferrer inferrer) {
+    unhandled("${node.runtimeType}", "getInferredType", node.fileOffset,
+        inferrer.uri);
     return const InvalidType();
   }
 
   @override
-  DartType visitIntLiteral(IntLiteral node, InferenceHelper helper) {
-    return helper.coreTypes.intClass.rawType;
+  DartType visitIntLiteral(IntLiteral node, TypeInferrer inferrer) {
+    return inferrer.coreTypes.intClass.rawType;
   }
 
   @override
-  DartType visitDoubleLiteral(DoubleLiteral node, InferenceHelper helper) {
-    return helper.coreTypes.doubleClass.rawType;
+  DartType visitDoubleLiteral(DoubleLiteral node, TypeInferrer inferrer) {
+    return inferrer.coreTypes.doubleClass.rawType;
   }
 
   @override
   DartType visitInvalidExpression(
-      InvalidExpression node, InferenceHelper helper) {
+      InvalidExpression node, TypeInferrer inferrer) {
     return const BottomType();
+  }
+
+  @override
+  DartType visitAsExpression(AsExpression node, TypeInferrer inferrer) {
+    return node.type;
+  }
+
+  @override
+  DartType visitAwaitExpression(AwaitExpression node, TypeInferrer inferrer) {
+    return inferrer.readInferredType(node);
   }
 }

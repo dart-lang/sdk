@@ -243,7 +243,7 @@ abstract class TypeInferenceEngine {
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      InterfaceType thisType, ShadowField field);
+      InterfaceType thisType, ShadowField field, KernelLibraryBuilder library);
 
   /// Retrieve the [TypeInferrer] for the given [field], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
