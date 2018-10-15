@@ -51,6 +51,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageImplementsFutureOr,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
@@ -59,6 +60,7 @@ import '../fasta_codes.dart'
         noLength,
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
@@ -290,17 +292,34 @@ abstract class KernelClassBuilder
         DartType argument = boundViolations[i];
         TypeParameter variable = boundViolations[i + 1];
         DartType enclosingType = boundViolations[i + 2];
-        Message message = library.inferredTypes.contains(argument)
-            ? templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
-                argument,
-                typeEnvironment.getGenericTypeName(enclosingType),
-                supertype.classNode.name,
-                name)
-            : templateIncorrectTypeArgumentInSupertype.withArguments(
+
+        Message message;
+        bool inferred = library.inferredTypes.contains(argument);
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message =
+                templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
+                    argument,
+                    typeEnvironment.getGenericTypeName(enclosingType),
+                    supertype.classNode.name,
+                    name);
+          } else {
+            message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
                 typeEnvironment.getGenericTypeName(enclosingType),
                 supertype.classNode.name,
                 name);
+          }
+        }
+
         library.reportBoundViolation(message, charOffset, variable);
       }
     }
@@ -328,11 +347,17 @@ abstract class KernelClassBuilder
             // is reported elsewhere.
             continue;
           }
-          library.reportBoundViolation(
-              templateIncorrectTypeArgument.withArguments(
-                  argument, typeEnvironment.getGenericTypeName(enclosingType)),
-              parameter.fileOffset,
-              variable);
+
+          Message message;
+          if (argument is FunctionType && argument.typeParameters.length > 0) {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            variable = null;
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+
+          library.reportBoundViolation(message, parameter.fileOffset, variable);
         }
       }
     }

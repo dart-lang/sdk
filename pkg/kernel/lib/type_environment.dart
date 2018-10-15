@@ -287,15 +287,22 @@ class TypeEnvironment extends SubtypeTester {
     Map<TypeParameter, DartType> substitutionMap =
         new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
     for (int i = 0; i < arguments.length; ++i) {
-      if (!isSubtypeOf(
-          arguments[i], substitute(variables[i].bound, substitutionMap))) {
+      DartType argument = arguments[i];
+      if (argument is FunctionType && argument.typeParameters.length > 0) {
+        // Generic function types aren't allowed as type arguments either.
         result ??= <Object>[];
-        result.add(arguments[i]);
+        result.add(argument);
+        result.add(variables[i]);
+        result.add(type);
+      } else if (!isSubtypeOf(
+          argument, substitute(variables[i].bound, substitutionMap))) {
+        result ??= <Object>[];
+        result.add(argument);
         result.add(variables[i]);
         result.add(type);
       }
 
-      List<Object> violations = findBoundViolations(arguments[i],
+      List<Object> violations = findBoundViolations(argument,
           allowSuperBounded: true,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {
@@ -329,8 +336,15 @@ class TypeEnvironment extends SubtypeTester {
     substitutionMap =
         new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
     for (int i = 0; i < arguments.length; ++i) {
-      if (!isSubtypeOf(
-          arguments[i], substitute(variables[i].bound, substitutionMap))) {
+      DartType argument = arguments[i];
+      if (argument is FunctionType && argument.typeParameters.length > 0) {
+        // Generic function types aren't allowed as type arguments either.
+        result ??= <Object>[];
+        result.add(argumentsToReport[i]);
+        result.add(variables[i]);
+        result.add(type);
+      } else if (!isSubtypeOf(
+          argument, substitute(variables[i].bound, substitutionMap))) {
         result ??= <Object>[];
         result.add(argumentsToReport[i]);
         result.add(variables[i]);
@@ -360,15 +374,22 @@ class TypeEnvironment extends SubtypeTester {
       substitutionMap[parameters[i]] = arguments[i];
     }
     for (int i = 0; i < arguments.length; ++i) {
-      if (!isSubtypeOf(
-          arguments[i], substitute(parameters[i].bound, substitutionMap))) {
+      DartType argument = arguments[i];
+      if (argument is FunctionType && argument.typeParameters.length > 0) {
+        // Generic function types aren't allowed as type arguments either.
         result ??= <Object>[];
-        result.add(arguments[i]);
+        result.add(argument);
+        result.add(parameters[i]);
+        result.add(null);
+      } else if (!isSubtypeOf(
+          argument, substitute(parameters[i].bound, substitutionMap))) {
+        result ??= <Object>[];
+        result.add(argument);
         result.add(parameters[i]);
         result.add(null);
       }
 
-      List<Object> violations = findBoundViolations(arguments[i],
+      List<Object> violations = findBoundViolations(argument,
           allowSuperBounded: true,
           typedefInstantiations: typedefInstantiations);
       if (violations != null) {

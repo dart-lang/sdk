@@ -3720,6 +3720,53 @@ const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
         r"""Type variables can't have generic function types in their bounds.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type)>
+    templateGenericFunctionTypeInferredAsActualTypeArgument =
+    const Template<Message Function(DartType _type)>(
+        messageTemplate:
+            r"""Unexpected generic function type '#type' inferred as a type argument.""",
+        tipTemplate:
+            r"""Try providing a non-generic function type explicitly.""",
+        withArguments:
+            _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)>
+    codeGenericFunctionTypeInferredAsActualTypeArgument =
+    const Code<Message Function(DartType _type)>(
+        "GenericFunctionTypeInferredAsActualTypeArgument",
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
+        analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
+    DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeGenericFunctionTypeInferredAsActualTypeArgument,
+      message:
+          """Unexpected generic function type '${type}' inferred as a type argument.""",
+      tip: """Try providing a non-generic function type explicitly.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGenericFunctionTypeUsedAsActualTypeArgument =
+    messageGenericFunctionTypeUsedAsActualTypeArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
+    const MessageCode("GenericFunctionTypeUsedAsActualTypeArgument",
+        analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
+        message:
+            r"""Unexpected generic function type found in a type argument.""",
+        tip: r"""Try using a non-generic function type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Getter not found: '#name'.""",

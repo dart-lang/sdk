@@ -3246,3 +3246,27 @@ MixinApplicationIncompatibleSupertype:
     mixin M on I {}
     class C = Object with M;
 
+GenericFunctionTypeUsedAsActualTypeArgument:
+  template: Unexpected generic function type found in a type argument.
+  tip: Try using a non-generic function type.
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
+  script:
+    - >-
+      typedef F = List<T> Function<T>(T);
+      main() {
+        List<F> list1;
+      }
+    - >-
+      typedef F = List<T> Function<T>(T);
+      main() {
+        new List<F>();
+      }
+
+GenericFunctionTypeInferredAsActualTypeArgument:
+  template: Unexpected generic function type '#type' inferred as a type argument.
+  tip: Try providing a non-generic function type explicitly.
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
+  script:
+    foo<X>(X x) => null;
+    bar<Y>(Y y) => null;
+    main() { foo(bar); }

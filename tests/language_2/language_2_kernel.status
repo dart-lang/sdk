@@ -157,7 +157,6 @@ private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError
-generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
@@ -659,7 +658,6 @@ dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
@@ -1945,10 +1943,6 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
-
-[ $fasta && ($compiler == dartkb || $runtime != dart_precompiled && $runtime != vm) ]
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30931
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 symbol_conflict_test: Pass, Slow
