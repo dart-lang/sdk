@@ -164,7 +164,7 @@ class Interface extends ApiItem {
 
   static List<Interface> extractFrom(String code) {
     final RegExp _interfacePattern = new RegExp(_comment +
-        r'(?:export\s+)?interface\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
+        r'(?:export\s+)?(?:interface|class)\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
         _blockBody);
 
     final interfaces = _interfacePattern.allMatches(code).map((match) {
