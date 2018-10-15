@@ -14,8 +14,17 @@ List<ApiItem> extractAllTypes(List<String> code) {
 
 List<ApiItem> extractTypes(String code) {
   final types = ApiItem.extractFrom(code);
+  _removeUnwantedTypes(types);
   _sort(types);
-  return _mergeTypes(types);
+  return types;
+}
+
+/// Removes types that are in the spec that we don't want.
+void _removeUnwantedTypes(List<ApiItem> types) {
+  // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
+  // have to handle any cases where both a namespace and interfaces are declared
+  // with the same name.
+  types.removeWhere((item) => item.name == 'InitializeError');
 }
 
 String _cleanComment(String comment) {
@@ -36,27 +45,6 @@ String _cleanComment(String comment) {
   comment = comment.replaceAllMapped(
       _newLinesThatRequireReinserting, (m) => '\n\n${m.group(1)}');
   return comment.trim();
-}
-
-/// The LSP contains Interfaces and Namespaces (of constants) with the
-/// same name. This step merges them together into one so that the output
-/// code does not contain two definitions.
-List<ApiItem> _mergeTypes(List<ApiItem> items) {
-  final interfaces = <String, Interface>{};
-  for (var interface in items.whereType<Interface>()) {
-    interfaces[interface.name] = interface;
-  }
-  for (var namespace in items.whereType<Namespace>()) {
-    final matchedInterface = interfaces[namespace.name];
-    if (matchedInterface != null) {
-      matchedInterface.members.addAll(namespace.members);
-    }
-  }
-  // Return the list minus any interfaces that would've been merged above.
-  return items
-      .where((item) =>
-          item is Namespace ? !interfaces.containsKey(item.name) : true)
-      .toList();
 }
 
 List<String> _parseTypes(String baseTypes, String sep) {

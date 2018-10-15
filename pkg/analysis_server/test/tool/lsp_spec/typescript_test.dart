@@ -184,24 +184,6 @@ export namespace ResourceOperationKind {
           equals('Supports deleting existing files and folders.'));
     });
 
-    test('folds a namespace of constants into an interface', () {
-      final String input = '''
-export interface Thing {
-}
-export namespace Thing {
-	export const b: String = 'string';
-}
-    ''';
-      final List<ApiItem> output = extractTypes(input);
-      expect(output, hasLength(1));
-      expect(output[0], const TypeMatcher<Interface>());
-      final Interface interface = output[0];
-      expect(interface.members, hasLength(1));
-      expect(interface.members[0], const TypeMatcher<Const>());
-      final Const b = interface.members[0];
-      expect(b.name, equals('b'));
-    });
-
     test('sorts types and members', () {
       final String input = '''
 export interface b {

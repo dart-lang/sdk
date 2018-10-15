@@ -1044,21 +1044,6 @@ class Hover {
   final Range range;
 }
 
-class InitializeError {
-  InitializeError(this.retry);
-
-  /// If the protocol version provided by the client can't be handled by the
-  /// server. @deprecated This initialize error got replaced by client
-  /// capabilities. There is no version handshake in version 3.0x
-  static const unknownProtocolVersion = 1;
-
-  /// Indicates whether the client execute the following retry logic: (1) show
-  /// the message provided by the ResponseError to the user (2) user selects
-  /// retry or cancel (3) if user selected retry the initialize method is sent
-  /// again.
-  final bool retry;
-}
-
 class InitializeParams {
   InitializeParams(this.capabilities, this.initializationOptions,
       this.processId, this.rootPath, this.rootUri, this.workspaceFolders);
