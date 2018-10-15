@@ -15028,10 +15028,10 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   instrs_region.CopyFrom(0, bytecode_region);
 
   // TODO(regis): Keep following lines or not?
-  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   // TODO(regis): Do we need to notify CodeObservers for bytecode too?
   // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
 #ifndef PRODUCT
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
                            false /* optimized */, nullptr);
@@ -15053,10 +15053,12 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
+#ifndef PRODUCT
   // No Code::Comments to set. Default is 0 length Comments.
   // No prologue was ever entered, optimistically assume nothing was ever
   // pushed onto the stack.
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
+#endif
   return code.raw();
 }
 

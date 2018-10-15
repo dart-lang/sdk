@@ -137,36 +137,10 @@ static char* ComputeGenKernelKernelPath(const char* arg) {
   return strdup(buffer);
 }
 
-BENCHMARK(GenKernelKernelLoadKernel) {
-  char* dill_path = ComputeGenKernelKernelPath(Benchmark::Executable());
-  File* file = File::Open(NULL, dill_path, File::kRead);
-  EXPECT(file != NULL);
-  bin::RefCntReleaseScope<File> rs(file);
-  intptr_t kernel_buffer_size = file->Length();
-  uint8_t* kernel_buffer =
-      reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  EXPECT(kernel_buffer != NULL);
-  bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
-  EXPECT(read_fully);
-
-  Timer timer(true, "GenKernelKernelLoadKernel benchmark");
-  timer.Start();
-
-  Dart_Handle result =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID(result);
-
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-  free(dill_path);
-  free(kernel_buffer);
-}
-
-BENCHMARK(GenKernelKernelReadAllBytecode) {
+static int64_t GenKernelKernelBenchmark(const char* name,
+                                        bool benchmark_load,
+                                        bool benchmark_read_bytecode) {
+  EXPECT(benchmark_load || benchmark_read_bytecode);
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
@@ -184,6 +158,11 @@ BENCHMARK(GenKernelKernelReadAllBytecode) {
   bool enable_interpreter_orig = FLAG_enable_interpreter;
   FLAG_enable_interpreter = true;
 
+  Timer timer(true, name);
+  if (benchmark_load) {
+    timer.Start();
+  }
+
   Dart_Handle result =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   EXPECT_VALID(result);
@@ -191,18 +170,49 @@ BENCHMARK(GenKernelKernelReadAllBytecode) {
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
-  Timer timer(true, "GenKernelKernelLoadKernel benchmark");
-  timer.Start();
+  if (benchmark_read_bytecode && !benchmark_load) {
+    timer.Start();
+  }
 
-  result = Dart_ReadAllBytecode();
-  EXPECT_VALID(result);
+  if (benchmark_read_bytecode) {
+    result = Dart_ReadAllBytecode();
+    EXPECT_VALID(result);
+  }
 
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
   FLAG_enable_interpreter = enable_interpreter_orig;
   free(dill_path);
   free(kernel_buffer);
+  return elapsed_time;
+}
+
+BENCHMARK(GenKernelKernelLoadKernel) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelLoadKernel benchmark",
+                               /* benchmark_load */ true,
+                               /* benchmark_read_bytecode */ false));
+}
+
+BENCHMARK(GenKernelKernelReadAllBytecode) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelReadAllBytecode benchmark",
+                               /* benchmark_load */ false,
+                               /* benchmark_read_bytecode */ true));
+}
+
+BENCHMARK(GenKernelKernelCombined) {
+  benchmark->set_score(
+      GenKernelKernelBenchmark("GenKernelKernelCombined benchmark",
+                               /* benchmark_load */ true,
+                               /* benchmark_read_bytecode */ true));
+}
+
+BENCHMARK(GenKernelKernelMaxRSS) {
+  GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
+                           /* benchmark_load */ false,
+                           /* benchmark_read_bytecode */ true);
+  benchmark->set_score(bin::Process::MaxRSS());
 }
 
 //

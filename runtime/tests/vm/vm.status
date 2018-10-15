@@ -89,7 +89,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime == vm && $mode == product && $compiler == dartk ]
-cc/GenKernelKernelReadAllBytecode: Crash
 cc/CorelibIsolateStartup: Timeout, Pass
 
 [ $runtime != vm ]
@@ -110,6 +109,8 @@ cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give 
 cc/Service_Profile: Skip
 cc/GenKernelKernelLoadKernel: Skip  # Issue 34542.
 cc/GenKernelKernelReadAllBytecode: Skip  # Issue 34393.
+cc/GenKernelKernelCombined: Skip  # Issue 34393.
+cc/GenKernelKernelMaxRSS: Skip  # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
 
 [ !$strong ]
