@@ -73,7 +73,7 @@ abstract class BasicInfo implements Info {
         // Instead, use the content of the code.
         _id = (this as ConstantInfo).code.hashCode;
       } else {
-        _id = longName(this, useLibraryUri: true).hashCode;
+        _id = longName(this, useLibraryUri: true, forId: true).hashCode;
       }
       while (!_ids.add(_id)) {
         _id++;

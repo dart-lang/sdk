@@ -1,3 +1,10 @@
+## 0.5.13
+
+* Use a more efficient `Map` implementation for decoding existing info files.
+
+* Use a relative path when generating unique IDs for elements in non-package
+  sources.
+
 ## 0.5.12
 
 * Improved output of `dart2js_info_diff` by sorting the diffs by
