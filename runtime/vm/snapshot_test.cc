@@ -663,7 +663,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     Message* message =                                                         \
         writer.WriteMessage(array, ILLEGAL_PORT, Message::kNormalPriority);    \
     MessageSnapshotReader reader(message, thread);                             \
-    TypedData& serialized_array = TypedData::Handle();                         \
+    ExternalTypedData& serialized_array = ExternalTypedData::Handle();         \
     serialized_array ^= reader.ReadObject();                                   \
     for (int i = 0; i < length; i++) {                                         \
       EXPECT_EQ(static_cast<ctype>(data[i]),                                   \
