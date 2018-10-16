@@ -279,6 +279,8 @@ abstract class LinterFix implements ErrorReporter {
 
   LinterFix(this.dartFix);
 
+  Future<void> applyFix();
+
   @override
   void reportError(AnalysisError error) {
     // ignored
@@ -325,8 +327,6 @@ abstract class LinterFix implements ErrorReporter {
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
     // ignored
   }
-
-  void applyFix();
 }
 
 class PreferMixinFix extends LinterFix {
@@ -335,24 +335,13 @@ class PreferMixinFix extends LinterFix {
   PreferMixinFix(EditDartFix dartFix) : super(dartFix);
 
   @override
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    TypeName type = node;
-    Element element = type.name.staticElement;
-    String filePath = element.source?.fullName;
-    if (filePath != null && dartFix.isIncluded(filePath)) {
-      classesToConvert.add(element);
-    }
-  }
-
-  @override
-  void applyFix() async {
+  Future<void> applyFix() async {
     for (Element elem in classesToConvert) {
       await convertClassToMixin(elem);
     }
   }
 
-  void convertClassToMixin(Element elem) async {
+  Future<void> convertClassToMixin(Element elem) async {
     AnalysisResult result =
         await dartFix.server.getAnalysisResult(elem.source?.fullName);
 
@@ -379,6 +368,17 @@ class PreferMixinFix extends LinterFix {
               ' because the class contains a constructor in $location');
         }
       }
+    }
+  }
+
+  @override
+  void reportErrorForNode(ErrorCode errorCode, AstNode node,
+      [List<Object> arguments]) {
+    TypeName type = node;
+    Element element = type.name.staticElement;
+    String filePath = element.source?.fullName;
+    if (filePath != null && dartFix.isIncluded(filePath)) {
+      classesToConvert.add(element);
     }
   }
 }

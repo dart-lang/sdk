@@ -66,7 +66,7 @@ abstract class EntryMixin implements ServerPlugin {
     EntryRequest request = await getEntryRequest(parameters);
     EntryGenerator generator = new EntryGenerator(getEntryContributors(path));
     GeneratorResult<KytheGetKytheEntriesResult> result =
-        await generator.generateGetEntriesResponse(request);
+        generator.generateGetEntriesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

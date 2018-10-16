@@ -45,7 +45,7 @@ abstract class AssistsMixin implements ServerPlugin {
     AssistGenerator generator =
         new AssistGenerator(getAssistContributors(path));
     GeneratorResult<EditGetAssistsResult> result =
-        await generator.generateAssistsResponse(request);
+        generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

@@ -63,7 +63,7 @@ abstract class FoldingMixin implements ServerPlugin {
       FoldingGenerator generator =
           new FoldingGenerator(getFoldingContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateFoldingNotification(request);
+          generator.generateFoldingNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

@@ -63,7 +63,7 @@ abstract class OccurrencesMixin implements ServerPlugin {
       OccurrencesGenerator generator =
           new OccurrencesGenerator(getOccurrencesContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateOccurrencesNotification(request);
+          generator.generateOccurrencesNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

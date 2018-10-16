@@ -644,7 +644,7 @@ class FixProcessor {
     await null;
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     if (body != null && body.keyword == null) {
-      TypeProvider typeProvider = await this.typeProvider;
+      TypeProvider typeProvider = this.typeProvider;
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.convertFunctionFromSyncToAsync(body, typeProvider);
