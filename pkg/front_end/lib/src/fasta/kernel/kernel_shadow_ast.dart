@@ -559,23 +559,6 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   }
 }
 
-/// Shadow object for [ConstructorInvocation].
-class ConstructorInvocationJudgment extends ConstructorInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  ConstructorInvocationJudgment(Constructor target, ArgumentsJudgment arguments,
-      {bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitConstructorInvocationJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a continue statement from a switch
 /// statement, in kernel form.
 class ContinueSwitchJudgment extends ContinueSwitchStatement

@@ -126,8 +126,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
   }
 
-  void visitConstructorInvocationJudgment(
-      ConstructorInvocationJudgment node, DartType typeContext) {
+  @override
+  void visitConstructorInvocation(
+      ConstructorInvocation node, DartType typeContext) {
     var library = inferrer.engine.beingInferred[node.target];
     if (library != null) {
       // There is a cyclic dependency where inferring the types of the
@@ -163,23 +164,21 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferrer.engine.beingInferred.remove(node.target);
     }
     bool hasExplicitTypeArguments =
-        getExplicitTypeArguments(node.argumentJudgments) != null;
+        getExplicitTypeArguments(node.arguments) != null;
     var inferenceResult = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
         node.target.function.functionType,
         computeConstructorReturnType(node.target),
-        node.argumentJudgments,
+        node.arguments,
         isConst: node.isConst);
-    var inferredType = inferenceResult.type;
-    node.inferredType = inferredType;
+    inferrer.storeInferredType(node, inferenceResult.type);
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     if (!hasExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInConstructorInvocation(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   void visitContinueSwitchJudgment(ContinueSwitchJudgment node) {

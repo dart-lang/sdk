@@ -85,7 +85,6 @@ export 'kernel_shadow_ast.dart'
         BreakJudgment,
         CascadeJudgment,
         ComplexAssignmentJudgment,
-        ConstructorInvocationJudgment,
         ContinueSwitchJudgment,
         DeferredCheckJudgment,
         ExpressionStatementJudgment,

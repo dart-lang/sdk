@@ -75,4 +75,10 @@ class InferredTypeVisitor
       ConditionalExpression node, TypeInferrerImpl inferrer) {
     return inferrer.strongMode ? node.staticType : const DynamicType();
   }
+
+  @override
+  DartType visitConstructorInvocation(
+      ConstructorInvocation node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
 }
