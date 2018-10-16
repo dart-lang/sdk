@@ -12,6 +12,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -125,8 +126,8 @@ class FileState {
   List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles;
-  Set<FileState> _transitiveFiles;
-  String _transitiveSignature;
+  Set<FileState> _directReferencedLibraries;
+  LibraryCycle _libraryCycle;
 
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
@@ -147,6 +148,7 @@ class FileState {
         source = null,
         _exists = true {
     _apiSignature = new Uint8List(16);
+    _libraryCycle = new LibraryCycle.external();
   }
 
   /**
@@ -187,6 +189,11 @@ class FileState {
   Set<FileState> get directReferencedFiles => _directReferencedFiles;
 
   /**
+   * Return the set of all directly referenced libraries - imported or exported.
+   */
+  Set<FileState> get directReferencedLibraries => _directReferencedLibraries;
+
+  /**
    * Return `true` if the file exists.
    */
   bool get exists => _exists;
@@ -213,6 +220,12 @@ class FileState {
    */
   List<FileState> get importedFiles => _importedFiles;
 
+  LibraryCycle get internal_libraryCycle => _libraryCycle;
+
+  void set internal_libraryCycle(LibraryCycle libraryCycle) {
+    this._libraryCycle = libraryCycle;
+  }
+
   /**
    * Return `true` if the file does not have a `library` directive, and has a
    * `part of` directive, so is probably a part.
@@ -231,6 +244,23 @@ class FileState {
     } else {
       return libraries.first;
     }
+  }
+
+  /// Return the [LibraryCycle] this file belongs to, even if it consists of
+  /// just this file.  If the library cycle is not known yet, compute it.
+  LibraryCycle get libraryCycle {
+    if (isPart) {
+      var library = this.library;
+      if (library != null) {
+        return library.libraryCycle;
+      }
+    }
+
+    if (_libraryCycle == null) {
+      computeLibraryCycle(_fsState._linkedSalt, this);
+    }
+
+    return _libraryCycle;
   }
 
   /**
@@ -310,39 +340,19 @@ class FileState {
   }
 
   /**
-   * Return the set of transitive files - the file itself and all of the
-   * directly or indirectly referenced files.
-   */
-  Set<FileState> get transitiveFiles {
-    if (_transitiveFiles == null) {
-      _transitiveFiles = new Set<FileState>();
-
-      void appendReferenced(FileState file) {
-        if (_transitiveFiles.add(file)) {
-          file._directReferencedFiles?.forEach(appendReferenced);
-        }
-      }
-
-      appendReferenced(this);
-    }
-    return _transitiveFiles;
-  }
-
-  /**
-   * Return the signature of the file, based on the [transitiveFiles].
+   * Return the signature of the file, based on API signatures of the
+   * transitive closure of imported / exported files.
    */
   String get transitiveSignature {
-    if (_transitiveSignature == null) {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._linkedSalt);
-      signature.addInt(transitiveFiles.length);
-      transitiveFiles
-          .map((file) => file.apiSignature)
-          .forEach(signature.addBytes);
-      signature.addString(uri.toString());
-      _transitiveSignature = signature.toHex();
+    if (isPart) {
+      var library = this.library;
+      if (library != null) {
+        return library.transitiveSignature;
+      }
     }
-    return _transitiveSignature;
+
+    var libraryCycle = this.libraryCycle;
+    return libraryCycle.transitiveSignatures[this];
   }
 
   /**
@@ -451,14 +461,11 @@ class FileState {
     _apiSignature = apiSignatureBytes;
 
     // The API signature changed.
-    //   Flush transitive signatures of affected files.
+    //   Flush affected library cycles.
     //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
+      _libraryCycle?.invalidate();
       for (FileState file in _fsState._uriToFile.values) {
-        if (file._transitiveFiles != null &&
-            file._transitiveFiles.contains(this)) {
-          file._transitiveSignature = null;
-        }
         file._exportedTopLevelDeclarations = null;
       }
     }
@@ -498,26 +505,13 @@ class FileState {
     _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
-    Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
     _directReferencedFiles = new Set<FileState>()
       ..addAll(_importedFiles)
       ..addAll(_exportedFiles)
       ..addAll(_partedFiles);
-
-    // If the set of directly referenced files of this file is changed,
-    // then the transitive sets of files that include this file are also
-    // changed. Reset these transitive sets.
-    if (oldDirectReferencedFiles != null) {
-      if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
-          !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
-        for (FileState file in _fsState._uriToFile.values) {
-          if (file._transitiveFiles != null &&
-              file._transitiveFiles.contains(this)) {
-            file._transitiveFiles = null;
-          }
-        }
-      }
-    }
+    _directReferencedLibraries = Set<FileState>()
+      ..addAll(_importedFiles)
+      ..addAll(_exportedFiles);
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit.subtypedNames) {
@@ -965,15 +959,9 @@ class FileSystemStateTestView {
 
   FileSystemStateTestView(this.state);
 
-  Set<FileState> get filesWithoutTransitiveFiles {
+  Set<FileState> get filesWithoutLibraryCycle {
     return state._uriToFile.values
-        .where((f) => f._transitiveFiles == null)
-        .toSet();
-  }
-
-  Set<FileState> get filesWithoutTransitiveSignature {
-    return state._uriToFile.values
-        .where((f) => f._transitiveSignature == null)
+        .where((f) => f._libraryCycle == null)
         .toSet();
   }
 

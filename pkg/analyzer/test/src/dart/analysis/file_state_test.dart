@@ -7,7 +7,10 @@ import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -16,8 +19,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -639,6 +640,84 @@ class D implements C {}
     expect(fileSystemState.hasUri(generatedPath), isTrue);
   }
 
+  test_libraryCycle() {
+    String pa = _p('/aaa/lib/a.dart');
+    String pb = _p('/aaa/lib/b.dart');
+    String pc = _p('/aaa/lib/c.dart');
+    String pd = _p('/aaa/lib/d.dart');
+
+    FileState fa = fileSystemState.getFileForPath(pa);
+    FileState fb = fileSystemState.getFileForPath(pb);
+    FileState fc = fileSystemState.getFileForPath(pc);
+    FileState fd = fileSystemState.getFileForPath(pd);
+
+    // Compute library cycles for all files.
+    fa.libraryCycle;
+    fb.libraryCycle;
+    fc.libraryCycle;
+    fd.libraryCycle;
+    _assertFilesWithoutLibraryCycle([]);
+
+    // No imports, so just a single file.
+    provider.newFile(pa, "");
+    _assertLibraryCycle(fa, [fa], []);
+
+    // Import b.dart into a.dart, two files now.
+    provider.newFile(pa, "import 'b.dart';");
+    fa.refresh();
+    _assertFilesWithoutLibraryCycle([fa]);
+    _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
+
+    // Update b.dart so that it imports c.dart now.
+    provider.newFile(pb, "import 'c.dart';");
+    fb.refresh();
+    _assertFilesWithoutLibraryCycle([fa, fb]);
+    _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
+    _assertLibraryCycle(fb, [fb], [fc.libraryCycle]);
+    _assertFilesWithoutLibraryCycle([]);
+
+    // Update b.dart so that it exports d.dart instead.
+    provider.newFile(pb, "export 'd.dart';");
+    fb.refresh();
+    _assertFilesWithoutLibraryCycle([fa, fb]);
+    _assertLibraryCycle(fa, [fa], [fb.libraryCycle]);
+    _assertLibraryCycle(fb, [fb], [fd.libraryCycle]);
+    _assertFilesWithoutLibraryCycle([]);
+
+    // Update a.dart so that it does not import b.dart anymore.
+    provider.newFile(pa, "");
+    fa.refresh();
+    _assertFilesWithoutLibraryCycle([fa]);
+    _assertLibraryCycle(fa, [fa], []);
+  }
+
+  test_libraryCycle_cycle() {
+    String pa = _p('/aaa/lib/a.dart');
+    String pb = _p('/aaa/lib/b.dart');
+
+    provider.newFile(pa, "import 'b.dart';");
+    provider.newFile(pb, "import 'a.dart';");
+
+    FileState fa = fileSystemState.getFileForPath(pa);
+    FileState fb = fileSystemState.getFileForPath(pb);
+
+    // Compute library cycles for all files.
+    fa.libraryCycle;
+    fb.libraryCycle;
+    _assertFilesWithoutLibraryCycle([]);
+
+    // It's a cycle.
+    _assertLibraryCycle(fa, [fa, fb], []);
+    _assertLibraryCycle(fb, [fa, fb], []);
+
+    // Update a.dart so that it does not import b.dart anymore.
+    provider.newFile(pa, "");
+    fa.refresh();
+    _assertFilesWithoutLibraryCycle([fa, fb]);
+    _assertLibraryCycle(fa, [fa], []);
+    _assertLibraryCycle(fb, [fb], [fa.libraryCycle]);
+  }
+
   test_referencedNames() {
     String path = _p('/aaa/lib/a.dart');
     provider.newFile(path, r'''
@@ -750,85 +829,6 @@ set _V3(_) {}
     assertHas('V4', TopLevelDeclarationKind.variable);
   }
 
-  test_transitiveFiles() {
-    String pa = _p('/aaa/lib/a.dart');
-    String pb = _p('/aaa/lib/b.dart');
-    String pc = _p('/aaa/lib/c.dart');
-    String pd = _p('/aaa/lib/d.dart');
-
-    FileState fa = fileSystemState.getFileForPath(pa);
-    FileState fb = fileSystemState.getFileForPath(pb);
-    FileState fc = fileSystemState.getFileForPath(pc);
-    FileState fd = fileSystemState.getFileForPath(pd);
-
-    // Compute transitive closures for all files.
-    fa.transitiveFiles;
-    fb.transitiveFiles;
-    fc.transitiveFiles;
-    fd.transitiveFiles;
-    expect(
-        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
-
-    // No imports, so just a single file.
-    provider.newFile(pa, "");
-    _assertTransitiveFiles(fa, [fa]);
-
-    // Import b.dart into a.dart, two files now.
-    provider.newFile(pa, "import 'b.dart';");
-    fa.refresh();
-    _assertFilesWithoutTransitiveFiles([fa]);
-    _assertTransitiveFiles(fa, [fa, fb]);
-
-    // Update b.dart so that it imports c.dart now.
-    provider.newFile(pb, "import 'c.dart';");
-    fb.refresh();
-    _assertFilesWithoutTransitiveFiles([fa, fb]);
-    _assertTransitiveFiles(fa, [fa, fb, fc]);
-    _assertTransitiveFiles(fb, [fb, fc]);
-    _assertFilesWithoutTransitiveFiles([]);
-
-    // Update b.dart so that it exports d.dart instead.
-    provider.newFile(pb, "export 'd.dart';");
-    fb.refresh();
-    _assertFilesWithoutTransitiveFiles([fa, fb]);
-    _assertTransitiveFiles(fa, [fa, fb, fd]);
-    _assertTransitiveFiles(fb, [fb, fd]);
-    _assertFilesWithoutTransitiveFiles([]);
-
-    // Update a.dart so that it does not import b.dart anymore.
-    provider.newFile(pa, "");
-    fa.refresh();
-    _assertFilesWithoutTransitiveFiles([fa]);
-    _assertTransitiveFiles(fa, [fa]);
-  }
-
-  test_transitiveFiles_cycle() {
-    String pa = _p('/aaa/lib/a.dart');
-    String pb = _p('/aaa/lib/b.dart');
-
-    provider.newFile(pa, "import 'b.dart';");
-    provider.newFile(pb, "import 'a.dart';");
-
-    FileState fa = fileSystemState.getFileForPath(pa);
-    FileState fb = fileSystemState.getFileForPath(pb);
-
-    // Compute transitive closures for all files.
-    fa.transitiveFiles;
-    fb.transitiveFiles;
-    _assertFilesWithoutTransitiveFiles([]);
-
-    // It's a cycle.
-    _assertTransitiveFiles(fa, [fa, fb]);
-    _assertTransitiveFiles(fb, [fa, fb]);
-
-    // Update a.dart so that it does not import b.dart anymore.
-    provider.newFile(pa, "");
-    fa.refresh();
-    _assertFilesWithoutTransitiveFiles([fa, fb]);
-    _assertTransitiveFiles(fa, [fa]);
-    _assertTransitiveFiles(fb, [fa, fb]);
-  }
-
   test_transitiveSignature() {
     String pa = _p('/aaa/lib/a.dart');
     String pb = _p('/aaa/lib/b.dart');
@@ -846,25 +846,24 @@ set _V3(_) {}
     FileState fd = fileSystemState.getFileForPath(pd);
 
     // Compute transitive closures for all files.
+    // This implicitly computes library cycles.
     expect(fa.transitiveSignature, isNotNull);
     expect(fb.transitiveSignature, isNotNull);
     expect(fc.transitiveSignature, isNotNull);
     expect(fd.transitiveSignature, isNotNull);
-    expect(
-        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
+    _assertFilesWithoutLibraryCycle([]);
 
     // Make an update to a.dart that does not change its API signature.
-    // All transitive signatures are still valid.
+    // All library cycles are still valid.
     provider.newFile(pa, "class A {} // the same API signature");
     fa.refresh();
-    expect(
-        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
+    _assertFilesWithoutLibraryCycle([]);
 
-    // Change a.dart API signature, also flush signatures of b.dart and c.dart,
-    // but d.dart is still OK.
+    // Change a.dart API signature.
+    // This flushes signatures of b.dart and c.dart, but d.dart is still OK.
     provider.newFile(pa, "class A2 {}");
     fa.refresh();
-    _assertFilesWithoutTransitiveSignatures([fa, fb, fc]);
+    _assertFilesWithoutLibraryCycle([fa, fb, fc]);
   }
 
   void _assertExportedTopLevelDeclarations(String path, List<String> expected) {
@@ -874,13 +873,8 @@ set _V3(_) {}
     expect(declarations.keys, unorderedEquals(expected));
   }
 
-  void _assertFilesWithoutTransitiveFiles(List<FileState> expected) {
-    var actual = fileSystemState.test.filesWithoutTransitiveFiles;
-    expect(_excludeSdk(actual), unorderedEquals(expected));
-  }
-
-  void _assertFilesWithoutTransitiveSignatures(List<FileState> expected) {
-    var actual = fileSystemState.test.filesWithoutTransitiveSignature;
+  void _assertFilesWithoutLibraryCycle(List<FileState> expected) {
+    var actual = fileSystemState.test.filesWithoutLibraryCycle;
     expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
@@ -896,13 +890,23 @@ set _V3(_) {}
     expect(file.source, isNull);
   }
 
-  void _assertTransitiveFiles(FileState file, List<FileState> expected) {
-    expect(_excludeSdk(file.transitiveFiles), unorderedEquals(expected));
+  void _assertLibraryCycle(
+    FileState file,
+    List<FileState> expectedLibraries,
+    List<LibraryCycle> expectedDirectDependencies,
+  ) {
+    expect(file.libraryCycle.libraries, unorderedEquals(expectedLibraries));
+    expect(
+      _excludeSdk(file.libraryCycle.directDependencies),
+      unorderedEquals(expectedDirectDependencies),
+    );
   }
 
   List<T> _excludeSdk<T>(Iterable<T> files) {
     return files.where((Object file) {
-      if (file is FileState) {
+      if (file is LibraryCycle) {
+        return !file.libraries.any((file) => file.uri.isScheme('dart'));
+      } else if (file is FileState) {
         return file.uri?.scheme != 'dart';
       } else {
         return !(file as String).startsWith(_p('/sdk'));
