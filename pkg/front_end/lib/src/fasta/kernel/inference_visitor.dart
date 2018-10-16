@@ -99,33 +99,31 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitConditionalJudgment(
-      ConditionalJudgment node, DartType typeContext) {
-    var conditionJudgment = node.conditionJudgment;
-    var thenJudgment = node.thenJudgment;
-    var otherwiseJudgment = node.otherwiseJudgment;
+  @override
+  void visitConditionalExpression(
+      ConditionalExpression node, DartType typeContext) {
+    var condition = node.condition;
+    var then = node.then;
+    var otherwise = node.otherwise;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
     inferrer.ensureAssignable(
         expectedType,
-        getInferredType(conditionJudgment, inferrer),
+        getInferredType(condition, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferExpression(thenJudgment, typeContext, true,
-        isVoidAllowed: true);
+    inferrer.inferExpression(then, typeContext, true, isVoidAllowed: true);
     bool useLub = _forceLub || typeContext == null;
-    inferrer.inferExpression(otherwiseJudgment, typeContext, useLub,
+    inferrer.inferExpression(otherwise, typeContext, useLub,
         isVoidAllowed: true);
-    node.inferredType = useLub
+    DartType inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getStandardUpperBound(
-            getInferredType(thenJudgment, inferrer),
-            getInferredType(otherwiseJudgment, inferrer))
+            getInferredType(then, inferrer),
+            getInferredType(otherwise, inferrer))
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
-      node.staticType = getInferredType(node, inferrer);
+      node.staticType = inferredType;
     }
-    return null;
   }
 
   void visitConstructorInvocationJudgment(

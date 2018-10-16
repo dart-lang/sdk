@@ -69,4 +69,10 @@ class InferredTypeVisitor
   DartType visitBoolLiteral(BoolLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.boolClass.rawType;
   }
+
+  @override
+  DartType visitConditionalExpression(
+      ConditionalExpression node, TypeInferrerImpl inferrer) {
+    return inferrer.strongMode ? node.staticType : const DynamicType();
+  }
 }

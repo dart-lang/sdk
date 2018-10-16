@@ -559,28 +559,6 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   }
 }
 
-/// Concrete shadow object representing a conditional expression in kernel form.
-/// Shadow object for [ConditionalExpression].
-class ConditionalJudgment extends ConditionalExpression
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  Expression get conditionJudgment => condition;
-
-  Expression get thenJudgment => then;
-
-  Expression get otherwiseJudgment => otherwise;
-
-  ConditionalJudgment(
-      Expression condition, Expression then, Expression otherwise)
-      : super(condition, then, otherwise, null);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitConditionalJudgment(this, typeContext);
-  }
-}
-
 /// Shadow object for [ConstructorInvocation].
 class ConstructorInvocationJudgment extends ConstructorInvocation
     implements ExpressionJudgment {

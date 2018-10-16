@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Block,
         BoolLiteral,
         Catch,
+        ConditionalExpression,
         DartType,
         EmptyStatement,
         Expression,
@@ -73,7 +74,6 @@ import 'kernel_shadow_ast.dart'
         BreakJudgment,
         CatchJudgment,
         CheckLibraryIsLoadedJudgment,
-        ConditionalJudgment,
         ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
@@ -357,7 +357,8 @@ class Fangorn extends Forest {
   @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
-    return new ConditionalJudgment(condition, thenExpression, elseExpression)
+    return new ConditionalExpression(
+        condition, thenExpression, elseExpression, null)
       ..fileOffset = offsetForToken(question);
   }
 
