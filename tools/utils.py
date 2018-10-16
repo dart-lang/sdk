@@ -1056,9 +1056,20 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
       missing_as_string = ', '.join([str(c) for c in missing])
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+class IncreasedNumberOfFileDescriptors(object):
+  def __init__(self, nofiles):
+    self._old_limits = None
+    self._limits = (nofiles, nofiles)
+
+  def __enter__(self):
+    self._old_limits = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, self._limits)
+
+  def __exit__(self, *_):
+    resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 @contextlib.contextmanager
-def NooptCoreDumpArchiver():
+def NooptContextManager():
   yield
 
 
@@ -1068,7 +1079,7 @@ def CoreDumpArchiver(args):
   output_directory = next((arg[len(prefix):] for arg in args if arg.startswith(prefix)), None)
 
   if not enabled:
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
 
   osname = GuessOS()
   if osname == 'linux':
@@ -1082,8 +1093,16 @@ def CoreDumpArchiver(args):
                              WindowsCoreDumpArchiver(output_directory))
   else:
     # We don't have support for MacOS yet.
-    assert osname == 'macos'
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
+
+def FileDescriptorLimitIncreaser():
+  osname = GuessOS()
+  if osname == 'macos':
+    return IncreasedNumberOfFileDescriptors(nofiles=10000)
+  else:
+    assert osname in ('linux', 'win32')
+    # We don't have support for MacOS yet.
+    return NooptContextManager()
 
 if __name__ == "__main__":
   import sys
