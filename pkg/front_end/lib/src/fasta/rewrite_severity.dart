@@ -43,9 +43,7 @@ Severity rewriteSeverity(
     // sites.
     switch (path.substring(fastaPath.length + index)) {
       case "command_line.dart":
-      case "deprecated_problems.dart":
       case "kernel/body_builder.dart":
-      case "source/diet_listener.dart":
         return severity;
     }
   } else if (code == msg.codeMissingExplicitTypeArguments) {

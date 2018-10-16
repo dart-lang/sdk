@@ -50,9 +50,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
-
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
@@ -299,30 +296,25 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       KernelTarget sourceTarget = new KernelTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
-      Component p;
-      try {
-        sourceTarget.setEntryPoints(<Uri>[description.uri]);
-        await dillTarget.buildOutlines();
-        ValidatingInstrumentation instrumentation;
-        if (strongMode) {
-          instrumentation = new ValidatingInstrumentation();
-          await instrumentation.loadExpectations(description.uri);
-          sourceTarget.loader.instrumentation = instrumentation;
-        }
-        p = await sourceTarget.buildOutlines();
-        if (fullCompile) {
-          p = await sourceTarget.buildComponent();
-          instrumentation?.finish();
-          if (instrumentation != null && instrumentation.hasProblems) {
-            if (updateComments) {
-              await instrumentation.fixSource(description.uri, false);
-            } else {
-              return fail(null, instrumentation.problemsAsString);
-            }
+      sourceTarget.setEntryPoints(<Uri>[description.uri]);
+      await dillTarget.buildOutlines();
+      ValidatingInstrumentation instrumentation;
+      if (strongMode) {
+        instrumentation = new ValidatingInstrumentation();
+        await instrumentation.loadExpectations(description.uri);
+        sourceTarget.loader.instrumentation = instrumentation;
+      }
+      Component p = await sourceTarget.buildOutlines();
+      if (fullCompile) {
+        p = await sourceTarget.buildComponent();
+        instrumentation?.finish();
+        if (instrumentation != null && instrumentation.hasProblems) {
+          if (updateComments) {
+            await instrumentation.fixSource(description.uri, false);
+          } else {
+            return fail(null, instrumentation.problemsAsString);
           }
         }
-      } on deprecated_InputError catch (e, s) {
-        return fail(null, e.message.message, s);
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;

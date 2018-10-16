@@ -14,7 +14,6 @@ import 'package:test/test.dart'
         isFalse,
         isNotEmpty,
         isNotNull,
-        isNull,
         isTrue,
         same,
         test;
@@ -46,7 +45,7 @@ main() {
 
       var component =
           await compileScript('main() => print("hi");', options: options);
-      expect(component, isNull);
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
@@ -59,7 +58,7 @@ main() {
 
       var component =
           await compileScript('main() => print("hi");', options: options);
-      expect(component, isNull);
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
