@@ -6,7 +6,7 @@ declare_args() {
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
   # while themselves doing a Debug build.
-  dart_debug = false
+  dart_debug = is_debug
 
   # Set the runtime mode. This affects how the runtime is built and what
   # features it has. Valid values are:
