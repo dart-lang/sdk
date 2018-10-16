@@ -39,7 +39,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_packages() {
@@ -56,7 +56,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter'][0].path, packageLocation);
   }
@@ -75,7 +75,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter'][0].path, packageLocation);
   }
@@ -91,7 +91,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter'][0].path, packageLocation);
   }
@@ -116,7 +116,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['rettulf'][0].path, otherPackageLocation);
   }
@@ -141,7 +141,7 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
-    expect(workspace.root, convertPath('/workspace/some/code'));
+    expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 2);
     expect(workspace.packageMap['flutter'][0].path, packageOneLocation);
     expect(workspace.packageMap['rettulf'][0].path, packageTwoLocation);
