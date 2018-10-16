@@ -92,4 +92,10 @@ class InferredTypeVisitor
       FunctionExpression node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitLogicalExpression(
+      LogicalExpression node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.boolClass.rawType;
+  }
 }

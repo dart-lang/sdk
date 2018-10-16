@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
         IsExpression,
         Let,
         LibraryDependency,
+        LogicalExpression,
         MapEntry,
         Member,
         Name,
@@ -86,7 +87,6 @@ import 'kernel_shadow_ast.dart'
         LabeledStatementJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
-        LogicalJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
         NotJudgment,
@@ -424,7 +424,8 @@ class Fangorn extends Forest {
   @override
   Expression logicalExpression(
       Expression leftOperand, Token operator, Expression rightOperand) {
-    return new LogicalJudgment(leftOperand, operator.stringValue, rightOperand)
+    return new LogicalExpression(
+        leftOperand, operator.stringValue, rightOperand)
       ..fileOffset = offsetForToken(operator);
   }
 

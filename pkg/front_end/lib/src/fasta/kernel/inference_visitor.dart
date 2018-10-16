@@ -681,20 +681,17 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitLogicalJudgment(LogicalJudgment node, DartType typeContext) {
+  @override
+  void visitLogicalExpression(LogicalExpression node, DartType typeContext) {
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    var leftJudgment = node.leftJudgment;
-    var rightJudgment = node.rightJudgment;
-    inferrer.inferExpression(leftJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.inferExpression(rightJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, getInferredType(leftJudgment, inferrer),
+    var left = node.left;
+    var right = node.right;
+    inferrer.inferExpression(left, boolType, !inferrer.isTopLevel);
+    inferrer.inferExpression(right, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(boolType, getInferredType(left, inferrer),
         node.left, node.left.fileOffset);
-    inferrer.ensureAssignable(
-        boolType,
-        getInferredType(rightJudgment, inferrer),
-        node.right,
-        node.right.fileOffset);
-    node.inferredType = boolType;
+    inferrer.ensureAssignable(boolType, getInferredType(right, inferrer),
+        node.right, node.right.fileOffset);
     return null;
   }
 

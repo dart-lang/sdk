@@ -1061,23 +1061,6 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   }
 }
 
-/// Shadow object for [LogicalExpression].
-class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  LogicalJudgment(Expression left, String operator, Expression right)
-      : super(left, operator, right);
-
-  Expression get leftJudgment => left;
-
-  Expression get rightJudgment => right;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitLogicalJudgment(this, typeContext);
-  }
-}
-
 /// Type inference derivation for [MapEntry].
 ///
 /// This derivation is needed for uniformity.
