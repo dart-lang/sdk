@@ -75,10 +75,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
   }
 
-  void visitBoolJudgment(BoolJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
-  }
+  @override
+  void visitBoolLiteral(BoolLiteral node, DartType typeContext) {}
 
   void visitBreakJudgment(BreakJudgment node) {
     // No inference needs to be done.

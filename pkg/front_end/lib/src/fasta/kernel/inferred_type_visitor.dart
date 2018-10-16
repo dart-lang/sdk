@@ -64,4 +64,9 @@ class InferredTypeVisitor
   DartType visitThisExpression(ThisExpression node, TypeInferrerImpl inferrer) {
     return invalidToBottom(inferrer.thisType);
   }
+
+  @override
+  DartType visitBoolLiteral(BoolLiteral node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.boolClass.rawType;
+  }
 }

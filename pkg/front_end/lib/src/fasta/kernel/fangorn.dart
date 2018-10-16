@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         AssertInitializer,
         AwaitExpression,
         Block,
+        BoolLiteral,
         Catch,
         DartType,
         EmptyStatement,
@@ -69,7 +70,6 @@ import 'kernel_shadow_ast.dart'
         AssertInitializerJudgment,
         AssertStatementJudgment,
         BlockJudgment,
-        BoolJudgment,
         BreakJudgment,
         CatchJudgment,
         CheckLibraryIsLoadedJudgment,
@@ -158,8 +158,8 @@ class Fangorn extends Forest {
   StringLiteralJudgment asLiteralString(Expression value) => value;
 
   @override
-  BoolJudgment literalBool(bool value, Token token) {
-    return new BoolJudgment(value)..fileOffset = offsetForToken(token);
+  BoolLiteral literalBool(bool value, Token token) {
+    return new BoolLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override

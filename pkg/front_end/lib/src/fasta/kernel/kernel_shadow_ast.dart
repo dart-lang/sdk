@@ -208,18 +208,6 @@ class BlockJudgment extends Block implements StatementJudgment {
   }
 }
 
-/// Concrete shadow object representing a boolean literal in kernel form.
-class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  BoolJudgment(bool value) : super(value);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitBoolJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a break statement in kernel form.
 class BreakJudgment extends BreakStatement implements StatementJudgment {
   BreakJudgment(LabeledStatement target) : super(target);
