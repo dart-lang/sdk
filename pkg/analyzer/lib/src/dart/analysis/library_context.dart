@@ -98,7 +98,7 @@ class LibraryContext {
       logger.run('Load linked bundles', () {
         for (FileState library in libraries.values) {
           if (library.exists || library == targetLibrary) {
-            String key = '${library.transitiveSignature}.linked';
+            String key = library.transitiveSignatureLinked;
             List<int> bytes = byteStore.get(key);
             if (bytes != null) {
               LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
@@ -128,7 +128,7 @@ class LibraryContext {
       for (String uri in linkedLibraries.keys) {
         LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
         FileState library = libraries[uri];
-        String key = '${library.transitiveSignature}.linked';
+        String key = library.transitiveSignatureLinked;
         List<int> bytes = linkedBuilder.toBuffer();
         LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
         store.addLinkedLibrary(uri, linked);

@@ -57,7 +57,7 @@ class LibraryCycle {
   /// [libraries] that share this [LibraryCycle] instance.
   void invalidate() {
     for (var library in libraries) {
-      library.internal_libraryCycle = null;
+      library.internal_setLibraryCycle(null, null);
     }
     for (var user in _directUsers) {
       user.invalidate();
@@ -115,7 +115,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Fill the cycle with libraries.
     for (var node in scc) {
-      node.file.internal_libraryCycle = cycle;
       cycle.libraries.add(node.file);
 
       signature.addInt(node.file.libraryFiles.length);
@@ -129,10 +128,15 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Compute library specific signatures.
     for (var node in scc) {
-      var librarySignature = new ApiSignature();
-      librarySignature.addString(node.file.uriStr);
-      librarySignature.addString(cycle._transitiveSignature);
-      cycle.transitiveSignatures[node.file] = librarySignature.toHex();
+      var librarySignatureBuilder = new ApiSignature()
+        ..addString(node.file.uriStr)
+        ..addString(cycle._transitiveSignature);
+      var librarySignature = librarySignatureBuilder.toHex();
+
+      node.file.internal_setLibraryCycle(
+        cycle,
+        librarySignature,
+      );
     }
   }
 

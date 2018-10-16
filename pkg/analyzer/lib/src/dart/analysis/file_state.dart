@@ -127,7 +127,10 @@ class FileState {
 
   Set<FileState> _directReferencedFiles;
   Set<FileState> _directReferencedLibraries;
+
   LibraryCycle _libraryCycle;
+  String _transitiveSignature;
+  String _transitiveSignatureLinked;
 
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
@@ -221,10 +224,6 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   LibraryCycle get internal_libraryCycle => _libraryCycle;
-
-  void set internal_libraryCycle(LibraryCycle libraryCycle) {
-    this._libraryCycle = libraryCycle;
-  }
 
   /**
    * Return `true` if the file does not have a `library` directive, and has a
@@ -351,8 +350,15 @@ class FileState {
       }
     }
 
-    var libraryCycle = this.libraryCycle;
-    return libraryCycle.transitiveSignatures[this];
+    this.libraryCycle; // sets _transitiveSignature
+    return _transitiveSignature;
+  }
+
+  /**
+   * The value `transitiveSignature.linked` is used often, so we cache it.
+   */
+  String get transitiveSignatureLinked {
+    return _transitiveSignatureLinked ??= '$transitiveSignature.linked';
   }
 
   /**
@@ -368,6 +374,17 @@ class FileState {
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
+  }
+
+  void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
+    if (cycle == null) {
+      _libraryCycle = null;
+      _transitiveSignature = null;
+      _transitiveSignatureLinked = null;
+    } else {
+      _libraryCycle = cycle;
+      _transitiveSignature = signature;
+    }
   }
 
   /**
