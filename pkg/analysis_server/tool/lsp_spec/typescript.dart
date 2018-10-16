@@ -114,7 +114,7 @@ class Field extends Member {
       this.allowsUndefined)
       : super(name, comment);
 
-  static List<Field> extractFrom(String code) {
+  static List<Field> extractFrom(String interfaceName, String code) {
     final RegExp _fieldPattern = new RegExp(
         _comment + r'([\w\[\]]+\??)\s*:\s*([\w\[\] \|\{\}\(\):;]+)\s*(?:;|$)');
 
@@ -146,7 +146,7 @@ class Field extends Member {
           comment = comment.replaceAll(_linkTypePattern, '');
         }
       }
-      final List<String> types = _parseTypes(typesString, '|');
+      List<String> types = _parseTypes(typesString, '|');
       final bool allowsNull = types.contains('null');
       if (allowsNull) {
         types.remove('null');
@@ -154,6 +154,12 @@ class Field extends Member {
       final bool allowsUndefined = name.endsWith('?');
       if (allowsUndefined) {
         name = name.substring(0, name.length - 1);
+      }
+      // Perform simple type improvements for enums values that are typed as
+      // num/string in the spec but are enums.
+      // the spec.
+      if (types.length == 1) {
+        types[0] = _getImprovedType(interfaceName, name) ?? types[0];
       }
       return new Field(name, comment, types, allowsNull, allowsUndefined);
     }).toList();
@@ -178,7 +184,7 @@ class Interface extends ApiItem {
       final String name = match.group(2);
       final List<String> baseTypes = _parseTypes(match.group(3), ',');
       final String body = match.group(4);
-      final List<Member> members = Member.extractFrom(body);
+      final List<Member> members = Member.extractFrom(name, body);
 
       // Add any special base classes we've added to simplify types.
       baseTypes.addAll(_getSpecialBaseClasses(name));
@@ -203,13 +209,43 @@ List<String> _getSpecialBaseClasses(String name) {
   }
 }
 
+/// Fixes up some enum types that are not as specific as they could be in the
+/// spec. For example, Diagnostic.severity is typed "number" but can be mapped
+/// to the DiagnosticSeverity enum class.
+String _getImprovedType(String interfaceName, String fieldName) {
+  const Map<String, Map<String, String>> _improvedTypeMappings = {
+    "Diagnostic": {
+      "severity": "DiagnosticSeverity",
+    },
+    "TextDocumentSyncOptions": {
+      "change": "TextDocumentSyncKind",
+    },
+    "FileSystemWatcher": {
+      "kind": "WatchKind",
+    },
+    "CompletionItem": {
+      "kind": "CompletionItemKind",
+    },
+    "DocumentHighlight": {
+      "kind": "DocumentHighlightKind",
+    },
+    "FoldingRange": {
+      "kind": "FoldingRangeKind",
+    },
+  };
+
+  final interface = _improvedTypeMappings[interfaceName];
+
+  return interface != null ? interface[fieldName] : null;
+}
+
 /// A Field or Constant parsed from the LSP type.
 abstract class Member extends ApiItem {
   Member(String name, String comment) : super(name, comment);
 
-  static List<Member> extractFrom(String code) {
+  static List<Member> extractFrom(String interfaceName, String code) {
     List<Member> members = [];
-    members.addAll(Field.extractFrom(code));
+    members.addAll(Field.extractFrom(interfaceName, code));
     members.addAll(Const.extractFrom(code));
     return members;
   }
@@ -235,7 +271,7 @@ class Namespace extends ApiItem {
       final String comment = match.group(1);
       final String name = match.group(2);
       final String body = match.group(3);
-      final List<Member> members = Member.extractFrom(body);
+      final List<Member> members = Member.extractFrom(name, body);
       return new Namespace(name, comment, members);
     }).toList();
     return namespaces;

@@ -62,5 +62,20 @@ main() {
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
+
+    test('enums serialise to their underlying values', () {
+      final foldingRange =
+          new FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
+      final output = json.encode(foldingRange.toJson());
+      final expected = '''{
+        "startLine":1,
+        "startCharacter":2,
+        "endLine":3,
+        "endCharacter":4,
+        "kind":"comment"
+      }'''
+          .replaceAll(new RegExp('[ \n]'), '');
+      expect(output, equals(expected));
+    });
   });
 }
