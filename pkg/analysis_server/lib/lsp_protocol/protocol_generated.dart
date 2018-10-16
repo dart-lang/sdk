@@ -9,7 +9,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
 class ApplyWorkspaceEditParams {
-  ApplyWorkspaceEditParams(this.edit, this.label);
+  ApplyWorkspaceEditParams(this.label, this.edit);
 
   /// The edits to apply.
   final WorkspaceEdit edit;
@@ -20,10 +20,10 @@ class ApplyWorkspaceEditParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['edit'] = edit ?? (throw 'edit is required but was not set');
     if (label != null) {
       __result['label'] = label;
     }
+    __result['edit'] = edit ?? (throw 'edit is required but was not set');
     return __result;
   }
 }
@@ -56,7 +56,7 @@ class CancelParams {
 }
 
 class ClientCapabilities {
-  ClientCapabilities(this.experimental, this.textDocument, this.workspace);
+  ClientCapabilities(this.workspace, this.textDocument, this.experimental);
 
   /// Experimental client capabilities.
   final dynamic experimental;
@@ -69,14 +69,14 @@ class ClientCapabilities {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (experimental != null) {
-      __result['experimental'] = experimental;
+    if (workspace != null) {
+      __result['workspace'] = workspace;
     }
     if (textDocument != null) {
       __result['textDocument'] = textDocument;
     }
-    if (workspace != null) {
-      __result['workspace'] = workspace;
+    if (experimental != null) {
+      __result['experimental'] = experimental;
     }
     return __result;
   }
@@ -88,7 +88,7 @@ class ClientCapabilities {
 /// A CodeAction must set either `edit` and/or a `command`. If both are
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction {
-  CodeAction(this.command, this.diagnostics, this.edit, this.kind, this.title);
+  CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command);
 
   /// A command this code action executes. If a code action provides an edit and
   /// a command, first the edit is executed and then the command.
@@ -110,8 +110,9 @@ class CodeAction {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (command != null) {
-      __result['command'] = command;
+    __result['title'] = title ?? (throw 'title is required but was not set');
+    if (kind != null) {
+      __result['kind'] = kind;
     }
     if (diagnostics != null) {
       __result['diagnostics'] = diagnostics;
@@ -119,10 +120,9 @@ class CodeAction {
     if (edit != null) {
       __result['edit'] = edit;
     }
-    if (kind != null) {
-      __result['kind'] = kind;
+    if (command != null) {
+      __result['command'] = command;
     }
-    __result['title'] = title ?? (throw 'title is required but was not set');
     return __result;
   }
 }
@@ -223,7 +223,7 @@ class CodeActionOptions {
 
 /// Params for the CodeActionRequest
 class CodeActionParams {
-  CodeActionParams(this.context, this.range, this.textDocument);
+  CodeActionParams(this.textDocument, this.range, this.context);
 
   /// Context carrying additional information.
   final CodeActionContext context;
@@ -236,11 +236,11 @@ class CodeActionParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['context'] =
-        context ?? (throw 'context is required but was not set');
-    __result['range'] = range ?? (throw 'range is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['context'] =
+        context ?? (throw 'context is required but was not set');
     return __result;
   }
 }
@@ -249,15 +249,15 @@ class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions {
   CodeActionRegistrationOptions(this.documentSelector, this.codeActionKinds);
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-
   /// CodeActionKinds that this server may return.
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
   final List<String> codeActionKinds;
+
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
+  final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -276,7 +276,7 @@ class CodeActionRegistrationOptions
 /// performance reasons the creation of a code lens and resolving should be done
 /// in two stages.
 class CodeLens {
-  CodeLens(this.command, this.data, this.range);
+  CodeLens(this.range, this.command, this.data);
 
   /// The command this code lens represents.
   final Command command;
@@ -291,13 +291,13 @@ class CodeLens {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
     if (command != null) {
       __result['command'] = command;
     }
     if (data != null) {
       __result['data'] = data;
     }
-    __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
 }
@@ -335,12 +335,12 @@ class CodeLensParams {
 class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
   CodeLensRegistrationOptions(this.resolveProvider, this.documentSelector);
 
-  /// Code lens has a resolve provider as well.
-  final bool resolveProvider;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// Code lens has a resolve provider as well.
+  final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -354,7 +354,7 @@ class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
 
 /// Represents a color in RGBA space.
 class Color {
-  Color(this.alpha, this.blue, this.green, this.red);
+  Color(this.red, this.green, this.blue, this.alpha);
 
   final num alpha;
   final num blue;
@@ -363,16 +363,16 @@ class Color {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['alpha'] = alpha ?? (throw 'alpha is required but was not set');
-    __result['blue'] = blue ?? (throw 'blue is required but was not set');
-    __result['green'] = green ?? (throw 'green is required but was not set');
     __result['red'] = red ?? (throw 'red is required but was not set');
+    __result['green'] = green ?? (throw 'green is required but was not set');
+    __result['blue'] = blue ?? (throw 'blue is required but was not set');
+    __result['alpha'] = alpha ?? (throw 'alpha is required but was not set');
     return __result;
   }
 }
 
 class ColorInformation {
-  ColorInformation(this.color, this.range);
+  ColorInformation(this.range, this.color);
 
   /// The actual color value for this color range.
   final Color color;
@@ -382,14 +382,14 @@ class ColorInformation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['color'] = color ?? (throw 'color is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['color'] = color ?? (throw 'color is required but was not set');
     return __result;
   }
 }
 
 class ColorPresentation {
-  ColorPresentation(this.additionalTextEdits, this.label, this.textEdit);
+  ColorPresentation(this.label, this.textEdit, this.additionalTextEdits);
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
   /// when selecting this color presentation. Edits must not overlap with the
@@ -408,19 +408,19 @@ class ColorPresentation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
-    }
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (textEdit != null) {
       __result['textEdit'] = textEdit;
+    }
+    if (additionalTextEdits != null) {
+      __result['additionalTextEdits'] = additionalTextEdits;
     }
     return __result;
   }
 }
 
 class ColorPresentationParams {
-  ColorPresentationParams(this.color, this.range, this.textDocument);
+  ColorPresentationParams(this.textDocument, this.color, this.range);
 
   /// The color information to request presentations for.
   final Color color;
@@ -433,10 +433,10 @@ class ColorPresentationParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['color'] = color ?? (throw 'color is required but was not set');
-    __result['range'] = range ?? (throw 'range is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['color'] = color ?? (throw 'color is required but was not set');
+    __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
 }
@@ -450,7 +450,7 @@ class ColorProviderOptions {
 }
 
 class Command {
-  Command(this.arguments, this.command, this.title);
+  Command(this.title, this.command, this.arguments);
 
   /// Arguments that the command handler should be invoked with.
   final List<dynamic> arguments;
@@ -463,12 +463,12 @@ class Command {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['title'] = title ?? (throw 'title is required but was not set');
+    __result['command'] =
+        command ?? (throw 'command is required but was not set');
     if (arguments != null) {
       __result['arguments'] = arguments;
     }
-    __result['command'] =
-        command ?? (throw 'command is required but was not set');
-    __result['title'] = title ?? (throw 'title is required but was not set');
     return __result;
   }
 }
@@ -476,7 +476,7 @@ class Command {
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext {
-  CompletionContext(this.triggerCharacter, this.triggerKind);
+  CompletionContext(this.triggerKind, this.triggerCharacter);
 
   /// The trigger character (a single character) that has trigger code complete.
   /// Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
@@ -487,32 +487,32 @@ class CompletionContext {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['triggerKind'] =
+        triggerKind ?? (throw 'triggerKind is required but was not set');
     if (triggerCharacter != null) {
       __result['triggerCharacter'] = triggerCharacter;
     }
-    __result['triggerKind'] =
-        triggerKind ?? (throw 'triggerKind is required but was not set');
     return __result;
   }
 }
 
 class CompletionItem {
   CompletionItem(
-      this.additionalTextEdits,
-      this.command,
-      this.commitCharacters,
-      this.data,
-      this.deprecated,
+      this.label,
+      this.kind,
       this.detail,
       this.documentation,
+      this.deprecated,
+      this.preselect,
+      this.sortText,
       this.filterText,
       this.insertText,
       this.insertTextFormat,
-      this.kind,
-      this.label,
-      this.preselect,
-      this.sortText,
-      this.textEdit);
+      this.textEdit,
+      this.additionalTextEdits,
+      this.commitCharacters,
+      this.command,
+      this.data);
 
   /// An optional array of additional text edits that are applied when selecting
   /// this completion. Edits must not overlap (including the same insert
@@ -596,26 +596,24 @@ class CompletionItem {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
-    }
-    if (command != null) {
-      __result['command'] = command;
-    }
-    if (commitCharacters != null) {
-      __result['commitCharacters'] = commitCharacters;
-    }
-    if (data != null) {
-      __result['data'] = data;
-    }
-    if (deprecated != null) {
-      __result['deprecated'] = deprecated;
+    __result['label'] = label ?? (throw 'label is required but was not set');
+    if (kind != null) {
+      __result['kind'] = kind;
     }
     if (detail != null) {
       __result['detail'] = detail;
     }
     if (documentation != null) {
       __result['documentation'] = documentation;
+    }
+    if (deprecated != null) {
+      __result['deprecated'] = deprecated;
+    }
+    if (preselect != null) {
+      __result['preselect'] = preselect;
+    }
+    if (sortText != null) {
+      __result['sortText'] = sortText;
     }
     if (filterText != null) {
       __result['filterText'] = filterText;
@@ -626,18 +624,20 @@ class CompletionItem {
     if (insertTextFormat != null) {
       __result['insertTextFormat'] = insertTextFormat;
     }
-    if (kind != null) {
-      __result['kind'] = kind;
-    }
-    __result['label'] = label ?? (throw 'label is required but was not set');
-    if (preselect != null) {
-      __result['preselect'] = preselect;
-    }
-    if (sortText != null) {
-      __result['sortText'] = sortText;
-    }
     if (textEdit != null) {
       __result['textEdit'] = textEdit;
+    }
+    if (additionalTextEdits != null) {
+      __result['additionalTextEdits'] = additionalTextEdits;
+    }
+    if (commitCharacters != null) {
+      __result['commitCharacters'] = commitCharacters;
+    }
+    if (command != null) {
+      __result['command'] = command;
+    }
+    if (data != null) {
+      __result['data'] = data;
     }
     return __result;
   }
@@ -717,7 +717,7 @@ class CompletionOptions {
 }
 
 class CompletionParams implements TextDocumentPositionParams {
-  CompletionParams(this.context, this.position, this.textDocument);
+  CompletionParams(this.context, this.textDocument, this.position);
 
   /// The completion context. This is only available if the client specifies to
   /// send this using `ClientCapabilities.textDocument.completion.contextSupport
@@ -735,17 +735,21 @@ class CompletionParams implements TextDocumentPositionParams {
     if (context != null) {
       __result['context'] = context;
     }
-    __result['position'] =
-        position ?? (throw 'position is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['position'] =
+        position ?? (throw 'position is required but was not set');
     return __result;
   }
 }
 
 class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
   CompletionRegistrationOptions(
-      this.resolveProvider, this.triggerCharacters, this.documentSelector);
+      this.triggerCharacters, this.resolveProvider, this.documentSelector);
+
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
+  final List<DocumentFilter> documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
@@ -763,17 +767,13 @@ class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
   /// `triggerCharacters`.
   final List<String> triggerCharacters;
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
-    }
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
+    }
+    if (resolveProvider != null) {
+      __result['resolveProvider'] = resolveProvider;
     }
     __result['documentSelector'] = documentSelector;
     return __result;
@@ -829,7 +829,7 @@ class ConfigurationParams {
 
 /// Create file operation
 class CreateFile implements FileOperation {
-  CreateFile(this.options, this.uri);
+  CreateFile(this.uri, this.options);
 
   /// Additional options
   final CreateFileOptions options;
@@ -839,17 +839,17 @@ class CreateFile implements FileOperation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
       __result['options'] = options;
     }
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
 }
 
 /// Options to create a file.
 class CreateFileOptions {
-  CreateFileOptions(this.ignoreIfExists, this.overwrite);
+  CreateFileOptions(this.overwrite, this.ignoreIfExists);
 
   /// Ignore if exists.
   final bool ignoreIfExists;
@@ -859,11 +859,11 @@ class CreateFileOptions {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (ignoreIfExists != null) {
-      __result['ignoreIfExists'] = ignoreIfExists;
-    }
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
+    }
+    if (ignoreIfExists != null) {
+      __result['ignoreIfExists'] = ignoreIfExists;
     }
     return __result;
   }
@@ -871,7 +871,7 @@ class CreateFileOptions {
 
 /// Delete file operation
 class DeleteFile implements FileOperation {
-  DeleteFile(this.options, this.uri);
+  DeleteFile(this.uri, this.options);
 
   /// Delete options.
   final DeleteFileOptions options;
@@ -881,17 +881,17 @@ class DeleteFile implements FileOperation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
       __result['options'] = options;
     }
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
 }
 
 /// Delete file options
 class DeleteFileOptions {
-  DeleteFileOptions(this.ignoreIfNotExists, this.recursive);
+  DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
 
   /// Ignore the operation if the file doesn't exist.
   final bool ignoreIfNotExists;
@@ -901,19 +901,19 @@ class DeleteFileOptions {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (ignoreIfNotExists != null) {
-      __result['ignoreIfNotExists'] = ignoreIfNotExists;
-    }
     if (recursive != null) {
       __result['recursive'] = recursive;
+    }
+    if (ignoreIfNotExists != null) {
+      __result['ignoreIfNotExists'] = ignoreIfNotExists;
     }
     return __result;
   }
 }
 
 class Diagnostic {
-  Diagnostic(this.code, this.message, this.range, this.relatedInformation,
-      this.severity, this.source);
+  Diagnostic(this.range, this.severity, this.code, this.source, this.message,
+      this.relatedInformation);
 
   /// The diagnostic's code, which might appear in the user interface.
   final Either2<num, String> code;
@@ -938,20 +938,20 @@ class Diagnostic {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (code != null) {
-      __result['code'] = code;
-    }
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
-    if (relatedInformation != null) {
-      __result['relatedInformation'] = relatedInformation;
-    }
     if (severity != null) {
       __result['severity'] = severity;
     }
+    if (code != null) {
+      __result['code'] = code;
+    }
     if (source != null) {
       __result['source'] = source;
+    }
+    __result['message'] =
+        message ?? (throw 'message is required but was not set');
+    if (relatedInformation != null) {
+      __result['relatedInformation'] = relatedInformation;
     }
     return __result;
   }
@@ -1008,7 +1008,7 @@ class DidChangeConfigurationParams {
 }
 
 class DidChangeTextDocumentParams {
-  DidChangeTextDocumentParams(this.contentChanges, this.textDocument);
+  DidChangeTextDocumentParams(this.textDocument, this.contentChanges);
 
   /// The actual content changes. The content changes describe single state
   /// changes to the document. So if there are two content changes c1 and c2 for
@@ -1021,10 +1021,10 @@ class DidChangeTextDocumentParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['contentChanges'] =
-        contentChanges ?? (throw 'contentChanges is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['contentChanges'] =
+        contentChanges ?? (throw 'contentChanges is required but was not set');
     return __result;
   }
 }
@@ -1101,7 +1101,7 @@ class DidOpenTextDocumentParams {
 }
 
 class DidSaveTextDocumentParams {
-  DidSaveTextDocumentParams(this.text, this.textDocument);
+  DidSaveTextDocumentParams(this.textDocument, this.text);
 
   /// Optional the content when saved. Depends on the includeText value when the
   /// save notification was requested.
@@ -1112,17 +1112,17 @@ class DidSaveTextDocumentParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['textDocument'] =
+        textDocument ?? (throw 'textDocument is required but was not set');
     if (text != null) {
       __result['text'] = text;
     }
-    __result['textDocument'] =
-        textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
 }
 
 class DocumentFilter {
-  DocumentFilter(this.language, this.pattern, this.scheme);
+  DocumentFilter(this.language, this.scheme, this.pattern);
 
   /// A language id, like `typescript`.
   final String language;
@@ -1138,18 +1138,18 @@ class DocumentFilter {
     if (language != null) {
       __result['language'] = language;
     }
-    if (pattern != null) {
-      __result['pattern'] = pattern;
-    }
     if (scheme != null) {
       __result['scheme'] = scheme;
+    }
+    if (pattern != null) {
+      __result['pattern'] = pattern;
     }
     return __result;
   }
 }
 
 class DocumentFormattingParams {
-  DocumentFormattingParams(this.options, this.textDocument);
+  DocumentFormattingParams(this.textDocument, this.options);
 
   /// The format options.
   final FormattingOptions options;
@@ -1159,10 +1159,10 @@ class DocumentFormattingParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['options'] =
-        options ?? (throw 'options is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['options'] =
+        options ?? (throw 'options is required but was not set');
     return __result;
   }
 }
@@ -1171,7 +1171,7 @@ class DocumentFormattingParams {
 /// special attention. Usually a document highlight is visualized by changing
 /// the background color of its range.
 class DocumentHighlight {
-  DocumentHighlight(this.kind, this.range);
+  DocumentHighlight(this.range, this.kind);
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
   final num kind;
@@ -1181,10 +1181,10 @@ class DocumentHighlight {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
     }
-    __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
 }
@@ -1204,7 +1204,7 @@ abstract class DocumentHighlightKind {
 /// A document link is a range in a text document that links to an internal or
 /// external resource, like another text document or a web site.
 class DocumentLink {
-  DocumentLink(this.data, this.range, this.target);
+  DocumentLink(this.range, this.target, this.data);
 
   /// A data entry field that is preserved on a document link between a
   /// DocumentLinkRequest and a DocumentLinkResolveRequest.
@@ -1218,12 +1218,12 @@ class DocumentLink {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (data != null) {
-      __result['data'] = data;
-    }
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (target != null) {
       __result['target'] = target;
+    }
+    if (data != null) {
+      __result['data'] = data;
     }
     return __result;
   }
@@ -1263,12 +1263,12 @@ class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions {
   DocumentLinkRegistrationOptions(this.resolveProvider, this.documentSelector);
 
-  /// Document links have a resolve provider as well.
-  final bool resolveProvider;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// Document links have a resolve provider as well.
+  final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -1304,7 +1304,7 @@ class DocumentOnTypeFormattingOptions {
 
 class DocumentOnTypeFormattingParams {
   DocumentOnTypeFormattingParams(
-      this.ch, this.options, this.position, this.textDocument);
+      this.textDocument, this.position, this.ch, this.options);
 
   /// The character that has been typed.
   final String ch;
@@ -1320,13 +1320,13 @@ class DocumentOnTypeFormattingParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['textDocument'] =
+        textDocument ?? (throw 'textDocument is required but was not set');
+    __result['position'] =
+        position ?? (throw 'position is required but was not set');
     __result['ch'] = ch ?? (throw 'ch is required but was not set');
     __result['options'] =
         options ?? (throw 'options is required but was not set');
-    __result['position'] =
-        position ?? (throw 'position is required but was not set');
-    __result['textDocument'] =
-        textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
 }
@@ -1336,15 +1336,15 @@ class DocumentOnTypeFormattingRegistrationOptions
   DocumentOnTypeFormattingRegistrationOptions(this.firstTriggerCharacter,
       this.moreTriggerCharacter, this.documentSelector);
 
+  /// A document selector to identify the scope of the registration. If set to
+  /// null the document selector provided on the client side will be used.
+  final List<DocumentFilter> documentSelector;
+
   /// A character on which formatting should be triggered, like `}`.
   final String firstTriggerCharacter;
 
   /// More trigger characters.
   final List<String> moreTriggerCharacter;
-
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -1359,7 +1359,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 }
 
 class DocumentRangeFormattingParams {
-  DocumentRangeFormattingParams(this.options, this.range, this.textDocument);
+  DocumentRangeFormattingParams(this.textDocument, this.range, this.options);
 
   /// The format options
   final FormattingOptions options;
@@ -1372,11 +1372,11 @@ class DocumentRangeFormattingParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['options'] =
-        options ?? (throw 'options is required but was not set');
-    __result['range'] = range ?? (throw 'range is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['options'] =
+        options ?? (throw 'options is required but was not set');
     return __result;
   }
 }
@@ -1386,8 +1386,8 @@ class DocumentRangeFormattingParams {
 /// have two ranges: one that encloses its definition and one that points to its
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol {
-  DocumentSymbol(this.children, this.deprecated, this.detail, this.kind,
-      this.name, this.range, this.selectionRange);
+  DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
+      this.selectionRange, this.children);
 
   /// Children of this symbol, e.g. properties of a class.
   final List<DocumentSymbol> children;
@@ -1416,20 +1416,20 @@ class DocumentSymbol {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (children != null) {
-      __result['children'] = children;
-    }
-    if (deprecated != null) {
-      __result['deprecated'] = deprecated;
-    }
+    __result['name'] = name ?? (throw 'name is required but was not set');
     if (detail != null) {
       __result['detail'] = detail;
     }
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    if (deprecated != null) {
+      __result['deprecated'] = deprecated;
+    }
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['selectionRange'] =
         selectionRange ?? (throw 'selectionRange is required but was not set');
+    if (children != null) {
+      __result['children'] = children;
+    }
     return __result;
   }
 }
@@ -1477,7 +1477,7 @@ class ExecuteCommandOptions {
 }
 
 class ExecuteCommandParams {
-  ExecuteCommandParams(this.arguments, this.command);
+  ExecuteCommandParams(this.command, this.arguments);
 
   /// Arguments that the command should be invoked with.
   final List<dynamic> arguments;
@@ -1487,11 +1487,11 @@ class ExecuteCommandParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['command'] =
+        command ?? (throw 'command is required but was not set');
     if (arguments != null) {
       __result['arguments'] = arguments;
     }
-    __result['command'] =
-        command ?? (throw 'command is required but was not set');
     return __result;
   }
 }
@@ -1545,7 +1545,7 @@ abstract class FileChangeType {
 
 /// An event describing a file change.
 class FileEvent {
-  FileEvent(this.type, this.uri);
+  FileEvent(this.uri, this.type);
 
   /// The change type.
   final num type;
@@ -1555,8 +1555,8 @@ class FileEvent {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['type'] = type ?? (throw 'type is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
   }
 }
@@ -1584,8 +1584,8 @@ class FileSystemWatcher {
 
 /// Represents a folding range.
 class FoldingRange {
-  FoldingRange(this.endCharacter, this.endLine, this.kind, this.startCharacter,
-      this.startLine);
+  FoldingRange(this.startLine, this.startCharacter, this.endLine,
+      this.endCharacter, this.kind);
 
   /// The zero-based character offset before the folded range ends. If not
   /// defined, defaults to the length of the end line.
@@ -1609,19 +1609,19 @@ class FoldingRange {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (endCharacter != null) {
-      __result['endCharacter'] = endCharacter;
-    }
-    __result['endLine'] =
-        endLine ?? (throw 'endLine is required but was not set');
-    if (kind != null) {
-      __result['kind'] = kind;
-    }
+    __result['startLine'] =
+        startLine ?? (throw 'startLine is required but was not set');
     if (startCharacter != null) {
       __result['startCharacter'] = startCharacter;
     }
-    __result['startLine'] =
-        startLine ?? (throw 'startLine is required but was not set');
+    __result['endLine'] =
+        endLine ?? (throw 'endLine is required but was not set');
+    if (endCharacter != null) {
+      __result['endCharacter'] = endCharacter;
+    }
+    if (kind != null) {
+      __result['kind'] = kind;
+    }
     return __result;
   }
 }
@@ -1650,7 +1650,7 @@ class FoldingRangeProviderOptions {
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions {
-  FormattingOptions(this.insertSpaces, this.tabSize);
+  FormattingOptions(this.tabSize, this.insertSpaces);
 
   /// Prefer spaces over tabs.
   final bool insertSpaces;
@@ -1660,10 +1660,10 @@ class FormattingOptions {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['insertSpaces'] =
-        insertSpaces ?? (throw 'insertSpaces is required but was not set');
     __result['tabSize'] =
         tabSize ?? (throw 'tabSize is required but was not set');
+    __result['insertSpaces'] =
+        insertSpaces ?? (throw 'insertSpaces is required but was not set');
     return __result;
   }
 }
@@ -1691,8 +1691,8 @@ class Hover {
 }
 
 class InitializeParams {
-  InitializeParams(this.capabilities, this.initializationOptions,
-      this.processId, this.rootPath, this.rootUri, this.workspaceFolders);
+  InitializeParams(this.processId, this.rootPath, this.rootUri,
+      this.initializationOptions, this.capabilities, this.workspaceFolders);
 
   /// The capabilities provided by the client (editor or tool)
   final ClientCapabilities capabilities;
@@ -1724,16 +1724,16 @@ class InitializeParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['capabilities'] =
-        capabilities ?? (throw 'capabilities is required but was not set');
-    if (initializationOptions != null) {
-      __result['initializationOptions'] = initializationOptions;
-    }
     __result['processId'] = processId;
     if (rootPath != null) {
       __result['rootPath'] = rootPath;
     }
     __result['rootUri'] = rootUri;
+    if (initializationOptions != null) {
+      __result['initializationOptions'] = initializationOptions;
+    }
+    __result['capabilities'] =
+        capabilities ?? (throw 'capabilities is required but was not set');
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders;
     }
@@ -1778,21 +1778,21 @@ abstract class InsertTextFormat {
 }
 
 class Location {
-  Location(this.range, this.uri);
+  Location(this.uri, this.range);
 
   final Range range;
   final String uri;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['range'] = range ?? (throw 'range is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
 }
 
 class LogMessageParams {
-  LogMessageParams(this.message, this.type);
+  LogMessageParams(this.type, this.message);
 
   /// The actual message
   final String message;
@@ -1802,9 +1802,24 @@ class LogMessageParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
-    __result['type'] = type ?? (throw 'type is required but was not set');
+    return __result;
+  }
+}
+
+class MarkedString {
+  MarkedString(this.language, this.value);
+
+  final String language;
+  final String value;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['language'] =
+        language ?? (throw 'language is required but was not set');
+    __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
   }
 }
@@ -1904,9 +1919,10 @@ abstract class MessageType {
 class NotificationMessage implements Message {
   NotificationMessage(this.method, this.jsonrpc);
 
+  final String jsonrpc;
+
   /// The method to be invoked.
   final String method;
-  final String jsonrpc;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -1920,7 +1936,7 @@ class NotificationMessage implements Message {
 /// Represents a parameter of a callable-signature. A parameter can have a label
 /// and a doc-comment.
 class ParameterInformation {
-  ParameterInformation(this.documentation, this.label);
+  ParameterInformation(this.label, this.documentation);
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
   /// but can be omitted.
@@ -1931,16 +1947,16 @@ class ParameterInformation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
     }
-    __result['label'] = label ?? (throw 'label is required but was not set');
     return __result;
   }
 }
 
 class Position {
-  Position(this.character, this.line);
+  Position(this.line, this.character);
 
   /// Character offset on a line in a document (zero-based). Assuming that the
   /// line is represented as a string, the `character` value represents the gap
@@ -1955,15 +1971,15 @@ class Position {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['line'] = line ?? (throw 'line is required but was not set');
     __result['character'] =
         character ?? (throw 'character is required but was not set');
-    __result['line'] = line ?? (throw 'line is required but was not set');
     return __result;
   }
 }
 
 class PublishDiagnosticsParams {
-  PublishDiagnosticsParams(this.diagnostics, this.uri);
+  PublishDiagnosticsParams(this.uri, this.diagnostics);
 
   /// An array of diagnostic information items.
   final List<Diagnostic> diagnostics;
@@ -1973,15 +1989,15 @@ class PublishDiagnosticsParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['diagnostics'] =
         diagnostics ?? (throw 'diagnostics is required but was not set');
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
 }
 
 class Range {
-  Range(this.end, this.start);
+  Range(this.start, this.end);
 
   /// The range's end position.
   final Position end;
@@ -1991,8 +2007,8 @@ class Range {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['end'] = end ?? (throw 'end is required but was not set');
     __result['start'] = start ?? (throw 'start is required but was not set');
+    __result['end'] = end ?? (throw 'end is required but was not set');
     return __result;
   }
 }
@@ -2012,7 +2028,7 @@ class ReferenceContext {
 }
 
 class ReferenceParams implements TextDocumentPositionParams {
-  ReferenceParams(this.context, this.position, this.textDocument);
+  ReferenceParams(this.context, this.textDocument, this.position);
 
   final ReferenceContext context;
 
@@ -2026,10 +2042,10 @@ class ReferenceParams implements TextDocumentPositionParams {
     Map<String, dynamic> __result = {};
     __result['context'] =
         context ?? (throw 'context is required but was not set');
-    __result['position'] =
-        position ?? (throw 'position is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['position'] =
+        position ?? (throw 'position is required but was not set');
     return __result;
   }
 }
@@ -2074,7 +2090,7 @@ class RegistrationParams {
 
 /// Rename file operation
 class RenameFile implements FileOperation {
-  RenameFile(this.newUri, this.oldUri, this.options);
+  RenameFile(this.oldUri, this.newUri, this.options);
 
   /// The new location.
   final String newUri;
@@ -2087,8 +2103,8 @@ class RenameFile implements FileOperation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
     __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
+    __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
     if (options != null) {
       __result['options'] = options;
     }
@@ -2098,7 +2114,7 @@ class RenameFile implements FileOperation {
 
 /// Rename file options
 class RenameFileOptions {
-  RenameFileOptions(this.ignoreIfExists, this.overwrite);
+  RenameFileOptions(this.overwrite, this.ignoreIfExists);
 
   /// Ignores if target exists.
   final bool ignoreIfExists;
@@ -2108,11 +2124,11 @@ class RenameFileOptions {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (ignoreIfExists != null) {
-      __result['ignoreIfExists'] = ignoreIfExists;
-    }
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
+    }
+    if (ignoreIfExists != null) {
+      __result['ignoreIfExists'] = ignoreIfExists;
     }
     return __result;
   }
@@ -2135,7 +2151,7 @@ class RenameOptions {
 }
 
 class RenameParams {
-  RenameParams(this.newName, this.position, this.textDocument);
+  RenameParams(this.textDocument, this.position, this.newName);
 
   /// The new name of the symbol. If the given name is not valid the request
   /// must return a [ResponseError] with an appropriate message set.
@@ -2149,12 +2165,12 @@ class RenameParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['newName'] =
-        newName ?? (throw 'newName is required but was not set');
-    __result['position'] =
-        position ?? (throw 'position is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['position'] =
+        position ?? (throw 'position is required but was not set');
+    __result['newName'] =
+        newName ?? (throw 'newName is required but was not set');
     return __result;
   }
 }
@@ -2162,12 +2178,12 @@ class RenameParams {
 class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
 
-  /// Renames should be checked and tested for validity before being executed.
-  final bool prepareProvider;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// Renames should be checked and tested for validity before being executed.
+  final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2184,10 +2200,10 @@ class RequestMessage implements Message {
 
   /// The request id.
   final Either2<num, String> id;
+  final String jsonrpc;
 
   /// The method to be invoked.
   final String method;
-  final String jsonrpc;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2215,10 +2231,10 @@ class ResponseMessage implements Message {
 
   /// The request id.
   final Either2<num, String> id;
+  final String jsonrpc;
 
   /// The result of a request. This can be omitted in the case of an error.
   final dynamic result;
-  final String jsonrpc;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2250,25 +2266,25 @@ class SaveOptions {
 
 class ServerCapabilities {
   ServerCapabilities(
-      this.changeNotifications,
+      this.textDocumentSync,
+      this.hoverProvider,
+      this.completionProvider,
+      this.signatureHelpProvider,
+      this.definitionProvider,
+      this.referencesProvider,
+      this.documentHighlightProvider,
+      this.documentSymbolProvider,
+      this.workspaceSymbolProvider,
       this.codeActionProvider,
       this.codeLensProvider,
-      this.completionProvider,
-      this.definitionProvider,
       this.documentFormattingProvider,
-      this.documentHighlightProvider,
-      this.documentLinkProvider,
-      this.documentOnTypeFormattingProvider,
       this.documentRangeFormattingProvider,
-      this.documentSymbolProvider,
-      this.executeCommandProvider,
-      this.hoverProvider,
-      this.referencesProvider,
+      this.documentOnTypeFormattingProvider,
       this.renameProvider,
-      this.signatureHelpProvider,
+      this.documentLinkProvider,
+      this.executeCommandProvider,
       this.supported,
-      this.textDocumentSync,
-      this.workspaceSymbolProvider);
+      this.changeNotifications);
 
   /// Whether the server wants to receive workspace folder change notifications.
   ///
@@ -2341,8 +2357,32 @@ class ServerCapabilities {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (changeNotifications != null) {
-      __result['changeNotifications'] = changeNotifications;
+    if (textDocumentSync != null) {
+      __result['textDocumentSync'] = textDocumentSync;
+    }
+    if (hoverProvider != null) {
+      __result['hoverProvider'] = hoverProvider;
+    }
+    if (completionProvider != null) {
+      __result['completionProvider'] = completionProvider;
+    }
+    if (signatureHelpProvider != null) {
+      __result['signatureHelpProvider'] = signatureHelpProvider;
+    }
+    if (definitionProvider != null) {
+      __result['definitionProvider'] = definitionProvider;
+    }
+    if (referencesProvider != null) {
+      __result['referencesProvider'] = referencesProvider;
+    }
+    if (documentHighlightProvider != null) {
+      __result['documentHighlightProvider'] = documentHighlightProvider;
+    }
+    if (documentSymbolProvider != null) {
+      __result['documentSymbolProvider'] = documentSymbolProvider;
+    }
+    if (workspaceSymbolProvider != null) {
+      __result['workspaceSymbolProvider'] = workspaceSymbolProvider;
     }
     if (codeActionProvider != null) {
       __result['codeActionProvider'] = codeActionProvider;
@@ -2350,62 +2390,38 @@ class ServerCapabilities {
     if (codeLensProvider != null) {
       __result['codeLensProvider'] = codeLensProvider;
     }
-    if (completionProvider != null) {
-      __result['completionProvider'] = completionProvider;
-    }
-    if (definitionProvider != null) {
-      __result['definitionProvider'] = definitionProvider;
-    }
     if (documentFormattingProvider != null) {
       __result['documentFormattingProvider'] = documentFormattingProvider;
-    }
-    if (documentHighlightProvider != null) {
-      __result['documentHighlightProvider'] = documentHighlightProvider;
-    }
-    if (documentLinkProvider != null) {
-      __result['documentLinkProvider'] = documentLinkProvider;
-    }
-    if (documentOnTypeFormattingProvider != null) {
-      __result['documentOnTypeFormattingProvider'] =
-          documentOnTypeFormattingProvider;
     }
     if (documentRangeFormattingProvider != null) {
       __result['documentRangeFormattingProvider'] =
           documentRangeFormattingProvider;
     }
-    if (documentSymbolProvider != null) {
-      __result['documentSymbolProvider'] = documentSymbolProvider;
-    }
-    if (executeCommandProvider != null) {
-      __result['executeCommandProvider'] = executeCommandProvider;
-    }
-    if (hoverProvider != null) {
-      __result['hoverProvider'] = hoverProvider;
-    }
-    if (referencesProvider != null) {
-      __result['referencesProvider'] = referencesProvider;
+    if (documentOnTypeFormattingProvider != null) {
+      __result['documentOnTypeFormattingProvider'] =
+          documentOnTypeFormattingProvider;
     }
     if (renameProvider != null) {
       __result['renameProvider'] = renameProvider;
     }
-    if (signatureHelpProvider != null) {
-      __result['signatureHelpProvider'] = signatureHelpProvider;
+    if (documentLinkProvider != null) {
+      __result['documentLinkProvider'] = documentLinkProvider;
+    }
+    if (executeCommandProvider != null) {
+      __result['executeCommandProvider'] = executeCommandProvider;
     }
     if (supported != null) {
       __result['supported'] = supported;
     }
-    if (textDocumentSync != null) {
-      __result['textDocumentSync'] = textDocumentSync;
-    }
-    if (workspaceSymbolProvider != null) {
-      __result['workspaceSymbolProvider'] = workspaceSymbolProvider;
+    if (changeNotifications != null) {
+      __result['changeNotifications'] = changeNotifications;
     }
     return __result;
   }
 }
 
 class ShowMessageParams {
-  ShowMessageParams(this.message, this.type);
+  ShowMessageParams(this.type, this.message);
 
   /// The actual message.
   final String message;
@@ -2415,15 +2431,15 @@ class ShowMessageParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
-    __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
   }
 }
 
 class ShowMessageRequestParams {
-  ShowMessageRequestParams(this.actions, this.message, this.type);
+  ShowMessageRequestParams(this.type, this.message, this.actions);
 
   /// The message action items to present.
   final List<MessageActionItem> actions;
@@ -2436,12 +2452,12 @@ class ShowMessageRequestParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['type'] = type ?? (throw 'type is required but was not set');
+    __result['message'] =
+        message ?? (throw 'message is required but was not set');
     if (actions != null) {
       __result['actions'] = actions;
     }
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
-    __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
   }
 }
@@ -2449,7 +2465,7 @@ class ShowMessageRequestParams {
 /// Signature help represents the signature of something callable. There can be
 /// multiple signature but only one active and only one active parameter.
 class SignatureHelp {
-  SignatureHelp(this.activeParameter, this.activeSignature, this.signatures);
+  SignatureHelp(this.signatures, this.activeSignature, this.activeParameter);
 
   /// The active parameter of the active signature. If omitted or the value lies
   /// outside the range of `signatures[activeSignature].parameters` defaults to
@@ -2472,14 +2488,14 @@ class SignatureHelp {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (activeParameter != null) {
-      __result['activeParameter'] = activeParameter;
-    }
+    __result['signatures'] =
+        signatures ?? (throw 'signatures is required but was not set');
     if (activeSignature != null) {
       __result['activeSignature'] = activeSignature;
     }
-    __result['signatures'] =
-        signatures ?? (throw 'signatures is required but was not set');
+    if (activeParameter != null) {
+      __result['activeParameter'] = activeParameter;
+    }
     return __result;
   }
 }
@@ -2505,12 +2521,12 @@ class SignatureHelpRegistrationOptions
   SignatureHelpRegistrationOptions(
       this.triggerCharacters, this.documentSelector);
 
-  /// The characters that trigger signature help automatically.
-  final List<String> triggerCharacters;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// The characters that trigger signature help automatically.
+  final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2525,7 +2541,7 @@ class SignatureHelpRegistrationOptions
 /// Represents the signature of something callable. A signature can have a
 /// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation {
-  SignatureInformation(this.documentation, this.label, this.parameters);
+  SignatureInformation(this.label, this.documentation, this.parameters);
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
   /// but can be omitted.
@@ -2539,10 +2555,10 @@ class SignatureInformation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
     }
-    __result['label'] = label ?? (throw 'label is required but was not set');
     if (parameters != null) {
       __result['parameters'] = parameters;
     }
@@ -2571,7 +2587,7 @@ class StaticRegistrationOptions {
 /// interfaces etc.
 class SymbolInformation {
   SymbolInformation(
-      this.containerName, this.deprecated, this.kind, this.location, this.name);
+      this.name, this.kind, this.deprecated, this.location, this.containerName);
 
   /// The name of the symbol containing this symbol. This information is for
   /// user interface purposes (e.g. to render a qualifier in the user interface
@@ -2601,16 +2617,16 @@ class SymbolInformation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (containerName != null) {
-      __result['containerName'] = containerName;
-    }
+    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
     if (deprecated != null) {
       __result['deprecated'] = deprecated;
     }
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['location'] =
         location ?? (throw 'location is required but was not set');
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    if (containerName != null) {
+      __result['containerName'] = containerName;
+    }
     return __result;
   }
 }
@@ -2651,13 +2667,13 @@ class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions {
   TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector);
 
-  /// How documents are synced to the server. See TextDocumentSyncKind.Full and
-  /// TextDocumentSyncKind.Incremental.
-  final num syncKind;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// How documents are synced to the server. See TextDocumentSyncKind.Full and
+  /// TextDocumentSyncKind.Incremental.
+  final num syncKind;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2670,8 +2686,8 @@ class TextDocumentChangeRegistrationOptions
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities {
-  TextDocumentClientCapabilities(this.didSave, this.dynamicRegistration,
-      this.willSave, this.willSaveWaitUntil);
+  TextDocumentClientCapabilities(this.dynamicRegistration, this.willSave,
+      this.willSaveWaitUntil, this.didSave);
 
   /// The client supports did save notifications.
   final bool didSave;
@@ -2689,9 +2705,6 @@ class TextDocumentClientCapabilities {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (didSave != null) {
-      __result['didSave'] = didSave;
-    }
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -2700,6 +2713,9 @@ class TextDocumentClientCapabilities {
     }
     if (willSaveWaitUntil != null) {
       __result['willSaveWaitUntil'] = willSaveWaitUntil;
+    }
+    if (didSave != null) {
+      __result['didSave'] = didSave;
     }
     return __result;
   }
@@ -2734,7 +2750,7 @@ class TextDocumentContentChangeEvent {
 }
 
 class TextDocumentEdit implements FileOperation {
-  TextDocumentEdit(this.edits, this.textDocument);
+  TextDocumentEdit(this.textDocument, this.edits);
 
   /// The edits to be applied.
   final List<TextEdit> edits;
@@ -2744,9 +2760,9 @@ class TextDocumentEdit implements FileOperation {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['edits'] = edits ?? (throw 'edits is required but was not set');
     return __result;
   }
 }
@@ -2765,7 +2781,7 @@ class TextDocumentIdentifier {
 }
 
 class TextDocumentItem {
-  TextDocumentItem(this.languageId, this.text, this.uri, this.version);
+  TextDocumentItem(this.uri, this.languageId, this.version, this.text);
 
   /// The text document's language identifier.
   final String languageId;
@@ -2782,18 +2798,18 @@ class TextDocumentItem {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['languageId'] =
         languageId ?? (throw 'languageId is required but was not set');
-    __result['text'] = text ?? (throw 'text is required but was not set');
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['version'] =
         version ?? (throw 'version is required but was not set');
+    __result['text'] = text ?? (throw 'text is required but was not set');
     return __result;
   }
 }
 
 class TextDocumentPositionParams {
-  TextDocumentPositionParams(this.position, this.textDocument);
+  TextDocumentPositionParams(this.textDocument, this.position);
 
   /// The position inside the text document.
   final Position position;
@@ -2803,10 +2819,10 @@ class TextDocumentPositionParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['position'] =
-        position ?? (throw 'position is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['position'] =
+        position ?? (throw 'position is required but was not set');
     return __result;
   }
 }
@@ -2842,12 +2858,12 @@ class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions {
   TextDocumentSaveRegistrationOptions(this.includeText, this.documentSelector);
 
-  /// The client is supposed to include the content on save.
-  final bool includeText;
-
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
+
+  /// The client is supposed to include the content on save.
+  final bool includeText;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -2874,8 +2890,8 @@ abstract class TextDocumentSyncKind {
 }
 
 class TextDocumentSyncOptions {
-  TextDocumentSyncOptions(this.change, this.openClose, this.save, this.willSave,
-      this.willSaveWaitUntil);
+  TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
+      this.willSaveWaitUntil, this.save);
 
   /// Change notifications are sent to the server. See
   /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
@@ -2897,14 +2913,11 @@ class TextDocumentSyncOptions {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    if (change != null) {
-      __result['change'] = change;
-    }
     if (openClose != null) {
       __result['openClose'] = openClose;
     }
-    if (save != null) {
-      __result['save'] = save;
+    if (change != null) {
+      __result['change'] = change;
     }
     if (willSave != null) {
       __result['willSave'] = willSave;
@@ -2912,12 +2925,15 @@ class TextDocumentSyncOptions {
     if (willSaveWaitUntil != null) {
       __result['willSaveWaitUntil'] = willSaveWaitUntil;
     }
+    if (save != null) {
+      __result['save'] = save;
+    }
     return __result;
   }
 }
 
 class TextEdit {
-  TextEdit(this.newText, this.range);
+  TextEdit(this.range, this.newText);
 
   /// The string to be inserted. For delete operations use an empty string.
   final String newText;
@@ -2928,9 +2944,9 @@ class TextEdit {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
     __result['newText'] =
         newText ?? (throw 'newText is required but was not set');
-    __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
 }
@@ -2970,6 +2986,9 @@ class UnregistrationParams {
 class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
   VersionedTextDocumentIdentifier(this.version, this.uri);
 
+  /// The text document's URI.
+  final String uri;
+
   /// The version number of this document. If a versioned text document
   /// identifier is sent from the server to the client and the file is not open
   /// in the editor (the server has not received an open notification before)
@@ -2979,9 +2998,6 @@ class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
   final num version;
-
-  /// The text document's URI.
-  final String uri;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -3004,7 +3020,7 @@ abstract class WatchKind {
 
 /// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams {
-  WillSaveTextDocumentParams(this.reason, this.textDocument);
+  WillSaveTextDocumentParams(this.textDocument, this.reason);
 
   /// The 'TextDocumentSaveReason'.
   final num reason;
@@ -3014,9 +3030,9 @@ class WillSaveTextDocumentParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['reason'] = reason ?? (throw 'reason is required but was not set');
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
+    __result['reason'] = reason ?? (throw 'reason is required but was not set');
     return __result;
   }
 }
@@ -3024,7 +3040,7 @@ class WillSaveTextDocumentParams {
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities {
   WorkspaceClientCapabilities(this.applyEdit, this.documentChanges,
-      this.failureHandling, this.resourceOperations);
+      this.resourceOperations, this.failureHandling);
 
   /// The client supports applying batch edits to the workspace by supporting
   /// the request 'workspace/applyEdit'
@@ -3049,11 +3065,11 @@ class WorkspaceClientCapabilities {
     if (documentChanges != null) {
       __result['documentChanges'] = documentChanges;
     }
-    if (failureHandling != null) {
-      __result['failureHandling'] = failureHandling;
-    }
     if (resourceOperations != null) {
       __result['resourceOperations'] = resourceOperations;
+    }
+    if (failureHandling != null) {
+      __result['failureHandling'] = failureHandling;
     }
     return __result;
   }
@@ -3093,7 +3109,7 @@ class WorkspaceEdit {
 }
 
 class WorkspaceFolder {
-  WorkspaceFolder(this.name, this.uri);
+  WorkspaceFolder(this.uri, this.name);
 
   /// The name of the workspace folder. Defaults to the uri's basename.
   final String name;
@@ -3103,8 +3119,8 @@ class WorkspaceFolder {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['name'] = name ?? (throw 'name is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['name'] = name ?? (throw 'name is required but was not set');
     return __result;
   }
 }
@@ -3138,21 +3154,6 @@ class WorkspaceSymbolParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['query'] = query ?? (throw 'query is required but was not set');
-    return __result;
-  }
-}
-
-class MarkedString {
-  MarkedString(this.language, this.value);
-
-  final String language;
-  final String value;
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
-    __result['language'] =
-        language ?? (throw 'language is required but was not set');
-    __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
   }
 }

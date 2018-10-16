@@ -20,7 +20,7 @@ String generateDartForTypes(List<ApiItem> types) {
       .whereType<Interface>()
       .forEach((interface) => _interfaces[interface.name] = interface);
   final buffer = new IndentableStringBuffer();
-  types.forEach((t) => _writeType(buffer, t));
+  _getSorted(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = formatter.format(buffer.toString());
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
@@ -55,6 +55,13 @@ String _mapType(List<String> types) {
     return _mapType([mapping[type]]);
   }
   return type;
+}
+
+/// Returns a copy of the list sorted by name.
+List<ApiItem> _getSorted(List<ApiItem> items) {
+  final sortedList = items.toList();
+  sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
+  return sortedList;
 }
 
 String _rewriteCommentReference(String comment) {
@@ -204,7 +211,7 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
 }
 
 void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  members.forEach((m) => _writeMember(buffer, m));
+  _getSorted(members).forEach((m) => _writeMember(buffer, m));
 }
 
 void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {

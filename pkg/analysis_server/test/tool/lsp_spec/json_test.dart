@@ -26,39 +26,38 @@ main() {
     test('returns correct output for types with lists', () {
       final start = new Position(1, 1);
       final end = new Position(2, 2);
-      // TODO(dantup): Fix that constructor args are the wrong way around
-      // (due to our field sorting).
-      final range = new Range(end, start);
-      final location = new Location(range, 'y-uri');
+      final range = new Range(start, end);
+      final location = new Location('y-uri', range);
       final codeAction = new Diagnostic(
-          new Either2.t2('test_err'),
-          'err!!',
-          range,
-          [new DiagnosticRelatedInformation(location, 'message')],
-          DiagnosticSeverity.Error,
-          '/tmp/source.dart');
+        range,
+        DiagnosticSeverity.Error,
+        new Either2.t2('test_err'),
+        '/tmp/source.dart',
+        'err!!',
+        [new DiagnosticRelatedInformation(location, 'message')],
+      );
       final output = json.encode(codeAction.toJson());
       final expected = '''{
-        "code":"test_err",
-        "message":"err!!",
         "range":{
-            "end":{"character":2,"line":2},
-            "start":{"character":1,"line":1}
+            "start":{"line":1,"character":1},
+            "end":{"line":2,"character":2}
         },
+        "severity":1,
+        "code":"test_err",
+        "source":"/tmp/source.dart",
+        "message":"err!!",
         "relatedInformation":[
             {
               "location":{
+                  "uri":"y-uri",
                   "range":{
-                    "end":{"character":2,"line":2},
-                    "start":{"character":1,"line":1}
-                  },
-                  "uri":"y-uri"
+                    "start":{"line":1,"character":1},
+                    "end":{"line":2,"character":2}
+                  }
               },
               "message":"message"
             }
-        ],
-        "severity":1,
-        "source":"/tmp/source.dart"
+        ]
       }'''
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));

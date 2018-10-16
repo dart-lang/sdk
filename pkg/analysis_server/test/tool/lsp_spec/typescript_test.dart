@@ -183,27 +183,5 @@ export namespace ResourceOperationKind {
       expect(delete.comment,
           equals('Supports deleting existing files and folders.'));
     });
-
-    test('sorts types and members', () {
-      final String input = '''
-export interface b {
-	b: string;
-  a: string;
-}
-export interface a {
-	b: string;
-  a: string;
-}
-    ''';
-      final List<ApiItem> output = extractTypes(input);
-      expect(output, hasLength(2));
-      output.forEach((m) => expect(m, const TypeMatcher<Interface>()));
-      output.cast<Interface>().forEach((interface) {
-        interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
-        final fields = interface.members.cast<Field>();
-        expect(fields[0].name, equals('a'));
-        expect(fields[1].name, equals('b'));
-      });
-    });
   });
 }

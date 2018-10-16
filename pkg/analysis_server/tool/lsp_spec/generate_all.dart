@@ -21,8 +21,6 @@ const _generatedFileHeader = '''
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-import 'dart:convert';
-
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
 ''';

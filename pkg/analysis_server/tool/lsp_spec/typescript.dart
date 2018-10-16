@@ -15,7 +15,6 @@ List<ApiItem> extractAllTypes(List<String> code) {
 List<ApiItem> extractTypes(String code) {
   final types = ApiItem.extractFrom(code);
   _removeUnwantedTypes(types);
-  _sort(types);
   return types;
 }
 
@@ -56,12 +55,6 @@ List<String> _parseTypes(String baseTypes, String sep) {
   return baseTypes?.split(sep)?.map((t) => t.trim())?.toList() ?? [];
 }
 
-/// Sorts all ApiItems by their name so that generated code is easier to diff
-/// across changes.
-void _sort(List<ApiItem> items) {
-  items.sort((item1, item2) => item1.name.compareTo(item2.name));
-}
-
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
 abstract class ApiItem {
   String name, comment;
@@ -72,7 +65,6 @@ abstract class ApiItem {
     types.addAll(Interface.extractFrom(code));
     types.addAll(Namespace.extractFrom(code));
     types.addAll(TypeAlias.extractFrom(code));
-    _sort(types);
     return types;
   }
 }
@@ -94,7 +86,6 @@ class Const extends Member {
       final String value = m.group(4);
       return new Const(name, comment, type, value);
     }).toList();
-    _sort(consts);
     return consts;
   }
 }
@@ -150,7 +141,6 @@ class Field extends Member {
       }
       return new Field(name, comment, types, allowsNull, allowsUndefined);
     }).toList();
-    _sort(fields);
     return fields;
   }
 }
@@ -179,7 +169,6 @@ class Interface extends ApiItem {
 
       return new Interface(name, comment, baseTypes, members);
     }).toList();
-    _sort(interfaces);
     return interfaces;
   }
 }
@@ -206,7 +195,6 @@ abstract class Member extends ApiItem {
     List<Member> members = [];
     members.addAll(Field.extractFrom(code));
     members.addAll(Const.extractFrom(code));
-    _sort(members);
     return members;
   }
 }
@@ -228,7 +216,6 @@ class Namespace extends ApiItem {
       final List<Member> members = Member.extractFrom(body);
       return new Namespace(name, comment, members);
     }).toList();
-    _sort(namespaces);
     return namespaces;
   }
 }
@@ -248,7 +235,6 @@ class TypeAlias extends ApiItem {
       final String baseType = match.group(3);
       return new TypeAlias(name, comment, baseType);
     }).toList();
-    _sort(typeAliases);
     return typeAliases;
   }
 }
