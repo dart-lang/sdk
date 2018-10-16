@@ -22,12 +22,26 @@ import '../kernel_generator_impl.dart' show generateKernel;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
+export '../api_prototype/compiler_options.dart' show CompilerOptions;
+
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/kernel_generator.dart' show kernelForComponent;
+
+export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody;
+
 export '../fasta/severity.dart' show Severity;
+
+export '../fasta/type_inference/type_schema_environment.dart'
+    show TypeSchemaEnvironment;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
