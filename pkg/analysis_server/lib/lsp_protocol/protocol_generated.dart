@@ -1626,6 +1626,18 @@ class FoldingRange {
   }
 }
 
+/// Enum of known range kinds
+abstract class FoldingRangeKind {
+  /// Folding range for a comment
+  static const Comment = 'comment';
+
+  /// Folding range for a imports or includes
+  static const Imports = 'imports';
+
+  /// Folding range for a region (e.g. `#region`)
+  static const Region = 'region';
+}
+
 class FoldingRangeParams {
   FoldingRangeParams(this.textDocument);
 

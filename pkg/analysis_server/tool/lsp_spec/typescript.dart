@@ -88,6 +88,20 @@ class Const extends Member {
     }).toList();
     return consts;
   }
+
+  static List<Const> extractFromEnumValue(String code) {
+    final RegExp _constPattern =
+        new RegExp(_comment + r'''(\w+)\s*=\s*([\w\[\]'".-]+)\s*(?:,|$)''');
+
+    final consts = _constPattern.allMatches(code).map((m) {
+      final String comment = m.group(1);
+      final String name = m.group(2);
+      final String value = m.group(3);
+      return new Const(name, comment, null, value);
+    }).toList();
+    _sort(consts);
+    return consts;
+  }
 }
 
 /// A Field for an Interface parsed from the LSP spec.
@@ -199,13 +213,20 @@ abstract class Member extends ApiItem {
   }
 }
 
-/// A Namespace parsed from the LSP spec. Usually used to hold enum-like
-/// Constants.
+/// An Enum or Namsepace containing constants parsed from the LSP spec.
 class Namespace extends ApiItem {
   final List<Member> members;
   Namespace(String name, String comment, this.members) : super(name, comment);
 
   static List<Namespace> extractFrom(String code) {
+    final enums = <Namespace>[];
+    enums.addAll(_extractNamespacesFrom(code));
+    enums.addAll(_extractEnumsFrom(code));
+    _sort(enums);
+    return enums;
+  }
+
+  static List<Namespace> _extractNamespacesFrom(String code) {
     final RegExp _namespacePattern = new RegExp(
         _comment + r'(?:export\s+)?namespace\s+(\w+)\s*' + _blockBody);
 
@@ -216,6 +237,22 @@ class Namespace extends ApiItem {
       final List<Member> members = Member.extractFrom(body);
       return new Namespace(name, comment, members);
     }).toList();
+    return namespaces;
+  }
+
+  static List<Namespace> _extractEnumsFrom(String code) {
+    final RegExp _namespacePattern =
+        new RegExp(_comment + r'(?:export\s+)?enum\s+(\w+)\s*' + _blockBody);
+
+    final namespaces = _namespacePattern.allMatches(code).map((match) {
+      final String comment = match.group(1);
+      final String name = match.group(2);
+      final String body = match.group(3);
+
+      final List<Member> members = Const.extractFromEnumValue(body);
+      return new Namespace(name, comment, members);
+    }).toList();
+    _sort(namespaces);
     return namespaces;
   }
 }
