@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File;
+import 'dart:io' show File, Directory;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -89,8 +89,7 @@ class Driver {
 
   Future setupAnalysis(Options options) async {
     context.stdout.write('${ansi.emphasized('Calculating fixes')}...');
-    logger.trace('');
-    logger.trace('Setup analysis');
+    logger.trace('\nSetup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
         new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
     await server.send(
@@ -140,7 +139,7 @@ class Driver {
     context.print('');
     context.print(ansi.emphasized('Files to be changed:'));
     for (SourceFileEdit fileEdit in result.fixes) {
-      context.print('  ${fileEdit.file}');
+      context.print('  ${_relativePath(fileEdit.file)}');
     }
     if (shouldApplyChanges(result)) {
       for (SourceFileEdit fileEdit in result.fixes) {
@@ -294,11 +293,11 @@ class Driver {
           if (!foundAtLeastOneError) {
             foundAtLeastOneError = true;
             resetProgress();
-            context.print(params.file);
+            context.print('${_relativePath(params.file)}:');
           }
           Location loc = error.location;
-          context.print('  ${error.message}'
-              ' at ${loc.startLine}:${loc.startColumn}');
+          context.print('  ${_toSentenceFragment(error.message)}'
+              ' • ${loc.startLine}:${loc.startColumn}');
         }
       }
     }
@@ -366,4 +365,20 @@ class Driver {
     }
     return false;
   }
+}
+
+String _relativePath(String filePath) {
+  final String currentPath = Directory.current.absolute.path;
+
+  if (filePath.startsWith(currentPath)) {
+    return filePath.substring(currentPath.length + 1);
+  } else {
+    return filePath;
+  }
+}
+
+String _toSentenceFragment(String message) {
+  return message.endsWith('.')
+      ? message.substring(0, message.length - 1)
+      : message;
 }
