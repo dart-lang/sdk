@@ -81,4 +81,9 @@ class InferredTypeVisitor
       ConstructorInvocation node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitIsExpression(IsExpression node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.boolClass.rawType;
+  }
 }

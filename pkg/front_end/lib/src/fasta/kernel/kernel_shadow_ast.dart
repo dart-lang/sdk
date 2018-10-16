@@ -1042,38 +1042,6 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing a non-inverted "is" test in kernel form.
-class IsJudgment extends IsExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  Expression get judgment => operand;
-
-  IsJudgment(Expression operand, DartType type) : super(operand, type);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitIsJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an inverted "is" test in kernel form.
-class IsNotJudgment extends Not implements ExpressionJudgment {
-  DartType inferredType;
-
-  @override
-  IsExpression get operand => super.operand;
-
-  Expression get judgment => operand.operand;
-
-  IsNotJudgment(Expression operand, DartType type, int charOffset)
-      : super(new IsExpression(operand, type)..fileOffset = charOffset);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitIsNotJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a labeled statement in kernel form.
 class LabeledStatementJudgment extends LabeledStatement
     implements StatementJudgment {

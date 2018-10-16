@@ -21,6 +21,7 @@ import 'package:kernel/ast.dart'
         Expression,
         ExpressionStatement,
         InvalidExpression,
+        IsExpression,
         Let,
         LibraryDependency,
         MapEntry,
@@ -82,8 +83,6 @@ import 'kernel_shadow_ast.dart'
         ForJudgment,
         IfJudgment,
         IntJudgment,
-        IsJudgment,
-        IsNotJudgment,
         LabeledStatementJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
@@ -409,12 +408,13 @@ class Fangorn extends Forest {
 
   @override
   Expression isExpression(
-      Expression operand, isOperator, Token notOperator, DartType type) {
-    int offset = offsetForToken(isOperator);
+      Expression operand, Token isOperator, Token notOperator, DartType type) {
+    Expression result = new IsExpression(operand, type)
+      ..fileOffset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new IsNotJudgment(operand, type, offset)..fileOffset = offset;
+      result = notExpression(result, notOperator, false);
     }
-    return new IsJudgment(operand, type)..fileOffset = offset;
+    return result;
   }
 
   @override

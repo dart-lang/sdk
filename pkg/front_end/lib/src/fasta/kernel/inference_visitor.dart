@@ -604,16 +604,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     inferrer.inferExpression(node.value, node.field.type, false);
   }
 
-  void visitIsJudgment(IsJudgment node, DartType typeContext) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false);
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
-  }
-
-  void visitIsNotJudgment(IsNotJudgment node, DartType typeContext) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false);
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
+  @override
+  void visitIsExpression(IsExpression node, DartType typeContext) {
+    inferrer.inferExpression(node.operand, const UnknownType(), false);
   }
 
   void visitLabeledStatementJudgment(LabeledStatementJudgment node) {
