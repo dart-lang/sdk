@@ -6,24 +6,13 @@ library front_end.compiler_options;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show FormattedMessage;
-
-import '../fasta/severity.dart' show Severity;
-
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
 
-export '../fasta/fasta_codes.dart' show FormattedMessage;
-
-export '../fasta/severity.dart' show Severity;
-
 export 'diagnostic_message.dart' show DiagnosticMessage;
-
-typedef void ProblemHandler(FormattedMessage problem, Severity severity,
-    List<FormattedMessage> context);
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -46,8 +35,6 @@ class CompilerOptions {
   /// infer at a default location under [sdkRoot], typically under
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
-
-  ProblemHandler onProblem;
 
   DiagnosticMessageHandler onDiagnostic;
 

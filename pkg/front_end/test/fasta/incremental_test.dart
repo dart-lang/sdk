@@ -18,7 +18,7 @@ import "package:testing/testing.dart"
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage, Severity;
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
     show IncrementalKernelGenerator;
@@ -42,6 +42,8 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
+
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;

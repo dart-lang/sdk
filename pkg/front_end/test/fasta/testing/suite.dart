@@ -34,7 +34,7 @@ import 'package:testing/testing.dart'
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, FormattedMessage, Severity;
+    show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -188,9 +188,8 @@ class FastaContext extends ChainContext {
     Uri packages = Uri.base.resolve(".packages");
     var options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            throw problem.formatted;
+          ..onDiagnostic = (DiagnosticMessage message) {
+            throw message.plainTextFormatted.join("\n");
           }
           ..sdkRoot = sdk
           ..packagesFileUri = packages);
@@ -276,16 +275,11 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
           ..legacyMode = !strongMode
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
+          ..onDiagnostic = (DiagnosticMessage message) {
             if (errors.isNotEmpty) {
               errors.write("\n\n");
             }
-            errors.write(problem.formatted);
-            for (FormattedMessage c in context) {
-              errors.write("\n");
-              errors.write(c.formatted);
-            }
+            errors.writeAll(message.plainTextFormatted, "\n");
           },
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {

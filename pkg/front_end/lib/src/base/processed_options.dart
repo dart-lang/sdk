@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show exitCode;
+
 import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
@@ -19,12 +21,18 @@ import 'package:package_config/packages_file.dart' as package_config;
 
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/fasta_codes.dart'
     show
@@ -193,29 +201,23 @@ class ProcessedOptions {
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context}) {
-    context ??= const <LocatedMessage>[];
-    if (_raw.onDiagnostic != null) {
-      _raw.onDiagnostic(format(message, severity, context));
-      return;
-    } else if (_raw.onProblem != null) {
-      List<FormattedMessage> formattedContext =
-          new List<FormattedMessage>(context.length);
-      for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], Severity.context, null);
-      }
-      _raw.onProblem(
-          format(message, severity, null), severity, formattedContext);
-      if (command_line_reporting.shouldThrowOn(severity)) {
-        throw new DebugAbort(
-            message.uri, message.charOffset, severity, StackTrace.current);
-      }
-      return;
+    if (command_line_reporting.isHidden(severity)) return;
+    if (command_line_reporting.isCompileTimeError(severity)) {
+      CompilerContext.current.logError(message, severity);
     }
+    if (CompilerContext.current.options.setExitCodeOnProblem) {
+      exitCode = 1;
+    }
+    (_raw.onDiagnostic ??
+        _defaultDiagnosticMessageHandler)(format(message, severity, context));
+    if (command_line_reporting.shouldThrowOn(severity)) {
+      throw new DebugAbort(
+          message.uri, message.charOffset, severity, StackTrace.current);
+    }
+  }
 
-    command_line_reporting.report(message, severity);
-    for (LocatedMessage message in context) {
-      command_line_reporting.report(message, Severity.context);
-    }
+  void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+    printDiagnosticMessage(message, print);
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.
