@@ -1168,22 +1168,6 @@ class NamedFunctionExpressionJudgment extends Let
   }
 }
 
-/// Shadow object for [Not].
-class NotJudgment extends Not implements ExpressionJudgment {
-  final bool isSynthetic;
-
-  DartType inferredType;
-
-  NotJudgment(this.isSynthetic, Expression operand) : super(operand);
-
-  Expression get judgment => operand;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitNotJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a null-aware method invocation.
 ///
 /// A null-aware method invocation of the form `a?.b(...)` is represented as the

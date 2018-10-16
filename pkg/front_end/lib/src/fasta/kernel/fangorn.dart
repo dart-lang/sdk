@@ -29,6 +29,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         NamedExpression,
+        Not,
         Procedure,
         Statement,
         ThisExpression,
@@ -89,7 +90,6 @@ import 'kernel_shadow_ast.dart'
         LoadLibraryJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
-        NotJudgment,
         NullJudgment,
         RethrowJudgment,
         ReturnJudgment,
@@ -431,8 +431,7 @@ class Fangorn extends Forest {
 
   @override
   Expression notExpression(Expression operand, Token token, bool isSynthetic) {
-    return new NotJudgment(isSynthetic, operand)
-      ..fileOffset = offsetForToken(token);
+    return new Not(operand)..fileOffset = offsetForToken(token);
   }
 
   @override

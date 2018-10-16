@@ -897,15 +897,13 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitNotJudgment(NotJudgment node, DartType typeContext) {
-    var judgment = node.judgment;
-    // First infer the receiver so we can look up the method that was invoked.
+  @override
+  void visitNot(Not node, DartType typeContext) {
+    var operand = node.operand;
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(judgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, getInferredType(judgment, inferrer),
+    inferrer.inferExpression(operand, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(boolType, getInferredType(operand, inferrer),
         node.operand, node.fileOffset);
-    node.inferredType = boolType;
-    return null;
   }
 
   void visitNullAwareMethodInvocationJudgment(
