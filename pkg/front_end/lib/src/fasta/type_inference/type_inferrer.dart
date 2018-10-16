@@ -97,7 +97,6 @@ import '../kernel/kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
         ExpressionJudgment,
-        NullJudgment,
         ShadowClass,
         ShadowField,
         ShadowMember,
@@ -105,7 +104,7 @@ import '../kernel/kernel_shadow_ast.dart'
         getExplicitTypeArguments,
         getInferredType;
 
-import '../names.dart' show callName;
+import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -781,6 +780,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         !(receiverType == coreTypes.functionClass.rawType &&
             name.name == 'call') &&
         errorTemplate != null) {
+      int length = name.name.length;
+      if (identical(name.name, callName.name) ||
+          identical(name.name, unaryMinusName.name)) {
+        length = 1;
+      }
       expression.parent.replaceChild(
           expression,
           new Let(
@@ -789,7 +793,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               helper.buildProblem(
                   errorTemplate.withArguments(name.name, receiverType),
                   fileOffset,
-                  noLength))
+                  length))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1383,7 +1387,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullLiteral()..parent = parameter;
         }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, false);
@@ -1392,7 +1396,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullLiteral()..parent = parameter;
         }
         inferExpression(parameter.initializer, parameter.type, false);
       }

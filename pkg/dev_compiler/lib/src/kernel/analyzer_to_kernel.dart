@@ -21,7 +21,8 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart' as a;
 import 'package:analyzer/src/summary/summary_sdk.dart' as a;
 import 'package:analyzer/src/generated/resolver.dart' as a
     show NamespaceBuilder, TypeProvider;
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show RedirectingFactoryBody;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 

@@ -8,10 +8,9 @@ import 'package:analyzer_fe_comparison/src/comparison_node.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
+    show DiagnosticMessage, DiagnosticMessageHandler, getMessageHeaderText;
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -60,10 +59,7 @@ Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
 }
 
 ComparisonNode _diagnosticMessageToNode(DiagnosticMessage message) {
-  // TODO(ahe): Temporarily using FormattedMessage until DiagnosticMessage
-  // is extended to support this use case.
-  FormattedMessage formatted = message;
-  return ComparisonNode(formatted.message);
+  return ComparisonNode(getMessageHeaderText(message));
 }
 
 CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri,

@@ -51,6 +51,8 @@ class ConstantEvaluator {
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateConstructorInvocation(intptr_t offset,
                                           bool reset_position = true);
+  Instance& EvaluateStaticInvocation(intptr_t offset,
+                                     bool reset_position = true);
   RawObject* EvaluateExpressionSafe(intptr_t offset);
   RawObject* EvaluateAnnotations();
 

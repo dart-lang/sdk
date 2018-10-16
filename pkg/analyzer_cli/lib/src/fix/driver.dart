@@ -1,24 +1,28 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:analyzer_cli/src/fix/options.dart';
 import 'package:analyzer_cli/src/fix/server.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 // For development
 const runAnalysisServerFromSource = false;
 
 class Driver {
+  static const progressThreshold = 10;
+
   final Context context = new Context();
-  final Server server = new Server();
+  Server server;
 
   Completer serverConnected;
   Completer analysisComplete;
@@ -27,19 +31,26 @@ class Driver {
   bool verbose;
   List<String> targets;
 
-  static const progressThreshold = 10;
+  Logger logger;
+
   int progressCount = progressThreshold;
 
+  Ansi get ansi => logger.ansi;
+
   Future start(List<String> args) async {
-    final options = Options.parse(args, context);
+    final Options options = Options.parse(args, context);
 
     force = options.force;
     overwrite = options.overwrite;
     verbose = options.verbose;
     targets = options.targets;
 
+    logger = options.logger;
+
     EditDartfixResult result;
+
     await startServer(options);
+
     bool normalShutdown = false;
     try {
       await setupAnalysis(options);
@@ -60,12 +71,13 @@ class Driver {
   }
 
   Future startServer(Options options) async {
+    server = new Server(logger);
     const connectTimeout = const Duration(seconds: 15);
     serverConnected = new Completer();
     if (options.verbose) {
       server.debugStdio();
     }
-    verboseOut('Starting...');
+    logger.trace('Starting...');
     await server.start(
         sdkPath: options.sdkPath, useSnapshot: !runAnalysisServerFromSource);
     server.listenToOutput(dispatchNotification);
@@ -76,9 +88,9 @@ class Driver {
   }
 
   Future setupAnalysis(Options options) async {
-    context.stdout.write('Calculating fixes...');
-    verboseOut('');
-    verboseOut('Setup analysis');
+    context.stdout.write('${ansi.emphasized('Calculating fixes')}...');
+    logger.trace('');
+    logger.trace('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
         new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
     await server.send(
@@ -90,7 +102,7 @@ class Driver {
   }
 
   Future<EditDartfixResult> requestFixes(Options options) async {
-    verboseOut('Requesting fixes');
+    logger.trace('Requesting fixes');
     analysisComplete = new Completer();
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
@@ -101,7 +113,7 @@ class Driver {
   }
 
   Future stopServer(Server server) async {
-    verboseOut('Stopping...');
+    logger.trace('Stopping...');
     const timeout = const Duration(seconds: 5);
     await server.send(SERVER_REQUEST_SHUTDOWN, null).timeout(timeout,
         onTimeout: () {
@@ -113,9 +125,11 @@ class Driver {
   }
 
   Future applyFixes(EditDartfixResult result) async {
-    showDescriptions(result.descriptionOfFixes, 'Recommended changes');
-    showDescriptions(result.otherRecommendations,
-        'Recommended changes that cannot not be automatically applied');
+    showDescriptions('Recommended changes', result.descriptionOfFixes);
+    showDescriptions(
+      'Recommended changes that cannot not be automatically applied',
+      result.otherRecommendations,
+    );
     if (result.descriptionOfFixes.isEmpty) {
       context.print('');
       context.print(result.otherRecommendations.isNotEmpty
@@ -124,9 +138,9 @@ class Driver {
       return;
     }
     context.print('');
-    context.print('Files to be changed:');
+    context.print(ansi.emphasized('Files to be changed:'));
     for (SourceFileEdit fileEdit in result.fixes) {
-      context.print(fileEdit.file);
+      context.print('  ${fileEdit.file}');
     }
     if (shouldApplyChanges(result)) {
       for (SourceFileEdit fileEdit in result.fixes) {
@@ -141,13 +155,13 @@ class Driver {
     }
   }
 
-  void showDescriptions(List<String> descriptions, String title) {
+  void showDescriptions(String title, List<String> descriptions) {
     if (descriptions.isNotEmpty) {
       context.print('');
-      context.print('$title:');
+      context.print(ansi.emphasized('$title:'));
       List<String> sorted = new List.from(descriptions)..sort();
       for (String line in sorted) {
-        context.print(line);
+        context.print('  $line');
       }
     }
   }
@@ -294,7 +308,7 @@ class Driver {
   }
 
   void onServerConnected(ServerConnectedParams params) {
-    verboseOut('Connected to server');
+    logger.trace('Connected to server');
     serverConnected.complete();
   }
 
@@ -314,7 +328,7 @@ class Driver {
 
   void onServerStatus(ServerStatusParams params) {
     if (params.analysis != null && !params.analysis.isAnalyzing) {
-      verboseOut('Analysis complete');
+      logger.trace('Analysis complete');
       analysisComplete?.complete();
       analysisComplete = null;
     }
@@ -342,12 +356,6 @@ class Driver {
       context.stdout.write('.');
     }
     ++progressCount;
-  }
-
-  void verboseOut(String message) {
-    if (verbose) {
-      context.print(message);
-    }
   }
 
   bool isTarget(String filePath) {

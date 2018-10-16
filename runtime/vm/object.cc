@@ -1215,8 +1215,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::VMHeapObjectTag::update(
-          obj.raw()->ptr()->IsVMHeapObject(), new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
+                                                    new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1232,7 +1232,10 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = obj.CompareAndSwapTags(old_tags, new_tags);
+        // We can't use obj.CompareAndSwapTags here because we don't have a
+        // handle for the new object.
+        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
+                                                      old_tags, new_tags);
       } while (tags != old_tags);
     }
   }
@@ -15028,10 +15031,10 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   instrs_region.CopyFrom(0, bytecode_region);
 
   // TODO(regis): Keep following lines or not?
-  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   // TODO(regis): Do we need to notify CodeObservers for bytecode too?
   // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
 #ifndef PRODUCT
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
                            false /* optimized */, nullptr);
@@ -15053,10 +15056,12 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
+#ifndef PRODUCT
   // No Code::Comments to set. Default is 0 length Comments.
   // No prologue was ever entered, optimistically assume nothing was ever
   // pushed onto the stack.
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
+#endif
   return code.raw();
 }
 

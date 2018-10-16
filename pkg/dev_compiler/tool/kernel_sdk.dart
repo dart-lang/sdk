@@ -13,8 +13,8 @@ import 'package:dev_compiler/src/compiler/shared_command.dart'
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/api_unstable/ddc.dart'
+    show CompilerOptions, kernelForComponent;
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 

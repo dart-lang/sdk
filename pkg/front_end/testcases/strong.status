@@ -82,6 +82,7 @@ inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
+invalid_type: TypeCheckError
 invocations: Fail
 literals: Fail
 map: Fail

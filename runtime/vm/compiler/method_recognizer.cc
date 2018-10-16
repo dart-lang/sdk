@@ -5,6 +5,7 @@
 #include "vm/compiler/method_recognizer.h"
 
 #include "vm/object.h"
+#include "vm/reusable_handles.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -289,8 +290,15 @@ RawGrowableObjectArray* MethodRecognizer::QueryRecognizedMethods(Zone* zone) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
+Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
+  Thread* thread = Thread::Current();
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  String& name = thread->StringHandle();
+  name = name_.raw();
   ASSERT(name.IsSymbol());
+  if (Function::IsDynamicInvocationForwaderName(name)) {
+    name = Function::DemangleDynamicInvocationForwarderName(name);
+  }
   if (name.raw() == Symbols::Plus().raw()) {
     return Token::kADD;
   } else if (name.raw() == Symbols::Minus().raw()) {

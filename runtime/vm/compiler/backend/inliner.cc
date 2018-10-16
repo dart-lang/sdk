@@ -2197,7 +2197,12 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
-  if (function.IsDispatcherOrImplicitAccessor()) {
+  // We don't want to inline DIFs for recognized methods because we would rather
+  // replace them with inline FG before inlining introduces any superfluous
+  // AssertAssignable instructions.
+  if (function.IsDispatcherOrImplicitAccessor() &&
+      !(function.kind() == RawFunction::kDynamicInvocationForwarder &&
+        function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
   }

@@ -208,18 +208,6 @@ class BlockJudgment extends Block implements StatementJudgment {
   }
 }
 
-/// Concrete shadow object representing a boolean literal in kernel form.
-class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  BoolJudgment(bool value) : super(value);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitBoolJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a break statement in kernel form.
 class BreakJudgment extends BreakStatement implements StatementJudgment {
   BreakJudgment(LabeledStatement target) : super(target);
@@ -571,45 +559,6 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   }
 }
 
-/// Concrete shadow object representing a conditional expression in kernel form.
-/// Shadow object for [ConditionalExpression].
-class ConditionalJudgment extends ConditionalExpression
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  Expression get conditionJudgment => condition;
-
-  Expression get thenJudgment => then;
-
-  Expression get otherwiseJudgment => otherwise;
-
-  ConditionalJudgment(
-      Expression condition, Expression then, Expression otherwise)
-      : super(condition, then, otherwise, null);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitConditionalJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for [ConstructorInvocation].
-class ConstructorInvocationJudgment extends ConstructorInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  ConstructorInvocationJudgment(Constructor target, ArgumentsJudgment arguments,
-      {bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitConstructorInvocationJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a continue statement from a switch
 /// statement, in kernel form.
 class ContinueSwitchJudgment extends ContinueSwitchStatement
@@ -848,21 +797,6 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
   }
 }
 
-/// Concrete shadow object representing a function expression in kernel form.
-class FunctionExpressionJudgment extends FunctionExpression
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  FunctionExpressionJudgment(FunctionNodeJudgment function) : super(function);
-
-  FunctionNodeJudgment get judgment => function;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitFunctionExpressionJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a super initializer in kernel form.
 class InvalidSuperInitializerJudgment extends LocalInitializer
     implements InitializerJudgment {
@@ -1093,38 +1027,6 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing a non-inverted "is" test in kernel form.
-class IsJudgment extends IsExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  Expression get judgment => operand;
-
-  IsJudgment(Expression operand, DartType type) : super(operand, type);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitIsJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an inverted "is" test in kernel form.
-class IsNotJudgment extends Not implements ExpressionJudgment {
-  DartType inferredType;
-
-  @override
-  IsExpression get operand => super.operand;
-
-  Expression get judgment => operand.operand;
-
-  IsNotJudgment(Expression operand, DartType type, int charOffset)
-      : super(new IsExpression(operand, type)..fileOffset = charOffset);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitIsNotJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a labeled statement in kernel form.
 class LabeledStatementJudgment extends LabeledStatement
     implements StatementJudgment {
@@ -1156,23 +1058,6 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitListLiteralJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for [LogicalExpression].
-class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  LogicalJudgment(Expression left, String operator, Expression right)
-      : super(left, operator, right);
-
-  Expression get leftJudgment => left;
-
-  Expression get rightJudgment => right;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitLogicalJudgment(this, typeContext);
   }
 }
 
@@ -1283,22 +1168,6 @@ class NamedFunctionExpressionJudgment extends Let
   }
 }
 
-/// Shadow object for [Not].
-class NotJudgment extends Not implements ExpressionJudgment {
-  final bool isSynthetic;
-
-  DartType inferredType;
-
-  NotJudgment(this.isSynthetic, Expression operand) : super(operand);
-
-  Expression get judgment => operand;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitNotJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a null-aware method invocation.
 ///
 /// A null-aware method invocation of the form `a?.b(...)` is represented as the
@@ -1349,18 +1218,6 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a null literal in kernel form.
-class NullJudgment extends NullLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  NullJudgment();
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitNullJudgment(this, typeContext);
   }
 }
 
@@ -1769,17 +1626,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
         break;
       }
     }
-  }
-}
-
-class ThisJudgment extends ThisExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  ThisJudgment();
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitThisJudgment(this, typeContext);
   }
 }
 

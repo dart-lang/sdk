@@ -34,7 +34,7 @@ import 'package:testing/testing.dart'
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, FormattedMessage, Severity;
+    show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -49,9 +49,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
@@ -99,7 +96,7 @@ class FastaContext extends ChainContext {
   final bool onlyCrashes;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
-  final Map<Component, StringBuffer> componentToProblems =
+  final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
   Uri platformUri;
@@ -188,9 +185,8 @@ class FastaContext extends ChainContext {
     Uri packages = Uri.base.resolve(".packages");
     var options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            throw problem.formatted;
+          ..onDiagnostic = (DiagnosticMessage message) {
+            throw message.plainTextFormatted.join("\n");
           }
           ..sdkRoot = sdk
           ..packagesFileUri = packages);
@@ -276,16 +272,11 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
           ..legacyMode = !strongMode
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
+          ..onDiagnostic = (DiagnosticMessage message) {
             if (errors.isNotEmpty) {
               errors.write("\n\n");
             }
-            errors.write(problem.formatted);
-            for (FormattedMessage c in context) {
-              errors.write("\n");
-              errors.write(c.formatted);
-            }
+            errors.writeAll(message.plainTextFormatted, "\n");
           },
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
@@ -305,35 +296,30 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       KernelTarget sourceTarget = new KernelTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
-      Component p;
-      try {
-        sourceTarget.setEntryPoints(<Uri>[description.uri]);
-        await dillTarget.buildOutlines();
-        ValidatingInstrumentation instrumentation;
-        if (strongMode) {
-          instrumentation = new ValidatingInstrumentation();
-          await instrumentation.loadExpectations(description.uri);
-          sourceTarget.loader.instrumentation = instrumentation;
-        }
-        p = await sourceTarget.buildOutlines();
-        if (fullCompile) {
-          p = await sourceTarget.buildComponent();
-          instrumentation?.finish();
-          if (instrumentation != null && instrumentation.hasProblems) {
-            if (updateComments) {
-              await instrumentation.fixSource(description.uri, false);
-            } else {
-              return fail(null, instrumentation.problemsAsString);
-            }
+      sourceTarget.setEntryPoints(<Uri>[description.uri]);
+      await dillTarget.buildOutlines();
+      ValidatingInstrumentation instrumentation;
+      if (strongMode) {
+        instrumentation = new ValidatingInstrumentation();
+        await instrumentation.loadExpectations(description.uri);
+        sourceTarget.loader.instrumentation = instrumentation;
+      }
+      Component p = await sourceTarget.buildOutlines();
+      if (fullCompile) {
+        p = await sourceTarget.buildComponent();
+        instrumentation?.finish();
+        if (instrumentation != null && instrumentation.hasProblems) {
+          if (updateComments) {
+            await instrumentation.fixSource(description.uri, false);
+          } else {
+            return fail(null, instrumentation.problemsAsString);
           }
         }
-      } on deprecated_InputError catch (e, s) {
-        return fail(null, e.message.message, s);
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
-      context.componentToProblems.clear();
-      context.componentToProblems[p] = errors;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
       return pass(p);
     });
   }
@@ -387,7 +373,7 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
 
   Future<Result<Component>> run(
       Component component, FastaContext context) async {
-    StringBuffer buffer = context.componentToProblems[component];
+    StringBuffer buffer = context.componentToDiagnostics[component];
     return buffer.isEmpty
         ? pass(component)
         : fail(component, """Unexpected errors:\n$buffer""");

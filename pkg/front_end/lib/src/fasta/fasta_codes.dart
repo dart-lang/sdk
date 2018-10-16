@@ -181,9 +181,6 @@ class FormattedMessage implements DiagnosticMessage {
     // TODO(ahe): Implement this correctly.
     return ansiFormatted;
   }
-
-  @override
-  int get index => code.index;
 }
 
 String relativizeUri(Uri uri) {

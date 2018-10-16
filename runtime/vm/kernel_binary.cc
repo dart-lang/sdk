@@ -117,7 +117,8 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-Program* Program::ReadFromFile(const char* script_uri) {
+Program* Program::ReadFromFile(const char* script_uri,
+                               const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   if (script_uri == NULL) {
     return NULL;
@@ -147,8 +148,8 @@ Program* Program::ReadFromFile(const char* script_uri) {
 
       kernel_program =
           kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
-    } else {
-      THR_Print("tag handler failed: %s\n", Dart_GetError(retval));
+    } else if (error != nullptr) {
+      *error = Dart_GetError(retval);
     }
   }
   return kernel_program;

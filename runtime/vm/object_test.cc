@@ -2037,9 +2037,11 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
-  EXPECT_EQ((2 * kWordSize), left_over_array.Length());
+  EXPECT_EQ(4 * kWordSize - TypedData::InstanceSize(0),
+            left_over_array.Length());
 
-  // 2. Should produce an array of length 3 and a left over int8 array.
+  // 2. Should produce an array of length 3 and a left over int8 array or
+  // instance.
   array = GrowableObjectArray::New(kArrayLen);
   EXPECT_EQ(kArrayLen, array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -2056,9 +2058,14 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsTypedData());
-  left_over_array ^= obj.raw();
-  EXPECT_EQ(0, left_over_array.Length());
+  if (TypedData::InstanceSize(0) <= 2 * kWordSize) {
+    EXPECT(obj.IsTypedData());
+    left_over_array ^= obj.raw();
+    EXPECT_EQ(2 * kWordSize - TypedData::InstanceSize(0),
+              left_over_array.Length());
+  } else {
+    EXPECT(obj.IsInstance());
+  }
 
   // 3. Should produce an array of length 1 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen + 3);
@@ -2079,7 +2086,8 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
-  EXPECT_EQ((6 * kWordSize), left_over_array.Length());
+  EXPECT_EQ(8 * kWordSize - TypedData::InstanceSize(0),
+            left_over_array.Length());
 
   // 4. Verify that GC can handle the filler object for a large array.
   array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);

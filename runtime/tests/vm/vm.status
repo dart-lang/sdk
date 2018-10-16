@@ -21,7 +21,7 @@ cc/Profiler_FunctionInline: Pass, Fail # Flaky failure.
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
-dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
+dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -52,7 +52,7 @@ dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
-dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
+dart/entrypoints/*: SkipByDesign  # Only supported in the Dart 2 JIT and test optimizations - hence disabled on hotreload bots.
 
 [ ($compiler == dartk || $compiler == dartkb) ]
 cc/DartAPI_New: Fail # Issue #33041
@@ -89,7 +89,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime == vm && $mode == product && $compiler == dartk ]
-cc/GenKernelKernelReadAllBytecode: Crash
 cc/CorelibIsolateStartup: Timeout, Pass
 
 [ $runtime != vm ]
@@ -110,6 +109,8 @@ cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give 
 cc/Service_Profile: Skip
 cc/GenKernelKernelLoadKernel: Skip  # Issue 34542.
 cc/GenKernelKernelReadAllBytecode: Skip  # Issue 34393.
+cc/GenKernelKernelCombined: Skip  # Issue 34393.
+cc/GenKernelKernelMaxRSS: Skip  # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
 
 [ !$strong ]

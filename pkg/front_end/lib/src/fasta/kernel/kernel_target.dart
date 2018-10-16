@@ -9,7 +9,6 @@ import 'dart:async' show Future;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        Block,
         CanonicalName,
         Class,
         Component,
@@ -17,7 +16,6 @@ import 'package:kernel/ast.dart'
         DartType,
         EmptyStatement,
         Expression,
-        ExpressionStatement,
         Field,
         FieldInitializer,
         FunctionNode,
@@ -30,13 +28,10 @@ import 'package:kernel/ast.dart'
         NamedExpression,
         NullLiteral,
         Procedure,
-        ProcedureKind,
         RedirectingInitializer,
         Source,
-        Statement,
         StringLiteral,
         SuperInitializer,
-        Throw,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
@@ -121,8 +116,6 @@ class KernelTarget extends TargetImplementation {
   SourceLoader<Library> loader;
 
   Component component;
-
-  final List<LocatedMessage> errors = <LocatedMessage>[];
 
   final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
@@ -262,57 +255,41 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(LocatedMessage message, {bool isFullComponent}) {
-    if (message != null) {
-      context.report(message, Severity.error);
-      errors.add(message);
-    }
-    component = erroneousComponent(isFullComponent);
-  }
-
   @override
   Future<Component> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
-    return withCrashReporting<Component>(
-        () async {
-          loader.createTypeInferenceEngine();
-          await loader.buildOutlines();
-          loader.coreLibrary.becomeCoreLibrary();
-          dynamicType.bind(loader.coreLibrary["dynamic"]);
-          loader.resolveParts();
-          loader.computeLibraryScopes();
-          objectType.bind(loader.coreLibrary["Object"]);
-          bottomType.bind(loader.coreLibrary["Null"]);
-          loader.resolveTypes();
-          loader.computeDefaultTypes(
-              dynamicType, bottomType, objectClassBuilder);
-          List<SourceClassBuilder> myClasses = collectMyClasses();
-          loader.checkSemantics(myClasses);
-          loader.finishTypeVariables(objectClassBuilder, dynamicType);
-          loader.buildComponent();
-          installDefaultSupertypes();
-          installSyntheticConstructors(myClasses);
-          loader.resolveConstructors();
-          component = link(new List<Library>.from(loader.libraries),
-              nameRoot: nameRoot);
-          computeCoreTypes();
-          loader.computeHierarchy();
-          loader.performTopLevelInference(myClasses);
-          loader.checkSupertypes(myClasses);
-          loader.checkBounds();
-          loader.checkOverrides(myClasses);
-          loader.checkAbstractMembers(myClasses);
-          loader.checkRedirectingFactories(myClasses);
-          loader.addNoSuchMethodForwarders(myClasses);
-          loader.checkMixinApplications(myClasses);
-          return component;
-        },
-        () => loader?.currentUriForCrashReporting,
-        onInputError: (LocatedMessage message) {
-          ticker.logMs("Got unrecoverable error");
-          handleInputError(message, isFullComponent: false);
-          return component;
-        });
+    return withCrashReporting<Component>(() async {
+      loader.createTypeInferenceEngine();
+      await loader.buildOutlines();
+      loader.coreLibrary.becomeCoreLibrary();
+      dynamicType.bind(loader.coreLibrary["dynamic"]);
+      loader.resolveParts();
+      loader.computeLibraryScopes();
+      objectType.bind(loader.coreLibrary["Object"]);
+      bottomType.bind(loader.coreLibrary["Null"]);
+      loader.resolveTypes();
+      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      loader.checkSemantics(myClasses);
+      loader.finishTypeVariables(objectClassBuilder, dynamicType);
+      loader.buildComponent();
+      installDefaultSupertypes();
+      installSyntheticConstructors(myClasses);
+      loader.resolveConstructors();
+      component =
+          link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
+      computeCoreTypes();
+      loader.computeHierarchy();
+      loader.performTopLevelInference(myClasses);
+      loader.checkSupertypes(myClasses);
+      loader.checkBounds();
+      loader.checkOverrides(myClasses);
+      loader.checkAbstractMembers(myClasses);
+      loader.checkRedirectingFactories(myClasses);
+      loader.addNoSuchMethodForwarders(myClasses);
+      loader.checkMixinApplications(myClasses);
+      return component;
+    }, () => loader?.currentUriForCrashReporting);
   }
 
   /// Build the kernel representation of the component loaded by this
@@ -326,103 +303,40 @@ class KernelTarget extends TargetImplementation {
   @override
   Future<Component> buildComponent({bool verify: false}) async {
     if (loader.first == null) return null;
-    if (errors.isNotEmpty) {
-      handleInputError(null, isFullComponent: true);
+    return withCrashReporting<Component>(() async {
+      ticker.logMs("Building component");
+      await loader.buildBodies();
+      finishClonedParameters();
+      loader.finishDeferredLoadTearoffs();
+      loader.finishNoSuchMethodForwarders();
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      loader.finishNativeMethods();
+      loader.finishPatchMethods();
+      finishAllConstructors(myClasses);
+      runBuildTransformations();
+
+      if (verify) this.verify();
+      handleRecoverableErrors(loader.unhandledErrors);
       return component;
-    }
-
-    return withCrashReporting<Component>(
-        () async {
-          ticker.logMs("Building component");
-          await loader.buildBodies();
-          finishClonedParameters();
-          loader.finishDeferredLoadTearoffs();
-          loader.finishNoSuchMethodForwarders();
-          List<SourceClassBuilder> myClasses = collectMyClasses();
-          loader.finishNativeMethods();
-          loader.finishPatchMethods();
-          finishAllConstructors(myClasses);
-          runBuildTransformations();
-
-          if (verify) this.verify();
-          if (errors.isNotEmpty) {
-            handleInputError(null, isFullComponent: true);
-          }
-          handleRecoverableErrors(loader.unhandledErrors);
-          return component;
-        },
-        () => loader?.currentUriForCrashReporting,
-        onInputError: (LocatedMessage message) {
-          ticker.logMs("Got unrecoverable error");
-          handleInputError(message, isFullComponent: true);
-          return component;
-        });
+    }, () => loader?.currentUriForCrashReporting);
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
   /// [recoverableErrors] formatted.
   ///
   /// If [recoverableErrors] is empty, this method does nothing.
-  ///
-  /// If there's no main library, this method uses [erroneousComponent] to
-  /// replace [component].
   void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
-    if (mainLibrary == null) {
-      component = erroneousComponent(true);
-      return;
-    }
+    if (mainLibrary == null) return;
     List<Expression> expressions = <Expression>[];
     for (LocatedMessage error in recoverableErrors) {
-      errors.add(error);
       expressions.add(new StringLiteral(context.format(error, Severity.error)));
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
         isConst: true,
         isStatic: true));
-  }
-
-  Component erroneousComponent(bool isFullComponent) {
-    Uri uri = loader.first?.uri ?? Uri.parse("error:error");
-    Uri fileUri = loader.first?.fileUri ?? uri;
-    KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader, null);
-    loader.first = library;
-    if (isFullComponent) {
-      // If this is an outline, we shouldn't add an executable main
-      // method. Similarly considerations apply to separate compilation. It
-      // could also make sense to add a way to mark .dill files as having
-      // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
-          null,
-          0,
-          null,
-          "#main",
-          null,
-          null,
-          ProcedureKind.Method,
-          library,
-          -1,
-          -1,
-          -1,
-          -1);
-      library.addBuilder(mainBuilder.name, mainBuilder, -1);
-      mainBuilder.body = new Block(new List<Statement>.from(errors.map(
-          (LocatedMessage message) => new ExpressionStatement(new Throw(
-              new StringLiteral(context.format(message, Severity.error)))))));
-    }
-
-    // Clear libraries to avoid having 'the same' library added in both outline
-    // and body building. As loader.libraries is used in the incremental
-    // compiler that will causes problems (i.e. it cannot serialize because 2
-    // libraries has the same URI).
-    loader.libraries.clear();
-
-    loader.libraries.add(library.library);
-    library.build(loader.coreLibrary);
-    return link(<Library>[library.library]);
   }
 
   /// Creates a component by combining [libraries] with the libraries of
@@ -884,7 +798,8 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    errors.addAll(verifyComponent(component));
+    // TODO(ahe): How to handle errors.
+    verifyComponent(component);
     ticker.logMs("Verified component");
   }
 

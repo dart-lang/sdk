@@ -75,10 +75,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
   }
 
-  void visitBoolJudgment(BoolJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
-  }
+  @override
+  void visitBoolLiteral(BoolLiteral node, DartType typeContext) {}
 
   void visitBreakJudgment(BreakJudgment node) {
     // No inference needs to be done.
@@ -101,37 +99,36 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitConditionalJudgment(
-      ConditionalJudgment node, DartType typeContext) {
-    var conditionJudgment = node.conditionJudgment;
-    var thenJudgment = node.thenJudgment;
-    var otherwiseJudgment = node.otherwiseJudgment;
+  @override
+  void visitConditionalExpression(
+      ConditionalExpression node, DartType typeContext) {
+    var condition = node.condition;
+    var then = node.then;
+    var otherwise = node.otherwise;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
     inferrer.ensureAssignable(
         expectedType,
-        getInferredType(conditionJudgment, inferrer),
+        getInferredType(condition, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferExpression(thenJudgment, typeContext, true,
-        isVoidAllowed: true);
+    inferrer.inferExpression(then, typeContext, true, isVoidAllowed: true);
     bool useLub = _forceLub || typeContext == null;
-    inferrer.inferExpression(otherwiseJudgment, typeContext, useLub,
+    inferrer.inferExpression(otherwise, typeContext, useLub,
         isVoidAllowed: true);
-    node.inferredType = useLub
+    DartType inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getStandardUpperBound(
-            getInferredType(thenJudgment, inferrer),
-            getInferredType(otherwiseJudgment, inferrer))
+            getInferredType(then, inferrer),
+            getInferredType(otherwise, inferrer))
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
-      node.staticType = getInferredType(node, inferrer);
+      node.staticType = inferredType;
     }
-    return null;
   }
 
-  void visitConstructorInvocationJudgment(
-      ConstructorInvocationJudgment node, DartType typeContext) {
+  @override
+  void visitConstructorInvocation(
+      ConstructorInvocation node, DartType typeContext) {
     var library = inferrer.engine.beingInferred[node.target];
     if (library != null) {
       // There is a cyclic dependency where inferring the types of the
@@ -167,23 +164,21 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferrer.engine.beingInferred.remove(node.target);
     }
     bool hasExplicitTypeArguments =
-        getExplicitTypeArguments(node.argumentJudgments) != null;
+        getExplicitTypeArguments(node.arguments) != null;
     var inferenceResult = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
         node.target.function.functionType,
         computeConstructorReturnType(node.target),
-        node.argumentJudgments,
+        node.arguments,
         isConst: node.isConst);
-    var inferredType = inferenceResult.type;
-    node.inferredType = inferredType;
+    inferrer.storeInferredType(node, inferenceResult.type);
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     if (!hasExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInConstructorInvocation(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   void visitContinueSwitchJudgment(ContinueSwitchJudgment node) {
@@ -399,13 +394,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     node.variable.type = inferenceResult.type;
   }
 
-  void visitFunctionExpressionJudgment(
-      FunctionExpressionJudgment node, DartType typeContext) {
-    var judgment = node.judgment;
-    var inferenceResult =
-        visitFunctionNodeJudgment(judgment, typeContext, null, node.fileOffset);
-    node.inferredType = inferenceResult.type;
-    return null;
+  @override
+  void visitFunctionExpression(FunctionExpression node, DartType typeContext) {
+    var inferenceResult = visitFunctionNodeJudgment(
+        node.function, typeContext, null, node.fileOffset);
+    inferrer.storeInferredType(node, inferenceResult.type);
   }
 
   void visitInvalidSuperInitializerJudgment(
@@ -609,16 +602,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     inferrer.inferExpression(node.value, node.field.type, false);
   }
 
-  void visitIsJudgment(IsJudgment node, DartType typeContext) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false);
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
-  }
-
-  void visitIsNotJudgment(IsNotJudgment node, DartType typeContext) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false);
-    node.inferredType = inferrer.coreTypes.boolClass.rawType;
-    return null;
+  @override
+  void visitIsExpression(IsExpression node, DartType typeContext) {
+    inferrer.inferExpression(node.operand, const UnknownType(), false);
   }
 
   void visitLabeledStatementJudgment(LabeledStatementJudgment node) {
@@ -695,20 +681,17 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitLogicalJudgment(LogicalJudgment node, DartType typeContext) {
+  @override
+  void visitLogicalExpression(LogicalExpression node, DartType typeContext) {
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    var leftJudgment = node.leftJudgment;
-    var rightJudgment = node.rightJudgment;
-    inferrer.inferExpression(leftJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.inferExpression(rightJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, getInferredType(leftJudgment, inferrer),
+    var left = node.left;
+    var right = node.right;
+    inferrer.inferExpression(left, boolType, !inferrer.isTopLevel);
+    inferrer.inferExpression(right, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(boolType, getInferredType(left, inferrer),
         node.left, node.left.fileOffset);
-    inferrer.ensureAssignable(
-        boolType,
-        getInferredType(rightJudgment, inferrer),
-        node.right,
-        node.right.fileOffset);
-    node.inferredType = boolType;
+    inferrer.ensureAssignable(boolType, getInferredType(right, inferrer),
+        node.right, node.right.fileOffset);
     return null;
   }
 
@@ -914,15 +897,13 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitNotJudgment(NotJudgment node, DartType typeContext) {
-    var judgment = node.judgment;
-    // First infer the receiver so we can look up the method that was invoked.
+  @override
+  void visitNot(Not node, DartType typeContext) {
+    var operand = node.operand;
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(judgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, getInferredType(judgment, inferrer),
+    inferrer.inferExpression(operand, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(boolType, getInferredType(operand, inferrer),
         node.operand, node.fileOffset);
-    node.inferredType = boolType;
-    return null;
   }
 
   void visitNullAwareMethodInvocationJudgment(
@@ -949,10 +930,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitNullJudgment(NullJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.nullClass.rawType;
-    return null;
-  }
+  @override
+  void visitNullLiteral(NullLiteral node, DartType typeContext) {}
 
   void visitPropertyAssignmentJudgment(
       PropertyAssignmentJudgment node, DartType typeContext) {
@@ -1243,10 +1222,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitThisJudgment(ThisJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.thisType ?? const DynamicType();
-    return null;
-  }
+  void visitThisExpression(ThisExpression node, DartType typeContext) {}
 
   void visitThrowJudgment(ThrowJudgment node, DartType typeContext) {
     inferrer.inferExpression(node.judgment, const UnknownType(), false);

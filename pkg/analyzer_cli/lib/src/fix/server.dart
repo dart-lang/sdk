@@ -1,10 +1,12 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart';
 
 /**
@@ -75,6 +77,10 @@ class Server {
    */
   Future<int> get exitCode => _process.exitCode;
 
+  final Logger logger;
+
+  Server(this.logger);
+
   /**
    * Print out any messages exchanged with the server.  If some messages have
    * already been exchanged with the server, they are printed out immediately.
@@ -85,7 +91,7 @@ class Server {
     }
     _debuggingStdio = true;
     for (String line in _recordedStdio) {
-      print(line);
+      logger.trace(line);
     }
   }
 
@@ -331,7 +337,7 @@ class Server {
     double elapsedTime = currentElapseTime;
     line = "$elapsedTime: $line";
     if (_debuggingStdio) {
-      print(line);
+      logger.trace(line);
     }
     _recordedStdio.add(line);
   }

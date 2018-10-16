@@ -14,15 +14,13 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -246,14 +244,13 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     bool gotWarning = false;
     final List<String> formattedWarnings = <String>[];
 
-    options.onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error) {
+    options.onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error) {
         gotError = true;
-        formattedErrors.add(problem.formatted);
-      } else if (severity == Severity.warning) {
+        formattedErrors.addAll(message.plainTextFormatted);
+      } else if (message.severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.add(problem.formatted);
+        formattedWarnings.addAll(message.plainTextFormatted);
       }
     };
 
@@ -361,10 +358,11 @@ CompilerOptions getOptions(bool strong) {
     ..sdkRoot = sdkRoot
     ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: ${problem.formatted}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error ||
+          message.severity == Severity.warning) {
+        Expect.fail(
+            "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }
     ..legacyMode = !strong;

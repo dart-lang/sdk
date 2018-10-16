@@ -53,7 +53,7 @@
 // pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'dart.core::int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'substring'.
 //         .substring(3);
-//          ^
+//          ^^^^^^^^^
 
 library test;
 import self as self;
@@ -143,7 +143,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     y = <T extends core::Object = dynamic>(core::int x) → core::String => (let final dynamic #t21 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'dart.core::int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
         .substring(3);
-         ^") as{TypeError} core::String;
+         ^^^^^^^^^") as{TypeError} core::String;
     <T extends core::Object = dynamic>(core::String) → core::String z = string2String;
     z = <T extends core::Object = dynamic>(core::String x) → core::String => x.{core::String::substring}(3);
   }

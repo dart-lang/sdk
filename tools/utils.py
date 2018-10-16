@@ -561,22 +561,6 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
     return None
 
 
-def ConfigureJava():
-  java_home = '/usr/libexec/java_home'
-  if os.path.exists(java_home):
-    proc = subprocess.Popen([java_home, '-v', '1.6+'],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    (stdout, stderr) = proc.communicate()
-    if proc.wait() != 0:
-      return None
-    new = stdout.strip()
-    current = os.getenv('JAVA_HOME', new)
-    if current != new:
-      sys.stderr.write('Please set JAVA_HOME to %s\n' % new)
-      os.putenv('JAVA_HOME', new)
-
-
 def Daemonize():
   """
   Create a detached background process (daemon). Returns True for
@@ -754,27 +738,6 @@ class UnexpectedCrash(object):
     return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
 
 
-class SiteConfigBotoFileDisabler(object):
-  def __init__(self):
-    self._old_aws = None
-    self._old_boto = None
-
-  def __enter__(self):
-    self._old_aws = os.environ.get('AWS_CREDENTIAL_FILE', None)
-    self._old_boto = os.environ.get('BOTO_CONFIG', None)
-
-    if self._old_aws:
-      del os.environ['AWS_CREDENTIAL_FILE']
-    if self._old_boto:
-      del os.environ['BOTO_CONFIG']
-
-  def __exit__(self, *_):
-    if self._old_aws:
-      os.environ['AWS_CREDENTIAL_FILE'] = self._old_aws
-    if self._old_boto:
-      os.environ['BOTO_CONFIG'] = self._old_boto
-
-
 class PosixCoreDumpEnabler(object):
   def __init__(self):
     self._old_limits = None
@@ -787,7 +750,6 @@ class PosixCoreDumpEnabler(object):
     resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 
-# TODO(whesse): Re-enable after issue #30205 is addressed
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
   def __enter__(self):
     # Bump core limits to unlimited if core_pattern is correctly configured.
@@ -894,10 +856,11 @@ class BaseCoreDumpArchiver(object):
   # test.dart will write a line for each unexpected crash into this file.
   _UNEXPECTED_CRASHES_FILE = "unexpected-crashes"
 
-  def __init__(self, search_dir):
+  def __init__(self, search_dir, output_directory):
     self._bucket = 'dart-temp-crash-archive'
     self._binaries_dir = os.getcwd()
     self._search_dir = search_dir
+    self._output_directory = output_directory
 
   def __enter__(self):
     # Cleanup any stale files
@@ -916,11 +879,7 @@ class BaseCoreDumpArchiver(object):
 
         sys.stdout.flush()
 
-        # We disable usage of the boto file installed on the bots due to an
-        # issue introduced by
-        # https://chrome-internal-review.googlesource.com/c/331136
-        with SiteConfigBotoFileDisabler():
-          self._archive(archive_crashes)
+        self._archive(archive_crashes)
     finally:
       self._cleanup()
 
@@ -934,7 +893,11 @@ class BaseCoreDumpArchiver(object):
         files.add(core)
       else:
         missing.append(crash)
-    self._upload(files)
+    if self._output_directory is None:
+      self._upload(files)
+    else:
+      # --output_directory is specified, copy the dump to the output_directory instead
+      self._copy(files)
 
     if missing:
       self._report_missing_crashes(missing, throw=True)
@@ -950,6 +913,28 @@ class BaseCoreDumpArchiver(object):
     if throw:
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+  def _copy(self, files):
+    for file in files:
+      tarname = self._tar(file)
+      print '+++ Copying %s to output_directory (%s)' % (tarname, self._output_directory)
+      shutil.copy(tarname, self._output_directory)
+
+  def _tar(self, file):
+    # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
+    # binaries are copied next to cores and named 'binary.<binary_name>'.
+    name = os.path.basename(file)
+    (prefix, suffix) = name.split('.', 1)
+    if prefix == 'binary':
+      name = suffix
+
+    tarname = '%s.tar.gz' % name
+
+    # Compress the file.
+    tar = tarfile.open(tarname, mode='w:gz')
+    tar.add(file, arcname=name)
+    tar.close()
+    return tarname
+
   def _upload(self, files):
     bot_utils = GetBotUtils()
     gsutil = bot_utils.GSUtil()
@@ -959,19 +944,7 @@ class BaseCoreDumpArchiver(object):
 
     print '\n--- Uploading into %s (%s) ---' % (gs_prefix, http_prefix)
     for file in files:
-      # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
-      # binaries are copied next to cores and named 'binary.<binary_name>'.
-      name = os.path.basename(file)
-      (prefix, suffix) = name.split('.', 1)
-      if prefix == 'binary':
-        name = suffix
-
-      tarname = '%s.tar.gz' % name
-
-      # Compress the file.
-      tar = tarfile.open(tarname, mode='w:gz')
-      tar.add(file, arcname=name)
-      tar.close()
+      tarname = self._tar(file)
 
       # Remove / from absolute path to not have // in gs path.
       gs_url = '%s%s' % (gs_prefix, tarname)
@@ -1008,8 +981,8 @@ class BaseCoreDumpArchiver(object):
     return found
 
 class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
-  def __init__(self, search_dir):
-    super(PosixCoreDumpArchiver, self).__init__(search_dir)
+  def __init__(self, search_dir, output_directory):
+    super(PosixCoreDumpArchiver, self).__init__(search_dir, output_directory)
 
   def _cleanup(self):
     found = super(PosixCoreDumpArchiver, self)._cleanup()
@@ -1028,19 +1001,19 @@ class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
 
 
 class LinuxCoreDumpArchiver(PosixCoreDumpArchiver):
-  def __init__(self):
-    super(LinuxCoreDumpArchiver, self).__init__(os.getcwd())
+  def __init__(self, output_directory):
+    super(LinuxCoreDumpArchiver, self).__init__(os.getcwd(), output_directory)
 
 
 class MacOSCoreDumpArchiver(PosixCoreDumpArchiver):
-  def __init__(self):
-    super(MacOSCoreDumpArchiver, self).__init__('/cores')
+  def __init__(self, output_directory):
+    super(MacOSCoreDumpArchiver, self).__init__('/cores', output_directory)
 
 
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
-  def __init__(self):
+  def __init__(self, output_directory):
     super(WindowsCoreDumpArchiver, self).__init__(os.path.join(
-        os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER))
+        os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER), output_directory)
 
   def _cleanup(self):
     found = super(WindowsCoreDumpArchiver, self)._cleanup()
@@ -1083,32 +1056,53 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
       missing_as_string = ', '.join([str(c) for c in missing])
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+class IncreasedNumberOfFileDescriptors(object):
+  def __init__(self, nofiles):
+    self._old_limits = None
+    self._limits = (nofiles, nofiles)
+
+  def __enter__(self):
+    self._old_limits = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, self._limits)
+
+  def __exit__(self, *_):
+    resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 @contextlib.contextmanager
-def NooptCoreDumpArchiver():
+def NooptContextManager():
   yield
 
 
 def CoreDumpArchiver(args):
   enabled = '--copy-coredumps' in args
+  prefix = '--output_directory='
+  output_directory = next((arg[len(prefix):] for arg in args if arg.startswith(prefix)), None)
 
   if not enabled:
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
 
   osname = GuessOS()
   if osname == 'linux':
     return contextlib.nested(LinuxCoreDumpEnabler(),
-                             LinuxCoreDumpArchiver())
+                             LinuxCoreDumpArchiver(output_directory))
   elif osname == 'macos':
     return contextlib.nested(PosixCoreDumpEnabler(),
-                             MacOSCoreDumpArchiver())
+                             MacOSCoreDumpArchiver(output_directory))
   elif osname == 'win32':
     return contextlib.nested(WindowsCoreDumpEnabler(),
-                             WindowsCoreDumpArchiver())
+                             WindowsCoreDumpArchiver(output_directory))
   else:
     # We don't have support for MacOS yet.
-    assert osname == 'macos'
-    return NooptCoreDumpArchiver()
+    return NooptContextManager()
+
+def FileDescriptorLimitIncreaser():
+  osname = GuessOS()
+  if osname == 'macos':
+    return IncreasedNumberOfFileDescriptors(nofiles=10000)
+  else:
+    assert osname in ('linux', 'win32')
+    # We don't have support for MacOS yet.
+    return NooptContextManager()
 
 if __name__ == "__main__":
   import sys

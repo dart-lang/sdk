@@ -14,8 +14,16 @@ List<ApiItem> extractAllTypes(List<String> code) {
 
 List<ApiItem> extractTypes(String code) {
   final types = ApiItem.extractFrom(code);
-  _sort(types);
-  return _mergeTypes(types);
+  _removeUnwantedTypes(types);
+  return types;
+}
+
+/// Removes types that are in the spec that we don't want.
+void _removeUnwantedTypes(List<ApiItem> types) {
+  // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
+  // have to handle any cases where both a namespace and interfaces are declared
+  // with the same name.
+  types.removeWhere((item) => item.name == 'InitializeError');
 }
 
 String _cleanComment(String comment) {
@@ -38,27 +46,6 @@ String _cleanComment(String comment) {
   return comment.trim();
 }
 
-/// The LSP contains Interfaces and Namespaces (of constants) with the
-/// same name. This step merges them together into one so that the output
-/// code does not contain two definitions.
-List<ApiItem> _mergeTypes(List<ApiItem> items) {
-  final interfaces = <String, Interface>{};
-  for (var interface in items.whereType<Interface>()) {
-    interfaces[interface.name] = interface;
-  }
-  for (var namespace in items.whereType<Namespace>()) {
-    final matchedInterface = interfaces[namespace.name];
-    if (matchedInterface != null) {
-      matchedInterface.members.addAll(namespace.members);
-    }
-  }
-  // Return the list minus any interfaces that would've been merged above.
-  return items
-      .where((item) =>
-          item is Namespace ? !interfaces.containsKey(item.name) : true)
-      .toList();
-}
-
 List<String> _parseTypes(String baseTypes, String sep) {
   // Special case for a single complicated type we can't parse easily...
   if (baseTypes ==
@@ -66,12 +53,6 @@ List<String> _parseTypes(String baseTypes, String sep) {
     return ['FileOperation[]'];
   }
   return baseTypes?.split(sep)?.map((t) => t.trim())?.toList() ?? [];
-}
-
-/// Sorts all ApiItems by their name so that generated code is easier to diff
-/// across changes.
-void _sort(List<ApiItem> items) {
-  items.sort((item1, item2) => item1.name.compareTo(item2.name));
 }
 
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
@@ -84,7 +65,6 @@ abstract class ApiItem {
     types.addAll(Interface.extractFrom(code));
     types.addAll(Namespace.extractFrom(code));
     types.addAll(TypeAlias.extractFrom(code));
-    _sort(types);
     return types;
   }
 }
@@ -105,6 +85,19 @@ class Const extends Member {
       final String type = m.group(3);
       final String value = m.group(4);
       return new Const(name, comment, type, value);
+    }).toList();
+    return consts;
+  }
+
+  static List<Const> extractFromEnumValue(String code) {
+    final RegExp _constPattern =
+        new RegExp(_comment + r'''(\w+)\s*=\s*([\w\[\]'".-]+)\s*(?:,|$)''');
+
+    final consts = _constPattern.allMatches(code).map((m) {
+      final String comment = m.group(1);
+      final String name = m.group(2);
+      final String value = m.group(3);
+      return new Const(name, comment, null, value);
     }).toList();
     _sort(consts);
     return consts;
@@ -131,13 +124,25 @@ class Field extends Member {
       }
       return true;
     }).map((m) {
-      final String comment = m.group(1);
+      String comment = m.group(1);
       String name = m.group(2);
       String typesString = m.group(3).trim();
       // Our regex may result in semicolons on the end...
       // TODO(dantup): Fix this, or make a simple parser.
       if (typesString.endsWith(';')) {
         typesString = typesString.substring(0, typesString.length - 1);
+      }
+      // Some fields have weird comments like this in the spec:
+      //     {@link MessageType}
+      // These seem to be the correct type of the field, while the field is
+      // marked with number.
+      if (comment != null) {
+        final RegExp _linkTypePattern = new RegExp(r'See \{@link (\w+)\}\.?');
+        final linkTypeMatch = _linkTypePattern.firstMatch(comment);
+        if (linkTypeMatch != null) {
+          typesString = linkTypeMatch.group(1);
+          comment = comment.replaceAll(_linkTypePattern, '');
+        }
       }
       final List<String> types = _parseTypes(typesString, '|');
       final bool allowsNull = types.contains('null');
@@ -150,7 +155,6 @@ class Field extends Member {
       }
       return new Field(name, comment, types, allowsNull, allowsUndefined);
     }).toList();
-    _sort(fields);
     return fields;
   }
 }
@@ -164,7 +168,7 @@ class Interface extends ApiItem {
 
   static List<Interface> extractFrom(String code) {
     final RegExp _interfacePattern = new RegExp(_comment +
-        r'(?:export\s+)?interface\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
+        r'(?:export\s+)?(?:interface|class)\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
         _blockBody);
 
     final interfaces = _interfacePattern.allMatches(code).map((match) {
@@ -179,7 +183,6 @@ class Interface extends ApiItem {
 
       return new Interface(name, comment, baseTypes, members);
     }).toList();
-    _sort(interfaces);
     return interfaces;
   }
 }
@@ -206,18 +209,24 @@ abstract class Member extends ApiItem {
     List<Member> members = [];
     members.addAll(Field.extractFrom(code));
     members.addAll(Const.extractFrom(code));
-    _sort(members);
     return members;
   }
 }
 
-/// A Namespace parsed from the LSP spec. Usually used to hold enum-like
-/// Constants.
+/// An Enum or Namsepace containing constants parsed from the LSP spec.
 class Namespace extends ApiItem {
   final List<Member> members;
   Namespace(String name, String comment, this.members) : super(name, comment);
 
   static List<Namespace> extractFrom(String code) {
+    final enums = <Namespace>[];
+    enums.addAll(_extractNamespacesFrom(code));
+    enums.addAll(_extractEnumsFrom(code));
+    _sort(enums);
+    return enums;
+  }
+
+  static List<Namespace> _extractNamespacesFrom(String code) {
     final RegExp _namespacePattern = new RegExp(
         _comment + r'(?:export\s+)?namespace\s+(\w+)\s*' + _blockBody);
 
@@ -226,6 +235,21 @@ class Namespace extends ApiItem {
       final String name = match.group(2);
       final String body = match.group(3);
       final List<Member> members = Member.extractFrom(body);
+      return new Namespace(name, comment, members);
+    }).toList();
+    return namespaces;
+  }
+
+  static List<Namespace> _extractEnumsFrom(String code) {
+    final RegExp _namespacePattern =
+        new RegExp(_comment + r'(?:export\s+)?enum\s+(\w+)\s*' + _blockBody);
+
+    final namespaces = _namespacePattern.allMatches(code).map((match) {
+      final String comment = match.group(1);
+      final String name = match.group(2);
+      final String body = match.group(3);
+
+      final List<Member> members = Const.extractFromEnumValue(body);
       return new Namespace(name, comment, members);
     }).toList();
     _sort(namespaces);
@@ -248,7 +272,6 @@ class TypeAlias extends ApiItem {
       final String baseType = match.group(3);
       return new TypeAlias(name, comment, baseType);
     }).toList();
-    _sort(typeAliases);
     return typeAliases;
   }
 }

@@ -5,6 +5,7 @@
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 /// Command line options for `dartfix`.
@@ -16,10 +17,13 @@ class Options {
   bool overwrite;
   String sdkPath;
   bool verbose;
+  bool useColor;
+
+  Logger logger;
 
   Options(this.context);
 
-  static Options parse(List<String> args, Context context) {
+  static Options parse(List<String> args, Context context, {Logger logger}) {
     Options options = new Options(context ?? new Context());
     final parser = new ArgParser(allowTrailingOptions: true);
 
@@ -43,7 +47,10 @@ class Options {
           abbr: 'v',
           defaultsTo: false,
           help: 'Verbose output.',
-          negatable: false);
+          negatable: false)
+      ..addFlag('color',
+          help: 'Use ansi colors when printing messages.',
+          defaultsTo: Ansi.terminalSupportsAnsi);
 
     ArgResults results;
     try {
@@ -96,6 +103,21 @@ class Options {
       }
     }
 
+    if (logger == null) {
+      if (options.verbose) {
+        logger = new Logger.verbose();
+      } else {
+        logger = new Logger.standard(
+            ansi: new Ansi(
+          options.useColor != null
+              ? options.useColor
+              : Ansi.terminalSupportsAnsi,
+        ));
+      }
+    }
+
+    options.logger = logger;
+
     if (options.verbose) {
       context.print('Targets:');
       for (String target in options.targets) {
@@ -111,6 +133,7 @@ class Options {
     force = results[forceOption] as bool;
     overwrite = results[overwriteOption] as bool;
     verbose = results[_verboseOption] as bool;
+    useColor = results.wasParsed('color') ? results['color'] as bool : null;
   }
 
   String makeAbsoluteAndNormalize(String target) {

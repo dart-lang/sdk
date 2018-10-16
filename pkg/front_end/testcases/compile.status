@@ -79,7 +79,7 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
-rasta/super: Fail
+rasta/super: RuntimeError
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
 rasta/try_label: Fail

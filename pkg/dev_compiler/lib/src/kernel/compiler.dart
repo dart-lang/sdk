@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'dart:math' show max, min;
 
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' show TypeSchemaEnvironment;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';

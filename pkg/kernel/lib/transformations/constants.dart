@@ -343,6 +343,13 @@ class ConstantsTransformer extends Transformer {
     return super.visitConstructorInvocation(node);
   }
 
+  visitStaticInvocation(StaticInvocation node) {
+    if (node.isConst) {
+      return tryEvaluateAndTransformWithContext(node, node);
+    }
+    return super.visitStaticInvocation(node);
+  }
+
   tryEvaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
     final Constant constant = tryEvaluateWithContext(treeContext, node);
     return constant != null ? new ConstantExpression(constant) : node;
@@ -995,7 +1002,11 @@ class ConstantEvaluator extends RecursiveVisitor {
             nativeName,
             evaluateTypeArguments(node.arguments),
             evaluatePositionalArguments(node.arguments),
-            evaluateNamedArguments(node.arguments));
+            evaluateNamedArguments(node.arguments),
+            contextChain,
+            node,
+            errorReporter,
+            () => throw const _AbortCurrentEvaluation());
         assert(constant != null);
         return canonicalize(constant);
       }
@@ -1287,7 +1298,11 @@ abstract class ConstantsBackend {
       String nativeName,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments);
+      Map<String, Constant> namedArguments,
+      List<TreeNode> context,
+      StaticInvocation node,
+      ErrorReporter errorReporter,
+      void abortEvaluation());
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);
 }

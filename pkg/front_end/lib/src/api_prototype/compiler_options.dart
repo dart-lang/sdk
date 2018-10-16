@@ -6,29 +6,13 @@ library front_end.compiler_options;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show FormattedMessage;
-
-import '../fasta/severity.dart' show Severity;
-
-import 'compilation_message.dart' show CompilationMessage;
-
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
 
-export '../fasta/fasta_codes.dart' show FormattedMessage;
-
-export '../fasta/severity.dart' show Severity;
-
 export 'diagnostic_message.dart' show DiagnosticMessage;
-
-/// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationMessage error);
-
-typedef void ProblemHandler(FormattedMessage problem, Severity severity,
-    List<FormattedMessage> context);
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -52,27 +36,7 @@ class CompilerOptions {
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
 
-  /// Callback to which compilation errors should be delivered.
-  ///
-  /// By default, when no callback is provided, the compiler will report
-  /// messages on the console and will throw when fatal errors are discovered.
-  ErrorHandler onError;
-
-  ProblemHandler onProblem;
-
   DiagnosticMessageHandler onDiagnostic;
-
-  /// Whether messages should be reported using the compiler's internal
-  /// reporting mechanism.
-  ///
-  /// If no [onError] handler is provided, the default is true. If an [onError]
-  /// handler is provided, the default is false. Setting this to true will
-  /// ensure that error messages are printed in the console and that fatal
-  /// errors cause an exception.
-  // TODO(sigmund): add also an API for formatting errors and provide a default
-  // formatter. This way user can configure error style in the console and in
-  // generated code that contains error messages.
-  bool reportMessages;
 
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
@@ -181,8 +145,7 @@ class CompilerOptions {
   /// Whether to run extra verification steps to validate that compiled
   /// components are well formed.
   ///
-  /// Errors are reported via the [onError] callback.
-  // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
+  /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
   /// Whether to dump generated components in a text format (also mainly for

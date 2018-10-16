@@ -54,6 +54,7 @@ import '../fasta_codes.dart'
         Message,
         messageConflictsWithTypeVariableCause,
         messageGenericFunctionTypeInBound,
+        messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageIncorrectTypeArgumentVariable,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
@@ -64,6 +65,7 @@ import '../fasta_codes.dart'
         templateDuplicatedImport,
         templateDuplicatedImportInType,
         templateExportHidesExport,
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImportHidesImport,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInReturnType,
@@ -1358,7 +1360,7 @@ class KernelLibraryBuilder
   void reportBoundViolation(
       Message message, int fileOffset, TypeParameter violated) {
     List<LocatedMessage> context;
-    if (violated.fileOffset != -1) {
+    if (violated != null && violated.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       context = <LocatedMessage>[
@@ -1380,11 +1382,27 @@ class KernelLibraryBuilder
         DartType argument = boundViolations[i];
         TypeParameter variable = boundViolations[i + 1];
         DartType enclosingType = boundViolations[i + 2];
-        Message message = inferredTypes.contains(argument)
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType))
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        bool inferred = inferredTypes.contains(argument);
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
         reportBoundViolation(message, field.fileOffset, variable);
       }
     }
@@ -1409,11 +1427,30 @@ class KernelLibraryBuilder
             DartType argument = violations[i];
             TypeParameter variable = violations[i + 1];
             DartType enclosingType = violations[i + 2];
-            Message message = inferredTypes.contains(argument)
-                ? templateIncorrectTypeArgumentInferred.withArguments(
-                    argument, typeEnvironment.getGenericTypeName(enclosingType))
-                : templateIncorrectTypeArgument.withArguments(argument,
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
                     typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
             reportBoundViolation(message, offset, variable);
           }
         }
@@ -1431,11 +1468,30 @@ class KernelLibraryBuilder
             DartType argument = violations[i];
             TypeParameter variable = violations[i + 1];
             DartType enclosingType = violations[i + 2];
-            Message message = inferredTypes.contains(argument)
-                ? templateIncorrectTypeArgumentInferred.withArguments(
-                    argument, typeEnvironment.getGenericTypeName(enclosingType))
-                : templateIncorrectTypeArgument.withArguments(argument,
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
                     typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
             reportBoundViolation(message, offset, variable);
           }
         }
@@ -1453,11 +1509,30 @@ class KernelLibraryBuilder
             DartType argument = violations[i];
             TypeParameter variable = violations[i + 1];
             DartType enclosingType = violations[i + 2];
-            Message message = inferredTypes.contains(argument)
-                ? templateIncorrectTypeArgumentInferred.withArguments(
-                    argument, typeEnvironment.getGenericTypeName(enclosingType))
-                : templateIncorrectTypeArgument.withArguments(argument,
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
                     typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
             reportBoundViolation(message, offset, variable);
           }
         }
@@ -1473,14 +1548,20 @@ class KernelLibraryBuilder
           DartType argument = violations[i];
           TypeParameter variable = violations[i + 1];
           DartType enclosingType = violations[i + 2];
+
           // We don't need to check if [argument] was inferred or specified
           // here, because inference in return types boils down to instantiate-
           // -to-bound, and it can't provide a type that violates the bound.
-          reportBoundViolation(
-              templateIncorrectTypeArgumentInReturnType.withArguments(
-                  argument, typeEnvironment.getGenericTypeName(enclosingType)),
-              offset,
-              variable);
+          Message message;
+          if (argument is FunctionType && argument.typeParameters.length > 0) {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            variable = null;
+          } else {
+            message = templateIncorrectTypeArgumentInReturnType.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+
+          reportBoundViolation(message, offset, variable);
         }
       }
     }
@@ -1525,11 +1606,26 @@ class KernelLibraryBuilder
         DartType argument = violations[i];
         TypeParameter variable = violations[i + 1];
         DartType enclosingType = violations[i + 2];
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType))
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
         reportBoundViolation(message, offset, variable);
       }
     }
@@ -1547,11 +1643,26 @@ class KernelLibraryBuilder
         DartType argument = violations[i];
         TypeParameter variable = violations[i + 1];
         DartType enclosingType = violations[i + 2];
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType))
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
         reportBoundViolation(message, node.fileOffset, variable);
       }
     }
@@ -1578,11 +1689,26 @@ class KernelLibraryBuilder
         String enclosingName = enclosingType == constructedType
             ? constructedTypeName
             : typeEnvironment.getGenericTypeName(enclosingType);
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName)
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
         reportBoundViolation(message, node.fileOffset, variable);
       }
     }
@@ -1610,11 +1736,26 @@ class KernelLibraryBuilder
         String enclosingName = enclosingType == constructedType
             ? constructedTypeName
             : typeEnvironment.getGenericTypeName(enclosingType);
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName)
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
         reportBoundViolation(message, node.fileOffset, variable);
       }
     }
@@ -1647,11 +1788,26 @@ class KernelLibraryBuilder
         String enclosingName = enclosingType == null
             ? targetName
             : typeEnvironment.getGenericTypeName(enclosingType);
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName)
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
         reportBoundViolation(message, node.fileOffset, variable);
       }
     }
@@ -1730,11 +1886,26 @@ class KernelLibraryBuilder
         String enclosingName = enclosingType == null
             ? targetName
             : typeEnvironment.getGenericTypeName(enclosingType);
-        Message message = inferred
-            ? templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName)
-            : templateIncorrectTypeArgument.withArguments(
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
         reportBoundViolation(message, node.fileOffset, variable);
       }
     }

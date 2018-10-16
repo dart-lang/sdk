@@ -2,39 +2,66 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dart_style/dart_style.dart';
+
 import 'typescript.dart';
 
-Map<String, String> _typeAliases = {};
+final formatter = new DartFormatter();
+Map<String, TypeAlias> _typeAliases = {};
+Map<String, Interface> _interfaces = {};
+
 String generateDartForTypes(List<ApiItem> types) {
   // Build the map of type aliases for substitution later.
   types
       .whereType<TypeAlias>()
-      .forEach((alias) => _typeAliases[alias.name] = alias.baseType);
+      .forEach((alias) => _typeAliases[alias.name] = alias);
+  // Build a map of interfaces to look up base classes later.
+  types
+      .whereType<Interface>()
+      .forEach((interface) => _interfaces[interface.name] = interface);
   final buffer = new IndentableStringBuffer();
-  types.forEach((t) => _writeType(buffer, t));
-  return buffer.toString().trim() + '\n'; // Ensure a single trailing newline.
+  _getSorted(types).forEach((t) => _writeType(buffer, t));
+  final formattedCode = formatter.format(buffer.toString());
+  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
 
 /// Maps a TypeScript type on to a Dart type, including following TypeAliases.
-/// Return value may include a trailing space when comments are included (for
-/// example `String /* Document */`) due to how dartfmt formats these as
-/// type arguments; this may need trimming for correct formatting in other
-/// places.
-String _mapType(String type) {
-  if (type.endsWith('[]')) {
-    return 'List<${_mapType(type.substring(0, type.length - 2))}>';
-  }
-  if (_typeAliases.containsKey(type)) {
-    return _mapType(_typeAliases[type]) + ' /*$type*/ ';
-  }
-  const types = <String, String>{
+String _mapType(List<String> types) {
+  const mapping = <String, String>{
     'boolean': 'bool',
     'string': 'String',
     'number': 'num',
-    'any': 'Object',
+    'any': 'dynamic',
+    // Special cases that are hard to parse or anonymous types.
     '{ [uri: string]: TextEdit[]; }': 'Map<String, List<TextEdit>>',
+    '{ language: string; value: string }': 'MarkedStringWithLanguage'
   };
-  return types[type] ?? type;
+  if (types.length > 4) {
+    throw 'Unions of more than 4 types are not supported.';
+  }
+  if (types.length >= 2) {
+    final typeArgs = types.map((t) => _mapType([t])).join(', ');
+    return 'Either${types.length}<$typeArgs>';
+  }
+
+  final type = types.first;
+  if (type.endsWith('[]')) {
+    return 'List<${_mapType([type.substring(0, type.length - 2)])}>';
+  }
+  if (_typeAliases.containsKey(type)) {
+    return _mapType([_typeAliases[type].baseType]);
+  }
+  if (mapping.containsKey(type)) {
+    return _mapType([mapping[type]]);
+  }
+  return type;
+}
+
+/// Returns a copy of the list sorted by name.
+List<ApiItem> _getSorted(List<ApiItem> items) {
+  final sortedList = items.toList();
+  sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
+  return sortedList;
 }
 
 String _rewriteCommentReference(String comment) {
@@ -74,7 +101,7 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
 
 void _writeConst(IndentableStringBuffer buffer, Const cons) {
   _writeDocComment(buffer, cons.comment);
-  buffer.writeIndentedLn('static const ${cons.name} = ${cons.value};');
+  buffer.writeIndentedln('static const ${cons.name} = ${cons.value};');
 }
 
 void _writeDocComment(IndentableStringBuffer buffer, String comment) {
@@ -86,50 +113,91 @@ void _writeDocComment(IndentableStringBuffer buffer, String comment) {
   Iterable<String> lines = comment.split('\n');
   // Wrap at 80 - 4 ('/// ') - indent characters.
   lines = _wrapLines(lines, 80 - 4 - buffer.totalIndent);
-  lines.forEach((l) => buffer.writeIndentedLn('/// $l'.trim()));
+  lines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
 }
 
 void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocComment(buffer, field.comment);
-  if (field.types.length == 1) {
-    buffer.writeIndented(_mapType(field.types.first).trim());
-  } else {
-    // TODO(dantup): Support union types better so that we have type safety from
-    // the outside.
-    buffer.writeIndented(
-        'Object /*Either<${field.types.map(_mapType).join(', ')}>*/');
+  buffer
+    ..writeIndented('final ')
+    ..write(_mapType(field.types))
+    ..writeln(' ${field.name};');
+}
+
+/// Recursively gets all members from superclasses.
+List<Field> _getAllFields(Interface interface) {
+  // Handle missing interfaces (such as special cased interfaces that won't
+  // be included in this model).
+  if (interface == null) {
+    return [];
   }
-  buffer.writeln(' ${field.name};');
+  return interface.members
+      .whereType<Field>()
+      .followedBy(interface.baseTypes
+          .map((name) => _getAllFields(_interfaces[name]))
+          .expand((ts) => ts))
+      .toList();
+}
+
+void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
+  final allFields = _getAllFields(interface);
+  if (allFields.isEmpty) {
+    return;
+  }
+  buffer
+    ..writeIndented('${interface.name}(')
+    ..write(allFields.map((field) => 'this.${field.name}').join(', '))
+    ..writeln(');');
+  // TODO(dantup): Ensure union types are correct type.
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeDocComment(buffer, interface.comment);
 
-  // TODO(dantup): Remove this code once this issue is fixed. For now we use this
-  // only to ensure empty classes are formatted without newlines (as dartfmt) does
-  // so that generated code is all dartfmt-clean.
-  if (interface.members.isEmpty) {
-    print(
-        'Interface ${interface.name} was empty. This may suggest an error parsing the spec.');
-    buffer..writeln('class ${interface.name} {}')..writeln();
-    return;
-  }
-
   buffer.writeIndented('class ${interface.name} ');
   if (interface.baseTypes.isNotEmpty) {
-    buffer.writeIndented('extends ${interface.baseTypes.join(', ')} ');
+    buffer.writeIndented('implements ${interface.baseTypes.join(', ')} ');
   }
   buffer
     ..writeln('{')
     ..indent();
-  // TODO(dantup): Generate constructors (inc. type checks for unions)
-  _writeMembers(buffer, interface.members);
-  // TODO(dantup): Generate toJson()
+  _writeConstructor(buffer, interface);
+  // Handle Consts and Fields separately, since we need to include superclass
+  // Fields.
+  final consts = interface.members.whereType<Const>().toList();
+  final fields = _getAllFields(interface);
+  buffer.writeln();
+  _writeMembers(buffer, consts);
+  buffer.writeln();
+  _writeMembers(buffer, fields);
+  buffer.writeln();
+  _writeToJsonMethod(buffer, interface);
   // TODO(dantup): Generate fromJson()
   buffer
     ..outdent()
-    ..writeIndentedLn('}')
+    ..writeIndentedln('}')
     ..writeln();
+}
+
+void _writeJsonMapAssignment(
+    IndentableStringBuffer buffer, Field field, String mapName) {
+  // If we are allowed to be undefined (which essentially means required to be
+  // undefined and never explicitly null), we'll only add the value if set.
+  if (field.allowsUndefined) {
+    buffer
+      ..writeIndentedln('if (${field.name} != null) {')
+      ..indent();
+  }
+  buffer.writeIndented('''$mapName['${field.name}'] = ${field.name}''');
+  if (!field.allowsUndefined && !field.allowsNull) {
+    buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
+  }
+  buffer.writeln(';');
+  if (field.allowsUndefined) {
+    buffer
+      ..outdent()
+      ..writeIndentedln('}');
+  }
 }
 
 void _writeMember(IndentableStringBuffer buffer, Member member) {
@@ -143,12 +211,7 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
 }
 
 void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  for (var i = 0; i < members.length; i++) {
-    if (i != 0) {
-      buffer.writeln();
-    }
-    _writeMember(buffer, members[i]);
-  }
+  _getSorted(members).forEach((m) => _writeMember(buffer, m));
 }
 
 void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
@@ -161,6 +224,22 @@ void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
     ..outdent()
     ..writeln('}')
     ..writeln();
+}
+
+void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
+  // It's important the name we use for the map here isn't in use in the object
+  // already. 'result' was, so we prefix it with some underscores.
+  buffer
+    ..writeIndentedln('Map<String, dynamic> toJson() {')
+    ..indent()
+    ..writeIndentedln('Map<String, dynamic> __result = {};');
+  for (var field in _getAllFields(interface)) {
+    _writeJsonMapAssignment(buffer, field, '__result');
+  }
+  buffer
+    ..writeIndentedln('return __result;')
+    ..outdent()
+    ..writeIndentedln('}');
 }
 
 void _writeType(IndentableStringBuffer buffer, ApiItem type) {
@@ -193,7 +272,7 @@ class IndentableStringBuffer extends StringBuffer {
     write(obj);
   }
 
-  void writeIndentedLn(Object obj) {
+  void writeIndentedln(Object obj) {
     write(_indentString);
     writeln(obj);
   }
