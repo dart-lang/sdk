@@ -58,7 +58,10 @@ List<String> _parseTypes(String baseTypes, String sep) {
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
 abstract class ApiItem {
   String name, comment;
-  ApiItem(this.name, String comment) : comment = _cleanComment(comment);
+  bool isDeprecated;
+  ApiItem(this.name, String comment)
+      : comment = _cleanComment(comment),
+        isDeprecated = comment?.contains('@deprecated') ?? false;
 
   static List<ApiItem> extractFrom(String code) {
     List<ApiItem> types = [];
@@ -99,7 +102,6 @@ class Const extends Member {
       final String value = m.group(3);
       return new Const(name, comment, null, value);
     }).toList();
-    _sort(consts);
     return consts;
   }
 }
@@ -222,7 +224,6 @@ class Namespace extends ApiItem {
     final enums = <Namespace>[];
     enums.addAll(_extractNamespacesFrom(code));
     enums.addAll(_extractEnumsFrom(code));
-    _sort(enums);
     return enums;
   }
 
@@ -252,7 +253,6 @@ class Namespace extends ApiItem {
       final List<Member> members = Const.extractFromEnumValue(body);
       return new Namespace(name, comment, members);
     }).toList();
-    _sort(namespaces);
     return namespaces;
   }
 }

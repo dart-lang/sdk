@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+import 'dart:core' hide deprecated;
+import 'dart:core' as core show deprecated;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
 class ApplyWorkspaceEditParams {
@@ -562,6 +564,7 @@ class CompletionItem {
   /// insert `sole`. Therefore it is recommended to use `textEdit` instead since
   /// it avoids additional client side interpretation.
   ///  @deprecated Use textEdit instead.
+  @core.deprecated
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
@@ -618,7 +621,9 @@ class CompletionItem {
     if (filterText != null) {
       __result['filterText'] = filterText;
     }
+    // ignore: deprecated_member_use
     if (insertText != null) {
+      // ignore: deprecated_member_use
       __result['insertText'] = insertText;
     }
     if (insertTextFormat != null) {
@@ -1720,6 +1725,7 @@ class InitializeParams {
 
   /// The rootPath of the workspace. Is null if no folder is open.
   ///  @deprecated in favour of rootUri.
+  @core.deprecated
   final String rootPath;
 
   /// The rootUri of the workspace. Is null if no folder is open. If both
@@ -1737,7 +1743,9 @@ class InitializeParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['processId'] = processId;
+    // ignore: deprecated_member_use
     if (rootPath != null) {
+      // ignore: deprecated_member_use
       __result['rootPath'] = rootPath;
     }
     __result['rootUri'] = rootUri;

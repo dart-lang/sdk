@@ -100,12 +100,13 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
 }
 
 void _writeConst(IndentableStringBuffer buffer, Const cons) {
-  _writeDocComment(buffer, cons.comment);
+  _writeDocCommentsAndAnnotations(buffer, cons);
   buffer.writeIndentedln('static const ${cons.name} = ${cons.value};');
 }
 
-void _writeDocComment(IndentableStringBuffer buffer, String comment) {
-  comment = comment?.trim();
+void _writeDocCommentsAndAnnotations(
+    IndentableStringBuffer buffer, ApiItem item) {
+  var comment = item.comment?.trim();
   if (comment == null || comment.length == 0) {
     return;
   }
@@ -114,10 +115,13 @@ void _writeDocComment(IndentableStringBuffer buffer, String comment) {
   // Wrap at 80 - 4 ('/// ') - indent characters.
   lines = _wrapLines(lines, 80 - 4 - buffer.totalIndent);
   lines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
+  if (item.isDeprecated) {
+    buffer.writeIndentedln('@core.deprecated');
+  }
 }
 
 void _writeField(IndentableStringBuffer buffer, Field field) {
-  _writeDocComment(buffer, field.comment);
+  _writeDocCommentsAndAnnotations(buffer, field);
   buffer
     ..writeIndented('final ')
     ..write(_mapType(field.types))
@@ -152,7 +156,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
-  _writeDocComment(buffer, interface.comment);
+  _writeDocCommentsAndAnnotations(buffer, interface);
 
   buffer.writeIndented('class ${interface.name} ');
   if (interface.baseTypes.isNotEmpty) {
@@ -185,10 +189,14 @@ void _writeJsonMapAssignment(
   // undefined and never explicitly null), we'll only add the value if set.
   if (field.allowsUndefined) {
     buffer
+      ..writeIndentedlnIf(
+          field.isDeprecated, '// ignore: deprecated_member_use')
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
   }
-  buffer.writeIndented('''$mapName['${field.name}'] = ${field.name}''');
+  buffer
+    ..writeIndentedlnIf(field.isDeprecated, '// ignore: deprecated_member_use')
+    ..writeIndented('''$mapName['${field.name}'] = ${field.name}''');
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
@@ -215,7 +223,7 @@ void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
 }
 
 void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
-  _writeDocComment(buffer, namespace.comment);
+  _writeDocCommentsAndAnnotations(buffer, namespace);
   buffer
     ..writeln('abstract class ${namespace.name} {')
     ..indent();
@@ -270,6 +278,12 @@ class IndentableStringBuffer extends StringBuffer {
   void writeIndented(Object obj) {
     write(_indentString);
     write(obj);
+  }
+
+  void writeIndentedlnIf(bool condition, Object obj) {
+    if (condition) {
+      writeIndentedln(obj);
+    }
   }
 
   void writeIndentedln(Object obj) {

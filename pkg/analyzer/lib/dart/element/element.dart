@@ -1045,6 +1045,9 @@ abstract class FieldElement
   @deprecated
   static const List<FieldElement> EMPTY_LIST = const <FieldElement>[];
 
+  /// Return `true` if this field was explicitly marked as being covariant.
+  bool get isCovariant;
+
   /// Return {@code true} if this element is an enum constant.
   bool get isEnumConstant;
 

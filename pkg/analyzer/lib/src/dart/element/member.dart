@@ -245,6 +245,9 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isCovariant => baseElement.isCovariant;
+
+  @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
   @deprecated
