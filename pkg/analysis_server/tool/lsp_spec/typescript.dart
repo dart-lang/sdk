@@ -99,7 +99,6 @@ class Const extends Member {
       final String value = m.group(3);
       return new Const(name, comment, null, value);
     }).toList();
-    _sort(consts);
     return consts;
   }
 }
@@ -222,7 +221,6 @@ class Namespace extends ApiItem {
     final enums = <Namespace>[];
     enums.addAll(_extractNamespacesFrom(code));
     enums.addAll(_extractEnumsFrom(code));
-    _sort(enums);
     return enums;
   }
 
@@ -252,7 +250,6 @@ class Namespace extends ApiItem {
       final List<Member> members = Const.extractFromEnumValue(body);
       return new Namespace(name, comment, members);
     }).toList();
-    _sort(namespaces);
     return namespaces;
   }
 }
