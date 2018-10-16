@@ -58,7 +58,10 @@ List<String> _parseTypes(String baseTypes, String sep) {
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
 abstract class ApiItem {
   String name, comment;
-  ApiItem(this.name, String comment) : comment = _cleanComment(comment);
+  bool isDeprecated;
+  ApiItem(this.name, String comment)
+      : comment = _cleanComment(comment),
+        isDeprecated = comment?.contains('@deprecated') ?? false;
 
   static List<ApiItem> extractFrom(String code) {
     List<ApiItem> types = [];
