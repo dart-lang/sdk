@@ -1,5 +1,8 @@
 Errors: {
-  A value of type 'main::A<dynamic>' can't be assigned to a variable of type 'T'. (@17)
+  org-dartlang-debug:synthetic_debug_expression:2:13: Error: A value of type 'main::A<dynamic>' can't be assigned to a variable of type 'T'.
+  Try changing the type of the left hand side, or casting the right hand side to 'T'.
+    T k = new A();
+              ^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
   return () → dart.core::Null {

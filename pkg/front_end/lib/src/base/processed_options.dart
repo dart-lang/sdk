@@ -177,11 +177,6 @@ class ProcessedOptions {
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
-  bool get _reportMessages {
-    return _raw.onProblem == null &&
-        (_raw.reportMessages ?? (_raw.onError == null));
-  }
-
   FormattedMessage format(
       LocatedMessage message, Severity severity, List<LocatedMessage> context) {
     int offset = message.charOffset;
@@ -227,8 +222,7 @@ class ProcessedOptions {
       for (LocatedMessage message in context) {
         _raw.onError(new _CompilationMessage(message, Severity.context));
       }
-    }
-    if (_reportMessages) {
+    } else {
       command_line_reporting.report(message, severity);
       for (LocatedMessage message in context) {
         command_line_reporting.report(message, Severity.context);

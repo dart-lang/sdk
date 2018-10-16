@@ -1810,7 +1810,6 @@ const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
 const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
     const MessageCode("DeclaredMemberConflictsWithInheritedMember",
         analyzerCodes: <String>["DECLARED_MEMBER_CONFLICTS_WITH_INHERITED"],
-        severity: Severity.errorLegacyWarning,
         message:
             r"""Can't declare a member that conflicts with an inherited one.""");
 

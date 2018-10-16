@@ -1,6 +1,10 @@
 Errors: {
-  Getter not found: 'y'. (@16)
-  Getter not found: 'x'. (@12)
+  org-dartlang-debug:synthetic_debug_expression:1:17: Error: Getter not found: 'y'.
+  () { return x + y; }
+                  ^
+  org-dartlang-debug:synthetic_debug_expression:1:13: Error: Getter not found: 'x'.
+  () { return x + y; }
+              ^
 }
 static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return () → dynamic {

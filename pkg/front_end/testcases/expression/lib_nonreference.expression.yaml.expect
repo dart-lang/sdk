@@ -1,5 +1,7 @@
 Errors: {
-  Method not found: 'acos'. (@0)
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Method not found: 'acos'.
+  acos(1.0)
+  ^^^^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: Method not found: 'acos'.\nacos(1.0)\n^^^^";

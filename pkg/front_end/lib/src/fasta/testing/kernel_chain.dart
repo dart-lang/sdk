@@ -29,7 +29,7 @@ import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step;
 
 import '../../api_prototype/compiler_options.dart'
-    show CompilerOptions, FormattedMessage, Severity;
+    show CompilerOptions, DiagnosticMessage;
 
 import '../../base/processed_options.dart' show ProcessedOptions;
 
@@ -67,25 +67,24 @@ class Verify extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    StringBuffer problems = new StringBuffer();
+    StringBuffer messages = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            if (problems.isNotEmpty) {
-              problems.write("\n");
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
             }
-            problems.write(problem.formatted);
+            messages.writeAll(message.plainTextFormatted, "\n");
           });
     return await CompilerContext.runWithOptions(options, (_) async {
       List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
-      assert(verificationErrors.isEmpty || problems.isNotEmpty);
-      if (problems.isEmpty) {
+      assert(verificationErrors.isEmpty || messages.isNotEmpty);
+      if (messages.isEmpty) {
         return pass(component);
       } else {
         return new Result<Component>(null,
-            context.expectationSet["VerificationError"], "$problems", null);
+            context.expectationSet["VerificationError"], "$messages", null);
       }
     }, errorOnMissingInput: false);
   }
@@ -128,20 +127,20 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
   String get name => "match expectations";
 
   Future<Result<Component>> run(Component component, dynamic context) async {
-    StringBuffer problems = context.componentToProblems[component];
+    StringBuffer messages = context.componentToDiagnostics[component];
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
-    if (problems.isNotEmpty) {
+    if (messages.isNotEmpty) {
       buffer.write("// Formatted problems:\n//");
-      for (String line in "${problems}".split("\n")) {
+      for (String line in "${messages}".split("\n")) {
         buffer.write("\n// $line".trimRight());
       }
       buffer.write("\n\n");
-      problems.clear();
+      messages.clear();
     }
     for (Field field in library.fields) {
       if (field.name.name != "#errors") continue;

@@ -112,7 +112,7 @@ Future benchmark(
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
     ..legacyMode = !strongMode
-    ..onError = onErrorHandler(strongMode)
+    ..onDiagnostic = onDiagnosticMessageHandler(strongMode)
     ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);

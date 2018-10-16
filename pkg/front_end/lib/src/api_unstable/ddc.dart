@@ -24,11 +24,12 @@ import 'compiler_state.dart' show InitializedCompilerState;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
+export '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
 export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
-
-export 'vm.dart' show printDiagnosticMessage;
 
 class DdcResult {
   final Component component;

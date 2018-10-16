@@ -1841,7 +1841,6 @@ ConflictsWithTypeVariableCause:
 
 DeclaredMemberConflictsWithInheritedMember:
   template: "Can't declare a member that conflicts with an inherited one."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: DECLARED_MEMBER_CONFLICTS_WITH_INHERITED
   script:
     - >-

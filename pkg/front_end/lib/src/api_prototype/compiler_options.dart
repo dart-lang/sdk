@@ -62,18 +62,6 @@ class CompilerOptions {
 
   DiagnosticMessageHandler onDiagnostic;
 
-  /// Whether messages should be reported using the compiler's internal
-  /// reporting mechanism.
-  ///
-  /// If no [onError] handler is provided, the default is true. If an [onError]
-  /// handler is provided, the default is false. Setting this to true will
-  /// ensure that error messages are printed in the console and that fatal
-  /// errors cause an exception.
-  // TODO(sigmund): add also an API for formatting errors and provide a default
-  // formatter. This way user can configure error style in the console and in
-  // generated code that contains error messages.
-  bool reportMessages;
-
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
   /// If `null`, the ".packages" file will be found via the standard

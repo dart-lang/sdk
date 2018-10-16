@@ -17,14 +17,17 @@ import "package:testing/testing.dart"
 
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
-import "package:front_end/src/api_prototype/front_end.dart"
-    show CompilationMessage, CompilerOptions, Severity;
+import "package:front_end/src/api_prototype/compiler_options.dart"
+    show CompilerOptions, DiagnosticMessage, Severity;
 
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
     show IncrementalKernelGenerator;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+
+import "package:front_end/src/api_prototype/terminal_color_support.dart"
+    show printDiagnosticMessage;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -54,7 +57,7 @@ final Uri entryPoint = base.resolve("main.dart");
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
-  final List<CompilationMessage> errors;
+  final List<DiagnosticMessage> errors;
 
   final List<Step> steps = const <Step>[
     const ReadTest(),
@@ -79,8 +82,8 @@ class Context extends ChainContext {
     snapshot.restore();
   }
 
-  List<CompilationMessage> takeErrors() {
-    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
+  List<DiagnosticMessage> takeErrors() {
+    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
     errors.clear();
     return result;
   }
@@ -147,7 +150,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
       }
       var compiler = context.compiler;
       Component component = await compiler.computeDelta(entryPoint: entryPoint);
-      List<CompilationMessage> errors = context.takeErrors();
+      List<DiagnosticMessage> errors = context.takeErrors();
       if (test.expectations[edits].hasCompileTimeError) {
         if (errors.isEmpty) {
           return fail(test, "Compile-time error expected, but none reported");
@@ -212,16 +215,16 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<CompilationMessage> errors = <CompilationMessage>[];
+  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..legacyMode = true
-    ..reportMessages = true
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onError = (CompilationMessage message) {
-      if (message.severity != Severity.warning) {
+    ..onDiagnostic = (DiagnosticMessage message) {
+      printDiagnosticMessage(message, print);
+      if (message.severity == Severity.error) {
         errors.add(message);
       }
     };

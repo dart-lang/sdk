@@ -99,7 +99,7 @@ class FastaContext extends ChainContext {
   final bool onlyCrashes;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
-  final Map<Component, StringBuffer> componentToProblems =
+  final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
   Uri platformUri;
@@ -332,8 +332,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
-      context.componentToProblems.clear();
-      context.componentToProblems[p] = errors;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
       return pass(p);
     });
   }
@@ -387,7 +387,7 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
 
   Future<Result<Component>> run(
       Component component, FastaContext context) async {
-    StringBuffer buffer = context.componentToProblems[component];
+    StringBuffer buffer = context.componentToDiagnostics[component];
     return buffer.isEmpty
         ? pass(component)
         : fail(component, """Unexpected errors:\n$buffer""");
