@@ -930,10 +930,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitNullJudgment(NullJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.nullClass.rawType;
-    return null;
-  }
+  @override
+  void visitNullLiteral(NullLiteral node, DartType typeContext) {}
 
   void visitPropertyAssignmentJudgment(
       PropertyAssignmentJudgment node, DartType typeContext) {

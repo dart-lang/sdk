@@ -30,6 +30,7 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         Not,
+        NullLiteral,
         Procedure,
         Statement,
         ThisExpression,
@@ -90,7 +91,6 @@ import 'kernel_shadow_ast.dart'
         LoadLibraryJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
-        NullJudgment,
         RethrowJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
@@ -211,8 +211,8 @@ class Fangorn extends Forest {
   }
 
   @override
-  NullJudgment literalNull(Token token) {
-    return new NullJudgment()..fileOffset = offsetForToken(token);
+  NullLiteral literalNull(Token token) {
+    return new NullLiteral()..fileOffset = offsetForToken(token);
   }
 
   @override

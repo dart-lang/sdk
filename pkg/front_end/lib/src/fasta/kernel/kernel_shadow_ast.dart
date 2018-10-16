@@ -1221,18 +1221,6 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-/// Concrete shadow object representing a null literal in kernel form.
-class NullJudgment extends NullLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  NullJudgment();
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitNullJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a procedure in kernel form.
 class ShadowProcedure extends Procedure implements ShadowMember {
   @override

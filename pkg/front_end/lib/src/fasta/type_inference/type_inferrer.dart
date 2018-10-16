@@ -97,7 +97,6 @@ import '../kernel/kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
         ExpressionJudgment,
-        NullJudgment,
         ShadowClass,
         ShadowField,
         ShadowMember,
@@ -1388,7 +1387,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullLiteral()..parent = parameter;
         }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, false);
@@ -1397,7 +1396,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullLiteral()..parent = parameter;
         }
         inferExpression(parameter.initializer, parameter.type, false);
       }

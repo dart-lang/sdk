@@ -103,4 +103,9 @@ class InferredTypeVisitor
   DartType visitNot(Not node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.boolClass.rawType;
   }
+
+  @override
+  DartType visitNullLiteral(NullLiteral node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.nullClass.rawType;
+  }
 }
