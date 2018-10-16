@@ -3912,7 +3912,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
-  /// Return `true` if this field was explicitly marked as being covariant.
+  @override
   bool get isCovariant {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isCovariant;

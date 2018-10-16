@@ -631,6 +631,9 @@ class FieldElementHandle extends PropertyInducingElementHandle
   ClassElement get enclosingElement => actualElement.enclosingElement;
 
   @override
+  bool get isCovariant => actualElement.isCovariant;
+
+  @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
   @deprecated
