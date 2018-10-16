@@ -506,22 +506,49 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ConstructorElement> get constructors {
+    if (_constructors != null) {
+      return _constructors;
+    }
+
     if (isMixinApplication) {
-      return _computeMixinAppConstructors();
+      return _constructors = _computeMixinAppConstructors();
     }
-    if (_unlinkedClass != null && _constructors == null) {
-      _constructors = _unlinkedClass.executables
-          .where((e) => e.kind == UnlinkedExecutableKind.constructor)
-          .map((e) => new ConstructorElementImpl.forSerialized(e, this))
-          .toList(growable: false);
-      // Ensure at least implicit default constructor.
-      if (_constructors.isEmpty) {
-        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.isSynthetic = true;
-        constructor.enclosingElement = this;
-        _constructors = <ConstructorElement>[constructor];
+
+    if (_unlinkedClass != null) {
+      var unlinkedExecutables = _unlinkedClass.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length != 0) {
+        var count = 0;
+        for (var i = 0; i < length; i++) {
+          var e = unlinkedExecutables[i];
+          if (e.kind == UnlinkedExecutableKind.constructor) {
+            count++;
+          }
+        }
+
+        if (count != 0) {
+          var constructors = new List<ConstructorElement>(count);
+          var index = 0;
+          for (var i = 0; i < length; i++) {
+            var e = unlinkedExecutables[i];
+            if (e.kind == UnlinkedExecutableKind.constructor) {
+              constructors[index++] =
+                  new ConstructorElementImpl.forSerialized(e, this);
+            }
+          }
+          return _constructors = constructors;
+        }
       }
+
+      // There are no explicit constructors.
+      // Create the implicit default constructor.
+      var constructor = new ConstructorElementImpl('', -1);
+      constructor.isSynthetic = true;
+      constructor.enclosingElement = this;
+      _constructors = <ConstructorElement>[constructor];
     }
+
     assert(_constructors != null);
     return _constructors ?? const <ConstructorElement>[];
   }
@@ -645,17 +672,39 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get interfaces {
-    if (_interfaces == null) {
-      if (_unlinkedClass != null) {
-        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-        _interfaces = _unlinkedClass.interfaces
-            .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterface)
-            .cast<InterfaceType>()
-            .toList(growable: false);
-      }
+    if (_interfaces != null) {
+      return _interfaces;
     }
-    return _interfaces ?? const <InterfaceType>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedInterfaces = _unlinkedClass.interfaces;
+      var length = unlinkedInterfaces.length;
+      if (length == 0) {
+        return _interfaces = const <InterfaceType>[];
+      }
+
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      var interfaces = new List<InterfaceType>(length);
+      var index = 0;
+      var hasNonInterfaceType = false;
+      for (var i = 0; i < length; i++) {
+        var t = unlinkedInterfaces[i];
+        var type = context.resolveTypeRef(this, t);
+        if (_isInterfaceTypeInterface(type)) {
+          interfaces[index++] = type;
+        } else {
+          hasNonInterfaceType = true;
+        }
+      }
+
+      if (hasNonInterfaceType) {
+        interfaces = interfaces.sublist(0, index);
+      }
+
+      return _interfaces = interfaces;
+    }
+
+    return _interfaces = const <InterfaceType>[];
   }
 
   void set interfaces(List<InterfaceType> interfaces) {
@@ -722,13 +771,40 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<MethodElement> get methods {
-    if (_unlinkedClass != null) {
-      _methods ??= _unlinkedClass.executables
-          .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
-          .map((e) => new MethodElementImpl.forSerialized(e, this))
-          .toList(growable: false);
+    if (_methods != null) {
+      return _methods;
     }
-    return _methods ?? const <MethodElement>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedExecutables = _unlinkedClass.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var count = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var methods = new List<MethodElement>(count);
+      var index = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          methods[index++] = new MethodElementImpl.forSerialized(e, this);
+        }
+      }
+      return _methods = methods;
+    }
+    return _methods = const <MethodElement>[];
   }
 
   /// Set the methods contained in this class to the given [methods].
@@ -748,17 +824,39 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
-    if (_mixins == null) {
-      if (_unlinkedClass != null) {
-        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-        _mixins = _unlinkedClass.mixins
-            .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterface)
-            .cast<InterfaceType>()
-            .toList(growable: false);
-      }
+    if (_mixins != null) {
+      return _mixins;
     }
-    return _mixins ?? const <InterfaceType>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedMixins = _unlinkedClass.mixins;
+      var length = unlinkedMixins.length;
+      if (length == 0) {
+        return _mixins = const <InterfaceType>[];
+      }
+
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      var mixins = new List<InterfaceType>(length);
+      var index = 0;
+      var hasNonInterfaceType = false;
+      for (var i = 0; i < length; i++) {
+        var t = unlinkedMixins[i];
+        var type = context.resolveTypeRef(this, t);
+        if (_isInterfaceTypeInterface(type)) {
+          mixins[index++] = type;
+        } else {
+          hasNonInterfaceType = true;
+        }
+      }
+
+      if (hasNonInterfaceType) {
+        mixins = mixins.sublist(0, index);
+      }
+
+      return _mixins = mixins;
+    }
+
+    return _mixins = const <InterfaceType>[];
   }
 
   void set mixins(List<InterfaceType> mixins) {
@@ -1068,60 +1166,105 @@ class ClassElementImpl extends AbstractClassElementImpl
   void _resynthesizeFieldsAndPropertyAccessors() {
     assert(_fields == null);
     assert(_accessors == null);
-    var explicitFields = <FieldElement>[];
-    var implicitAccessors = <PropertyAccessorElement>[];
-    var explicitAccessors = <PropertyAccessorElement>[];
-    var implicitFields = <String, FieldElementImpl>{};
+
+    var unlinkedFields = _unlinkedClass.fields;
+    var unlinkedExecutables = _unlinkedClass.executables;
 
     // Build explicit fields and implicit property accessors.
-    for (UnlinkedVariable v in _unlinkedClass.fields) {
-      FieldElementImpl field =
-          new FieldElementImpl.forSerializedFactory(v, this);
-      explicitFields.add(field);
-      implicitAccessors.add(
-          new PropertyAccessorElementImpl_ImplicitGetter(field)
-            ..enclosingElement = this);
-      if (!field.isConst && !field.isFinal) {
+    List<FieldElement> explicitFields;
+    List<PropertyAccessorElement> implicitAccessors;
+    var unlinkedFieldsLength = unlinkedFields.length;
+    if (unlinkedFieldsLength != 0) {
+      explicitFields = new List<FieldElement>(unlinkedFieldsLength);
+      implicitAccessors = <PropertyAccessorElement>[];
+      for (var i = 0; i < unlinkedFieldsLength; i++) {
+        var v = unlinkedFields[i];
+        FieldElementImpl field =
+            new FieldElementImpl.forSerializedFactory(v, this);
+        explicitFields[i] = field;
         implicitAccessors.add(
-            new PropertyAccessorElementImpl_ImplicitSetter(field)
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
               ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
+        }
       }
+    } else {
+      explicitFields = const <FieldElement>[];
+      implicitAccessors = const <PropertyAccessorElement>[];
     }
-    // Build explicit property accessors and implicit fields.
-    for (UnlinkedExecutable e in _unlinkedClass.executables) {
+
+    var unlinkedExecutablesLength = unlinkedExecutables.length;
+    var getterSetterCount = 0;
+    for (var i = 0; i < unlinkedExecutablesLength; i++) {
+      var e = unlinkedExecutables[i];
       if (e.kind == UnlinkedExecutableKind.getter ||
           e.kind == UnlinkedExecutableKind.setter) {
-        PropertyAccessorElementImpl accessor =
-            new PropertyAccessorElementImpl.forSerialized(e, this);
-        explicitAccessors.add(accessor);
-        // Create or update the implicit field.
-        String fieldName = accessor.displayName;
-        FieldElementImpl field = implicitFields[fieldName];
-        if (field == null) {
-          field = new FieldElementImpl(fieldName, -1);
-          implicitFields[fieldName] = field;
-          field.enclosingElement = this;
-          field.isSynthetic = true;
-          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
-          field.isStatic = e.isStatic;
-        } else {
-          field.isFinal = false;
-        }
-        accessor.variable = field;
-        if (e.kind == UnlinkedExecutableKind.getter) {
-          field.getter = accessor;
-        } else {
-          field.setter = accessor;
-        }
+        getterSetterCount++;
       }
     }
+
+    // Build explicit property accessors and implicit fields.
+    List<PropertyAccessorElement> explicitAccessors;
+    Map<String, FieldElementImpl> implicitFields;
+    if (getterSetterCount != 0) {
+      explicitAccessors = new List<PropertyAccessorElement>(getterSetterCount);
+      implicitFields = <String, FieldElementImpl>{};
+      var index = 0;
+      for (var i = 0; i < unlinkedExecutablesLength; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.getter ||
+            e.kind == UnlinkedExecutableKind.setter) {
+          PropertyAccessorElementImpl accessor =
+              new PropertyAccessorElementImpl.forSerialized(e, this);
+          explicitAccessors[index++] = accessor;
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = e.kind == UnlinkedExecutableKind.getter;
+            field.isStatic = e.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (e.kind == UnlinkedExecutableKind.getter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
+        }
+      }
+    } else {
+      explicitAccessors = const <PropertyAccessorElement>[];
+      implicitFields = const <String, FieldElementImpl>{};
+    }
+
     // Combine explicit and implicit fields and property accessors.
-    _fields = <FieldElement>[]
-      ..addAll(explicitFields)
-      ..addAll(implicitFields.values);
-    _accessors = <PropertyAccessorElement>[]
-      ..addAll(explicitAccessors)
-      ..addAll(implicitAccessors);
+    if (implicitFields.isEmpty) {
+      _fields = explicitFields;
+    } else if (explicitFields.isEmpty) {
+      _fields = implicitFields.values.toList(growable: false);
+    } else {
+      _fields = <FieldElement>[]
+        ..addAll(explicitFields)
+        ..addAll(implicitFields.values);
+    }
+    if (explicitAccessors.isEmpty) {
+      _accessors = implicitAccessors;
+    } else if (implicitAccessors.isEmpty) {
+      _accessors = explicitAccessors;
+    } else {
+      _accessors = <PropertyAccessorElement>[]
+        ..addAll(explicitAccessors)
+        ..addAll(implicitAccessors);
+    }
   }
 
   bool _safeIsOrInheritsProxy(

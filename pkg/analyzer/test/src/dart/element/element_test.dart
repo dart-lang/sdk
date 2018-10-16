@@ -130,8 +130,8 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         new TestElementResynthesizer(context, {location: classA});
     ClassElementHandle classAHandle =
         new ClassElementHandle(resynthesizer, location);
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", new InterfaceTypeImpl(classAHandle));
+    ClassElementImpl classB = new ClassElementImpl('B', 0)
+      ..supertype = new InterfaceTypeImpl(classAHandle);
     classB.mixinApplication = true;
 
     expect(classB.constructors, hasLength(1));
