@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -77,10 +75,8 @@ class LibraryAnalyzer {
   /**
    * Compute analysis results for all units of the library.
    */
-  Future<Map<FileState, UnitAnalysisResult>> analyze() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
+  Map<FileState, UnitAnalysisResult> analyze() {
+    return PerformanceStatistics.analysis.makeCurrentWhile(() {
       return _analyze();
     });
   }

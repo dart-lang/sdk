@@ -10,8 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -24,8 +26,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -557,108 +557,6 @@ part 'part.dart';
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_NON_PART);
-  }
-
-  test_asyncChangesDuringAnalysis_getErrors() async {
-    var path = _p('/test/lib/test.dart');
-    provider.newFile(path, 'class A {}');
-    driver.addFile(path);
-
-    // Compute and cache errors.
-    await driver.getErrors(path);
-    await waitForIdleWithoutExceptions();
-
-    // Simulate a change that happens during reading the cached errors.
-    bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) async {
-      await new Future.value(); // the rest will be executed asynchronously
-      provider.updateFile(path, 'class B');
-      driver.changeFile(path);
-      asyncWorkExecuted = true;
-    };
-
-    ErrorsResult result = await driver.getErrors(testFile);
-    expect(asyncWorkExecuted, isTrue);
-    expect(result.errors, isNotEmpty);
-  }
-
-  test_asyncChangesDuringAnalysis_getResult() async {
-    var path = _p('/test/lib/test.dart');
-    provider.newFile(path, 'class A {}');
-    driver.addFile(path);
-
-    // Schedule the result to be computed.
-    Future<AnalysisResult> future1 = driver.getResult(testFile);
-
-    // Simulate a change that happens during computing the result.
-    // We also request a new result, which must include the change.
-    Future<AnalysisResult> future2;
-    bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) async {
-      provider.updateFile(path, 'class B {}');
-      driver.changeFile(path);
-      future2 = driver.getResult(testFile);
-      asyncWorkExecuted = true;
-    };
-
-    // Both futures complete, with the same result.
-    // The result must be with the new changes.
-    //
-    // It would not be wrong to have "class A {}" in result1, and "class B {}"
-    // in result2, but we test here the actual implementation behaviour.
-    AnalysisResult result1 = await future1;
-    AnalysisResult result2 = await future2;
-    expect(asyncWorkExecuted, isTrue);
-    expect(result2, same(result1));
-    expect(result1.path, testFile);
-    expect(result1.unit, isNotNull);
-    expect((result1.unit.declarations[0] as ClassDeclaration).name.name, 'B');
-  }
-
-  test_asyncChangesDuringAnalysis_resultsStream() async {
-    var path = _p('/test/lib/test.dart');
-    provider.newFile(path, 'class A {}');
-    driver.addFile(path);
-
-    // Simulate a change that happens during computing the result.
-    bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) async {
-      if (p == path && !asyncWorkExecuted) {
-        provider.updateFile(path, 'class B');
-        driver.changeFile(path);
-        asyncWorkExecuted = true;
-      }
-    };
-
-    await waitForIdleWithoutExceptions();
-    expect(asyncWorkExecuted, isTrue);
-
-    // The last result must have an error.
-    expect(allResults.last.errors, isNotEmpty);
-  }
-
-  test_asyncChangesDuringAnalysis_resultsStream_priority() async {
-    var path = _p('/test/lib/test.dart');
-    provider.newFile(path, 'class A {}');
-    driver.addFile(path);
-    driver.priorityFiles = [path];
-
-    // Simulate a change that happens during computing the result.
-    bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) async {
-      if (p == path && !asyncWorkExecuted) {
-        provider.updateFile(path, 'class B {}');
-        driver.changeFile(path);
-        asyncWorkExecuted = true;
-      }
-    };
-
-    await waitForIdleWithoutExceptions();
-    expect(asyncWorkExecuted, isTrue);
-
-    // The last unit must have "class B {}".
-    var lastUnit = allResults.last.unit;
-    expect((lastUnit.declarations[0] as ClassDeclaration).name.name, 'B');
   }
 
   test_cachedPriorityResults() async {

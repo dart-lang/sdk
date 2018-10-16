@@ -635,13 +635,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
-    AnalysisResult analysisResult = await _computeAnalysisResult(path);
-
-    // Check for asynchronous changes during computing the result.
-    await _runTestAsyncWorkDuringAnalysis(path);
-    if (_fileTracker.hasChangedFiles) {
-      analysisResult = null;
-    }
+    AnalysisResult analysisResult = _computeAnalysisResult(path);
 
     // If not computed yet, because a part file without a known library,
     // we have to compute the full analysis result, with the unit.
@@ -908,13 +902,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_requestedFiles.isNotEmpty) {
       String path = _requestedFiles.keys.first;
       try {
-        AnalysisResult result =
-            await _computeAnalysisResult(path, withUnit: true);
-        // Check for asynchronous changes during computing the result.
-        await _runTestAsyncWorkDuringAnalysis(path);
-        if (_fileTracker.hasChangedFiles) {
-          return;
-        }
+        AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
         // If a part without a library, delay its analysis.
         if (result == null) {
           _requestedParts
@@ -941,7 +929,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Process an index request.
     if (_indexRequestedFiles.isNotEmpty) {
       String path = _indexRequestedFiles.keys.first;
-      AnalysisDriverUnitIndex index = await _computeIndex(path);
+      AnalysisDriverUnitIndex index = _computeIndex(path);
       _indexRequestedFiles.remove(path).forEach((completer) {
         completer.complete(index);
       });
@@ -968,7 +956,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Process a unit element request.
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
-      UnitElementResult result = await _computeUnitElement(path);
+      UnitElementResult result = _computeUnitElement(path);
       var completers = _unitElementRequestedFiles.remove(path);
       if (result != null) {
         completers.forEach((completer) {
@@ -1026,8 +1014,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (_fileTracker.isFilePending(path)) {
           try {
             AnalysisResult result =
-                await _computeAnalysisResult(path, withUnit: true);
-            await _runTestAsyncWorkDuringAnalysis(path);
+                _computeAnalysisResult(path, withUnit: true);
             if (result == null) {
               _partsToAnalyze.add(path);
             } else {
@@ -1047,9 +1034,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_fileTracker.hasPendingFiles) {
       String path = _fileTracker.anyPendingFile;
       try {
-        AnalysisResult result = await _computeAnalysisResult(path,
+        AnalysisResult result = _computeAnalysisResult(path,
             withUnit: false, skipIfSameSignature: true);
-        await _runTestAsyncWorkDuringAnalysis(path);
         if (result == null) {
           _partsToAnalyze.add(path);
         } else if (result == AnalysisResult._UNCHANGED) {
@@ -1071,12 +1057,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_requestedParts.isNotEmpty) {
       String path = _requestedParts.keys.first;
       try {
-        AnalysisResult result = await _computeAnalysisResult(path,
+        AnalysisResult result = _computeAnalysisResult(path,
             withUnit: true, asIsIfPartWithoutLibrary: true);
-        // Check for asynchronous changes during computing the result.
-        if (_fileTracker.hasChangedFiles) {
-          return;
-        }
         // Notify the completers.
         _requestedParts.remove(path).forEach((completer) {
           completer.complete(result);
@@ -1098,7 +1080,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String path = _partsToAnalyze.first;
       _partsToAnalyze.remove(path);
       try {
-        AnalysisResult result = await _computeAnalysisResult(path,
+        AnalysisResult result = _computeAnalysisResult(path,
             withUnit: _priorityFiles.contains(path),
             asIsIfPartWithoutLibrary: true);
         _resultController.add(result);
@@ -1111,8 +1093,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Process a unit element signature request for a part.
     if (_unitElementSignatureParts.isNotEmpty) {
       String path = _unitElementSignatureParts.keys.first;
-      var signature = await _computeUnitElementSignature(path,
-          asIsIfPartWithoutLibrary: true);
+      String signature =
+          _computeUnitElementSignature(path, asIsIfPartWithoutLibrary: true);
       _unitElementSignatureParts.remove(path).forEach((completer) {
         completer.complete(signature);
       });
@@ -1123,7 +1105,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_unitElementRequestedParts.isNotEmpty) {
       String path = _unitElementRequestedParts.keys.first;
       UnitElementResult result =
-          await _computeUnitElement(path, asIsIfPartWithoutLibrary: true);
+          _computeUnitElement(path, asIsIfPartWithoutLibrary: true);
       _unitElementRequestedParts.remove(path).forEach((completer) {
         completer.complete(result);
       });
@@ -1180,12 +1162,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * the resolved signature of the file in its library is the same as the one
    * that was the most recently produced to the client.
    */
-  Future<AnalysisResult> _computeAnalysisResult(String path,
+  AnalysisResult _computeAnalysisResult(String path,
       {bool withUnit: false,
       bool asIsIfPartWithoutLibrary: false,
-      bool skipIfSameSignature: false}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+      bool skipIfSameSignature: false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1221,9 +1201,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     // We need the fully resolved unit, or the result is not cached.
-    return _logger.runAsync('Compute analysis result for $path', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
+    return _logger.run('Compute analysis result for $path', () {
       try {
         LibraryContext libraryContext;
         try {
@@ -1235,7 +1213,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
             return _newMissingDartLibraryResult(file, 'dart:async');
           }
-          libraryContext = await _createLibraryContext(library);
+          libraryContext = _createLibraryContext(library);
 
           LibraryAnalyzer analyzer = new LibraryAnalyzer(
               analysisOptions,
@@ -1245,7 +1223,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.analysisContext,
               libraryContext.resynthesizer,
               library);
-          Map<FileState, UnitAnalysisResult> results = await analyzer.analyze();
+          Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
           List<int> bytes;
           CompilationUnit resolvedUnit;
@@ -1289,18 +1267,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     });
   }
 
-  Future<AnalysisDriverUnitIndex> _computeIndex(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    AnalysisResult analysisResult = await _computeAnalysisResult(path,
+  AnalysisDriverUnitIndex _computeIndex(String path) {
+    AnalysisResult analysisResult = _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
     return analysisResult._index;
   }
 
-  Future<UnitElementResult> _computeUnitElement(String path,
-      {bool asIsIfPartWithoutLibrary: false}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  UnitElementResult _computeUnitElement(String path,
+      {bool asIsIfPartWithoutLibrary: false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1313,7 +1287,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    LibraryContext libraryContext = await _createLibraryContext(library);
+    LibraryContext libraryContext = _createLibraryContext(library);
     try {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
@@ -1367,9 +1341,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Return the context in which the [library] should be analyzed.
    */
-  Future<LibraryContext> _createLibraryContext(FileState library) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  LibraryContext _createLibraryContext(FileState library) {
     _testView.numOfCreatedLibraryContexts++;
     return new LibraryContext.forSingleLibrary(
         library,
@@ -1537,21 +1509,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     CaughtException caught = new CaughtException(exception, stackTrace);
     _exceptionController.add(new ExceptionResult(path, caught, contextKey));
-  }
-
-  /**
-   * Runs any asynchronous work that was injected as part of a test using
-   * [AnalysisDriverTestView.workToWaitAfterComputingResult].
-   *
-   * If the test view indicates that there is work to do, performs the work
-   * and returns a [Future] that will be signaled when the work completes.
-   *
-   * This gives tests a reliable way to simulate file changes during analysis.
-   */
-  Future _runTestAsyncWorkDuringAnalysis(String path) {
-    var work = _testView.workToWaitAfterComputingResult;
-    _testView.workToWaitAfterComputingResult = null;
-    return work != null ? work(path) : new Future.value();
   }
 
   /**
@@ -1915,25 +1872,15 @@ class AnalysisDriverTestView {
 
   int numOfAnalyzedLibraries = 0;
 
-  /**
-   * If non-null, a function that should be executed asynchronously after
-   * the next result is computed.
-   *
-   * This can be used by a test to simulate file changes during analysis.
-   */
-  WorkToWaitAfterComputingResult workToWaitAfterComputingResult;
-
   AnalysisDriverTestView(this.driver);
 
   FileTracker get fileTracker => driver._fileTracker;
 
   Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
 
-  Future<SummaryDataStore> getSummaryStore(String libraryPath) async {
+  SummaryDataStore getSummaryStore(String libraryPath) {
     FileState library = driver.fsState.getFileForPath(libraryPath);
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    LibraryContext libraryContext = await driver._createLibraryContext(library);
+    LibraryContext libraryContext = driver._createLibraryContext(library);
     try {
       return libraryContext.store;
     } finally {
