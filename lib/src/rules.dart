@@ -29,6 +29,7 @@ import 'package:linter/src/rules/avoid_relative_lib_imports.dart';
 import 'package:linter/src/rules/avoid_renaming_method_parameters.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/avoid_returning_null.dart';
+import 'package:linter/src/rules/avoid_returning_null_for_void.dart';
 import 'package:linter/src/rules/avoid_returning_this.dart';
 import 'package:linter/src/rules/avoid_setters_without_getters.dart';
 import 'package:linter/src/rules/avoid_single_cascade_in_expression_statements.dart';
@@ -160,6 +161,7 @@ void registerLintRules() {
     ..register(new AvoidRelativeLibImports())
     ..register(new AvoidRenamingMethodParameters())
     ..register(new AvoidReturningNull())
+    ..register(new AvoidReturningNullForVoid())
     ..register(new AvoidReturnTypesOnSetters())
     ..register(new AvoidReturningThis())
     ..register(new AvoidSettersWithoutGetters())
