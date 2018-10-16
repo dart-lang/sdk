@@ -586,6 +586,10 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(", using unchecked entrypoint");
   }
+  if (function().recognized_kind() != MethodRecognizer::kUnknown) {
+    f->Print(", recognized_kind = %s",
+             MethodRecognizer::KindToCString(function().recognized_kind()));
+  }
 }
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {

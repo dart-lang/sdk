@@ -2197,7 +2197,9 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
-  if (function.IsDispatcherOrImplicitAccessor()) {
+  if (function.IsDispatcherOrImplicitAccessor() &&
+      (function.kind() != RawFunction::kDynamicInvocationForwarder ||
+       !function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
   }
