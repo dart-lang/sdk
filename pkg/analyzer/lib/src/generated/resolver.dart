@@ -7338,7 +7338,7 @@ class TypeNameResolver {
         enclosingConstructor.redirectedConstructor == constructorName &&
         type is InterfaceType &&
         ts is StrongTypeSystemImpl) {
-      ClassDeclaration enclosingClassNode = enclosingConstructor.parent;
+      ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
       ClassElement enclosingClassElement = enclosingClassNode.declaredElement;
       if (enclosingClassElement == type.element) {
         return type;
