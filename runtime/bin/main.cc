@@ -482,13 +482,25 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // Set flag to load and retain the vmservice library.
   ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
-  isolate = Dart_CreateIsolate(
-      script_uri, NULL, isolate_snapshot_data, isolate_snapshot_instructions,
-      app_isolate_shared_data, app_isolate_shared_instructions, flags,
-      isolate_data, error);
+
+  // If there is intention to use DFE, then we create the isolate
+  // from kernel only if we can.
+  const uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
+  if (kernel_buffer == NULL) {
+    dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
+  }
+
+  if (kernel_buffer != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, kernel_buffer,
+                                           kernel_buffer_size, flags,
+                                           isolate_data, error);
+  } else {
+    *error = strdup("Platform file not available to create service isolate.");
+    delete isolate_data;
+    return NULL;
+  }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
