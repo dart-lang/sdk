@@ -31,3 +31,17 @@ class A {
 
   Future<void> m4() async => null; // LINT
 }
+
+local_functions() {
+  void f1() {
+    return null; // LINT
+  }
+
+  void f2() => null; //LINT
+
+  Future<void> f3() async {
+    return null; // LINT
+  }
+
+  Future<void> f4() async => null; // LINT
+}

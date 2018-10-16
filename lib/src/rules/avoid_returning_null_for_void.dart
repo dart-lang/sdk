@@ -4,15 +4,20 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r"Don't return null for void.";
+const _desc = r'Avoid returning null for void.';
 
 const _details = r'''
 
-**Don't** return null for void
+**AVOID** returning null for void.
+
+In a large variety of languages `void` as return type is used to indicate that
+a function doesn't return anything. Dart allows returning `null` in functions
+with `void` return type but it also allow using `return;` without specifying any
+value. To have a consistant way you should not return `null` and only use an
+empty return.
 
 **BAD:**
 ```
