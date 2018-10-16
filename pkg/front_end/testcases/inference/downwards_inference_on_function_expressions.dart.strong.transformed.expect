@@ -70,7 +70,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     (core::int) → core::String l3 = (core::int x) → core::String => (let final core::int #t21 = x in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:63:14: Error: The method 'substring' isn't defined for the class 'dart.core::int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
             .substring(3);
-             ^") as{TypeError} core::String;
+             ^^^^^^^^^") as{TypeError} core::String;
     (core::String) → core::String l4 = (core::String x) → core::String => x.{core::String::substring}(3);
   }
 }

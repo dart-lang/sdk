@@ -1243,10 +1243,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitThisJudgment(ThisJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.thisType ?? const DynamicType();
-    return null;
-  }
+  void visitThisExpression(ThisExpression node, DartType typeContext) {}
 
   void visitThrowJudgment(ThrowJudgment node, DartType typeContext) {
     inferrer.inferExpression(node.judgment, const UnknownType(), false);

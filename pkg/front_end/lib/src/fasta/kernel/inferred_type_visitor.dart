@@ -4,7 +4,7 @@
 
 part of "kernel_shadow_ast.dart";
 
-DartType getInferredType(Expression expression, TypeInferrer inferrer) {
+DartType getInferredType(Expression expression, TypeInferrerImpl inferrer) {
   if (expression is ExpressionJudgment) {
     return expression.inferredType;
   } else {
@@ -12,39 +12,56 @@ DartType getInferredType(Expression expression, TypeInferrer inferrer) {
   }
 }
 
-class InferredTypeVisitor extends ExpressionVisitor1<DartType, TypeInferrer> {
+DartType invalidToBottom(DartType type) {
+  // TODO(ahe): This should really return [BottomType], but that requires more
+  // work to the Kernel type system and implementation.
+  return (type == null || type is InvalidType) ? const DynamicType() : type;
+}
+
+DartType invalidToTop(DartType type) {
+  return (type == null || type is InvalidType) ? const DynamicType() : type;
+}
+
+class InferredTypeVisitor
+    extends ExpressionVisitor1<DartType, TypeInferrerImpl> {
   const InferredTypeVisitor();
 
   @override
-  DartType defaultExpression(Expression node, TypeInferrer inferrer) {
+  DartType defaultExpression(Expression node, TypeInferrerImpl inferrer) {
     unhandled("${node.runtimeType}", "getInferredType", node.fileOffset,
         inferrer.uri);
     return const InvalidType();
   }
 
   @override
-  DartType visitIntLiteral(IntLiteral node, TypeInferrer inferrer) {
+  DartType visitIntLiteral(IntLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.intClass.rawType;
   }
 
   @override
-  DartType visitDoubleLiteral(DoubleLiteral node, TypeInferrer inferrer) {
+  DartType visitDoubleLiteral(DoubleLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.doubleClass.rawType;
   }
 
   @override
   DartType visitInvalidExpression(
-      InvalidExpression node, TypeInferrer inferrer) {
+      InvalidExpression node, TypeInferrerImpl inferrer) {
     return const BottomType();
   }
 
   @override
-  DartType visitAsExpression(AsExpression node, TypeInferrer inferrer) {
-    return node.type;
+  DartType visitAsExpression(AsExpression node, TypeInferrerImpl inferrer) {
+    return invalidToBottom(node.type);
   }
 
   @override
-  DartType visitAwaitExpression(AwaitExpression node, TypeInferrer inferrer) {
+  DartType visitAwaitExpression(
+      AwaitExpression node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
+  }
+
+  @override
+  DartType visitThisExpression(ThisExpression node, TypeInferrerImpl inferrer) {
+    return invalidToBottom(inferrer.thisType);
   }
 }

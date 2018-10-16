@@ -1772,17 +1772,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-class ThisJudgment extends ThisExpression implements ExpressionJudgment {
-  DartType inferredType;
-
-  ThisJudgment();
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitThisJudgment(this, typeContext);
-  }
-}
-
 class ThrowJudgment extends Throw implements ExpressionJudgment {
   final kernel.Expression desugaredError;
 

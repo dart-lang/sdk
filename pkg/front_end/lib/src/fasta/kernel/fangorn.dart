@@ -99,7 +99,6 @@ import 'kernel_shadow_ast.dart'
         StringLiteralJudgment,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        ThisJudgment,
         ThrowJudgment,
         TryCatchJudgment,
         TryFinallyJudgment,
@@ -467,7 +466,7 @@ class Fangorn extends Forest {
 
   @override
   Expression thisExpression(Token token) {
-    return new ThisJudgment()..fileOffset = offsetForToken(token);
+    return new ThisExpression()..fileOffset = offsetForToken(token);
   }
 
   @override
