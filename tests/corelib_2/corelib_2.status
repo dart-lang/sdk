@@ -62,6 +62,10 @@ string_from_environment3_test/03: Crash
 [ $compiler == dartkb ]
 bigint_test: Skip # Switching from non-intrinsic version to intrinsics on the fly causes invariants "assert(d0 == d1)" and "assert(d == _digitsPerStep)" in bigint_patch.dart to break, which leads to flaky RuntimeError / Timeout failures.
 
+[ $compiler == fasta ]
+bool_from_environment2_test/03: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+
 [ $compiler == precompiler ]
 bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
@@ -259,10 +263,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 
 [ $compiler == dart2js && !$strong ]
 *: SkipByDesign
-
-[ $compiler != dart2js && $fasta ]
-bool_from_environment2_test/03: MissingCompileTimeError
-string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 compare_to2_test: CompileTimeError # invalid test

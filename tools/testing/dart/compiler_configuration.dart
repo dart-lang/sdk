@@ -1042,6 +1042,9 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
+  static final noCausalAsyncStacksRegExp =
+      new RegExp('--no[_-]causal[_-]async[_-]stacks');
+
   TestConfiguration get _configuration;
 
   bool get _useSdk;
@@ -1083,6 +1086,11 @@ abstract class VMKernelCompilerMixin {
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
     args.addAll(arguments.where(
         (name) => name.startsWith('-D') || name.startsWith('--packages=')));
+
+    final bool causalAsyncStacks =
+        !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
+    args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
+
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
     }

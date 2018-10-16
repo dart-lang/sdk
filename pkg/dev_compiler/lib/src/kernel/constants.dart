@@ -295,9 +295,10 @@ class _ConstantsBackend implements ConstantsBackend {
             .firstWhere((f) => f.name.name == '_name');
 
   @override
-  buildConstantForNative(
-          nativeName, typeArguments, positionalArguments, namedArguments) =>
-      throw StateError('unreachable'); // DDC does not use VM native syntax
+  buildConstantForNative(nativeName, typeArguments, positionalArguments,
+      namedArguments, context, node, errorReporter, abortEvaluation) {
+    throw StateError('unreachable'); // DDC does not use VM native syntax
+  }
 
   @override
   lowerMapConstant(constant) => constant;

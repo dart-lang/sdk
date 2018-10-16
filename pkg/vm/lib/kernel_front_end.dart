@@ -58,6 +58,23 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
 
   final component = await kernelForProgram(source, options);
 
+  // If we don't default back to the current VM we'll add environment defines
+  // for the core libraries.
+  if (component != null && environmentDefines != null) {
+    if (environmentDefines['dart.vm.product'] == 'true') {
+      environmentDefines['dart.developer.causal_async_stacks'] = 'false';
+    }
+    environmentDefines['dart.isVM'] = 'true';
+    for (final library in component.libraries) {
+      if (library.importUri.scheme == 'dart') {
+        final path = library.importUri.path;
+        if (!path.startsWith('_')) {
+          environmentDefines['dart.library.${path}'] = 'true';
+        }
+      }
+    }
+  }
+
   // Run global transformations only if component is correct.
   if (aot && component != null) {
     await _runGlobalTransformations(
@@ -223,7 +240,7 @@ bool parseCommandLineDefines(
   for (final String dflag in dFlags) {
     final equalsSignIndex = dflag.indexOf('=');
     if (equalsSignIndex < 0) {
-      environmentDefines[dflag] = '';
+      // Ignored.
     } else if (equalsSignIndex > 0) {
       final key = dflag.substring(0, equalsSignIndex);
       final value = dflag.substring(equalsSignIndex + 1);
