@@ -9538,7 +9538,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _inCommentReference(SimpleIdentifier identifier) {
-    return identifier.parent is CommentReference;
+    var parent = identifier.parent;
+    return parent is CommentReference || parent?.parent is CommentReference;
   }
 
   bool _inCurrentLibrary(Element element) => element.library == _library;
