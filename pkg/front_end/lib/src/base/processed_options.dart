@@ -19,10 +19,6 @@ import 'package:package_config/packages_file.dart' as package_config;
 
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
-import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
-
-import '../api_prototype/compilation_message.dart' show CompilationMessage;
-
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/file_system.dart'
@@ -216,17 +212,9 @@ class ProcessedOptions {
       return;
     }
 
-    // Deprecated reporting mechanisms
-    if (_raw.onError != null) {
-      _raw.onError(new _CompilationMessage(message, severity));
-      for (LocatedMessage message in context) {
-        _raw.onError(new _CompilationMessage(message, Severity.context));
-      }
-    } else {
-      command_line_reporting.report(message, severity);
-      for (LocatedMessage message in context) {
-        command_line_reporting.report(message, Severity.context);
-      }
+    command_line_reporting.report(message, severity);
+    for (LocatedMessage message in context) {
+      command_line_reporting.report(message, Severity.context);
     }
   }
 
@@ -597,8 +585,8 @@ class ProcessedOptions {
     sb.writeln('Inputs: ${inputs}');
     sb.writeln('Output: ${output}');
 
-    sb.writeln('Was error handler provided: '
-        '${_raw.onError == null ? "no" : "yes"}');
+    sb.writeln('Was diagnostic message handler provided: '
+        '${_raw.onDiagnostic == null ? "no" : "yes"}');
 
     sb.writeln('FileSystem: ${_fileSystem.runtimeType} '
         '(provided: ${_raw.fileSystem.runtimeType})');
@@ -665,32 +653,5 @@ class HermeticAccessException extends FileSystemException {
             'but it was not explicitly listed as an input.');
 
   @override
-  String toString() => message;
-}
-
-/// Wraps a [LocatedMessage] to implement the public [CompilationMessage] API.
-class _CompilationMessage implements CompilationMessage {
-  final LocatedMessage _original;
-  final Severity severity;
-
-  String get message => _original.message;
-
-  String get tip => _original.tip;
-
-  String get code => _original.code.name;
-
-  String get analyzerCode => _original.code.analyzerCodes?.first;
-
-  SourceSpan get span {
-    if (_original.charOffset == -1) {
-      if (_original.uri == null) return null;
-      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
-    }
-    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-        .pointSpan();
-  }
-
-  _CompilationMessage(this._original, this.severity);
-
   String toString() => message;
 }

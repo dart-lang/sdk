@@ -10,8 +10,6 @@ import '../fasta/fasta_codes.dart' show FormattedMessage;
 
 import '../fasta/severity.dart' show Severity;
 
-import 'compilation_message.dart' show CompilationMessage;
-
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'file_system.dart' show FileSystem;
@@ -23,9 +21,6 @@ export '../fasta/fasta_codes.dart' show FormattedMessage;
 export '../fasta/severity.dart' show Severity;
 
 export 'diagnostic_message.dart' show DiagnosticMessage;
-
-/// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationMessage error);
 
 typedef void ProblemHandler(FormattedMessage problem, Severity severity,
     List<FormattedMessage> context);
@@ -51,12 +46,6 @@ class CompilerOptions {
   /// infer at a default location under [sdkRoot], typically under
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
-
-  /// Callback to which compilation errors should be delivered.
-  ///
-  /// By default, when no callback is provided, the compiler will report
-  /// messages on the console and will throw when fatal errors are discovered.
-  ErrorHandler onError;
 
   ProblemHandler onProblem;
 
@@ -169,8 +158,7 @@ class CompilerOptions {
   /// Whether to run extra verification steps to validate that compiled
   /// components are well formed.
   ///
-  /// Errors are reported via the [onError] callback.
-  // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
+  /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
   /// Whether to dump generated components in a text format (also mainly for
