@@ -797,21 +797,6 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
   }
 }
 
-/// Concrete shadow object representing a function expression in kernel form.
-class FunctionExpressionJudgment extends FunctionExpression
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  FunctionExpressionJudgment(FunctionNodeJudgment function) : super(function);
-
-  FunctionNodeJudgment get judgment => function;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitFunctionExpressionJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a super initializer in kernel form.
 class InvalidSuperInitializerJudgment extends LocalInitializer
     implements InitializerJudgment {

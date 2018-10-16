@@ -394,13 +394,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     node.variable.type = inferenceResult.type;
   }
 
-  void visitFunctionExpressionJudgment(
-      FunctionExpressionJudgment node, DartType typeContext) {
-    var judgment = node.judgment;
-    var inferenceResult =
-        visitFunctionNodeJudgment(judgment, typeContext, null, node.fileOffset);
-    node.inferredType = inferenceResult.type;
-    return null;
+  @override
+  void visitFunctionExpression(FunctionExpression node, DartType typeContext) {
+    var inferenceResult = visitFunctionNodeJudgment(
+        node.function, typeContext, null, node.fileOffset);
+    inferrer.storeInferredType(node, inferenceResult.type);
   }
 
   void visitInvalidSuperInitializerJudgment(

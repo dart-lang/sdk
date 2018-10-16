@@ -3532,7 +3532,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable.type = function.functionType;
       if (isFunctionExpression) {
         Expression oldInitializer = variable.initializer;
-        variable.initializer = new FunctionExpressionJudgment(function)
+        variable.initializer = new FunctionExpression(function)
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
@@ -3603,7 +3603,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblem(fasta.messageNotAConstantExpression, formals.charOffset,
           formals.length));
     } else {
-      push(new FunctionExpressionJudgment(function)
+      push(new FunctionExpression(function)
         ..fileOffset = offsetForToken(beginToken));
     }
   }
