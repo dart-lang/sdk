@@ -70,17 +70,17 @@ testDatagramMulticastOptions() {
 testDatagramSocketReuseAddress() {
   test(address, reuseAddress) {
     asyncStart();
-    RawDatagramSocket
-        .bind(address, 0, reuseAddress: reuseAddress)
+    RawDatagramSocket.bind(address, 0,
+            reuseAddress: reuseAddress,
+            reusePort: Platform.isMacOS && reuseAddress)
         .then((socket) {
       if (reuseAddress) {
-        RawDatagramSocket
-            .bind(address, socket.port)
+        RawDatagramSocket.bind(address, socket.port,
+                reusePort: Platform.isMacOS)
             .then((s) => Expect.isTrue(s is RawDatagramSocket))
             .then(asyncSuccess);
       } else {
-        FutureExpect
-            .throws(RawDatagramSocket.bind(address, socket.port))
+        FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
             .then(asyncSuccess);
       }
     });
@@ -90,6 +90,24 @@ testDatagramSocketReuseAddress() {
   test(InternetAddress.loopbackIPv4, false);
   test(InternetAddress.loopbackIPv6, true);
   test(InternetAddress.loopbackIPv6, false);
+}
+
+testDatagramSocketTtl() {
+  test(address, ttl, shouldSucceed) {
+    asyncStart();
+    if (shouldSucceed) {
+      RawDatagramSocket.bind(address, 0, ttl: ttl).then(asyncSuccess);
+    } else {
+      Expect.throws(() => RawDatagramSocket.bind(address, 0, ttl: ttl));
+      asyncEnd();
+    }
+  }
+
+  test(InternetAddress.loopbackIPv4, 1, true);
+  test(InternetAddress.loopbackIPv4, 255, true);
+  test(InternetAddress.loopbackIPv4, 256, false);
+  test(InternetAddress.loopbackIPv4, 0, false);
+  test(InternetAddress.loopbackIPv4, null, false);
 }
 
 testBroadcast() {
@@ -337,9 +355,8 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
 main() {
   testDatagramBroadcastOptions();
   testDatagramMulticastOptions();
-  if (!Platform.isMacOS) {
-    testDatagramSocketReuseAddress();
-  }
+  testDatagramSocketReuseAddress();
+  testDatagramSocketTtl();
   testBroadcast();
   testLoopbackMulticast();
   testLoopbackMulticastError();

@@ -757,7 +757,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * port.
    */
   external static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true});
+      {bool reuseAddress: true, bool reusePort: false, int ttl: 1});
 
   /**
    * Returns the port used by this socket.
