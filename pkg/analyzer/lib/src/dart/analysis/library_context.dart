@@ -46,7 +46,6 @@ class LibraryContext {
   factory LibraryContext.forSingleLibrary(
       FileState targetLibrary,
       PerformanceLog logger,
-      PackageBundle sdkBundle,
       ByteStore byteStore,
       AnalysisOptions options,
       DeclaredVariables declaredVariables,
@@ -61,17 +60,8 @@ class LibraryContext {
         store.addStore(externalSummaries);
       }
 
-      if (sdkBundle != null) {
-        store.addBundle(null, sdkBundle);
-      }
-
       void appendLibraryFiles(FileState library) {
         if (!libraries.containsKey(library.uriStr)) {
-          // Serve 'dart:' URIs from the SDK bundle.
-          if (sdkBundle != null && library.uri.scheme == 'dart') {
-            return;
-          }
-
           if (library.isInExternalSummaries) {
             return;
           }

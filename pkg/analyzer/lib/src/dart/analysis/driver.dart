@@ -143,11 +143,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisOptionsImpl _analysisOptions;
 
   /**
-   * The optional SDK bundle, used when the client cannot read SDK files.
-   */
-  final PackageBundle _sdkBundle;
-
-  /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
@@ -338,12 +333,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {PackageBundle sdkBundle,
-      this.disableChangesAndCacheAllResults: false,
+      {this.disableChangesAndCacheAllResults: false,
       SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
-        _sdkBundle = sdkBundle,
         _externalSummaries = externalSummaries {
     _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
@@ -1346,7 +1339,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return new LibraryContext.forSingleLibrary(
         library,
         _logger,
-        _sdkBundle,
         _byteStore,
         _analysisOptions,
         declaredVariables,
