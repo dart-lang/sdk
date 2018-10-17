@@ -1288,29 +1288,6 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 }
 
-/// Shadow object for [PropertyGet].
-class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  final bool forSyntheticToken;
-
-  PropertyGetJudgment(Expression receiver, Name name,
-      {Member interfaceTarget, this.forSyntheticToken = false})
-      : super(receiver, name, interfaceTarget);
-
-  PropertyGetJudgment.byReference(
-      Expression receiver, Name name, Reference interfaceTargetReference)
-      : forSyntheticToken = false,
-        super.byReference(receiver, name, interfaceTargetReference);
-
-  Expression get receiverJudgment => receiver;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitPropertyGetJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a redirecting initializer in kernel
 /// form.
 class RedirectingInitializerJudgment extends RedirectingInitializer

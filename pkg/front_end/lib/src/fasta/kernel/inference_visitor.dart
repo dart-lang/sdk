@@ -922,7 +922,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   void visitNullAwarePropertyGetJudgment(
       NullAwarePropertyGetJudgment node, DartType typeContext) {
     inferrer.inferPropertyGet(
-        node, node.receiverJudgment, node.fileOffset, false, typeContext,
+        node, node.receiverJudgment, node.fileOffset, typeContext,
         receiverVariable: node.variable, desugaredGet: node._desugaredGet);
     if (inferrer.strongMode) {
       node.body.staticType = node.inferredType;
@@ -966,12 +966,10 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitPropertyGetJudgment(
-      PropertyGetJudgment node, DartType typeContext) {
-    inferrer.inferPropertyGet(node, node.receiverJudgment, node.fileOffset,
-        node.forSyntheticToken, typeContext,
+  @override
+  void visitPropertyGet(PropertyGet node, DartType typeContext) {
+    inferrer.inferPropertyGet(node, node.receiver, node.fileOffset, typeContext,
         desugaredGet: node);
-    return null;
   }
 
   void visitRedirectingInitializerJudgment(
@@ -1141,7 +1139,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
-    inferrer.inferPropertyGet(node, null, node.fileOffset, false, typeContext,
+    inferrer.inferPropertyGet(node, null, node.fileOffset, typeContext,
         interfaceMember: node.interfaceTarget, propertyName: node.name);
     if (node.desugaredError != null) {
       node.parent.replaceChild(node, node.desugaredError);

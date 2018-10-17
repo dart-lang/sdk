@@ -108,4 +108,9 @@ class InferredTypeVisitor
   DartType visitNullLiteral(NullLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.nullClass.rawType;
   }
+
+  @override
+  DartType visitPropertyGet(PropertyGet node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
 }
