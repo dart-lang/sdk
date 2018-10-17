@@ -10,6 +10,7 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
