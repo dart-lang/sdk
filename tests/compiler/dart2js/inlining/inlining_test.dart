@@ -36,11 +36,11 @@ class InliningDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend, backendStrategy.closureDataLookup)
+            compiler.backend, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -49,7 +49,7 @@ class InliningDataComputer extends DataComputer {
 class InliningIrComputer extends IrDataExtractor {
   final JavaScriptBackend backend;
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   InliningIrComputer(
       DiagnosticReporter reporter,

@@ -21,18 +21,6 @@ class KLibrary extends IndexedLibrary {
   String toString() => '${kElementPrefix}library($name)';
 }
 
-class KImport implements ImportEntity {
-  final bool isDeferred;
-  final String name;
-  final Uri uri;
-  final LibraryEntity enclosingLibrary;
-
-  KImport(this.isDeferred, this.name, this.uri, this.enclosingLibrary);
-
-  String toString() =>
-      '${kElementPrefix}import($name:${isDeferred ? ' deferred' : ''})';
-}
-
 class KClass extends IndexedClass {
   final KLibrary library;
 

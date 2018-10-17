@@ -15,13 +15,13 @@ import '../elements/types.dart';
 import '../js_backend/backend.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
+import '../js_model/js_strategy.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
@@ -39,13 +39,11 @@ bool useStaticResultTypes = false;
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final CompilerOptions _options;
-  final JClosedWorld _closedWorld;
-  final ClosureDataLookup _closureDataLookup;
+  final JsClosedWorld _closedWorld;
   final InferrerEngine _inferrer;
   final TypeSystem _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
-  final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
   final bool _inGenerativeConstructor;
@@ -69,15 +67,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   /// The [IsCheck]s that show us what types locals currently are _not_.
   List<IsCheck> _negativeIsChecks;
 
-  KernelTypeGraphBuilder(
-      this._options,
-      this._closedWorld,
-      this._closureDataLookup,
-      this._inferrer,
-      this._analyzedMember,
-      this._analyzedNode,
-      this._elementMap,
-      this._localsMap,
+  KernelTypeGraphBuilder(this._options, this._closedWorld, this._inferrer,
+      this._analyzedMember, this._analyzedNode, this._localsMap,
       [this._locals])
       : this._types = _inferrer.types,
         this._memberData = _inferrer.dataOfMember(_analyzedMember),
@@ -95,6 +86,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
+
+  JsToElementMap get _elementMap => _closedWorld.elementMap;
+
+  ClosureData get _closureDataLookup => _closedWorld.closureDataLookup;
 
   int _loopLevel = 0;
 
@@ -1524,11 +1519,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,
         _closedWorld,
-        _closureDataLookup,
         _inferrer,
         info.callMethod,
         functionNode,
-        _elementMap,
         _localsMap,
         closureLocals);
     visitor.run();

@@ -6,6 +6,7 @@ library dart2js.world;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
+import 'closure.dart';
 import 'common.dart';
 import 'common/names.dart';
 import 'common_elements.dart'
@@ -15,6 +16,7 @@ import 'common_elements.dart'
         KCommonElements,
         KElementEnvironment;
 import 'constants/constant_system.dart';
+import 'deferred_load.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -27,6 +29,7 @@ import 'js_backend/native_data.dart' show NativeData;
 import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart'
     show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
+import 'js_model/locals.dart';
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
@@ -79,6 +82,11 @@ abstract class JClosedWorld implements World {
   ClassHierarchy get classHierarchy;
 
   AnnotationsData get annotationsData;
+
+  GlobalLocalsMap get globalLocalsMap;
+  ClosureData get closureDataLookup;
+
+  OutputUnitData get outputUnitData;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
@@ -242,9 +250,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
-  final Map<ClassEntity, ClassSet> _classSets;
-
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
 
@@ -282,14 +287,8 @@ abstract class ClosedWorldBase implements JClosedWorld {
       this.processedMembers,
       this.mixinUses,
       this.typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets,
-      AbstractValueStrategy abstractValueStrategy)
-      : this._implementedClasses = implementedClasses,
-        this._classHierarchyNodes = classHierarchyNodes,
-        this._classSets = classSets,
-        classHierarchy = new ClassHierarchyImpl(
-            commonElements, classHierarchyNodes, classSets) {}
+      this.classHierarchy)
+      : this._implementedClasses = implementedClasses;
 
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
@@ -313,7 +312,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
+    ClassHierarchyNode hierarchy = classHierarchy.getClassHierarchyNode(cls);
     return hierarchy != null
         ? hierarchy.getLubOfInstantiatedSubclasses()
         : null;
@@ -324,7 +323,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
-    ClassSet classSet = _classSets[cls];
+    ClassSet classSet = classHierarchy.getClassSet(cls);
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
@@ -396,7 +395,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
       return result == IterationStep.STOP;
     }
 
-    ClassSet classSet = getClassSet(base);
+    ClassSet classSet = classHierarchy.getClassSet(base);
     assert(classSet != null, failedAt(base, "No class set for $base."));
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
@@ -500,24 +499,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return false;
   }
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    return _classHierarchyNodes[cls];
-  }
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls) {
-    return _classSets[cls];
-  }
-
   void _ensureFunctionSet() {
     if (_allFunctions == null) {
       // [FunctionSet] is created lazily because it is not used when we switch
@@ -591,16 +572,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
       return !assignedInstanceMembers.contains(element);
     }
     return false;
-  }
-
-  /// Should only be called by subclasses.
-  void addClassHierarchyNode(ClassEntity cls, ClassHierarchyNode node) {
-    _classHierarchyNodes[cls] = node;
-  }
-
-  /// Should only be called by subclasses.
-  void addClassSet(ClassEntity cls, ClassSet classSet) {
-    _classSets[cls] = classSet;
   }
 }
 

@@ -9,11 +9,11 @@ part of masks;
  * site of a map (currently only internal Map class) that will get specialized
  * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
  */
-class MapTypeMask<T> extends AllocationTypeMask<T> {
+class MapTypeMask extends AllocationTypeMask {
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
-  final T allocationNode;
+  final ir.TreeNode allocationNode;
 
   // The [MemberEntity] where this type mask was created.
   final MemberEntity allocationElement;

@@ -12,7 +12,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -386,7 +386,6 @@ class JavaScriptBackend {
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
-  OutputUnitData _outputUnitData;
 
   CheckedModeHelpers _checkedModeHelpers;
 
@@ -446,8 +445,6 @@ class JavaScriptBackend {
             "CustomElementsCodegenAnalysis has not been created yet."));
     return _customElementsCodegenAnalysis;
   }
-
-  OutputUnitData get outputUnitData => _outputUnitData;
 
   OneShotInterceptorData get oneShotInterceptorData {
     assert(
@@ -545,10 +542,6 @@ class JavaScriptBackend {
   void onResolutionEnd() {
     frontendStrategy.annotationProcesser.processJsInteropAnnotations(
         frontendStrategy.nativeBasicData, nativeDataBuilder);
-  }
-
-  void onDeferredLoadComplete(OutputUnitData data) {
-    _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
 
   ResolutionEnqueuer createResolutionEnqueuer(

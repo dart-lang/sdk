@@ -7,11 +7,11 @@ part of masks;
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
 /// site of a container (currently only List) that will get specialized
 /// once the [TypeGraphInferrer] phase finds an element type for it.
-class ContainerTypeMask<T> extends AllocationTypeMask<T> {
+class ContainerTypeMask extends AllocationTypeMask {
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
-  final T allocationNode;
+  final ir.TreeNode allocationNode;
 
   // The [Entity] where this type mask was created.
   final MemberEntity allocationElement;
@@ -28,13 +28,13 @@ class ContainerTypeMask<T> extends AllocationTypeMask<T> {
   TypeMask nullable() {
     return isNullable
         ? this
-        : new ContainerTypeMask<T>(forwardTo.nullable(), allocationNode,
+        : new ContainerTypeMask(forwardTo.nullable(), allocationNode,
             allocationElement, elementType, length);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new ContainerTypeMask<T>(forwardTo.nonNullable(), allocationNode,
+        ? new ContainerTypeMask(forwardTo.nonNullable(), allocationNode,
             allocationElement, elementType, length)
         : this;
   }
@@ -70,7 +70,7 @@ class ContainerTypeMask<T> extends AllocationTypeMask<T> {
           elementType.union(other.elementType, closedWorld);
       int newLength = (length == other.length) ? length : null;
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
-      return new ContainerTypeMask<T>(
+      return new ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
           allocationElement == other.allocationElement

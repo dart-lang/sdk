@@ -4,7 +4,6 @@
 
 library dart2js.backend_strategy;
 
-import 'closure.dart' show ClosureConversionTask;
 import 'common.dart';
 import 'common/tasks.dart';
 import 'deferred_load.dart' show OutputUnitData;
@@ -24,14 +23,8 @@ import 'world.dart';
 /// and code generation.
 abstract class BackendStrategy {
   /// Create the [JClosedWorld] from [closedWorld].
-  JClosedWorld createJClosedWorld(KClosedWorld closedWorld);
-
-  /// Converts [data] to use backend entities instead of frontend entities.
-  OutputUnitData convertOutputUnitData(OutputUnitData data);
-
-  /// Create the task that analyzes the code to see what closures need to be
-  /// rewritten.
-  ClosureConversionTask get closureDataLookup;
+  JClosedWorld createJClosedWorld(
+      KClosedWorld closedWorld, OutputUnitData outputUnitData);
 
   /// The [Sorter] used for sorting elements in the generated code.
   Sorter get sorter;

@@ -12,8 +12,6 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
-import '../js_model/element_map.dart';
-import '../js_model/locals.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart';
@@ -56,13 +54,10 @@ class TypeGraphInferrer implements TypesInferrer {
   final JClosedWorld closedWorld;
 
   final Compiler _compiler;
-  final JsToElementMap _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
-  final ClosureDataLookup _closureDataLookup;
   final InferredDataBuilder _inferredDataBuilder;
 
-  TypeGraphInferrer(this._compiler, this._elementMap, this._globalLocalsMap,
-      this._closureDataLookup, this.closedWorld, this._inferredDataBuilder);
+  TypeGraphInferrer(
+      this._compiler, this.closedWorld, this._inferredDataBuilder);
 
   String get name => 'Graph inferrer';
 
@@ -81,9 +76,6 @@ class TypeGraphInferrer implements TypesInferrer {
         _compiler.progress,
         _compiler.reporter,
         _compiler.outputProvider,
-        _elementMap,
-        _globalLocalsMap,
-        _closureDataLookup,
         closedWorld,
         _compiler.backend.noSuchMethodRegistry,
         main,
@@ -98,10 +90,11 @@ class TypeGraphInferrer implements TypesInferrer {
   GlobalTypeInferenceResults buildResults() {
     inferrer.close();
 
-    Map<ir.Node, AbstractValue> allocatedLists = <ir.Node, AbstractValue>{};
-    Set<ir.Node> checkedForGrowableLists = new Set<ir.Node>();
+    Map<ir.TreeNode, AbstractValue> allocatedLists =
+        <ir.TreeNode, AbstractValue>{};
+    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
     inferrer.types.allocatedLists
-        .forEach((ir.Node node, ListTypeInformation typeInformation) {
+        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
       ListTypeInformation info = inferrer.types.allocatedLists[node];
       if (info.checksGrowable) {
         checkedForGrowableLists.add(node);
@@ -149,7 +142,7 @@ class TypeGraphInferrer implements TypesInferrer {
       createMemberResults(member, typeInformation);
       if (member is JClosureCallMethod) {
         ClosureRepresentationInfo info =
-            _closureDataLookup.getScopeInfo(member);
+            closedWorld.closureDataLookup.getScopeInfo(member);
         info.forEachFreeVariable((Local from, FieldEntity to) {
           freeVariables.add(to);
         });

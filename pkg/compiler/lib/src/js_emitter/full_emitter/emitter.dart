@@ -107,7 +107,7 @@ class Emitter extends js_emitter.EmitterBase {
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
   CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
-  OutputUnitData get _outputUnitData => compiler.backend.outputUnitData;
+  OutputUnitData get _outputUnitData => _closedWorld.outputUnitData;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -158,7 +158,7 @@ class Emitter extends js_emitter.EmitterBase {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld),
         _sorter = sorter,
-        containerBuilder = new ContainerBuilder(),
+        containerBuilder = new ContainerBuilder(_closedWorld),
         _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,

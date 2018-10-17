@@ -9,6 +9,7 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
+import '../../world.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
@@ -18,11 +19,14 @@ import 'emitter.dart';
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
-  ContainerBuilder();
+  JClosedWorld _closedWorld;
+
+  ContainerBuilder(this._closedWorld);
 
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     FunctionEntity member = method.element;
-    OutputUnit outputUnit = backend.outputUnitData.outputUnitForMember(member);
+    OutputUnit outputUnit =
+        _closedWorld.outputUnitData.outputUnitForMember(member);
     jsAst.Name name = method.name;
     ParameterStructure parameters = member.parameterStructure;
     jsAst.Expression code = method.code;

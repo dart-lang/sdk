@@ -54,9 +54,9 @@ class TypeMaskDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new TypeMaskIrComputer(
             compiler.reporter,
@@ -65,7 +65,7 @@ class TypeMaskDataComputer extends DataComputer {
             member,
             localsMap.getLocalsMap(member),
             compiler.globalInference.resultsForTesting,
-            backendStrategy.closureDataLookup)
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -76,7 +76,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
   GlobalTypeInferenceMemberResult result;
   final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,
@@ -115,7 +115,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
-    GlobalTypeInferenceElementResult oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionExpression(node);
@@ -124,7 +124,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    GlobalTypeInferenceElementResult oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);

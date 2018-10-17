@@ -197,9 +197,6 @@
     "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '-'.": 1
   },
-  "pkg/compiler/lib/src/closure.dart": {
-    "Dynamic access of 'typeVariable'.": 1
-  },
   "pkg/compiler/lib/src/js_backend/native_data.dart": {
     "Dynamic access of 'names'.": 1,
     "Dynamic access of 'isNonLeaf'.": 1
@@ -257,6 +254,9 @@
   "pkg/compiler/lib/src/universe/side_effects.dart": {
     "Dynamic access of 'universe.side_effects::_flags'.": 1
   },
+  "pkg/compiler/lib/src/closure.dart": {
+    "Dynamic access of 'typeVariable'.": 1
+  },
   "pkg/compiler/lib/src/native/behavior.dart": {
     "Dynamic invocation of 'add'.": 1
   },
@@ -289,6 +289,7 @@
     "Dynamic access of 'localFunction'.": 1,
     "Dynamic access of 'invocation'.": 1,
     "Dynamic access of 'instantiation'.": 1,
+    "Dynamic access of 'closureClass'.": 1,
     "Dynamic access of 'type'.": 1,
     "Dynamic access of 'context'.": 1
   },

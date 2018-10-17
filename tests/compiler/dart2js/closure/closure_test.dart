@@ -34,10 +34,10 @@ class ClosureDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-    ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    ClosureData closureDataLookup = closedWorld.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     assert(
         definition.kind == MemberKind.regular ||
@@ -59,7 +59,7 @@ class ClosureDataComputer extends DataComputer {
 /// Kernel IR visitor for computing closure data.
 class ClosureIrChecker extends IrDataExtractor {
   final MemberEntity member;
-  final ClosureDataLookup closureDataLookup;
+  final ClosureData closureDataLookup;
   final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;

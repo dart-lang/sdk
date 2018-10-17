@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart' show ClosureDataLookup;
 import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
@@ -68,9 +67,6 @@ abstract class GraphBuilder {
   CodeEmitterTask get emitter => backend.emitter;
 
   GlobalTypeInferenceResults get globalInferenceResults;
-
-  ClosureDataLookup get closureDataLookup =>
-      compiler.backendStrategy.closureDataLookup;
 
   NativeData get nativeData => closedWorld.nativeData;
 

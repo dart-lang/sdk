@@ -92,7 +92,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForClass(classElement);
+        closedWorld.outputUnitData.outputUnitForClass(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -319,7 +319,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForMember(member);
+        closedWorld.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
@@ -334,7 +334,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForMember(member);
+        closedWorld.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));

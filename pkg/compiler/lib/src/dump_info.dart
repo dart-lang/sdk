@@ -361,17 +361,17 @@ class ElementInfoCollector {
 
   OutputUnitInfo _unitInfoForMember(MemberEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForMember(entity));
+        closedWorld.outputUnitData.outputUnitForMember(entity));
   }
 
   OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForClass(entity));
+        closedWorld.outputUnitData.outputUnitForClass(entity));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForConstant(constant);
+        closedWorld.outputUnitData.outputUnitForConstant(constant);
     if (outputUnit == null) {
       assert(constant is InterceptorConstantValue);
       return null;

@@ -87,11 +87,11 @@ abstract class DeferredLoadTask extends CompilerTask {
   String get name => 'Deferred Loading';
 
   /// The OutputUnit that will be loaded when the program starts.
-  OutputUnit mainOutputUnit;
+  OutputUnit _mainOutputUnit;
 
   /// A set containing (eventually) all output units that will result from the
   /// program.
-  final List<OutputUnit> allOutputUnits = new List<OutputUnit>();
+  final List<OutputUnit> _allOutputUnits = new List<OutputUnit>();
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
@@ -142,9 +142,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
 
   DeferredLoadTask(this.compiler) : super(compiler.measurer) {
-    mainOutputUnit = new OutputUnit(true, 'main', new Set<ImportEntity>());
-    importSets.mainSet.unit = mainOutputUnit;
-    allOutputUnits.add(mainOutputUnit);
+    _mainOutputUnit = new OutputUnit(true, 'main', new Set<ImportEntity>());
+    importSets.mainSet.unit = _mainOutputUnit;
+    _allOutputUnits.add(_mainOutputUnit);
   }
 
   KElementEnvironment get elementEnvironment =>
@@ -603,7 +603,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           importSet._imports.map((i) => i.declaration).toSet());
       counter++;
       importSet.unit = unit;
-      allOutputUnits.add(unit);
+      _allOutputUnits.add(unit);
     }
 
     // Generate an output unit for all import sets that are associated with an
@@ -614,7 +614,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     _constantToSet.values.forEach(addUnit);
 
     // Sort output units to make the output of the compiler more stable.
-    allOutputUnits.sort();
+    _allOutputUnits.sort();
   }
 
   void _setupHunksToLoad() {
@@ -641,7 +641,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     // shared by S2 such that S2 not a superset of S1. Let lib_s be a library in
     // S1 not in S2. lib_s must depend on C, and then in turn on D. Therefore D
     // is not in the right output unit.
-    List sortedOutputUnits = allOutputUnits.reversed.toList();
+    List<OutputUnit> sortedOutputUnits = _allOutputUnits.reversed.toList();
 
     // For each deferred import we find out which outputUnits to load.
     for (ImportEntity import in allDeferredImports) {
@@ -650,7 +650,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // list.
       hunksToLoad[_importDeferName[import]] = new List<OutputUnit>();
       for (OutputUnit outputUnit in sortedOutputUnits) {
-        if (outputUnit == mainOutputUnit) continue;
+        if (outputUnit == _mainOutputUnit) continue;
         if (outputUnit._imports.contains(import)) {
           hunksToLoad[_importDeferName[import]].add(outputUnit);
         }
@@ -811,12 +811,12 @@ abstract class DeferredLoadTask extends CompilerTask {
     cleanup();
     return new OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
-        this.mainOutputUnit,
+        this._mainOutputUnit,
         classMap,
         memberMap,
         localFunctionMap,
         constantMap,
-        importSets);
+        _allOutputUnits);
   }
 
   /// Frees up strategy-specific temporary data.
@@ -944,14 +944,14 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
 
     Map<OutputUnit, String> text = {};
-    for (OutputUnit outputUnit in allOutputUnits) {
+    for (OutputUnit outputUnit in _allOutputUnits) {
       StringBuffer unitText = new StringBuffer();
       if (outputUnit.isMainOutput) {
         unitText.write(' <MAIN UNIT>');
       } else {
         unitText.write(' imports:');
         var imports = outputUnit._imports
-            .map((i) => '${i.enclosingLibrary.canonicalUri.resolveUri(i.uri)}')
+            .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
             .toList();
         for (var i in imports..sort()) {
           unitText.write('\n   $i:');
@@ -975,7 +975,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     StringBuffer sb = new StringBuffer();
-    for (OutputUnit outputUnit in allOutputUnits.toList()
+    for (OutputUnit outputUnit in _allOutputUnits.toList()
       ..sort((a, b) => text[a].compareTo(text[b]))) {
       sb.write('\n\n-------------------------------\n');
       sb.write('Output unit: ${outputUnit.name}');
@@ -1277,7 +1277,7 @@ class OutputUnitData {
   final Map<MemberEntity, OutputUnit> _memberToUnit;
   final Map<Local, OutputUnit> _localFunctionToUnit;
   final Map<ConstantValue, OutputUnit> _constantToUnit;
-  final ImportSetLattice _importSets;
+  final Iterable<OutputUnit> outputUnits;
 
   OutputUnitData(
       this.isProgramSplit,
@@ -1286,7 +1286,7 @@ class OutputUnitData {
       this._memberToUnit,
       this._localFunctionToUnit,
       this._constantToUnit,
-      this._importSets);
+      this.outputUnits);
 
   OutputUnitData.from(
       OutputUnitData other,
@@ -1300,13 +1300,13 @@ class OutputUnitData {
           convertConstantMap)
       : isProgramSplit = other.isProgramSplit,
         mainOutputUnit = other.mainOutputUnit,
+        this.outputUnits = other.outputUnits,
         _memberToUnit =
             convertMemberMap(other._memberToUnit, other._localFunctionToUnit),
         _classToUnit =
             convertClassMap(other._classToUnit, other._localFunctionToUnit),
         _localFunctionToUnit = const <Local, OutputUnit>{},
-        _constantToUnit = convertConstantMap(other._constantToUnit),
-        _importSets = other._importSets;
+        _constantToUnit = convertConstantMap(other._constantToUnit);
 
   /// Returns the [OutputUnit] where [cls] belongs.
   OutputUnit outputUnitForClass(ClassEntity cls) {
