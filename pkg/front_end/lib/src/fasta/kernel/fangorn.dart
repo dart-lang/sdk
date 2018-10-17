@@ -32,6 +32,7 @@ import 'package:kernel/ast.dart'
         Not,
         NullLiteral,
         Procedure,
+        Rethrow,
         Statement,
         ThisExpression,
         TreeNode,
@@ -91,7 +92,6 @@ import 'kernel_shadow_ast.dart'
         LoadLibraryJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
-        RethrowJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
         StringConcatenationJudgment,
@@ -443,7 +443,7 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment(null)..fileOffset = offsetForToken(rethrowKeyword));
+        new Rethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
   @override

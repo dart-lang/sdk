@@ -993,14 +993,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     ArgumentsJudgment.removeNonInferrableArgumentTypes(node.arguments);
   }
 
-  void visitRethrowJudgment(RethrowJudgment node, DartType typeContext) {
-    node.inferredType = const BottomType();
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
-    return null;
-  }
+  @override
+  void visitRethrow(Rethrow node, DartType typeContext) {}
 
   void visitReturnJudgment(ReturnJudgment node) {
     var judgment = node.judgment;

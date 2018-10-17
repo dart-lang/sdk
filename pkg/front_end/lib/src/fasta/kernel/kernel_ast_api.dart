@@ -113,7 +113,6 @@ export 'kernel_shadow_ast.dart'
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
         RedirectingInitializerJudgment,
-        RethrowJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
         StaticAssignmentJudgment,

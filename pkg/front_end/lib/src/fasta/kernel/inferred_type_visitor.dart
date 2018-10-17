@@ -113,4 +113,9 @@ class InferredTypeVisitor
   DartType visitPropertyGet(PropertyGet node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitRethrow(Rethrow node, TypeInferrerImpl inferrer) {
+    return const BottomType();
+  }
 }

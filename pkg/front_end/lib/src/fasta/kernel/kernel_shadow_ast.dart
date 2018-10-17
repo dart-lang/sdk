@@ -1304,20 +1304,6 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
   }
 }
 
-/// Shadow object for [Rethrow].
-class RethrowJudgment extends Rethrow implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-
-  DartType inferredType;
-
-  RethrowJudgment(this.desugaredError);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitRethrowJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a return statement in kernel form.
 class ReturnJudgment extends ReturnStatement implements StatementJudgment {
   final String returnKeywordLexeme;
