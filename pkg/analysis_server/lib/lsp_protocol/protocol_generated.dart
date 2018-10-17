@@ -573,7 +573,7 @@ class CompletionItem {
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
   /// the editor.
-  final num kind;
+  final CompletionItemKind kind;
 
   /// The label of this completion item. By default also the text that is
   /// inserted when selecting this completion.
@@ -649,32 +649,46 @@ class CompletionItem {
 }
 
 /// The kind of a completion entry.
-abstract class CompletionItemKind {
-  static const Class = 7;
-  static const Color = 16;
-  static const Constant = 21;
-  static const Constructor = 4;
-  static const Enum = 13;
-  static const EnumMember = 20;
-  static const Event = 23;
-  static const Field = 5;
-  static const File = 17;
-  static const Folder = 19;
-  static const Function = 3;
-  static const Interface = 8;
-  static const Keyword = 14;
-  static const Method = 2;
-  static const Module = 9;
-  static const Operator = 24;
-  static const Property = 10;
-  static const Reference = 18;
-  static const Snippet = 15;
-  static const Struct = 22;
-  static const Text = 1;
-  static const TypeParameter = 25;
-  static const Unit = 11;
-  static const Value = 12;
-  static const Variable = 6;
+class CompletionItemKind {
+  const CompletionItemKind._(this._value);
+
+  final Object _value;
+
+  static const Text = const CompletionItemKind._(1);
+  static const Method = const CompletionItemKind._(2);
+  static const Function = const CompletionItemKind._(3);
+  static const Constructor = const CompletionItemKind._(4);
+  static const Field = const CompletionItemKind._(5);
+  static const Variable = const CompletionItemKind._(6);
+  static const Class = const CompletionItemKind._(7);
+  static const Interface = const CompletionItemKind._(8);
+  static const Module = const CompletionItemKind._(9);
+  static const Property = const CompletionItemKind._(10);
+  static const Unit = const CompletionItemKind._(11);
+  static const Value = const CompletionItemKind._(12);
+  static const Enum = const CompletionItemKind._(13);
+  static const Keyword = const CompletionItemKind._(14);
+  static const Snippet = const CompletionItemKind._(15);
+  static const Color = const CompletionItemKind._(16);
+  static const File = const CompletionItemKind._(17);
+  static const Reference = const CompletionItemKind._(18);
+  static const Folder = const CompletionItemKind._(19);
+  static const EnumMember = const CompletionItemKind._(20);
+  static const Constant = const CompletionItemKind._(21);
+  static const Struct = const CompletionItemKind._(22);
+  static const Event = const CompletionItemKind._(23);
+  static const Operator = const CompletionItemKind._(24);
+  static const TypeParameter = const CompletionItemKind._(25);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is CompletionItemKind && o._value == _value;
 }
 
 /// Represents a collection of completion items ([CompletionItem]) to be
@@ -786,17 +800,32 @@ class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
 }
 
 /// How a completion was triggered
-abstract class CompletionTriggerKind {
+class CompletionTriggerKind {
+  const CompletionTriggerKind._(this._value);
+
+  final Object _value;
+
   /// Completion was triggered by typing an identifier (24x7 code complete),
   /// manual invocation (e.g Ctrl+Space) or via API.
-  static const Invoked = 1;
+  static const Invoked = const CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
-  static const TriggerCharacter = 2;
+  static const TriggerCharacter = const CompletionTriggerKind._(2);
 
   /// Completion was re-triggered as the current completion list is incomplete.
-  static const TriggerForIncompleteCompletions = 3;
+  static const TriggerForIncompleteCompletions =
+      const CompletionTriggerKind._(3);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is CompletionTriggerKind && o._value == _value;
 }
 
 class ConfigurationItem {
@@ -935,7 +964,7 @@ class Diagnostic {
 
   /// The diagnostic's severity. Can be omitted. If omitted it is up to the
   /// client to interpret diagnostics as error, warning, info or hint.
-  final num severity;
+  final DiagnosticSeverity severity;
 
   /// A human-readable string describing the source of this diagnostic, e.g.
   /// 'typescript' or 'super lint'.
@@ -984,18 +1013,32 @@ class DiagnosticRelatedInformation {
   }
 }
 
-abstract class DiagnosticSeverity {
+class DiagnosticSeverity {
+  const DiagnosticSeverity._(this._value);
+
+  final Object _value;
+
   /// Reports an error.
-  static const Error = 1;
-
-  /// Reports a hint.
-  static const Hint = 4;
-
-  /// Reports an information.
-  static const Information = 3;
+  static const Error = const DiagnosticSeverity._(1);
 
   /// Reports a warning.
-  static const Warning = 2;
+  static const Warning = const DiagnosticSeverity._(2);
+
+  /// Reports an information.
+  static const Information = const DiagnosticSeverity._(3);
+
+  /// Reports a hint.
+  static const Hint = const DiagnosticSeverity._(4);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is DiagnosticSeverity && o._value == _value;
 }
 
 class DidChangeConfigurationParams {
@@ -1179,7 +1222,7 @@ class DocumentHighlight {
   DocumentHighlight(this.range, this.kind);
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
-  final num kind;
+  final DocumentHighlightKind kind;
 
   /// The range this highlight applies to.
   final Range range;
@@ -1195,15 +1238,29 @@ class DocumentHighlight {
 }
 
 /// A document highlight kind.
-abstract class DocumentHighlightKind {
-  /// Read-access of a symbol, like reading a variable.
-  static const Read = 2;
+class DocumentHighlightKind {
+  const DocumentHighlightKind._(this._value);
+
+  final Object _value;
 
   /// A textual occurrence.
-  static const Text = 1;
+  static const Text = const DocumentHighlightKind._(1);
+
+  /// Read-access of a symbol, like reading a variable.
+  static const Read = const DocumentHighlightKind._(2);
 
   /// Write-access of a symbol, like writing to a variable.
-  static const Write = 3;
+  static const Write = const DocumentHighlightKind._(3);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
 }
 
 /// A document link is a range in a text document that links to an internal or
@@ -1516,36 +1573,65 @@ class ExecuteCommandRegistrationOptions {
   }
 }
 
-abstract class FailureHandlingKind {
+class FailureHandlingKind {
+  const FailureHandlingKind._(this._value);
+
+  final Object _value;
+
   /// Applying the workspace change is simply aborted if one of the changes
   /// provided fails. All operations executed before the failing operation stay
   /// executed.
-  static const Abort = 'abort';
+  static const Abort = const FailureHandlingKind._('abort');
+
+  /// All operations are executed transactional. That means they either all
+  /// succeed or no changes at all are applied to the workspace.
+  static const Transactional = const FailureHandlingKind._('transactional');
 
   /// If the workspace edit contains only textual file changes they are executed
   /// transactional. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling startegy is abort.
-  static const TextOnlyTransactional = 'textOnlyTransactional';
-
-  /// All operations are executed transactional. That means they either all
-  /// succeed or no changes at all are applied to the workspace.
-  static const Transactional = 'transactional';
+  static const TextOnlyTransactional =
+      const FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
   /// guaruntee that this is succeeding.
-  static const Undo = 'undo';
+  static const Undo = const FailureHandlingKind._('undo');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is FailureHandlingKind && o._value == _value;
 }
 
 /// The file event type.
-abstract class FileChangeType {
-  /// The file got changed.
-  static const Changed = 2;
+class FileChangeType {
+  const FileChangeType._(this._value);
+
+  final Object _value;
 
   /// The file got created.
-  static const Created = 1;
+  static const Created = const FileChangeType._(1);
+
+  /// The file got changed.
+  static const Changed = const FileChangeType._(2);
 
   /// The file got deleted.
-  static const Deleted = 3;
+  static const Deleted = const FileChangeType._(3);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is FileChangeType && o._value == _value;
 }
 
 /// An event describing a file change.
@@ -1574,7 +1660,7 @@ class FileSystemWatcher {
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
   /// | WatchKind.Change | WatchKind.Delete which is 7.
-  final num kind;
+  final WatchKind kind;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -1603,7 +1689,7 @@ class FoldingRange {
   /// kind is used to categorize folding ranges and used by commands like 'Fold
   /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
   /// kinds.
-  final String kind;
+  final FoldingRangeKind kind;
 
   /// The zero-based character offset from where the folded range starts. If not
   /// defined, defaults to the length of the start line.
@@ -1632,15 +1718,29 @@ class FoldingRange {
 }
 
 /// Enum of known range kinds
-abstract class FoldingRangeKind {
+class FoldingRangeKind {
+  const FoldingRangeKind._(this._value);
+
+  final Object _value;
+
   /// Folding range for a comment
-  static const Comment = 'comment';
+  static const Comment = const FoldingRangeKind._('comment');
 
   /// Folding range for a imports or includes
-  static const Imports = 'imports';
+  static const Imports = const FoldingRangeKind._('imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = 'region';
+  static const Region = const FoldingRangeKind._('region');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is FoldingRangeKind && o._value == _value;
 }
 
 class FoldingRangeParams {
@@ -1784,9 +1884,13 @@ class InitializedParams {
 
 /// Defines whether the insert text in a completion item should be interpreted
 /// as plain text or a snippet.
-abstract class InsertTextFormat {
+class InsertTextFormat {
+  const InsertTextFormat._(this._value);
+
+  final Object _value;
+
   /// The primary text to be inserted is treated as a plain string.
-  static const PlainText = 1;
+  static const PlainText = const InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
@@ -1794,7 +1898,17 @@ abstract class InsertTextFormat {
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
   /// snippet. Placeholders with equal identifiers are linked, that is typing in
   /// one will update others too.
-  static const Snippet = 2;
+  static const Snippet = const InsertTextFormat._(2);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is InsertTextFormat && o._value == _value;
 }
 
 class Location {
@@ -1888,12 +2002,26 @@ class MarkupContent {
 ///
 /// Please note that `MarkupKinds` must not start with a `$`. This kinds are
 /// reserved for internal usage.
-abstract class MarkupKind {
-  /// Markdown is supported as a content format
-  static const Markdown = 'markdown';
+class MarkupKind {
+  const MarkupKind._(this._value);
+
+  final Object _value;
 
   /// Plain text is supported as a content format
-  static const PlainText = 'plaintext';
+  static const PlainText = const MarkupKind._('plaintext');
+
+  /// Markdown is supported as a content format
+  static const Markdown = const MarkupKind._('markdown');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is MarkupKind && o._value == _value;
 }
 
 class Message {
@@ -1922,18 +2050,32 @@ class MessageActionItem {
   }
 }
 
-abstract class MessageType {
+class MessageType {
+  const MessageType._(this._value);
+
+  final Object _value;
+
   /// An error message.
-  static const Error = 1;
-
-  /// An information message.
-  static const Info = 3;
-
-  /// A log message.
-  static const Log = 4;
+  static const Error = const MessageType._(1);
 
   /// A warning message.
-  static const Warning = 2;
+  static const Warning = const MessageType._(2);
+
+  /// An information message.
+  static const Info = const MessageType._(3);
+
+  /// A log message.
+  static const Log = const MessageType._(4);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is MessageType && o._value == _value;
 }
 
 class NotificationMessage implements Message {
@@ -2235,15 +2377,29 @@ class RequestMessage implements Message {
   }
 }
 
-abstract class ResourceOperationKind {
-  /// Supports creating new files and folders.
-  static const Create = 'create';
+class ResourceOperationKind {
+  const ResourceOperationKind._(this._value);
 
-  /// Supports deleting existing files and folders.
-  static const Delete = 'delete';
+  final Object _value;
+
+  /// Supports creating new files and folders.
+  static const Create = const ResourceOperationKind._('create');
 
   /// Supports renaming existing files and folders.
-  static const Rename = 'rename';
+  static const Rename = const ResourceOperationKind._('rename');
+
+  /// Supports deleting existing files and folders.
+  static const Delete = const ResourceOperationKind._('delete');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
 }
 
 class ResponseMessage implements Message {
@@ -2652,33 +2808,47 @@ class SymbolInformation {
 }
 
 /// A symbol kind.
-abstract class SymbolKind {
-  static const Array = 18;
-  static const Boolean = 17;
-  static const Class = 5;
-  static const Constant = 14;
-  static const Constructor = 9;
-  static const Enum = 10;
-  static const EnumMember = 22;
-  static const Event = 24;
-  static const Field = 8;
-  static const File = 1;
-  static const Function = 12;
-  static const Interface = 11;
-  static const Key = 20;
-  static const Method = 6;
-  static const Module = 2;
-  static const Namespace = 3;
-  static const Null = 21;
-  static const Number = 16;
-  static const Object = 19;
-  static const Operator = 25;
-  static const Package = 4;
-  static const Property = 7;
-  static const String = 15;
-  static const Struct = 23;
-  static const TypeParameter = 26;
-  static const Variable = 13;
+class SymbolKind {
+  const SymbolKind._(this._value);
+
+  final Object _value;
+
+  static const File = const SymbolKind._(1);
+  static const Module = const SymbolKind._(2);
+  static const Namespace = const SymbolKind._(3);
+  static const Package = const SymbolKind._(4);
+  static const Class = const SymbolKind._(5);
+  static const Method = const SymbolKind._(6);
+  static const Property = const SymbolKind._(7);
+  static const Field = const SymbolKind._(8);
+  static const Constructor = const SymbolKind._(9);
+  static const Enum = const SymbolKind._(10);
+  static const Interface = const SymbolKind._(11);
+  static const Function = const SymbolKind._(12);
+  static const Variable = const SymbolKind._(13);
+  static const Constant = const SymbolKind._(14);
+  static const Str = const SymbolKind._(15);
+  static const Number = const SymbolKind._(16);
+  static const Boolean = const SymbolKind._(17);
+  static const Array = const SymbolKind._(18);
+  static const Obj = const SymbolKind._(19);
+  static const Key = const SymbolKind._(20);
+  static const Null = const SymbolKind._(21);
+  static const EnumMember = const SymbolKind._(22);
+  static const Struct = const SymbolKind._(23);
+  static const Event = const SymbolKind._(24);
+  static const Operator = const SymbolKind._(25);
+  static const TypeParameter = const SymbolKind._(26);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is SymbolKind && o._value == _value;
 }
 
 /// Describe options to be used when registering for text document change
@@ -2862,16 +3032,30 @@ class TextDocumentRegistrationOptions {
 }
 
 /// Represents reasons why a text document is saved.
-abstract class TextDocumentSaveReason {
-  /// Automatic after a delay.
-  static const AfterDelay = 2;
+class TextDocumentSaveReason {
+  const TextDocumentSaveReason._(this._value);
 
-  /// When the editor lost focus.
-  static const FocusOut = 3;
+  final Object _value;
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
   /// or by an API call.
-  static const Manual = 1;
+  static const Manual = const TextDocumentSaveReason._(1);
+
+  /// Automatic after a delay.
+  static const AfterDelay = const TextDocumentSaveReason._(2);
+
+  /// When the editor lost focus.
+  static const FocusOut = const TextDocumentSaveReason._(3);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is TextDocumentSaveReason && o._value == _value;
 }
 
 class TextDocumentSaveRegistrationOptions
@@ -2897,16 +3081,30 @@ class TextDocumentSaveRegistrationOptions
 
 /// Defines how the host (editor) should sync document changes to the language
 /// server.
-abstract class TextDocumentSyncKind {
+class TextDocumentSyncKind {
+  const TextDocumentSyncKind._(this._value);
+
+  final Object _value;
+
+  /// Documents should not be synced at all.
+  static const None = const TextDocumentSyncKind._(0);
+
   /// Documents are synced by always sending the full content of the document.
-  static const Full = 1;
+  static const Full = const TextDocumentSyncKind._(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
-  static const Incremental = 2;
+  static const Incremental = const TextDocumentSyncKind._(2);
 
-  /// Documents should not be synced at all.
-  static const None = 0;
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
 class TextDocumentSyncOptions {
@@ -2917,7 +3115,7 @@ class TextDocumentSyncOptions {
   /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental. If omitted it defaults to
   /// TextDocumentSyncKind.None.
-  final num change;
+  final TextDocumentSyncKind change;
 
   /// Open and close notifications are sent to the server.
   final bool openClose;
@@ -3027,15 +3225,29 @@ class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
   }
 }
 
-abstract class WatchKind {
-  /// Interested in change events
-  static const Change = 2;
+class WatchKind {
+  const WatchKind._(this._value);
+
+  final Object _value;
 
   /// Interested in create events.
-  static const Create = 1;
+  static const Create = const WatchKind._(1);
+
+  /// Interested in change events
+  static const Change = const WatchKind._(2);
 
   /// Interested in delete events
-  static const Delete = 4;
+  static const Delete = const WatchKind._(4);
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is WatchKind && o._value == _value;
 }
 
 /// The parameters send in a will save text document notification.

@@ -1288,29 +1288,6 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 }
 
-/// Shadow object for [PropertyGet].
-class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  final bool forSyntheticToken;
-
-  PropertyGetJudgment(Expression receiver, Name name,
-      {Member interfaceTarget, this.forSyntheticToken = false})
-      : super(receiver, name, interfaceTarget);
-
-  PropertyGetJudgment.byReference(
-      Expression receiver, Name name, Reference interfaceTargetReference)
-      : forSyntheticToken = false,
-        super.byReference(receiver, name, interfaceTargetReference);
-
-  Expression get receiverJudgment => receiver;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitPropertyGetJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a redirecting initializer in kernel
 /// form.
 class RedirectingInitializerJudgment extends RedirectingInitializer
@@ -1324,20 +1301,6 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitRedirectingInitializerJudgment(this);
-  }
-}
-
-/// Shadow object for [Rethrow].
-class RethrowJudgment extends Rethrow implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-
-  DartType inferredType;
-
-  RethrowJudgment(this.desugaredError);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitRethrowJudgment(this, typeContext);
   }
 }
 
@@ -1408,33 +1371,6 @@ class StaticInvocationJudgment extends StaticInvocation
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitStaticInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a string concatenation in kernel form.
-class StringConcatenationJudgment extends StringConcatenation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StringConcatenationJudgment(List<Expression> expressions)
-      : super(expressions);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStringConcatenationJudgment(this, typeContext);
-  }
-}
-
-/// Type inference derivation for [StringLiteral].
-class StringLiteralJudgment extends StringLiteral
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StringLiteralJudgment(String value) : super(value);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStringLiteralJudgment(this, typeContext);
   }
 }
 

@@ -182,7 +182,7 @@ class GnWorkspace extends Workspace {
         if (packagesFiles.isEmpty) {
           return null;
         }
-        return new GnWorkspace._(provider, path, packagesFiles);
+        return new GnWorkspace._(provider, root, packagesFiles);
       }
 
       // Go up the folder.

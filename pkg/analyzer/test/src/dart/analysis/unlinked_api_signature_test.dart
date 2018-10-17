@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,16 +28,15 @@ main() {
 class UnitApiSignatureTest extends Object with ResourceProviderMixin {
   FileSystemState fileSystemState;
 
-  Future<Null> assertNotSameSignature(String oldCode, String newCode) async {
+  void assertNotSameSignature(String oldCode, String newCode) {
     assertSignature(oldCode, newCode, same: false);
   }
 
-  Future<Null> assertSameSignature(String oldCode, String newCode) async {
+  void assertSameSignature(String oldCode, String newCode) {
     assertSignature(oldCode, newCode, same: true);
   }
 
-  Future<Null> assertSignature(String oldCode, String newCode,
-      {bool same}) async {
+  void assertSignature(String oldCode, String newCode, {bool same}) {
     var path = convertPath('/test.dart');
 
     newFile(path, content: oldCode);
@@ -46,7 +44,7 @@ class UnitApiSignatureTest extends Object with ResourceProviderMixin {
     var lastSignature = file.apiSignature;
 
     newFile(path, content: newCode);
-    await file.refresh();
+    file.refresh();
 
     var newSignature = file.apiSignature;
     if (same) {
@@ -78,7 +76,7 @@ class UnitApiSignatureTest extends Object with ResourceProviderMixin {
   }
 
   test_class_annotation() async {
-    await assertNotSameSignature(r'''
+    assertNotSameSignature(r'''
 const a = 0;
 
 class C {}
@@ -90,8 +88,8 @@ class C {}
 ''');
   }
 
-  test_class_constructor_block_to_empty() async {
-    await assertSameSignature(r'''
+  test_class_constructor_block_to_empty() {
+    assertSameSignature(r'''
 class C {
   C() {
     var v = 1;
@@ -104,8 +102,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_body() async {
-    await assertSameSignature(r'''
+  test_class_constructor_body() {
+    assertSameSignature(r'''
 class C {
   C() {
     var v = 1;
@@ -120,8 +118,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_empty_to_block() async {
-    await assertSameSignature(r'''
+  test_class_constructor_empty_to_block() {
+    assertSameSignature(r'''
 class C {
   C();
 }
@@ -134,8 +132,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_initializer_const() async {
-    await assertNotSameSignature(r'''
+  test_class_constructor_initializer_const() {
+    assertNotSameSignature(r'''
 class C {
   final int f;
   const C() : f = 1;
@@ -148,8 +146,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_initializer_empty() async {
-    await assertSameSignature(r'''
+  test_class_constructor_initializer_empty() {
+    assertSameSignature(r'''
 class C {
   C.foo() : ;
 }
@@ -160,8 +158,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_initializer_notConst() async {
-    await assertSameSignature(r'''
+  test_class_constructor_initializer_notConst() {
+    assertSameSignature(r'''
 class C {
   final int f;
   C.foo() : f = 1;
@@ -176,8 +174,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_parameters_add() async {
-    await assertNotSameSignature(r'''
+  test_class_constructor_parameters_add() {
+    assertNotSameSignature(r'''
 class C {
   C(int a);
 }
@@ -188,8 +186,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_parameters_remove() async {
-    await assertNotSameSignature(r'''
+  test_class_constructor_parameters_remove() {
+    assertNotSameSignature(r'''
 class C {
   C(int a, int b);
 }
@@ -200,8 +198,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_parameters_rename() async {
-    await assertNotSameSignature(r'''
+  test_class_constructor_parameters_rename() {
+    assertNotSameSignature(r'''
 class C {
   C(int a);
 }
@@ -212,8 +210,8 @@ class C {
 ''');
   }
 
-  test_class_constructor_parameters_type() async {
-    await assertNotSameSignature(r'''
+  test_class_constructor_parameters_type() {
+    assertNotSameSignature(r'''
 class C {
   C(int p);
 }
@@ -224,8 +222,8 @@ class C {
 ''');
   }
 
-  test_class_extends() async {
-    await assertNotSameSignature(r'''
+  test_class_extends() {
+    assertNotSameSignature(r'''
 class A {}
 class B {}
 ''', r'''
@@ -234,8 +232,8 @@ class B extends A {}
 ''');
   }
 
-  test_class_field_withoutType() async {
-    await assertNotSameSignature(r'''
+  test_class_field_withoutType() {
+    assertNotSameSignature(r'''
 class C {
   var a = 1;
 }
@@ -246,8 +244,8 @@ class C {
 ''');
   }
 
-  test_class_field_withoutType2() async {
-    await assertNotSameSignature(r'''
+  test_class_field_withoutType2() {
+    assertNotSameSignature(r'''
 class C {
   var a = 1, b = 2, c, d = 4;
 }
@@ -258,8 +256,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType() async {
-    await assertSameSignature(r'''
+  test_class_field_withType() {
+    assertSameSignature(r'''
 class C {
   int a = 1, b, c = 3;
 }
@@ -270,8 +268,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_const() async {
-    await assertNotSameSignature(r'''
+  test_class_field_withType_const() {
+    assertNotSameSignature(r'''
 class C {
   static const int a = 1;
 }
@@ -282,8 +280,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_final_hasConstConstructor() async {
-    await assertNotSameSignature(r'''
+  test_class_field_withType_final_hasConstConstructor() {
+    assertNotSameSignature(r'''
 class C {
   final int a = 1;
   const C();
@@ -296,8 +294,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_final_noConstConstructor() async {
-    await assertSameSignature(r'''
+  test_class_field_withType_final_noConstConstructor() {
+    assertSameSignature(r'''
 class C {
   final int a = 1;
 }
@@ -308,8 +306,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_hasConstConstructor() async {
-    await assertSameSignature(r'''
+  test_class_field_withType_hasConstConstructor() {
+    assertSameSignature(r'''
 class C {
   int a = 1;
   const C();
@@ -322,8 +320,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_static_final_hasConstConstructor() async {
-    await assertSameSignature(r'''
+  test_class_field_withType_static_final_hasConstConstructor() {
+    assertSameSignature(r'''
 class C {
   static final int a = 1;
   const C();
@@ -336,8 +334,8 @@ class C {
 ''');
   }
 
-  test_class_field_withType_static_hasConstConstructor() async {
-    await assertSameSignature(r'''
+  test_class_field_withType_static_hasConstConstructor() {
+    assertSameSignature(r'''
 class C {
   static int a = 1;
   const C();
@@ -350,8 +348,8 @@ class C {
 ''');
   }
 
-  test_class_implements() async {
-    await assertNotSameSignature(r'''
+  test_class_implements() {
+    assertNotSameSignature(r'''
 class A {}
 class B {}
 ''', r'''
@@ -360,8 +358,8 @@ class B implements A {}
 ''');
   }
 
-  test_class_method_annotation() async {
-    await assertNotSameSignature(r'''
+  test_class_method_annotation() {
+    assertNotSameSignature(r'''
 const a = 0;
 
 class C {
@@ -377,8 +375,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_async_to_sync() async {
-    await assertSameSignature(r'''
+  test_class_method_body_async_to_sync() {
+    assertSameSignature(r'''
 class C {
   Future foo() async {}
 }
@@ -389,8 +387,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_block() async {
-    await assertSameSignature(r'''
+  test_class_method_body_block() {
+    assertSameSignature(r'''
 class C {
   int foo() {
     return 1;
@@ -405,8 +403,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_block_to_expression() async {
-    await assertSameSignature(r'''
+  test_class_method_body_block_to_expression() {
+    assertSameSignature(r'''
 class C {
   int foo() {
     return 1;
@@ -419,8 +417,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_empty_to_block() async {
-    await assertSameSignature(r'''
+  test_class_method_body_empty_to_block() {
+    assertSameSignature(r'''
 class C {
   int foo();
 }
@@ -433,8 +431,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_expression() async {
-    await assertSameSignature(r'''
+  test_class_method_body_expression() {
+    assertSameSignature(r'''
 class C {
   int foo() => 1;
 }
@@ -445,8 +443,8 @@ class C {
 ''');
   }
 
-  test_class_method_body_sync_to_async() async {
-    await assertSameSignature(r'''
+  test_class_method_body_sync_to_async() {
+    assertSameSignature(r'''
 class C {
   Future foo() {}
 }
@@ -457,8 +455,8 @@ class C {
 ''');
   }
 
-  test_class_method_getter_body_block_to_expression() async {
-    await assertSameSignature(r'''
+  test_class_method_getter_body_block_to_expression() {
+    assertSameSignature(r'''
 class C {
   int get foo {
     return 1;
@@ -471,8 +469,8 @@ class C {
 ''');
   }
 
-  test_class_method_getter_body_empty_to_expression() async {
-    await assertSameSignature(r'''
+  test_class_method_getter_body_empty_to_expression() {
+    assertSameSignature(r'''
 class C {
   int get foo;
 }
@@ -483,8 +481,8 @@ class C {
 ''');
   }
 
-  test_class_method_parameters_add() async {
-    await assertNotSameSignature(r'''
+  test_class_method_parameters_add() {
+    assertNotSameSignature(r'''
 class C {
   foo(int a) {}
 }
@@ -495,8 +493,8 @@ class C {
 ''');
   }
 
-  test_class_method_parameters_remove() async {
-    await assertNotSameSignature(r'''
+  test_class_method_parameters_remove() {
+    assertNotSameSignature(r'''
 class C {
   foo(int a, int b) {}
 }
@@ -507,8 +505,8 @@ class C {
 ''');
   }
 
-  test_class_method_parameters_rename() async {
-    await assertNotSameSignature(r'''
+  test_class_method_parameters_rename() {
+    assertNotSameSignature(r'''
 class C {
   void foo(int a) {}
 }
@@ -519,8 +517,8 @@ class C {
 ''');
   }
 
-  test_class_method_parameters_type() async {
-    await assertNotSameSignature(r'''
+  test_class_method_parameters_type() {
+    assertNotSameSignature(r'''
 class C {
   void foo(int p) {}
 }
@@ -531,8 +529,8 @@ class C {
 ''');
   }
 
-  test_class_method_returnType() async {
-    await assertNotSameSignature(r'''
+  test_class_method_returnType() {
+    assertNotSameSignature(r'''
 class C {
   int foo() => 0;
 }
@@ -544,7 +542,7 @@ class C {
   }
 
   test_class_method_typeParameters_add() async {
-    await assertNotSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
   void foo() {}
 }
@@ -555,8 +553,8 @@ class C {
 ''');
   }
 
-  test_class_method_typeParameters_remove() async {
-    await assertNotSameSignature(r'''
+  test_class_method_typeParameters_remove() {
+    assertNotSameSignature(r'''
 class C {
   void foo<T>() {}
 }
@@ -567,8 +565,8 @@ class C {
 ''');
   }
 
-  test_class_method_typeParameters_rename() async {
-    await assertNotSameSignature(r'''
+  test_class_method_typeParameters_rename() {
+    assertNotSameSignature(r'''
 class C {
   void foo<T>() {}
 }
@@ -579,16 +577,16 @@ class C {
 ''');
   }
 
-  test_class_modifier() async {
-    await assertNotSameSignature(r'''
+  test_class_modifier() {
+    assertNotSameSignature(r'''
 class C {}
 ''', r'''
 abstract class C {}
 ''');
   }
 
-  test_class_with() async {
-    await assertNotSameSignature(r'''
+  test_class_with() {
+    assertNotSameSignature(r'''
 class A {}
 class B {}
 class C extends A {}
@@ -599,8 +597,8 @@ class C extends A with B {}
 ''');
   }
 
-  test_commentAdd() async {
-    await assertSameSignature(r'''
+  test_commentAdd() {
+    assertSameSignature(r'''
 var a = 1;
 var b = 2;
 var c = 3;
@@ -618,8 +616,8 @@ var c = 3;
 ''');
   }
 
-  test_commentRemove() async {
-    await assertSameSignature(r'''
+  test_commentRemove() {
+    assertSameSignature(r'''
 var a = 1; // comment
 
 /// comment 1
@@ -637,8 +635,8 @@ var c = 3;
 ''');
   }
 
-  test_function_annotation() async {
-    await assertNotSameSignature(r'''
+  test_function_annotation() {
+    assertNotSameSignature(r'''
 const a = 0;
 
 void foo() {}
@@ -650,16 +648,16 @@ void foo() {}
 ''');
   }
 
-  test_function_body_async_to_sync() async {
-    await assertSameSignature(r'''
+  test_function_body_async_to_sync() {
+    assertSameSignature(r'''
 Future foo() async {}
 ''', r'''
 Future foo() {}
 ''');
   }
 
-  test_function_body_block() async {
-    await assertSameSignature(r'''
+  test_function_body_block() {
+    assertSameSignature(r'''
 int foo() {
   return 1;
 }
@@ -670,8 +668,8 @@ int foo() {
 ''');
   }
 
-  test_function_body_block_to_expression() async {
-    await assertSameSignature(r'''
+  test_function_body_block_to_expression() {
+    assertSameSignature(r'''
 int foo() {
   return 1;
 }
@@ -680,24 +678,24 @@ int foo() => 2;
 ''');
   }
 
-  test_function_body_expression() async {
-    await assertSameSignature(r'''
+  test_function_body_expression() {
+    assertSameSignature(r'''
 int foo() => 1;
 ''', r'''
 int foo() => 2;
 ''');
   }
 
-  test_function_body_sync_to_async() async {
-    await assertSameSignature(r'''
+  test_function_body_sync_to_async() {
+    assertSameSignature(r'''
 Future foo() {}
 ''', r'''
 Future foo() async {}
 ''');
   }
 
-  test_function_getter_block_to_expression() async {
-    await assertSameSignature(r'''
+  test_function_getter_block_to_expression() {
+    assertSameSignature(r'''
 int get foo {
   return 1;
 }
@@ -706,56 +704,56 @@ int get foo => 2;
 ''');
   }
 
-  test_function_parameters_rename() async {
-    await assertNotSameSignature(r'''
+  test_function_parameters_rename() {
+    assertNotSameSignature(r'''
 void foo(int a) {}
 ''', r'''
 void foo(int b) {}
 ''');
   }
 
-  test_function_parameters_type() async {
-    await assertNotSameSignature(r'''
+  test_function_parameters_type() {
+    assertNotSameSignature(r'''
 void foo(int p) {}
 ''', r'''
 void foo(double p) {}
 ''');
   }
 
-  test_function_returnType() async {
-    await assertNotSameSignature(r'''
+  test_function_returnType() {
+    assertNotSameSignature(r'''
 int foo() => 0;
 ''', r'''
 num foo() => 0;
 ''');
   }
 
-  test_function_typeParameters_add() async {
-    await assertNotSameSignature(r'''
+  test_function_typeParameters_add() {
+    assertNotSameSignature(r'''
 void foo() {}
 ''', r'''
 void foo<T>() {}
 ''');
   }
 
-  test_function_typeParameters_remove() async {
-    await assertNotSameSignature(r'''
+  test_function_typeParameters_remove() {
+    assertNotSameSignature(r'''
 void foo<T>() {}
 ''', r'''
 void foo() {}
 ''');
   }
 
-  test_function_typeParameters_rename() async {
-    await assertNotSameSignature(r'''
+  test_function_typeParameters_rename() {
+    assertNotSameSignature(r'''
 void foo<T>() {}
 ''', r'''
 void foo<U>() {}
 ''');
   }
 
-  test_mixin_field_withoutType() async {
-    await assertNotSameSignature(r'''
+  test_mixin_field_withoutType() {
+    assertNotSameSignature(r'''
 mixin M {
   var a = 1;
 }
@@ -766,8 +764,8 @@ mixin M {
 ''');
   }
 
-  test_mixin_field_withType() async {
-    await assertSameSignature(r'''
+  test_mixin_field_withType() {
+    assertSameSignature(r'''
 mixin M {
   int a = 1, b, c = 3;
 }
@@ -778,8 +776,8 @@ mixin M {
 ''');
   }
 
-  test_mixin_implements() async {
-    await assertNotSameSignature(r'''
+  test_mixin_implements() {
+    assertNotSameSignature(r'''
 class A {}
 mixin M {}
 ''', r'''
@@ -788,8 +786,8 @@ mixin M implements A {}
 ''');
   }
 
-  test_mixin_method_body_block() async {
-    await assertSameSignature(r'''
+  test_mixin_method_body_block() {
+    assertSameSignature(r'''
 mixin M {
   int foo() {
     return 1;
@@ -804,8 +802,8 @@ mixin M {
 ''');
   }
 
-  test_mixin_method_body_expression() async {
-    await assertSameSignature(r'''
+  test_mixin_method_body_expression() {
+    assertSameSignature(r'''
 mixin M {
   int foo() => 1;
 }
@@ -816,8 +814,8 @@ mixin M {
 ''');
   }
 
-  test_mixin_on() async {
-    await assertNotSameSignature(r'''
+  test_mixin_on() {
+    assertNotSameSignature(r'''
 class A {}
 mixin M {}
 ''', r'''
@@ -826,48 +824,48 @@ mixin M on A {}
 ''');
   }
 
-  test_topLevelVariable_withoutType() async {
-    await assertNotSameSignature(r'''
+  test_topLevelVariable_withoutType() {
+    assertNotSameSignature(r'''
 var a = 1;
 ''', r'''
 var a = 2;
 ''');
   }
 
-  test_topLevelVariable_withoutType2() async {
-    await assertNotSameSignature(r'''
+  test_topLevelVariable_withoutType2() {
+    assertNotSameSignature(r'''
 var a = 1, b = 2, c, d = 4;;
 ''', r'''
 var a = 1, b, c = 3, d = 4;;
 ''');
   }
 
-  test_topLevelVariable_withType() async {
-    await assertSameSignature(r'''
+  test_topLevelVariable_withType() {
+    assertSameSignature(r'''
 int a = 1, b, c = 3;
 ''', r'''
 int a = 0, b = 2, c;
 ''');
   }
 
-  test_topLevelVariable_withType_const() async {
-    await assertNotSameSignature(r'''
+  test_topLevelVariable_withType_const() {
+    assertNotSameSignature(r'''
 const int a = 1;
 ''', r'''
 const int a = 2;
 ''');
   }
 
-  test_topLevelVariable_withType_final() async {
-    await assertSameSignature(r'''
+  test_topLevelVariable_withType_final() {
+    assertSameSignature(r'''
 final int a = 1;
 ''', r'''
 final int a = 2;
 ''');
   }
 
-  test_typedef_generic_parameters_type() async {
-    await assertNotSameSignature(r'''
+  test_typedef_generic_parameters_type() {
+    assertNotSameSignature(r'''
 typedef F = void Function(int);
 ''', r'''
 typedef F = void Function(double);

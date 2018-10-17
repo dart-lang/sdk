@@ -1627,6 +1627,14 @@ InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
   severity: INTERNAL_PROBLEM
 
+InternalProblemNoInferredTypeStored:
+  template: "There's no inferred type for '#name'."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemStoringMultipleInferredTypes:
+  template: "There's already an inferred type (#type) for '#name'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED

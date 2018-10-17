@@ -37,15 +37,22 @@ abstract class LibraryEntity extends Entity {
 /// Stripped down super interface for import entities.
 ///
 /// The [name] property corresponds to the prefix name, if any.
-abstract class ImportEntity extends Entity {
-  /// The library where this import occurs (where the import is declared).
-  LibraryEntity get enclosingLibrary;
+class ImportEntity {
+  final String name;
+
+  /// The canonical URI of the library where this import occurs
+  /// (where the import is declared).
+  final Uri enclosingLibraryUri;
 
   /// Whether the import is a deferred import.
-  bool get isDeferred;
+  final bool isDeferred;
 
   /// The target import URI.
-  Uri get uri;
+  final Uri uri;
+
+  ImportEntity(this.isDeferred, this.name, this.uri, this.enclosingLibraryUri);
+
+  String toString() => 'import($name:${isDeferred ? ' deferred' : ''})';
 }
 
 /// Stripped down super interface for class like entities.

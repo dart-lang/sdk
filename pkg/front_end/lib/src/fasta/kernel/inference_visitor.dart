@@ -922,7 +922,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   void visitNullAwarePropertyGetJudgment(
       NullAwarePropertyGetJudgment node, DartType typeContext) {
     inferrer.inferPropertyGet(
-        node, node.receiverJudgment, node.fileOffset, false, typeContext,
+        node, node.receiverJudgment, node.fileOffset, typeContext,
         receiverVariable: node.variable, desugaredGet: node._desugaredGet);
     if (inferrer.strongMode) {
       node.body.staticType = node.inferredType;
@@ -966,12 +966,10 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitPropertyGetJudgment(
-      PropertyGetJudgment node, DartType typeContext) {
-    inferrer.inferPropertyGet(node, node.receiverJudgment, node.fileOffset,
-        node.forSyntheticToken, typeContext,
+  @override
+  void visitPropertyGet(PropertyGet node, DartType typeContext) {
+    inferrer.inferPropertyGet(node, node.receiver, node.fileOffset, typeContext,
         desugaredGet: node);
-    return null;
   }
 
   void visitRedirectingInitializerJudgment(
@@ -995,14 +993,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     ArgumentsJudgment.removeNonInferrableArgumentTypes(node.arguments);
   }
 
-  void visitRethrowJudgment(RethrowJudgment node, DartType typeContext) {
-    node.inferredType = const BottomType();
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
-    return null;
-  }
+  @override
+  void visitRethrow(Rethrow node, DartType typeContext) {}
 
   void visitReturnJudgment(ReturnJudgment node) {
     var judgment = node.judgment;
@@ -1085,22 +1077,18 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitStringConcatenationJudgment(
-      StringConcatenationJudgment node, DartType typeContext) {
+  @override
+  void visitStringConcatenation(
+      StringConcatenation node, DartType typeContext) {
     if (!inferrer.isTopLevel) {
       for (var expression in node.expressions) {
         inferrer.inferExpression(expression, const UnknownType(), false);
       }
     }
-    node.inferredType = inferrer.coreTypes.stringClass.rawType;
-    return null;
   }
 
-  void visitStringLiteralJudgment(
-      StringLiteralJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.stringClass.rawType;
-    return null;
-  }
+  @override
+  void visitStringLiteral(StringLiteral node, DartType typeContext) {}
 
   void visitSuperInitializerJudgment(SuperInitializerJudgment node) {
     var substitution = Substitution.fromSupertype(inferrer.classHierarchy
@@ -1141,7 +1129,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
-    inferrer.inferPropertyGet(node, null, node.fileOffset, false, typeContext,
+    inferrer.inferPropertyGet(node, null, node.fileOffset, typeContext,
         interfaceMember: node.interfaceTarget, propertyName: node.name);
     if (node.desugaredError != null) {
       node.parent.replaceChild(node, node.desugaredError);

@@ -28,8 +28,7 @@ import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
 import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../js_model/locals.dart'
-    show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
+import '../js_model/locals.dart' show forEachOrderedParameter, JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
@@ -76,7 +75,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final JClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
-  final ClosureDataLookup closureDataLookup;
+  final ClosureData closureDataLookup;
   JAllocatorAnalysis _allocatorAnalysis;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
@@ -101,7 +100,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final SourceInformationStrategy _sourceInformationStrategy;
   final JsToElementMap _elementMap;
   final GlobalTypeInferenceResults globalInferenceResults;
-  final GlobalLocalsMap _globalLocalsMap;
   LoopHandler loopHandler;
   TypeBuilder typeBuilder;
 
@@ -130,20 +128,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.compiler,
       this._elementMap,
       this.globalInferenceResults,
-      this._globalLocalsMap,
       this.closedWorld,
       this._worldBuilder,
       this.registry,
-      this.closureDataLookup,
       this.nativeEmitter,
       this._sourceInformationStrategy,
       this.inlineCache)
       : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
-        _allocatorAnalysis = closedWorld.allocatorAnalysis {
+        _allocatorAnalysis = closedWorld.allocatorAnalysis,
+        this.closureDataLookup = closedWorld.closureDataLookup {
     _enterFrame(targetElement, null);
     this.loopHandler = new KernelLoopHandler(this);
-    typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
+    typeBuilder = new KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
     graph.sourceInformation =
         _sourceInformationBuilder.buildVariableDeclaration();
@@ -177,7 +174,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _currentFrame,
         member,
         asyncMarker,
-        _globalLocalsMap.getLocalsMap(member),
+        closedWorld.globalLocalsMap.getLocalsMap(member),
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
@@ -266,7 +263,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       assert(graph.isValid());
 
       if (backend.tracer.isEnabled) {
-        MemberEntity member = definition.member;
+        MemberEntity member = initialTargetElement;
         String name = member.name;
         if (member.isInstanceMember ||
             member.isConstructor ||
@@ -1096,7 +1093,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     JGeneratorBody body = _elementMap.getGeneratorBody(function);
-    backend.outputUnitData.registerColocatedMembers(function, body);
+    closedWorld.outputUnitData.registerColocatedMembers(function, body);
     push(new HInvokeGeneratorBody(
         body,
         inputs,
@@ -2889,12 +2886,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
-          var unit = compiler.backend.outputUnitData.outputUnitForMember(field);
+          var unit = closedWorld.outputUnitData.outputUnitForMember(field);
           // TODO(sigmund): this is not equivalent to what the old FE does: if
           // there is no prefix the old FE wouldn't treat this in any special
           // way. Also, if the prefix points to a constant in the main output
           // unit, the old FE would still generate a deferred wrapper here.
-          if (!compiler.backend.outputUnitData
+          if (!closedWorld.outputUnitData
               .hasOnlyNonDeferredImportPaths(targetElement, field)) {
             stack.add(graph.addDeferredConstant(
                 value, unit, sourceInformation, compiler, closedWorld));
@@ -5016,7 +5013,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
-      bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
+      bool hasOnlyNonDeferredImportPaths = closedWorld.outputUnitData
           .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
 
       if (!hasOnlyNonDeferredImportPaths) {
@@ -5326,7 +5323,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     bool hasBox = false;
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
+    forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
         (Local parameter) {
       if (forGenerativeConstructorBody && scopeData.isBoxed(parameter)) {
         // The parameter will be a field in the box passed as the last
@@ -5486,8 +5483,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       checkTypeVariableBounds(function);
     }
 
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
+    KernelToLocalsMap localsMap =
+        closedWorld.globalLocalsMap.getLocalsMap(function);
+    forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
         (Local parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
       DartType type = localsMap.getLocalType(_elementMap, parameter);
@@ -6346,10 +6344,8 @@ class TryCatchFinallyBuilder {
 
 class KernelTypeBuilder extends TypeBuilder {
   JsToElementMap _elementMap;
-  GlobalLocalsMap _globalLocalsMap;
 
-  KernelTypeBuilder(
-      KernelSsaGraphBuilder builder, this._elementMap, this._globalLocalsMap)
+  KernelTypeBuilder(KernelSsaGraphBuilder builder, this._elementMap)
       : super(builder);
 
   KernelSsaGraphBuilder get builder => super.builder;

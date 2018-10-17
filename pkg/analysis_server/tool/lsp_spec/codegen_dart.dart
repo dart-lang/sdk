@@ -11,18 +11,37 @@ Map<String, TypeAlias> _typeAliases = {};
 Map<String, Interface> _interfaces = {};
 
 String generateDartForTypes(List<ApiItem> types) {
-  // Build the map of type aliases for substitution later.
+  // Keep maps of items we may need to look up quickly later.
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
-  // Build a map of interfaces to look up base classes later.
   types
       .whereType<Interface>()
       .forEach((interface) => _interfaces[interface.name] = interface);
   final buffer = new IndentableStringBuffer();
   _getSorted(types).forEach((t) => _writeType(buffer, t));
-  final formattedCode = formatter.format(buffer.toString());
+  final formattedCode = _formatCode(buffer.toString());
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+}
+
+String _formatCode(String code) {
+  try {
+    code = formatter.format(code);
+  } catch (e) {
+    print('Failed to format code, returning unformatted code.');
+  }
+  return code;
+}
+
+/// Maps reserved words and identifiers that cause issues in field names.
+String _makeValidIdentifier(String identifier) {
+  // The SymbolKind class has uses these names which cause issues for code that
+  // uses them as types.
+  const map = {
+    'Object': 'Obj',
+    'String': 'Str',
+  };
+  return map[identifier] ?? identifier;
 }
 
 /// Maps a TypeScript type on to a Dart type, including following TypeAliases.
@@ -152,7 +171,6 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndented('${interface.name}(')
     ..write(allFields.map((field) => 'this.${field.name}').join(', '))
     ..writeln(');');
-  // TODO(dantup): Ensure union types are correct type.
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
@@ -223,6 +241,17 @@ void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
 }
 
 void _writeNamespace(IndentableStringBuffer buffer, Namespace namespace) {
+  // Namespaces are just groups of constants. For some uses we can write these
+  // as enum classes for extra type safety, but not for all - for example
+  // CodeActionKind can be an arbitrary String even though it also defines
+  // constants for common values. We can tell which can have their own values
+  // because they're marked with type aliases, with the exception of ErrorCodes!
+  if (!_typeAliases.containsKey(namespace.name) &&
+      namespace.name != 'ErrorCodes') {
+    _writeEnumClass(buffer, namespace);
+    return;
+  }
+
   _writeDocCommentsAndAnnotations(buffer, namespace);
   buffer
     ..writeln('abstract class ${namespace.name} {')
@@ -248,6 +277,36 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('return __result;')
     ..outdent()
     ..writeIndentedln('}');
+}
+
+void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
+  _writeDocCommentsAndAnnotations(buffer, namespace);
+  buffer
+    ..writeln('class ${namespace.name} {')
+    ..indent()
+    ..writeIndentedln('const ${namespace.name}._(this._value);')
+    ..writeln()
+    ..writeIndentedln('final Object _value;')
+    ..writeln();
+  namespace.members.whereType<Const>().forEach((cons) {
+    _writeDocCommentsAndAnnotations(buffer, cons);
+    buffer
+      ..writeIndentedln(
+          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}._(${cons.value});');
+  });
+  buffer
+    ..writeln()
+    ..writeIndentedln('Object toJson() => _value;')
+    ..writeln()
+    ..writeIndentedln('@override String toString() => _value.toString();')
+    ..writeln()
+    ..writeIndentedln('@override get hashCode => _value.hashCode;')
+    ..writeln()
+    ..writeIndentedln(
+        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
+    ..outdent()
+    ..writeln('}')
+    ..writeln();
 }
 
 void _writeType(IndentableStringBuffer buffer, ApiItem type) {

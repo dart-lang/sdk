@@ -627,6 +627,8 @@ class FrontendCompiler implements CompilerInterface {
       // be processed as uris.
       return Uri.base.resolve(fileOrUri);
     }
+    Uri uri = Uri.parse(fileOrUri);
+    if (uri.scheme == 'package') return uri;
     return Uri.base.resolveUri(new Uri.file(fileOrUri));
   }
 

@@ -2,21 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/fix/context.dart';
+import 'package:cli_util/cli_logging.dart';
 
 class TestContext with ResourceProviderMixin implements Context {
-  final StreamController<List<int>> stdinController =
-      new StreamController<List<int>>();
-
-  @override
-  final stdout = new StringBuffer();
-
-  @override
-  final stderr = new StringBuffer();
-
   @override
   String get workingDir => convertPath('/usr/some/non/existing/directory');
 
@@ -30,14 +20,42 @@ class TestContext with ResourceProviderMixin implements Context {
 
   @override
   bool isDirectory(String filePath) => !filePath.endsWith('.dart');
-
-  void print([String text = '']) {
-    stdout.writeln(text);
-  }
 }
 
 class TestExit {
   final int code;
 
   TestExit(this.code);
+}
+
+class TestLogger implements Logger {
+  final Ansi ansi;
+  final stdoutBuffer = new StringBuffer();
+  final stderrBuffer = new StringBuffer();
+
+  TestLogger() : this.ansi = new Ansi(false);
+
+  @override
+  void flush() {}
+
+  @override
+  bool get isVerbose => false;
+
+  @override
+  Progress progress(String message) {
+    return new SimpleProgress(this, message);
+  }
+
+  @override
+  void stderr(String message) {
+    stderrBuffer.writeln(message);
+  }
+
+  @override
+  void stdout(String message) {
+    stdoutBuffer.writeln(message);
+  }
+
+  @override
+  void trace(String message) {}
 }

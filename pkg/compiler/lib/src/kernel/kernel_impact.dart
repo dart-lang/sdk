@@ -923,9 +923,16 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         return false;
       }
       ClassEntity cls = type.element;
-      MemberEntity member =
-          elementMap.elementEnvironment.lookupClassMember(cls, '==');
-      return member.enclosingClass != commonElements.objectClass;
+      while (cls != null) {
+        MemberEntity member =
+            elementMap.elementEnvironment.lookupClassMember(cls, '==');
+        if (member.isAbstract) {
+          cls = elementMap.elementEnvironment.getSuperClass(cls);
+        } else {
+          return member.enclosingClass != commonElements.objectClass;
+        }
+      }
+      return false;
     }
 
     for (ir.SwitchCase switchCase in node.cases) {

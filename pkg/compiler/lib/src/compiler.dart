@@ -410,14 +410,11 @@ abstract class Compiler {
   JClosedWorld closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
-    KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld(reporter);
-    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
-    JClosedWorld closedWorldRefiner =
-        backendStrategy.createJClosedWorld(closedWorld);
-
-    backend.onDeferredLoadComplete(result);
-
-    return closedWorldRefiner;
+    KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
+    OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
+    JClosedWorld jClosedWorld =
+        backendStrategy.createJClosedWorld(kClosedWorld, result);
+    return jClosedWorld;
   }
 
   /**

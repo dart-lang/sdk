@@ -32,15 +32,15 @@ class CallersDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new CallersIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
             compiler.globalInference.typesInferrerInternal,
-            backendStrategy.closureDataLookup)
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -49,7 +49,7 @@ class CallersDataComputer extends DataComputer {
 class CallersIrComputer extends IrDataExtractor {
   final TypeGraphInferrer inferrer;
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   CallersIrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
       this._elementMap, this.inferrer, this._closureDataLookup)

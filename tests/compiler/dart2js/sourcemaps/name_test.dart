@@ -80,14 +80,13 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JElementEnvironment env =
-        compiler.backendClosedWorldForTesting.elementEnvironment;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JElementEnvironment env = closedWorld.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary;
 
     check(MemberEntity element, String expectedName) {
       String name = computeKernelElementNameForSourceMaps(
-          backendStrategy.elementMap, element);
+          closedWorld.elementMap, element);
       Expect.equals(expectedName, name,
           "Unexpected name '$name' for $element, expected '$expectedName'.");
     }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
@@ -35,6 +36,9 @@ abstract class CommandLineStarter {
 
   /**
    * Use the given command-line [arguments] to start this analyzer.
+   *
+   * If [sendPort] is provided it is used for bazel worker communication
+   * instead of stdin/stdout.
    */
-  Future<Null> start(List<String> arguments);
+  Future<Null> start(List<String> arguments, {SendPort sendPort});
 }

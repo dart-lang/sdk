@@ -11,6 +11,7 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/visitors.dart';
@@ -20,6 +21,7 @@ import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'elements.dart';
 
 /// Environment for fast lookup of component libraries.
 class JProgramEnv {
@@ -142,20 +144,15 @@ class JClassEnvImpl implements JClassEnv {
   final Map<String, ir.Member> _memberMap;
   final Map<String, ir.Member> _setterMap;
   final List<ir.Member> _members; // in declaration order.
-  final bool _isSuperMixinApplication;
+  final bool isSuperMixinApplication;
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
 
   JClassEnvImpl(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this._isSuperMixinApplication);
+      this._setterMap, this._members, this.isSuperMixinApplication);
 
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
-
-  bool get isSuperMixinApplication {
-    assert(_isSuperMixinApplication != null);
-    return _isSuperMixinApplication;
-  }
 
   /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
   /// `true`, the setter or assignable field corresponding to [name] is
@@ -198,7 +195,7 @@ class JClassEnvImpl implements JClassEnv {
 }
 
 class RecordEnv implements JClassEnv {
-  final Map<String, MemberEntity> _memberMap;
+  final Map<String, IndexedMember> _memberMap;
 
   RecordEnv(this._memberMap);
 
@@ -398,17 +395,16 @@ class FunctionDataImpl extends JMemberDataImpl
 }
 
 class SignatureFunctionData implements FunctionData {
-  final FunctionType functionType;
   final MemberDefinition definition;
   final InterfaceType memberThisType;
   final ClassTypeVariableAccess classTypeVariableAccess;
   final List<ir.TypeParameter> typeParameters;
 
-  SignatureFunctionData(this.definition, this.memberThisType, this.functionType,
+  SignatureFunctionData(this.definition, this.memberThisType,
       this.typeParameters, this.classTypeVariableAccess);
 
   FunctionType getFunctionType(covariant JsToElementMapBase elementMap) {
-    return functionType;
+    throw new UnsupportedError("SignatureFunctionData.getFunctionType");
   }
 
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap) {
@@ -468,7 +464,7 @@ abstract class JConstructorData extends FunctionData {
 class JConstructorDataImpl extends FunctionDataImpl
     implements JConstructorData {
   ConstantConstructor _constantConstructor;
-  ConstructorBodyEntity constructorBody;
+  JConstructorBody constructorBody;
 
   JConstructorDataImpl(
       ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
@@ -543,8 +539,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
             new Constantifier(elementMap).visit(node.initializer);
       } else {
         failedAt(
-            definition.member,
-            "Unexpected field ${definition.member} in "
+            definition.location,
+            "Unexpected field ${definition} in "
             "FieldDataImpl.getFieldConstant");
       }
     }
@@ -572,8 +568,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     assert(
         value != null,
         failedAt(
-            definition.member,
-            "Field ${definition.member} doesn't have a "
+            definition.location,
+            "Field ${definition} doesn't have a "
             "constant initial value."));
     return value;
   }
@@ -586,10 +582,9 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
 }
 
 class JTypedefData {
-  final TypedefEntity element;
   final TypedefType rawType;
 
-  JTypedefData(this.element, this.rawType);
+  JTypedefData(this.rawType);
 }
 
 class JTypeVariableData {

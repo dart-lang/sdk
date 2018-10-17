@@ -61,6 +61,81 @@ class KernelClosureAnalysis {
   }
 }
 
+class KernelClosureConversionTask extends ClosureConversionTask {
+  KernelClosureConversionTask(Measurer measurer) : super(measurer);
+}
+
+class ClosureDataImpl implements ClosureData {
+  static const String tag = 'closure-data';
+
+  final JsToElementMap _elementMap;
+
+  /// Map of the scoping information that corresponds to a particular entity.
+  final Map<MemberEntity, ScopeInfo> _scopeMap;
+  final Map<ir.TreeNode, CapturedScope> _capturedScopesMap;
+  // Indicates the type variables (if any) that are captured in a given
+  // Signature function.
+  final Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap;
+
+  // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  final Map<ir.TreeNode, ClosureRepresentationInfo>
+      _localClosureRepresentationMap;
+
+  ClosureDataImpl(this._elementMap, this._scopeMap, this._capturedScopesMap,
+      this._capturedScopeForSignatureMap, this._localClosureRepresentationMap);
+
+  @override
+  ScopeInfo getScopeInfo(MemberEntity entity) {
+    // TODO(johnniwinther): Remove this check when constructor bodies a created
+    // eagerly with the J-model; a constructor body should have it's own
+    // [ClosureRepresentationInfo].
+    if (entity is ConstructorBodyEntity) {
+      ConstructorBodyEntity constructorBody = entity;
+      entity = constructorBody.constructor;
+    }
+
+    ScopeInfo scopeInfo = _scopeMap[entity];
+    assert(
+        scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
+    return scopeInfo;
+  }
+
+  // TODO(efortuna): Eventually capturedScopesMap[node] should always
+  // be non-null, and we should just test that with an assert.
+  @override
+  CapturedScope getCapturedScope(MemberEntity entity) {
+    MemberDefinition definition = _elementMap.getMemberDefinition(entity);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+      case MemberKind.closureCall:
+        return _capturedScopesMap[definition.node] ?? const CapturedScope();
+      case MemberKind.signature:
+        return _capturedScopeForSignatureMap[entity] ?? const CapturedScope();
+      default:
+        throw failedAt(entity, "Unexpected member definition $definition");
+    }
+  }
+
+  @override
+  // TODO(efortuna): Eventually capturedScopesMap[node] should always
+  // be non-null, and we should just test that with an assert.
+  CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
+      _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
+
+  @override
+  ClosureRepresentationInfo getClosureInfo(ir.Node node) {
+    assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
+    var closure = _localClosureRepresentationMap[node];
+    assert(
+        closure != null,
+        "Corresponding closure class not found for $node. "
+        "Closures found for ${_localClosureRepresentationMap.keys}");
+    return closure;
+  }
+}
+
 /// Closure conversion code using our new Entity model. Closure conversion is
 /// necessary because the semantics of closures are slightly different in Dart
 /// than JavaScript. Closure conversion is separated out into two phases:
@@ -73,32 +148,24 @@ class KernelClosureAnalysis {
 /// check out:
 /// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
 /// http://matt.might.net/articles/closure-conversion/.
-// TODO(efortuna): Change inheritance hierarchy so that the
-// ClosureConversionTask doesn't inherit from ClosureTask because it's just a
-// glorified timer.
-class KernelClosureConversionTask extends ClosureConversionTask {
+
+class ClosureDataBuilder {
   final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final CompilerOptions _options;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  Map<MemberEntity, ScopeInfo> _scopeMap = <MemberEntity, ScopeInfo>{};
-  Map<ir.Node, CapturedScope> _capturedScopesMap = <ir.Node, CapturedScope>{};
+  Map<MemberEntity, ScopeInfo> _scopeMap = {};
+  Map<ir.TreeNode, CapturedScope> _capturedScopesMap = {};
   // Indicates the type variables (if any) that are captured in a given
   // Signature function.
-  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap =
-      <MemberEntity, CapturedScope>{};
-
-  Map<MemberEntity, ClosureRepresentationInfo> _memberClosureRepresentationMap =
-      <MemberEntity, ClosureRepresentationInfo>{};
+  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
 
   // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
   Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
-      <ir.TreeNode, ClosureRepresentationInfo>{};
+      {};
 
-  KernelClosureConversionTask(
-      Measurer measurer, this._elementMap, this._globalLocalsMap, this._options)
-      : super(measurer);
+  ClosureDataBuilder(this._elementMap, this._globalLocalsMap, this._options);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -224,11 +291,11 @@ class KernelClosureConversionTask extends ClosureConversionTask {
     });
   }
 
-  Iterable<FunctionEntity> createClosureEntities(
+  ClosureData createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
-      ClosureRtiNeed rtiNeed) {
-    List<FunctionEntity> callMethods = <FunctionEntity>[];
+      ClosureRtiNeed rtiNeed,
+      List<FunctionEntity> callMethods) {
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
@@ -274,27 +341,30 @@ class KernelClosureConversionTask extends ClosureConversionTask {
                 rtiNeed.localFunctionNeedsSignature(functionNode.parent));
         // Add also for the call method.
         _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
-        _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
+        if (closureClassInfo.signatureMethod != null) {
+          _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
 
-        // Set up capturedScope for signature method. This is distinct from
-        // _capturedScopesMap because there is no corresponding ir.Node for the
-        // signature.
-        if (rtiNeed.localFunctionNeedsSignature(functionNode.parent) &&
-            model.capturedScopesMap[functionNode] != null) {
-          KernelCapturedScope capturedScope =
-              model.capturedScopesMap[functionNode];
-          assert(capturedScope is! KernelCapturedLoopScope);
-          KernelCapturedScope signatureCapturedScope =
-              new KernelCapturedScope.forSignature(capturedScope);
-          _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
-          _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
-              new JsCapturedScope.from(
-                  {}, signatureCapturedScope, localsMap, _elementMap);
+          // Set up capturedScope for signature method. This is distinct from
+          // _capturedScopesMap because there is no corresponding ir.Node for
+          // the signature.
+          if (rtiNeed.localFunctionNeedsSignature(functionNode.parent) &&
+              model.capturedScopesMap[functionNode] != null) {
+            KernelCapturedScope capturedScope =
+                model.capturedScopesMap[functionNode];
+            assert(capturedScope is! KernelCapturedLoopScope);
+            KernelCapturedScope signatureCapturedScope =
+                new KernelCapturedScope.forSignature(capturedScope);
+            _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
+            _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
+                new JsCapturedScope.from(
+                    {}, signatureCapturedScope, localsMap, _elementMap);
+          }
         }
         callMethods.add(closureClassInfo.callMethod);
       }
     });
-    return callMethods;
+    return new ClosureDataImpl(_elementMap, _scopeMap, _capturedScopesMap,
+        _capturedScopeForSignatureMap, _localClosureRepresentationMap);
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -320,75 +390,19 @@ class KernelClosureConversionTask extends ClosureConversionTask {
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _memberClosureRepresentationMap[closureClassInfo.callMethod] =
-        closureClassInfo;
-    _memberClosureRepresentationMap[closureClassInfo.signatureMethod] =
-        closureClassInfo;
     _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
-    if (createSignatureMethod) {
+    if (closureClassInfo.signatureMethod != null) {
       _globalLocalsMap.setLocalsMap(
           closureClassInfo.signatureMethod, localsMap);
     }
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
-      _memberClosureRepresentationMap[member] = closureClassInfo;
     } else {
       assert(node.parent is ir.FunctionExpression ||
           node.parent is ir.FunctionDeclaration);
       _localClosureRepresentationMap[node.parent] = closureClassInfo;
     }
     return closureClassInfo;
-  }
-
-  @override
-  ScopeInfo getScopeInfo(MemberEntity entity) {
-    // TODO(johnniwinther): Remove this check when constructor bodies a created
-    // eagerly with the J-model; a constructor body should have it's own
-    // [ClosureRepresentationInfo].
-    if (entity is ConstructorBodyEntity) {
-      ConstructorBodyEntity constructorBody = entity;
-      entity = constructorBody.constructor;
-    }
-
-    ScopeInfo scopeInfo = _scopeMap[entity];
-    assert(
-        scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
-    return scopeInfo;
-  }
-
-  // TODO(efortuna): Eventually capturedScopesMap[node] should always
-  // be non-null, and we should just test that with an assert.
-  @override
-  CapturedScope getCapturedScope(MemberEntity entity) {
-    MemberDefinition definition = _elementMap.getMemberDefinition(entity);
-    switch (definition.kind) {
-      case MemberKind.regular:
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-      case MemberKind.closureCall:
-        return _capturedScopesMap[definition.node] ?? const CapturedScope();
-      case MemberKind.signature:
-        return _capturedScopeForSignatureMap[entity] ?? const CapturedScope();
-      default:
-        throw failedAt(entity, "Unexpected member definition $definition");
-    }
-  }
-
-  @override
-  // TODO(efortuna): Eventually capturedScopesMap[node] should always
-  // be non-null, and we should just test that with an assert.
-  CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
-      _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
-
-  @override
-  ClosureRepresentationInfo getClosureInfo(ir.Node node) {
-    assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
-    var closure = _localClosureRepresentationMap[node];
-    assert(
-        closure != null,
-        "Corresponding closure class not found for $node. "
-        "Closures found for ${_localClosureRepresentationMap.keys}");
-    return closure;
   }
 }
 
@@ -653,10 +667,14 @@ class JsScopeInfo extends ScopeInfo {
   /// this scope.
   final Set<Local> freeVariables;
 
+  JsScopeInfo.internal(this.localsUsedInTryOrSync, this.thisLocal,
+      this.boxedVariables, this.freeVariables);
+
   JsScopeInfo.from(this.boxedVariables, KernelScopeInfo info,
       KernelToLocalsMap localsMap, JsToElementMap elementMap)
-      : this.thisLocal =
-            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
+      : this.thisLocal = info.hasThisLocal
+            ? new ThisLocal(localsMap.currentMember.enclosingClass)
+            : null,
         this.localsUsedInTryOrSync =
             info.localsUsedInTryOrSync.map(localsMap.getLocalVariable).toSet(),
         this.freeVariables = info.freeVariables
@@ -794,7 +812,20 @@ class KernelClosureClassInfo extends JsScopeInfo
   final Local thisLocal;
   final JClass closureClassEntity;
 
-  final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
+  final Map<Local, JField> localToFieldMap;
+
+  KernelClosureClassInfo.internal(
+      Iterable<Local> localsUsedInTryOrSync,
+      this.thisLocal,
+      Map<Local, JRecordField> boxedVariables,
+      Set<Local> freeVariables,
+      this.callMethod,
+      this.signatureMethod,
+      this.closureEntity,
+      this.closureClassEntity,
+      this.localToFieldMap)
+      : super.internal(
+            localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
 
   KernelClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
@@ -805,7 +836,8 @@ class KernelClosureClassInfo extends JsScopeInfo
       this.closureEntity,
       this.thisLocal,
       JsToElementMap elementMap)
-      : super.from(boxedVariables, info, localsMap, elementMap);
+      : localToFieldMap = new Map<Local, JField>(),
+        super.from(boxedVariables, info, localsMap, elementMap);
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
@@ -857,21 +889,45 @@ class JClosureClass extends JClass {
   String toString() => '${jsElementPrefix}closure_class($name)';
 }
 
+class AnonymousClosureLocal implements Local {
+  final JClosureClass closureClass;
+
+  AnonymousClosureLocal(this.closureClass);
+
+  String get name => '';
+
+  int get hashCode => closureClass.hashCode * 13;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! AnonymousClosureLocal) return false;
+    return closureClass == other.closureClass;
+  }
+
+  String toString() =>
+      '${jsElementPrefix}anonymous_closure_local(${closureClass.name})';
+}
+
 class JClosureField extends JField implements PrivatelyNamedJSEntity {
-  final Local _declaredEntity;
-  JClosureField(String name, KernelClosureClassInfo containingClass,
-      bool isConst, bool isAssignable, this._declaredEntity)
-      : super(
+  final String declaredName;
+
+  JClosureField(
+      String name, KernelClosureClassInfo containingClass, String declaredName,
+      {bool isConst, bool isAssignable})
+      : this.internal(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
             new Name(name, containingClass.closureClassEntity.library),
+            declaredName,
             isAssignable: isAssignable,
-            isConst: isConst,
-            isStatic: false);
+            isConst: isConst);
+
+  JClosureField.internal(JLibrary library, JClosureClass enclosingClass,
+      Name memberName, this.declaredName, {bool isConst, bool isAssignable})
+      : super(library, enclosingClass, memberName,
+            isAssignable: isAssignable, isConst: isConst, isStatic: false);
 
   @override
-  Local get declaredEntity => _declaredEntity;
-
   @override
   Entity get rootOfScope => enclosingClass;
 }
@@ -931,9 +987,10 @@ class JRecord extends JClass {
 /// algorithm to correspond to the actual name of the variable.
 class JRecordField extends JField {
   final BoxLocal box;
-  JRecordField(String name, this.box, JClass containingClass, bool isConst)
-      : super(containingClass.library, containingClass,
-            new Name(name, containingClass.library),
+
+  JRecordField(String name, this.box, {bool isConst})
+      : super(box.container.library, box.container,
+            new Name(name, box.container.library),
             isStatic: false, isAssignable: true, isConst: isConst);
 
   @override
@@ -950,18 +1007,16 @@ class ClosureClassData extends RecordClassData {
 }
 
 class ClosureClassDefinition implements ClassDefinition {
-  final ClassEntity cls;
   final SourceSpan location;
 
-  ClosureClassDefinition(this.cls, this.location);
+  ClosureClassDefinition(this.location);
 
   ClassKind get kind => ClassKind.closure;
 
   ir.Node get node =>
-      throw new UnsupportedError('ClosureClassDefinition.node for $cls');
+      throw new UnsupportedError('ClosureClassDefinition.node for $location');
 
-  String toString() =>
-      'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
+  String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
 }
 
 abstract class ClosureMemberData implements JMemberData {
@@ -1046,7 +1101,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
       type = sourceNode.bound;
     } else {
       failedAt(
-          definition.member,
+          definition.location,
           'Unexpected node type ${sourceNode} in '
           'ClosureFieldData.getFieldType');
     }
@@ -1056,8 +1111,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   @override
   ConstantExpression getFieldConstantExpression(IrToElementMap elementMap) {
     failedAt(
-        definition.member,
-        "Unexpected field ${definition.member} in "
+        definition.location,
+        "Unexpected field ${definition} in "
         "ClosureFieldData.getFieldConstantExpression");
     return null;
   }
@@ -1065,8 +1120,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   @override
   ConstantValue getConstantFieldInitializer(IrToElementMap elementMap) {
     failedAt(
-        definition.member,
-        "Unexpected field ${definition.member} in "
+        definition.location,
+        "Unexpected field ${definition} in "
         "ClosureFieldData.getConstantFieldInitializer");
     return null;
   }
@@ -1087,30 +1142,29 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
 }
 
 class ClosureMemberDefinition implements MemberDefinition {
-  final MemberEntity member;
   final SourceSpan location;
   final MemberKind kind;
-  final ir.Node node;
+  final ir.TreeNode node;
 
-  ClosureMemberDefinition(this.member, this.location, this.kind, this.node);
+  ClosureMemberDefinition(this.location, this.kind, this.node)
+      : assert(
+            kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
-  String toString() =>
-      'ClosureMemberDefinition(kind:$kind,member:$member,location:$location)';
+  String toString() => 'ClosureMemberDefinition(kind:$kind,location:$location)';
 }
 
 class RecordContainerDefinition implements ClassDefinition {
-  final ClassEntity cls;
   final SourceSpan location;
 
-  RecordContainerDefinition(this.cls, this.location);
+  RecordContainerDefinition(this.location);
 
   ClassKind get kind => ClassKind.record;
 
-  ir.Node get node =>
-      throw new UnsupportedError('RecordContainerDefinition.node for $cls');
+  ir.Node get node => throw new UnsupportedError(
+      'RecordContainerDefinition.node for $location');
 
   String toString() =>
-      'RecordContainerDefinition(kind:$kind,cls:$cls,location:$location)';
+      'RecordContainerDefinition(kind:$kind,location:$location)';
 }
 
 /// Collection of scope data collected for a single member.

@@ -63,12 +63,12 @@ class TypeSystem {
       new Map<MemberEntity, MemberTypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<ir.Node, ListTypeInformation> allocatedLists =
-      new Map<ir.Node, ListTypeInformation>();
+  final Map<ir.TreeNode, ListTypeInformation> allocatedLists =
+      new Map<ir.TreeNode, ListTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ir.Node, TypeInformation> allocatedMaps =
-      new Map<ir.Node, TypeInformation>();
+  final Map<ir.TreeNode, TypeInformation> allocatedMaps =
+      new Map<ir.TreeNode, TypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();

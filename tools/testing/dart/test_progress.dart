@@ -860,6 +860,7 @@ class ResultWriter extends EventListener {
 
     var record = {
       "name": name,
+      "configuration": _configuration.configuration.name,
       "suite": suite,
       "test_name": testName,
       "time_ms": time.inMilliseconds,

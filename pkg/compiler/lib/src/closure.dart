@@ -8,10 +8,7 @@ import 'common.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 
-// TODO(johnniwinther,efortuna): Split [ClosureConversionTask] from
-// [ClosureDataLookup].
-abstract class ClosureConversionTask extends CompilerTask
-    implements ClosureDataLookup {
+abstract class ClosureConversionTask extends CompilerTask {
   ClosureConversionTask(Measurer measurer) : super(measurer);
 }
 
@@ -19,7 +16,7 @@ abstract class ClosureConversionTask extends CompilerTask
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
 /// node to look up, it returns a information about the internal representation
 /// of how closure conversion is implemented. T is an ir.Node or Node.
-abstract class ClosureDataLookup {
+abstract class ClosureData {
   /// Look up information about the variables that have been mutated and are
   /// used inside the scope of [node].
   ScopeInfo getScopeInfo(MemberEntity member);
@@ -231,12 +228,17 @@ class ClosureRepresentationInfo extends ScopeInfo {
 /// A local variable that contains the box object holding the [BoxFieldElement]
 /// fields.
 class BoxLocal extends Local {
-  final String name;
+  final ClassEntity container;
 
-  final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
-  static int _nextHashCode = 0;
+  BoxLocal(this.container);
 
-  BoxLocal(this.name);
+  String get name => container.name;
+
+  bool operator ==(other) {
+    return other is BoxLocal && other.container == container;
+  }
+
+  int get hashCode => container.hashCode;
 
   String toString() => 'BoxLocal($name)';
 }
@@ -245,7 +247,7 @@ class BoxLocal extends Local {
 class ThisLocal extends Local {
   final ClassEntity enclosingClass;
 
-  ThisLocal(MemberEntity member) : enclosingClass = member.enclosingClass;
+  ThisLocal(this.enclosingClass);
 
   String get name => 'this';
 
@@ -284,7 +286,7 @@ class TypeVariableLocal implements Local {
 /// Move the below classes to a JS model eventually.
 ///
 abstract class JSEntity implements MemberEntity {
-  Local get declaredEntity;
+  String get declaredName;
 }
 
 abstract class PrivatelyNamedJSEntity implements JSEntity {

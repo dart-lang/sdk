@@ -75,6 +75,8 @@ import '../fasta_codes.dart'
         templateArgumentTypeNotAssignable,
         templateDuplicatedNamedArgument,
         templateImplicitCallOfNonMethod,
+        templateInternalProblemNoInferredTypeStored,
+        templateInternalProblemStoringMultipleInferredTypes,
         templateInvalidAssignment,
         templateInvalidCastFunctionExpr,
         templateInvalidCastLiteralList,
@@ -106,7 +108,7 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../names.dart' show callName, unaryMinusName;
 
-import '../problems.dart' show unexpected, unhandled;
+import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -439,8 +441,6 @@ enum MethodContravarianceCheckKind {
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer {
-  final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
-
   final CoreTypes coreTypes;
 
   TypeInferrer(this.coreTypes);
@@ -481,20 +481,6 @@ abstract class TypeInferrer {
   /// expression.
   void inferParameterInitializer(InferenceHelper helper,
       kernel.Expression initializer, DartType declaredType);
-
-  DartType storeInferredType(TreeNode node, DartType type) {
-    if (node is ExpressionJudgment) {
-      return node.inferredType = type;
-    } else {
-      assert(!inferredTypesMap.containsKey(node));
-      return inferredTypesMap[node] = type;
-    }
-  }
-
-  DartType readInferredType(TreeNode node) {
-    assert(inferredTypesMap.containsKey(node));
-    return inferredTypesMap[node];
-  }
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -574,6 +560,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   final KernelLibraryBuilder library;
 
+  final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
+
   InferenceHelper helper;
 
   /// Context information for the current closure, or `null` if we are not
@@ -596,6 +584,32 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
         super(engine.coreTypes);
+
+  DartType storeInferredType(TreeNode node, DartType type) {
+    if (node is ExpressionJudgment) {
+      return node.inferredType = type;
+    } else {
+      if (inferredTypesMap.containsKey(node)) {
+        internalProblem(
+            templateInternalProblemStoringMultipleInferredTypes.withArguments(
+                inferredTypesMap[node], "${node.runtimeType}"),
+            node.fileOffset,
+            uri);
+      }
+      return inferredTypesMap[node] = type;
+    }
+  }
+
+  DartType readInferredType(TreeNode node) {
+    if (!inferredTypesMap.containsKey(node) && !isTopLevel) {
+      internalProblem(
+          templateInternalProblemNoInferredTypeStored
+              .withArguments("${node.runtimeType}"),
+          node.fileOffset,
+          uri);
+    }
+    return inferredTypesMap[node];
+  }
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -1632,7 +1646,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
   void inferPropertyGet(Expression expression, Expression receiver,
-      int fileOffset, bool forSyntheticToken, DartType typeContext,
+      int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
       Object interfaceMember,

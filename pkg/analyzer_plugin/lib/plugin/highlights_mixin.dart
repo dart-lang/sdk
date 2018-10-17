@@ -63,7 +63,7 @@ abstract class HighlightsMixin implements ServerPlugin {
       HighlightsGenerator generator =
           new HighlightsGenerator(getHighlightsContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateHighlightsNotification(request);
+          generator.generateHighlightsNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

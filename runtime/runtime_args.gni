@@ -6,7 +6,7 @@ declare_args() {
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
   # while themselves doing a Debug build.
-  dart_debug = false
+  dart_debug = is_debug
 
   # Set the runtime mode. This affects how the runtime is built and what
   # features it has. Valid values are:
@@ -31,8 +31,12 @@ declare_args() {
   # Available options are: arm, arm64, x64, ia32, and dbc.
   dart_target_arch = target_cpu
 
-  # The optimization level to use for debug builds.
+  # The optimization level to use for debug builds. Defaults to 0 for builds with
+  # code coverage enabled.
   dart_debug_optimization_level = "2"
+
+  # Whether to enable code coverage for the standalone VM.
+  dart_vm_code_coverage = false
 
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.

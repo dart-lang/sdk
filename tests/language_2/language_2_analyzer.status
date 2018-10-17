@@ -76,6 +76,7 @@ issue34404_flutter_test: Skip
 issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow, Pass
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
+mixin_declaration/mixin_declaration_factory_test/02: Crash # Issue 34809
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_of_mixin_test: Skip

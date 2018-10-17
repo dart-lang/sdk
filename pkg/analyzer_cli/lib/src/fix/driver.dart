@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File;
+import 'dart:io' show File, Directory;
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -19,32 +19,26 @@ import 'package:path/path.dart' as path;
 const runAnalysisServerFromSource = false;
 
 class Driver {
-  static const progressThreshold = 10;
-
-  final Context context = new Context();
+  Context context;
+  Logger logger;
   Server server;
 
   Completer serverConnected;
   Completer analysisComplete;
   bool force;
   bool overwrite;
-  bool verbose;
   List<String> targets;
-
-  Logger logger;
-
-  int progressCount = progressThreshold;
 
   Ansi get ansi => logger.ansi;
 
   Future start(List<String> args) async {
-    final Options options = Options.parse(args, context);
+    final Options options = Options.parse(args);
 
     force = options.force;
     overwrite = options.overwrite;
-    verbose = options.verbose;
     targets = options.targets;
 
+    context = options.context;
     logger = options.logger;
 
     EditDartfixResult result;
@@ -53,8 +47,8 @@ class Driver {
 
     bool normalShutdown = false;
     try {
-      await setupAnalysis(options);
-      result = await requestFixes(options);
+      final progress = await setupAnalysis(options);
+      result = await requestFixes(options, progress);
       normalShutdown = true;
     } finally {
       try {
@@ -82,13 +76,13 @@ class Driver {
         sdkPath: options.sdkPath, useSnapshot: !runAnalysisServerFromSource);
     server.listenToOutput(dispatchNotification);
     return serverConnected.future.timeout(connectTimeout, onTimeout: () {
-      context.stderr.writeln('Failed to connect to server');
+      logger.stderr('Failed to connect to server');
       context.exit(15);
     });
   }
 
-  Future setupAnalysis(Options options) async {
-    context.stdout.write('${ansi.emphasized('Calculating fixes')}...');
+  Future<Progress> setupAnalysis(Options options) async {
+    final progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
     logger.trace('');
     logger.trace('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
@@ -99,15 +93,17 @@ class Driver {
           options.targets,
           const [],
         ).toJson());
+    return progress;
   }
 
-  Future<EditDartfixResult> requestFixes(Options options) async {
+  Future<EditDartfixResult> requestFixes(
+      Options options, Progress progress) async {
     logger.trace('Requesting fixes');
     analysisComplete = new Completer();
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
     await analysisComplete?.future;
-    resetProgress();
+    progress.finish(showTiming: true);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
   }
@@ -131,16 +127,16 @@ class Driver {
       result.otherRecommendations,
     );
     if (result.descriptionOfFixes.isEmpty) {
-      context.print('');
-      context.print(result.otherRecommendations.isNotEmpty
+      logger.stdout('');
+      logger.stdout(result.otherRecommendations.isNotEmpty
           ? 'No recommended changes that cannot be automatically applied.'
           : 'No recommended changes.');
       return;
     }
-    context.print('');
-    context.print(ansi.emphasized('Files to be changed:'));
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Files to be changed:'));
     for (SourceFileEdit fileEdit in result.fixes) {
-      context.print('  ${fileEdit.file}');
+      logger.stdout('  ${_relativePath(fileEdit.file)}');
     }
     if (shouldApplyChanges(result)) {
       for (SourceFileEdit fileEdit in result.fixes) {
@@ -151,33 +147,33 @@ class Driver {
         }
         await file.writeAsString(code);
       }
-      context.print('Changes applied.');
+      logger.stdout('Changes applied.');
     }
   }
 
   void showDescriptions(String title, List<String> descriptions) {
     if (descriptions.isNotEmpty) {
-      context.print('');
-      context.print(ansi.emphasized('$title:'));
+      logger.stdout('');
+      logger.stdout(ansi.emphasized('$title:'));
       List<String> sorted = new List.from(descriptions)..sort();
       for (String line in sorted) {
-        context.print('  $line');
+        logger.stdout('  $line');
       }
     }
   }
 
   bool shouldApplyChanges(EditDartfixResult result) {
-    context.print();
+    logger.stdout('');
     if (result.hasErrors) {
-      context.print('WARNING: The analyzed source contains errors'
+      logger.stdout('WARNING: The analyzed source contains errors'
           ' that may affect the accuracy of these changes.');
-      context.print();
+      logger.stdout('');
       if (!force) {
-        context.print('Rerun with --$forceOption to apply these changes.');
+        logger.stdout('Rerun with --$forceOption to apply these changes.');
         return false;
       }
     } else if (!overwrite && !force) {
-      context.print('Rerun with --$overwriteOption to apply these changes.');
+      logger.stdout('Rerun with --$overwriteOption to apply these changes.');
       return false;
     }
     return true;
@@ -293,17 +289,13 @@ class Driver {
         if (!shouldFilterError(error)) {
           if (!foundAtLeastOneError) {
             foundAtLeastOneError = true;
-            resetProgress();
-            context.print(params.file);
+            logger.stdout('${_relativePath(params.file)}:');
           }
           Location loc = error.location;
-          context.print('  ${error.message}'
-              ' at ${loc.startLine}:${loc.startColumn}');
+          logger.stdout('  ${_toSentenceFragment(error.message)}'
+              ' • ${loc.startLine}:${loc.startColumn}');
         }
       }
-    }
-    if (!foundAtLeastOneError) {
-      showProgress();
     }
   }
 
@@ -322,7 +314,7 @@ class Driver {
     if (params.stackTrace != null) {
       message.writeln(params.stackTrace);
     }
-    context.stderr.writeln(message.toString());
+    logger.stderr(message.toString());
     context.exit(15);
   }
 
@@ -332,13 +324,6 @@ class Driver {
       analysisComplete?.complete();
       analysisComplete = null;
     }
-  }
-
-  void resetProgress() {
-    if (!verbose && progressCount >= progressThreshold) {
-      context.print();
-    }
-    progressCount = 0;
   }
 
   bool shouldFilterError(AnalysisError error) {
@@ -351,13 +336,6 @@ class Driver {
         error.code == 'wrong_number_of_type_arguments_constructor';
   }
 
-  void showProgress() {
-    if (!verbose && progressCount % progressThreshold == 0) {
-      context.stdout.write('.');
-    }
-    ++progressCount;
-  }
-
   bool isTarget(String filePath) {
     for (String target in targets) {
       if (filePath == target || path.isWithin(target, filePath)) {
@@ -366,4 +344,20 @@ class Driver {
     }
     return false;
   }
+}
+
+String _relativePath(String filePath) {
+  final String currentPath = Directory.current.absolute.path;
+
+  if (filePath.startsWith(currentPath)) {
+    return filePath.substring(currentPath.length + 1);
+  } else {
+    return filePath;
+  }
+}
+
+String _toSentenceFragment(String message) {
+  return message.endsWith('.')
+      ? message.substring(0, message.length - 1)
+      : message;
 }

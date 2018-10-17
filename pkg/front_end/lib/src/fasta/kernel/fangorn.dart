@@ -32,7 +32,10 @@ import 'package:kernel/ast.dart'
         Not,
         NullLiteral,
         Procedure,
+        Rethrow,
         Statement,
+        StringConcatenation,
+        StringLiteral,
         ThisExpression,
         TreeNode,
         VariableDeclaration,
@@ -91,11 +94,8 @@ import 'kernel_shadow_ast.dart'
         LoadLibraryJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
-        RethrowJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
-        StringConcatenationJudgment,
-        StringLiteralJudgment,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
         ThrowJudgment,
@@ -154,7 +154,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  StringLiteralJudgment asLiteralString(Expression value) => value;
+  StringLiteral asLiteralString(Expression value) => value;
 
   @override
   BoolLiteral literalBool(bool value, Token token) {
@@ -216,8 +216,8 @@ class Fangorn extends Forest {
   }
 
   @override
-  StringLiteralJudgment literalString(String value, Token token) {
-    return new StringLiteralJudgment(value)..fileOffset = offsetForToken(token);
+  StringLiteral literalString(String value, Token token) {
+    return new StringLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -443,7 +443,7 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment(null)..fileOffset = offsetForToken(rethrowKeyword));
+        new Rethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
   @override
@@ -456,7 +456,7 @@ class Fangorn extends Forest {
   @override
   Expression stringConcatenationExpression(
       List<Expression> expressions, Token token) {
-    return new StringConcatenationJudgment(expressions)
+    return new StringConcatenation(expressions)
       ..fileOffset = offsetForToken(token);
   }
 

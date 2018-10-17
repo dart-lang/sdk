@@ -1671,10 +1671,6 @@ static void ShutdownIsolate(uword parameter) {
 #if defined(DEBUG)
     isolate->ValidateConstants();
 #endif  // defined(DEBUG)
-    const Error& error = Error::Handle(thread->sticky_error());
-    if (!error.IsNull() && !error.IsUnwindError()) {
-      OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
-    }
     TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }

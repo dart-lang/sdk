@@ -26,14 +26,10 @@ import 'abstract_value_domain.dart';
 /// implementation would return false on all boolean properties (giving no
 /// guarantees) and the `subclass of Object or null` type mask for the type
 /// based queries (the runtime value could be anything).
-abstract class GlobalTypeInferenceElementResult {
-  /// The inferred type when this result belongs to a parameter or field
-  /// element, null otherwise.
+abstract class GlobalTypeInferenceMemberResult {
+  /// The inferred type when this result belongs to a field, null otherwise.
   AbstractValue get type;
-}
 
-abstract class GlobalTypeInferenceMemberResult
-    extends GlobalTypeInferenceElementResult {
   /// Whether the member associated with this result is only called once in one
   /// location in the entire program.
   bool get isCalledOnce;
@@ -72,22 +68,22 @@ abstract class GlobalTypeInferenceMemberResult
 /// a single element.
 abstract class GlobalTypeInferenceElementData {
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
-  AbstractValue typeOfSend(ir.Node node);
-  AbstractValue typeOfGetter(ir.Node node);
+  AbstractValue typeOfSend(ir.TreeNode node);
+  AbstractValue typeOfGetter(ir.TreeNode node);
 
-  void setTypeMask(ir.Node node, AbstractValue mask);
+  void setTypeMask(ir.TreeNode node, AbstractValue mask);
 
-  AbstractValue typeOfIterator(ir.Node node);
+  AbstractValue typeOfIterator(ir.TreeNode node);
 
-  AbstractValue typeOfIteratorMoveNext(ir.Node node);
+  AbstractValue typeOfIteratorMoveNext(ir.TreeNode node);
 
-  AbstractValue typeOfIteratorCurrent(ir.Node node);
+  AbstractValue typeOfIteratorCurrent(ir.TreeNode node);
 
-  void setIteratorTypeMask(ir.Node node, AbstractValue mask);
+  void setIteratorTypeMask(ir.TreeNode node, AbstractValue mask);
 
-  void setMoveNextTypeMask(ir.Node node, AbstractValue mask);
+  void setMoveNextTypeMask(ir.TreeNode node, AbstractValue mask);
 
-  void setCurrentTypeMask(ir.Node node, AbstractValue mask);
+  void setCurrentTypeMask(ir.TreeNode node, AbstractValue mask);
 }
 
 /// API to interact with the global type-inference engine.
@@ -290,7 +286,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
 class GlobalTypeInferenceMemberResultImpl
     implements GlobalTypeInferenceMemberResult {
   final GlobalTypeInferenceElementData _data;
-  final Map<ir.Node, AbstractValue> _allocatedLists;
+  final Map<ir.TreeNode, AbstractValue> _allocatedLists;
   final AbstractValue returnType;
   final AbstractValue type;
   final bool throwsAlways;

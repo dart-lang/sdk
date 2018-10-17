@@ -1988,6 +1988,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticInvocation(StaticInvocation node) {
+    if (node.isConst) {
+      _genPushConstExpr(node);
+      return;
+    }
     Arguments args = node.arguments;
     final target = node.target;
     if (target == unsafeCast) {

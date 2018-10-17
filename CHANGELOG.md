@@ -3,101 +3,132 @@
 #### `dart:html`
 Fixed Service Workers and any Promise/Future API with a Dictionary parameter.
 
-APIs in dart:html (that take a Dictionary) will receive a Dart Map parameter.  The Map parameter
-must be converted to a Dictionary before passing to the browser's API.  Before this change,
-any Promise/Future API with a Map/Dictionary parameter never called the Promise and didn't
-return a Dart Future - now it does.
+APIs in dart:html (that take a Dictionary) will receive a Dart Map parameter.
+The Map parameter must be converted to a Dictionary before passing to the
+browser's API.  Before this change, any Promise/Future API with a
+Map/Dictionary parameter never called the Promise and didn't return a Dart
+Future - now it does.
 
-This caused a number of breaks especially in Service Workers (register, etc.).  Here is a
-complete list of the fixed APIs:
+This caused a number of breaks especially in Service Workers (register, etc.).
+Here is a complete list of the fixed APIs:
 
-BackgroundFetchManager
-    Future<BackgroundFetchRegistration> fetch(String id, Object requests, [Map options])
+* BackgroundFetchManager
+  * `Future<BackgroundFetchRegistration> fetch(String id, Object requests, [Map options])`
 
-CacheStorage
-    Future match(/*RequestInfo*/ request, [Map options])
+* CacheStorage
+  * `Future match(/*RequestInfo*/ request, [Map options])`
 
-CanMakePayment
-    Future<List<Client>> matchAll([Map options])
+* CanMakePayment
+  * `Future<List<Client>> matchAll([Map options])`
 
-CookieStore
-    Future getAll([Map options])
-    Future set(String name, String value, [Map options])
+* CookieStore
+  * `Future getAll([Map options])`
+  * `Future set(String name, String value, [Map options])`
 
-CredentialsContainer
-    Future get([Map options])
-    Future create([Map options])
+* CredentialsContainer
+  * `Future get([Map options])`
+  * `Future create([Map options])`
 
-ImageCapture
-    Future setOptions(Map photoSettings)
+* ImageCapture
+  * `Future setOptions(Map photoSettings)`
 
-MediaCapabilities
-    Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)
-    Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)
+* MediaCapabilities
+  * `Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)`
+  * `Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)`
 
-MediaStreamTrack
-    Future applyConstraints([Map constraints])
+* MediaStreamTrack
+  * `Future applyConstraints([Map constraints])`
 
-Navigator
-    Future requestKeyboardLock([List<String> keyCodes])
-    Future requestMidiAccess([Map options])
-    Future share([Map data])
+* Navigator
+  * `Future requestKeyboardLock([List<String> keyCodes])`
+  * `Future requestMidiAccess([Map options])`
+  * `Future share([Map data])`
 
-OffscreenCanvas
-    Future<Blob> convertToBlob([Map options])
+* OffscreenCanvas
+  * `Future<Blob> convertToBlob([Map options])`
 
-PaymentInstruments
-    Future set(String instrumentKey, Map details)
+* PaymentInstruments
+  * `Future set(String instrumentKey, Map details)`
 
-Permissions
-    Future<PermissionStatus> query(Map permission)
-    Future<PermissionStatus> request(Map permissions)
-    Future<PermissionStatus> revoke(Map permission)
+* Permissions
+  * `Future<PermissionStatus> query(Map permission)`
+  * `Future<PermissionStatus> request(Map permissions)`
+  * `Future<PermissionStatus> revoke(Map permission)`
 
-PushManager
-    Future permissionState([Map options])
-    Future<PushSubscription> subscribe([Map options])
+* PushManager
+  * `Future permissionState([Map options])`
+  * `Future<PushSubscription> subscribe([Map options])`
 
-RtcPeerConnection
-    * **CHANGED** Future createAnswer([options_OR_successCallback,
-                                       RtcPeerConnectionErrorCallback failureCallback,
-                                       Map mediaConstraints])
-    Future<RtcSessionDescription> createAnswer([Map options])
-    * **CHANGED** Future createOffer([options_OR_successCallback,
-                                      RtcPeerConnectionErrorCallback failureCallback,
-                                      Map rtcOfferOptions])
-    Future<RtcSessionDescription> createOffer([Map options])
-    * **CHANGED** Future setLocalDescription(Map description, VoidCallback successCallback,
-                                             [RtcPeerConnectionErrorCallback failureCallback])
-    Future setLocalDescription(Map description)
-    * **CHANGED** Future setLocalDescription(Map description, VoidCallback successCallback,
-                                             [RtcPeerConnectionErrorCallback failureCallback])
-    Future setRemoteDescription(Map description)
+* RtcPeerConnection
+  * **CHANGED**
 
-ServiceWorkerContainer
-    Future<ServiceWorkerRegistration> register(String url, [Map options])
+    ```dart
+    Future createAnswer([options_OR_successCallback,
+                         RtcPeerConnectionErrorCallback failureCallback,
+                         Map mediaConstraints])
+    ```
 
-ServiceWorkerRegistration
-    Future<List<Notification>> getNotifications([Map filter])
-    Future showNotification(String title, [Map options])
+    to
 
-VRDevice
-    Future requestSession([Map options])
-    Future supportsSession([Map options])
+    `Future<RtcSessionDescription> createAnswer([Map options])`
 
-VRSession
-    Future requestFrameOfReference(String type, [Map options])
+  * **CHANGED**
 
-Window
-    Future fetch(/*RequestInfo*/ input, [Map init])
+    ```dart
+    Future createOffer([options_OR_successCallback,
+                        RtcPeerConnectionErrorCallback failureCallback,
+                        Map rtcOfferOptions])
+    ```
 
-WorkerGlobalScope
-    Future fetch(/*RequestInfo*/ input, [Map init])
+    to
 
-In addition, exposed Service Worker "self" as a static getter named "instance".  The
-instance is exposed on four different Service Worker classes and can throw a InstanceTypeError
-if the instance isn't of the class expected (WorkerGlobalScope.instance will always work
-and not throw):
+    `Future<RtcSessionDescription> createOffer([Map options])`
+
+  * **CHANGED**
+
+    ```dart
+    Future setLocalDescription(Map description, VoidCallback successCallback,
+                               [RtcPeerConnectionErrorCallback failureCallback])
+    ```
+
+    to
+
+    `Future setLocalDescription(Map description)`
+  * **CHANGED**
+
+    ```dart
+    Future setLocalDescription(Map description, VoidCallback successCallback,
+                               [RtcPeerConnectionErrorCallback failureCallback])
+    ```
+
+    to
+
+    `Future setRemoteDescription(Map description)`
+
+* ServiceWorkerContainer
+  * `Future<ServiceWorkerRegistration> register(String url, [Map options])`
+
+* ServiceWorkerRegistration
+  * `Future<List<Notification>> getNotifications([Map filter])`
+  * `Future showNotification(String title, [Map options])`
+
+* VRDevice
+  * `Future requestSession([Map options])`
+  * `Future supportsSession([Map options])`
+
+* VRSession
+  * `Future requestFrameOfReference(String type, [Map options])`
+
+* Window
+  * `Future fetch(/*RequestInfo*/ input, [Map init])`
+
+* WorkerGlobalScope
+  * `Future fetch(/*RequestInfo*/ input, [Map init])`
+
+In addition, exposed Service Worker "self" as a static getter named "instance".
+The instance is exposed on four different Service Worker classes and can throw
+a InstanceTypeError if the instance isn't of the class expected
+(WorkerGlobalScope.instance will always work and not throw):
 
 *   SharedWorkerGlobalScope.instance
 *   DedicatedWorkerGlobalScope.instance
@@ -122,6 +153,30 @@ and not throw):
 ### Dart VM
 
 ### Tool Changes
+
+#### Linter
+
+Bumped the linter to `0.1.68` which includes the following new lints:
+
+* `sort_pub_dependencies`
+* `prefer_mixin`
+* `avoid_implementing_value_types`
+* `flutter_style_todos`
+* `avoid_void_async`
+* `prefer_void_to_null`
+
+and improvements:
+
+* mixin support
+* update to `sort_constructors_first` to apply to all members
+* update `unnecessary_this` to work on field initializers
+* updated `unawaited_futures` to ignore assignments within cascades
+* improved handling of constant expressions with generic type params
+* NPE fix for `invariant_booleans`
+* improved docs for `unawaited_futures`
+* `unawaited_futures` updated to check cascades
+* relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
+* fixed false positives in `lines_longer_than_80_chars`
 
 #### Pub
 

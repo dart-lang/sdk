@@ -334,9 +334,6 @@ enum MemberKind {
 
 /// Definition information for a [MemberEntity].
 abstract class MemberDefinition {
-  /// The defined member.
-  MemberEntity get member;
-
   /// The kind of the defined member. This determines the semantics of [node].
   MemberKind get kind;
 
@@ -361,38 +358,33 @@ enum ClassKind {
 
 /// A member directly defined by its [ir.Member] node.
 class RegularMemberDefinition implements MemberDefinition {
-  final MemberEntity member;
   final ir.Member node;
 
-  RegularMemberDefinition(this.member, this.node);
+  RegularMemberDefinition(this.node);
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   MemberKind get kind => MemberKind.regular;
 
-  String toString() => 'RegularMemberDefinition(kind:$kind,member:$member,'
+  String toString() => 'RegularMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 
 /// The definition of a special kind of member
 class SpecialMemberDefinition implements MemberDefinition {
-  final MemberEntity member;
   final ir.TreeNode node;
   final MemberKind kind;
 
-  SpecialMemberDefinition(this.member, this.node, this.kind);
+  SpecialMemberDefinition(this.node, this.kind);
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
-  String toString() => 'SpecialMemberDefinition(kind:$kind,member:$member,'
+  String toString() => 'SpecialMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 
 /// Definition information for a [ClassEntity].
 abstract class ClassDefinition {
-  /// The defined class.
-  ClassEntity get cls;
-
   /// The kind of the defined class. This determines the semantics of [node].
   ClassKind get kind;
 
@@ -406,16 +398,15 @@ abstract class ClassDefinition {
 
 /// A class directly defined by its [ir.Class] node.
 class RegularClassDefinition implements ClassDefinition {
-  final ClassEntity cls;
   final ir.Class node;
 
-  RegularClassDefinition(this.cls, this.node);
+  RegularClassDefinition(this.node);
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   ClassKind get kind => ClassKind.regular;
 
-  String toString() => 'RegularClassDefinition(kind:$kind,cls:$cls,'
+  String toString() => 'RegularClassDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 

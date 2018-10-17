@@ -127,7 +127,8 @@ class FixKind {
   final String name;
 
   /**
-   * The priority of this kind of fix for the kind of error being addressed.
+   * The priority of this kind of fix for the kind of error being addressed
+   * where a higher integer value indicates a higher priority and relevance.
    */
   final int priority;
 

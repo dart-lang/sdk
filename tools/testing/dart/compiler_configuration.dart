@@ -235,6 +235,16 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
         'application/kernel-ir-fully-linked');
   }
 
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
+    return sharedOptions.toList()..addAll(vmOptions)..addAll(args);
+  }
+
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestInformation info,

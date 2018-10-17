@@ -12,13 +12,13 @@ part of masks;
  * [TypeGraphInferrer] has successfully identified such a usage. Otherwise,
  * the more general [MapTypeMask] is used.
  */
-class DictionaryTypeMask<T> extends MapTypeMask<T> {
+class DictionaryTypeMask extends MapTypeMask {
   // The underlying key/value map of this dictionary.
   final Map<String, AbstractValue> _typeMap;
 
   DictionaryTypeMask(
       TypeMask forwardTo,
-      T allocationNode,
+      ir.TreeNode allocationNode,
       MemberEntity allocationElement,
       TypeMask keyType,
       TypeMask valueType,
@@ -28,13 +28,13 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
   TypeMask nullable() {
     return isNullable
         ? this
-        : new DictionaryTypeMask<T>(forwardTo.nullable(), allocationNode,
+        : new DictionaryTypeMask(forwardTo.nullable(), allocationNode,
             allocationElement, keyType, valueType, _typeMap);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new DictionaryTypeMask<T>(forwardTo.nonNullable(), allocationNode,
+        ? new DictionaryTypeMask(forwardTo.nonNullable(), allocationNode,
             allocationElement, keyType, valueType, _typeMap)
         : this;
   }
@@ -86,7 +86,7 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
           mappings[k] = v.nullable();
         }
       });
-      return new DictionaryTypeMask<T>(
+      return new DictionaryTypeMask(
           newForwardTo, null, null, newKeyType, newValueType, mappings);
     } else if (other.isMap &&
         (other.keyType != null) &&

@@ -131,7 +131,7 @@ namespace bin {
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
   V(Socket_CreateBindConnect, 4)                                               \
-  V(Socket_CreateBindDatagram, 4)                                              \
+  V(Socket_CreateBindDatagram, 6)                                              \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \

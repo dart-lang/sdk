@@ -1002,7 +1002,7 @@ CompileType ParameterInstr::ComputeType() const {
     if (index() < scope->num_variables()) {
       const LocalVariable* param = scope->VariableAt(index());
       CompileType* inferred_type = NULL;
-      if (block_->IsGraphEntry()) {
+      if (!block_->IsCatchBlockEntry()) {
         inferred_type = param->parameter_type();
       }
       // Best bet: use inferred type if it is a concrete class or int.

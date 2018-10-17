@@ -162,12 +162,12 @@ io/http_requested_uri_test: Pass, Timeout # Issue 34760
 io/http_response_deadline_test: Pass, Timeout # Issue 34760
 io/https_server_test: Pass, Timeout # Issue 34760
 io/raw_secure_server_closing_test: Pass, Timeout # Issue 34760
-io/secure_server_closing_test: Pass, Timeout # Issue 34760
 io/secure_server_socket_test: Pass, Timeout # Issue 34760
 io/secure_unauthorized_test: Pass, Timeout # Issue 34760
 io/socket_source_address_test: Pass, Timeout # Issue 34760
 io/web_socket_compression_test: Pass, Timeout # Issue 34760
-io/web_socket_test: Pass, Timeout # Issue 34760
+io/web_socket_test: Pass, Timeout, RuntimeError # Issue 34760
+io/secure_server_closing_test: Pass, Timeout, RuntimeError # Issue 34760
 
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout

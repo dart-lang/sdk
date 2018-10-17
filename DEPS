@@ -63,7 +63,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.6+4",
+  "dart2js_info_tag" : "0.5.13",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -79,7 +79,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.0",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.23.1",
+  "dartdoc_tag" : "v0.24.0",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.8",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
@@ -133,7 +133,7 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.0.0",
+  "test_tag": "1.3.4",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",

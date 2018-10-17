@@ -79,7 +79,7 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   ir.TypeEnvironment _typeEnvironment;
 
   /// Library environment. Used for fast lookup.
-  JProgramEnv env;
+  JProgramEnv programEnv;
 
   final EntityDataEnvMap<IndexedLibrary, JLibraryData, JLibraryEnv> libraries =
       new EntityDataEnvMap<IndexedLibrary, JLibraryData, JLibraryEnv>();
@@ -113,12 +113,14 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   NativeBasicData get nativeBasicData;
 
   FunctionEntity get _mainFunction {
-    return env.mainMethod != null ? getMethodInternal(env.mainMethod) : null;
+    return programEnv.mainMethod != null
+        ? getMethodInternal(programEnv.mainMethod)
+        : null;
   }
 
   LibraryEntity get _mainLibrary {
-    return env.mainMethod != null
-        ? getLibraryInternal(env.mainMethod.enclosingLibrary)
+    return programEnv.mainMethod != null
+        ? getLibraryInternal(programEnv.mainMethod.enclosingLibrary)
         : null;
   }
 
@@ -152,7 +154,7 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
-    JLibraryEnv libraryEnv = env.lookupLibrary(uri);
+    JLibraryEnv libraryEnv = programEnv.lookupLibrary(uri);
     if (libraryEnv == null) return null;
     return getLibraryInternal(libraryEnv.library, libraryEnv);
   }
@@ -716,8 +718,8 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(env.mainComponent),
-          new ir.ClassHierarchy(env.mainComponent));
+          new ir.CoreTypes(programEnv.mainComponent),
+          new ir.ClassHierarchy(programEnv.mainComponent));
     }
     return _typeEnvironment;
   }
@@ -1458,20 +1460,19 @@ class JsKernelToElementMap extends JsToElementMapBase
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   /// Map from members to the call methods created for their nested closures.
-  Map<MemberEntity, List<FunctionEntity>> _nestedClosureMap =
-      <MemberEntity, List<FunctionEntity>>{};
+  Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
 
   @override
   NativeBasicData nativeBasicData;
 
-  Map<FunctionEntity, JGeneratorBody> _generatorBodies = {};
+  Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
 
-  Map<ClassEntity, List<MemberEntity>> _injectedClassMembers = {};
+  Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
 
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
       : super(_elementMap.options, reporter, environment) {
-    env = _elementMap.env.convert();
+    programEnv = _elementMap.env.convert();
     for (int libraryIndex = 0;
         libraryIndex < _elementMap.libraries.length;
         libraryIndex++) {
@@ -1484,7 +1485,7 @@ class JsKernelToElementMap extends JsToElementMapBase
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
               newLibrary, data.convert(), newEnv);
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
-      env.registerLibrary(newEnv);
+      programEnv.registerLibrary(newEnv);
     }
     // TODO(johnniwinther): Filter unused classes.
     for (int classIndex = 0;
@@ -1497,8 +1498,7 @@ class JsKernelToElementMap extends JsToElementMapBase
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       IndexedClass newClass = convertClass(newLibrary, oldClass);
       JClassEnv newEnv = env.convert(_elementMap, liveMembers);
-      classMap[env.cls] =
-          classes.register(newClass, data.convert(newClass), newEnv);
+      classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
       libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
     }
@@ -1512,13 +1512,11 @@ class JsKernelToElementMap extends JsToElementMapBase
       IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
       typedefMap[data.node] = typedefs.register(
           newTypedef,
-          new JTypedefData(
+          new JTypedefData(new TypedefType(
               newTypedef,
-              new TypedefType(
-                  newTypedef,
-                  new List<DartType>.filled(
-                      data.node.typeParameters.length, const DynamicType()),
-                  getDartType(data.node.type))));
+              new List<DartType>.filled(
+                  data.node.typeParameters.length, const DynamicType()),
+              getDartType(data.node.type))));
       assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
     for (int memberIndex = 0;
@@ -1536,7 +1534,7 @@ class JsKernelToElementMap extends JsToElementMapBase
       ClassEntity newClass =
           oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
       IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
-      members.register(newMember, data.convert(newMember));
+      members.register(newMember, data.convert());
       assert(newMember.memberIndex == oldMember.memberIndex);
       if (newMember.isField) {
         fieldMap[data.node] = newMember;
@@ -1557,9 +1555,14 @@ class JsKernelToElementMap extends JsToElementMapBase
       if (oldTypeVariable.typeDeclaration is ClassEntity) {
         IndexedClass cls = oldTypeVariable.typeDeclaration;
         newTypeDeclaration = classes.getEntity(cls.classIndex);
+        // TODO(johnniwinther): Skip type variables of unused classes.
       } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
         IndexedMember member = oldTypeVariable.typeDeclaration;
         newTypeDeclaration = members.getEntity(member.memberIndex);
+        if (newTypeDeclaration == null) {
+          typeVariables.skipIndex(typeVariableIndex);
+          continue;
+        }
       } else {
         assert(oldTypeVariable.typeDeclaration is Local);
       }
@@ -1705,11 +1708,8 @@ class JsKernelToElementMap extends JsToElementMapBase
       JConstructorBody constructorBody = createConstructorBody(constructor);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
-          new ConstructorBodyDataImpl(
-              node,
-              node.function,
-              new SpecialMemberDefinition(
-                  constructorBody, node, MemberKind.constructorBody)));
+          new ConstructorBodyDataImpl(node, node.function,
+              new SpecialMemberDefinition(node, MemberKind.constructorBody)));
       IndexedClass cls = constructor.enclosingClass;
       JClassEnvImpl classEnv = classes.getEnv(cls);
       // TODO(johnniwinther): Avoid this by only including live members in the
@@ -1776,20 +1776,16 @@ class JsKernelToElementMap extends JsToElementMapBase
       InterfaceType memberThisType,
       ir.VariableDeclaration variable,
       BoxLocal boxLocal,
-      JClass container,
       Map<String, MemberEntity> memberMap,
       KernelToLocalsMap localsMap) {
     Local local = localsMap.getLocalVariable(variable);
     JRecordField boxedField =
-        new JRecordField(local.name, boxLocal, container, variable.isConst);
+        new JRecordField(local.name, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
         new ClosureFieldData(
-            new ClosureMemberDefinition(
-                boxedField,
-                computeSourceSpanFromTreeNode(variable),
-                MemberKind.closureField,
-                variable),
+            new ClosureMemberDefinition(computeSourceSpanFromTreeNode(variable),
+                MemberKind.closureField, variable),
             memberThisType));
     memberMap[boxedField.name] = boxedField;
 
@@ -1806,26 +1802,25 @@ class JsKernelToElementMap extends JsToElementMapBase
     if (info.boxedVariables.isNotEmpty) {
       NodeBox box = info.capturedVariablesAccessor;
 
-      Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
+      Map<String, IndexedMember> memberMap = <String, IndexedMember>{};
       JRecord container = new JRecord(member.library, box.name);
+      BoxLocal boxLocal = new BoxLocal(container);
       InterfaceType thisType = new InterfaceType(container, const <DartType>[]);
       InterfaceType supertype = commonElements.objectType;
       JClassData containerData = new RecordClassData(
-          new ClosureClassDefinition(container,
-              computeSourceSpanFromTreeNode(getMemberDefinition(member).node)),
+          new RecordContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
           getOrderedTypeSet(supertype.element).extendClass(thisType));
       classes.register(container, containerData, new RecordEnv(memberMap));
 
-      BoxLocal boxLocal = new BoxLocal(box.name);
       InterfaceType memberThisType = member.enclosingClass != null
           ? elementEnvironment.getThisType(member.enclosingClass)
           : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
         boxedFields[localsMap.getLocalVariable(variable)] =
-            _constructRecordFieldEntry(memberThisType, variable, boxLocal,
-                container, memberMap, localsMap);
+            _constructRecordFieldEntry(
+                memberThisType, variable, boxLocal, memberMap, localsMap);
       }
     }
     return boxedFields;
@@ -1857,14 +1852,14 @@ class JsKernelToElementMap extends JsToElementMapBase
     }
     String name = _computeClosureName(node);
     SourceSpan location = computeSourceSpanFromTreeNode(node);
-    Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
+    Map<String, IndexedMember> memberMap = <String, IndexedMember>{};
 
     JClass classEntity = new JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType = new InterfaceType(classEntity, const <DartType>[]);
     ClosureClassData closureData = new ClosureClassData(
-        new ClosureClassDefinition(classEntity, location),
+        new ClosureClassDefinition(location),
         thisType,
         supertype,
         getOrderedTypeSet(supertype.element).extendClass(thisType));
@@ -1875,13 +1870,13 @@ class JsKernelToElementMap extends JsToElementMapBase
       ir.FunctionDeclaration parent = node.parent;
       closureEntity = localsMap.getLocalVariable(parent.variable);
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = new JLocal('', localsMap.currentMember);
+      closureEntity = new AnonymousClosureLocal(classEntity);
     }
 
-    FunctionEntity callMethod = new JClosureCallMethod(
+    IndexedFunction callMethod = new JClosureCallMethod(
         classEntity, getParameterStructure(node), getAsyncMarker(node));
     _nestedClosureMap
-        .putIfAbsent(member, () => <FunctionEntity>[])
+        .putIfAbsent(member, () => <IndexedFunction>[])
         .add(callMethod);
     // We need create the type variable here - before we try to make local
     // variables from them (in `JsScopeInfo.from` called through
@@ -1902,7 +1897,9 @@ class JsKernelToElementMap extends JsToElementMapBase
             info,
             localsMap,
             closureEntity,
-            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
+            info.hasThisLocal
+                ? new ThisLocal(localsMap.currentMember.enclosingClass)
+                : null,
             this);
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
@@ -1918,7 +1915,7 @@ class JsKernelToElementMap extends JsToElementMapBase
         callMethod,
         new ClosureFunctionData(
             new ClosureMemberDefinition(
-                callMethod, location, MemberKind.closureCall, node.parent),
+                location, MemberKind.closureCall, node.parent),
             memberThisType,
             closureData.callType,
             node,
@@ -2035,13 +2032,13 @@ class JsKernelToElementMap extends JsToElementMapBase
     }
 
     FieldEntity closureField = new JClosureField(
-        '_box_$fieldNumber', closureClassInfo, true, false, recordField.box);
+        '_box_$fieldNumber', closureClassInfo, recordField.box.name,
+        isConst: true, isAssignable: false);
 
     members.register<IndexedField, JFieldData>(
         closureField,
         new ClosureFieldData(
             new ClosureMemberDefinition(
-                closureClassInfo.localToFieldMap[capturedLocal],
                 computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField,
                 sourceNode),
@@ -2059,19 +2056,14 @@ class JsKernelToElementMap extends JsToElementMapBase
       InterfaceType memberThisType,
       SourceSpan location,
       ClassTypeVariableAccess typeVariableAccess) {
-    FunctionEntity signatureMethod = new JSignatureMethod(
-        closureClassInfo.closureClassEntity.library,
-        closureClassInfo.closureClassEntity,
-        // SignatureMethod takes no arguments.
-        const ParameterStructure(0, 0, const [], 0),
-        AsyncMarker.SYNC);
+    FunctionEntity signatureMethod =
+        new JSignatureMethod(closureClassInfo.closureClassEntity);
     members.register<IndexedFunction, FunctionData>(
         signatureMethod,
         new SignatureFunctionData(
-            new SpecialMemberDefinition(signatureMethod,
+            new SpecialMemberDefinition(
                 closureSourceNode.parent, MemberKind.signature),
             memberThisType,
-            null,
             closureSourceNode.typeParameters,
             typeVariableAccess));
     memberMap[signatureMethod.name] =
@@ -2090,15 +2082,14 @@ class JsKernelToElementMap extends JsToElementMapBase
     FieldEntity closureField = new JClosureField(
         _getClosureVariableName(capturedLocal.name, fieldNumber),
         closureClassInfo,
-        isConst,
-        isAssignable,
-        capturedLocal);
+        capturedLocal.name,
+        isConst: isConst,
+        isAssignable: isAssignable);
 
     members.register<IndexedField, JFieldData>(
         closureField,
         new ClosureFieldData(
             new ClosureMemberDefinition(
-                closureClassInfo.localToFieldMap[capturedLocal],
                 computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField,
                 sourceNode),
@@ -2174,14 +2165,12 @@ class JsKernelToElementMap extends JsToElementMapBase
       generatorBody = createGeneratorBody(function, elementType);
       members.register<IndexedFunction, FunctionData>(
           generatorBody,
-          new GeneratorBodyFunctionData(
-              functionData,
-              new SpecialMemberDefinition(
-                  generatorBody, node, MemberKind.generatorBody)));
+          new GeneratorBodyFunctionData(functionData,
+              new SpecialMemberDefinition(node, MemberKind.generatorBody)));
 
       if (function.enclosingClass != null) {
         // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?
-        (_injectedClassMembers[function.enclosingClass] ??= <MemberEntity>[])
+        (_injectedClassMembers[function.enclosingClass] ??= <IndexedMember>[])
             .add(generatorBody);
       }
     }

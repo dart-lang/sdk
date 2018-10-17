@@ -6,6 +6,7 @@ library analyzer_cli.src.build_mode;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
@@ -61,6 +62,15 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
         inputStream: stdinStream, outputStream: stdoutStream);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
+  factory AnalyzerWorkerLoop.sendPort(
+      ResourceProvider resourceProvider, SendPort sendPort,
+      {String dartSdkPath}) {
+    AsyncWorkerConnection connection =
+        new SendPortAsyncWorkerConnection(sendPort);
     return new AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }

@@ -63,7 +63,7 @@ abstract class OutlineMixin implements ServerPlugin {
       OutlineGenerator generator =
           new OutlineGenerator(getOutlineContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateOutlineNotification(request);
+          generator.generateOutlineNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

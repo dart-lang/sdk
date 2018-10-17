@@ -7,7 +7,7 @@ library dart2js.js_model.strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
-import '../closure.dart' show ClosureConversionTask;
+import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
@@ -48,6 +48,7 @@ import '../ssa/ssa.dart';
 import '../ssa/types.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
+import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
@@ -62,129 +63,47 @@ import 'locals.dart';
 
 class JsBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
-  ElementEnvironment _elementEnvironment;
-  CommonElements _commonElements;
   JsKernelToElementMap _elementMap;
-  KernelClosureConversionTask _closureDataLookup;
-  final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
   Sorter _sorter;
 
   JsBackendStrategy(this._compiler);
 
+  @deprecated
   JsToElementMap get elementMap {
     assert(_elementMap != null,
         "JsBackendStrategy.elementMap has not been created yet.");
     return _elementMap;
   }
 
-  GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
+  ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  CommonElements get _commonElements => _elementMap.commonElements;
 
   @override
-  JClosedWorld createJClosedWorld(KClosedWorld closedWorld) {
+  JClosedWorld createJClosedWorld(
+      KClosedWorld closedWorld, OutputUnitData outputUnitData) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
         _compiler.reporter,
         _compiler.environment,
         strategy.elementMap,
         closedWorld.processedMembers);
-    _elementEnvironment = _elementMap.elementEnvironment;
-    _commonElements = _elementMap.commonElements;
-    _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer, _elementMap, _globalLocalsMap, _compiler.options);
+    GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+    ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
+        _elementMap, _globalLocalsMap, _compiler.options);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap,
-        _closureDataLookup,
+        _globalLocalsMap,
+        closureDataBuilder,
         _compiler.options,
         _compiler.abstractValueStrategy);
     return closedWorldBuilder._convertClosedWorld(
-        closedWorld, strategy.closureModels);
-  }
-
-  @override
-  OutputUnitData convertOutputUnitData(OutputUnitData data) {
-    JsToFrontendMapImpl map = new JsToFrontendMapImpl(_elementMap);
-
-    Entity toBackendEntity(Entity entity) {
-      if (entity is ClassEntity) return map.toBackendClass(entity);
-      if (entity is MemberEntity) return map.toBackendMember(entity);
-      if (entity is TypedefEntity) return map.toBackendTypedef(entity);
-      if (entity is TypeVariableEntity) {
-        return map.toBackendTypeVariable(entity);
-      }
-      assert(
-          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
-      return map.toBackendLibrary(entity);
-    }
-
-    // Convert front-end maps containing K-class and K-local function keys to a
-    // backend map using J-classes as keys.
-    Map<ClassEntity, OutputUnit> convertClassMap(
-        Map<ClassEntity, OutputUnit> classMap,
-        Map<Local, OutputUnit> localFunctionMap) {
-      var result = <ClassEntity, OutputUnit>{};
-      classMap.forEach((ClassEntity entity, OutputUnit unit) {
-        ClassEntity backendEntity = toBackendEntity(entity);
-        if (backendEntity != null) {
-          // If [entity] isn't used it doesn't have a corresponding backend
-          // entity.
-          result[backendEntity] = unit;
-        }
-      });
-      localFunctionMap.forEach((Local entity, OutputUnit unit) {
-        // Ensure closure classes are included in the output unit corresponding
-        // to the local function.
-        if (entity is KLocalFunction) {
-          var closureInfo = _closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.closureClassEntity] = unit;
-        }
-      });
-      return result;
-    }
-
-    // Convert front-end maps containing K-member and K-local function keys to
-    // a backend map using J-members as keys.
-    Map<MemberEntity, OutputUnit> convertMemberMap(
-        Map<MemberEntity, OutputUnit> memberMap,
-        Map<Local, OutputUnit> localFunctionMap) {
-      var result = <MemberEntity, OutputUnit>{};
-      memberMap.forEach((MemberEntity entity, OutputUnit unit) {
-        MemberEntity backendEntity = toBackendEntity(entity);
-        if (backendEntity != null) {
-          // If [entity] isn't used it doesn't have a corresponding backend
-          // entity.
-          result[backendEntity] = unit;
-        }
-      });
-      localFunctionMap.forEach((Local entity, OutputUnit unit) {
-        // Ensure closure call-methods are included in the output unit
-        // corresponding to the local function.
-        if (entity is KLocalFunction) {
-          var closureInfo = _closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.callMethod] = unit;
-        }
-      });
-      return result;
-    }
-
-    ConstantValue toBackendConstant(ConstantValue constant) {
-      return constant.accept(new ConstantConverter(toBackendEntity), null);
-    }
-
-    return new OutputUnitData.from(
-        data,
-        convertClassMap,
-        convertMemberMap,
-        (m) => convertMap<ConstantValue, OutputUnit>(
-            m, toBackendConstant, (v) => v));
+        closedWorld, strategy.closureModels, outputUnitData);
   }
 
   @override
   Sorter get sorter {
     return _sorter ??= new KernelSorter(elementMap);
   }
-
-  @override
-  ClosureConversionTask get closureDataLookup => _closureDataLookup;
 
   @override
   SourceInformationStrategy get sourceInformationStrategy {
@@ -197,8 +116,7 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilder(
-        task, backend.compiler, elementMap, _globalLocalsMap);
+    return new KernelSsaBuilder(task, backend.compiler, elementMap);
   }
 
   @override
@@ -211,15 +129,10 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      JClosedWorld closedWorld,
+      covariant JsClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new CodegenWorldBuilderImpl(
-        elementMap,
-        _globalLocalsMap,
-        closedWorld.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        selectorConstraintsStrategy);
+        closedWorld.elementMap, closedWorld, selectorConstraintsStrategy);
   }
 
   @override
@@ -230,8 +143,7 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   TypesInferrer createTypesInferrer(
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
-    return new TypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorld, inferredDataBuilder);
+    return new TypeGraphInferrer(_compiler, closedWorld, inferredDataBuilder);
   }
 }
 
@@ -240,18 +152,21 @@ class JsClosedWorldBuilder {
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       new ClassHierarchyNodesMap();
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
-  final KernelClosureConversionTask _closureConversionTask;
+  final GlobalLocalsMap _globalLocalsMap;
+  final ClosureDataBuilder _closureDataBuilder;
   final CompilerOptions _options;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(this._elementMap, this._closureConversionTask,
-      this._options, this._abstractValueStrategy);
+  JsClosedWorldBuilder(this._elementMap, this._globalLocalsMap,
+      this._closureDataBuilder, this._options, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
 
   JsClosedWorld _convertClosedWorld(
-      KClosedWorld closedWorld, Map<MemberEntity, ScopeModel> closureModels) {
+      KClosedWorld closedWorld,
+      Map<MemberEntity, ScopeModel> closureModels,
+      OutputUnitData kOutputUnitData) {
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
 
     BackendUsage backendUsage =
@@ -323,15 +238,16 @@ class JsClosedWorldBuilder {
         map.toBackendMemberSet(closedWorld.processedMembers);
 
     RuntimeTypesNeed rtiNeed;
-    // ignore: unused_local_variable
-    Iterable<FunctionEntity> callMethods;
 
+    List<FunctionEntity> callMethods = <FunctionEntity>[];
+    ClosureData closureData;
     if (_options.disableRtiOptimization) {
       rtiNeed = new TrivialRuntimeTypesNeed();
-      callMethods = _closureConversionTask.createClosureEntities(
+      closureData = _closureDataBuilder.createClosureEntities(
           this,
           map.toBackendMemberMap(closureModels, identity),
-          const TrivialClosureRtiNeed());
+          const TrivialClosureRtiNeed(),
+          callMethods);
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
       Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
@@ -353,23 +269,24 @@ class JsClosedWorldBuilder {
 
       RuntimeTypesNeedImpl jRtiNeed =
           _convertRuntimeTypesNeed(map, backendUsage, kernelRtiNeed);
-      callMethods = _closureConversionTask.createClosureEntities(
+      closureData = _closureDataBuilder.createClosureEntities(
           this,
           map.toBackendMemberMap(closureModels, identity),
           new JsClosureRtiNeed(
               jRtiNeed,
               localFunctionsNodesNeedingTypeArguments,
-              localFunctionsNodesNeedingSignature));
+              localFunctionsNodesNeedingSignature),
+          callMethods);
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
         callMethodsNeedingSignature
-            .add(_closureConversionTask.getClosureInfo(node).callMethod);
+            .add(closureData.getClosureInfo(node).callMethod);
       }
       List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
         callMethodsNeedingTypeArguments
-            .add(_closureConversionTask.getClosureInfo(node).callMethod);
+            .add(closureData.getClosureInfo(node).callMethod);
       }
       jRtiNeed.methodsNeedingSignature.addAll(callMethodsNeedingSignature);
       jRtiNeed.methodsNeedingTypeArguments
@@ -401,18 +318,17 @@ class JsClosedWorldBuilder {
         map.toBackendMemberSet(
             closedWorld.annotationsData.assumeDynamicMembers));
 
+    OutputUnitData outputUnitData =
+        _convertOutputUnitData(map, kOutputUnitData, closureData);
+
     return new JsClosedWorld(_elementMap,
-        elementEnvironment: _elementEnvironment,
-        dartTypes: _elementMap.types,
-        commonElements: _commonElements,
-        constantSystem: JavaScriptConstantSystem.only,
         backendUsage: backendUsage,
         noSuchMethodData: noSuchMethodData,
         nativeData: nativeData,
         interceptorData: interceptorData,
         rtiNeed: rtiNeed,
-        classHierarchyNodes: _classHierarchyNodes,
-        classSets: _classSets,
+        classHierarchy: new ClassHierarchyImpl(
+            _elementMap.commonElements, _classHierarchyNodes, _classSets),
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
         // TODO(johnniwinther): Include the call method when we can also
@@ -425,7 +341,10 @@ class JsClosedWorldBuilder {
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         abstractValueStrategy: _abstractValueStrategy,
         allocatorAnalysis: allocatorAnalysis,
-        annotationsData: annotationsData);
+        annotationsData: annotationsData,
+        globalLocalsMap: _globalLocalsMap,
+        closureDataLookup: closureData,
+        outputUnitData: outputUnitData);
   }
 
   BackendUsage _convertBackendUsage(
@@ -636,6 +555,82 @@ class JsClosedWorldBuilder {
 
     return closureClassInfo;
   }
+
+  OutputUnitData _convertOutputUnitData(JsToFrontendMapImpl map,
+      OutputUnitData data, ClosureData closureDataLookup) {
+    Entity toBackendEntity(Entity entity) {
+      if (entity is ClassEntity) return map.toBackendClass(entity);
+      if (entity is MemberEntity) return map.toBackendMember(entity);
+      if (entity is TypedefEntity) return map.toBackendTypedef(entity);
+      if (entity is TypeVariableEntity) {
+        return map.toBackendTypeVariable(entity);
+      }
+      assert(
+          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
+      return map.toBackendLibrary(entity);
+    }
+
+    // Convert front-end maps containing K-class and K-local function keys to a
+    // backend map using J-classes as keys.
+    Map<ClassEntity, OutputUnit> convertClassMap(
+        Map<ClassEntity, OutputUnit> classMap,
+        Map<Local, OutputUnit> localFunctionMap) {
+      var result = <ClassEntity, OutputUnit>{};
+      classMap.forEach((ClassEntity entity, OutputUnit unit) {
+        ClassEntity backendEntity = toBackendEntity(entity);
+        if (backendEntity != null) {
+          // If [entity] isn't used it doesn't have a corresponding backend
+          // entity.
+          result[backendEntity] = unit;
+        }
+      });
+      localFunctionMap.forEach((Local entity, OutputUnit unit) {
+        // Ensure closure classes are included in the output unit corresponding
+        // to the local function.
+        if (entity is KLocalFunction) {
+          var closureInfo = closureDataLookup.getClosureInfo(entity.node);
+          result[closureInfo.closureClassEntity] = unit;
+        }
+      });
+      return result;
+    }
+
+    // Convert front-end maps containing K-member and K-local function keys to
+    // a backend map using J-members as keys.
+    Map<MemberEntity, OutputUnit> convertMemberMap(
+        Map<MemberEntity, OutputUnit> memberMap,
+        Map<Local, OutputUnit> localFunctionMap) {
+      var result = <MemberEntity, OutputUnit>{};
+      memberMap.forEach((MemberEntity entity, OutputUnit unit) {
+        MemberEntity backendEntity = toBackendEntity(entity);
+        if (backendEntity != null) {
+          // If [entity] isn't used it doesn't have a corresponding backend
+          // entity.
+          result[backendEntity] = unit;
+        }
+      });
+      localFunctionMap.forEach((Local entity, OutputUnit unit) {
+        // Ensure closure call-methods are included in the output unit
+        // corresponding to the local function.
+        if (entity is KLocalFunction) {
+          var closureInfo = closureDataLookup.getClosureInfo(entity.node);
+          result[closureInfo.callMethod] = unit;
+        }
+      });
+      return result;
+    }
+
+    ConstantValue toBackendConstant(ConstantValue constant) {
+      return constant.accept(new ConstantConverter(toBackendEntity), null);
+    }
+
+    return new OutputUnitData.from(
+        data,
+        convertClassMap,
+        convertMemberMap,
+        (m) => convertMap<ConstantValue, OutputUnit>(
+            m, toBackendConstant, (v) => v));
+  }
 }
 
 class JsClosedWorld extends ClosedWorldBase {
@@ -644,34 +639,36 @@ class JsClosedWorld extends ClosedWorldBase {
   AbstractValueDomain _abstractValueDomain;
   final JAllocatorAnalysis allocatorAnalysis;
   final AnnotationsData annotationsData;
+  final GlobalLocalsMap globalLocalsMap;
+  final ClosureData closureDataLookup;
+  final OutputUnitData outputUnitData;
 
   JsClosedWorld(this.elementMap,
-      {ElementEnvironment elementEnvironment,
-      DartTypes dartTypes,
-      CommonElements commonElements,
-      ConstantSystem constantSystem,
+      {ConstantSystem constantSystem,
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       this.rtiNeed,
       this.allocatorAnalysis,
       NoSuchMethodData noSuchMethodData,
-      Set<ClassEntity> implementedClasses,
+      Iterable<ClassEntity> implementedClasses,
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Iterable<MemberEntity> processedMembers,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets,
+      Map<ClassEntity, Iterable<ClassEntity>> mixinUses,
+      Map<ClassEntity, Iterable<ClassEntity>> typesImplementedBySubclasses,
+      ClassHierarchy classHierarchy,
       AbstractValueStrategy abstractValueStrategy,
-      this.annotationsData})
+      this.annotationsData,
+      this.globalLocalsMap,
+      this.closureDataLookup,
+      this.outputUnitData})
       : super(
-            elementEnvironment,
-            dartTypes,
-            commonElements,
-            constantSystem,
+            elementMap.elementEnvironment,
+            elementMap.types,
+            elementMap.commonElements,
+            JavaScriptConstantSystem.only,
             nativeData,
             interceptorData,
             backendUsage,
@@ -683,9 +680,7 @@ class JsClosedWorld extends ClosedWorldBase {
             processedMembers,
             mixinUses,
             typesImplementedBySubclasses,
-            classHierarchyNodes,
-            classSets,
-            abstractValueStrategy) {
+            classHierarchy) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
@@ -1037,11 +1032,9 @@ class KernelSsaBuilder implements SsaBuilder {
   final CompilerTask task;
   final Compiler _compiler;
   final JsToElementMap _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
   FunctionInlineCache _inlineCache;
 
-  KernelSsaBuilder(
-      this.task, this._compiler, this._elementMap, this._globalLocalsMap);
+  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
 
   @override
   HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
@@ -1054,11 +1047,9 @@ class KernelSsaBuilder implements SsaBuilder {
           _compiler,
           _elementMap,
           results,
-          _globalLocalsMap,
           closedWorld,
           _compiler.codegenWorldBuilder,
           work.registry,
-          _compiler.backendStrategy.closureDataLookup,
           _compiler.backend.emitter.nativeEmitter,
           _compiler.backend.sourceInformationStrategy,
           _inlineCache);

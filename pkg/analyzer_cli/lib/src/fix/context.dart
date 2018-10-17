@@ -6,10 +6,6 @@ import 'dart:io' as io;
 
 /// The context for dartfix.
 class Context {
-  StringSink get stdout => io.stdout;
-
-  StringSink get stderr => io.stderr;
-
   String get workingDir => io.Directory.current.path;
 
   bool exists(String filePath) =>
@@ -23,8 +19,4 @@ class Context {
   bool isDirectory(String filePath) =>
       io.FileSystemEntity.typeSync(filePath) ==
       io.FileSystemEntityType.directory;
-
-  void print([String text = '']) {
-    stdout.writeln(text);
-  }
 }

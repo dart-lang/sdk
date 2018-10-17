@@ -101,11 +101,11 @@ class RtiEmissionDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, backendStrategy.closureDataLookup)
+            member, compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -113,8 +113,8 @@ class RtiEmissionDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    JsToElementMap elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
@@ -140,7 +140,7 @@ class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
 class RtiMemberEmissionIrComputer extends IrDataExtractor
     with ComputeValueMixin {
   final JsToElementMap _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(

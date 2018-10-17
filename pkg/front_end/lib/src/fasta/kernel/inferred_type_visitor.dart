@@ -108,4 +108,25 @@ class InferredTypeVisitor
   DartType visitNullLiteral(NullLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.nullClass.rawType;
   }
+
+  @override
+  DartType visitPropertyGet(PropertyGet node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
+
+  @override
+  DartType visitRethrow(Rethrow node, TypeInferrerImpl inferrer) {
+    return const BottomType();
+  }
+
+  @override
+  DartType visitStringConcatenation(
+      StringConcatenation node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.stringClass.rawType;
+  }
+
+  @override
+  DartType visitStringLiteral(StringLiteral node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.stringClass.rawType;
+  }
 }

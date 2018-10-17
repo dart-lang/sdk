@@ -9,6 +9,7 @@ import 'dart:collection' show IterableBase, MapBase;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../elements/entities.dart' show ClassEntity;
+import '../elements/indexed.dart' show IndexedClass;
 import '../util/enumset.dart' show EnumSet;
 
 /// Enum for the different kinds of instantiation of a class.
@@ -95,9 +96,9 @@ class ClassHierarchyNode {
   }
 
   final ClassHierarchyNode parentNode;
-  final ClassEntity cls;
   final EnumSet<Instantiation> _mask = new EnumSet<Instantiation>.fromValues(
       const <Instantiation>[Instantiation.UNINSTANTIATED]);
+  final IndexedClass cls;
 
   final int hierarchyDepth;
 

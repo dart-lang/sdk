@@ -4,6 +4,8 @@
 
 library masks;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../../common.dart';
 import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;

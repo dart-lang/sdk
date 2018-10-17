@@ -230,6 +230,9 @@ def ToGnArgs(args, mode, arch, target_os):
                                       gn_args['target_cpu'])
   gn_args['is_clang'] = args.clang and not dont_use_clang
 
+  enable_code_coverage = args.code_coverage and gn_args['is_clang']
+  gn_args['dart_vm_code_coverage'] = enable_code_coverage
+
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
   gn_args['is_msan'] = args.msan and gn_args['is_clang']
   gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
@@ -262,7 +265,11 @@ def ToGnArgs(args, mode, arch, target_os):
     gn_args['use_goma'] = False
     gn_args['goma_dir'] = None
 
-  if args.debug_opt_level:
+  # Code coverage requires -O0 to be set.
+  if enable_code_coverage:
+    gn_args['dart_debug_optimization_level'] = 0
+    gn_args['debug_optimization_level'] = 0
+  elif args.debug_opt_level:
     gn_args['dart_debug_optimization_level'] = args.debug_opt_level
     gn_args['debug_optimization_level'] = args.debug_opt_level
 
@@ -384,6 +391,11 @@ def parse_args(args):
       help='Disable Clang',
       dest='clang',
       action='store_false')
+  other_group.add_argument('--code-coverage',
+      help='Enable code coverage for the standalone VM',
+      default=False,
+      dest="code_coverage",
+      action='store_true')
   other_group.add_argument('--debug-opt-level',
       '-d',
       help='The optimization level to use for debug builds',

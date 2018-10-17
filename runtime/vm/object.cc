@@ -11338,8 +11338,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
     if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
         !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                             Object::null_type_arguments(), NULL)) {
-      const String& field_name = String::Handle(setter_type.Name());
-      return ThrowTypeError(field.token_pos(), value, setter_type, field_name);
+      return ThrowTypeError(field.token_pos(), value, setter_type, setter_name);
     }
     if (field.is_final() || (respect_reflectable && !field.is_reflectable())) {
       const int kNumArgs = 1;
@@ -11375,7 +11374,6 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
       !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                           Object::null_type_arguments(), NULL)) {
-    const String& setter_name = String::Handle(setter_type.Name());
     return ThrowTypeError(setter.token_pos(), value, setter_type, setter_name);
   }
 

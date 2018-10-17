@@ -113,6 +113,7 @@ issue34636_test: MissingCompileTimeError
 label_test: RuntimeError
 large_class_declaration_test: Slow, Pass
 left_shift_test: RuntimeError # Ints and doubles are unified.
+mixin_declaration/mixin_declaration_factory_test/02: Crash
 mixin_declaration/mixin_declaration_inference_invalid_03_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_04_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167
 mixin_declaration/mixin_declaration_inference_invalid_05_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/34167

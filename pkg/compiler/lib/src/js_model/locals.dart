@@ -18,8 +18,9 @@ import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
 
 class GlobalLocalsMap {
-  Map<MemberEntity, KernelToLocalsMap> _localsMaps =
-      <MemberEntity, KernelToLocalsMap>{};
+  final Map<MemberEntity, KernelToLocalsMap> _localsMaps;
+
+  GlobalLocalsMap() : _localsMaps = {};
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
@@ -47,12 +48,13 @@ class GlobalLocalsMap {
 }
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
-  final MemberEntity currentMember;
+  MemberEntity _currentMember;
   final EntityDataMap<JLocal, LocalData> _locals =
       new EntityDataMap<JLocal, LocalData>();
-  Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
+  Map<ir.VariableDeclaration, JLocal> _variableMap =
+      <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
-  Set<ir.BreakStatement> _breaksAsContinue;
+  Iterable<ir.BreakStatement> _breaksAsContinue;
 
   // TODO(johnniwinther): Compute this eagerly from the root of the member.
   void _ensureJumpMap(ir.TreeNode node) {
@@ -70,8 +72,9 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     }
   }
 
-  KernelToLocalsMapImpl(this.currentMember);
+  KernelToLocalsMapImpl(this._currentMember);
 
+  MemberEntity get currentMember => _currentMember;
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
     _ensureJumpMap(node.target);
@@ -137,7 +140,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
-    return _map.putIfAbsent(node, () {
+    return _variableMap.putIfAbsent(node, () {
       JLocal local = new JLocal(node.name, currentMember,
           isRegularParameter: node.parent is ir.FunctionNode);
       _locals.register<JLocal, LocalData>(local, new LocalData(node));
