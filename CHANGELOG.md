@@ -156,8 +156,9 @@ a InstanceTypeError if the instance isn't of the class expected
 
 #### Linter
 
-Bumped the linter to `0.1.68` which includes the following new lints:
+Bumped the linter to `0.1.69` which includes the following new lints:
 
+* `avoid_returning_null_for_void`
 * `sort_pub_dependencies`
 * `prefer_mixin`
 * `avoid_implementing_value_types`
@@ -167,6 +168,8 @@ Bumped the linter to `0.1.68` which includes the following new lints:
 
 and improvements:
 
+* improved message display for `await_only_futures`
+* performance improvements for `null_closures`
 * mixin support
 * update to `sort_constructors_first` to apply to all members
 * update `unnecessary_this` to work on field initializers
