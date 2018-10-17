@@ -1111,8 +1111,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Process a unit element signature request for a part.
     if (_unitElementSignatureParts.isNotEmpty) {
       String path = _unitElementSignatureParts.keys.first;
-      var signature = await _computeUnitElementSignature(path,
-          asIsIfPartWithoutLibrary: true);
+      var signature =
+          _computeUnitElementSignature(path, asIsIfPartWithoutLibrary: true);
       _unitElementSignatureParts.remove(path).forEach((completer) {
         completer.complete(signature);
       });
