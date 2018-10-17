@@ -154,6 +154,30 @@ a InstanceTypeError if the instance isn't of the class expected
 
 ### Tool Changes
 
+#### Linter
+
+Bumped the linter to `0.1.68` which includes the following new lints:
+
+* `sort_pub_dependencies`
+* `prefer_mixin`
+* `avoid_implementing_value_types`
+* `flutter_style_todos`
+* `avoid_void_async`
+* `prefer_void_to_null`
+
+and improvements:
+
+* mixin support
+* update to `sort_constructors_first` to apply to all members
+* update `unnecessary_this` to work on field initializers
+* updated `unawaited_futures` to ignore assignments within cascades
+* improved handling of constant expressions with generic type params
+* NPE fix for `invariant_booleans`
+* improved docs for `unawaited_futures`
+* `unawaited_futures` updated to check cascades
+* relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
+* fixed false positives in `lines_longer_than_80_chars`
+
 #### Pub
 
 #### dart2js
