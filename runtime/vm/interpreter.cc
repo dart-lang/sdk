@@ -1101,6 +1101,7 @@ void Interpreter::InlineCacheMiss(int checked_args,
                                   RawObject** FP,
                                   RawObject** SP) {
   RawObject** result = top;
+  top[0] = 0;  // Clean up result slot.
   RawObject** miss_handler_args = top + 1;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
