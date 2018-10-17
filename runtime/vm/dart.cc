@@ -394,19 +394,6 @@ char* Dart::Cleanup() {
 
   NativeSymbolResolver::Cleanup();
 
-  {
-    // Set the VM isolate as current isolate when shutting down
-    // Metrics so that we can use a StackZone.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
-                   UptimeMillis());
-    }
-    bool result = Thread::EnterIsolate(vm_isolate_);
-    ASSERT(result);
-    NOT_IN_PRODUCT(Metric::Cleanup());
-    Thread::ExitIsolate();
-  }
-
   // Disable the creation of new isolates.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling isolate creation\n",
@@ -454,6 +441,27 @@ char* Dart::Cleanup() {
   WaitForIsolateShutdown();
 
   IdleNotifier::Stop();
+
+#if !defined(PRODUCT)
+  {
+    // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
+    // create a StackZone. We *must* wait for all other isolate to shutdown
+    // before entering VM isolate because code in the isolate initialization
+    // calls VerifyBootstrapClasses, which calls Heap::Verify which calls
+    // Scavenger::VisitObjects on the VM isolate's new space without taking
+    // any sort of locks: assuming that vm isolate is immutable and never
+    // entered by a mutator thread - which is in general true, but is violated
+    // by the code below.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
+                   UptimeMillis());
+    }
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
+    Metric::Cleanup();
+    Thread::ExitIsolate();
+  }
+#endif
 
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
