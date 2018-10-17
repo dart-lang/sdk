@@ -590,27 +590,15 @@ class LibraryAnalyzer {
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    unit.accept(new PartialResolverVisitor(
-      _inheritance,
-      _libraryElement,
-      source,
-      _typeProvider,
-      AnalysisErrorListener.NULL_LISTENER,
-      forAnalysisDriver: true,
-    ));
+    unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
+        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-      _inheritance,
-      _libraryElement,
-      source,
-      _typeProvider,
-      errorListener,
-      forAnalysisDriver: true,
-    ));
+        _inheritance, _libraryElement, source, _typeProvider, errorListener));
   }
 
   /**
