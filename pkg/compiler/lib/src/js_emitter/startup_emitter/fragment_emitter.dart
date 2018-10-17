@@ -176,6 +176,12 @@ function convertToFastObject(properties) {
   return properties;
 }
 
+function convertAllToFastObject(arrayOfObjects) {
+  for (var i = 0; i < arrayOfObjects.length; ++i) {
+    convertToFastObject(arrayOfObjects[i]);
+  }
+}
+
 // This variable is used by the tearOffCode to guarantee unique functions per
 // tear-offs.
 var functionCounter = 0;
@@ -361,6 +367,9 @@ var #staticStateDeclaration = {};
 
 // Sets up the js-interop support.
 #jsInteropSupport;
+
+// Ensure holders are in fast mode, now we have finished adding things.
+convertAllToFastObject(holders);
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
