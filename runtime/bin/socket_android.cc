@@ -106,8 +106,8 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     // ignore reusePort - not supported on this platform.
     Log::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
-        "Android." __FILE__,
-        __LINE__);
+        "Android.",
+        __FILE__, __LINE__);
   }
 
   VOID_NO_RETRY_EXPECTED(
