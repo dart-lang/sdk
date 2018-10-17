@@ -1374,19 +1374,6 @@ class StaticInvocationJudgment extends StaticInvocation
   }
 }
 
-/// Type inference derivation for [StringLiteral].
-class StringLiteralJudgment extends StringLiteral
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StringLiteralJudgment(String value) : super(value);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStringLiteralJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a super initializer in kernel form.
 class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {

@@ -124,4 +124,9 @@ class InferredTypeVisitor
       StringConcatenation node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.stringClass.rawType;
   }
+
+  @override
+  DartType visitStringLiteral(StringLiteral node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.stringClass.rawType;
+  }
 }

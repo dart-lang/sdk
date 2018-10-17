@@ -1087,11 +1087,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
   }
 
-  void visitStringLiteralJudgment(
-      StringLiteralJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.coreTypes.stringClass.rawType;
-    return null;
-  }
+  @override
+  void visitStringLiteral(StringLiteral node, DartType typeContext) {}
 
   void visitSuperInitializerJudgment(SuperInitializerJudgment node) {
     var substitution = Substitution.fromSupertype(inferrer.classHierarchy

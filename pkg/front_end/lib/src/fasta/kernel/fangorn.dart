@@ -35,6 +35,7 @@ import 'package:kernel/ast.dart'
         Rethrow,
         Statement,
         StringConcatenation,
+        StringLiteral,
         ThisExpression,
         TreeNode,
         VariableDeclaration,
@@ -95,7 +96,6 @@ import 'kernel_shadow_ast.dart'
         MapLiteralJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
-        StringLiteralJudgment,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
         ThrowJudgment,
@@ -154,7 +154,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  StringLiteralJudgment asLiteralString(Expression value) => value;
+  StringLiteral asLiteralString(Expression value) => value;
 
   @override
   BoolLiteral literalBool(bool value, Token token) {
@@ -216,8 +216,8 @@ class Fangorn extends Forest {
   }
 
   @override
-  StringLiteralJudgment literalString(String value, Token token) {
-    return new StringLiteralJudgment(value)..fileOffset = offsetForToken(token);
+  StringLiteral literalString(String value, Token token) {
+    return new StringLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
