@@ -940,6 +940,35 @@ true
       expect(await starter(args), 0);
     });
 
+    test('compile "package:"-file', () async {
+      Directory lib = new Directory('${tempDir.path}/lib')..createSync();
+      new File('${lib.path}/foo.dart')
+        ..createSync()
+        ..writeAsStringSync("main() {}\n");
+      File packages = new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync('test:lib/\n');
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      var depFile = new File('${tempDir.path}/the depfile');
+      expect(depFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--depfile=${depFile.path}',
+        '--packages=${packages.path}',
+        'package:test/foo.dart'
+      ];
+      expect(await starter(args), 0);
+      expect(depFile.existsSync(), true);
+      var depContents = depFile.readAsStringSync();
+      var depContentsParsed = depContents.split(': ');
+      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
+      expect(depContentsParsed[1], isNotEmpty);
+    });
+
     test('compile and produce deps file', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
