@@ -1,3 +1,9 @@
+# 0.1.69
+
+* improved message display for `await_only_futures`
+* performance improvements for `null_closures`
+* new lint: `avoid_returning_null_for_void`
+
 # 0.1.68
 
 * updated analyzer compatibility to `^0.33.0`
