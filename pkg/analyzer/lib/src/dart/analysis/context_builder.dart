@@ -55,10 +55,12 @@ class ContextBuilderImpl implements ContextBuilder {
       {@deprecated ByteStore byteStore,
       @required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
+      @deprecated FileContentOverlay fileContentOverlay,
       @deprecated PerformanceLog performanceLog,
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath}) {
     byteStore ??= new MemoryByteStore();
+    fileContentOverlay ??= new FileContentOverlay();
     performanceLog ??= new PerformanceLog(new StringBuffer());
 
     sdkPath ??= _defaultSdkPath;
@@ -85,7 +87,7 @@ class ContextBuilderImpl implements ContextBuilder {
         options: options);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = byteStore;
-    builder.fileContentOverlay = new FileContentOverlay();
+    builder.fileContentOverlay = fileContentOverlay;
     builder.performanceLog = performanceLog;
 
     old.ContextRoot oldContextRoot = new old.ContextRoot(
