@@ -19,8 +19,6 @@ issue34488_test/05: Fail # Issue 34488
 issue34488_test/06: Fail # Issue 34488
 issue34488_test/none: Fail # Issue 34488
 mixin_class_from_core_library_test: Fail # Issue 34488
-mixin_declaration/mixin_declaration_inference_valid_mixin_applications_test: Fail # Issue #34783
-mixin_deduplication_test: Fail # Issue #34783
 nested_generic_closure_test: Fail # Issue 28515
 
 [ $compiler != compare_analyzer_cfe ]
