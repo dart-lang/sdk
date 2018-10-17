@@ -1077,15 +1077,14 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitStringConcatenationJudgment(
-      StringConcatenationJudgment node, DartType typeContext) {
+  @override
+  void visitStringConcatenation(
+      StringConcatenation node, DartType typeContext) {
     if (!inferrer.isTopLevel) {
       for (var expression in node.expressions) {
         inferrer.inferExpression(expression, const UnknownType(), false);
       }
     }
-    node.inferredType = inferrer.coreTypes.stringClass.rawType;
-    return null;
   }
 
   void visitStringLiteralJudgment(

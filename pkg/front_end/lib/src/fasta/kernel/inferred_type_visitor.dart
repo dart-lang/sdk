@@ -118,4 +118,10 @@ class InferredTypeVisitor
   DartType visitRethrow(Rethrow node, TypeInferrerImpl inferrer) {
     return const BottomType();
   }
+
+  @override
+  DartType visitStringConcatenation(
+      StringConcatenation node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.stringClass.rawType;
+  }
 }

@@ -34,6 +34,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         Rethrow,
         Statement,
+        StringConcatenation,
         ThisExpression,
         TreeNode,
         VariableDeclaration,
@@ -94,7 +95,6 @@ import 'kernel_shadow_ast.dart'
         MapLiteralJudgment,
         ReturnJudgment,
         ShadowLargeIntLiteral,
-        StringConcatenationJudgment,
         StringLiteralJudgment,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
@@ -456,7 +456,7 @@ class Fangorn extends Forest {
   @override
   Expression stringConcatenationExpression(
       List<Expression> expressions, Token token) {
-    return new StringConcatenationJudgment(expressions)
+    return new StringConcatenation(expressions)
       ..fileOffset = offsetForToken(token);
   }
 

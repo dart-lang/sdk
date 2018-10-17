@@ -1374,20 +1374,6 @@ class StaticInvocationJudgment extends StaticInvocation
   }
 }
 
-/// Concrete shadow object representing a string concatenation in kernel form.
-class StringConcatenationJudgment extends StringConcatenation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StringConcatenationJudgment(List<Expression> expressions)
-      : super(expressions);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStringConcatenationJudgment(this, typeContext);
-  }
-}
-
 /// Type inference derivation for [StringLiteral].
 class StringLiteralJudgment extends StringLiteral
     implements ExpressionJudgment {
