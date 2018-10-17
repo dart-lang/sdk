@@ -891,9 +891,13 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Added noSuchMethod forwarders");
   }
 
-  void checkMixinApplications(List<SourceClassBuilder> sourceClasses) {
+  void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
+        if (builder.isMixinDeclaration) {
+          builder.checkMixinDeclaration();
+        }
+
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy);
