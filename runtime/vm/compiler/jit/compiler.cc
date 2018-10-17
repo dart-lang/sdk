@@ -675,6 +675,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     }
     function.set_unoptimized_code(code);
     function.AttachCode(code);
+    function.SetWasCompiled(true);
   }
   if (parsed_function()->HasDeferredPrefixes()) {
     ASSERT(!FLAG_load_deferred_eagerly);
@@ -947,11 +948,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
-    if (!result.IsNull()) {
-      if (!optimized) {
-        function.SetWasCompiled(true);
-      }
-    } else {
+    if (result.IsNull()) {
       if (Compiler::IsBackgroundCompilation()) {
         // Try again later, background compilation may abort because of
         // state change during compilation.
@@ -1216,7 +1213,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // If running with interpreter, do the unoptimized compilation first.
   const bool optimized = !FLAG_enable_interpreter ||
-                         (function.unoptimized_code() != Object::null());
+                         ((function.unoptimized_code() != Object::null()) &&
+                          function.WasCompiled());
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
