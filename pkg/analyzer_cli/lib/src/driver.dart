@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
@@ -165,7 +166,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   @override
-  Future<Null> start(List<String> args) async {
+  Future<Null> start(List<String> args, {SendPort sendPort}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (analysisDriver != null) {
@@ -191,7 +192,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     // Do analysis.
     if (options.buildMode) {
-      ErrorSeverity severity = await _buildModeAnalyze(options);
+      ErrorSeverity severity = await _buildModeAnalyze(options, sendPort);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
@@ -436,15 +437,22 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   /// Perform analysis in build mode according to the given [options].
-  Future<ErrorSeverity> _buildModeAnalyze(CommandLineOptions options) async {
+  ///
+  /// If [sendPort] is provided it is used for bazel worker communication
+  /// instead of stdin/stdout.
+  Future<ErrorSeverity> _buildModeAnalyze(
+      CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       if (options.buildModePersistentWorker) {
-        await new AnalyzerWorkerLoop.std(resourceProvider,
+        var workerLoop = sendPort == null
+            ? new AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
-            .run();
+            : new AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+                dartSdkPath: options.dartSdkPath);
+        await workerLoop.run();
         return ErrorSeverity.NONE;
       } else {
         return await new BuildMode(resourceProvider, options, stats,
