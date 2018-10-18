@@ -66,10 +66,12 @@ const uint8_t* isolate_snapshot_data = NULL;
 const uint8_t* isolate_snapshot_instructions = NULL;
 
 // Global state that indicates whether a snapshot is to be created and
-// if so which file to write the snapshot into.
+// if so which file to write the snapshot into. The ordering of this list must
+// match kSnapshotKindNames below.
 enum SnapshotKind {
   kCore,
   kCoreJIT,
+  kCoreJITAll,
   kAppJIT,
   kAppAOTBlobs,
   kAppAOTAssembly,
@@ -91,14 +93,17 @@ static bool ProcessEnvironmentOption(const char* arg,
                                                    &environment);
 }
 
+// The ordering of this list must match the SnapshotKind enum above.
 static const char* kSnapshotKindNames[] = {
+    // clang-format off
     "core",
     "core-jit",
+    "core-jit-all",
     "app-jit",
     "app-aot-blobs",
     "app-aot-assembly",
-    "vm-aot-assembly",
-    NULL,
+    "vm-aot-assembly", NULL,
+    // clang-format on
 };
 
 #define STRING_OPTIONS_LIST(V)                                                 \
@@ -289,6 +294,7 @@ static int ParseArguments(int argc,
       }
       break;
     }
+    case kCoreJITAll:
     case kCoreJIT: {
       if ((vm_snapshot_data_filename == NULL) ||
           (vm_snapshot_instructions_filename == NULL) ||
@@ -461,6 +467,7 @@ class DependenciesFileWriter : public ValueObject {
         WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
+      case kCoreJITAll:
       case kCoreJIT:
         WriteDependenciesWithTarget(vm_snapshot_data_filename);
         // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
@@ -569,6 +576,13 @@ static void LoadCompilationTrace() {
   }
 }
 
+static void CompileAll() {
+  if (snapshot_kind == kCoreJITAll) {
+    Dart_Handle result = Dart_CompileAll();
+    CHECK_RESULT(result);
+  }
+}
+
 static void CreateAndWriteCoreSnapshot() {
   ASSERT(snapshot_kind == kCore);
   ASSERT(vm_snapshot_data_filename != NULL);
@@ -625,7 +639,7 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
 }
 
 static void CreateAndWriteCoreJITSnapshot() {
-  ASSERT(snapshot_kind == kCoreJIT);
+  ASSERT((snapshot_kind == kCoreJIT) || (snapshot_kind == kCoreJITAll));
   ASSERT(vm_snapshot_data_filename != NULL);
   ASSERT(vm_snapshot_instructions_filename != NULL);
   ASSERT(isolate_snapshot_data_filename != NULL);
@@ -886,6 +900,10 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
     case kCore:
       CreateAndWriteCoreSnapshot();
       break;
+    case kCoreJITAll:
+      CompileAll();
+      CreateAndWriteCoreJITSnapshot();
+      break;
     case kCoreJIT:
       LoadBytecode();
       LoadCompilationTrace();
@@ -976,7 +994,8 @@ int main(int argc, char** argv) {
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   }
-  if (snapshot_kind == kCoreJIT || snapshot_kind == kAppJIT) {
+  if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
+      (snapshot_kind == kAppJIT)) {
     vm_options.AddArgument("--fields_may_be_reset");
     vm_options.AddArgument("--link_natives_lazily");
 #if !defined(PRODUCT)
