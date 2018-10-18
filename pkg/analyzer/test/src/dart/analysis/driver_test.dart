@@ -1435,7 +1435,6 @@ class Test {}
     // We can resynthesize the library from the store without reading the file.
     AnalysisDriver driver =
         createAnalysisDriver(externalSummaries: summaryStore);
-    expect(driver.test.numOfCreatedLibraryContexts, 0);
     LibraryElement library = await driver.getLibraryByUri(uri);
     expect(library.getType('Test'), isNotNull);
   }
@@ -1448,11 +1447,9 @@ class Test {}
   }
 
   test_getLibraryByUri_sdk_resynthesize() async {
-    SummaryDataStore sdkStore;
-    {
-      String corePath = sdk.mapDartUri('dart:core').fullName;
-      sdkStore = await createAnalysisDriver().test.getSummaryStore(corePath);
-    }
+    String corePath = sdk.mapDartUri('dart:core').fullName;
+    String asyncPath = sdk.mapDartUri('dart:async').fullName;
+    var sdkStore = await createAnalysisDriver().test.getSummaryStore(corePath);
 
     // There are dart:core and dart:async in the store.
     expect(sdkStore.unlinkedMap.keys, contains('dart:core'));
@@ -1460,12 +1457,14 @@ class Test {}
     expect(sdkStore.linkedMap.keys, contains('dart:core'));
     expect(sdkStore.linkedMap.keys, contains('dart:async'));
 
-    // We don't create new library context (so, don't parse, summarize and
-    // link) for dart:core. The library is resynthesized from the provided
-    // external store.
+    // Remove dart:core and dart:async.
+    // So, the new driver below cannot parse and summarize them.
+    provider.deleteFile(corePath);
+    provider.deleteFile(asyncPath);
+
+    // We still get get dart:core library element.
     AnalysisDriver driver = createAnalysisDriver(externalSummaries: sdkStore);
     LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
-    expect(driver.test.numOfCreatedLibraryContexts, 0);
     expect(coreLibrary, isNotNull);
     expect(coreLibrary.getType('Object'), isNotNull);
   }

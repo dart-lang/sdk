@@ -319,6 +319,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisSessionImpl _currentSession;
 
   /**
+   * The current library context, consistent with the [_currentSession].
+   *
+   * TODO(scheglov) We probably should tie it into the session.
+   */
+  LibraryContext _libraryContext;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -509,6 +516,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
+    _libraryContext = null;
     return AnalysisDriverPriority.nothing;
   }
 
@@ -703,10 +711,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<LibraryElement> getLibraryByUri(String uri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    if (_externalSummaries != null && _externalSummaries.hasUnlinkedUnit(uri)) {
-      return LibraryContext.resynthesizeLibraryElement(analysisOptions,
-          declaredVariables, sourceFactory, _externalSummaries, uri);
-    }
     Source source = sourceFactory.resolveUri(null, uri);
     UnitElementResult unitResult = await getUnitElement(source.fullName);
     return unitResult.element.library;
@@ -1119,6 +1123,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
+    _libraryContext = null;
     _priorityResults.clear();
   }
 
@@ -1127,6 +1132,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _changeFile(String path) {
     _fileTracker.changeFile(path);
+    _libraryContext = null;
     _priorityResults.clear();
   }
 
@@ -1136,6 +1142,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _changeHook() {
     _createNewSession();
+    _libraryContext = null;
     _priorityResults.clear();
     _scheduler.notify(this);
   }
@@ -1335,16 +1342,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Return the context in which the [library] should be analyzed.
    */
   LibraryContext _createLibraryContext(FileState library) {
-    _testView.numOfCreatedLibraryContexts++;
-    return new LibraryContext.forSingleLibrary(
-        library,
-        _logger,
-        _byteStore,
-        _analysisOptions,
-        declaredVariables,
-        _sourceFactory,
-        _externalSummaries,
-        fsState);
+    if (_libraryContext != null) {
+      if (_libraryContext.pack()) {
+        _libraryContext = null;
+      }
+    }
+
+    if (_libraryContext == null) {
+      _libraryContext = new LibraryContext(
+        logger: _logger,
+        fsState: fsState,
+        byteStore: _byteStore,
+        analysisOptions: _analysisOptions,
+        declaredVariables: declaredVariables,
+        sourceFactory: _sourceFactory,
+        externalSummaries: _externalSummaries,
+        targetLibrary: library,
+      );
+    } else {
+      _libraryContext.load(library);
+    }
+    return _libraryContext;
   }
 
   /**
@@ -1859,8 +1877,6 @@ class AnalysisDriverScheduler {
 @visibleForTesting
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
-
-  int numOfCreatedLibraryContexts = 0;
 
   int numOfAnalyzedLibraries = 0;
 
