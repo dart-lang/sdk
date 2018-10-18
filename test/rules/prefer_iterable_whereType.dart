@@ -32,6 +32,7 @@ class A {
   m() {
     final o = new A();
     o.where(); // OK
+    where(); // OK
   }
 }
 class B {
@@ -40,5 +41,6 @@ class B {
   m() {
     final o = new B();
     o.where((e) => false); // OK
+    where((e) => false); // OK
   }
 }
