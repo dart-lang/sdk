@@ -99,11 +99,12 @@ class Server {
    * Find the root directory of the analysis_server package by proceeding
    * upward to the 'test' dir, and then going up one more directory.
    */
-  String findRoot(String pathname) {
+  static String findRoot([String pathname]) {
+    pathname ??= Platform.script.toFilePath(windows: Platform.isWindows);
     while (true) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        return null;
       }
       String name = basename(pathname);
       if (['benchmark', 'test'].contains(name)) {
@@ -258,8 +259,10 @@ class Server {
             'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
       }
     } else {
-      String rootDir =
-          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      String rootDir = Server.findRoot();
+      if (rootDir == null) {
+        throw new Exception("Can't find analysis server root directory");
+      }
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 

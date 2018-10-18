@@ -15,9 +15,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
-// For development
-const runAnalysisServerFromSource = false;
-
 class Driver {
   Context context;
   Logger logger;
@@ -30,6 +27,13 @@ class Driver {
   List<String> targets;
 
   Ansi get ansi => logger.ansi;
+
+  bool get runAnalysisServerFromSource {
+    // Automatically run analysis server from source
+    // if this command line tool is being run from source
+    // within the source tree.
+    return Server.findRoot() != null;
+  }
 
   Future start(List<String> args) async {
     final Options options = Options.parse(args);
