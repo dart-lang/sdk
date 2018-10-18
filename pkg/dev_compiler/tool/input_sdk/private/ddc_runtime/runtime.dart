@@ -154,3 +154,31 @@ bool startAsyncSynchronously = true;
 void setStartAsyncSynchronously([bool value = true]) {
   startAsyncSynchronously = value;
 }
+
+/// A list of all JS Maps used for caching results, such as by [isSubtypeOf] and
+/// [generic].
+///
+/// This is used by [hotRestart] to ensure we don't leak types from previous
+/// libraries.
+@notNull
+final List<Object> _cacheMaps = JS('!', '[]');
+
+/// A list of functions to reset static fields back to their uninitialized
+/// state.
+///
+/// This is populated by [defineLazyField].
+@notNull
+final List<void Function()> _resetFields = JS('', '[]');
+
+/// Clears out runtime state in `dartdevc` so we can hot-restart.
+///
+/// This should be called when the user requests a hot-restart, when the UI is
+/// handling that user action.
+void hotRestart() {
+  for (var f in _resetFields) f();
+  _resetFields.clear();
+  for (var m in _cacheMaps) JS('', '#.clear()', m);
+  _cacheMaps.clear();
+  JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', _ignoreSubtypeCache);
+}

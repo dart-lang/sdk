@@ -127,6 +127,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     $throwInternalError('must have at least one generic type argument');
   }
   let resultMap = new Map();
+  $_cacheMaps.push(resultMap);
   function makeGenericType(...args) {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
@@ -446,7 +447,7 @@ definePrimitiveHashCode(proto) {
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);
-  // We use __proto__ to track the superclass hierarchy (see isSubtype).
+  // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
   JS('', '#.__proto__ = #', derived, base);
 }
 
