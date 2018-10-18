@@ -5232,6 +5232,9 @@ Language/Types/Interface_Types/subtype_t21: RuntimeError
 Language/Types/Interface_Types/subtype_t23: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t05: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t10: RuntimeError, Pass
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t05: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t02: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A53_t01: RuntimeError
