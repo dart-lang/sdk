@@ -1,3 +1,7 @@
+# 0.1.70
+
+* fix NPE in `prefer_iterable_whereType`
+
 # 0.1.69
 
 * improved message display for `await_only_futures`
