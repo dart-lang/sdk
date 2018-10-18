@@ -16,7 +16,8 @@ import '../fasta_codes.dart'
         messageExpectedHexDigit,
         messageMissingExponent,
         messageUnexpectedDollarInString,
-        messageUnterminatedComment;
+        messageUnterminatedComment,
+        templateUnterminatedString;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -1241,8 +1242,16 @@ abstract class AbstractScanner implements Scanner {
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
     // Ensure that the error is reported on a visible token
     int errorStart = tokenStart < stringOffset ? tokenStart : quoteStart;
-    appendErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
+    if (reportErrors) {
+      addError(errorStart, stringOffset - errorStart,
+          templateUnterminatedString.withArguments(prefix, suffix));
+    } else {
+      appendErrorToken(
+          new UnterminatedString(prefix, errorStart, stringOffset));
+    }
   }
+
+  void addError(int charOffset, int length, Message message);
 
   int advanceAfterError(bool shouldAdvance) {
     if (atEndOfFile()) return $EOF;
