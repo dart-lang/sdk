@@ -410,9 +410,12 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
   sample->Clear();
 }
 
-static void DumpStackFrame(intptr_t frame_index, uword pc) {
+static void DumpStackFrame(intptr_t frame_index,
+                           uword pc,
+                           bool try_symbolize_dart_frames) {
   Thread* thread = Thread::Current();
-  if ((thread != NULL) && !thread->IsAtSafepoint()) {
+  if ((thread != NULL) && !thread->IsAtSafepoint() &&
+      try_symbolize_dart_frames) {
     Isolate* isolate = thread->isolate();
     if ((isolate != NULL) && isolate->is_runnable()) {
       // Only attempt to symbolize Dart frames if we can safely iterate the
@@ -443,14 +446,16 @@ class ProfilerStackWalker : public ValueObject {
   ProfilerStackWalker(Dart_Port port_id,
                       Sample* head_sample,
                       SampleBuffer* sample_buffer,
-                      intptr_t skip_count = 0)
+                      intptr_t skip_count = 0,
+                      bool try_symbolize_dart_frames = true)
       : port_id_(port_id),
         sample_(head_sample),
         sample_buffer_(sample_buffer),
         skip_count_(skip_count),
         frames_skipped_(0),
         frame_index_(0),
-        total_frames_(0) {
+        total_frames_(0),
+        try_symbolize_dart_frames_(try_symbolize_dart_frames) {
     if (sample_ == NULL) {
       ASSERT(sample_buffer_ == NULL);
     } else {
@@ -466,7 +471,7 @@ class ProfilerStackWalker : public ValueObject {
     }
 
     if (sample_ == NULL) {
-      DumpStackFrame(frame_index_, pc);
+      DumpStackFrame(frame_index_, pc, try_symbolize_dart_frames_);
       frame_index_++;
       total_frames_++;
       return true;
@@ -501,6 +506,7 @@ class ProfilerStackWalker : public ValueObject {
   intptr_t frames_skipped_;
   intptr_t frame_index_;
   intptr_t total_frames_;
+  const bool try_symbolize_dart_frames_;
 };
 
 // Executing Dart code, walk the stack.
@@ -714,8 +720,13 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
                             uword pc,
                             uword fp,
                             uword sp,
-                            intptr_t skip_count = 0)
-      : ProfilerStackWalker(port_id, sample, sample_buffer, skip_count),
+                            intptr_t skip_count = 0,
+                            bool try_symbolize_dart_frames = true)
+      : ProfilerStackWalker(port_id,
+                            sample,
+                            sample_buffer,
+                            skip_count,
+                            try_symbolize_dart_frames),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -1050,7 +1061,7 @@ static bool CheckIsolate(Isolate* isolate) {
 
 void Profiler::DumpStackTrace(void* context) {
   if (context == NULL) {
-    DumpStackTrace();
+    DumpStackTrace(/*for_crash=*/true);
     return;
   }
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
@@ -1059,7 +1070,7 @@ void Profiler::DumpStackTrace(void* context) {
   uword pc = SignalHandler::GetProgramCounter(mcontext);
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
-  DumpStackTrace(sp, fp, pc, true /* for_crash */);
+  DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
 #elif defined(HOST_OS_WINDOWS)
   CONTEXT* ctx = reinterpret_cast<CONTEXT*>(context);
 #if defined(HOST_ARCH_IA32)
@@ -1073,7 +1084,7 @@ void Profiler::DumpStackTrace(void* context) {
 #else
 #error Unsupported architecture.
 #endif
-  DumpStackTrace(sp, fp, pc, true /* for_crash */);
+  DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
 #else
 // TODO(fschneider): Add support for more platforms.
 // Do nothing on unsupported platforms.
@@ -1122,7 +1133,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp);
+      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp,
+      /*skip_count=*/0,
+      /*try_symbolize_dart_frames=*/!for_crash);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 }
