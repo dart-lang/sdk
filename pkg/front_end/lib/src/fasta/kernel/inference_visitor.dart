@@ -113,14 +113,10 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.condition,
         node.condition.fileOffset);
     inferrer.inferExpression(then, typeContext, true, isVoidAllowed: true);
-    bool useLub = _forceLub || typeContext == null;
-    inferrer.inferExpression(otherwise, typeContext, useLub,
-        isVoidAllowed: true);
-    DartType inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(
-            getInferredType(then, inferrer),
-            getInferredType(otherwise, inferrer))
-        : greatestClosure(inferrer.coreTypes, typeContext);
+    inferrer.inferExpression(otherwise, typeContext, true, isVoidAllowed: true);
+    DartType inferredType = inferrer.typeSchemaEnvironment
+        .getStandardUpperBound(getInferredType(then, inferrer),
+            getInferredType(otherwise, inferrer));
     if (inferrer.strongMode) {
       node.staticType = inferredType;
     }
@@ -428,21 +424,19 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
-    bool useLub = _forceLub || typeContext is UnknownType;
     if (typeContext is UnknownType) {
       inferrer.inferExpression(rightJudgment, lhsType, true,
           isVoidAllowed: true);
     } else {
-      inferrer.inferExpression(rightJudgment, typeContext, _forceLub,
+      inferrer.inferExpression(rightJudgment, typeContext, true,
           isVoidAllowed: true);
     }
     var rhsType = getInferredType(rightJudgment, inferrer);
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    node.inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType)
-        : greatestClosure(inferrer.coreTypes, typeContext);
+    node.inferredType =
+        inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType);
     if (inferrer.strongMode) {
       node.body.staticType = getInferredType(node, inferrer);
     }

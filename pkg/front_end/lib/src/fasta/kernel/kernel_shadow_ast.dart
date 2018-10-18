@@ -88,17 +88,6 @@ import 'kernel_expression_generator.dart' show makeLet;
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
 
-/// Indicates whether type inference involving conditional expressions should
-/// always use least upper bound.
-///
-/// A value of `true` matches the behavior of analyzer.  A value of `false`
-/// matches the informal specification in
-/// https://github.com/dart-lang/sdk/pull/29371.
-///
-/// TODO(paulberry): once compatibility with analyzer is no longer needed,
-/// change this to `false`.
-const bool _forceLub = true;
-
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
   if (constructor is Constructor) {
