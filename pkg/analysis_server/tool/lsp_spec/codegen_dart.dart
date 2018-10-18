@@ -170,34 +170,18 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('static bool canParse(Object obj) {')
     ..indent()
-    ..writeIndentedln('if (!obj is Map<String, dynamic>) {')
-    ..indent()
-    ..writeIndentedln('return false;')
-    ..outdent()
-    ..writeIndentedln('}')
-    ..writeIndentedln('final map = obj as Map<String, dynamic>;');
+    ..writeIndentedln('return obj is Map<String, dynamic>');
   // In order to consider this valid for parsing, all fields that may not be
   // undefined must be present and also type check for the correct type.
-  // If these pass, there must also be no fields that are not defined for this
-  // type.
-  final allFields = _getAllFields(interface);
-  final requiredFields = allFields.where((f) => !f.allowsUndefined);
+  final requiredFields =
+      _getAllFields(interface).where((f) => !f.allowsUndefined);
   for (var field in requiredFields) {
-    buffer.writeIndented("if (!map.containsKey('${field.name}') || !");
+    buffer.write("&& obj.containsKey('${field.name}') && ");
     _writeTypeCheckCondition(
-        buffer, "map['${field.name}']", _mapType(field.types));
-    buffer
-      ..writeln(') {')
-      ..indent()
-      ..writeIndentedln('return false;')
-      ..outdent()
-      ..writeIndentedln('}');
+        buffer, "obj['${field.name}']", _mapType(field.types));
   }
-  final fieldNames = allFields.map((f) => f.name).join("', '");
-  buffer.writeIndentedln("const validFieldNames = ['$fieldNames'];");
   buffer
-    ..writeIndentedln(
-        'return map.keys.every((k) => validFieldNames.contains(k));')
+    ..writeln(';')
     ..outdent()
     ..writeIndentedln('}');
 }

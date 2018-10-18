@@ -39,15 +39,9 @@ class ApplyWorkspaceEditParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('edit') || !WorkspaceEdit.canParse(map['edit'])) {
-      return false;
-    }
-    const validFieldNames = ['label', 'edit'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('edit') &&
+        WorkspaceEdit.canParse(obj['edit']);
   }
 }
 
@@ -73,15 +67,9 @@ class ApplyWorkspaceEditResponse {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('applied') || !map['applied'] is bool) {
-      return false;
-    }
-    const validFieldNames = ['applied'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('applied') &&
+        obj['applied'] is bool;
   }
 }
 
@@ -110,15 +98,9 @@ class CancelParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
-      return false;
-    }
-    const validFieldNames = ['id'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('id') &&
+        (obj['id'] is num || obj['id'] is String);
   }
 }
 
@@ -157,12 +139,7 @@ class ClientCapabilities {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['workspace', 'textDocument', 'experimental'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -226,15 +203,9 @@ class CodeAction {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('title') || !map['title'] is String) {
-      return false;
-    }
-    const validFieldNames = ['title', 'kind', 'diagnostics', 'edit', 'command'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('title') &&
+        obj['title'] is String;
   }
 }
 
@@ -275,19 +246,11 @@ class CodeActionContext {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('diagnostics') ||
-        !(map['diagnostics'] is List &&
-            (map['diagnostics'].length == 0 ||
-                map['diagnostics']
-                    .every((item) => Diagnostic.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['diagnostics', 'only'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('diagnostics') &&
+        (obj['diagnostics'] is List &&
+            (obj['diagnostics'].length == 0 ||
+                obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
 }
 
@@ -365,12 +328,7 @@ class CodeActionOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['codeActionKinds'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -415,23 +373,13 @@ class CodeActionParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('context') ||
-        !CodeActionContext.canParse(map['context'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'range', 'context'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('context') &&
+        CodeActionContext.canParse(obj['context']);
   }
 }
 
@@ -468,19 +416,12 @@ class CodeActionRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['documentSelector', 'codeActionKinds'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -527,15 +468,9 @@ class CodeLens {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    const validFieldNames = ['range', 'command', 'data'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']);
   }
 }
 
@@ -559,12 +494,7 @@ class CodeLensOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['resolveProvider'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -591,16 +521,9 @@ class CodeLensParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -632,19 +555,12 @@ class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['resolveProvider', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -687,24 +603,15 @@ class Color {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('red') || !map['red'] is num) {
-      return false;
-    }
-    if (!map.containsKey('green') || !map['green'] is num) {
-      return false;
-    }
-    if (!map.containsKey('blue') || !map['blue'] is num) {
-      return false;
-    }
-    if (!map.containsKey('alpha') || !map['alpha'] is num) {
-      return false;
-    }
-    const validFieldNames = ['red', 'green', 'blue', 'alpha'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('red') &&
+        obj['red'] is num &&
+        obj.containsKey('green') &&
+        obj['green'] is num &&
+        obj.containsKey('blue') &&
+        obj['blue'] is num &&
+        obj.containsKey('alpha') &&
+        obj['alpha'] is num;
   }
 }
 
@@ -737,18 +644,11 @@ class ColorInformation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('color') || !Color.canParse(map['color'])) {
-      return false;
-    }
-    const validFieldNames = ['range', 'color'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('color') &&
+        Color.canParse(obj['color']);
   }
 }
 
@@ -796,15 +696,9 @@ class ColorPresentation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('label') || !map['label'] is String) {
-      return false;
-    }
-    const validFieldNames = ['label', 'textEdit', 'additionalTextEdits'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('label') &&
+        obj['label'] is String;
   }
 }
 
@@ -847,22 +741,13 @@ class ColorPresentationParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('color') || !Color.canParse(map['color'])) {
-      return false;
-    }
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'color', 'range'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('color') &&
+        Color.canParse(obj['color']) &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']);
   }
 }
 
@@ -874,12 +759,7 @@ class ColorProviderOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [''];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -921,18 +801,11 @@ class Command {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('title') || !map['title'] is String) {
-      return false;
-    }
-    if (!map.containsKey('command') || !map['command'] is String) {
-      return false;
-    }
-    const validFieldNames = ['title', 'command', 'arguments'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('title') &&
+        obj['title'] is String &&
+        obj.containsKey('command') &&
+        obj['command'] is String;
   }
 }
 
@@ -968,16 +841,9 @@ class CompletionContext {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('triggerKind') ||
-        !CompletionTriggerKind.canParse(map['triggerKind'])) {
-      return false;
-    }
-    const validFieldNames = ['triggerKind', 'triggerCharacter'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('triggerKind') &&
+        CompletionTriggerKind.canParse(obj['triggerKind']);
   }
 }
 
@@ -1178,31 +1044,9 @@ class CompletionItem {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('label') || !map['label'] is String) {
-      return false;
-    }
-    const validFieldNames = [
-      'label',
-      'kind',
-      'detail',
-      'documentation',
-      'deprecated',
-      'preselect',
-      'sortText',
-      'filterText',
-      'insertText',
-      'insertTextFormat',
-      'textEdit',
-      'additionalTextEdits',
-      'commitCharacters',
-      'command',
-      'data'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('label') &&
+        obj['label'] is String;
   }
 }
 
@@ -1318,21 +1162,13 @@ class CompletionList {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('isIncomplete') || !map['isIncomplete'] is bool) {
-      return false;
-    }
-    if (!map.containsKey('items') ||
-        !(map['items'] is List &&
-            (map['items'].length == 0 ||
-                map['items'].every((item) => CompletionItem.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['isIncomplete', 'items'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('isIncomplete') &&
+        obj['isIncomplete'] is bool &&
+        obj.containsKey('items') &&
+        (obj['items'] is List &&
+            (obj['items'].length == 0 ||
+                obj['items'].every((item) => CompletionItem.canParse(item))));
   }
 }
 
@@ -1367,12 +1203,7 @@ class CompletionOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['resolveProvider', 'triggerCharacters'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -1417,19 +1248,11 @@ class CompletionParams implements TextDocumentPositionParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
-      return false;
-    }
-    const validFieldNames = ['context', 'textDocument', 'position'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('position') &&
+        Position.canParse(obj['position']);
   }
 }
 
@@ -1483,23 +1306,12 @@ class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = [
-      'triggerCharacters',
-      'resolveProvider',
-      'documentSelector'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -1570,12 +1382,7 @@ class ConfigurationItem {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['scopeUri', 'section'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -1602,19 +1409,12 @@ class ConfigurationParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('items') ||
-        !(map['items'] is List &&
-            (map['items'].length == 0 ||
-                map['items']
-                    .every((item) => ConfigurationItem.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['items'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('items') &&
+        (obj['items'] is List &&
+            (obj['items'].length == 0 ||
+                obj['items']
+                    .every((item) => ConfigurationItem.canParse(item))));
   }
 }
 
@@ -1647,15 +1447,9 @@ class CreateFile implements FileOperation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String;
   }
 }
 
@@ -1686,12 +1480,7 @@ class CreateFileOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['overwrite', 'ignoreIfExists'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -1724,15 +1513,9 @@ class DeleteFile implements FileOperation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String;
   }
 }
 
@@ -1763,12 +1546,7 @@ class DeleteFileOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['recursive', 'ignoreIfNotExists'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -1843,25 +1621,11 @@ class Diagnostic {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('message') || !map['message'] is String) {
-      return false;
-    }
-    const validFieldNames = [
-      'range',
-      'severity',
-      'code',
-      'source',
-      'message',
-      'relatedInformation'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
   }
 }
 
@@ -1899,18 +1663,11 @@ class DiagnosticRelatedInformation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('location') || !Location.canParse(map['location'])) {
-      return false;
-    }
-    if (!map.containsKey('message') || !map['message'] is String) {
-      return false;
-    }
-    const validFieldNames = ['location', 'message'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('location') &&
+        Location.canParse(obj['location']) &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
   }
 }
 
@@ -1976,15 +1733,7 @@ class DidChangeConfigurationParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('settings') || !true) {
-      return false;
-    }
-    const validFieldNames = ['settings'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> && obj.containsKey('settings') && true;
   }
 }
 
@@ -2027,23 +1776,14 @@ class DidChangeTextDocumentParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !VersionedTextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('contentChanges') ||
-        !(map['contentChanges'] is List &&
-            (map['contentChanges'].length == 0 ||
-                map['contentChanges'].every((item) =>
-                    TextDocumentContentChangeEvent.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'contentChanges'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('contentChanges') &&
+        (obj['contentChanges'] is List &&
+            (obj['contentChanges'].length == 0 ||
+                obj['contentChanges'].every(
+                    (item) => TextDocumentContentChangeEvent.canParse(item))));
   }
 }
 
@@ -2072,18 +1812,11 @@ class DidChangeWatchedFilesParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('changes') ||
-        !(map['changes'] is List &&
-            (map['changes'].length == 0 ||
-                map['changes'].every((item) => FileEvent.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['changes'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('changes') &&
+        (obj['changes'] is List &&
+            (obj['changes'].length == 0 ||
+                obj['changes'].every((item) => FileEvent.canParse(item))));
   }
 }
 
@@ -2115,19 +1848,12 @@ class DidChangeWatchedFilesRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('watchers') ||
-        !(map['watchers'] is List &&
-            (map['watchers'].length == 0 ||
-                map['watchers']
-                    .every((item) => FileSystemWatcher.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['watchers'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('watchers') &&
+        (obj['watchers'] is List &&
+            (obj['watchers'].length == 0 ||
+                obj['watchers']
+                    .every((item) => FileSystemWatcher.canParse(item))));
   }
 }
 
@@ -2152,16 +1878,9 @@ class DidChangeWorkspaceFoldersParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('event') ||
-        !WorkspaceFoldersChangeEvent.canParse(map['event'])) {
-      return false;
-    }
-    const validFieldNames = ['event'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('event') &&
+        WorkspaceFoldersChangeEvent.canParse(obj['event']);
   }
 }
 
@@ -2188,16 +1907,9 @@ class DidCloseTextDocumentParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -2223,16 +1935,9 @@ class DidOpenTextDocumentParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentItem.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentItem.canParse(obj['textDocument']);
   }
 }
 
@@ -2267,16 +1972,9 @@ class DidSaveTextDocumentParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'text'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -2313,12 +2011,7 @@ class DocumentFilter {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['language', 'scheme', 'pattern'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -2354,20 +2047,11 @@ class DocumentFormattingParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('options') ||
-        !FormattingOptions.canParse(map['options'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('options') &&
+        FormattingOptions.canParse(obj['options']);
   }
 }
 
@@ -2402,15 +2086,9 @@ class DocumentHighlight {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    const validFieldNames = ['range', 'kind'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']);
   }
 }
 
@@ -2491,15 +2169,9 @@ class DocumentLink {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    const validFieldNames = ['range', 'target', 'data'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']);
   }
 }
 
@@ -2523,12 +2195,7 @@ class DocumentLinkOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['resolveProvider'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -2555,16 +2222,9 @@ class DocumentLinkParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -2599,19 +2259,12 @@ class DocumentLinkRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['resolveProvider', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -2650,16 +2303,9 @@ class DocumentOnTypeFormattingOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('firstTriggerCharacter') ||
-        !map['firstTriggerCharacter'] is String) {
-      return false;
-    }
-    const validFieldNames = ['firstTriggerCharacter', 'moreTriggerCharacter'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('firstTriggerCharacter') &&
+        obj['firstTriggerCharacter'] is String;
   }
 }
 
@@ -2714,26 +2360,15 @@ class DocumentOnTypeFormattingParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
-      return false;
-    }
-    if (!map.containsKey('ch') || !map['ch'] is String) {
-      return false;
-    }
-    if (!map.containsKey('options') ||
-        !FormattingOptions.canParse(map['options'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'position', 'ch', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('position') &&
+        Position.canParse(obj['position']) &&
+        obj.containsKey('ch') &&
+        obj['ch'] is String &&
+        obj.containsKey('options') &&
+        FormattingOptions.canParse(obj['options']);
   }
 }
 
@@ -2783,27 +2418,14 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('firstTriggerCharacter') ||
-        !map['firstTriggerCharacter'] is String) {
-      return false;
-    }
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = [
-      'firstTriggerCharacter',
-      'moreTriggerCharacter',
-      'documentSelector'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('firstTriggerCharacter') &&
+        obj['firstTriggerCharacter'] is String &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -2847,23 +2469,13 @@ class DocumentRangeFormattingParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('options') ||
-        !FormattingOptions.canParse(map['options'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'range', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('options') &&
+        FormattingOptions.canParse(obj['options']);
   }
 }
 
@@ -2949,33 +2561,15 @@ class DocumentSymbol {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('name') || !map['name'] is String) {
-      return false;
-    }
-    if (!map.containsKey('kind') || !SymbolKind.canParse(map['kind'])) {
-      return false;
-    }
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('selectionRange') ||
-        !Range.canParse(map['selectionRange'])) {
-      return false;
-    }
-    const validFieldNames = [
-      'name',
-      'detail',
-      'kind',
-      'deprecated',
-      'range',
-      'selectionRange',
-      'children'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('name') &&
+        obj['name'] is String &&
+        obj.containsKey('kind') &&
+        SymbolKind.canParse(obj['kind']) &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('selectionRange') &&
+        Range.canParse(obj['selectionRange']);
   }
 }
 
@@ -3002,16 +2596,9 @@ class DocumentSymbolParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -3052,18 +2639,11 @@ class ExecuteCommandOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('commands') ||
-        !(map['commands'] is List &&
-            (map['commands'].length == 0 ||
-                map['commands'].every((item) => item is String)))) {
-      return false;
-    }
-    const validFieldNames = ['commands'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('commands') &&
+        (obj['commands'] is List &&
+            (obj['commands'].length == 0 ||
+                obj['commands'].every((item) => item is String)));
   }
 }
 
@@ -3097,15 +2677,9 @@ class ExecuteCommandParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('command') || !map['command'] is String) {
-      return false;
-    }
-    const validFieldNames = ['command', 'arguments'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('command') &&
+        obj['command'] is String;
   }
 }
 
@@ -3134,18 +2708,11 @@ class ExecuteCommandRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('commands') ||
-        !(map['commands'] is List &&
-            (map['commands'].length == 0 ||
-                map['commands'].every((item) => item is String)))) {
-      return false;
-    }
-    const validFieldNames = ['commands'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('commands') &&
+        (obj['commands'] is List &&
+            (obj['commands'].length == 0 ||
+                obj['commands'].every((item) => item is String)));
   }
 }
 
@@ -3265,18 +2832,11 @@ class FileEvent {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('type') || !map['type'] is num) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'type'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('type') &&
+        obj['type'] is num;
   }
 }
 
@@ -3311,15 +2871,9 @@ class FileSystemWatcher {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('globPattern') || !map['globPattern'] is String) {
-      return false;
-    }
-    const validFieldNames = ['globPattern', 'kind'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('globPattern') &&
+        obj['globPattern'] is String;
   }
 }
 
@@ -3384,24 +2938,11 @@ class FoldingRange {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('startLine') || !map['startLine'] is num) {
-      return false;
-    }
-    if (!map.containsKey('endLine') || !map['endLine'] is num) {
-      return false;
-    }
-    const validFieldNames = [
-      'startLine',
-      'startCharacter',
-      'endLine',
-      'endCharacter',
-      'kind'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('startLine') &&
+        obj['startLine'] is num &&
+        obj.containsKey('endLine') &&
+        obj['endLine'] is num;
   }
 }
 
@@ -3465,16 +3006,9 @@ class FoldingRangeParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']);
   }
 }
 
@@ -3486,12 +3020,7 @@ class FoldingRangeProviderOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [''];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -3527,18 +3056,11 @@ class FormattingOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('tabSize') || !map['tabSize'] is num) {
-      return false;
-    }
-    if (!map.containsKey('insertSpaces') || !map['insertSpaces'] is bool) {
-      return false;
-    }
-    const validFieldNames = ['tabSize', 'insertSpaces'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('tabSize') &&
+        obj['tabSize'] is num &&
+        obj.containsKey('insertSpaces') &&
+        obj['insertSpaces'] is bool;
   }
 }
 
@@ -3590,21 +3112,14 @@ class Hover {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('contents') ||
-        !(MarkedString.canParse(map['contents']) ||
-            (map['contents'] is List &&
-                (map['contents'].length == 0 ||
-                    map['contents']
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('contents') &&
+        (MarkedString.canParse(obj['contents']) ||
+            (obj['contents'] is List &&
+                (obj['contents'].length == 0 ||
+                    obj['contents']
                         .every((item) => MarkedString.canParse(item)))) ||
-            MarkupContent.canParse(map['contents']))) {
-      return false;
-    }
-    const validFieldNames = ['contents', 'range'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+            MarkupContent.canParse(obj['contents']));
   }
 }
 
@@ -3679,29 +3194,13 @@ class InitializeParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('processId') || !map['processId'] is num) {
-      return false;
-    }
-    if (!map.containsKey('rootUri') || !map['rootUri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('capabilities') ||
-        !ClientCapabilities.canParse(map['capabilities'])) {
-      return false;
-    }
-    const validFieldNames = [
-      'processId',
-      'rootPath',
-      'rootUri',
-      'initializationOptions',
-      'capabilities',
-      'workspaceFolders'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('processId') &&
+        obj['processId'] is num &&
+        obj.containsKey('rootUri') &&
+        obj['rootUri'] is String &&
+        obj.containsKey('capabilities') &&
+        ClientCapabilities.canParse(obj['capabilities']);
   }
 }
 
@@ -3727,16 +3226,9 @@ class InitializeResult {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('capabilities') ||
-        !ServerCapabilities.canParse(map['capabilities'])) {
-      return false;
-    }
-    const validFieldNames = ['capabilities'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('capabilities') &&
+        ServerCapabilities.canParse(obj['capabilities']);
   }
 }
 
@@ -3747,12 +3239,7 @@ class InitializedParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [''];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -3823,18 +3310,11 @@ class Location {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'range'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']);
   }
 }
 
@@ -3868,18 +3348,11 @@ class LogMessageParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
-      return false;
-    }
-    if (!map.containsKey('message') || !map['message'] is String) {
-      return false;
-    }
-    const validFieldNames = ['type', 'message'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('type') &&
+        MessageType.canParse(obj['type']) &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
   }
 }
 
@@ -3910,18 +3383,11 @@ class MarkedString {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('language') || !map['language'] is String) {
-      return false;
-    }
-    if (!map.containsKey('value') || !map['value'] is String) {
-      return false;
-    }
-    const validFieldNames = ['language', 'value'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('language') &&
+        obj['language'] is String &&
+        obj.containsKey('value') &&
+        obj['value'] is String;
   }
 }
 
@@ -3979,18 +3445,11 @@ class MarkupContent {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('kind') || !MarkupKind.canParse(map['kind'])) {
-      return false;
-    }
-    if (!map.containsKey('value') || !map['value'] is String) {
-      return false;
-    }
-    const validFieldNames = ['kind', 'value'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('kind') &&
+        MarkupKind.canParse(obj['kind']) &&
+        obj.containsKey('value') &&
+        obj['value'] is String;
   }
 }
 
@@ -4053,15 +3512,9 @@ class Message {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
-      return false;
-    }
-    const validFieldNames = ['jsonrpc'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('jsonrpc') &&
+        obj['jsonrpc'] is String;
   }
 }
 
@@ -4086,15 +3539,9 @@ class MessageActionItem {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('title') || !map['title'] is String) {
-      return false;
-    }
-    const validFieldNames = ['title'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('title') &&
+        obj['title'] is String;
   }
 }
 
@@ -4167,18 +3614,11 @@ class NotificationMessage implements Message {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('method') || !map['method'] is String) {
-      return false;
-    }
-    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
-      return false;
-    }
-    const validFieldNames = ['method', 'jsonrpc'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('method') &&
+        obj['method'] is String &&
+        obj.containsKey('jsonrpc') &&
+        obj['jsonrpc'] is String;
   }
 }
 
@@ -4218,15 +3658,9 @@ class ParameterInformation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('label') || !map['label'] is String) {
-      return false;
-    }
-    const validFieldNames = ['label', 'documentation'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('label') &&
+        obj['label'] is String;
   }
 }
 
@@ -4266,18 +3700,11 @@ class Position {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('line') || !map['line'] is num) {
-      return false;
-    }
-    if (!map.containsKey('character') || !map['character'] is num) {
-      return false;
-    }
-    const validFieldNames = ['line', 'character'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('line') &&
+        obj['line'] is num &&
+        obj.containsKey('character') &&
+        obj['character'] is num;
   }
 }
 
@@ -4314,22 +3741,13 @@ class PublishDiagnosticsParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('diagnostics') ||
-        !(map['diagnostics'] is List &&
-            (map['diagnostics'].length == 0 ||
-                map['diagnostics']
-                    .every((item) => Diagnostic.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'diagnostics'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('diagnostics') &&
+        (obj['diagnostics'] is List &&
+            (obj['diagnostics'].length == 0 ||
+                obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
 }
 
@@ -4362,18 +3780,11 @@ class Range {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('start') || !Position.canParse(map['start'])) {
-      return false;
-    }
-    if (!map.containsKey('end') || !Position.canParse(map['end'])) {
-      return false;
-    }
-    const validFieldNames = ['start', 'end'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('start') &&
+        Position.canParse(obj['start']) &&
+        obj.containsKey('end') &&
+        Position.canParse(obj['end']);
   }
 }
 
@@ -4399,16 +3810,9 @@ class ReferenceContext {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('includeDeclaration') ||
-        !map['includeDeclaration'] is bool) {
-      return false;
-    }
-    const validFieldNames = ['includeDeclaration'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('includeDeclaration') &&
+        obj['includeDeclaration'] is bool;
   }
 }
 
@@ -4452,23 +3856,13 @@ class ReferenceParams implements TextDocumentPositionParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('context') ||
-        !ReferenceContext.canParse(map['context'])) {
-      return false;
-    }
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
-      return false;
-    }
-    const validFieldNames = ['context', 'textDocument', 'position'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('context') &&
+        ReferenceContext.canParse(obj['context']) &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('position') &&
+        Position.canParse(obj['position']);
   }
 }
 
@@ -4510,18 +3904,11 @@ class Registration {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('id') || !map['id'] is String) {
-      return false;
-    }
-    if (!map.containsKey('method') || !map['method'] is String) {
-      return false;
-    }
-    const validFieldNames = ['id', 'method', 'registerOptions'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('id') &&
+        obj['id'] is String &&
+        obj.containsKey('method') &&
+        obj['method'] is String;
   }
 }
 
@@ -4549,19 +3936,12 @@ class RegistrationParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('registrations') ||
-        !(map['registrations'] is List &&
-            (map['registrations'].length == 0 ||
-                map['registrations']
-                    .every((item) => Registration.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['registrations'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('registrations') &&
+        (obj['registrations'] is List &&
+            (obj['registrations'].length == 0 ||
+                obj['registrations']
+                    .every((item) => Registration.canParse(item))));
   }
 }
 
@@ -4602,18 +3982,11 @@ class RenameFile implements FileOperation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('oldUri') || !map['oldUri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('newUri') || !map['newUri'] is String) {
-      return false;
-    }
-    const validFieldNames = ['oldUri', 'newUri', 'options'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('oldUri') &&
+        obj['oldUri'] is String &&
+        obj.containsKey('newUri') &&
+        obj['newUri'] is String;
   }
 }
 
@@ -4645,12 +4018,7 @@ class RenameFileOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['overwrite', 'ignoreIfExists'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -4675,12 +4043,7 @@ class RenameOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['prepareProvider'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -4727,22 +4090,13 @@ class RenameParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
-      return false;
-    }
-    if (!map.containsKey('newName') || !map['newName'] is String) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'position', 'newName'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('position') &&
+        Position.canParse(obj['position']) &&
+        obj.containsKey('newName') &&
+        obj['newName'] is String;
   }
 }
 
@@ -4776,19 +4130,12 @@ class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['prepareProvider', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -4832,21 +4179,13 @@ class RequestMessage implements Message {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
-      return false;
-    }
-    if (!map.containsKey('method') || !map['method'] is String) {
-      return false;
-    }
-    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
-      return false;
-    }
-    const validFieldNames = ['id', 'method', 'jsonrpc'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('id') &&
+        (obj['id'] is num || obj['id'] is String) &&
+        obj.containsKey('method') &&
+        obj['method'] is String &&
+        obj.containsKey('jsonrpc') &&
+        obj['jsonrpc'] is String;
   }
 }
 
@@ -4923,18 +4262,11 @@ class ResponseMessage implements Message {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
-      return false;
-    }
-    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
-      return false;
-    }
-    const validFieldNames = ['id', 'result', 'jsonrpc'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('id') &&
+        (obj['id'] is num || obj['id'] is String) &&
+        obj.containsKey('jsonrpc') &&
+        obj['jsonrpc'] is String;
   }
 }
 
@@ -4959,12 +4291,7 @@ class SaveOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['includeText'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -5200,32 +4527,7 @@ class ServerCapabilities {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [
-      'textDocumentSync',
-      'hoverProvider',
-      'completionProvider',
-      'signatureHelpProvider',
-      'definitionProvider',
-      'referencesProvider',
-      'documentHighlightProvider',
-      'documentSymbolProvider',
-      'workspaceSymbolProvider',
-      'codeActionProvider',
-      'codeLensProvider',
-      'documentFormattingProvider',
-      'documentRangeFormattingProvider',
-      'documentOnTypeFormattingProvider',
-      'renameProvider',
-      'documentLinkProvider',
-      'executeCommandProvider',
-      'supported',
-      'changeNotifications'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -5259,18 +4561,11 @@ class ShowMessageParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
-      return false;
-    }
-    if (!map.containsKey('message') || !map['message'] is String) {
-      return false;
-    }
-    const validFieldNames = ['type', 'message'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('type') &&
+        MessageType.canParse(obj['type']) &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
   }
 }
 
@@ -5314,18 +4609,11 @@ class ShowMessageRequestParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
-      return false;
-    }
-    if (!map.containsKey('message') || !map['message'] is String) {
-      return false;
-    }
-    const validFieldNames = ['type', 'message', 'actions'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('type') &&
+        MessageType.canParse(obj['type']) &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
   }
 }
 
@@ -5385,23 +4673,12 @@ class SignatureHelp {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('signatures') ||
-        !(map['signatures'] is List &&
-            (map['signatures'].length == 0 ||
-                map['signatures']
-                    .every((item) => SignatureInformation.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = [
-      'signatures',
-      'activeSignature',
-      'activeParameter'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('signatures') &&
+        (obj['signatures'] is List &&
+            (obj['signatures'].length == 0 ||
+                obj['signatures']
+                    .every((item) => SignatureInformation.canParse(item))));
   }
 }
 
@@ -5429,12 +4706,7 @@ class SignatureHelpOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['triggerCharacters'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -5474,19 +4746,12 @@ class SignatureHelpRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['triggerCharacters', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -5538,15 +4803,9 @@ class SignatureInformation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('label') || !map['label'] is String) {
-      return false;
-    }
-    const validFieldNames = ['label', 'documentation', 'parameters'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('label') &&
+        obj['label'] is String;
   }
 }
 
@@ -5573,12 +4832,7 @@ class StaticRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['id'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -5653,27 +4907,13 @@ class SymbolInformation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('name') || !map['name'] is String) {
-      return false;
-    }
-    if (!map.containsKey('kind') || !map['kind'] is num) {
-      return false;
-    }
-    if (!map.containsKey('location') || !Location.canParse(map['location'])) {
-      return false;
-    }
-    const validFieldNames = [
-      'name',
-      'kind',
-      'deprecated',
-      'location',
-      'containerName'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('name') &&
+        obj['name'] is String &&
+        obj.containsKey('kind') &&
+        obj['kind'] is num &&
+        obj.containsKey('location') &&
+        Location.canParse(obj['location']);
   }
 }
 
@@ -5794,22 +5034,14 @@ class TextDocumentChangeRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('syncKind') || !map['syncKind'] is num) {
-      return false;
-    }
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['syncKind', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('syncKind') &&
+        obj['syncKind'] is num &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -5861,17 +5093,7 @@ class TextDocumentClientCapabilities {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [
-      'dynamicRegistration',
-      'willSave',
-      'willSaveWaitUntil',
-      'didSave'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -5913,15 +5135,9 @@ class TextDocumentContentChangeEvent {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('text') || !map['text'] is String) {
-      return false;
-    }
-    const validFieldNames = ['range', 'rangeLength', 'text'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('text') &&
+        obj['text'] is String;
   }
 }
 
@@ -5959,22 +5175,13 @@ class TextDocumentEdit implements FileOperation {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !VersionedTextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('edits') ||
-        !(map['edits'] is List &&
-            (map['edits'].length == 0 ||
-                map['edits'].every((item) => TextEdit.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'edits'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('edits') &&
+        (obj['edits'] is List &&
+            (obj['edits'].length == 0 ||
+                obj['edits'].every((item) => TextEdit.canParse(item))));
   }
 }
 
@@ -5999,15 +5206,9 @@ class TextDocumentIdentifier {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    const validFieldNames = ['uri'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String;
   }
 }
 
@@ -6059,24 +5260,15 @@ class TextDocumentItem {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('languageId') || !map['languageId'] is String) {
-      return false;
-    }
-    if (!map.containsKey('version') || !map['version'] is num) {
-      return false;
-    }
-    if (!map.containsKey('text') || !map['text'] is String) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'languageId', 'version', 'text'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('languageId') &&
+        obj['languageId'] is String &&
+        obj.containsKey('version') &&
+        obj['version'] is num &&
+        obj.containsKey('text') &&
+        obj['text'] is String;
   }
 }
 
@@ -6112,19 +5304,11 @@ class TextDocumentPositionParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'position'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('position') &&
+        Position.canParse(obj['position']);
   }
 }
 
@@ -6150,19 +5334,12 @@ class TextDocumentRegistrationOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -6238,19 +5415,12 @@ class TextDocumentSaveRegistrationOptions
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('documentSelector') ||
-        !(map['documentSelector'] is List &&
-            (map['documentSelector'].length == 0 ||
-                map['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['includeText', 'documentSelector'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('documentSelector') &&
+        (obj['documentSelector'] is List &&
+            (obj['documentSelector'].length == 0 ||
+                obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))));
   }
 }
 
@@ -6351,18 +5521,7 @@ class TextDocumentSyncOptions {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [
-      'openClose',
-      'change',
-      'willSave',
-      'willSaveWaitUntil',
-      'save'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -6399,18 +5558,11 @@ class TextEdit {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
-      return false;
-    }
-    if (!map.containsKey('newText') || !map['newText'] is String) {
-      return false;
-    }
-    const validFieldNames = ['range', 'newText'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('newText') &&
+        obj['newText'] is String;
   }
 }
 
@@ -6446,18 +5598,11 @@ class Unregistration {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('id') || !map['id'] is String) {
-      return false;
-    }
-    if (!map.containsKey('method') || !map['method'] is String) {
-      return false;
-    }
-    const validFieldNames = ['id', 'method'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('id') &&
+        obj['id'] is String &&
+        obj.containsKey('method') &&
+        obj['method'] is String;
   }
 }
 
@@ -6485,19 +5630,12 @@ class UnregistrationParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('unregisterations') ||
-        !(map['unregisterations'] is List &&
-            (map['unregisterations'].length == 0 ||
-                map['unregisterations']
-                    .every((item) => Unregistration.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['unregisterations'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('unregisterations') &&
+        (obj['unregisterations'] is List &&
+            (obj['unregisterations'].length == 0 ||
+                obj['unregisterations']
+                    .every((item) => Unregistration.canParse(item))));
   }
 }
 
@@ -6539,18 +5677,11 @@ class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('version') || !map['version'] is num) {
-      return false;
-    }
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    const validFieldNames = ['version', 'uri'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('version') &&
+        obj['version'] is num &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String;
   }
 }
 
@@ -6623,19 +5754,11 @@ class WillSaveTextDocumentParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('textDocument') ||
-        !TextDocumentIdentifier.canParse(map['textDocument'])) {
-      return false;
-    }
-    if (!map.containsKey('reason') || !map['reason'] is num) {
-      return false;
-    }
-    const validFieldNames = ['textDocument', 'reason'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('textDocument') &&
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        obj.containsKey('reason') &&
+        obj['reason'] is num;
   }
 }
 
@@ -6692,17 +5815,7 @@ class WorkspaceClientCapabilities {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = [
-      'applyEdit',
-      'documentChanges',
-      'resourceOperations',
-      'failureHandling'
-    ];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -6754,12 +5867,7 @@ class WorkspaceEdit {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    const validFieldNames = ['changes', 'documentChanges'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic>;
   }
 }
 
@@ -6794,18 +5902,11 @@ class WorkspaceFolder {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('uri') || !map['uri'] is String) {
-      return false;
-    }
-    if (!map.containsKey('name') || !map['name'] is String) {
-      return false;
-    }
-    const validFieldNames = ['uri', 'name'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('name') &&
+        obj['name'] is String;
   }
 }
 
@@ -6846,26 +5947,17 @@ class WorkspaceFoldersChangeEvent {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('added') ||
-        !(map['added'] is List &&
-            (map['added'].length == 0 ||
-                map['added']
-                    .every((item) => WorkspaceFolder.canParse(item))))) {
-      return false;
-    }
-    if (!map.containsKey('removed') ||
-        !(map['removed'] is List &&
-            (map['removed'].length == 0 ||
-                map['removed']
-                    .every((item) => WorkspaceFolder.canParse(item))))) {
-      return false;
-    }
-    const validFieldNames = ['added', 'removed'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('added') &&
+        (obj['added'] is List &&
+            (obj['added'].length == 0 ||
+                obj['added']
+                    .every((item) => WorkspaceFolder.canParse(item)))) &&
+        obj.containsKey('removed') &&
+        (obj['removed'] is List &&
+            (obj['removed'].length == 0 ||
+                obj['removed']
+                    .every((item) => WorkspaceFolder.canParse(item))));
   }
 }
 
@@ -6891,14 +5983,8 @@ class WorkspaceSymbolParams {
   }
 
   static bool canParse(Object obj) {
-    if (!obj is Map<String, dynamic>) {
-      return false;
-    }
-    final map = obj as Map<String, dynamic>;
-    if (!map.containsKey('query') || !map['query'] is String) {
-      return false;
-    }
-    const validFieldNames = ['query'];
-    return map.keys.every((k) => validFieldNames.contains(k));
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('query') &&
+        obj['query'] is String;
   }
 }
