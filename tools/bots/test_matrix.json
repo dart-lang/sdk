@@ -1670,6 +1670,27 @@
       ]
     },
     {
+      "builders": ["flutter-analyze"],
+      "meta": {
+        "description": "This configuration is used for analyzing flutter."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "analyze flutter",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
+        }
+      ]
+    },
+    {
       "builders": ["fuzz-linux"],
       "meta": {
         "description": "This configuration is used for fuzz testing."
