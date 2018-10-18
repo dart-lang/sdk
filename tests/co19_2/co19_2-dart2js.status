@@ -66,6 +66,48 @@ Language/Types/Interface_Types/subtype_t26: RuntimeError
 Language/Types/Interface_Types/subtype_t27: Pass, Crash # Issue 34389
 Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
+LanguageFeatures/Instantiate-to-bound/FutureOr/dynamic/FutureOr_l1_t01: RuntimeError
+LanguageFeatures/Instantiate-to-bound/FutureOr/dynamic/FutureOr_l1_t02: RuntimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t04: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l1_t03: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t07: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t08: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l3_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t04: RuntimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t01: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t03/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t07/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/02: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t01/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t03: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t05: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t07: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t08: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t03/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t07/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t01/none: CompileTimeError
+LanguageFeatures/Simple-bounds/dynamic/FutureOr_l1_t01: RuntimeError, Pass
+LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l2_t01: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t01: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t02: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t03: RuntimeError
+LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t03: CompileTimeError, Pass
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t03: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A52_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A52_t02: RuntimeError
@@ -86,6 +128,17 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_clas
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_global_variable_fail_A31_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_global_variable_fail_A32_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A31_t01: RuntimeError
+LanguageFeatures/Super-mixins/more_specific_t01: CompileTimeError
+LanguageFeatures/Super-mixins/not_class_t02: CompileTimeError
+LanguageFeatures/Super-mixins/not_class_t03: CompileTimeError
+LanguageFeatures/Super-mixins/on_word_t02: CompileTimeError
+LanguageFeatures/Super-mixins/on_word_t03: CompileTimeError
+LanguageFeatures/regression/33585_t01: MissingCompileTimeError
+LanguageFeatures/regression/33585_t02: MissingCompileTimeError
+LanguageFeatures/regression/33597_t01: MissingCompileTimeError
+LanguageFeatures/regression/33701_t01: MissingCompileTimeError
+LanguageFeatures/regression/34635_t01: CompileTimeError
+LanguageFeatures/regression/34635_t02: CompileTimeError
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError
@@ -360,6 +413,7 @@ LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError
 LayoutTests/fast/xpath/py-dom-xpath/data_t01: RuntimeError
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError
+LibTest/async/Future/Future_A01_t01: CompileTimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t03: RuntimeError
 LibTest/async/Stream/Stream.periodic_A02_t01: RuntimeError
 LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError
@@ -755,7 +809,6 @@ LibTest/typed_data/Float32x4List/every_A01_t01: RuntimeError
 LibTest/typed_data/Float32x4List/fold_A01_t01: RuntimeError
 LibTest/typed_data/Float32x4List/join_A01_t01: RuntimeError
 LibTest/typed_data/Float32x4List/join_A01_t02: RuntimeError
-LibTest/typed_data/Float32x4List/shuffle_A01_t01: RuntimeError
 LibTest/typed_data/Float64List/Float64List.view_A05_t01: RuntimeError
 LibTest/typed_data/Float64List/Float64List.view_A05_t02: RuntimeError
 LibTest/typed_data/Float64List/Float64List.view_A05_t03: RuntimeError
@@ -775,7 +828,6 @@ LibTest/typed_data/Float64x2List/fold_A01_t01: RuntimeError
 LibTest/typed_data/Float64x2List/join_A01_t01: RuntimeError
 LibTest/typed_data/Float64x2List/join_A01_t02: RuntimeError
 LibTest/typed_data/Float64x2List/setAll_A04_t01: RuntimeError
-LibTest/typed_data/Float64x2List/shuffle_A01_t01: RuntimeError
 LibTest/typed_data/Float64x2List/sort_A01_t01: RuntimeError
 LibTest/typed_data/Float64x2List/toString_A01_t01: RuntimeError
 LibTest/typed_data/Int16List/Int16List.view_A05_t01: RuntimeError
@@ -807,7 +859,6 @@ LibTest/typed_data/Int32x4List/lengthInBytes_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/length_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/offsetInBytes_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/setAll_A04_t01: RuntimeError
-LibTest/typed_data/Int32x4List/shuffle_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/skip_A01_t01: RuntimeError
 LibTest/typed_data/Int32x4List/skip_A02_t01: RuntimeError
 LibTest/typed_data/Int32x4List/sublist_A01_t01: RuntimeError
@@ -923,6 +974,8 @@ LibTest/typed_data/Int64List/setRange_A03_t01: RuntimeError
 LibTest/typed_data/Int64List/setRange_A04_t01: RuntimeError
 LibTest/typed_data/Int64List/setRange_A05_t01: RuntimeError
 LibTest/typed_data/Int64List/shuffle_A01_t01: RuntimeError
+LibTest/typed_data/Int64List/shuffle_A01_t02: RuntimeError
+LibTest/typed_data/Int64List/shuffle_A01_t03: RuntimeError
 LibTest/typed_data/Int64List/singleWhere_A01_t01: RuntimeError
 LibTest/typed_data/Int64List/singleWhere_A02_t01: RuntimeError
 LibTest/typed_data/Int64List/singleWhere_A02_t02: RuntimeError
@@ -1087,6 +1140,8 @@ LibTest/typed_data/Uint64List/setRange_A03_t01: RuntimeError
 LibTest/typed_data/Uint64List/setRange_A04_t01: RuntimeError
 LibTest/typed_data/Uint64List/setRange_A05_t01: RuntimeError
 LibTest/typed_data/Uint64List/shuffle_A01_t01: RuntimeError
+LibTest/typed_data/Uint64List/shuffle_A01_t02: RuntimeError
+LibTest/typed_data/Uint64List/shuffle_A01_t03: RuntimeError
 LibTest/typed_data/Uint64List/singleWhere_A01_t01: RuntimeError
 LibTest/typed_data/Uint64List/singleWhere_A02_t01: RuntimeError
 LibTest/typed_data/Uint64List/singleWhere_A02_t02: RuntimeError
@@ -1277,6 +1332,10 @@ Language/Types/Interface_Types/subtype_t21: RuntimeError
 Language/Types/Interface_Types/subtype_t23: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t05: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t05: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t10: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t05: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t02: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A53_t01: RuntimeError
@@ -1302,6 +1361,8 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_clas
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_local_variable_fail_A31_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_local_variable_fail_A32_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A32_t01: RuntimeError
+LanguageFeatures/regression/34803_t01: Crash
+LanguageFeatures/regression/34803_t02: Crash
 LayoutTests/fast/animation/request-animation-frame-cancel2_t01: Timeout, Pass
 LayoutTests/fast/animation/request-animation-frame-cancel_t01: Timeout, Pass
 LayoutTests/fast/animation/request-animation-frame-prefix_t01: Timeout, Pass
@@ -3522,6 +3583,10 @@ LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeErro
 LanguageFeatures/Instantiate-to-bound/class/class_extends_neg_l1_t05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t07: MissingCompileTimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t05: RuntimeError, Pass
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t05: RuntimeError, Pass
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t10: RuntimeError, Pass
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t05: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t02: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A53_t01: RuntimeError
@@ -3549,6 +3614,8 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_loca
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A32_t01: RuntimeError
 LanguageFeatures/Super_Mixins/mixin_member_neg_t02: RuntimeError
 LanguageFeatures/Super_Mixins/super_invocation_t01: CompileTimeError
+LanguageFeatures/regression/34803_t01: Crash, Pass
+LanguageFeatures/regression/34803_t02: Crash, Pass
 LayoutTests/fast/animation/request-animation-frame-prefix_t01: RuntimeError
 LayoutTests/fast/backgrounds/animated-gif-as-background_t01: RuntimeError
 LayoutTests/fast/backgrounds/background-fill-zero-area-crash_t01: RuntimeError
