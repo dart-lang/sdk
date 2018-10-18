@@ -7,8 +7,8 @@ import 'package:dart_style/dart_style.dart';
 import 'typescript.dart';
 
 final formatter = new DartFormatter();
-Map<String, TypeAlias> _typeAliases = {};
 Map<String, Interface> _interfaces = {};
+Map<String, TypeAlias> _typeAliases = {};
 
 String generateDartForTypes(List<ApiItem> types) {
   // Keep maps of items we may need to look up quickly later.
@@ -31,6 +31,28 @@ String _formatCode(String code) {
     print('Failed to format code, returning unformatted code.');
   }
   return code;
+}
+
+/// Recursively gets all members from superclasses.
+List<Field> _getAllFields(Interface interface) {
+  // Handle missing interfaces (such as special cased interfaces that won't
+  // be included in this model).
+  if (interface == null) {
+    return [];
+  }
+  return interface.members
+      .whereType<Field>()
+      .followedBy(interface.baseTypes
+          .map((name) => _getAllFields(_interfaces[name]))
+          .expand((ts) => ts))
+      .toList();
+}
+
+/// Returns a copy of the list sorted by name.
+List<ApiItem> _getSorted(List<ApiItem> items) {
+  final sortedList = items.toList();
+  sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
+  return sortedList;
 }
 
 /// Maps reserved words and identifiers that cause issues in field names.
@@ -76,13 +98,6 @@ String _mapType(List<String> types) {
   return type;
 }
 
-/// Returns a copy of the list sorted by name.
-List<ApiItem> _getSorted(List<ApiItem> items) {
-  final sortedList = items.toList();
-  sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
-  return sortedList;
-}
-
 String _rewriteCommentReference(String comment) {
   final commentReferencePattern = new RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
@@ -123,6 +138,17 @@ void _writeConst(IndentableStringBuffer buffer, Const cons) {
   buffer.writeIndentedln('static const ${cons.name} = ${cons.value};');
 }
 
+void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
+  final allFields = _getAllFields(interface);
+  if (allFields.isEmpty) {
+    return;
+  }
+  buffer
+    ..writeIndented('${interface.name}(')
+    ..write(allFields.map((field) => 'this.${field.name}').join(', '))
+    ..writeln(');');
+}
+
 void _writeDocCommentsAndAnnotations(
     IndentableStringBuffer buffer, ApiItem item) {
   var comment = item.comment?.trim();
@@ -139,38 +165,42 @@ void _writeDocCommentsAndAnnotations(
   }
 }
 
+void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
+  _writeDocCommentsAndAnnotations(buffer, namespace);
+  buffer
+    ..writeln('class ${namespace.name} {')
+    ..indent()
+    ..writeIndentedln('const ${namespace.name}._(this._value);')
+    ..writeln()
+    ..writeIndentedln('final Object _value;')
+    ..writeln();
+  namespace.members.whereType<Const>().forEach((cons) {
+    _writeDocCommentsAndAnnotations(buffer, cons);
+    buffer
+      ..writeIndentedln(
+          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}._(${cons.value});');
+  });
+  buffer
+    ..writeln()
+    ..writeIndentedln('Object toJson() => _value;')
+    ..writeln()
+    ..writeIndentedln('@override String toString() => _value.toString();')
+    ..writeln()
+    ..writeIndentedln('@override get hashCode => _value.hashCode;')
+    ..writeln()
+    ..writeIndentedln(
+        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
+    ..outdent()
+    ..writeln('}')
+    ..writeln();
+}
+
 void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
   buffer
     ..writeIndented('final ')
     ..write(_mapType(field.types))
     ..writeln(' ${field.name};');
-}
-
-/// Recursively gets all members from superclasses.
-List<Field> _getAllFields(Interface interface) {
-  // Handle missing interfaces (such as special cased interfaces that won't
-  // be included in this model).
-  if (interface == null) {
-    return [];
-  }
-  return interface.members
-      .whereType<Field>()
-      .followedBy(interface.baseTypes
-          .map((name) => _getAllFields(_interfaces[name]))
-          .expand((ts) => ts))
-      .toList();
-}
-
-void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
-  final allFields = _getAllFields(interface);
-  if (allFields.isEmpty) {
-    return;
-  }
-  buffer
-    ..writeIndented('${interface.name}(')
-    ..write(allFields.map((field) => 'this.${field.name}').join(', '))
-    ..writeln(');');
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
@@ -279,36 +309,6 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('}');
 }
 
-void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
-  _writeDocCommentsAndAnnotations(buffer, namespace);
-  buffer
-    ..writeln('class ${namespace.name} {')
-    ..indent()
-    ..writeIndentedln('const ${namespace.name}._(this._value);')
-    ..writeln()
-    ..writeIndentedln('final Object _value;')
-    ..writeln();
-  namespace.members.whereType<Const>().forEach((cons) {
-    _writeDocCommentsAndAnnotations(buffer, cons);
-    buffer
-      ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}._(${cons.value});');
-  });
-  buffer
-    ..writeln()
-    ..writeIndentedln('Object toJson() => _value;')
-    ..writeln()
-    ..writeIndentedln('@override String toString() => _value.toString();')
-    ..writeln()
-    ..writeIndentedln('@override get hashCode => _value.hashCode;')
-    ..writeln()
-    ..writeIndentedln(
-        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
-    ..outdent()
-    ..writeln('}')
-    ..writeln();
-}
-
 void _writeType(IndentableStringBuffer buffer, ApiItem type) {
   if (type is Interface) {
     _writeInterface(buffer, type);
@@ -339,14 +339,14 @@ class IndentableStringBuffer extends StringBuffer {
     write(obj);
   }
 
+  void writeIndentedln(Object obj) {
+    write(_indentString);
+    writeln(obj);
+  }
+
   void writeIndentedlnIf(bool condition, Object obj) {
     if (condition) {
       writeIndentedln(obj);
     }
-  }
-
-  void writeIndentedln(Object obj) {
-    write(_indentString);
-    writeln(obj);
   }
 }
