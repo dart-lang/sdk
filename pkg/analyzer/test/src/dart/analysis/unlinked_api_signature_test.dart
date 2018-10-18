@@ -752,6 +752,16 @@ void foo<U>() {}
 ''');
   }
 
+  test_issue34850() {
+    assertNotSameSignature(r'''
+foo
+Future<List<int>> bar() {}
+''', r'''
+foo
+Future<List<int>> bar() async {}
+''');
+  }
+
   test_mixin_field_withoutType() {
     assertNotSameSignature(r'''
 mixin M {
