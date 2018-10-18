@@ -11,7 +11,16 @@ import 'dart:core' as core show deprecated;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
 class ApplyWorkspaceEditParams {
-  ApplyWorkspaceEditParams(this.label, this.edit);
+  ApplyWorkspaceEditParams(this.label, this.edit) {
+    if (edit == null) {
+      throw 'edit is required but was not provided';
+    }
+  }
+  factory ApplyWorkspaceEditParams.fromJson(Map<String, dynamic> json) {
+    final label = json['label'];
+    final edit = new WorkspaceEdit.fromJson(json['edit']);
+    return new ApplyWorkspaceEditParams(label, edit);
+  }
 
   /// The edits to apply.
   final WorkspaceEdit edit;
@@ -28,10 +37,30 @@ class ApplyWorkspaceEditParams {
     __result['edit'] = edit ?? (throw 'edit is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('edit') || !WorkspaceEdit.canParse(map['edit'])) {
+      return false;
+    }
+    const validFieldNames = ['label', 'edit'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ApplyWorkspaceEditResponse {
-  ApplyWorkspaceEditResponse(this.applied);
+  ApplyWorkspaceEditResponse(this.applied) {
+    if (applied == null) {
+      throw 'applied is required but was not provided';
+    }
+  }
+  factory ApplyWorkspaceEditResponse.fromJson(Map<String, dynamic> json) {
+    final applied = json['applied'];
+    return new ApplyWorkspaceEditResponse(applied);
+  }
 
   /// Indicates whether the edit was applied or not.
   final bool applied;
@@ -42,10 +71,34 @@ class ApplyWorkspaceEditResponse {
         applied ?? (throw 'applied is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('applied') || !map['applied'] is bool) {
+      return false;
+    }
+    const validFieldNames = ['applied'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CancelParams {
-  CancelParams(this.id);
+  CancelParams(this.id) {
+    if (id == null) {
+      throw 'id is required but was not provided';
+    }
+  }
+  factory CancelParams.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] is num
+        ? new Either2<num, String>.t1(json['id'])
+        : (json['id'] is String
+            ? new Either2<num, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (number, string)'''));
+    return new CancelParams(id);
+  }
 
   /// The request id to cancel.
   final Either2<num, String> id;
@@ -55,10 +108,30 @@ class CancelParams {
     __result['id'] = id ?? (throw 'id is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
+      return false;
+    }
+    const validFieldNames = ['id'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ClientCapabilities {
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
+  factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
+    final workspace =
+        new WorkspaceClientCapabilities.fromJson(json['workspace']);
+    final textDocument =
+        new TextDocumentClientCapabilities.fromJson(json['textDocument']);
+    final experimental = json['experimental'];
+    return new ClientCapabilities(workspace, textDocument, experimental);
+  }
 
   /// Experimental client capabilities.
   final dynamic experimental;
@@ -82,6 +155,15 @@ class ClientCapabilities {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['workspace', 'textDocument', 'experimental'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// A code action represents a change that can be performed in code, e.g. to fix
@@ -90,7 +172,22 @@ class ClientCapabilities {
 /// A CodeAction must set either `edit` and/or a `command`. If both are
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction {
-  CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command);
+  CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command) {
+    if (title == null) {
+      throw 'title is required but was not provided';
+    }
+  }
+  factory CodeAction.fromJson(Map<String, dynamic> json) {
+    final title = json['title'];
+    final kind = json['kind'];
+    final diagnostics = json['diagnostics']
+        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.cast<Diagnostic>()
+        ?.toList();
+    final edit = new WorkspaceEdit.fromJson(json['edit']);
+    final command = new Command.fromJson(json['command']);
+    return new CodeAction(title, kind, diagnostics, edit, command);
+  }
 
   /// A command this code action executes. If a code action provides an edit and
   /// a command, first the edit is executed and then the command.
@@ -127,12 +224,36 @@ class CodeAction {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('title') || !map['title'] is String) {
+      return false;
+    }
+    const validFieldNames = ['title', 'kind', 'diagnostics', 'edit', 'command'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
 class CodeActionContext {
-  CodeActionContext(this.diagnostics, this.only);
+  CodeActionContext(this.diagnostics, this.only) {
+    if (diagnostics == null) {
+      throw 'diagnostics is required but was not provided';
+    }
+  }
+  factory CodeActionContext.fromJson(Map<String, dynamic> json) {
+    final diagnostics = json['diagnostics']
+        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.cast<Diagnostic>()
+        ?.toList();
+    final only = json['only']?.map((item) => item)?.cast<String>()?.toList();
+    return new CodeActionContext(diagnostics, only);
+  }
 
   /// An array of diagnostics.
   final List<Diagnostic> diagnostics;
@@ -151,6 +272,22 @@ class CodeActionContext {
       __result['only'] = only;
     }
     return __result;
+  }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('diagnostics') ||
+        !(map['diagnostics'] is List &&
+            (map['diagnostics'].length == 0 ||
+                map['diagnostics']
+                    .every((item) => Diagnostic.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['diagnostics', 'only'];
+    return map.keys.every((k) => validFieldNames.contains(k));
   }
 }
 
@@ -207,6 +344,11 @@ abstract class CodeActionKind {
 /// Code Action options.
 class CodeActionOptions {
   CodeActionOptions(this.codeActionKinds);
+  factory CodeActionOptions.fromJson(Map<String, dynamic> json) {
+    final codeActionKinds =
+        json['codeActionKinds']?.map((item) => item)?.cast<String>()?.toList();
+    return new CodeActionOptions(codeActionKinds);
+  }
 
   /// CodeActionKinds that this server may return.
   ///
@@ -221,11 +363,37 @@ class CodeActionOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['codeActionKinds'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Params for the CodeActionRequest
 class CodeActionParams {
-  CodeActionParams(this.textDocument, this.range, this.context);
+  CodeActionParams(this.textDocument, this.range, this.context) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (context == null) {
+      throw 'context is required but was not provided';
+    }
+  }
+  factory CodeActionParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final range = new Range.fromJson(json['range']);
+    final context = new CodeActionContext.fromJson(json['context']);
+    return new CodeActionParams(textDocument, range, context);
+  }
 
   /// Context carrying additional information.
   final CodeActionContext context;
@@ -245,11 +413,40 @@ class CodeActionParams {
         context ?? (throw 'context is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('context') ||
+        !CodeActionContext.canParse(map['context'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'range', 'context'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions {
   CodeActionRegistrationOptions(this.documentSelector, this.codeActionKinds);
+  factory CodeActionRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    final codeActionKinds =
+        json['codeActionKinds']?.map((item) => item)?.cast<String>()?.toList();
+    return new CodeActionRegistrationOptions(documentSelector, codeActionKinds);
+  }
 
   /// CodeActionKinds that this server may return.
   ///
@@ -269,6 +466,22 @@ class CodeActionRegistrationOptions
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['documentSelector', 'codeActionKinds'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// A code lens represents a command that should be shown along with source
@@ -278,7 +491,17 @@ class CodeActionRegistrationOptions
 /// performance reasons the creation of a code lens and resolving should be done
 /// in two stages.
 class CodeLens {
-  CodeLens(this.range, this.command, this.data);
+  CodeLens(this.range, this.command, this.data) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+  }
+  factory CodeLens.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final command = new Command.fromJson(json['command']);
+    final data = json['data'];
+    return new CodeLens(range, command, data);
+  }
 
   /// The command this code lens represents.
   final Command command;
@@ -302,11 +525,27 @@ class CodeLens {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    const validFieldNames = ['range', 'command', 'data'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Code Lens options.
 class CodeLensOptions {
   CodeLensOptions(this.resolveProvider);
+  factory CodeLensOptions.fromJson(Map<String, dynamic> json) {
+    final resolveProvider = json['resolveProvider'];
+    return new CodeLensOptions(resolveProvider);
+  }
 
   /// Code lens has a resolve provider as well.
   final bool resolveProvider;
@@ -318,10 +557,28 @@ class CodeLensOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['resolveProvider'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CodeLensParams {
-  CodeLensParams(this.textDocument);
+  CodeLensParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory CodeLensParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    return new CodeLensParams(textDocument);
+  }
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
@@ -332,10 +589,31 @@ class CodeLensParams {
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
   CodeLensRegistrationOptions(this.resolveProvider, this.documentSelector);
+  factory CodeLensRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final resolveProvider = json['resolveProvider'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new CodeLensRegistrationOptions(resolveProvider, documentSelector);
+  }
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
@@ -352,11 +630,47 @@ class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['resolveProvider', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Represents a color in RGBA space.
 class Color {
-  Color(this.red, this.green, this.blue, this.alpha);
+  Color(this.red, this.green, this.blue, this.alpha) {
+    if (red == null) {
+      throw 'red is required but was not provided';
+    }
+    if (green == null) {
+      throw 'green is required but was not provided';
+    }
+    if (blue == null) {
+      throw 'blue is required but was not provided';
+    }
+    if (alpha == null) {
+      throw 'alpha is required but was not provided';
+    }
+  }
+  factory Color.fromJson(Map<String, dynamic> json) {
+    final red = json['red'];
+    final green = json['green'];
+    final blue = json['blue'];
+    final alpha = json['alpha'];
+    return new Color(red, green, blue, alpha);
+  }
 
   final num alpha;
   final num blue;
@@ -371,10 +685,43 @@ class Color {
     __result['alpha'] = alpha ?? (throw 'alpha is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('red') || !map['red'] is num) {
+      return false;
+    }
+    if (!map.containsKey('green') || !map['green'] is num) {
+      return false;
+    }
+    if (!map.containsKey('blue') || !map['blue'] is num) {
+      return false;
+    }
+    if (!map.containsKey('alpha') || !map['alpha'] is num) {
+      return false;
+    }
+    const validFieldNames = ['red', 'green', 'blue', 'alpha'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ColorInformation {
-  ColorInformation(this.range, this.color);
+  ColorInformation(this.range, this.color) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (color == null) {
+      throw 'color is required but was not provided';
+    }
+  }
+  factory ColorInformation.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final color = new Color.fromJson(json['color']);
+    return new ColorInformation(range, color);
+  }
 
   /// The actual color value for this color range.
   final Color color;
@@ -388,10 +735,38 @@ class ColorInformation {
     __result['color'] = color ?? (throw 'color is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('color') || !Color.canParse(map['color'])) {
+      return false;
+    }
+    const validFieldNames = ['range', 'color'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ColorPresentation {
-  ColorPresentation(this.label, this.textEdit, this.additionalTextEdits);
+  ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  factory ColorPresentation.fromJson(Map<String, dynamic> json) {
+    final label = json['label'];
+    final textEdit = new TextEdit.fromJson(json['textEdit']);
+    final additionalTextEdits = json['additionalTextEdits']
+        ?.map((item) => new TextEdit.fromJson(item))
+        ?.cast<TextEdit>()
+        ?.toList();
+    return new ColorPresentation(label, textEdit, additionalTextEdits);
+  }
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
   /// when selecting this color presentation. Edits must not overlap with the
@@ -419,10 +794,39 @@ class ColorPresentation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('label') || !map['label'] is String) {
+      return false;
+    }
+    const validFieldNames = ['label', 'textEdit', 'additionalTextEdits'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ColorPresentationParams {
-  ColorPresentationParams(this.textDocument, this.color, this.range);
+  ColorPresentationParams(this.textDocument, this.color, this.range) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (color == null) {
+      throw 'color is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+  }
+  factory ColorPresentationParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final color = new Color.fromJson(json['color']);
+    final range = new Range.fromJson(json['range']);
+    return new ColorPresentationParams(textDocument, color, range);
+  }
 
   /// The color information to request presentations for.
   final Color color;
@@ -441,6 +845,25 @@ class ColorPresentationParams {
     __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('color') || !Color.canParse(map['color'])) {
+      return false;
+    }
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'color', 'range'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Color provider options.
@@ -449,10 +872,33 @@ class ColorProviderOptions {
     Map<String, dynamic> __result = {};
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [''];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class Command {
-  Command(this.title, this.command, this.arguments);
+  Command(this.title, this.command, this.arguments) {
+    if (title == null) {
+      throw 'title is required but was not provided';
+    }
+    if (command == null) {
+      throw 'command is required but was not provided';
+    }
+  }
+  factory Command.fromJson(Map<String, dynamic> json) {
+    final title = json['title'];
+    final command = json['command'];
+    final arguments =
+        json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
+    return new Command(title, command, arguments);
+  }
 
   /// Arguments that the command handler should be invoked with.
   final List<dynamic> arguments;
@@ -473,12 +919,36 @@ class Command {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('title') || !map['title'] is String) {
+      return false;
+    }
+    if (!map.containsKey('command') || !map['command'] is String) {
+      return false;
+    }
+    const validFieldNames = ['title', 'command', 'arguments'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext {
-  CompletionContext(this.triggerKind, this.triggerCharacter);
+  CompletionContext(this.triggerKind, this.triggerCharacter) {
+    if (triggerKind == null) {
+      throw 'triggerKind is required but was not provided';
+    }
+  }
+  factory CompletionContext.fromJson(Map<String, dynamic> json) {
+    final triggerKind = new CompletionTriggerKind.fromJson(json['triggerKind']);
+    final triggerCharacter = json['triggerCharacter'];
+    return new CompletionContext(triggerKind, triggerCharacter);
+  }
 
   /// The trigger character (a single character) that has trigger code complete.
   /// Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
@@ -495,6 +965,19 @@ class CompletionContext {
       __result['triggerCharacter'] = triggerCharacter;
     }
     return __result;
+  }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('triggerKind') ||
+        !CompletionTriggerKind.canParse(map['triggerKind'])) {
+      return false;
+    }
+    const validFieldNames = ['triggerKind', 'triggerCharacter'];
+    return map.keys.every((k) => validFieldNames.contains(k));
   }
 }
 
@@ -514,7 +997,54 @@ class CompletionItem {
       this.additionalTextEdits,
       this.commitCharacters,
       this.command,
-      this.data);
+      this.data) {
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  factory CompletionItem.fromJson(Map<String, dynamic> json) {
+    final label = json['label'];
+    final kind = new CompletionItemKind.fromJson(json['kind']);
+    final detail = json['detail'];
+    final documentation = json['documentation'] is String
+        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        : (MarkupContent.canParse(json['documentation'])
+            ? new Either2<String, MarkupContent>.t2(
+                new MarkupContent.fromJson(json['documentation']))
+            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+    final deprecated = json['deprecated'];
+    final preselect = json['preselect'];
+    final sortText = json['sortText'];
+    final filterText = json['filterText'];
+    final insertText = json['insertText'];
+    final insertTextFormat =
+        new InsertTextFormat.fromJson(json['insertTextFormat']);
+    final textEdit = new TextEdit.fromJson(json['textEdit']);
+    final additionalTextEdits = json['additionalTextEdits']
+        ?.map((item) => new TextEdit.fromJson(item))
+        ?.cast<TextEdit>()
+        ?.toList();
+    final commitCharacters =
+        json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
+    final command = new Command.fromJson(json['command']);
+    final data = json['data'];
+    return new CompletionItem(
+        label,
+        kind,
+        detail,
+        documentation,
+        deprecated,
+        preselect,
+        sortText,
+        filterText,
+        insertText,
+        insertTextFormat,
+        textEdit,
+        additionalTextEdits,
+        commitCharacters,
+        command,
+        data);
+  }
 
   /// An optional array of additional text edits that are applied when selecting
   /// this completion. Edits must not overlap (including the same insert
@@ -646,13 +1176,74 @@ class CompletionItem {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('label') || !map['label'] is String) {
+      return false;
+    }
+    const validFieldNames = [
+      'label',
+      'kind',
+      'detail',
+      'documentation',
+      'deprecated',
+      'preselect',
+      'sortText',
+      'filterText',
+      'insertText',
+      'insertTextFormat',
+      'textEdit',
+      'additionalTextEdits',
+      'commitCharacters',
+      'command',
+      'data'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// The kind of a completion entry.
 class CompletionItemKind {
   const CompletionItemKind._(this._value);
+  const CompletionItemKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+      case 9:
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14:
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19:
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24:
+      case 25:
+        return true;
+    }
+    return false;
+  }
 
   static const Text = const CompletionItemKind._(1);
   static const Method = const CompletionItemKind._(2);
@@ -694,7 +1285,22 @@ class CompletionItemKind {
 /// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
 class CompletionList {
-  CompletionList(this.isIncomplete, this.items);
+  CompletionList(this.isIncomplete, this.items) {
+    if (isIncomplete == null) {
+      throw 'isIncomplete is required but was not provided';
+    }
+    if (items == null) {
+      throw 'items is required but was not provided';
+    }
+  }
+  factory CompletionList.fromJson(Map<String, dynamic> json) {
+    final isIncomplete = json['isIncomplete'];
+    final items = json['items']
+        ?.map((item) => new CompletionItem.fromJson(item))
+        ?.cast<CompletionItem>()
+        ?.toList();
+    return new CompletionList(isIncomplete, items);
+  }
 
   /// This list it not complete. Further typing should result in recomputing
   /// this list.
@@ -710,11 +1316,37 @@ class CompletionList {
     __result['items'] = items ?? (throw 'items is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('isIncomplete') || !map['isIncomplete'] is bool) {
+      return false;
+    }
+    if (!map.containsKey('items') ||
+        !(map['items'] is List &&
+            (map['items'].length == 0 ||
+                map['items'].every((item) => CompletionItem.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['isIncomplete', 'items'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Completion options.
 class CompletionOptions {
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
+  factory CompletionOptions.fromJson(Map<String, dynamic> json) {
+    final resolveProvider = json['resolveProvider'];
+    final triggerCharacters = json['triggerCharacters']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    return new CompletionOptions(resolveProvider, triggerCharacters);
+  }
 
   /// The server provides support to resolve additional information for a
   /// completion item.
@@ -733,14 +1365,37 @@ class CompletionOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['resolveProvider', 'triggerCharacters'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CompletionParams implements TextDocumentPositionParams {
-  CompletionParams(this.context, this.textDocument, this.position);
+  CompletionParams(this.context, this.textDocument, this.position) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (position == null) {
+      throw 'position is required but was not provided';
+    }
+  }
+  factory CompletionParams.fromJson(Map<String, dynamic> json) {
+    final context = new CompletionContext.fromJson(json['context']);
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = new Position.fromJson(json['position']);
+    return new CompletionParams(context, textDocument, position);
+  }
 
-  /// The completion context. This is only available if the client specifies to
-  /// send this using `ClientCapabilities.textDocument.completion.contextSupport
-  /// === true`
+  /// The completion context. This is only available if the client specifies
+  /// to send this using
+  /// `ClientCapabilities.textDocument.completion.contextSupport === true`
   final CompletionContext context;
 
   /// The position inside the text document.
@@ -760,11 +1415,40 @@ class CompletionParams implements TextDocumentPositionParams {
         position ?? (throw 'position is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
+      return false;
+    }
+    const validFieldNames = ['context', 'textDocument', 'position'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
   CompletionRegistrationOptions(
       this.triggerCharacters, this.resolveProvider, this.documentSelector);
+  factory CompletionRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final triggerCharacters = json['triggerCharacters']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    final resolveProvider = json['resolveProvider'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new CompletionRegistrationOptions(
+        triggerCharacters, resolveProvider, documentSelector);
+  }
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
@@ -775,11 +1459,11 @@ class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
   final bool resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
-  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
-  /// do so when the user starts to type an identifier. For example if the user
-  /// types `c` in a JavaScript file code complete will automatically pop up
-  /// present `console` besides others as a completion item. Characters that
-  /// make up identifiers don't need to be listed here.
+  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically
+  /// they do so when the user starts to type an identifier. For example if
+  /// the user types `c` in a JavaScript file code complete will automatically
+  /// pop up present `console` besides others as a completion item. Characters
+  /// that make up identifiers don't need to be listed here.
   ///
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
@@ -797,13 +1481,44 @@ class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = [
+      'triggerCharacters',
+      'resolveProvider',
+      'documentSelector'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// How a completion was triggered
 class CompletionTriggerKind {
   const CompletionTriggerKind._(this._value);
+  const CompletionTriggerKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+        return true;
+    }
+    return false;
+  }
 
   /// Completion was triggered by typing an identifier (24x7 code complete),
   /// manual invocation (e.g Ctrl+Space) or via API.
@@ -813,7 +1528,8 @@ class CompletionTriggerKind {
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
   static const TriggerCharacter = const CompletionTriggerKind._(2);
 
-  /// Completion was re-triggered as the current completion list is incomplete.
+  /// Completion was re-triggered as the current completion list is
+  /// incomplete.
   static const TriggerForIncompleteCompletions =
       const CompletionTriggerKind._(3);
 
@@ -830,6 +1546,11 @@ class CompletionTriggerKind {
 
 class ConfigurationItem {
   ConfigurationItem(this.scopeUri, this.section);
+  factory ConfigurationItem.fromJson(Map<String, dynamic> json) {
+    final scopeUri = json['scopeUri'];
+    final section = json['section'];
+    return new ConfigurationItem(scopeUri, section);
+  }
 
   /// The scope to get the configuration section for.
   final String scopeUri;
@@ -847,10 +1568,30 @@ class ConfigurationItem {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['scopeUri', 'section'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ConfigurationParams {
-  ConfigurationParams(this.items);
+  ConfigurationParams(this.items) {
+    if (items == null) {
+      throw 'items is required but was not provided';
+    }
+  }
+  factory ConfigurationParams.fromJson(Map<String, dynamic> json) {
+    final items = json['items']
+        ?.map((item) => new ConfigurationItem.fromJson(item))
+        ?.cast<ConfigurationItem>()
+        ?.toList();
+    return new ConfigurationParams(items);
+  }
 
   final List<ConfigurationItem> items;
 
@@ -859,11 +1600,36 @@ class ConfigurationParams {
     __result['items'] = items ?? (throw 'items is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('items') ||
+        !(map['items'] is List &&
+            (map['items'].length == 0 ||
+                map['items']
+                    .every((item) => ConfigurationItem.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['items'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Create file operation
 class CreateFile implements FileOperation {
-  CreateFile(this.uri, this.options);
+  CreateFile(this.uri, this.options) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+  }
+  factory CreateFile.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final options = new CreateFileOptions.fromJson(json['options']);
+    return new CreateFile(uri, options);
+  }
 
   /// Additional options
   final CreateFileOptions options;
@@ -879,11 +1645,28 @@ class CreateFile implements FileOperation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Options to create a file.
 class CreateFileOptions {
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
+  factory CreateFileOptions.fromJson(Map<String, dynamic> json) {
+    final overwrite = json['overwrite'];
+    final ignoreIfExists = json['ignoreIfExists'];
+    return new CreateFileOptions(overwrite, ignoreIfExists);
+  }
 
   /// Ignore if exists.
   final bool ignoreIfExists;
@@ -901,11 +1684,29 @@ class CreateFileOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['overwrite', 'ignoreIfExists'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Delete file operation
 class DeleteFile implements FileOperation {
-  DeleteFile(this.uri, this.options);
+  DeleteFile(this.uri, this.options) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+  }
+  factory DeleteFile.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final options = new DeleteFileOptions.fromJson(json['options']);
+    return new DeleteFile(uri, options);
+  }
 
   /// Delete options.
   final DeleteFileOptions options;
@@ -921,11 +1722,28 @@ class DeleteFile implements FileOperation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Delete file options
 class DeleteFileOptions {
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
+  factory DeleteFileOptions.fromJson(Map<String, dynamic> json) {
+    final recursive = json['recursive'];
+    final ignoreIfNotExists = json['ignoreIfNotExists'];
+    return new DeleteFileOptions(recursive, ignoreIfNotExists);
+  }
 
   /// Ignore the operation if the file doesn't exist.
   final bool ignoreIfNotExists;
@@ -943,11 +1761,44 @@ class DeleteFileOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['recursive', 'ignoreIfNotExists'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class Diagnostic {
   Diagnostic(this.range, this.severity, this.code, this.source, this.message,
-      this.relatedInformation);
+      this.relatedInformation) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory Diagnostic.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final severity = new DiagnosticSeverity.fromJson(json['severity']);
+    final code = json['code'] is num
+        ? new Either2<num, String>.t1(json['code'])
+        : (json['code'] is String
+            ? new Either2<num, String>.t2(json['code'])
+            : (throw '''${json['code']} was not one of (number, string)'''));
+    final source = json['source'];
+    final message = json['message'];
+    final relatedInformation = json['relatedInformation']
+        ?.map((item) => new DiagnosticRelatedInformation.fromJson(item))
+        ?.cast<DiagnosticRelatedInformation>()
+        ?.toList();
+    return new Diagnostic(
+        range, severity, code, source, message, relatedInformation);
+  }
 
   /// The diagnostic's code, which might appear in the user interface.
   final Either2<num, String> code;
@@ -958,8 +1809,9 @@ class Diagnostic {
   /// The range at which the message applies.
   final Range range;
 
-  /// An array of related diagnostic information, e.g. when symbol-names within
-  /// a scope collide all definitions can be marked via this property.
+  /// An array of related diagnostic information, e.g. when symbol-names
+  /// within a scope collide all definitions can be marked via this
+  /// property.
   final List<DiagnosticRelatedInformation> relatedInformation;
 
   /// The diagnostic's severity. Can be omitted. If omitted it is up to the
@@ -989,13 +1841,47 @@ class Diagnostic {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('message') || !map['message'] is String) {
+      return false;
+    }
+    const validFieldNames = [
+      'range',
+      'severity',
+      'code',
+      'source',
+      'message',
+      'relatedInformation'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Represents a related message and source code location for a diagnostic. This
-/// should be used to point to code locations that cause or related to a
-/// diagnostics, e.g when duplicating a symbol in a scope.
+/// Represents a related message and source code location for a diagnostic.
+/// This should be used to point to code locations that cause or related to
+/// a diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation {
-  DiagnosticRelatedInformation(this.location, this.message);
+  DiagnosticRelatedInformation(this.location, this.message) {
+    if (location == null) {
+      throw 'location is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory DiagnosticRelatedInformation.fromJson(Map<String, dynamic> json) {
+    final location = new Location.fromJson(json['location']);
+    final message = json['message'];
+    return new DiagnosticRelatedInformation(location, message);
+  }
 
   /// The location of this related diagnostic information.
   final Location location;
@@ -1011,12 +1897,39 @@ class DiagnosticRelatedInformation {
         message ?? (throw 'message is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('location') || !Location.canParse(map['location'])) {
+      return false;
+    }
+    if (!map.containsKey('message') || !map['message'] is String) {
+      return false;
+    }
+    const validFieldNames = ['location', 'message'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DiagnosticSeverity {
   const DiagnosticSeverity._(this._value);
+  const DiagnosticSeverity.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        return true;
+    }
+    return false;
+  }
 
   /// Reports an error.
   static const Error = const DiagnosticSeverity._(1);
@@ -1042,7 +1955,15 @@ class DiagnosticSeverity {
 }
 
 class DidChangeConfigurationParams {
-  DidChangeConfigurationParams(this.settings);
+  DidChangeConfigurationParams(this.settings) {
+    if (settings == null) {
+      throw 'settings is required but was not provided';
+    }
+  }
+  factory DidChangeConfigurationParams.fromJson(Map<String, dynamic> json) {
+    final settings = json['settings'];
+    return new DidChangeConfigurationParams(settings);
+  }
 
   /// The actual changed settings
   final dynamic settings;
@@ -1053,18 +1974,47 @@ class DidChangeConfigurationParams {
         settings ?? (throw 'settings is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('settings') || !true) {
+      return false;
+    }
+    const validFieldNames = ['settings'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidChangeTextDocumentParams {
-  DidChangeTextDocumentParams(this.textDocument, this.contentChanges);
+  DidChangeTextDocumentParams(this.textDocument, this.contentChanges) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (contentChanges == null) {
+      throw 'contentChanges is required but was not provided';
+    }
+  }
+  factory DidChangeTextDocumentParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
+    final contentChanges = json['contentChanges']
+        ?.map((item) => new TextDocumentContentChangeEvent.fromJson(item))
+        ?.cast<TextDocumentContentChangeEvent>()
+        ?.toList();
+    return new DidChangeTextDocumentParams(textDocument, contentChanges);
+  }
 
-  /// The actual content changes. The content changes describe single state
-  /// changes to the document. So if there are two content changes c1 and c2 for
-  /// a document in state S then c1 move the document to S' and c2 to S''.
+  /// The actual content changes. The content changes describe single
+  /// state changes to the document. So if there are two content changes
+  /// c1 and c2 for a document in state S then c1 move the document to S'
+  /// and c2 to S''.
   final List<TextDocumentContentChangeEvent> contentChanges;
 
-  /// The document that did change. The version number points to the version
-  /// after all provided content changes have been applied.
+  /// The document that did change. The version number points to the
+  /// version after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
@@ -1075,10 +2025,41 @@ class DidChangeTextDocumentParams {
         contentChanges ?? (throw 'contentChanges is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !VersionedTextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('contentChanges') ||
+        !(map['contentChanges'] is List &&
+            (map['contentChanges'].length == 0 ||
+                map['contentChanges'].every((item) =>
+                    TextDocumentContentChangeEvent.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'contentChanges'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidChangeWatchedFilesParams {
-  DidChangeWatchedFilesParams(this.changes);
+  DidChangeWatchedFilesParams(this.changes) {
+    if (changes == null) {
+      throw 'changes is required but was not provided';
+    }
+  }
+  factory DidChangeWatchedFilesParams.fromJson(Map<String, dynamic> json) {
+    final changes = json['changes']
+        ?.map((item) => new FileEvent.fromJson(item))
+        ?.cast<FileEvent>()
+        ?.toList();
+    return new DidChangeWatchedFilesParams(changes);
+  }
 
   /// The actual file events.
   final List<FileEvent> changes;
@@ -1089,12 +2070,39 @@ class DidChangeWatchedFilesParams {
         changes ?? (throw 'changes is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('changes') ||
+        !(map['changes'] is List &&
+            (map['changes'].length == 0 ||
+                map['changes'].every((item) => FileEvent.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['changes'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Describe options to be used when registering for text document change
 /// events.
 class DidChangeWatchedFilesRegistrationOptions {
-  DidChangeWatchedFilesRegistrationOptions(this.watchers);
+  DidChangeWatchedFilesRegistrationOptions(this.watchers) {
+    if (watchers == null) {
+      throw 'watchers is required but was not provided';
+    }
+  }
+  factory DidChangeWatchedFilesRegistrationOptions.fromJson(
+      Map<String, dynamic> json) {
+    final watchers = json['watchers']
+        ?.map((item) => new FileSystemWatcher.fromJson(item))
+        ?.cast<FileSystemWatcher>()
+        ?.toList();
+    return new DidChangeWatchedFilesRegistrationOptions(watchers);
+  }
 
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
@@ -1105,10 +2113,34 @@ class DidChangeWatchedFilesRegistrationOptions {
         watchers ?? (throw 'watchers is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('watchers') ||
+        !(map['watchers'] is List &&
+            (map['watchers'].length == 0 ||
+                map['watchers']
+                    .every((item) => FileSystemWatcher.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['watchers'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidChangeWorkspaceFoldersParams {
-  DidChangeWorkspaceFoldersParams(this.event);
+  DidChangeWorkspaceFoldersParams(this.event) {
+    if (event == null) {
+      throw 'event is required but was not provided';
+    }
+  }
+  factory DidChangeWorkspaceFoldersParams.fromJson(Map<String, dynamic> json) {
+    final event = new WorkspaceFoldersChangeEvent.fromJson(json['event']);
+    return new DidChangeWorkspaceFoldersParams(event);
+  }
 
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
@@ -1118,10 +2150,32 @@ class DidChangeWorkspaceFoldersParams {
     __result['event'] = event ?? (throw 'event is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('event') ||
+        !WorkspaceFoldersChangeEvent.canParse(map['event'])) {
+      return false;
+    }
+    const validFieldNames = ['event'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidCloseTextDocumentParams {
-  DidCloseTextDocumentParams(this.textDocument);
+  DidCloseTextDocumentParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory DidCloseTextDocumentParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    return new DidCloseTextDocumentParams(textDocument);
+  }
 
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
@@ -1132,10 +2186,31 @@ class DidCloseTextDocumentParams {
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidOpenTextDocumentParams {
-  DidOpenTextDocumentParams(this.textDocument);
+  DidOpenTextDocumentParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory DidOpenTextDocumentParams.fromJson(Map<String, dynamic> json) {
+    final textDocument = new TextDocumentItem.fromJson(json['textDocument']);
+    return new DidOpenTextDocumentParams(textDocument);
+  }
 
   /// The document that was opened.
   final TextDocumentItem textDocument;
@@ -1146,13 +2221,36 @@ class DidOpenTextDocumentParams {
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentItem.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DidSaveTextDocumentParams {
-  DidSaveTextDocumentParams(this.textDocument, this.text);
+  DidSaveTextDocumentParams(this.textDocument, this.text) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory DidSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final text = json['text'];
+    return new DidSaveTextDocumentParams(textDocument, text);
+  }
 
-  /// Optional the content when saved. Depends on the includeText value when the
-  /// save notification was requested.
+  /// Optional the content when saved. Depends on the includeText value
+  /// when the save notification was requested.
   final String text;
 
   /// The document that was saved.
@@ -1167,10 +2265,29 @@ class DidSaveTextDocumentParams {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'text'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentFilter {
   DocumentFilter(this.language, this.scheme, this.pattern);
+  factory DocumentFilter.fromJson(Map<String, dynamic> json) {
+    final language = json['language'];
+    final scheme = json['scheme'];
+    final pattern = json['pattern'];
+    return new DocumentFilter(language, scheme, pattern);
+  }
 
   /// A language id, like `typescript`.
   final String language;
@@ -1194,10 +2311,32 @@ class DocumentFilter {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['language', 'scheme', 'pattern'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentFormattingParams {
-  DocumentFormattingParams(this.textDocument, this.options);
+  DocumentFormattingParams(this.textDocument, this.options) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (options == null) {
+      throw 'options is required but was not provided';
+    }
+  }
+  factory DocumentFormattingParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final options = new FormattingOptions.fromJson(json['options']);
+    return new DocumentFormattingParams(textDocument, options);
+  }
 
   /// The format options.
   final FormattingOptions options;
@@ -1213,13 +2352,39 @@ class DocumentFormattingParams {
         options ?? (throw 'options is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('options') ||
+        !FormattingOptions.canParse(map['options'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// A document highlight is a range inside a text document which deserves
-/// special attention. Usually a document highlight is visualized by changing
-/// the background color of its range.
+/// special attention. Usually a document highlight is visualized by
+/// changing the background color of its range.
 class DocumentHighlight {
-  DocumentHighlight(this.range, this.kind);
+  DocumentHighlight(this.range, this.kind) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+  }
+  factory DocumentHighlight.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final kind = new DocumentHighlightKind.fromJson(json['kind']);
+    return new DocumentHighlight(range, kind);
+  }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
   final DocumentHighlightKind kind;
@@ -1235,13 +2400,36 @@ class DocumentHighlight {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    const validFieldNames = ['range', 'kind'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// A document highlight kind.
 class DocumentHighlightKind {
   const DocumentHighlightKind._(this._value);
+  const DocumentHighlightKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+        return true;
+    }
+    return false;
+  }
 
   /// A textual occurrence.
   static const Text = const DocumentHighlightKind._(1);
@@ -1263,10 +2451,21 @@ class DocumentHighlightKind {
   bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
 }
 
-/// A document link is a range in a text document that links to an internal or
-/// external resource, like another text document or a web site.
+/// A document link is a range in a text document that links to an
+/// internal or external resource, like another text document or a web
+/// site.
 class DocumentLink {
-  DocumentLink(this.range, this.target, this.data);
+  DocumentLink(this.range, this.target, this.data) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+  }
+  factory DocumentLink.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final target = json['target'];
+    final data = json['data'];
+    return new DocumentLink(range, target, data);
+  }
 
   /// A data entry field that is preserved on a document link between a
   /// DocumentLinkRequest and a DocumentLinkResolveRequest.
@@ -1275,7 +2474,8 @@ class DocumentLink {
   /// The range this link applies to.
   final Range range;
 
-  /// The uri this link points to. If missing a resolve request is sent later.
+  /// The uri this link points to. If missing a resolve request is sent
+  /// later.
   final String target;
 
   Map<String, dynamic> toJson() {
@@ -1289,11 +2489,27 @@ class DocumentLink {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    const validFieldNames = ['range', 'target', 'data'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Document link options.
 class DocumentLinkOptions {
   DocumentLinkOptions(this.resolveProvider);
+  factory DocumentLinkOptions.fromJson(Map<String, dynamic> json) {
+    final resolveProvider = json['resolveProvider'];
+    return new DocumentLinkOptions(resolveProvider);
+  }
 
   /// Document links have a resolve provider as well.
   final bool resolveProvider;
@@ -1305,10 +2521,28 @@ class DocumentLinkOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['resolveProvider'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentLinkParams {
-  DocumentLinkParams(this.textDocument);
+  DocumentLinkParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory DocumentLinkParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    return new DocumentLinkParams(textDocument);
+  }
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
@@ -1319,14 +2553,37 @@ class DocumentLinkParams {
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions {
   DocumentLinkRegistrationOptions(this.resolveProvider, this.documentSelector);
+  factory DocumentLinkRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final resolveProvider = json['resolveProvider'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new DocumentLinkRegistrationOptions(
+        resolveProvider, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If
+  /// set to null the document selector provided on the client side will
+  /// be used.
   final List<DocumentFilter> documentSelector;
 
   /// Document links have a resolve provider as well.
@@ -1340,12 +2597,41 @@ class DocumentLinkRegistrationOptions
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['resolveProvider', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Format document on type options.
 class DocumentOnTypeFormattingOptions {
   DocumentOnTypeFormattingOptions(
-      this.firstTriggerCharacter, this.moreTriggerCharacter);
+      this.firstTriggerCharacter, this.moreTriggerCharacter) {
+    if (firstTriggerCharacter == null) {
+      throw 'firstTriggerCharacter is required but was not provided';
+    }
+  }
+  factory DocumentOnTypeFormattingOptions.fromJson(Map<String, dynamic> json) {
+    final firstTriggerCharacter = json['firstTriggerCharacter'];
+    final moreTriggerCharacter = json['moreTriggerCharacter']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    return new DocumentOnTypeFormattingOptions(
+        firstTriggerCharacter, moreTriggerCharacter);
+  }
 
   /// A character on which formatting should be triggered, like `}`.
   final String firstTriggerCharacter;
@@ -1362,11 +2648,46 @@ class DocumentOnTypeFormattingOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('firstTriggerCharacter') ||
+        !map['firstTriggerCharacter'] is String) {
+      return false;
+    }
+    const validFieldNames = ['firstTriggerCharacter', 'moreTriggerCharacter'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentOnTypeFormattingParams {
   DocumentOnTypeFormattingParams(
-      this.textDocument, this.position, this.ch, this.options);
+      this.textDocument, this.position, this.ch, this.options) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (position == null) {
+      throw 'position is required but was not provided';
+    }
+    if (ch == null) {
+      throw 'ch is required but was not provided';
+    }
+    if (options == null) {
+      throw 'options is required but was not provided';
+    }
+  }
+  factory DocumentOnTypeFormattingParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = new Position.fromJson(json['position']);
+    final ch = json['ch'];
+    final options = new FormattingOptions.fromJson(json['options']);
+    return new DocumentOnTypeFormattingParams(
+        textDocument, position, ch, options);
+  }
 
   /// The character that has been typed.
   final String ch;
@@ -1391,15 +2712,57 @@ class DocumentOnTypeFormattingParams {
         options ?? (throw 'options is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
+      return false;
+    }
+    if (!map.containsKey('ch') || !map['ch'] is String) {
+      return false;
+    }
+    if (!map.containsKey('options') ||
+        !FormattingOptions.canParse(map['options'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'position', 'ch', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentOnTypeFormattingRegistrationOptions
     implements TextDocumentRegistrationOptions {
   DocumentOnTypeFormattingRegistrationOptions(this.firstTriggerCharacter,
-      this.moreTriggerCharacter, this.documentSelector);
+      this.moreTriggerCharacter, this.documentSelector) {
+    if (firstTriggerCharacter == null) {
+      throw 'firstTriggerCharacter is required but was not provided';
+    }
+  }
+  factory DocumentOnTypeFormattingRegistrationOptions.fromJson(
+      Map<String, dynamic> json) {
+    final firstTriggerCharacter = json['firstTriggerCharacter'];
+    final moreTriggerCharacter = json['moreTriggerCharacter']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new DocumentOnTypeFormattingRegistrationOptions(
+        firstTriggerCharacter, moreTriggerCharacter, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the registration. If
+  /// set to null the document selector provided on the client side will
+  /// be used.
   final List<DocumentFilter> documentSelector;
 
   /// A character on which formatting should be triggered, like `}`.
@@ -1418,10 +2781,51 @@ class DocumentOnTypeFormattingRegistrationOptions
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('firstTriggerCharacter') ||
+        !map['firstTriggerCharacter'] is String) {
+      return false;
+    }
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = [
+      'firstTriggerCharacter',
+      'moreTriggerCharacter',
+      'documentSelector'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentRangeFormattingParams {
-  DocumentRangeFormattingParams(this.textDocument, this.range, this.options);
+  DocumentRangeFormattingParams(this.textDocument, this.range, this.options) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (options == null) {
+      throw 'options is required but was not provided';
+    }
+  }
+  factory DocumentRangeFormattingParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final range = new Range.fromJson(json['range']);
+    final options = new FormattingOptions.fromJson(json['options']);
+    return new DocumentRangeFormattingParams(textDocument, range, options);
+  }
 
   /// The format options
   final FormattingOptions options;
@@ -1441,15 +2845,63 @@ class DocumentRangeFormattingParams {
         options ?? (throw 'options is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('options') ||
+        !FormattingOptions.canParse(map['options'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'range', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Represents programming constructs like variables, classes, interfaces etc.
-/// that appear in a document. Document symbols can be hierarchical and they
-/// have two ranges: one that encloses its definition and one that points to its
-/// most interesting range, e.g. the range of an identifier.
+/// Represents programming constructs like variables, classes,
+/// interfaces etc. that appear in a document. Document symbols can be
+/// hierarchical and they have two ranges: one that encloses its
+/// definition and one that points to its most interesting range, e.g.
+/// the range of an identifier.
 class DocumentSymbol {
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
-      this.selectionRange, this.children);
+      this.selectionRange, this.children) {
+    if (name == null) {
+      throw 'name is required but was not provided';
+    }
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (selectionRange == null) {
+      throw 'selectionRange is required but was not provided';
+    }
+  }
+  factory DocumentSymbol.fromJson(Map<String, dynamic> json) {
+    final name = json['name'];
+    final detail = json['detail'];
+    final kind = new SymbolKind.fromJson(json['kind']);
+    final deprecated = json['deprecated'];
+    final range = new Range.fromJson(json['range']);
+    final selectionRange = new Range.fromJson(json['selectionRange']);
+    final children = json['children']
+        ?.map((item) => new DocumentSymbol.fromJson(item))
+        ?.cast<DocumentSymbol>()
+        ?.toList();
+    return new DocumentSymbol(
+        name, detail, kind, deprecated, range, selectionRange, children);
+  }
 
   /// Children of this symbol, e.g. properties of a class.
   final List<DocumentSymbol> children;
@@ -1466,14 +2918,15 @@ class DocumentSymbol {
   /// The name of this symbol.
   final String name;
 
-  /// The range enclosing this symbol not including leading/trailing whitespace
-  /// but everything else like comments. This information is typically used to
-  /// determine if the clients cursor is inside the symbol to reveal in the
-  /// symbol in the UI.
+  /// The range enclosing this symbol not including leading/trailing
+  /// whitespace but everything else like comments. This information is
+  /// typically used to determine if the clients cursor is inside the
+  /// symbol to reveal in the symbol in the UI.
   final Range range;
 
-  /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g the name of a function. Must be contained by the `range`.
+  /// The range that should be selected and revealed when this symbol is
+  /// being picked, e.g the name of a function. Must be contained by the
+  /// `range`.
   final Range selectionRange;
 
   Map<String, dynamic> toJson() {
@@ -1494,10 +2947,49 @@ class DocumentSymbol {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('name') || !map['name'] is String) {
+      return false;
+    }
+    if (!map.containsKey('kind') || !SymbolKind.canParse(map['kind'])) {
+      return false;
+    }
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('selectionRange') ||
+        !Range.canParse(map['selectionRange'])) {
+      return false;
+    }
+    const validFieldNames = [
+      'name',
+      'detail',
+      'kind',
+      'deprecated',
+      'range',
+      'selectionRange',
+      'children'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class DocumentSymbolParams {
-  DocumentSymbolParams(this.textDocument);
+  DocumentSymbolParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory DocumentSymbolParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    return new DocumentSymbolParams(textDocument);
+  }
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
@@ -1507,6 +2999,19 @@ class DocumentSymbolParams {
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
+  }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
   }
 }
 
@@ -1525,7 +3030,16 @@ abstract class ErrorCodes {
 
 /// Execute command options.
 class ExecuteCommandOptions {
-  ExecuteCommandOptions(this.commands);
+  ExecuteCommandOptions(this.commands) {
+    if (commands == null) {
+      throw 'commands is required but was not provided';
+    }
+  }
+  factory ExecuteCommandOptions.fromJson(Map<String, dynamic> json) {
+    final commands =
+        json['commands']?.map((item) => item)?.cast<String>()?.toList();
+    return new ExecuteCommandOptions(commands);
+  }
 
   /// The commands to be executed on the server
   final List<String> commands;
@@ -1536,10 +3050,35 @@ class ExecuteCommandOptions {
         commands ?? (throw 'commands is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('commands') ||
+        !(map['commands'] is List &&
+            (map['commands'].length == 0 ||
+                map['commands'].every((item) => item is String)))) {
+      return false;
+    }
+    const validFieldNames = ['commands'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ExecuteCommandParams {
-  ExecuteCommandParams(this.command, this.arguments);
+  ExecuteCommandParams(this.command, this.arguments) {
+    if (command == null) {
+      throw 'command is required but was not provided';
+    }
+  }
+  factory ExecuteCommandParams.fromJson(Map<String, dynamic> json) {
+    final command = json['command'];
+    final arguments =
+        json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
+    return new ExecuteCommandParams(command, arguments);
+  }
 
   /// Arguments that the command should be invoked with.
   final List<dynamic> arguments;
@@ -1556,11 +3095,33 @@ class ExecuteCommandParams {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('command') || !map['command'] is String) {
+      return false;
+    }
+    const validFieldNames = ['command', 'arguments'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Execute command registration options.
 class ExecuteCommandRegistrationOptions {
-  ExecuteCommandRegistrationOptions(this.commands);
+  ExecuteCommandRegistrationOptions(this.commands) {
+    if (commands == null) {
+      throw 'commands is required but was not provided';
+    }
+  }
+  factory ExecuteCommandRegistrationOptions.fromJson(
+      Map<String, dynamic> json) {
+    final commands =
+        json['commands']?.map((item) => item)?.cast<String>()?.toList();
+    return new ExecuteCommandRegistrationOptions(commands);
+  }
 
   /// The commands to be executed on the server
   final List<String> commands;
@@ -1571,30 +3132,59 @@ class ExecuteCommandRegistrationOptions {
         commands ?? (throw 'commands is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('commands') ||
+        !(map['commands'] is List &&
+            (map['commands'].length == 0 ||
+                map['commands'].every((item) => item is String)))) {
+      return false;
+    }
+    const validFieldNames = ['commands'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class FailureHandlingKind {
   const FailureHandlingKind._(this._value);
+  const FailureHandlingKind.fromJson(this._value);
 
   final Object _value;
 
-  /// Applying the workspace change is simply aborted if one of the changes
-  /// provided fails. All operations executed before the failing operation stay
-  /// executed.
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 'abort':
+      case 'transactional':
+      case 'textOnlyTransactional':
+      case 'undo':
+        return true;
+    }
+    return false;
+  }
+
+  /// Applying the workspace change is simply aborted if one of the
+  /// changes provided fails. All operations executed before the
+  /// failing operation stay executed.
   static const Abort = const FailureHandlingKind._('abort');
 
-  /// All operations are executed transactional. That means they either all
-  /// succeed or no changes at all are applied to the workspace.
+  /// All operations are executed transactional. That means they
+  /// either all succeed or no changes at all are applied to the
+  /// workspace.
   static const Transactional = const FailureHandlingKind._('transactional');
 
-  /// If the workspace edit contains only textual file changes they are executed
-  /// transactional. If resource changes (create, rename or delete file) are
-  /// part of the change the failure handling startegy is abort.
+  /// If the workspace edit contains only textual file changes they
+  /// are executed transactional. If resource changes (create, rename
+  /// or delete file) are part of the change the failure handling
+  /// startegy is abort.
   static const TextOnlyTransactional =
       const FailureHandlingKind._('textOnlyTransactional');
 
-  /// The client tries to undo the operations already executed. But there is no
-  /// guaruntee that this is succeeding.
+  /// The client tries to undo the operations already executed. But
+  /// there is no guaruntee that this is succeeding.
   static const Undo = const FailureHandlingKind._('undo');
 
   Object toJson() => _value;
@@ -1611,8 +3201,19 @@ class FailureHandlingKind {
 /// The file event type.
 class FileChangeType {
   const FileChangeType._(this._value);
+  const FileChangeType.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+        return true;
+    }
+    return false;
+  }
 
   /// The file got created.
   static const Created = const FileChangeType._(1);
@@ -1636,7 +3237,19 @@ class FileChangeType {
 
 /// An event describing a file change.
 class FileEvent {
-  FileEvent(this.uri, this.type);
+  FileEvent(this.uri, this.type) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (type == null) {
+      throw 'type is required but was not provided';
+    }
+  }
+  factory FileEvent.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final type = json['type'];
+    return new FileEvent(uri, type);
+  }
 
   /// The change type.
   final num type;
@@ -1650,16 +3263,41 @@ class FileEvent {
     __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('type') || !map['type'] is num) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'type'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class FileSystemWatcher {
-  FileSystemWatcher(this.globPattern, this.kind);
+  FileSystemWatcher(this.globPattern, this.kind) {
+    if (globPattern == null) {
+      throw 'globPattern is required but was not provided';
+    }
+  }
+  factory FileSystemWatcher.fromJson(Map<String, dynamic> json) {
+    final globPattern = json['globPattern'];
+    final kind = new WatchKind.fromJson(json['kind']);
+    return new FileSystemWatcher(globPattern, kind);
+  }
 
   /// The  glob pattern to watch
   final String globPattern;
 
-  /// The kind of events of interest. If omitted it defaults to WatchKind.Create
-  /// | WatchKind.Change | WatchKind.Delete which is 7.
+  /// The kind of events of interest. If omitted it defaults to
+  /// WatchKind.Create | WatchKind.Change | WatchKind.Delete which
+  /// is 7.
   final WatchKind kind;
 
   Map<String, dynamic> toJson() {
@@ -1671,28 +3309,57 @@ class FileSystemWatcher {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('globPattern') || !map['globPattern'] is String) {
+      return false;
+    }
+    const validFieldNames = ['globPattern', 'kind'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Represents a folding range.
 class FoldingRange {
   FoldingRange(this.startLine, this.startCharacter, this.endLine,
-      this.endCharacter, this.kind);
+      this.endCharacter, this.kind) {
+    if (startLine == null) {
+      throw 'startLine is required but was not provided';
+    }
+    if (endLine == null) {
+      throw 'endLine is required but was not provided';
+    }
+  }
+  factory FoldingRange.fromJson(Map<String, dynamic> json) {
+    final startLine = json['startLine'];
+    final startCharacter = json['startCharacter'];
+    final endLine = json['endLine'];
+    final endCharacter = json['endCharacter'];
+    final kind = new FoldingRangeKind.fromJson(json['kind']);
+    return new FoldingRange(
+        startLine, startCharacter, endLine, endCharacter, kind);
+  }
 
-  /// The zero-based character offset before the folded range ends. If not
-  /// defined, defaults to the length of the end line.
+  /// The zero-based character offset before the folded range ends.
+  /// If not defined, defaults to the length of the end line.
   final num endCharacter;
 
   /// The zero-based line number where the folded range ends.
   final num endLine;
 
-  /// Describes the kind of the folding range such as `comment' or 'region'. The
-  /// kind is used to categorize folding ranges and used by commands like 'Fold
-  /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
-  /// kinds.
+  /// Describes the kind of the folding range such as `comment' or
+  /// 'region'. The kind is used to categorize folding ranges and
+  /// used by commands like 'Fold all comments'. See
+  /// [FoldingRangeKind] for an enumeration of standardized kinds.
   final FoldingRangeKind kind;
 
-  /// The zero-based character offset from where the folded range starts. If not
-  /// defined, defaults to the length of the start line.
+  /// The zero-based character offset from where the folded range
+  /// starts. If not defined, defaults to the length of the start
+  /// line.
   final num startCharacter;
 
   /// The zero-based line number from where the folded range starts.
@@ -1715,13 +3382,45 @@ class FoldingRange {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('startLine') || !map['startLine'] is num) {
+      return false;
+    }
+    if (!map.containsKey('endLine') || !map['endLine'] is num) {
+      return false;
+    }
+    const validFieldNames = [
+      'startLine',
+      'startCharacter',
+      'endLine',
+      'endCharacter',
+      'kind'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Enum of known range kinds
 class FoldingRangeKind {
   const FoldingRangeKind._(this._value);
+  const FoldingRangeKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 'comment':
+      case 'imports':
+      case 'region':
+        return true;
+    }
+    return false;
+  }
 
   /// Folding range for a comment
   static const Comment = const FoldingRangeKind._('comment');
@@ -1744,7 +3443,16 @@ class FoldingRangeKind {
 }
 
 class FoldingRangeParams {
-  FoldingRangeParams(this.textDocument);
+  FoldingRangeParams(this.textDocument) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+  }
+  factory FoldingRangeParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    return new FoldingRangeParams(textDocument);
+  }
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
@@ -1755,6 +3463,19 @@ class FoldingRangeParams {
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Folding range provider options.
@@ -1763,11 +3484,32 @@ class FoldingRangeProviderOptions {
     Map<String, dynamic> __result = {};
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [''];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions {
-  FormattingOptions(this.tabSize, this.insertSpaces);
+  FormattingOptions(this.tabSize, this.insertSpaces) {
+    if (tabSize == null) {
+      throw 'tabSize is required but was not provided';
+    }
+    if (insertSpaces == null) {
+      throw 'insertSpaces is required but was not provided';
+    }
+  }
+  factory FormattingOptions.fromJson(Map<String, dynamic> json) {
+    final tabSize = json['tabSize'];
+    final insertSpaces = json['insertSpaces'];
+    return new FormattingOptions(tabSize, insertSpaces);
+  }
 
   /// Prefer spaces over tabs.
   final bool insertSpaces;
@@ -1783,17 +3525,58 @@ class FormattingOptions {
         insertSpaces ?? (throw 'insertSpaces is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('tabSize') || !map['tabSize'] is num) {
+      return false;
+    }
+    if (!map.containsKey('insertSpaces') || !map['insertSpaces'] is bool) {
+      return false;
+    }
+    const validFieldNames = ['tabSize', 'insertSpaces'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// The result of a hover request.
 class Hover {
-  Hover(this.contents, this.range);
+  Hover(this.contents, this.range) {
+    if (contents == null) {
+      throw 'contents is required but was not provided';
+    }
+  }
+  factory Hover.fromJson(Map<String, dynamic> json) {
+    final contents = MarkedString.canParse(json['contents'])
+        ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t1(
+            new MarkedString.fromJson(json['contents']))
+        : ((json['contents'] is List &&
+                (json['contents'].length == 0 ||
+                    json['contents']
+                        .every((item) => MarkedString.canParse(item))))
+            ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t2(
+                json['contents']
+                    ?.map((item) => new MarkedString.fromJson(item))
+                    ?.cast<MarkedString>()
+                    ?.toList())
+            : (MarkupContent.canParse(json['contents'])
+                ? new Either3<MarkedString, List<MarkedString>,
+                        MarkupContent>.t3(
+                    new MarkupContent.fromJson(json['contents']))
+                : (throw '''${json['contents']} was not one of (MarkedString, MarkedString[], MarkupContent)''')));
+    final range = new Range.fromJson(json['range']);
+    return new Hover(contents, range);
+  }
 
   /// The hover's content
   final Either3<MarkedString, List<MarkedString>, MarkupContent> contents;
 
-  /// An optional range is a range inside a text document that is used to
-  /// visualize a hover, e.g. by changing the background color.
+  /// An optional range is a range inside a text document that is
+  /// used to visualize a hover, e.g. by changing the background
+  /// color.
   final Range range;
 
   Map<String, dynamic> toJson() {
@@ -1805,11 +3588,46 @@ class Hover {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('contents') ||
+        !(MarkedString.canParse(map['contents']) ||
+            (map['contents'] is List &&
+                (map['contents'].length == 0 ||
+                    map['contents']
+                        .every((item) => MarkedString.canParse(item)))) ||
+            MarkupContent.canParse(map['contents']))) {
+      return false;
+    }
+    const validFieldNames = ['contents', 'range'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class InitializeParams {
   InitializeParams(this.processId, this.rootPath, this.rootUri,
-      this.initializationOptions, this.capabilities, this.workspaceFolders);
+      this.initializationOptions, this.capabilities, this.workspaceFolders) {
+    if (capabilities == null) {
+      throw 'capabilities is required but was not provided';
+    }
+  }
+  factory InitializeParams.fromJson(Map<String, dynamic> json) {
+    final processId = json['processId'];
+    final rootPath = json['rootPath'];
+    final rootUri = json['rootUri'];
+    final initializationOptions = json['initializationOptions'];
+    final capabilities = new ClientCapabilities.fromJson(json['capabilities']);
+    final workspaceFolders = json['workspaceFolders']
+        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.cast<WorkspaceFolder>()
+        ?.toList();
+    return new InitializeParams(processId, rootPath, rootUri,
+        initializationOptions, capabilities, workspaceFolders);
+  }
 
   /// The capabilities provided by the client (editor or tool)
   final ClientCapabilities capabilities;
@@ -1817,10 +3635,10 @@ class InitializeParams {
   /// User provided initialization options.
   final dynamic initializationOptions;
 
-  /// The process Id of the parent process that started the server. Is null if
-  /// the process has not been started by another process. If the parent process
-  /// is not alive then the server should exit (see exit notification) its
-  /// process.
+  /// The process Id of the parent process that started the
+  /// server. Is null if the process has not been started by
+  /// another process. If the parent process is not alive then the
+  /// server should exit (see exit notification) its process.
   final num processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
@@ -1828,14 +3646,14 @@ class InitializeParams {
   @core.deprecated
   final String rootPath;
 
-  /// The rootUri of the workspace. Is null if no folder is open. If both
-  /// `rootPath` and `rootUri` are set `rootUri` wins.
+  /// The rootUri of the workspace. Is null if no folder is open.
+  /// If both `rootPath` and `rootUri` are set `rootUri` wins.
   final String rootUri;
 
-  /// The workspace folders configured in the client when the server starts.
-  /// This property is only available if the client supports workspace folders.
-  /// It can be `null` if the client supports workspace folders but none are
-  /// configured.
+  /// The workspace folders configured in the client when the
+  /// server starts. This property is only available if the client
+  /// supports workspace folders. It can be `null` if the client
+  /// supports workspace folders but none are configured.
   ///
   /// Since 3.6.0
   final List<WorkspaceFolder> workspaceFolders;
@@ -1859,10 +3677,44 @@ class InitializeParams {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('processId') || !map['processId'] is num) {
+      return false;
+    }
+    if (!map.containsKey('rootUri') || !map['rootUri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('capabilities') ||
+        !ClientCapabilities.canParse(map['capabilities'])) {
+      return false;
+    }
+    const validFieldNames = [
+      'processId',
+      'rootPath',
+      'rootUri',
+      'initializationOptions',
+      'capabilities',
+      'workspaceFolders'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class InitializeResult {
-  InitializeResult(this.capabilities);
+  InitializeResult(this.capabilities) {
+    if (capabilities == null) {
+      throw 'capabilities is required but was not provided';
+    }
+  }
+  factory InitializeResult.fromJson(Map<String, dynamic> json) {
+    final capabilities = new ServerCapabilities.fromJson(json['capabilities']);
+    return new InitializeResult(capabilities);
+  }
 
   /// The capabilities the language server provides.
   final ServerCapabilities capabilities;
@@ -1873,6 +3725,19 @@ class InitializeResult {
         capabilities ?? (throw 'capabilities is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('capabilities') ||
+        !ServerCapabilities.canParse(map['capabilities'])) {
+      return false;
+    }
+    const validFieldNames = ['capabilities'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class InitializedParams {
@@ -1880,24 +3745,45 @@ class InitializedParams {
     Map<String, dynamic> __result = {};
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [''];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Defines whether the insert text in a completion item should be interpreted
-/// as plain text or a snippet.
+/// Defines whether the insert text in a completion item should be
+/// interpreted as plain text or a snippet.
 class InsertTextFormat {
   const InsertTextFormat._(this._value);
+  const InsertTextFormat.fromJson(this._value);
 
   final Object _value;
 
-  /// The primary text to be inserted is treated as a plain string.
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+        return true;
+    }
+    return false;
+  }
+
+  /// The primary text to be inserted is treated as a plain
+  /// string.
   static const PlainText = const InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
-  /// A snippet can define tab stops and placeholders with `$1`, `$2` and
-  /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
-  /// snippet. Placeholders with equal identifiers are linked, that is typing in
-  /// one will update others too.
+  /// A snippet can define tab stops and placeholders with `$1`,
+  /// `$2` and `${3:foo}`. `$0` defines the final tab stop, it
+  /// defaults to the end of the snippet. Placeholders with
+  /// equal identifiers are linked, that is typing in one will
+  /// update others too.
   static const Snippet = const InsertTextFormat._(2);
 
   Object toJson() => _value;
@@ -1912,7 +3798,19 @@ class InsertTextFormat {
 }
 
 class Location {
-  Location(this.uri, this.range);
+  Location(this.uri, this.range) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+  }
+  factory Location.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final range = new Range.fromJson(json['range']);
+    return new Location(uri, range);
+  }
 
   final Range range;
   final String uri;
@@ -1923,10 +3821,37 @@ class Location {
     __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'range'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class LogMessageParams {
-  LogMessageParams(this.type, this.message);
+  LogMessageParams(this.type, this.message) {
+    if (type == null) {
+      throw 'type is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory LogMessageParams.fromJson(Map<String, dynamic> json) {
+    final type = new MessageType.fromJson(json['type']);
+    final message = json['message'];
+    return new LogMessageParams(type, message);
+  }
 
   /// The actual message
   final String message;
@@ -1941,10 +3866,37 @@ class LogMessageParams {
         message ?? (throw 'message is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
+      return false;
+    }
+    if (!map.containsKey('message') || !map['message'] is String) {
+      return false;
+    }
+    const validFieldNames = ['type', 'message'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class MarkedString {
-  MarkedString(this.language, this.value);
+  MarkedString(this.language, this.value) {
+    if (language == null) {
+      throw 'language is required but was not provided';
+    }
+    if (value == null) {
+      throw 'value is required but was not provided';
+    }
+  }
+  factory MarkedString.fromJson(Map<String, dynamic> json) {
+    final language = json['language'];
+    final value = json['value'];
+    return new MarkedString(language, value);
+  }
 
   final String language;
   final String value;
@@ -1956,18 +3908,35 @@ class MarkedString {
     __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('language') || !map['language'] is String) {
+      return false;
+    }
+    if (!map.containsKey('value') || !map['value'] is String) {
+      return false;
+    }
+    const validFieldNames = ['language', 'value'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// A `MarkupContent` literal represents a string value which content is
-/// interpreted base on its kind flag. Currently the protocol supports
-/// `plaintext` and `markdown` as markup kinds.
+/// A `MarkupContent` literal represents a string value which
+/// content is interpreted base on its kind flag. Currently the
+/// protocol supports `plaintext` and `markdown` as markup
+/// kinds.
 ///
-/// If the kind is `markdown` then the value can contain fenced code blocks like
-/// in GitHub issues. See
+/// If the kind is `markdown` then the value can contain fenced
+/// code blocks like in GitHub issues. See
 /// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
 ///
-/// Here is an example how such a string can be constructed using JavaScript /
-/// TypeScript: ```ts let markdown: MarkdownContent = {
+/// Here is an example how such a string can be constructed
+/// using JavaScript / TypeScript: ```ts let markdown:
+/// MarkdownContent = {
 ///
 /// kind: MarkupKind.Markdown,
 /// 	value: [
@@ -1978,10 +3947,23 @@ class MarkedString {
 /// 		'```'
 /// 	].join('\n') }; ```
 ///
-/// *Please Note* that clients might sanitize the return markdown. A client
-/// could decide to remove HTML from the markdown to avoid script execution.
+/// *Please Note* that clients might sanitize the return
+/// markdown. A client could decide to remove HTML from the
+/// markdown to avoid script execution.
 class MarkupContent {
-  MarkupContent(this.kind, this.value);
+  MarkupContent(this.kind, this.value) {
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
+    if (value == null) {
+      throw 'value is required but was not provided';
+    }
+  }
+  factory MarkupContent.fromJson(Map<String, dynamic> json) {
+    final kind = new MarkupKind.fromJson(json['kind']);
+    final value = json['value'];
+    return new MarkupContent(kind, value);
+  }
 
   /// The type of the Markup
   final MarkupKind kind;
@@ -1995,17 +3977,43 @@ class MarkupContent {
     __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('kind') || !MarkupKind.canParse(map['kind'])) {
+      return false;
+    }
+    if (!map.containsKey('value') || !map['value'] is String) {
+      return false;
+    }
+    const validFieldNames = ['kind', 'value'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Describes the content type that a client supports in various result literals
-/// like `Hover`, `ParameterInfo` or `CompletionItem`.
+/// Describes the content type that a client supports in various
+/// result literals like `Hover`, `ParameterInfo` or
+/// `CompletionItem`.
 ///
-/// Please note that `MarkupKinds` must not start with a `$`. This kinds are
-/// reserved for internal usage.
+/// Please note that `MarkupKinds` must not start with a `$`.
+/// This kinds are reserved for internal usage.
 class MarkupKind {
   const MarkupKind._(this._value);
+  const MarkupKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 'plaintext':
+      case 'markdown':
+        return true;
+    }
+    return false;
+  }
 
   /// Plain text is supported as a content format
   static const PlainText = const MarkupKind._('plaintext');
@@ -2025,7 +4033,15 @@ class MarkupKind {
 }
 
 class Message {
-  Message(this.jsonrpc);
+  Message(this.jsonrpc) {
+    if (jsonrpc == null) {
+      throw 'jsonrpc is required but was not provided';
+    }
+  }
+  factory Message.fromJson(Map<String, dynamic> json) {
+    final jsonrpc = json['jsonrpc'];
+    return new Message(jsonrpc);
+  }
 
   final String jsonrpc;
 
@@ -2035,10 +4051,30 @@ class Message {
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
+      return false;
+    }
+    const validFieldNames = ['jsonrpc'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class MessageActionItem {
-  MessageActionItem(this.title);
+  MessageActionItem(this.title) {
+    if (title == null) {
+      throw 'title is required but was not provided';
+    }
+  }
+  factory MessageActionItem.fromJson(Map<String, dynamic> json) {
+    final title = json['title'];
+    return new MessageActionItem(title);
+  }
 
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
@@ -2048,12 +4084,36 @@ class MessageActionItem {
     __result['title'] = title ?? (throw 'title is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('title') || !map['title'] is String) {
+      return false;
+    }
+    const validFieldNames = ['title'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class MessageType {
   const MessageType._(this._value);
+  const MessageType.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        return true;
+    }
+    return false;
+  }
 
   /// An error message.
   static const Error = const MessageType._(1);
@@ -2079,7 +4139,19 @@ class MessageType {
 }
 
 class NotificationMessage implements Message {
-  NotificationMessage(this.method, this.jsonrpc);
+  NotificationMessage(this.method, this.jsonrpc) {
+    if (method == null) {
+      throw 'method is required but was not provided';
+    }
+    if (jsonrpc == null) {
+      throw 'jsonrpc is required but was not provided';
+    }
+  }
+  factory NotificationMessage.fromJson(Map<String, dynamic> json) {
+    final method = json['method'];
+    final jsonrpc = json['jsonrpc'];
+    return new NotificationMessage(method, jsonrpc);
+  }
 
   final String jsonrpc;
 
@@ -2093,15 +4165,44 @@ class NotificationMessage implements Message {
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('method') || !map['method'] is String) {
+      return false;
+    }
+    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
+      return false;
+    }
+    const validFieldNames = ['method', 'jsonrpc'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Represents a parameter of a callable-signature. A parameter can have a label
-/// and a doc-comment.
+/// Represents a parameter of a callable-signature. A
+/// parameter can have a label and a doc-comment.
 class ParameterInformation {
-  ParameterInformation(this.label, this.documentation);
+  ParameterInformation(this.label, this.documentation) {
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  factory ParameterInformation.fromJson(Map<String, dynamic> json) {
+    final label = json['label'];
+    final documentation = json['documentation'] is String
+        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        : (MarkupContent.canParse(json['documentation'])
+            ? new Either2<String, MarkupContent>.t2(
+                new MarkupContent.fromJson(json['documentation']))
+            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+    return new ParameterInformation(label, documentation);
+  }
 
-  /// The human-readable doc-comment of this parameter. Will be shown in the UI
-  /// but can be omitted.
+  /// The human-readable doc-comment of this parameter. Will
+  /// be shown in the UI but can be omitted.
   final Either2<String, MarkupContent> documentation;
 
   /// The label of this parameter. Will be shown in the UI.
@@ -2115,17 +4216,42 @@ class ParameterInformation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('label') || !map['label'] is String) {
+      return false;
+    }
+    const validFieldNames = ['label', 'documentation'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class Position {
-  Position(this.line, this.character);
+  Position(this.line, this.character) {
+    if (line == null) {
+      throw 'line is required but was not provided';
+    }
+    if (character == null) {
+      throw 'character is required but was not provided';
+    }
+  }
+  factory Position.fromJson(Map<String, dynamic> json) {
+    final line = json['line'];
+    final character = json['character'];
+    return new Position(line, character);
+  }
 
-  /// Character offset on a line in a document (zero-based). Assuming that the
-  /// line is represented as a string, the `character` value represents the gap
-  /// between the `character` and `character + 1`.
+  /// Character offset on a line in a document (zero-based).
+  /// Assuming that the line is represented as a string, the
+  /// `character` value represents the gap between the
+  /// `character` and `character + 1`.
   ///
-  /// If the character value is greater than the line length it defaults back to
-  /// the line length.
+  /// If the character value is greater than the line length
+  /// it defaults back to the line length.
   final num character;
 
   /// Line position in a document (zero-based).
@@ -2138,10 +4264,40 @@ class Position {
         character ?? (throw 'character is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('line') || !map['line'] is num) {
+      return false;
+    }
+    if (!map.containsKey('character') || !map['character'] is num) {
+      return false;
+    }
+    const validFieldNames = ['line', 'character'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class PublishDiagnosticsParams {
-  PublishDiagnosticsParams(this.uri, this.diagnostics);
+  PublishDiagnosticsParams(this.uri, this.diagnostics) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (diagnostics == null) {
+      throw 'diagnostics is required but was not provided';
+    }
+  }
+  factory PublishDiagnosticsParams.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final diagnostics = json['diagnostics']
+        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.cast<Diagnostic>()
+        ?.toList();
+    return new PublishDiagnosticsParams(uri, diagnostics);
+  }
 
   /// An array of diagnostic information items.
   final List<Diagnostic> diagnostics;
@@ -2156,10 +4312,41 @@ class PublishDiagnosticsParams {
         diagnostics ?? (throw 'diagnostics is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('diagnostics') ||
+        !(map['diagnostics'] is List &&
+            (map['diagnostics'].length == 0 ||
+                map['diagnostics']
+                    .every((item) => Diagnostic.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'diagnostics'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class Range {
-  Range(this.start, this.end);
+  Range(this.start, this.end) {
+    if (start == null) {
+      throw 'start is required but was not provided';
+    }
+    if (end == null) {
+      throw 'end is required but was not provided';
+    }
+  }
+  factory Range.fromJson(Map<String, dynamic> json) {
+    final start = new Position.fromJson(json['start']);
+    final end = new Position.fromJson(json['end']);
+    return new Range(start, end);
+  }
 
   /// The range's end position.
   final Position end;
@@ -2173,10 +4360,33 @@ class Range {
     __result['end'] = end ?? (throw 'end is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('start') || !Position.canParse(map['start'])) {
+      return false;
+    }
+    if (!map.containsKey('end') || !Position.canParse(map['end'])) {
+      return false;
+    }
+    const validFieldNames = ['start', 'end'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ReferenceContext {
-  ReferenceContext(this.includeDeclaration);
+  ReferenceContext(this.includeDeclaration) {
+    if (includeDeclaration == null) {
+      throw 'includeDeclaration is required but was not provided';
+    }
+  }
+  factory ReferenceContext.fromJson(Map<String, dynamic> json) {
+    final includeDeclaration = json['includeDeclaration'];
+    return new ReferenceContext(includeDeclaration);
+  }
 
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
@@ -2187,10 +4397,40 @@ class ReferenceContext {
         (throw 'includeDeclaration is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('includeDeclaration') ||
+        !map['includeDeclaration'] is bool) {
+      return false;
+    }
+    const validFieldNames = ['includeDeclaration'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ReferenceParams implements TextDocumentPositionParams {
-  ReferenceParams(this.context, this.textDocument, this.position);
+  ReferenceParams(this.context, this.textDocument, this.position) {
+    if (context == null) {
+      throw 'context is required but was not provided';
+    }
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (position == null) {
+      throw 'position is required but was not provided';
+    }
+  }
+  factory ReferenceParams.fromJson(Map<String, dynamic> json) {
+    final context = new ReferenceContext.fromJson(json['context']);
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = new Position.fromJson(json['position']);
+    return new ReferenceParams(context, textDocument, position);
+  }
 
   final ReferenceContext context;
 
@@ -2210,14 +4450,47 @@ class ReferenceParams implements TextDocumentPositionParams {
         position ?? (throw 'position is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('context') ||
+        !ReferenceContext.canParse(map['context'])) {
+      return false;
+    }
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
+      return false;
+    }
+    const validFieldNames = ['context', 'textDocument', 'position'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// General parameters to register for a capability.
 class Registration {
-  Registration(this.id, this.method, this.registerOptions);
+  Registration(this.id, this.method, this.registerOptions) {
+    if (id == null) {
+      throw 'id is required but was not provided';
+    }
+    if (method == null) {
+      throw 'method is required but was not provided';
+    }
+  }
+  factory Registration.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    final method = json['method'];
+    final registerOptions = json['registerOptions'];
+    return new Registration(id, method, registerOptions);
+  }
 
-  /// The id used to register the request. The id can be used to deregister the
-  /// request again.
+  /// The id used to register the request. The id can be
+  /// used to deregister the request again.
   final String id;
 
   /// The method / capability to register for.
@@ -2235,10 +4508,36 @@ class Registration {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('id') || !map['id'] is String) {
+      return false;
+    }
+    if (!map.containsKey('method') || !map['method'] is String) {
+      return false;
+    }
+    const validFieldNames = ['id', 'method', 'registerOptions'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class RegistrationParams {
-  RegistrationParams(this.registrations);
+  RegistrationParams(this.registrations) {
+    if (registrations == null) {
+      throw 'registrations is required but was not provided';
+    }
+  }
+  factory RegistrationParams.fromJson(Map<String, dynamic> json) {
+    final registrations = json['registrations']
+        ?.map((item) => new Registration.fromJson(item))
+        ?.cast<Registration>()
+        ?.toList();
+    return new RegistrationParams(registrations);
+  }
 
   final List<Registration> registrations;
 
@@ -2248,11 +4547,40 @@ class RegistrationParams {
         registrations ?? (throw 'registrations is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('registrations') ||
+        !(map['registrations'] is List &&
+            (map['registrations'].length == 0 ||
+                map['registrations']
+                    .every((item) => Registration.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['registrations'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Rename file operation
 class RenameFile implements FileOperation {
-  RenameFile(this.oldUri, this.newUri, this.options);
+  RenameFile(this.oldUri, this.newUri, this.options) {
+    if (oldUri == null) {
+      throw 'oldUri is required but was not provided';
+    }
+    if (newUri == null) {
+      throw 'newUri is required but was not provided';
+    }
+  }
+  factory RenameFile.fromJson(Map<String, dynamic> json) {
+    final oldUri = json['oldUri'];
+    final newUri = json['newUri'];
+    final options = new RenameFileOptions.fromJson(json['options']);
+    return new RenameFile(oldUri, newUri, options);
+  }
 
   /// The new location.
   final String newUri;
@@ -2272,16 +4600,37 @@ class RenameFile implements FileOperation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('oldUri') || !map['oldUri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('newUri') || !map['newUri'] is String) {
+      return false;
+    }
+    const validFieldNames = ['oldUri', 'newUri', 'options'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Rename file options
 class RenameFileOptions {
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
+  factory RenameFileOptions.fromJson(Map<String, dynamic> json) {
+    final overwrite = json['overwrite'];
+    final ignoreIfExists = json['ignoreIfExists'];
+    return new RenameFileOptions(overwrite, ignoreIfExists);
+  }
 
   /// Ignores if target exists.
   final bool ignoreIfExists;
 
-  /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
+  /// Overwrite target if existing. Overwrite wins over
+  /// `ignoreIfExists`
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
@@ -2294,13 +4643,27 @@ class RenameFileOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['overwrite', 'ignoreIfExists'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Rename options
 class RenameOptions {
   RenameOptions(this.prepareProvider);
+  factory RenameOptions.fromJson(Map<String, dynamic> json) {
+    final prepareProvider = json['prepareProvider'];
+    return new RenameOptions(prepareProvider);
+  }
 
-  /// Renames should be checked and tested before being executed.
+  /// Renames should be checked and tested before being
+  /// executed.
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
@@ -2310,13 +4673,40 @@ class RenameOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['prepareProvider'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class RenameParams {
-  RenameParams(this.textDocument, this.position, this.newName);
+  RenameParams(this.textDocument, this.position, this.newName) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (position == null) {
+      throw 'position is required but was not provided';
+    }
+    if (newName == null) {
+      throw 'newName is required but was not provided';
+    }
+  }
+  factory RenameParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = new Position.fromJson(json['position']);
+    final newName = json['newName'];
+    return new RenameParams(textDocument, position, newName);
+  }
 
-  /// The new name of the symbol. If the given name is not valid the request
-  /// must return a [ResponseError] with an appropriate message set.
+  /// The new name of the symbol. If the given name is not
+  /// valid the request must return a [ResponseError] with
+  /// an appropriate message set.
   final String newName;
 
   /// The position at which this request was sent.
@@ -2335,16 +4725,45 @@ class RenameParams {
         newName ?? (throw 'newName is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
+      return false;
+    }
+    if (!map.containsKey('newName') || !map['newName'] is String) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'position', 'newName'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
+  factory RenameRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final prepareProvider = json['prepareProvider'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new RenameRegistrationOptions(prepareProvider, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the
+  /// registration. If set to null the document selector
+  /// provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// Renames should be checked and tested for validity before being executed.
+  /// Renames should be checked and tested for validity
+  /// before being executed.
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
@@ -2355,10 +4774,46 @@ class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['prepareProvider', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class RequestMessage implements Message {
-  RequestMessage(this.id, this.method, this.jsonrpc);
+  RequestMessage(this.id, this.method, this.jsonrpc) {
+    if (id == null) {
+      throw 'id is required but was not provided';
+    }
+    if (method == null) {
+      throw 'method is required but was not provided';
+    }
+    if (jsonrpc == null) {
+      throw 'jsonrpc is required but was not provided';
+    }
+  }
+  factory RequestMessage.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] is num
+        ? new Either2<num, String>.t1(json['id'])
+        : (json['id'] is String
+            ? new Either2<num, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (number, string)'''));
+    final method = json['method'];
+    final jsonrpc = json['jsonrpc'];
+    return new RequestMessage(id, method, jsonrpc);
+  }
 
   /// The request id.
   final Either2<num, String> id;
@@ -2375,12 +4830,41 @@ class RequestMessage implements Message {
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
+      return false;
+    }
+    if (!map.containsKey('method') || !map['method'] is String) {
+      return false;
+    }
+    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
+      return false;
+    }
+    const validFieldNames = ['id', 'method', 'jsonrpc'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ResourceOperationKind {
   const ResourceOperationKind._(this._value);
+  const ResourceOperationKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 'create':
+      case 'rename':
+      case 'delete':
+        return true;
+    }
+    return false;
+  }
 
   /// Supports creating new files and folders.
   static const Create = const ResourceOperationKind._('create');
@@ -2403,13 +4887,28 @@ class ResourceOperationKind {
 }
 
 class ResponseMessage implements Message {
-  ResponseMessage(this.id, this.result, this.jsonrpc);
+  ResponseMessage(this.id, this.result, this.jsonrpc) {
+    if (jsonrpc == null) {
+      throw 'jsonrpc is required but was not provided';
+    }
+  }
+  factory ResponseMessage.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] is num
+        ? new Either2<num, String>.t1(json['id'])
+        : (json['id'] is String
+            ? new Either2<num, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (number, string)'''));
+    final result = json['result'];
+    final jsonrpc = json['jsonrpc'];
+    return new ResponseMessage(id, result, jsonrpc);
+  }
 
   /// The request id.
   final Either2<num, String> id;
   final String jsonrpc;
 
-  /// The result of a request. This can be omitted in the case of an error.
+  /// The result of a request. This can be omitted in the
+  /// case of an error.
   final dynamic result;
 
   Map<String, dynamic> toJson() {
@@ -2422,13 +4921,33 @@ class ResponseMessage implements Message {
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('id') || !(map['id'] is num || map['id'] is String)) {
+      return false;
+    }
+    if (!map.containsKey('jsonrpc') || !map['jsonrpc'] is String) {
+      return false;
+    }
+    const validFieldNames = ['id', 'result', 'jsonrpc'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Save options.
 class SaveOptions {
   SaveOptions(this.includeText);
+  factory SaveOptions.fromJson(Map<String, dynamic> json) {
+    final includeText = json['includeText'];
+    return new SaveOptions(includeText);
+  }
 
-  /// The client is supposed to include the content on save.
+  /// The client is supposed to include the content on
+  /// save.
   final bool includeText;
 
   Map<String, dynamic> toJson() {
@@ -2437,6 +4956,15 @@ class SaveOptions {
       __result['includeText'] = includeText;
     }
     return __result;
+  }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['includeText'];
+    return map.keys.every((k) => validFieldNames.contains(k));
   }
 }
 
@@ -2461,18 +4989,92 @@ class ServerCapabilities {
       this.executeCommandProvider,
       this.supported,
       this.changeNotifications);
+  factory ServerCapabilities.fromJson(Map<String, dynamic> json) {
+    final textDocumentSync = TextDocumentSyncOptions.canParse(
+            json['textDocumentSync'])
+        ? new Either2<TextDocumentSyncOptions, num>.t1(
+            new TextDocumentSyncOptions.fromJson(json['textDocumentSync']))
+        : (json['textDocumentSync'] is num
+            ? new Either2<TextDocumentSyncOptions, num>.t2(
+                json['textDocumentSync'])
+            : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, number)'''));
+    final hoverProvider = json['hoverProvider'];
+    final completionProvider =
+        new CompletionOptions.fromJson(json['completionProvider']);
+    final signatureHelpProvider =
+        new SignatureHelpOptions.fromJson(json['signatureHelpProvider']);
+    final definitionProvider = json['definitionProvider'];
+    final referencesProvider = json['referencesProvider'];
+    final documentHighlightProvider = json['documentHighlightProvider'];
+    final documentSymbolProvider = json['documentSymbolProvider'];
+    final workspaceSymbolProvider = json['workspaceSymbolProvider'];
+    final codeActionProvider = json['codeActionProvider'] is bool
+        ? new Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
+        : (CodeActionOptions.canParse(json['codeActionProvider'])
+            ? new Either2<bool, CodeActionOptions>.t2(
+                new CodeActionOptions.fromJson(json['codeActionProvider']))
+            : (throw '''${json['codeActionProvider']} was not one of (boolean, CodeActionOptions)'''));
+    final codeLensProvider =
+        new CodeLensOptions.fromJson(json['codeLensProvider']);
+    final documentFormattingProvider = json['documentFormattingProvider'];
+    final documentRangeFormattingProvider =
+        json['documentRangeFormattingProvider'];
+    final documentOnTypeFormattingProvider =
+        new DocumentOnTypeFormattingOptions.fromJson(
+            json['documentOnTypeFormattingProvider']);
+    final renameProvider = json['renameProvider'] is bool
+        ? new Either2<bool, RenameOptions>.t1(json['renameProvider'])
+        : (RenameOptions.canParse(json['renameProvider'])
+            ? new Either2<bool, RenameOptions>.t2(
+                new RenameOptions.fromJson(json['renameProvider']))
+            : (throw '''${json['renameProvider']} was not one of (boolean, RenameOptions)'''));
+    final documentLinkProvider =
+        new DocumentLinkOptions.fromJson(json['documentLinkProvider']);
+    final executeCommandProvider =
+        new ExecuteCommandOptions.fromJson(json['executeCommandProvider']);
+    final supported = json['supported'];
+    final changeNotifications = json['changeNotifications'] is String
+        ? new Either2<String, bool>.t1(json['changeNotifications'])
+        : (json['changeNotifications'] is bool
+            ? new Either2<String, bool>.t2(json['changeNotifications'])
+            : (throw '''${json['changeNotifications']} was not one of (string, boolean)'''));
+    return new ServerCapabilities(
+        textDocumentSync,
+        hoverProvider,
+        completionProvider,
+        signatureHelpProvider,
+        definitionProvider,
+        referencesProvider,
+        documentHighlightProvider,
+        documentSymbolProvider,
+        workspaceSymbolProvider,
+        codeActionProvider,
+        codeLensProvider,
+        documentFormattingProvider,
+        documentRangeFormattingProvider,
+        documentOnTypeFormattingProvider,
+        renameProvider,
+        documentLinkProvider,
+        executeCommandProvider,
+        supported,
+        changeNotifications);
+  }
 
-  /// Whether the server wants to receive workspace folder change notifications.
+  /// Whether the server wants to receive workspace folder
+  /// change notifications.
   ///
-  /// If a strings is provided the string is treated as a ID under which the
-  /// notification is registered on the client side. The ID can be used to
-  /// unregister for these events using the `client/unregisterCapability`
+  /// If a strings is provided the string is treated as a
+  /// ID under which the notification is registered on the
+  /// client side. The ID can be used to unregister for
+  /// these events using the `client/unregisterCapability`
   /// request.
   final Either2<String, bool> changeNotifications;
 
-  /// The server provides code actions. The `CodeActionOptions` return type is
-  /// only valid if the client signals code action literal support via the
-  /// property `textDocument.codeAction.codeActionLiteralSupport`.
+  /// The server provides code actions. The
+  /// `CodeActionOptions` return type is only valid if the
+  /// client signals code action literal support via the
+  /// property
+  /// `textDocument.codeAction.codeActionLiteralSupport`.
   final Either2<bool, CodeActionOptions> codeActionProvider;
 
   /// The server provides code lens.
@@ -2511,8 +5113,9 @@ class ServerCapabilities {
   /// The server provides find references support.
   final bool referencesProvider;
 
-  /// The server provides rename support. RenameOptions may only be specified if
-  /// the client states that it supports `prepareSupport` in its initial
+  /// The server provides rename support. RenameOptions
+  /// may only be specified if the client states that it
+  /// supports `prepareSupport` in its initial
   /// `initialize` request.
   final Either2<bool, RenameOptions> renameProvider;
 
@@ -2522,9 +5125,10 @@ class ServerCapabilities {
   /// The server has support for workspace folders
   final bool supported;
 
-  /// Defines how text documents are synced. Is either a detailed structure
-  /// defining each notification or for backwards compatibility the
-  /// TextDocumentSyncKind number. If omitted it defaults to
+  /// Defines how text documents are synced. Is either a
+  /// detailed structure defining each notification or for
+  /// backwards compatibility the TextDocumentSyncKind
+  /// number. If omitted it defaults to
   /// `TextDocumentSyncKind.None`.
   final Either2<TextDocumentSyncOptions, num> textDocumentSync;
 
@@ -2594,10 +5198,51 @@ class ServerCapabilities {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [
+      'textDocumentSync',
+      'hoverProvider',
+      'completionProvider',
+      'signatureHelpProvider',
+      'definitionProvider',
+      'referencesProvider',
+      'documentHighlightProvider',
+      'documentSymbolProvider',
+      'workspaceSymbolProvider',
+      'codeActionProvider',
+      'codeLensProvider',
+      'documentFormattingProvider',
+      'documentRangeFormattingProvider',
+      'documentOnTypeFormattingProvider',
+      'renameProvider',
+      'documentLinkProvider',
+      'executeCommandProvider',
+      'supported',
+      'changeNotifications'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ShowMessageParams {
-  ShowMessageParams(this.type, this.message);
+  ShowMessageParams(this.type, this.message) {
+    if (type == null) {
+      throw 'type is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory ShowMessageParams.fromJson(Map<String, dynamic> json) {
+    final type = new MessageType.fromJson(json['type']);
+    final message = json['message'];
+    return new ShowMessageParams(type, message);
+  }
 
   /// The actual message.
   final String message;
@@ -2612,10 +5257,41 @@ class ShowMessageParams {
         message ?? (throw 'message is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
+      return false;
+    }
+    if (!map.containsKey('message') || !map['message'] is String) {
+      return false;
+    }
+    const validFieldNames = ['type', 'message'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class ShowMessageRequestParams {
-  ShowMessageRequestParams(this.type, this.message, this.actions);
+  ShowMessageRequestParams(this.type, this.message, this.actions) {
+    if (type == null) {
+      throw 'type is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory ShowMessageRequestParams.fromJson(Map<String, dynamic> json) {
+    final type = new MessageType.fromJson(json['type']);
+    final message = json['message'];
+    final actions = json['actions']
+        ?.map((item) => new MessageActionItem.fromJson(item))
+        ?.cast<MessageActionItem>()
+        ?.toList();
+    return new ShowMessageRequestParams(type, message, actions);
+  }
 
   /// The message action items to present.
   final List<MessageActionItem> actions;
@@ -2636,27 +5312,60 @@ class ShowMessageRequestParams {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('type') || !MessageType.canParse(map['type'])) {
+      return false;
+    }
+    if (!map.containsKey('message') || !map['message'] is String) {
+      return false;
+    }
+    const validFieldNames = ['type', 'message', 'actions'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Signature help represents the signature of something callable. There can be
-/// multiple signature but only one active and only one active parameter.
+/// Signature help represents the signature of something
+/// callable. There can be multiple signature but only one
+/// active and only one active parameter.
 class SignatureHelp {
-  SignatureHelp(this.signatures, this.activeSignature, this.activeParameter);
+  SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
+    if (signatures == null) {
+      throw 'signatures is required but was not provided';
+    }
+  }
+  factory SignatureHelp.fromJson(Map<String, dynamic> json) {
+    final signatures = json['signatures']
+        ?.map((item) => new SignatureInformation.fromJson(item))
+        ?.cast<SignatureInformation>()
+        ?.toList();
+    final activeSignature = json['activeSignature'];
+    final activeParameter = json['activeParameter'];
+    return new SignatureHelp(signatures, activeSignature, activeParameter);
+  }
 
-  /// The active parameter of the active signature. If omitted or the value lies
-  /// outside the range of `signatures[activeSignature].parameters` defaults to
-  /// 0 if the active signature has parameters. If the active signature has no
-  /// parameters it is ignored. In future version of the protocol this property
-  /// might become mandatory to better express the active parameter if the
-  /// active signature does have any.
+  /// The active parameter of the active signature. If
+  /// omitted or the value lies outside the range of
+  /// `signatures[activeSignature].parameters` defaults to
+  /// 0 if the active signature has parameters. If the
+  /// active signature has no parameters it is ignored. In
+  /// future version of the protocol this property might
+  /// become mandatory to better express the active
+  /// parameter if the active signature does have any.
   final num activeParameter;
 
-  /// The active signature. If omitted or the value lies outside the range of
-  /// `signatures` the value defaults to zero or is ignored if
-  /// `signatures.length === 0`. Whenever possible implementors should make an
-  /// active decision about the active signature and shouldn't rely on a default
-  /// value. In future version of the protocol this property might become
-  /// mandatory to better express this.
+  /// The active signature. If omitted or the value lies
+  /// outside the range of `signatures` the value defaults
+  /// to zero or is ignored if `signatures.length === 0`.
+  /// Whenever possible implementors should make an active
+  /// decision about the active signature and shouldn't
+  /// rely on a default value. In future version of the
+  /// protocol this property might become mandatory to
+  /// better express this.
   final num activeSignature;
 
   /// One or more signatures.
@@ -2674,13 +5383,41 @@ class SignatureHelp {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('signatures') ||
+        !(map['signatures'] is List &&
+            (map['signatures'].length == 0 ||
+                map['signatures']
+                    .every((item) => SignatureInformation.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = [
+      'signatures',
+      'activeSignature',
+      'activeParameter'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Signature help options.
 class SignatureHelpOptions {
   SignatureHelpOptions(this.triggerCharacters);
+  factory SignatureHelpOptions.fromJson(Map<String, dynamic> json) {
+    final triggerCharacters = json['triggerCharacters']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    return new SignatureHelpOptions(triggerCharacters);
+  }
 
-  /// The characters that trigger signature help automatically.
+  /// The characters that trigger signature help
+  /// automatically.
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
@@ -2690,18 +5427,41 @@ class SignatureHelpOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['triggerCharacters'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class SignatureHelpRegistrationOptions
     implements TextDocumentRegistrationOptions {
   SignatureHelpRegistrationOptions(
       this.triggerCharacters, this.documentSelector);
+  factory SignatureHelpRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final triggerCharacters = json['triggerCharacters']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new SignatureHelpRegistrationOptions(
+        triggerCharacters, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the
+  /// registration. If set to null the document selector
+  /// provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// The characters that trigger signature help automatically.
+  /// The characters that trigger signature help
+  /// automatically.
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
@@ -2712,18 +5472,54 @@ class SignatureHelpRegistrationOptions
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['triggerCharacters', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Represents the signature of something callable. A signature can have a
-/// label, like a function-name, a doc-comment, and a set of parameters.
+/// Represents the signature of something callable. A
+/// signature can have a label, like a function-name, a
+/// doc-comment, and a set of parameters.
 class SignatureInformation {
-  SignatureInformation(this.label, this.documentation, this.parameters);
+  SignatureInformation(this.label, this.documentation, this.parameters) {
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  factory SignatureInformation.fromJson(Map<String, dynamic> json) {
+    final label = json['label'];
+    final documentation = json['documentation'] is String
+        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        : (MarkupContent.canParse(json['documentation'])
+            ? new Either2<String, MarkupContent>.t2(
+                new MarkupContent.fromJson(json['documentation']))
+            : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
+    final parameters = json['parameters']
+        ?.map((item) => new ParameterInformation.fromJson(item))
+        ?.cast<ParameterInformation>()
+        ?.toList();
+    return new SignatureInformation(label, documentation, parameters);
+  }
 
-  /// The human-readable doc-comment of this signature. Will be shown in the UI
-  /// but can be omitted.
+  /// The human-readable doc-comment of this signature.
+  /// Will be shown in the UI but can be omitted.
   final Either2<String, MarkupContent> documentation;
 
-  /// The label of this signature. Will be shown in the UI.
+  /// The label of this signature. Will be shown in the
+  /// UI.
   final String label;
 
   /// The parameters of this signature.
@@ -2740,14 +5536,32 @@ class SignatureInformation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('label') || !map['label'] is String) {
+      return false;
+    }
+    const validFieldNames = ['label', 'documentation', 'parameters'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Static registration options to be returned in the initialize request.
+/// Static registration options to be returned in the
+/// initialize request.
 class StaticRegistrationOptions {
   StaticRegistrationOptions(this.id);
+  factory StaticRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    return new StaticRegistrationOptions(id);
+  }
 
-  /// The id used to register the request. The id can be used to deregister the
-  /// request again. See also Registration#id.
+  /// The id used to register the request. The id can be
+  /// used to deregister the request again. See also
+  /// Registration#id.
   final String id;
 
   Map<String, dynamic> toJson() {
@@ -2757,18 +5571,47 @@ class StaticRegistrationOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['id'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Represents information about programming constructs like variables, classes,
-/// interfaces etc.
+/// Represents information about programming constructs
+/// like variables, classes, interfaces etc.
 class SymbolInformation {
-  SymbolInformation(
-      this.name, this.kind, this.deprecated, this.location, this.containerName);
+  SymbolInformation(this.name, this.kind, this.deprecated, this.location,
+      this.containerName) {
+    if (name == null) {
+      throw 'name is required but was not provided';
+    }
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
+    if (location == null) {
+      throw 'location is required but was not provided';
+    }
+  }
+  factory SymbolInformation.fromJson(Map<String, dynamic> json) {
+    final name = json['name'];
+    final kind = json['kind'];
+    final deprecated = json['deprecated'];
+    final location = new Location.fromJson(json['location']);
+    final containerName = json['containerName'];
+    return new SymbolInformation(
+        name, kind, deprecated, location, containerName);
+  }
 
-  /// The name of the symbol containing this symbol. This information is for
-  /// user interface purposes (e.g. to render a qualifier in the user interface
-  /// if necessary). It can't be used to re-infer a hierarchy for the document
-  /// symbols.
+  /// The name of the symbol containing this symbol. This
+  /// information is for user interface purposes (e.g. to
+  /// render a qualifier in the user interface if
+  /// necessary). It can't be used to re-infer a hierarchy
+  /// for the document symbols.
   final String containerName;
 
   /// Indicates if this symbol is deprecated.
@@ -2777,15 +5620,18 @@ class SymbolInformation {
   /// The kind of this symbol.
   final num kind;
 
-  /// The location of this symbol. The location's range is used by a tool to
-  /// reveal the location in the editor. If the symbol is selected in the tool
-  /// the range's start information is used to position the cursor. So the range
-  /// usually spans more then the actual symbol's name and does normally include
-  /// things like visibility modifiers.
+  /// The location of this symbol. The location's range is
+  /// used by a tool to reveal the location in the editor.
+  /// If the symbol is selected in the tool the range's
+  /// start information is used to position the cursor. So
+  /// the range usually spans more then the actual
+  /// symbol's name and does normally include things like
+  /// visibility modifiers.
   ///
-  /// The range doesn't have to denote a node range in the sense of a abstract
-  /// syntax tree. It can therefore not be used to re-construct a hierarchy of
-  /// the symbols.
+  /// The range doesn't have to denote a node range in the
+  /// sense of a abstract syntax tree. It can therefore
+  /// not be used to re-construct a hierarchy of the
+  /// symbols.
   final Location location;
 
   /// The name of this symbol.
@@ -2805,13 +5651,71 @@ class SymbolInformation {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('name') || !map['name'] is String) {
+      return false;
+    }
+    if (!map.containsKey('kind') || !map['kind'] is num) {
+      return false;
+    }
+    if (!map.containsKey('location') || !Location.canParse(map['location'])) {
+      return false;
+    }
+    const validFieldNames = [
+      'name',
+      'kind',
+      'deprecated',
+      'location',
+      'containerName'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// A symbol kind.
 class SymbolKind {
   const SymbolKind._(this._value);
+  const SymbolKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+      case 9:
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14:
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19:
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24:
+      case 25:
+      case 26:
+        return true;
+    }
+    return false;
+  }
 
   static const File = const SymbolKind._(1);
   static const Module = const SymbolKind._(2);
@@ -2851,17 +5755,33 @@ class SymbolKind {
   bool operator ==(o) => o is SymbolKind && o._value == _value;
 }
 
-/// Describe options to be used when registering for text document change
-/// events.
+/// Describe options to be used when registering for
+/// text document change events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions {
-  TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector);
+  TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector) {
+    if (syncKind == null) {
+      throw 'syncKind is required but was not provided';
+    }
+  }
+  factory TextDocumentChangeRegistrationOptions.fromJson(
+      Map<String, dynamic> json) {
+    final syncKind = json['syncKind'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new TextDocumentChangeRegistrationOptions(
+        syncKind, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the
+  /// registration. If set to null the document selector
+  /// provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
-  /// How documents are synced to the server. See TextDocumentSyncKind.Full and
+  /// How documents are synced to the server. See
+  /// TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   final num syncKind;
 
@@ -2872,24 +5792,54 @@ class TextDocumentChangeRegistrationOptions
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('syncKind') || !map['syncKind'] is num) {
+      return false;
+    }
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['syncKind', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities {
   TextDocumentClientCapabilities(this.dynamicRegistration, this.willSave,
       this.willSaveWaitUntil, this.didSave);
+  factory TextDocumentClientCapabilities.fromJson(Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final willSave = json['willSave'];
+    final willSaveWaitUntil = json['willSaveWaitUntil'];
+    final didSave = json['didSave'];
+    return new TextDocumentClientCapabilities(
+        dynamicRegistration, willSave, willSaveWaitUntil, didSave);
+  }
 
   /// The client supports did save notifications.
   final bool didSave;
 
-  /// Whether text document synchronization supports dynamic registration.
+  /// Whether text document synchronization supports
+  /// dynamic registration.
   final bool dynamicRegistration;
 
-  /// The client supports sending will save notifications.
+  /// The client supports sending will save
+  /// notifications.
   final bool willSave;
 
-  /// The client supports sending a will save request and waits for a response
-  /// providing text edits which will be applied to the document before it is
+  /// The client supports sending a will save request
+  /// and waits for a response providing text edits
+  /// which will be applied to the document before it is
   /// saved.
   final bool willSaveWaitUntil;
 
@@ -2909,13 +5859,37 @@ class TextDocumentClientCapabilities {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [
+      'dynamicRegistration',
+      'willSave',
+      'willSaveWaitUntil',
+      'didSave'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// An event describing a change to a text document. If range and rangeLength
-/// are omitted the new text is considered to be the full content of the
-/// document.
+/// An event describing a change to a text document. If
+/// range and rangeLength are omitted the new text is
+/// considered to be the full content of the document.
 class TextDocumentContentChangeEvent {
-  TextDocumentContentChangeEvent(this.range, this.rangeLength, this.text);
+  TextDocumentContentChangeEvent(this.range, this.rangeLength, this.text) {
+    if (text == null) {
+      throw 'text is required but was not provided';
+    }
+  }
+  factory TextDocumentContentChangeEvent.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final rangeLength = json['rangeLength'];
+    final text = json['text'];
+    return new TextDocumentContentChangeEvent(range, rangeLength, text);
+  }
 
   /// The range of the document that changed.
   final Range range;
@@ -2937,10 +5911,38 @@ class TextDocumentContentChangeEvent {
     __result['text'] = text ?? (throw 'text is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('text') || !map['text'] is String) {
+      return false;
+    }
+    const validFieldNames = ['range', 'rangeLength', 'text'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextDocumentEdit implements FileOperation {
-  TextDocumentEdit(this.textDocument, this.edits);
+  TextDocumentEdit(this.textDocument, this.edits) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (edits == null) {
+      throw 'edits is required but was not provided';
+    }
+  }
+  factory TextDocumentEdit.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
+    final edits = json['edits']
+        ?.map((item) => new TextEdit.fromJson(item))
+        ?.cast<TextEdit>()
+        ?.toList();
+    return new TextDocumentEdit(textDocument, edits);
+  }
 
   /// The edits to be applied.
   final List<TextEdit> edits;
@@ -2955,10 +5957,37 @@ class TextDocumentEdit implements FileOperation {
     __result['edits'] = edits ?? (throw 'edits is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !VersionedTextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('edits') ||
+        !(map['edits'] is List &&
+            (map['edits'].length == 0 ||
+                map['edits'].every((item) => TextEdit.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'edits'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextDocumentIdentifier {
-  TextDocumentIdentifier(this.uri);
+  TextDocumentIdentifier(this.uri) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+  }
+  factory TextDocumentIdentifier.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    return new TextDocumentIdentifier(uri);
+  }
 
   /// The text document's URI.
   final String uri;
@@ -2968,10 +5997,42 @@ class TextDocumentIdentifier {
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    const validFieldNames = ['uri'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextDocumentItem {
-  TextDocumentItem(this.uri, this.languageId, this.version, this.text);
+  TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (languageId == null) {
+      throw 'languageId is required but was not provided';
+    }
+    if (version == null) {
+      throw 'version is required but was not provided';
+    }
+    if (text == null) {
+      throw 'text is required but was not provided';
+    }
+  }
+  factory TextDocumentItem.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final languageId = json['languageId'];
+    final version = json['version'];
+    final text = json['text'];
+    return new TextDocumentItem(uri, languageId, version, text);
+  }
 
   /// The text document's language identifier.
   final String languageId;
@@ -2982,8 +6043,8 @@ class TextDocumentItem {
   /// The text document's URI.
   final String uri;
 
-  /// The version number of this document (it will increase after each change,
-  /// including undo/redo).
+  /// The version number of this document (it will
+  /// increase after each change, including undo/redo).
   final num version;
 
   Map<String, dynamic> toJson() {
@@ -2996,10 +6057,44 @@ class TextDocumentItem {
     __result['text'] = text ?? (throw 'text is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('languageId') || !map['languageId'] is String) {
+      return false;
+    }
+    if (!map.containsKey('version') || !map['version'] is num) {
+      return false;
+    }
+    if (!map.containsKey('text') || !map['text'] is String) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'languageId', 'version', 'text'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextDocumentPositionParams {
-  TextDocumentPositionParams(this.textDocument, this.position);
+  TextDocumentPositionParams(this.textDocument, this.position) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (position == null) {
+      throw 'position is required but was not provided';
+    }
+  }
+  factory TextDocumentPositionParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = new Position.fromJson(json['position']);
+    return new TextDocumentPositionParams(textDocument, position);
+  }
 
   /// The position inside the text document.
   final Position position;
@@ -3015,13 +6110,37 @@ class TextDocumentPositionParams {
         position ?? (throw 'position is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('position') || !Position.canParse(map['position'])) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'position'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextDocumentRegistrationOptions {
   TextDocumentRegistrationOptions(this.documentSelector);
+  factory TextDocumentRegistrationOptions.fromJson(Map<String, dynamic> json) {
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new TextDocumentRegistrationOptions(documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the
+  /// registration. If set to null the document selector
+  /// provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
@@ -3029,16 +6148,43 @@ class TextDocumentRegistrationOptions {
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Represents reasons why a text document is saved.
 class TextDocumentSaveReason {
   const TextDocumentSaveReason._(this._value);
+  const TextDocumentSaveReason.fromJson(this._value);
 
   final Object _value;
 
-  /// Manually triggered, e.g. by the user pressing save, by starting debugging,
-  /// or by an API call.
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 3:
+        return true;
+    }
+    return false;
+  }
+
+  /// Manually triggered, e.g. by the user pressing
+  /// save, by starting debugging, or by an API call.
   static const Manual = const TextDocumentSaveReason._(1);
 
   /// Automatic after a delay.
@@ -3061,12 +6207,25 @@ class TextDocumentSaveReason {
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions {
   TextDocumentSaveRegistrationOptions(this.includeText, this.documentSelector);
+  factory TextDocumentSaveRegistrationOptions.fromJson(
+      Map<String, dynamic> json) {
+    final includeText = json['includeText'];
+    final documentSelector = json['documentSelector']
+        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.cast<DocumentFilter>()
+        ?.toList();
+    return new TextDocumentSaveRegistrationOptions(
+        includeText, documentSelector);
+  }
 
-  /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// A document selector to identify the scope of the
+  /// registration. If set to null the document
+  /// selector provided on the client side will be
+  /// used.
   final List<DocumentFilter> documentSelector;
 
-  /// The client is supposed to include the content on save.
+  /// The client is supposed to include the content on
+  /// save.
   final bool includeText;
 
   Map<String, dynamic> toJson() {
@@ -3077,23 +6236,52 @@ class TextDocumentSaveRegistrationOptions
     __result['documentSelector'] = documentSelector;
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('documentSelector') ||
+        !(map['documentSelector'] is List &&
+            (map['documentSelector'].length == 0 ||
+                map['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['includeText', 'documentSelector'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
-/// Defines how the host (editor) should sync document changes to the language
-/// server.
+/// Defines how the host (editor) should sync document
+/// changes to the language server.
 class TextDocumentSyncKind {
   const TextDocumentSyncKind._(this._value);
+  const TextDocumentSyncKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 0:
+      case 1:
+      case 2:
+        return true;
+    }
+    return false;
+  }
 
   /// Documents should not be synced at all.
   static const None = const TextDocumentSyncKind._(0);
 
-  /// Documents are synced by always sending the full content of the document.
+  /// Documents are synced by always sending the
+  /// full content of the document.
   static const Full = const TextDocumentSyncKind._(1);
 
-  /// Documents are synced by sending the full content on open. After that only
-  /// incremental updates to the document are send.
+  /// Documents are synced by sending the full
+  /// content on open. After that only incremental
+  /// updates to the document are send.
   static const Incremental = const TextDocumentSyncKind._(2);
 
   Object toJson() => _value;
@@ -3110,23 +6298,36 @@ class TextDocumentSyncKind {
 class TextDocumentSyncOptions {
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
       this.willSaveWaitUntil, this.save);
+  factory TextDocumentSyncOptions.fromJson(Map<String, dynamic> json) {
+    final openClose = json['openClose'];
+    final change = new TextDocumentSyncKind.fromJson(json['change']);
+    final willSave = json['willSave'];
+    final willSaveWaitUntil = json['willSaveWaitUntil'];
+    final save = new SaveOptions.fromJson(json['save']);
+    return new TextDocumentSyncOptions(
+        openClose, change, willSave, willSaveWaitUntil, save);
+  }
 
-  /// Change notifications are sent to the server. See
-  /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
-  /// TextDocumentSyncKind.Incremental. If omitted it defaults to
-  /// TextDocumentSyncKind.None.
+  /// Change notifications are sent to the server.
+  /// See TextDocumentSyncKind.None,
+  /// TextDocumentSyncKind.Full and
+  /// TextDocumentSyncKind.Incremental. If omitted
+  /// it defaults to TextDocumentSyncKind.None.
   final TextDocumentSyncKind change;
 
-  /// Open and close notifications are sent to the server.
+  /// Open and close notifications are sent to the
+  /// server.
   final bool openClose;
 
   /// Save notifications are sent to the server.
   final SaveOptions save;
 
-  /// Will save notifications are sent to the server.
+  /// Will save notifications are sent to the
+  /// server.
   final bool willSave;
 
-  /// Will save wait until requests are sent to the server.
+  /// Will save wait until requests are sent to the
+  /// server.
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
@@ -3148,16 +6349,45 @@ class TextDocumentSyncOptions {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [
+      'openClose',
+      'change',
+      'willSave',
+      'willSaveWaitUntil',
+      'save'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class TextEdit {
-  TextEdit(this.range, this.newText);
+  TextEdit(this.range, this.newText) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (newText == null) {
+      throw 'newText is required but was not provided';
+    }
+  }
+  factory TextEdit.fromJson(Map<String, dynamic> json) {
+    final range = new Range.fromJson(json['range']);
+    final newText = json['newText'];
+    return new TextEdit(range, newText);
+  }
 
-  /// The string to be inserted. For delete operations use an empty string.
+  /// The string to be inserted. For delete
+  /// operations use an empty string.
   final String newText;
 
-  /// The range of the text document to be manipulated. To insert text into a
-  /// document create a range where start === end.
+  /// The range of the text document to be
+  /// manipulated. To insert text into a document
+  /// create a range where start === end.
   final Range range;
 
   Map<String, dynamic> toJson() {
@@ -3167,14 +6397,42 @@ class TextEdit {
         newText ?? (throw 'newText is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('range') || !Range.canParse(map['range'])) {
+      return false;
+    }
+    if (!map.containsKey('newText') || !map['newText'] is String) {
+      return false;
+    }
+    const validFieldNames = ['range', 'newText'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// General parameters to unregister a capability.
 class Unregistration {
-  Unregistration(this.id, this.method);
+  Unregistration(this.id, this.method) {
+    if (id == null) {
+      throw 'id is required but was not provided';
+    }
+    if (method == null) {
+      throw 'method is required but was not provided';
+    }
+  }
+  factory Unregistration.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    final method = json['method'];
+    return new Unregistration(id, method);
+  }
 
-  /// The id used to unregister the request or notification. Usually an id
-  /// provided during the register request.
+  /// The id used to unregister the request or
+  /// notification. Usually an id provided during
+  /// the register request.
   final String id;
 
   /// The method / capability to unregister for.
@@ -3186,10 +6444,36 @@ class Unregistration {
     __result['method'] = method ?? (throw 'method is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('id') || !map['id'] is String) {
+      return false;
+    }
+    if (!map.containsKey('method') || !map['method'] is String) {
+      return false;
+    }
+    const validFieldNames = ['id', 'method'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class UnregistrationParams {
-  UnregistrationParams(this.unregisterations);
+  UnregistrationParams(this.unregisterations) {
+    if (unregisterations == null) {
+      throw 'unregisterations is required but was not provided';
+    }
+  }
+  factory UnregistrationParams.fromJson(Map<String, dynamic> json) {
+    final unregisterations = json['unregisterations']
+        ?.map((item) => new Unregistration.fromJson(item))
+        ?.cast<Unregistration>()
+        ?.toList();
+    return new UnregistrationParams(unregisterations);
+  }
 
   final List<Unregistration> unregisterations;
 
@@ -3199,22 +6483,52 @@ class UnregistrationParams {
         (throw 'unregisterations is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('unregisterations') ||
+        !(map['unregisterations'] is List &&
+            (map['unregisterations'].length == 0 ||
+                map['unregisterations']
+                    .every((item) => Unregistration.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['unregisterations'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
-  VersionedTextDocumentIdentifier(this.version, this.uri);
+  VersionedTextDocumentIdentifier(this.version, this.uri) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+  }
+  factory VersionedTextDocumentIdentifier.fromJson(Map<String, dynamic> json) {
+    final version = json['version'];
+    final uri = json['uri'];
+    return new VersionedTextDocumentIdentifier(version, uri);
+  }
 
   /// The text document's URI.
   final String uri;
 
-  /// The version number of this document. If a versioned text document
-  /// identifier is sent from the server to the client and the file is not open
-  /// in the editor (the server has not received an open notification before)
-  /// the server can send `null` to indicate that the version is known and the
-  /// content on disk is the truth (as speced with document content ownership).
+  /// The version number of this document. If a
+  /// versioned text document identifier is sent
+  /// from the server to the client and the file is
+  /// not open in the editor (the server has not
+  /// received an open notification before) the
+  /// server can send `null` to indicate that the
+  /// version is known and the content on disk is
+  /// the truth (as speced with document content
+  /// ownership).
   ///
-  /// The version number of a document will increase after each change,
-  /// including undo/redo. The number doesn't need to be consecutive.
+  /// The version number of a document will increase
+  /// after each change, including undo/redo. The
+  /// number doesn't need to be consecutive.
   final num version;
 
   Map<String, dynamic> toJson() {
@@ -3223,12 +6537,38 @@ class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('version') || !map['version'] is num) {
+      return false;
+    }
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    const validFieldNames = ['version', 'uri'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class WatchKind {
   const WatchKind._(this._value);
+  const WatchKind.fromJson(this._value);
 
   final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case 1:
+      case 2:
+      case 4:
+        return true;
+    }
+    return false;
+  }
 
   /// Interested in create events.
   static const Create = const WatchKind._(1);
@@ -3250,9 +6590,23 @@ class WatchKind {
   bool operator ==(o) => o is WatchKind && o._value == _value;
 }
 
-/// The parameters send in a will save text document notification.
+/// The parameters send in a will save text
+/// document notification.
 class WillSaveTextDocumentParams {
-  WillSaveTextDocumentParams(this.textDocument, this.reason);
+  WillSaveTextDocumentParams(this.textDocument, this.reason) {
+    if (textDocument == null) {
+      throw 'textDocument is required but was not provided';
+    }
+    if (reason == null) {
+      throw 'reason is required but was not provided';
+    }
+  }
+  factory WillSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
+    final textDocument =
+        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final reason = json['reason'];
+    return new WillSaveTextDocumentParams(textDocument, reason);
+  }
 
   /// The 'TextDocumentSaveReason'.
   final num reason;
@@ -3267,26 +6621,57 @@ class WillSaveTextDocumentParams {
     __result['reason'] = reason ?? (throw 'reason is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('textDocument') ||
+        !TextDocumentIdentifier.canParse(map['textDocument'])) {
+      return false;
+    }
+    if (!map.containsKey('reason') || !map['reason'] is num) {
+      return false;
+    }
+    const validFieldNames = ['textDocument', 'reason'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities {
   WorkspaceClientCapabilities(this.applyEdit, this.documentChanges,
       this.resourceOperations, this.failureHandling);
+  factory WorkspaceClientCapabilities.fromJson(Map<String, dynamic> json) {
+    final applyEdit = json['applyEdit'];
+    final documentChanges = json['documentChanges'];
+    final resourceOperations = json['resourceOperations']
+        ?.map((item) => new ResourceOperationKind.fromJson(item))
+        ?.cast<ResourceOperationKind>()
+        ?.toList();
+    final failureHandling =
+        new FailureHandlingKind.fromJson(json['failureHandling']);
+    return new WorkspaceClientCapabilities(
+        applyEdit, documentChanges, resourceOperations, failureHandling);
+  }
 
-  /// The client supports applying batch edits to the workspace by supporting
-  /// the request 'workspace/applyEdit'
+  /// The client supports applying batch edits to
+  /// the workspace by supporting the request
+  /// 'workspace/applyEdit'
   final bool applyEdit;
 
-  /// The client supports versioned document changes in `WorkspaceEdit`s
+  /// The client supports versioned document
+  /// changes in `WorkspaceEdit`s
   final bool documentChanges;
 
-  /// The failure handling strategy of a client if applying the workspace edit
-  /// failes.
+  /// The failure handling strategy of a client if
+  /// applying the workspace edit failes.
   final FailureHandlingKind failureHandling;
 
-  /// The resource operations the client supports. Clients should at least
-  /// support 'create', 'rename' and 'delete' files and folders.
+  /// The resource operations the client supports.
+  /// Clients should at least support 'create',
+  /// 'rename' and 'delete' files and folders.
   final List<ResourceOperationKind> resourceOperations;
 
   Map<String, dynamic> toJson() {
@@ -3305,27 +6690,56 @@ class WorkspaceClientCapabilities {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = [
+      'applyEdit',
+      'documentChanges',
+      'resourceOperations',
+      'failureHandling'
+    ];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class WorkspaceEdit {
   WorkspaceEdit(this.changes, this.documentChanges);
+  factory WorkspaceEdit.fromJson(Map<String, dynamic> json) {
+    final changes = json['changes'];
+    final documentChanges = json['documentChanges']
+        ?.map((item) => item)
+        ?.cast<FileOperation>()
+        ?.toList();
+    return new WorkspaceEdit(changes, documentChanges);
+  }
 
   /// Holds changes to existing resources.
   final Map<String, List<TextEdit>> changes;
 
   /// Depending on the client capability
-  /// `workspace.workspaceEdit.resourceOperations` document changes are either
-  /// an array of `TextDocumentEdit`s to express changes to n different text
-  /// documents where each text document edit addresses a specific version of a
-  /// text document. Or it can contain above `TextDocumentEdit`s mixed with
-  /// create, rename and delete file / folder operations.
+  /// `workspace.workspaceEdit.resourceOperations`
+  /// document changes are either an array of
+  /// `TextDocumentEdit`s to express changes to n
+  /// different text documents where each text
+  /// document edit addresses a specific version
+  /// of a text document. Or it can contain above
+  /// `TextDocumentEdit`s mixed with create,
+  /// rename and delete file / folder operations.
   ///
-  /// Whether a client supports versioned document edits is expressed via
-  /// `workspace.workspaceEdit.documentChanges` client capability.
+  /// Whether a client supports versioned document
+  /// edits is expressed via
+  /// `workspace.workspaceEdit.documentChanges`
+  /// client capability.
   ///
-  /// If a client neither supports `documentChanges` nor
-  /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
-  /// using the `changes` property are supported.
+  /// If a client neither supports
+  /// `documentChanges` nor
+  /// `workspace.workspaceEdit.resourceOperations`
+  /// then only plain `TextEdit`s using the
+  /// `changes` property are supported.
   final List<FileOperation> documentChanges;
 
   Map<String, dynamic> toJson() {
@@ -3338,15 +6752,38 @@ class WorkspaceEdit {
     }
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    const validFieldNames = ['changes', 'documentChanges'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 class WorkspaceFolder {
-  WorkspaceFolder(this.uri, this.name);
+  WorkspaceFolder(this.uri, this.name) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (name == null) {
+      throw 'name is required but was not provided';
+    }
+  }
+  factory WorkspaceFolder.fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final name = json['name'];
+    return new WorkspaceFolder(uri, name);
+  }
 
-  /// The name of the workspace folder. Defaults to the uri's basename.
+  /// The name of the workspace folder. Defaults
+  /// to the uri's basename.
   final String name;
 
-  /// The associated URI for this workspace folder.
+  /// The associated URI for this workspace
+  /// folder.
   final String uri;
 
   Map<String, dynamic> toJson() {
@@ -3355,11 +6792,44 @@ class WorkspaceFolder {
     __result['name'] = name ?? (throw 'name is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('uri') || !map['uri'] is String) {
+      return false;
+    }
+    if (!map.containsKey('name') || !map['name'] is String) {
+      return false;
+    }
+    const validFieldNames = ['uri', 'name'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// The workspace folder change event.
 class WorkspaceFoldersChangeEvent {
-  WorkspaceFoldersChangeEvent(this.added, this.removed);
+  WorkspaceFoldersChangeEvent(this.added, this.removed) {
+    if (added == null) {
+      throw 'added is required but was not provided';
+    }
+    if (removed == null) {
+      throw 'removed is required but was not provided';
+    }
+  }
+  factory WorkspaceFoldersChangeEvent.fromJson(Map<String, dynamic> json) {
+    final added = json['added']
+        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.cast<WorkspaceFolder>()
+        ?.toList();
+    final removed = json['removed']
+        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.cast<WorkspaceFolder>()
+        ?.toList();
+    return new WorkspaceFoldersChangeEvent(added, removed);
+  }
 
   /// The array of added workspace folders
   final List<WorkspaceFolder> added;
@@ -3374,11 +6844,42 @@ class WorkspaceFoldersChangeEvent {
         removed ?? (throw 'removed is required but was not set');
     return __result;
   }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('added') ||
+        !(map['added'] is List &&
+            (map['added'].length == 0 ||
+                map['added']
+                    .every((item) => WorkspaceFolder.canParse(item))))) {
+      return false;
+    }
+    if (!map.containsKey('removed') ||
+        !(map['removed'] is List &&
+            (map['removed'].length == 0 ||
+                map['removed']
+                    .every((item) => WorkspaceFolder.canParse(item))))) {
+      return false;
+    }
+    const validFieldNames = ['added', 'removed'];
+    return map.keys.every((k) => validFieldNames.contains(k));
+  }
 }
 
 /// The parameters of a Workspace Symbol Request.
 class WorkspaceSymbolParams {
-  WorkspaceSymbolParams(this.query);
+  WorkspaceSymbolParams(this.query) {
+    if (query == null) {
+      throw 'query is required but was not provided';
+    }
+  }
+  factory WorkspaceSymbolParams.fromJson(Map<String, dynamic> json) {
+    final query = json['query'];
+    return new WorkspaceSymbolParams(query);
+  }
 
   /// A non-empty query string
   final String query;
@@ -3387,5 +6888,17 @@ class WorkspaceSymbolParams {
     Map<String, dynamic> __result = {};
     __result['query'] = query ?? (throw 'query is required but was not set');
     return __result;
+  }
+
+  static bool canParse(Object obj) {
+    if (!obj is Map<String, dynamic>) {
+      return false;
+    }
+    final map = obj as Map<String, dynamic>;
+    if (!map.containsKey('query') || !map['query'] is String) {
+      return false;
+    }
+    const validFieldNames = ['query'];
+    return map.keys.every((k) => validFieldNames.contains(k));
   }
 }
