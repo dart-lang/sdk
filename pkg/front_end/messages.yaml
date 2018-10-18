@@ -1520,6 +1520,17 @@ FastaUsageLong:
       --supermixin
         Ignored for now.
 
+      --single-root-scheme=String
+      --single-root-base=<dir>
+        Specify a custom URI scheme and a location on disk where such URIs are
+        mapped to.
+
+        When specified, the compiler can be invoked with inputs using the custom
+        URI scheme. The compiler can ignore the exact location of files on disk
+        and as a result to produce output that is independendent of the absolute
+        location of files on disk. This is mostly useful for integrating with
+        build systems.
+
       --fatal=errors
       --fatal=warnings
         Makes messages of the given kinds fatal, that is, immediately stop the
