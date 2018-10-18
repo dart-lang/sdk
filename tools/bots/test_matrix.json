@@ -1619,7 +1619,7 @@
           "tests": ["pkg"]
         },
         {
-          "name": "third_party/pkg_tested unit tests",
+          "name": "third_party pkg_tested unit tests",
           "arguments": [
             "-nunittest-asserts-${system}"],
           "tests": ["pkg_tested"]
