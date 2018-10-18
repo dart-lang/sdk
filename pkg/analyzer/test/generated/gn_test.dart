@@ -22,6 +22,14 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     expect(workspace, isNull);
   }
 
+  void test_find_noPackagesFiles() {
+    newFolder('/workspace/.jiri_root');
+    newFolder('/workspace/some/code');
+    GnWorkspace workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace'));
+    expect(workspace, isNull);
+  }
+
   void test_find_notAbsolute() {
     expect(
         () => GnWorkspace.find(resourceProvider, convertPath('not_absolute')),
@@ -84,6 +92,23 @@ class GnWorkspaceTest extends Object with ResourceProviderMixin {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
+    String packageLocation = convertPath('/workspace/this/is/the/package');
+    Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
+    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
+        content: 'flutter:$packageUri');
+    GnWorkspace workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
+    expect(workspace, isNotNull);
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.packageMap.length, 1);
+    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+  }
+
+  void test_packages_fallbackBuildDirWithUselessConfig() {
+    newFolder('/workspace/.jiri_root');
+    newFolder('/workspace/some/code');
+    newFile('/workspace/some/code/pubspec.yaml');
+    newFile('/workspace/.config', content: 'FOO=foo\n' + 'BAR=bar\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
