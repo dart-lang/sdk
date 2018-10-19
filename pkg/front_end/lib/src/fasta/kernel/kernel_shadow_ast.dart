@@ -1329,19 +1329,6 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 }
 
-/// Concrete shadow object representing a read of a static variable in kernel
-/// form.
-class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  StaticGetJudgment(Member target) : super(target);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStaticGetJudgment(this, typeContext);
-  }
-}
-
 /// Shadow object for [StaticInvocation].
 class StaticInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {

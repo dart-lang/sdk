@@ -137,4 +137,9 @@ class InferredTypeVisitor
     // VariableAssignmentJudgment._replaceWithDesugared.
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitStaticGet(StaticGet node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
 }

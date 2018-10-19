@@ -115,7 +115,6 @@ export 'kernel_shadow_ast.dart'
         ReturnJudgment,
         ShadowLargeIntLiteral,
         StaticAssignmentJudgment,
-        StaticGetJudgment,
         StaticInvocationJudgment,
         SuperInitializerJudgment,
         SuperMethodInvocationJudgment,

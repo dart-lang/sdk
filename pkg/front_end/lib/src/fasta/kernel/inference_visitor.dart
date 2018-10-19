@@ -1046,7 +1046,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitStaticGetJudgment(StaticGetJudgment node, DartType typeContext) {
+  @override
+  void visitStaticGet(StaticGet node, DartType typeContext) {
     var target = node.target;
     if (target is ShadowField && target.inferenceNode != null) {
       target.inferenceNode.resolve();
@@ -1056,8 +1057,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       type = inferrer.instantiateTearOff(type, typeContext, node);
     }
-    node.inferredType = type;
-    return null;
+    inferrer.storeInferredType(node, type);
   }
 
   void visitStaticInvocationJudgment(

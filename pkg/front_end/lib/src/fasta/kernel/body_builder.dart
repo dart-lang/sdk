@@ -4631,8 +4631,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new StaticGetJudgment(readTarget)
-      ..fileOffset = offsetForToken(token);
+    return new StaticGet(readTarget)..fileOffset = offsetForToken(token);
   }
 
   @override
