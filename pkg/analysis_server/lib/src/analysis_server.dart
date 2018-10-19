@@ -135,13 +135,6 @@ class AnalysisServer {
   ContextManager contextManager;
 
   /**
-   * A flag indicating whether the server is running.  When false, contexts
-   * will no longer be added to [contextWorkQueue], and [performOperation] will
-   * discard any tasks it finds on [contextWorkQueue].
-   */
-  bool running;
-
-  /**
    * A flag indicating the value of the 'analyzing' parameter sent in the last
    * status message to the client.
    */
@@ -354,7 +347,6 @@ class AnalysisServer {
     contextManager.callbacks = contextManagerCallbacks;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
-    running = true;
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
         performanceAfterStartup = new ServerPerformance();
@@ -460,17 +452,13 @@ class AnalysisServer {
   /**
    * The socket from which requests are being read has been closed.
    */
-  void done() {
-    running = false;
-  }
+  void done() {}
 
   /**
    * There was an error related to the socket from which requests are being
    * read.
    */
-  void error(argument) {
-    running = false;
-  }
+  void error(argument) {}
 
   /**
    * Return one of the SDKs that has been created, or `null` if no SDKs have
@@ -901,8 +889,6 @@ class AnalysisServer {
   }
 
   Future<void> shutdown() {
-    running = false;
-
     if (options.analytics != null) {
       options.analytics
           .waitForLastPing(timeout: new Duration(milliseconds: 200))
