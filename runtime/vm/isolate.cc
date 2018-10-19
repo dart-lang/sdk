@@ -2854,7 +2854,19 @@ void Isolate::UnscheduleThread(Thread* thread,
     scheduled_mutator_thread_->end_ = 0;
     scheduled_mutator_thread_ = NULL;
   }
-  thread->isolate_ = NULL;
+  // Even if we unschedule the mutator thread, e.g. via calling
+  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
+  // stacks active, which e.g. GC marker threads want to visit.  So we don't
+  // clear out the isolate pointer if we are on the mutator thread.
+  //
+  // The [thread] structure for the mutator thread is kept alive in the thread
+  // registry even if the mutator thread is temporarily unscheduled.
+  //
+  // All other threads are not allowed to unschedule themselves and schedule
+  // again later on.
+  if (!is_mutator) {
+    thread->isolate_ = NULL;
+  }
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
   thread->set_execution_state(Thread::kThreadInNative);

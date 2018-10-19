@@ -16,6 +16,10 @@ ThreadRegistry::~ThreadRegistry() {
     MonitorLocker ml(threads_lock());
     // At this point the active list should be empty.
     ASSERT(active_list_ == NULL);
+
+    // The [mutator_thread_] is kept alive until the destruction of the isolate.
+    mutator_thread_->isolate_ = nullptr;
+
     // We have cached the mutator thread, delete it.
     delete mutator_thread_;
     mutator_thread_ = NULL;
