@@ -577,7 +577,7 @@ class EditDomainHandler extends AbstractRequestHandler {
               error,
               errorsCopy);
           List<Fix> fixes =
-              await new DefaultFixContributor().internalComputeFixes(context);
+              await new DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
             AnalysisError serverError =

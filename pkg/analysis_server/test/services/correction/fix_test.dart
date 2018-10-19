@@ -222,7 +222,7 @@ bool test() {
         testUnit,
         error,
         await _computeErrors());
-    return await new DefaultFixContributor().internalComputeFixes(fixContext);
+    return await new DartFixContributor().computeFixes(fixContext);
   }
 
   /**
@@ -4033,6 +4033,31 @@ class B implements A {
 ''');
   }
 
+  test_createMissingOverrides_method_generic_withBounds() async {
+    // https://github.com/dart-lang/sdk/issues/31199
+    await resolveTestUnit('''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+  @override
+  List<T> foo<T extends V>(K key) {
+    // TODO: implement foo
+    return null;
+  }
+}
+''');
+  }
+
   test_createMissingOverrides_method_genericClass2() async {
     await resolveTestUnit('''
 class A<R> {
@@ -4064,31 +4089,6 @@ class X implements B<bool> {
 
   @override
   bool foo(int a) {
-    // TODO: implement foo
-    return null;
-  }
-}
-''');
-  }
-
-  test_createMissingOverrides_method_generic_withBounds() async {
-    // https://github.com/dart-lang/sdk/issues/31199
-    await resolveTestUnit('''
-abstract class A<K, V> {
-  List<T> foo<T extends V>(K key);
-}
-
-class B<K, V> implements A<K, V> {
-}
-''');
-    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
-abstract class A<K, V> {
-  List<T> foo<T extends V>(K key);
-}
-
-class B<K, V> implements A<K, V> {
-  @override
-  List<T> foo<T extends V>(K key) {
     // TODO: implement foo
     return null;
   }

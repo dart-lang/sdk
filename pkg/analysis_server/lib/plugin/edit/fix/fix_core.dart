@@ -96,5 +96,5 @@ abstract class FixContributor {
   /**
    * Return a list of fixes for the given [context].
    */
-  Future<List<Fix>> computeFixes(FixContext context);
+  Future<List<Fix>> computeFixes(covariant FixContext context);
 }

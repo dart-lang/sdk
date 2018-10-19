@@ -77,11 +77,11 @@ class DartFixContextImpl extends FixContextImpl implements DartFixContext {
 }
 
 /**
- * A [FixContributor] that provides the default set of fixes.
+ * A fix contributor that provides the default set of fixes for Dart files.
  */
-class DefaultFixContributor extends DartFixContributor {
+class DartFixContributor implements FixContributor {
   @override
-  Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
+  Future<List<Fix>> computeFixes(DartFixContext context) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
