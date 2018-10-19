@@ -34,6 +34,7 @@ class HandleScope;
 class Heap;
 class HierarchyInfo;
 class Instance;
+class Interpreter;
 class Isolate;
 class Library;
 class LongJumpScope;
@@ -400,6 +401,11 @@ class Thread : public BaseThread {
            (type_usage_info_ != NULL && value == NULL));
     type_usage_info_ = value;
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
+#endif
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
 
@@ -876,6 +882,10 @@ class Thread : public BaseThread {
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
   RawGrowableObjectArray* pending_functions_;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter_;
+#endif
 
   // JumpToExceptionHandler state:
   RawObject* active_exception_;

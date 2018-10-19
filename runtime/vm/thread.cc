@@ -33,6 +33,10 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -95,6 +99,9 @@ Thread::Thread(Isolate* isolate)
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
       pending_functions_(GrowableObjectArray::null()),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      interpreter_(nullptr),
+#endif
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       resume_pc_(0),
@@ -667,6 +674,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
