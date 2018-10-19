@@ -2360,7 +2360,7 @@ abstract class Closure implements Function {
     int applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
-    jsArguments,
+    bool isIntercepted,
     String propertyName,
   ) {
     JS_EFFECT(() {
@@ -2446,12 +2446,7 @@ abstract class Closure implements Function {
 
     // Create a closure and "monkey" patch it with call stubs.
     var trampoline = function;
-    var isIntercepted = false;
     if (!isStatic) {
-      if (JS('bool', '#.length == 1', jsArguments)) {
-        // Intercepted call.
-        isIntercepted = true;
-      }
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
@@ -2793,16 +2788,14 @@ abstract class Closure implements Function {
 
 /// Called from implicit method getter (aka tear-off).
 closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
-    isStatic, jsArguments, name) {
+    isStatic, isIntercepted, name) {
   return Closure.fromTearOff(
       receiver,
-      JSArray.markFixedList(functions),
+      JS('JSArray', '#', functions),
       applyTrampolineIndex,
-      reflectionInfo is List
-          ? JSArray.markFixedList(reflectionInfo)
-          : reflectionInfo,
+      reflectionInfo,
       JS('bool', '!!#', isStatic),
-      jsArguments,
+      JS('bool', '!!#', isIntercepted),
       JS('String', '#', name));
 }
 
