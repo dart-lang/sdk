@@ -52,6 +52,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
+    if (node.expression is NullLiteral) return;
+
     final DartType type = node.expression.staticType;
     if (!(type == null ||
         type.isDartAsyncFuture ||

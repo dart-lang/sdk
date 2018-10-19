@@ -52,3 +52,7 @@ Future awaitCancellableFuture(dynamic future) async {
 Future<String> awaitFutureOr(FutureOr<String> callback()) async {
   return await callback(); // OK
 }
+
+allow_await_null() async {
+  await null; // OK
+}
