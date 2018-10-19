@@ -2091,7 +2091,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter) {
     // Do not allocate an interpreter, if none is allocated yet.
-    Interpreter* interpreter = Isolate::Current()->interpreter();
+    Interpreter* interpreter = Thread::Current()->interpreter();
     if (interpreter != NULL) {
       interpreter_stack_overflow =
           interpreter->get_sp() >= interpreter->stack_limit();

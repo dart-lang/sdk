@@ -33,6 +33,10 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -104,6 +108,9 @@ Thread::Thread(Isolate* isolate)
       execution_state_(kThreadInNative),
 #if defined(USING_SAFE_STACK)
       saved_safestack_limit_(0),
+#endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      interpreter_(nullptr),
 #endif
       next_(NULL) {
 #if !defined(PRODUCT)
@@ -667,6 +674,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
