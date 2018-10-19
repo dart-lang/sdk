@@ -166,7 +166,6 @@ void main(List<String> args) {
     'use strict';
     sdk._debugger.registerDevtoolsFormatter();
     sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
-    sdk._isolate_helper.startRootIsolate(() => {}, []);
     app.$basename.main();
   });
 </script>

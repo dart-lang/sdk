@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "9484b81650d8c5bedf72abc541960dd1c90b2329",
+  "co19_2_rev": "77825446f59893bb2b20f2e9517a4567e0371193",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -79,7 +79,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.0",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.24.0",
+  "dartdoc_tag" : "v0.24.1",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.8",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
@@ -95,7 +95,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.68",
+  "linter_tag": "0.1.70",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",

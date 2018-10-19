@@ -390,73 +390,73 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
-/// TODO(leafp): This duplicates code in types.dart.
-/// I haven't found a way to factor it out that makes the
-/// code generator happy though.
-_ignoreMemo(f) => JS('', '''(() => {
-  let memo = new Map();
-  return (t1, t2) => {
-    let map = memo.get(t1);
-    let result;
-    if (map) {
-      result = map.get(t2);
-      if (result !== void 0) return result;
-    } else {
-      memo.set(t1, map = new Map());
-    }
-    result = $f(t1, t2);
-    map.set(t2, result);
-    return result;
-  };
-})()''');
+final _ignoreSubtypeCache = JS('', 'new Map()');
 
-final Object _ignoreTypeFailure = JS('', '''(() => {
-  return $_ignoreMemo((actual, type) => {
-      // TODO(vsm): Remove this hack ...
-      // This is primarily due to the lack of generic methods,
-      // but we need to triage all the types.
-    if ($_isFutureOr(type)) {
-      // Ignore if we would ignore either side of union.
-      let typeArg = $getGenericArgs(type)[0];
-      let typeFuture = ${getGenericClass(Future)}(typeArg);
-      return $_ignoreTypeFailure(actual, typeFuture) ||
-        $_ignoreTypeFailure(actual, typeArg);
-    }
+/// Whether [t1] <: [t2], or if [isImplicit] is set and we should ignore the
+/// cast failure from t1 to t2.
+///
+/// See [_isSubtypeOrLegacySubtype] and [ignoreWhitelistedErrors].
+@notNull
+bool _isSubtypeOrIgnorableCastFailure(
+    Object t1, Object t2, @notNull bool isImplicit) {
+  var result = _isSubtypeOrLegacySubtype(t1, t2);
+  return result == true ||
+      result == null &&
+          isImplicit &&
+          JS<bool>('!', 'dart.__ignoreWhitelistedErrors') &&
+          _ignoreTypeFailure(t1, t2);
+}
 
-    if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future)) {
-      console.warn('Ignoring cast fail from ' + $typeName(actual) +
-                   ' to ' + $typeName(type));
-      return true;
+@notNull
+bool _ignoreTypeFailure(Object t1, Object t2) {
+  var map = JS('', '#.get(#)', _ignoreSubtypeCache, t1);
+  if (map != null) {
+    bool result = JS('', '#.get(#)', map, t2);
+    if (JS('!', '# !== void 0', result)) return result;
+  } else {
+    map = JS('', 'new Map()');
+    JS('', '#.set(#, #)', _ignoreSubtypeCache, t1, map);
+  }
+
+  // TODO(vsm): Remove this hack ...
+  // This is primarily due to the lack of generic methods,
+  // but we need to triage all the types.
+  @notNull
+  bool result;
+  if (_isFutureOr(t2)) {
+    // Ignore if we would ignore either side of union.
+    var typeArg = getGenericArgs(t2)[0];
+    var typeFuture = JS('', '#(#)', getGenericClass(Future), typeArg);
+    result =
+        _ignoreTypeFailure(t1, typeFuture) || _ignoreTypeFailure(t1, typeArg);
+  } else {
+    result = t1 is FunctionType && t2 is FunctionType ||
+        isSubtypeOf(t2, unwrapType(Iterable)) &&
+            isSubtypeOf(t1, unwrapType(Iterable)) ||
+        isSubtypeOf(t2, unwrapType(Future)) &&
+            isSubtypeOf(t1, unwrapType(Future));
+    if (result) {
+      _warn('Ignoring cast fail from ${typeName(t1)} to ${typeName(t2)}');
     }
-    return false;
-  });
-})()''');
+  }
+  JS('', '#.set(#, #)', map, t2, result);
+  return result;
+}
 
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return JS('!', '# == # || #', type, Null, _isTop(type));
+    return identical(type, unwrapType(Null)) || _isTop(type);
   }
-  return JS('!', '!!#', isSubtype(getReifiedType(obj), type));
+  return isSubtypeOf(getReifiedType(obj), type);
 }
 
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
-  var result = isSubtype(actual, type);
-  if (JS(
-      '!',
-      '# === true || # === null && # && '
-      'dart.__ignoreWhitelistedErrors && #(#, #)',
-      result,
-      result,
-      isImplicit,
-      _ignoreTypeFailure,
-      actual,
-      type)) {
+  if (_isSubtypeOrIgnorableCastFailure(actual, type, isImplicit)) {
     return obj;
   }
   return castError(obj, type, isImplicit);

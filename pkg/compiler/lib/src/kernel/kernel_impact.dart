@@ -953,7 +953,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
           } else if (type == commonElements.functionType) {
             reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
                 MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-          } else if (value.isObject && overridesEquals(type)) {
+          } else if (value.isObject &&
+              type != commonElements.typeLiteralType &&
+              overridesEquals(type)) {
             reporter.reportErrorMessage(
                 computeSourceSpanFromTreeNode(firstCase),
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,

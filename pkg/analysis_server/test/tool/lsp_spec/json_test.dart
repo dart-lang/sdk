@@ -17,7 +17,7 @@ main() {
       expect(json.encode(_string.toJson()), equals('"Test"'));
     });
 
-    test('returns correct output for types unions', () {
+    test('returns correct output for union types', () {
       final message = new RequestMessage(new Either2.t1(1), "test", "test");
       String output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"method":"test","jsonrpc":"test"}'));
@@ -63,7 +63,7 @@ main() {
       expect(output, equals(expected));
     });
 
-    test('enums serialise to their underlying values', () {
+    test('serialises enums to their underlying values', () {
       final foldingRange =
           new FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
       final output = json.encode(foldingRange.toJson());
@@ -77,5 +77,55 @@ main() {
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
+  });
+
+  group('fromJson', () {
+    test('parses JSON for types with unions (left side)', () {
+      final input = '{"id":1,"method":"test","jsonrpc":"test"}';
+      final message = new RequestMessage.fromJson(jsonDecode(input));
+      expect(message.id, equals(new Either2<num, String>.t1(1)));
+      expect(message.id.valueEquals(1), isTrue);
+      expect(message.jsonrpc, "test");
+      expect(message.method, "test");
+    });
+
+    test('parses JSON for types with unions (right side)', () {
+      final input = '{"id":"one","method":"test","jsonrpc":"test"}';
+      final message = new RequestMessage.fromJson(jsonDecode(input));
+      expect(message.id, equals(new Either2<num, String>.t2("one")));
+      expect(message.id.valueEquals("one"), isTrue);
+      expect(message.jsonrpc, "test");
+      expect(message.method, "test");
+    });
+  });
+
+  test('objects with lists and enums can round-trip through to json and back',
+      () {
+    final obj = new ClientCapabilities(
+        new WorkspaceClientCapabilities(
+            true,
+            false,
+            [ResourceOperationKind.Create, ResourceOperationKind.Delete],
+            FailureHandlingKind.Undo),
+        new TextDocumentClientCapabilities(true, false, true, false),
+        null);
+    final String json = jsonEncode(obj);
+    final restoredObj = new ClientCapabilities.fromJson(jsonDecode(json));
+
+    expect(restoredObj.workspace.applyEdit, equals(obj.workspace.applyEdit));
+    expect(restoredObj.workspace.documentChanges,
+        equals(obj.workspace.documentChanges));
+    expect(restoredObj.workspace.resourceOperations,
+        equals(obj.workspace.resourceOperations));
+    expect(restoredObj.workspace.failureHandling,
+        equals(obj.workspace.failureHandling));
+    expect(restoredObj.textDocument.didSave, equals(obj.textDocument.didSave));
+    expect(restoredObj.textDocument.dynamicRegistration,
+        equals(obj.textDocument.dynamicRegistration));
+    expect(
+        restoredObj.textDocument.willSave, equals(obj.textDocument.willSave));
+    expect(restoredObj.textDocument.willSaveWaitUntil,
+        equals(obj.textDocument.willSaveWaitUntil));
+    expect(restoredObj.experimental, equals(obj.experimental));
   });
 }

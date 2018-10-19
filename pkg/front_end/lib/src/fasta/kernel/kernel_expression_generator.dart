@@ -107,7 +107,6 @@ import 'kernel_ast_api.dart'
         SuperPropertyGetJudgment,
         SuperPropertySet,
         SyntheticExpressionJudgment,
-        Throw,
         TreeNode,
         TypeParameter,
         UnresolvedVariableAssignmentJudgment,
@@ -1129,27 +1128,23 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      error = helper
-          .buildProblem(
-              templateNotConstantExpression.withArguments('Method invocation'),
-              offset,
-              readTarget?.name?.name?.length ?? 0)
-          .desugared;
+      return helper.buildProblem(
+          templateNotConstantExpression.withArguments('Method invocation'),
+          offset,
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          error: error,
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset, error: error);
+          charOffset: offset);
     }
   }
 
@@ -1260,7 +1255,8 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = new SyntheticExpressionJudgment(
-            new Throw(forest.literalString(declaration.message.message, token))
+            forest.throwExpression(
+                null, forest.literalString(declaration.message.message, token))
               ..fileOffset = offset);
       } else {
         super.expression = forest.literalType(

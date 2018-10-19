@@ -70,13 +70,23 @@ class _UnitApiSignatureComputer {
     if (begin is CommentToken) {
       begin = (begin as CommentToken).parent;
     }
+
     Token token = begin;
     while (token != null) {
       addToken(token);
+
       if (token == end) {
         break;
       }
-      token = token.next;
+
+      var nextToken = token.next;
+
+      // Stop if EOF.
+      if (nextToken == token) {
+        break;
+      }
+
+      token = nextToken;
     }
   }
 

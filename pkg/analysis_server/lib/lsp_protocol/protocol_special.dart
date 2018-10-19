@@ -16,11 +16,19 @@ class Either2<T1, T2> {
       : _t1 = null,
         _which = 2;
 
+  @override
+  get hashCode => map((t) => t.hashCode, (t) => t.hashCode);
+
+  bool operator ==(o) => o is Either2<T1, T2> && o._t1 == _t1 && o._t2 == _t2;
+
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
     return _which == 1 ? f1(_t1) : f2(_t2);
   }
 
   Object toJson() => map(id, id);
+
+  /// Checks whether the value of the union equals the supplied value.
+  bool valueEquals(o) => map((t) => t == o, (t) => t == o);
 }
 
 class Either3<T1, T2, T3> {
@@ -42,6 +50,12 @@ class Either3<T1, T2, T3> {
         _t2 = null,
         _which = 3;
 
+  @override
+  get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode);
+
+  bool operator ==(o) =>
+      o is Either3<T1, T2, T3> && o._t1 == _t1 && o._t2 == _t2 && o._t3 == _t3;
+
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3) {
     switch (_which) {
       case 1:
@@ -56,6 +70,9 @@ class Either3<T1, T2, T3> {
   }
 
   Object toJson() => map(id, id, id);
+
+  /// Checks whether the value of the union equals the supplied value.
+  bool valueEquals(o) => map((t) => t == o, (t) => t == o, (t) => t == o);
 }
 
 class Either4<T1, T2, T3, T4> {
@@ -86,6 +103,17 @@ class Either4<T1, T2, T3, T4> {
         _t3 = null,
         _which = 4;
 
+  @override
+  get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode,
+      (t) => t.hashCode);
+
+  bool operator ==(o) =>
+      o is Either4<T1, T2, T3, T4> &&
+      o._t1 == _t1 &&
+      o._t2 == _t2 &&
+      o._t3 == _t3 &&
+      o._t4 == _t4;
+
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3,
       T Function(T4) f4) {
     switch (_which) {
@@ -103,6 +131,10 @@ class Either4<T1, T2, T3, T4> {
   }
 
   Object toJson() => map(id, id, id, id);
+
+  /// Checks whether the value of the union equals the supplied value.
+  bool valueEquals(o) =>
+      map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
 }
 
 class FileOperation {}

@@ -120,7 +120,7 @@ void main() {
       [object, longString]
     ];
   });
-  for (var test in TESTS) {
+  for (var test in tests) {
     var o = test[0];
     var string = test[1];
     checkIsJsonEqual(o, decode(string));

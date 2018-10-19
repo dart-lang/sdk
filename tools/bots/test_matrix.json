@@ -544,17 +544,9 @@
     },
     {
       "builders": [
-        "vm-kernel-linux-debug-ia32",
-        "vm-kernel-linux-debug-simdbc64",
-        "vm-kernel-linux-debug-x64",
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-ia32",
-        "vm-kernel-mac-debug-simdbc64",
-        "vm-kernel-mac-debug-x64",
-        "vm-kernel-mac-product-x64",
-        "vm-kernel-mac-release-simdbc64",
-        "vm-kernel-mac-release-x64",
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
         "vm-kernel-win-product-x64",
@@ -583,7 +575,15 @@
       "builders": [
         "vm-kernel-linux-product-x64",
         "vm-kernel-linux-release-simdbc64",
-        "vm-kernel-linux-release-x64"
+        "vm-kernel-linux-release-x64",
+        "vm-kernel-linux-debug-ia32",
+        "vm-kernel-linux-debug-simdbc64",
+        "vm-kernel-linux-debug-x64",
+        "vm-kernel-mac-product-x64",
+        "vm-kernel-mac-release-simdbc64",
+        "vm-kernel-mac-release-x64",
+        "vm-kernel-mac-debug-simdbc64",
+        "vm-kernel-mac-debug-x64"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -1625,7 +1625,7 @@
           "tests": ["pkg"]
         },
         {
-          "name": "third_party/pkg_tested unit tests",
+          "name": "third_party pkg_tested unit tests",
           "arguments": [
             "-nunittest-asserts-${system}"],
           "tests": ["pkg_tested"]
@@ -1672,6 +1672,27 @@
           "name": "try linux-x64 benchmarking",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": ["linux-x64-benchmark"]
+        }
+      ]
+    },
+    {
+      "builders": ["flutter-analyze"],
+      "meta": {
+        "description": "This configuration is used for analyzing flutter."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "analyze flutter",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
         }
       ]
     },

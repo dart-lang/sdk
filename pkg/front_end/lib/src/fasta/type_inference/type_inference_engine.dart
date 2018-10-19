@@ -55,7 +55,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
       // this field.
       if (typeInferrer != null) {
         var inferredType = typeInferrer
-            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field, true));
+            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field));
         if (isCircular) {
           // Report the appropriate error.
           _library.addProblem(

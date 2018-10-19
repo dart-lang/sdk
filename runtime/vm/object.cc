@@ -12505,6 +12505,7 @@ RawError* Library::CompileAll() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawError* Library::ReadAllBytecode() {
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(

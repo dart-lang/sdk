@@ -88,17 +88,6 @@ import 'kernel_expression_generator.dart' show makeLet;
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
 
-/// Indicates whether type inference involving conditional expressions should
-/// always use least upper bound.
-///
-/// A value of `true` matches the behavior of analyzer.  A value of `false`
-/// matches the informal specification in
-/// https://github.com/dart-lang/sdk/pull/29371.
-///
-/// TODO(paulberry): once compatibility with analyzer is no longer needed,
-/// change this to `false`.
-const bool _forceLub = true;
-
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
   if (constructor is Constructor) {
@@ -142,8 +131,6 @@ class ArgumentsJudgment extends Arguments {
   bool _hasExplicitTypeArguments;
 
   List<Expression> get positionalJudgments => positional.cast();
-
-  List<NamedExpressionJudgment> get namedJudgments => named.cast();
 
   ArgumentsJudgment(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
@@ -1123,7 +1110,6 @@ abstract class ShadowMember implements Member {
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   /// Indicates whether this method invocation is a call to a `call` method
@@ -1132,7 +1118,7 @@ class MethodInvocationJudgment extends MethodInvocation
 
   MethodInvocationJudgment(
       Expression receiver, Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isImplicitCall: false, Member interfaceTarget})
+      {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
@@ -1176,12 +1162,10 @@ class NamedFunctionExpressionJudgment extends Let
 ///     let v = a in v == null ? null : v.b(...)
 class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   NullAwareMethodInvocationJudgment(
-      VariableDeclaration variable, Expression body,
-      {this.desugaredError})
+      VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -1343,37 +1327,6 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 }
 
-/// Concrete shadow object representing a read of a static variable in kernel
-/// form.
-class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  StaticGetJudgment(Member target) : super(target);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStaticGetJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for [StaticInvocation].
-class StaticInvocationJudgment extends StaticInvocation
-    implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-  DartType inferredType;
-
-  StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStaticInvocationJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a super initializer in kernel form.
 class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {
@@ -1391,11 +1344,10 @@ class SuperInitializerJudgment extends SuperInitializer
 /// Shadow object for [SuperMethodInvocation].
 class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, Procedure interfaceTarget})
+      {Procedure interfaceTarget})
       : super(name, arguments, interfaceTarget);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -1409,11 +1361,9 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
 /// Shadow object for [SuperPropertyGet].
 class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
-  SuperPropertyGetJudgment(Name name,
-      {this.desugaredError, Member interfaceTarget})
+  SuperPropertyGetJudgment(Name name, {Member interfaceTarget})
       : super(name, interfaceTarget);
 
   @override
@@ -1565,38 +1515,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-class ThrowJudgment extends Throw implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-
-  DartType inferredType;
-
-  Expression get judgment => expression;
-
-  ThrowJudgment(Expression expression, {this.desugaredError})
-      : super(expression);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitThrowJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing a statement that is not allowed at
-/// the location it was found, and should be replaced with an error.
-class InvalidStatementJudgment extends ExpressionStatement
-    implements StatementJudgment {
-  final kernel.Expression desugaredError;
-  final StatementJudgment statement;
-
-  InvalidStatementJudgment(this.desugaredError, this.statement)
-      : super(new NullLiteral());
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitInvalidStatementJudgment(this);
-  }
-}
-
 /// Concrete shadow object representing a catch clause.
 class CatchJudgment extends Catch {
   CatchJudgment(VariableDeclaration exception, Statement body,
@@ -1706,7 +1624,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded && isTopLevel) return null;
+    if (!typeNeeded) return null;
 
     InferenceVistor visitor = new InferenceVistor(this);
     if (expression is ExpressionJudgment) {
@@ -1725,9 +1643,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded) {
+  DartType inferFieldTopLevel(ShadowField field) {
     if (field.initializer == null) return const DynamicType();
-    return inferExpression(field.initializer, const UnknownType(), typeNeeded,
+    return inferExpression(field.initializer, const UnknownType(), true,
         isVoidAllowed: true);
   }
 
@@ -2055,27 +1973,6 @@ class LoadLibraryTearOffJudgment extends StaticGet
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitLoadLibraryTearOffJudgment(this, typeContext);
   }
-}
-
-/// Concrete shadow object representing a deferred library-is-loaded check.
-class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  CheckLibraryIsLoadedJudgment(LibraryDependency import) : super(import);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitCheckLibraryIsLoadedJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a named expression.
-class NamedExpressionJudgment extends NamedExpression {
-  NamedExpressionJudgment(String nameLexeme, Expression value)
-      : super(nameLexeme, value);
-
-  Expression get judgment => value;
 }
 
 /// The result of inference for a RHS of an assignment.

@@ -57,6 +57,8 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     return;
   }
 
+  ASSERT(Thread::Current()->IsMutatorThread());
+
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
@@ -766,6 +768,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!function.HasBytecode());
   ASSERT(thread->sticky_error() == Error::null());
+  ASSERT(Thread::Current()->IsMutatorThread());
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {

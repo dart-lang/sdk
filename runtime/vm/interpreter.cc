@@ -2306,7 +2306,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
         RawObject** incoming_args = SP - num_arguments;
         RawObject** return_slot = SP;
-        Exit(thread, FP, SP, pc);
+        Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
         INVOKE_NATIVE(
             payload->trampoline,

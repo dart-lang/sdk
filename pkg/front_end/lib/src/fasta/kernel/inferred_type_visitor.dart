@@ -129,4 +129,34 @@ class InferredTypeVisitor
   DartType visitStringLiteral(StringLiteral node, TypeInferrerImpl inferrer) {
     return inferrer.coreTypes.stringClass.rawType;
   }
+
+  @override
+  DartType visitLet(Let node, TypeInferrerImpl inferrer) {
+    // TODO(ahe): We should be able to return the inferred type of
+    // node.body. However, that type may be lost, for example, in
+    // VariableAssignmentJudgment._replaceWithDesugared.
+    return inferrer.readInferredType(node);
+  }
+
+  @override
+  DartType visitStaticGet(StaticGet node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
+
+  @override
+  DartType visitStaticInvocation(
+      StaticInvocation node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
+
+  @override
+  DartType visitThrow(Throw node, TypeInferrerImpl inferrer) {
+    return const BottomType();
+  }
+
+  @override
+  DartType visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.objectClass.rawType;
+  }
 }

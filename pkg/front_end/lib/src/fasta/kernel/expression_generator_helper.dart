@@ -83,7 +83,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {Constness constness, int charOffset, Expression error});
+      {Constness constness, int charOffset});
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -106,8 +106,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {Expression error,
-      bool isConstantExpression,
+      {bool isConstantExpression,
       bool isNullAware,
       bool isImplicitCall,
       bool isSuper,

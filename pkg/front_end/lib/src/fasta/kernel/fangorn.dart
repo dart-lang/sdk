@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Block,
         BoolLiteral,
         Catch,
+        CheckLibraryIsLoaded,
         ConditionalExpression,
         DartType,
         EmptyStatement,
@@ -37,6 +38,7 @@ import 'package:kernel/ast.dart'
         StringConcatenation,
         StringLiteral,
         ThisExpression,
+        Throw,
         TreeNode,
         VariableDeclaration,
         setParents;
@@ -80,7 +82,6 @@ import 'kernel_shadow_ast.dart'
         BlockJudgment,
         BreakJudgment,
         CatchJudgment,
-        CheckLibraryIsLoadedJudgment,
         ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
@@ -98,7 +99,6 @@ import 'kernel_shadow_ast.dart'
         ShadowLargeIntLiteral,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        ThrowJudgment,
         TryCatchJudgment,
         TryFinallyJudgment,
         TypeLiteralJudgment,
@@ -250,7 +250,7 @@ class Fangorn extends Forest {
 
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
-    return new CheckLibraryIsLoadedJudgment(dependency);
+    return new CheckLibraryIsLoaded(dependency);
   }
 
   @override
@@ -472,9 +472,11 @@ class Fangorn extends Forest {
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ThrowJudgment(expression)
-      ..fileOffset = offsetForToken(throwKeyword);
+    return new Throw(expression)..fileOffset = offsetForToken(throwKeyword);
   }
+
+  @override
+  bool isThrow(Object o) => o is Throw;
 
   @override
   Statement tryStatement(Token tryKeyword, Statement body,

@@ -97,7 +97,6 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
-        ArgumentsJudgment,
         ExpressionJudgment,
         ShadowClass,
         ShadowField,
@@ -111,6 +110,8 @@ import '../names.dart' show callName, unaryMinusName;
 import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../source/source_loader.dart' show SourceLoader;
+
+import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import 'inference_helper.dart' show InferenceHelper;
 
@@ -715,7 +716,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
       var errorNode = helper.wrapInProblem(
-          expression,
+          new AsExpression(
+              expression,
+              // TODO(ahe): The outline phase doesn't correctly remove invalid
+              // uses of type variables, for example, on static members. Once
+              // that has been fixed, we should always be able to use
+              // [expectedType] directly here.
+              hasAnyTypeVariables(expectedType)
+                  ? const BottomType()
+                  : expectedType)
+            ..isTypeError = true
+            ..fileOffset = expression.fileOffset,
           (template ?? templateInvalidAssignment)
               .withArguments(actualType, expectedType),
           noLength);
@@ -804,10 +815,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper.buildProblem(
-                  errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset,
-                  length))
+              helper
+                  .buildProblem(
+                      errorTemplate.withArguments(name.name, receiverType),
+                      fileOffset,
+                      length)
+                  .desugared)
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1183,7 +1196,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(closureContext == null);
     this.helper = helper;
     var actualType = inferExpression(
-        initializer, declaredType ?? const UnknownType(), declaredType != null,
+        initializer,
+        declaredType ?? const UnknownType(),
+        !isTopLevel || declaredType != null,
         isVoidAllowed: true);
     if (declaredType != null) {
       ensureAssignable(
@@ -1197,7 +1212,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field);
 
   @override
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
@@ -1213,7 +1228,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
   ExpressionInferenceResult inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, DartType returnType, ArgumentsJudgment arguments,
+      FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
@@ -1404,7 +1419,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           parameter.initializer = new NullLiteral()..parent = parameter;
         }
         if (parameter.initializer != null) {
-          inferExpression(parameter.initializer, parameter.type, false);
+          inferExpression(parameter.initializer, parameter.type, !isTopLevel);
         }
       }
       for (var parameter in function.namedParameters) {
@@ -1412,7 +1427,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (parameter.initializer == null) {
           parameter.initializer = new NullLiteral()..parent = parameter;
         }
-        inferExpression(parameter.initializer, parameter.type, false);
+        inferExpression(parameter.initializer, parameter.type, !isTopLevel);
       }
     }
 
@@ -1549,7 +1564,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var parents = annotations.map((e) => e.parent).toList();
       new ListLiteral(annotations);
       for (var annotation in annotations) {
-        inferExpression(annotation, const UnknownType(), false);
+        inferExpression(annotation, const UnknownType(), !isTopLevel);
       }
       for (int i = 0; i < annotations.length; ++i) {
         annotations[i].parent = parents[i];

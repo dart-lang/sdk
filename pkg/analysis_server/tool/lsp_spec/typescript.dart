@@ -18,14 +18,6 @@ List<ApiItem> extractTypes(String code) {
   return types;
 }
 
-/// Removes types that are in the spec that we don't want.
-void _removeUnwantedTypes(List<ApiItem> types) {
-  // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
-  // have to handle any cases where both a namespace and interfaces are declared
-  // with the same name.
-  types.removeWhere((item) => item.name == 'InitializeError');
-}
-
 String _cleanComment(String comment) {
   if (comment == null) {
     return null;
@@ -46,6 +38,50 @@ String _cleanComment(String comment) {
   return comment.trim();
 }
 
+/// Fixes up some enum types that are not as specific as they could be in the
+/// spec. For example, Diagnostic.severity is typed "number" but can be mapped
+/// to the DiagnosticSeverity enum class.
+String _getImprovedType(String interfaceName, String fieldName) {
+  const Map<String, Map<String, String>> _improvedTypeMappings = {
+    "Diagnostic": {
+      "severity": "DiagnosticSeverity",
+    },
+    "TextDocumentSyncOptions": {
+      "change": "TextDocumentSyncKind",
+    },
+    "FileSystemWatcher": {
+      "kind": "WatchKind",
+    },
+    "CompletionItem": {
+      "kind": "CompletionItemKind",
+    },
+    "DocumentHighlight": {
+      "kind": "DocumentHighlightKind",
+    },
+    "FoldingRange": {
+      "kind": "FoldingRangeKind",
+    },
+  };
+
+  final interface = _improvedTypeMappings[interfaceName];
+
+  return interface != null ? interface[fieldName] : null;
+}
+
+List<String> _getSpecialBaseClasses(String name) {
+  const fileOperationTypes = [
+    'TextDocumentEdit',
+    'CreateFile',
+    'RenameFile',
+    'DeleteFile'
+  ];
+  if (fileOperationTypes.contains(name)) {
+    return ['FileOperation'];
+  } else {
+    return [];
+  }
+}
+
 List<String> _parseTypes(String baseTypes, String sep) {
   // Special case for a single complicated type we can't parse easily...
   if (baseTypes ==
@@ -53,6 +89,14 @@ List<String> _parseTypes(String baseTypes, String sep) {
     return ['FileOperation[]'];
   }
   return baseTypes?.split(sep)?.map((t) => t.trim())?.toList() ?? [];
+}
+
+/// Removes types that are in the spec that we don't want.
+void _removeUnwantedTypes(List<ApiItem> types) {
+  // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
+  // have to handle any cases where both a namespace and interfaces are declared
+  // with the same name.
+  types.removeWhere((item) => item.name == 'InitializeError');
 }
 
 /// Base class for Interface, Field, Constant, etc. parsed from the LSP spec.
@@ -195,50 +239,6 @@ class Interface extends ApiItem {
   }
 }
 
-List<String> _getSpecialBaseClasses(String name) {
-  const fileOperationTypes = [
-    'TextDocumentEdit',
-    'CreateFile',
-    'RenameFile',
-    'DeleteFile'
-  ];
-  if (fileOperationTypes.contains(name)) {
-    return ['FileOperation'];
-  } else {
-    return [];
-  }
-}
-
-/// Fixes up some enum types that are not as specific as they could be in the
-/// spec. For example, Diagnostic.severity is typed "number" but can be mapped
-/// to the DiagnosticSeverity enum class.
-String _getImprovedType(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedTypeMappings = {
-    "Diagnostic": {
-      "severity": "DiagnosticSeverity",
-    },
-    "TextDocumentSyncOptions": {
-      "change": "TextDocumentSyncKind",
-    },
-    "FileSystemWatcher": {
-      "kind": "WatchKind",
-    },
-    "CompletionItem": {
-      "kind": "CompletionItemKind",
-    },
-    "DocumentHighlight": {
-      "kind": "DocumentHighlightKind",
-    },
-    "FoldingRange": {
-      "kind": "FoldingRangeKind",
-    },
-  };
-
-  final interface = _improvedTypeMappings[interfaceName];
-
-  return interface != null ? interface[fieldName] : null;
-}
-
 /// A Field or Constant parsed from the LSP type.
 abstract class Member extends ApiItem {
   Member(String name, String comment) : super(name, comment);
@@ -263,20 +263,6 @@ class Namespace extends ApiItem {
     return enums;
   }
 
-  static List<Namespace> _extractNamespacesFrom(String code) {
-    final RegExp _namespacePattern = new RegExp(
-        _comment + r'(?:export\s+)?namespace\s+(\w+)\s*' + _blockBody);
-
-    final namespaces = _namespacePattern.allMatches(code).map((match) {
-      final String comment = match.group(1);
-      final String name = match.group(2);
-      final String body = match.group(3);
-      final List<Member> members = Member.extractFrom(name, body);
-      return new Namespace(name, comment, members);
-    }).toList();
-    return namespaces;
-  }
-
   static List<Namespace> _extractEnumsFrom(String code) {
     final RegExp _namespacePattern =
         new RegExp(_comment + r'(?:export\s+)?enum\s+(\w+)\s*' + _blockBody);
@@ -287,6 +273,20 @@ class Namespace extends ApiItem {
       final String body = match.group(3);
 
       final List<Member> members = Const.extractFromEnumValue(body);
+      return new Namespace(name, comment, members);
+    }).toList();
+    return namespaces;
+  }
+
+  static List<Namespace> _extractNamespacesFrom(String code) {
+    final RegExp _namespacePattern = new RegExp(
+        _comment + r'(?:export\s+)?namespace\s+(\w+)\s*' + _blockBody);
+
+    final namespaces = _namespacePattern.allMatches(code).map((match) {
+      final String comment = match.group(1);
+      final String name = match.group(2);
+      final String body = match.group(3);
+      final List<Member> members = Member.extractFrom(name, body);
       return new Namespace(name, comment, members);
     }).toList();
     return namespaces;

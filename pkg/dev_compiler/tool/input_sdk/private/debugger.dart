@@ -967,14 +967,14 @@ registerDevtoolsFormatter() {
   JS('', '#.devtoolsFormatters = [#]', dart.global_, _devtoolsFormatter);
 }
 
-// Expose these methods here to facilitate writing debugger tests.
-// If export worked for private SDK libraries we could just export
-// these methods from dart:_runtime.
-
-getModuleNames() {
-  return dart.getModuleNames();
-}
-
-getModuleLibraries(String name) {
-  return dart.getModuleLibraries(name);
-}
+// These methods are exposed here for debugger tests.
+//
+// TODO(jmesserly): these are not exports because there is existing code that
+// calls into them from JS. Currently `dartdevc` always resolves exports at
+// compile time, so there is no need to make exports available at runtime by
+// copying properties. For that reason we cannot use re-export.
+//
+// If these methods are only for tests, we should move them here, or change the
+// tests to call the methods directly on dart:_runtime.
+List<String> getModuleNames() => dart.getModuleNames();
+getModuleLibraries(String name) => dart.getModuleLibraries(name);

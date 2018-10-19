@@ -114,20 +114,28 @@ class _KernelVisitor extends TreeVisitor<void> {
       if (class_.supertype != null) {
         var declaredSupertype = class_.supertype.asInterfaceType;
         if (class_.isMixinDeclaration) {
+          var constraints = <DartType>[];
           // Kernel represents a mixin declaration such as:
-          //   mixin M on S0, S1 {...}
-          // By desugaring it to two classes:
+          //   mixin M on S0, S1, S2 {...}
+          // By desugaring it to:
           //   abstract class _M&S0&S1 implements S0, S1 {}
-          //   abstract class M extends M&S0&S1 {...}
-          List<Supertype> superclassImplements;
-          if (declaredSupertype.classNode.isAnonymousMixin) {
-            superclassImplements = declaredSupertype.classNode.implementedTypes;
-          } else {
-            superclassImplements = [class_.supertype];
+          //   abstract class _M&S0&S1&S2 implements _M&S0&S1 {}
+          //   abstract class M extends M&S0&S1&S2 {...}
+          // (See dartbug.com/34783)
+          while (declaredSupertype.classNode.isAnonymousMixin) {
+            // Since we're walking up the class hierarchy, we encounter the
+            // mixins in the reverse order that they were declared, so we have
+            // to use [List.insert] to add them to [constraints].
+            constraints.insert(
+                0,
+                declaredSupertype
+                    .classNode.implementedTypes[1].asInterfaceType);
+            declaredSupertype =
+                declaredSupertype.classNode.implementedTypes[0].asInterfaceType;
           }
-          for (int i = 0; i < superclassImplements.length; i++) {
-            children.add(_TypeVisitor.translate(
-                'On $i: ', superclassImplements[i].asInterfaceType));
+          constraints.insert(0, declaredSupertype);
+          for (int i = 0; i < constraints.length; i++) {
+            children.add(_TypeVisitor.translate('On $i: ', constraints[i]));
           }
         } else {
           var mixedInTypes = <DartType>[];
