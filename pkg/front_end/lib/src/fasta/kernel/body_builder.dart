@@ -3415,7 +3415,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpressionJudgment(identifier.name, value)
+    push(new NamedExpression(identifier.name, value)
       ..fileOffset = identifier.charOffset);
   }
 

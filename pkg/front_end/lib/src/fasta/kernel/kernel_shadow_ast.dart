@@ -132,8 +132,6 @@ class ArgumentsJudgment extends Arguments {
 
   List<Expression> get positionalJudgments => positional.cast();
 
-  List<NamedExpressionJudgment> get namedJudgments => named.cast();
-
   ArgumentsJudgment(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
       : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
@@ -1975,14 +1973,6 @@ class LoadLibraryTearOffJudgment extends StaticGet
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitLoadLibraryTearOffJudgment(this, typeContext);
   }
-}
-
-/// Concrete shadow object representing a named expression.
-class NamedExpressionJudgment extends NamedExpression {
-  NamedExpressionJudgment(String nameLexeme, Expression value)
-      : super(nameLexeme, value);
-
-  Expression get judgment => value;
 }
 
 /// The result of inference for a RHS of an assignment.
