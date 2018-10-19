@@ -1202,9 +1202,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitThisExpression(ThisExpression node, DartType typeContext) {}
 
-  void visitThrowJudgment(ThrowJudgment node, DartType typeContext) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false);
-    node.inferredType = const BottomType();
+  @override
+  void visitThrow(Throw node, DartType typeContext) {
+    inferrer.inferExpression(node.expression, const UnknownType(), false);
   }
 
   void visitCatchJudgment(CatchJudgment node) {

@@ -285,6 +285,8 @@ abstract class Forest {
   /// [throwKeyword].
   Expression throwExpression(Token throwKeyword, Expression expression);
 
+  bool isThrow(Object o);
+
   /// Return a representation of a try statement. The statement is introduced by
   /// the [tryKeyword] and the given [body]. If catch clauses were included,
   /// then the [catchClauses] will represent them, otherwise it will be `null`.

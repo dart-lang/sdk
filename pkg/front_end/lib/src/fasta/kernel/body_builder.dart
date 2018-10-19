@@ -670,7 +670,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           false, node.target, node.arguments, token.charOffset);
     } else {
       Expression value = toValue(node);
-      if (node is! Throw) {
+      if (!forest.isThrow(node)) {
         value =
             wrapInProblem(value, fasta.messageExpectedAnInitializer, noLength);
       }
@@ -1408,13 +1408,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       addProblem(message.messageObject, message.charOffset, message.length,
           wasHandled: true, context: context);
       return new SyntheticExpressionJudgment(
-          new Throw(library.loader.instantiateNoSuchMethodError(
-              receiver, name, forest.castArguments(arguments), charOffset,
-              isMethod: !isGetter && !isSetter,
-              isGetter: isGetter,
-              isSetter: isSetter,
-              isStatic: isStatic,
-              isTopLevel: !isStatic && !isSuper))
+          forest.throwExpression(
+              null,
+              library.loader.instantiateNoSuchMethodError(
+                  receiver, name, forest.castArguments(arguments), charOffset,
+                  isMethod: !isGetter && !isSetter,
+                  isGetter: isGetter,
+                  isSetter: isSetter,
+                  isStatic: isStatic,
+                  isTopLevel: !isStatic && !isSuper))
             ..fileOffset = charOffset)
         ..fileOffset = charOffset;
     }
@@ -2546,8 +2548,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           throwToken.offset,
           throwToken.length));
     } else {
-      push(new ThrowJudgment(expression)
-        ..fileOffset = offsetForToken(throwToken));
+      push(forest.throwExpression(throwToken, expression));
     }
   }
 
@@ -3956,7 +3957,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           lastNode is! ContinueSwitchStatement &&
           lastNode is! Rethrow &&
           lastNode is! ReturnStatement &&
-          lastNode is! Throw) {
+          !forest.isThrow(lastNode)) {
         block.addStatement(
             new ExpressionStatement(buildFallThroughError(current.fileOffset)));
       }
@@ -4239,14 +4240,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): Compute a LocatedMessage above instead?
     Location location = messages.getLocationFromUri(uri, charOffset);
 
-    return new Throw(buildStaticInvocation(
-        library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-        forest.arguments(<Expression>[
-          forest.literalString("${location?.file ?? uri}", null)
-            ..fileOffset = charOffset,
-          forest.literalInt(location?.line ?? 0, null)..fileOffset = charOffset,
-        ], noLocation),
-        charOffset: charOffset));
+    return forest.throwExpression(
+        null,
+        buildStaticInvocation(
+            library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
+            forest.arguments(<Expression>[
+              forest.literalString("${location?.file ?? uri}", null)
+                ..fileOffset = charOffset,
+              forest.literalInt(location?.line ?? 0, null)
+                ..fileOffset = charOffset,
+            ], noLocation),
+            charOffset: charOffset))
+      ..fileOffset = charOffset;
   }
 
   Expression buildAbstractClassInstantiationError(
@@ -4256,11 +4261,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): The following doesn't make sense to Analyzer AST.
     Declaration constructor =
         library.loader.getAbstractClassInstantiationError();
-    return new Throw(buildStaticInvocation(
-        constructor.target,
-        forest.arguments(<Expression>[
-          forest.literalString(className, null)..fileOffset = charOffset
-        ], noLocation)));
+    return forest.throwExpression(
+        null,
+        buildStaticInvocation(
+            constructor.target,
+            forest.arguments(<Expression>[
+              forest.literalString(className, null)..fileOffset = charOffset
+            ], noLocation)
+              ..fileOffset = charOffset,
+            charOffset: charOffset))
+      ..fileOffset = charOffset;
   }
 
   Statement buildProblemStatement(Message message, int charOffset,
@@ -4349,12 +4359,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return new ShadowInvalidFieldInitializer(
             builder.field,
             expression,
-            new VariableDeclaration.forValue(new Throw(buildStaticInvocation(
-                constructor.target,
-                forest.arguments(<Expression>[
-                  forest.literalString(name, null)..fileOffset = offset
-                ], noLocation),
-                charOffset: offset))))
+            new VariableDeclaration.forValue(forest.throwExpression(
+                null,
+                buildStaticInvocation(
+                    constructor.target,
+                    forest.arguments(<Expression>[
+                      forest.literalString(name, null)..fileOffset = offset
+                    ], noLocation)
+                      ..fileOffset = offset,
+                    charOffset: offset))
+              ..fileOffset = offset))
           ..fileOffset = offset;
       } else {
         if (library.loader.target.strongMode &&

@@ -9,6 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Throw,
         AsExpression,
         AssertInitializer,
         AwaitExpression,
@@ -98,7 +99,6 @@ import 'kernel_shadow_ast.dart'
         ShadowLargeIntLiteral,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        ThrowJudgment,
         TryCatchJudgment,
         TryFinallyJudgment,
         TypeLiteralJudgment,
@@ -472,9 +472,11 @@ class Fangorn extends Forest {
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ThrowJudgment(expression)
-      ..fileOffset = offsetForToken(throwKeyword);
+    return new Throw(expression)..fileOffset = offsetForToken(throwKeyword);
   }
+
+  @override
+  bool isThrow(Object o) => o is Throw;
 
   @override
   Statement tryStatement(Token tryKeyword, Statement body,

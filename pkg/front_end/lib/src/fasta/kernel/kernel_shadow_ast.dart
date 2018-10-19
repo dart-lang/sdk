@@ -1517,19 +1517,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-class ThrowJudgment extends Throw implements ExpressionJudgment {
-  DartType inferredType;
-
-  Expression get judgment => expression;
-
-  ThrowJudgment(Expression expression) : super(expression);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitThrowJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a catch clause.
 class CatchJudgment extends Catch {
   CatchJudgment(VariableDeclaration exception, Statement body,

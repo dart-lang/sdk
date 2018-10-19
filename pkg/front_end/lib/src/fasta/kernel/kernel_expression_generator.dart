@@ -107,7 +107,6 @@ import 'kernel_ast_api.dart'
         SuperPropertyGetJudgment,
         SuperPropertySet,
         SyntheticExpressionJudgment,
-        Throw,
         TreeNode,
         TypeParameter,
         UnresolvedVariableAssignmentJudgment,
@@ -1256,7 +1255,8 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = new SyntheticExpressionJudgment(
-            new Throw(forest.literalString(declaration.message.message, token))
+            forest.throwExpression(
+                null, forest.literalString(declaration.message.message, token))
               ..fileOffset = offset);
       } else {
         super.expression = forest.literalType(

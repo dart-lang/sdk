@@ -97,7 +97,6 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
-        ArgumentsJudgment,
         ExpressionJudgment,
         ShadowClass,
         ShadowField,
@@ -1227,7 +1226,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
   ExpressionInferenceResult inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, DartType returnType, ArgumentsJudgment arguments,
+      FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,

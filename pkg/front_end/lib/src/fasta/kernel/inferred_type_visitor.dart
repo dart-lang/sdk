@@ -148,4 +148,9 @@ class InferredTypeVisitor
       StaticInvocation node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitThrow(Throw node, TypeInferrerImpl inferrer) {
+    return const BottomType();
+  }
 }
