@@ -31,8 +31,8 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::String x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["int", "42"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["String", "\"hello\""]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  core::String x = let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["int", "42"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  dynamic y = let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["String", "\"hello\""]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   y = "world";
   y = 42;
 }

@@ -1112,7 +1112,6 @@ abstract class ShadowMember implements Member {
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   /// Indicates whether this method invocation is a call to a `call` method
@@ -1121,7 +1120,7 @@ class MethodInvocationJudgment extends MethodInvocation
 
   MethodInvocationJudgment(
       Expression receiver, Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isImplicitCall: false, Member interfaceTarget})
+      {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
@@ -1165,12 +1164,10 @@ class NamedFunctionExpressionJudgment extends Let
 ///     let v = a in v == null ? null : v.b(...)
 class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   NullAwareMethodInvocationJudgment(
-      VariableDeclaration variable, Expression body,
-      {this.desugaredError})
+      VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -1348,11 +1345,10 @@ class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
 /// Shadow object for [StaticInvocation].
 class StaticInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isConst: false})
+      {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -1380,11 +1376,10 @@ class SuperInitializerJudgment extends SuperInitializer
 /// Shadow object for [SuperMethodInvocation].
 class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, Procedure interfaceTarget})
+      {Procedure interfaceTarget})
       : super(name, arguments, interfaceTarget);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -1398,11 +1393,9 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
 /// Shadow object for [SuperPropertyGet].
 class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
-  SuperPropertyGetJudgment(Name name,
-      {this.desugaredError, Member interfaceTarget})
+  SuperPropertyGetJudgment(Name name, {Member interfaceTarget})
       : super(name, interfaceTarget);
 
   @override
@@ -1555,34 +1548,15 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
 }
 
 class ThrowJudgment extends Throw implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-
   DartType inferredType;
 
   Expression get judgment => expression;
 
-  ThrowJudgment(Expression expression, {this.desugaredError})
-      : super(expression);
+  ThrowJudgment(Expression expression) : super(expression);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitThrowJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing a statement that is not allowed at
-/// the location it was found, and should be replaced with an error.
-class InvalidStatementJudgment extends ExpressionStatement
-    implements StatementJudgment {
-  final kernel.Expression desugaredError;
-  final StatementJudgment statement;
-
-  InvalidStatementJudgment(this.desugaredError, this.statement)
-      : super(new NullLiteral());
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitInvalidStatementJudgment(this);
   }
 }
 

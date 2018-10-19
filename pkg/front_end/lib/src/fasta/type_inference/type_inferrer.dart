@@ -112,6 +112,8 @@ import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../source/source_loader.dart' show SourceLoader;
 
+import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
+
 import 'inference_helper.dart' show InferenceHelper;
 
 import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
@@ -715,7 +717,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
       var errorNode = helper.wrapInProblem(
-          expression,
+          new AsExpression(
+              expression,
+              // TODO(ahe): The outline phase doesn't correctly remove invalid
+              // uses of type variables, for example, on static members. Once
+              // that has been fixed, we should always be able to use
+              // [expectedType] directly here.
+              hasAnyTypeVariables(expectedType)
+                  ? const BottomType()
+                  : expectedType)
+            ..isTypeError = true
+            ..fileOffset = expression.fileOffset,
           (template ?? templateInvalidAssignment)
               .withArguments(actualType, expectedType),
           noLength);
@@ -804,10 +816,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper.buildProblem(
-                  errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset,
-                  length))
+              helper
+                  .buildProblem(
+                      errorTemplate.withArguments(name.name, receiverType),
+                      fileOffset,
+                      length)
+                  .desugared)
             ..fileOffset = fileOffset);
     }
     return interfaceMember;

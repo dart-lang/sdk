@@ -566,10 +566,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
     int intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper.buildProblem(
-          templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
-          node.fileOffset,
-          node.literal.length);
+      Expression replacement = inferrer.helper
+          .buildProblem(
+              templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
+              node.fileOffset,
+              node.literal.length)
+          .desugared;
       node.parent.replaceChild(node, replacement);
       node.inferredType = const BottomType();
       return null;
@@ -839,11 +841,13 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           }
           int intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper.buildProblem(
-                templateIntegerLiteralIsOutOfRange
-                    .withArguments(receiver.literal),
-                receiver.fileOffset,
-                receiver.literal.length);
+            Expression error = inferrer.helper
+                .buildProblem(
+                    templateIntegerLiteralIsOutOfRange
+                        .withArguments(receiver.literal),
+                    receiver.fileOffset,
+                    receiver.literal.length)
+                .desugared;
             node.parent.replaceChild(node, error);
             node.inferredType = const BottomType();
             return null;
@@ -869,17 +873,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node, node.receiver, node.fileOffset, node._isImplicitCall, typeContext,
         desugaredInvocation: node);
     node.inferredType = inferenceResult.type;
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     if (!hadExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInMethodInvocation(
           node, inferrer.thisType?.classNode, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   void visitNamedFunctionExpressionJudgment(
@@ -926,6 +925,21 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   @override
   void visitNullLiteral(NullLiteral node, DartType typeContext) {}
+
+  @override
+  void visitLet(Let node, DartType typeContext) {
+    DartType variableType = node.variable.type;
+    if (variableType == const DynamicType()) {
+      return defaultExpression(node, typeContext);
+    }
+    Expression initializer = node.variable.initializer;
+    inferrer.inferExpression(initializer, variableType, true,
+        isVoidAllowed: true);
+    Expression body = node.body;
+    inferrer.inferExpression(body, typeContext, true, isVoidAllowed: true);
+    // TODO(ahe): This shouldn't be needed. See InferredTypeVisitor.visitLet.
+    inferrer.storeInferredType(node, getInferredType(body, inferrer));
+  }
 
   void visitPropertyAssignmentJudgment(
       PropertyAssignmentJudgment node, DartType typeContext) {
@@ -1056,10 +1070,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     var inferenceResult = inferrer.inferInvocation(typeContext, node.fileOffset,
         calleeType, calleeType.returnType, node.argumentJudgments);
     node.inferredType = inferenceResult.type;
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     if (!hadExplicitTypeArguments &&
         node.target != null &&
@@ -1068,7 +1078,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   @override
@@ -1110,11 +1119,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         methodName: node.name,
         arguments: node.arguments);
     node.inferredType = inferenceResult.type;
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
-    return null;
   }
 
   void visitSuperPropertyGetJudgment(
@@ -1125,11 +1129,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
     inferrer.inferPropertyGet(node, null, node.fileOffset, typeContext,
         interfaceMember: node.interfaceTarget, propertyName: node.name);
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
-    return null;
   }
 
   void visitSwitchStatementJudgment(SwitchStatementJudgment node) {
@@ -1209,23 +1208,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   void visitThrowJudgment(ThrowJudgment node, DartType typeContext) {
     inferrer.inferExpression(node.judgment, const UnknownType(), false);
     node.inferredType = const BottomType();
-    if (node.desugaredError != null) {
-      node.parent.replaceChild(node, node.desugaredError);
-      node.parent = null;
-    }
-    return null;
-  }
-
-  void visitInvalidStatementJudgment(InvalidStatementJudgment node) {
-    inferrer.inferStatement(node.statement);
-
-    // If this judgment is a part of a Block, replace it there.
-    // Otherwise, the parent would be a FunctionNode, but not yet.
-    if (node.parent is Block) {
-      node.parent
-          .replaceChild(node, new ExpressionStatement(node.desugaredError));
-      node.parent = null;
-    }
   }
 
   void visitCatchJudgment(CatchJudgment node) {

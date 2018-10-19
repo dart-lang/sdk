@@ -49,7 +49,6 @@ inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: Type
 inference/downwards_inference_annotations_type_variable: Fail # Issue 28981
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/downwards_inference_yield_yield_star: TypeCheckError
 inference/future_then_explicit_future: Fail # Issue #30040
 inference/future_then_upwards: RuntimeError
 inference/future_then_upwards_2: RuntimeError
@@ -78,8 +77,10 @@ inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_e
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
+inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
 invalid_type: TypeCheckError
