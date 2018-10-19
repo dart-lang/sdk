@@ -78,11 +78,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     final body = node.body;
-    if (body is BlockFunctionBody && body.block.statements.length == 1) {
-      final statement = body.block.statements.first;
-      if (statement is ExpressionStatement) {
-        _visitExpression(statement.expression);
+    if (body is BlockFunctionBody) {
+      if (body.block.statements.length == 1) {
+        final statement = body.block.statements.first;
+        if (statement is ExpressionStatement) {
+          _visitExpression(statement.expression);
+        }
       }
+    } else if (body is ExpressionFunctionBody) {
+      _visitExpression(body.expression);
     }
   }
 }

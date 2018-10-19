@@ -5,8 +5,10 @@
 // test w/ `pub run test -N use_setters_to_change_properties`
 
 abstract class A {
-  // ignore: unused_field
+  int _w;
   int _x;
+
+  void setW(int w) => this._w = w; // LINT
 
   void setX(int x) { // LINT
     this._x = x;
@@ -16,7 +18,6 @@ abstract class A {
 }
 
 class B extends A {
-  // ignore: unused_field
   int _y;
 
   void setY(int y) { // OK because it is an inherited method.
