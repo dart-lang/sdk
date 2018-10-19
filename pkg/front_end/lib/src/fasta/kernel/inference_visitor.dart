@@ -1408,9 +1408,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitCheckLibraryIsLoadedJudgment(
-      CheckLibraryIsLoadedJudgment node, DartType typeContext) {
-    node.inferredType = inferrer.typeSchemaEnvironment.objectType;
-    return null;
-  }
+  @override
+  void visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, DartType typeContext) {}
 }

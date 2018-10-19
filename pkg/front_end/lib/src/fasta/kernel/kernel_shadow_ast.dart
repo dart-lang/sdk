@@ -1977,19 +1977,6 @@ class LoadLibraryTearOffJudgment extends StaticGet
   }
 }
 
-/// Concrete shadow object representing a deferred library-is-loaded check.
-class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  CheckLibraryIsLoadedJudgment(LibraryDependency import) : super(import);
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitCheckLibraryIsLoadedJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a named expression.
 class NamedExpressionJudgment extends NamedExpression {
   NamedExpressionJudgment(String nameLexeme, Expression value)

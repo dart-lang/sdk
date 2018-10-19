@@ -153,4 +153,10 @@ class InferredTypeVisitor
   DartType visitThrow(Throw node, TypeInferrerImpl inferrer) {
     return const BottomType();
   }
+
+  @override
+  DartType visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, TypeInferrerImpl inferrer) {
+    return inferrer.coreTypes.objectClass.rawType;
+  }
 }

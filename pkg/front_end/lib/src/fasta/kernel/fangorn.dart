@@ -9,13 +9,13 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        Throw,
         AsExpression,
         AssertInitializer,
         AwaitExpression,
         Block,
         BoolLiteral,
         Catch,
+        CheckLibraryIsLoaded,
         ConditionalExpression,
         DartType,
         EmptyStatement,
@@ -38,6 +38,7 @@ import 'package:kernel/ast.dart'
         StringConcatenation,
         StringLiteral,
         ThisExpression,
+        Throw,
         TreeNode,
         VariableDeclaration,
         setParents;
@@ -81,7 +82,6 @@ import 'kernel_shadow_ast.dart'
         BlockJudgment,
         BreakJudgment,
         CatchJudgment,
-        CheckLibraryIsLoadedJudgment,
         ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
@@ -250,7 +250,7 @@ class Fangorn extends Forest {
 
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
-    return new CheckLibraryIsLoadedJudgment(dependency);
+    return new CheckLibraryIsLoaded(dependency);
   }
 
   @override
