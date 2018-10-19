@@ -41,7 +41,13 @@ class AnnotationTest extends PartialCodeTest {
       [
         new TestDescriptor(
             'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter']),
+            failing: [
+              'typedef',
+              'functionNonVoid',
+              'getter',
+              'mixin',
+              'setter'
+            ]),
         new TestDescriptor(
             'leftParen', '@a(', [ScannerErrorCode.EXPECTED_TOKEN], '@a()',
             allFailing: true),

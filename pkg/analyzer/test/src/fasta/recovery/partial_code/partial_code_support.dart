@@ -46,6 +46,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
     new TestSuffix('class', 'class A {}'),
+    new TestSuffix('enum', 'enum E { v }'),
+    new TestSuffix('mixin', 'mixin M {}'),
     new TestSuffix('typedef', 'typedef A = B Function(C, D);'),
     new TestSuffix('functionVoid', 'void f() {}'),
     new TestSuffix('functionNonVoid', 'int f() {}'),

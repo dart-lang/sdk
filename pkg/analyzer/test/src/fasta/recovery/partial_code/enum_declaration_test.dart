@@ -50,6 +50,7 @@ class EnumDeclarationTest extends PartialCodeTest {
                 'typedef',
                 'functionNonVoid',
                 'getter',
+                'mixin',
                 'setter'
               ]),
           new TestDescriptor(
@@ -66,6 +67,7 @@ class EnumDeclarationTest extends PartialCodeTest {
                 'typedef',
                 'functionNonVoid',
                 'getter',
+                'mixin',
                 'setter'
               ]),
           new TestDescriptor('value', 'enum E {a',
