@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 LibTest/io/RawDatagramSocket/any_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/distinct_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
