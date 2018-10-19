@@ -1060,21 +1060,18 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     inferrer.storeInferredType(node, type);
   }
 
-  void visitStaticInvocationJudgment(
-      StaticInvocationJudgment node, DartType typeContext) {
+  @override
+  void visitStaticInvocation(StaticInvocation node, DartType typeContext) {
     FunctionType calleeType = node.target != null
         ? node.target.function.functionType
         : new FunctionType([], const DynamicType());
     bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.argumentJudgments) != null;
+        getExplicitTypeArguments(node.arguments) != null;
     var inferenceResult = inferrer.inferInvocation(typeContext, node.fileOffset,
-        calleeType, calleeType.returnType, node.argumentJudgments);
-    node.inferredType = inferenceResult.type;
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (!hadExplicitTypeArguments &&
-        node.target != null &&
-        inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInStaticInvocation(
+        calleeType, calleeType.returnType, node.arguments);
+    inferrer.storeInferredType(node, inferenceResult.type);
+    if (!hadExplicitTypeArguments && node.target != null) {
+      inferrer.library?.checkBoundsInStaticInvocation(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }

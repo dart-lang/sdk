@@ -1329,23 +1329,6 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 }
 
-/// Shadow object for [StaticInvocation].
-class StaticInvocationJudgment extends StaticInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
-      {bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVistor visitor, DartType typeContext) {
-    return visitor.visitStaticInvocationJudgment(this, typeContext);
-  }
-}
-
 /// Concrete shadow object representing a super initializer in kernel form.
 class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {

@@ -3068,7 +3068,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         library.checkBoundsInFactoryInvocation(node, typeEnvironment);
         return node;
       } else {
-        StaticInvocation node = new StaticInvocationJudgment(
+        StaticInvocation node = new StaticInvocation(
             target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;

@@ -142,4 +142,10 @@ class InferredTypeVisitor
   DartType visitStaticGet(StaticGet node, TypeInferrerImpl inferrer) {
     return inferrer.readInferredType(node);
   }
+
+  @override
+  DartType visitStaticInvocation(
+      StaticInvocation node, TypeInferrerImpl inferrer) {
+    return inferrer.readInferredType(node);
+  }
 }
