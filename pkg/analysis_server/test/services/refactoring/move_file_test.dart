@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,13 +22,6 @@ main() {
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
-
-  @failingTest
-  test_dart_uris_are_unmodified() async {
-    // TODO(dantup): See _computeNewUri implementation which currently only
-    // handles relative + package: urls (package url handling is also incomplete)
-    fail('Not yet implemented/tested');
-  }
 
   test_file_containing_imports_exports_parts() async {
     String pathA = '/project/000/1111/a.dart';
@@ -107,6 +101,26 @@ import '22/test.dart';
     assertFileChangeResult(pathA, '''
 import 'new_name.dart';
 ''');
+    assertNoFileChange(testFile);
+  }
+
+  test_file_imported_with_package_uri() async {
+    // Set up package uri resolution for local package.
+    packageMap['my_package'] = [getFolder('/project/lib')];
+    configureDriver();
+
+    String pathA = '/project/000/1111/a.dart';
+    testFile = '/project/lib/test.dart';
+    addSource(pathA, '''
+  import 'package:my_package/test.dart';
+  ''');
+    addTestSource('');
+    // perform refactoring
+    _createRefactoring('/project/lib/222/new_name.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+  import 'package:my_package/222/new_name.dart';
+  ''');
     assertNoFileChange(testFile);
   }
 
