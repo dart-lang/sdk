@@ -228,6 +228,7 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
+  ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   Object& result = Object::Handle(zone);
 
@@ -1329,6 +1330,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 RawError* Compiler::ReadAllBytecode(const Class& cls) {
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
@@ -1370,6 +1372,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
+    ASSERT(thread->IsMutatorThread());
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
     // Under lazy compilation initializer has not yet been created, so create
