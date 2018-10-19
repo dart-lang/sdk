@@ -1196,7 +1196,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(closureContext == null);
     this.helper = helper;
     var actualType = inferExpression(
-        initializer, declaredType ?? const UnknownType(), declaredType != null,
+        initializer,
+        declaredType ?? const UnknownType(),
+        !isTopLevel || declaredType != null,
         isVoidAllowed: true);
     if (declaredType != null) {
       ensureAssignable(
@@ -1210,7 +1212,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field);
 
   @override
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
@@ -1417,7 +1419,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           parameter.initializer = new NullLiteral()..parent = parameter;
         }
         if (parameter.initializer != null) {
-          inferExpression(parameter.initializer, parameter.type, false);
+          inferExpression(parameter.initializer, parameter.type, !isTopLevel);
         }
       }
       for (var parameter in function.namedParameters) {
@@ -1425,7 +1427,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (parameter.initializer == null) {
           parameter.initializer = new NullLiteral()..parent = parameter;
         }
-        inferExpression(parameter.initializer, parameter.type, false);
+        inferExpression(parameter.initializer, parameter.type, !isTopLevel);
       }
     }
 
@@ -1562,7 +1564,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var parents = annotations.map((e) => e.parent).toList();
       new ListLiteral(annotations);
       for (var annotation in annotations) {
-        inferExpression(annotation, const UnknownType(), false);
+        inferExpression(annotation, const UnknownType(), !isTopLevel);
       }
       for (int i = 0; i < annotations.length; ++i) {
         annotations[i].parent = parents[i];

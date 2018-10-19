@@ -1624,7 +1624,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded && isTopLevel) return null;
+    if (!typeNeeded) return null;
 
     InferenceVistor visitor = new InferenceVistor(this);
     if (expression is ExpressionJudgment) {
@@ -1643,9 +1643,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded) {
+  DartType inferFieldTopLevel(ShadowField field) {
     if (field.initializer == null) return const DynamicType();
-    return inferExpression(field.initializer, const UnknownType(), typeNeeded,
+    return inferExpression(field.initializer, const UnknownType(), true,
         isVoidAllowed: true);
   }
 

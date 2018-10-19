@@ -32,7 +32,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   @override
   void visitAsExpression(AsExpression node, DartType typeContext) {
-    inferrer.inferExpression(node.operand, const UnknownType(), false,
+    inferrer.inferExpression(
+        node.operand, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
   }
 
@@ -52,7 +53,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         conditionJudgment,
         conditionJudgment.fileOffset);
     if (messageJudgment != null) {
-      inferrer.inferExpression(messageJudgment, const UnknownType(), false);
+      inferrer.inferExpression(
+          messageJudgment, const UnknownType(), !inferrer.isTopLevel);
     }
   }
 
@@ -93,7 +95,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       node.variable.type = getInferredType(node, inferrer);
     }
     for (var judgment in node.cascadeJudgments) {
-      inferrer.inferExpression(judgment, const UnknownType(), false,
+      inferrer.inferExpression(
+          judgment, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
     return null;
@@ -211,7 +214,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     // No inference needs to be done.
   }
   void visitExpressionStatementJudgment(ExpressionStatementJudgment node) {
-    inferrer.inferExpression(node.judgment, const UnknownType(), false,
+    inferrer.inferExpression(
+        node.judgment, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
   }
 
@@ -346,7 +350,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       for (var initializer in initializers) {
         node.variables
             .add(new VariableDeclaration.forValue(initializer)..parent = node);
-        inferrer.inferExpression(initializer, const UnknownType(), false,
+        inferrer.inferExpression(
+            initializer, const UnknownType(), !inferrer.isTopLevel,
             isVoidAllowed: true);
       }
     } else {
@@ -365,7 +370,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           node.condition.fileOffset);
     }
     for (var update in node.updateJudgments) {
-      inferrer.inferExpression(update, const UnknownType(), false,
+      inferrer.inferExpression(
+          update, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
     inferrer.inferStatement(node.bodyJudgment);
@@ -462,9 +468,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   void visitIllegalAssignmentJudgment(
       IllegalAssignmentJudgment node, DartType typeContext) {
     if (node.write != null) {
-      inferrer.inferExpression(node.write, const UnknownType(), false);
+      inferrer.inferExpression(
+          node.write, const UnknownType(), !inferrer.isTopLevel);
     }
-    inferrer.inferExpression(node.rhs, const UnknownType(), false);
+    inferrer.inferExpression(
+        node.rhs, const UnknownType(), !inferrer.isTopLevel);
     node._replaceWithDesugared();
     node.inferredType = const DynamicType();
     return null;
@@ -591,16 +599,17 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitShadowInvalidInitializer(ShadowInvalidInitializer node) {
     inferrer.inferExpression(
-        node.variable.initializer, const UnknownType(), false);
+        node.variable.initializer, const UnknownType(), !inferrer.isTopLevel);
   }
 
   void visitShadowInvalidFieldInitializer(ShadowInvalidFieldInitializer node) {
-    inferrer.inferExpression(node.value, node.field.type, false);
+    inferrer.inferExpression(node.value, node.field.type, !inferrer.isTopLevel);
   }
 
   @override
   void visitIsExpression(IsExpression node, DartType typeContext) {
-    inferrer.inferExpression(node.operand, const UnknownType(), false);
+    inferrer.inferExpression(
+        node.operand, const UnknownType(), !inferrer.isTopLevel);
   }
 
   void visitLabeledStatementJudgment(LabeledStatementJudgment node) {
@@ -1082,7 +1091,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       StringConcatenation node, DartType typeContext) {
     if (!inferrer.isTopLevel) {
       for (var expression in node.expressions) {
-        inferrer.inferExpression(expression, const UnknownType(), false);
+        inferrer.inferExpression(
+            expression, const UnknownType(), !inferrer.isTopLevel);
       }
     }
   }
@@ -1189,7 +1199,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     // the expression with this node.
     node.expression.parent ??= node;
 
-    inferrer.inferExpression(node.expression, const UnknownType(), false);
+    inferrer.inferExpression(
+        node.expression, const UnknownType(), !inferrer.isTopLevel);
     return visitSyntheticExpressionJudgment(node, typeContext);
   }
 
@@ -1204,7 +1215,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   @override
   void visitThrow(Throw node, DartType typeContext) {
-    inferrer.inferExpression(node.expression, const UnknownType(), false);
+    inferrer.inferExpression(
+        node.expression, const UnknownType(), !inferrer.isTopLevel);
   }
 
   void visitCatchJudgment(CatchJudgment node) {
