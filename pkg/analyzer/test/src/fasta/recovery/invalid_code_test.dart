@@ -40,7 +40,7 @@ const default = const Object();
 f() {
   return <g('')>[0, 1, 2];
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() {
   return <g>[0, 1, 2];
 }
@@ -53,7 +53,7 @@ f() {
 f() {
   return <test('', (){})>[0, 1, 2];
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() {
   return <test>[0, 1, 2];
 }

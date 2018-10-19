@@ -758,7 +758,7 @@ foo
 Future<List<int>> bar() {}
 ''', r'''
 foo
-Future<List<int>> bar() async {}
+Future<List<int>> bar(int x) {}
 ''');
   }
 

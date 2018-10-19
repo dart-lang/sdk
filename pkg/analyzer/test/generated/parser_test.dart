@@ -4215,15 +4215,11 @@ class Wrong<T> {
   }
 
   void test_method_invalidTypeParameters() {
-    // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    // It doesn't try to advance past the invalid token `!` to find the
-    // valid `>`. If it did we'd get less cascading errors, at least for this
-    // particular example.
     createParser('void m<E, hello!>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5)]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0),
@@ -6576,7 +6572,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_parseFunctionExpression_functionInPlaceOfTypeName() {
     Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
         codes: usingFastaParser
-            ? [ParserErrorCode.UNEXPECTED_TOKEN]
+            ? [ParserErrorCode.EXPECTED_TOKEN]
             : [
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
@@ -10632,7 +10628,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     result[new Symbol(name)] = value;
   });
   return result;
-}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 24)]);
+}''', errors: [
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 24),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 3)
+      ]);
     }
   }
 

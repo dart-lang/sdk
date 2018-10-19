@@ -41,7 +41,10 @@ f<T> > () => null;
   void test_typeParameters_funct() {
     testRecovery('''
 f<T extends Function()() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T extends Function()>() => null;
 ''');
   }
@@ -49,7 +52,10 @@ f<T extends Function()>() => null;
   void test_typeParameters_funct2() {
     testRecovery('''
 f<T extends Function<X>()() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T extends Function<X>()>() => null;
 ''');
   }
@@ -133,7 +139,10 @@ List<int, double> f;
   void test_typeParameters_last() {
     testRecovery('''
 f<T() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T>() => null;
 ''');
   }
@@ -141,7 +150,10 @@ f<T>() => null;
   void test_typeParameters_outer_last() {
     testRecovery('''
 f<T extends List<int>() => null;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS
+    ], '''
 f<T extends List<int>>() => null;
 ''');
   }

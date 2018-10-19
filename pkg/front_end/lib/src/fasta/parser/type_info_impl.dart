@@ -12,6 +12,8 @@ import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
 
 import '../util/link.dart' show Link;
 
+import 'forwarding_listener.dart' show ForwardingListener;
+
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
@@ -662,9 +664,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// given unbalanced `<` `>` and invalid parameters or arguments.
   final bool inDeclaration;
 
-  /// The token before the end group token (e.g. `>`, `>>`, `>=`, or `>>=`)
-  /// or after which a synthetic end group token should be inserted.
-  Token beforeEnd;
+  /// The `>` token which ends the type parameter or argument.
+  /// This closer may be synthetic, points to the next token in the stream,
+  /// is only used when skipping over the type parameters or arguments,
+  /// and may not be part of the token stream.
+  Token skipEnd;
 
   ComplexTypeParamOrArgInfo(Token token, this.inDeclaration)
       : assert(optional('<', token.next)),
@@ -704,8 +708,8 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         next = token.next;
       }
       if (!optional(',', next)) {
-        if (isCloser(next)) {
-          beforeEnd = token;
+        skipEnd = splitCloser(next);
+        if (skipEnd != null) {
           return this;
         }
         if (!inDeclaration) {
@@ -722,18 +726,18 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     }
 
     // Recovery
-    beforeEnd = token;
-    if (!isCloser(next)) {
+    skipEnd = splitCloser(next);
+    if (skipEnd == null) {
       if (optional('(', next)) {
         token = next.endGroup;
         next = token.next;
       }
-      if (!isCloser(next)) {
-        token = next;
-        next = token.next;
+      skipEnd = splitCloser(next);
+      if (skipEnd == null) {
+        skipEnd = splitCloser(next.next);
       }
-      if (isCloser(next)) {
-        beforeEnd = token;
+      if (skipEnd == null) {
+        skipEnd = syntheticGt(next);
       }
     }
     return this;
@@ -762,20 +766,19 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       ++count;
       if (!optional(',', next)) {
         if (parseCloser(token)) {
-          beforeEnd = token;
           break;
         }
 
         // Recovery
         if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
-          parseUnexpectedEnd(token, parser);
+          token = parseUnexpectedEnd(token, true, parser);
           break;
         }
         // Missing comma. Report error, insert comma, and continue looping.
         next = parseMissingComma(token, parser);
       }
     }
-    Token endGroup = beforeEnd.next;
+    Token endGroup = token.next;
     parser.listener.endTypeArguments(count, start, endGroup);
     return endGroup;
   }
@@ -795,9 +798,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       token = parser.parseMetadataStar(next);
       next = parser.ensureIdentifier(
           token, IdentifierContext.typeVariableDeclaration);
-      if (beforeEnd == token) {
-        beforeEnd = next;
-      }
       token = next;
       listener.beginTypeVariable(token);
       typeStarts = typeStarts.prepend(token);
@@ -857,12 +857,10 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       superTypeInfos = superTypeInfos.tail;
     }
 
-    if (parseCloser(token)) {
-      beforeEnd = token;
-    } else {
-      parseUnexpectedEnd(token, parser);
+    if (!parseCloser(token)) {
+      token = parseUnexpectedEnd(token, false, parser);
     }
-    Token endGroup = beforeEnd.next;
+    Token endGroup = token.next;
     listener.endTypeVariables(start, endGroup);
     return endGroup;
   }
@@ -875,43 +873,109 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         token, new SyntheticToken(TokenType.COMMA, next.charOffset));
   }
 
-  void parseUnexpectedEnd(Token token, Parser parser) {
-    if (beforeEnd.isSynthetic && beforeEnd.charOffset == token.charOffset) {
-      // Ensure that beforeEnd is in the token stream
-      // as a nested type argument or parameter may have inserted
-      // a synthetic closer.
-      beforeEnd = token;
-    }
-    if (parseCloser(beforeEnd)) {
-      parser.reportRecoverableErrorWithToken(
-          token.next, fasta.templateUnexpectedToken);
-    } else {
-      // If token is synthetic, then an error has already been reported.
-      if (!token.isSynthetic) {
+  Token parseUnexpectedEnd(Token token, bool isArguments, Parser parser) {
+    Token next = token.next;
+    bool errorReported = token.isSynthetic || (next.isSynthetic && !next.isEof);
+
+    bool typeFollowsExtends = false;
+    if (optional('extends', next)) {
+      if (!errorReported) {
         parser.reportRecoverableError(
             token, fasta.templateExpectedAfterButGot.withArguments('>'));
+        errorReported = true;
       }
-      Token next = beforeEnd.next;
-      Token endGroup = syntheticGt(next);
-      endGroup.setNext(next);
-      beforeEnd.setNext(endGroup);
+      token = next;
+      next = token.next;
+      typeFollowsExtends = isValidTypeReference(next);
+
+      if (parseCloser(token)) {
+        return token;
+      }
     }
+
+    if (typeFollowsExtends ||
+        optional('dynamic', next) ||
+        optional('void', next) ||
+        optional('Function', next)) {
+      TypeInfo invalidType = computeType(token, true);
+      if (invalidType != noType) {
+        if (!errorReported) {
+          parser.reportRecoverableError(
+              token, fasta.templateExpectedAfterButGot.withArguments('>'));
+          errorReported = true;
+        }
+
+        // Parse the type so that the token stream is properly modified,
+        // but ensure that parser events are ignored by replacing the listener.
+        final originalListener = parser.listener;
+        parser.listener = new ForwardingListener();
+        token = invalidType.parseType(token, parser);
+        next = token.next;
+        parser.listener = originalListener;
+
+        if (parseCloser(token)) {
+          return token;
+        }
+      }
+    }
+
+    TypeParamOrArgInfo invalidTypeVar =
+        computeTypeParamOrArg(token, inDeclaration);
+    if (invalidTypeVar != noTypeParamOrArg) {
+      if (!errorReported) {
+        parser.reportRecoverableError(
+            token, fasta.templateExpectedAfterButGot.withArguments('>'));
+        errorReported = true;
+      }
+
+      // Parse the type so that the token stream is properly modified,
+      // but ensure that parser events are ignored by replacing the listener.
+      final originalListener = parser.listener;
+      parser.listener = new ForwardingListener();
+      token = isArguments
+          ? invalidTypeVar.parseArguments(token, parser)
+          : invalidTypeVar.parseVariables(token, parser);
+      next = token.next;
+      parser.listener = originalListener;
+
+      if (parseCloser(token)) {
+        return token;
+      }
+    }
+
+    if (optional('(', next) && next.endGroup != null) {
+      if (!errorReported) {
+        // Only report an error if one has not already been reported.
+        parser.reportRecoverableError(
+            token, fasta.templateExpectedAfterButGot.withArguments('>'));
+        errorReported = true;
+      }
+      token = next.endGroup;
+      next = token.next;
+
+      if (parseCloser(token)) {
+        return token;
+      }
+    }
+
+    if (!errorReported) {
+      // Only report an error if one has not already been reported.
+      parser.reportRecoverableError(
+          token, fasta.templateExpectedAfterButGot.withArguments('>'));
+    }
+    if (parseCloser(next)) {
+      return next;
+    }
+    Token endGroup = syntheticGt(next);
+    endGroup.setNext(next);
+    token.setNext(endGroup);
+    return token;
   }
 
   @override
   Token skip(Token token) {
-    final next = beforeEnd.next;
-    final value = next.stringValue;
-    if (identical(value, '>')) {
-      return next;
-    } else if (identical(value, '>>')) {
-      return splitGtGt(next);
-    } else if (identical(value, '>=')) {
-      return splitGtEq(next);
-    } else if (identical(value, '>>=')) {
-      return splitGtFromGtGtEq(next);
-    }
-    return syntheticGt(next);
+    assert(skipEnd != null);
+    return skipEnd;
   }
 }
 
@@ -924,25 +988,35 @@ bool isCloser(Token token) {
       identical(value, '>>=');
 }
 
-/// If [token] is one of `>`, `>>`, `>=', or `>>=`,
+/// If [beforeCloser].next is one of `>`, `>>`, `>=', or `>>=`,
 /// then update the token stream and return `true`.
 bool parseCloser(Token beforeCloser) {
-  Token closer = beforeCloser.next;
-  String value = closer.stringValue;
-  if (identical(value, '>')) {
+  Token unsplit = beforeCloser.next;
+  Token split = splitCloser(unsplit);
+  if (split == unsplit) {
     return true;
-  }
-  Token split;
-  if (identical(value, '>>')) {
-    split = splitGtGt(closer);
-  } else if (identical(value, '>=')) {
-    split = splitGtEq(closer);
-  } else if (identical(value, '>>=')) {
-    split = splitGtFromGtGtEq(closer);
-  } else {
+  } else if (split == null) {
     return false;
   }
-  split.next.setNext(closer.next);
+  split.next.setNext(unsplit.next);
   beforeCloser.setNext(split);
   return true;
+}
+
+/// If [closer] is `>` then return it.
+/// If [closer] is one of `>>`, `>=', or `>>=` then split then token
+/// and return the leading `>` without updating the token stream.
+/// If [closer] is none of the above, then return null;
+Token splitCloser(Token closer) {
+  String value = closer.stringValue;
+  if (identical(value, '>')) {
+    return closer;
+  } else if (identical(value, '>>')) {
+    return splitGtGt(closer);
+  } else if (identical(value, '>=')) {
+    return splitGtEq(closer);
+  } else if (identical(value, '>>=')) {
+    return splitGtFromGtGtEq(closer);
+  }
+  return null;
 }
