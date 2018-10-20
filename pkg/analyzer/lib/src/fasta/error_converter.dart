@@ -68,13 +68,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
         return;
-      case "DUPLICATE_LABEL_IN_SWITCH_STATEMENT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
-            offset,
-            length,
-            [arguments['name']]);
-        return;
       case "LABEL_UNDEFINED":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.LABEL_UNDEFINED,
@@ -82,21 +75,9 @@ class FastaErrorReporter {
             length,
             [arguments['name']]);
         return;
-      case "DUPLICATE_DEFERRED":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
-        return;
-      case "DUPLICATE_PREFIX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_PREFIX, offset, length);
-        return;
       case "EMPTY_ENUM_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
-        return;
-      case "ENUM_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ENUM_IN_CLASS, offset, length);
         return;
       case "EXPECTED_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
@@ -118,43 +99,15 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
         return;
-      case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            offset,
-            length);
-        return;
       case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
-      case "EXTERNAL_TYPEDEF":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_TYPEDEF, offset, length);
-        return;
-      case "EXTRANEOUS_MODIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [lexeme()]);
-        return;
-      case "FACTORY_TOP_LEVEL_DECLARATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, offset, length);
-        return;
-      case "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-            offset,
-            length);
         return;
       case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "FINAL_AND_COVARIANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
         return;
       case "FINAL_AND_VAR":
         errorReporter?.reportErrorForOffset(

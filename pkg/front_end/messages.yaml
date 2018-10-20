@@ -464,9 +464,10 @@ ClassInClass:
     - "class C { class B {} }"
 
 EnumInClass:
+  index: 74
   template: "Enums can't be declared inside classes."
   tip: "Try moving the enum to the top-level."
-  analyzerCode: ENUM_IN_CLASS
+  analyzerCode: ParserErrorCode.ENUM_IN_CLASS
   script:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
@@ -707,9 +708,10 @@ ConstConstructorWithNonConstSuper:
   analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
 
 ExtraneousModifier:
+  index: 77
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
-  analyzerCode: EXTRANEOUS_MODIFIER
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER
   script:
     - "var String foo; main(){}"
     - "var set foo; main(){}"
@@ -739,9 +741,10 @@ ExtraneousModifier:
     - "static typedef foo();"
 
 FinalAndCovariant:
+  index: 80
   template: "Members can't be declared to be both 'final' and 'covariant'."
   tip: "Try removing either the 'final' or 'covariant' keyword."
-  analyzerCode: FINAL_AND_COVARIANT
+  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT
   script:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
@@ -874,9 +877,10 @@ ContinueWithoutLabelInCase:
     - "main() { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
+  index: 72
   template: "The label '#name' was already used in this switch statement."
   tip: "Try choosing a different name for this label."
-  analyzerCode: DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  analyzerCode: ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
@@ -1290,9 +1294,10 @@ ConstructorCyclic:
     - "class C { C.foo() : this.bar(); C.bar() : this.foo(); }"
 
 FieldInitializerOutsideConstructor:
+  index: 79
   template: "Field formal parameters can only be used in a constructor."
   tip: "Try removing 'this.'."
-  analyzerCode: FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
   script:
     - "class C { void m(this.x); }"
 
@@ -1675,9 +1680,10 @@ DeferredAfterPrefix:
   analyzerCode: ParserErrorCode.DEFERRED_AFTER_PREFIX
 
 DuplicateDeferred:
+  index: 71
   template: "An import directive can only have one 'deferred' keyword."
   tip: "Try removing all but one 'deferred' keyword."
-  analyzerCode: DUPLICATE_DEFERRED
+  analyzerCode: ParserErrorCode.DUPLICATE_DEFERRED
 
 DeferredTypeAnnotation:
   template: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
@@ -1686,9 +1692,10 @@ DeferredTypeAnnotation:
   analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
 
 DuplicatePrefix:
+  index: 73
   template: "An import directive can only have one prefix ('as' clause)."
   tip: "Try removing all but one prefix."
-  analyzerCode: DUPLICATE_PREFIX
+  analyzerCode: ParserErrorCode.DUPLICATE_PREFIX
 
 PrefixAfterCombinator:
   index: 6
@@ -2034,9 +2041,10 @@ ExternalMethodWithBody:
     - "class C {foo() native 'bar' {}}"
 
 ExternalTypedef:
+  index: 76
   template: "Typedefs can't be declared to be 'external'."
   tip: "Try removing the keyword 'external'."
-  analyzerCode: EXTERNAL_TYPEDEF
+  analyzerCode: ParserErrorCode.EXTERNAL_TYPEDEF
   script:
     - "external typedef F();"
 
@@ -2070,9 +2078,10 @@ ImportAfterPart:
     - "part 'foo.dart'; import 'bar.dart';"
 
 ExportAfterPart:
+  index: 75
   template: "Export directives must preceed part directives."
   tip: "Try moving the export directives before the part directives."
-  analyzerCode: EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
     - "part 'foo.dart'; export 'bar.dart';"
 
@@ -2138,9 +2147,10 @@ PartOfTwoLibrariesContext:
   severity: CONTEXT
 
 FactoryTopLevelDeclaration:
+  index: 78
   template: "Top-level declarations can't be declared to be 'factory'."
   tip: "Try removing the keyword 'factory'."
-  analyzerCode: FACTORY_TOP_LEVEL_DECLARATION
+  analyzerCode: ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION
   script:
     - "factory class C {}"
 
