@@ -136,7 +136,7 @@ abstract class Page {
 /// Contains a collection of Pages.
 abstract class Site {
   final String title;
-  List<Page> pages = [];
+  final List<Page> pages = [];
 
   Site(this.title);
 

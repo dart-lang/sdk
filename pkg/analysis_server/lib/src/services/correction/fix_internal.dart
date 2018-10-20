@@ -214,7 +214,6 @@ class FixProcessor {
   Source unitSource;
   LibraryElement unitLibraryElement;
   File unitLibraryFile;
-  Folder unitLibraryFolder;
 
   final List<Fix> fixes = <Fix>[];
 
@@ -248,7 +247,6 @@ class FixProcessor {
     unitLibraryElement = unitElement.library;
     String unitLibraryPath = unitLibraryElement.source.fullName;
     unitLibraryFile = resourceProvider.getFile(unitLibraryPath);
-    unitLibraryFolder = unitLibraryFile.parent;
     // error
     error = dartContext.error;
   }

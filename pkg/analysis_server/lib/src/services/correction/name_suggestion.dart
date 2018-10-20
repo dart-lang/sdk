@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
-List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
+final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /**
  * Returns all variants of names by removing leading words one by one.

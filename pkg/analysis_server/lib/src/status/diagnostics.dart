@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -713,7 +712,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
   SocketServer socketServer;
 
   /// The last few lines printed.
-  List<String> lastPrintedLines = <String>[];
+  final List<String> lastPrintedLines;
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
@@ -954,11 +953,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   MemoryAndCpuPage(DiagnosticsSite site, this.profiler)
       : super(site, 'memory', 'Memory and CPU Usage',
             description: 'Memory and CPU usage for the analysis server.');
-
-  DiagnosticDomainHandler get diagnosticDomain {
-    return server.handlers
-        .firstWhere((handler) => handler is DiagnosticDomainHandler);
-  }
 
   @override
   Future generateContent(Map<String, String> params) async {
@@ -1245,7 +1239,7 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  Map<String, Completer<Map>> _completers = {};
+  final Map<String, Completer<Map>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);

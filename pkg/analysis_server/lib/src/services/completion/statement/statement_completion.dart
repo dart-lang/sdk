@@ -1107,31 +1107,12 @@ class StatementCompletionProcessor {
         orElse: () => null);
   }
 
-  LinkedEditGroup _getLinkedPosition(String groupId) {
-    LinkedEditGroup group = linkedPositionGroups[groupId];
-    if (group == null) {
-      group = new LinkedEditGroup.empty();
-      linkedPositionGroups[groupId] = group;
-    }
-    return group;
-  }
-
   void _insertBuilder(SourceBuilder builder, [int length = 0]) {
     {
       SourceRange range = new SourceRange(builder.offset, length);
       String text = builder.toString();
       _addReplaceEdit(range, text);
     }
-    // add linked positions
-    builder.linkedPositionGroups.forEach((String id, LinkedEditGroup group) {
-      LinkedEditGroup fixGroup = _getLinkedPosition(id);
-      group.positions.forEach((Position position) {
-        fixGroup.addPosition(position, group.length);
-      });
-      group.suggestions.forEach((LinkedEditSuggestion suggestion) {
-        fixGroup.addSuggestion(suggestion);
-      });
-    });
     // add exit position
     {
       int exitOffset = builder.exitOffset;

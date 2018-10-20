@@ -57,19 +57,6 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
   }
 
   /**
-   * Returns the [SourceRange] which covers selected [AstNode]s, may be `null`
-   * if there are no [AstNode]s under the selection.
-   */
-  SourceRange get selectedNodeRange {
-    if (_selectedNodes == null || _selectedNodes.isEmpty) {
-      return null;
-    }
-    AstNode firstNode = _selectedNodes[0];
-    AstNode lastNode = _selectedNodes[_selectedNodes.length - 1];
-    return range.startEnd(firstNode, lastNode);
-  }
-
-  /**
    * Return the [AstNode]s fully covered by the selection [SourceRange].
    */
   List<AstNode> get selectedNodes {
