@@ -46,10 +46,6 @@ void objectId() {
   Object id = new Object(); // OK
 }
 
-void accessD() {
-  D b = new D();
-}
-
 class E {
   final String s;
 
@@ -93,3 +89,10 @@ class I {
 
   I makeI() => I(foo: H()); // OK
 }
+
+class J<T> {
+  const J();
+}
+void gimmeJ<T>() => new J<T>(); // OK
+void gimmeJofString() => new J<String>(); // LINT
+void gimmeJofDynamic() => new J<dynamic>(); // LINT
