@@ -149,7 +149,8 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta);
+        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta,
+        enableIndex: true);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

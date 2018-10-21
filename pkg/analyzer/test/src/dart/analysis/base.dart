@@ -101,6 +101,7 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
+        enableIndex: true,
         externalSummaries: externalSummaries);
   }
 

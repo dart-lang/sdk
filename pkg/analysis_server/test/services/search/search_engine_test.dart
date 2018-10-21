@@ -496,7 +496,8 @@ class B extends A {}
         contentOverlay,
         null,
         new SourceFactory(resolvers, null, resourceProvider),
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl(),
+        enableIndex: true);
   }
 
   static void _assertContainsClass(Set<ClassElement> subtypes, String name) {

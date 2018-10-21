@@ -131,6 +131,12 @@ class ContextBuilder {
   FileContentOverlay fileContentOverlay;
 
   /**
+   * Whether any analysis driver created through this interface should support
+   * indexing and search.
+   */
+  bool enableIndex = false;
+
+  /**
    * Whether to enable the Dart 2.0 preview.
    */
   bool get previewDart2 => true;
@@ -182,7 +188,8 @@ class ContextBuilder {
         fileContentOverlay,
         contextRoot,
         sf,
-        options);
+        options,
+        enableIndex: enableIndex);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,

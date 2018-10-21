@@ -1300,6 +1300,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
+    builder.enableIndex = true;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
     return builder;
   }

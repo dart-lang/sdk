@@ -93,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 73;
+  static const int DATA_VERSION = 74;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -162,13 +162,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The salt to mix into all hashes used as keys for unlinked data.
    */
   final Uint32List _unlinkedSalt =
-      new Uint32List(1 + AnalysisOptionsImpl.unlinkedSignatureLength);
+      new Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
 
   /**
    * The salt to mix into all hashes used as keys for linked data.
    */
   final Uint32List _linkedSalt =
-      new Uint32List(1 + AnalysisOptions.signatureLength);
+      new Uint32List(2 + AnalysisOptions.signatureLength);
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -309,6 +309,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final bool disableChangesAndCacheAllResults;
 
   /**
+   * Whether resolved units should be indexed.
+   */
+  final bool enableIndex;
+
+  /**
    * The cache to use with [disableChangesAndCacheAllResults].
    */
   final Map<String, AnalysisResult> _allCachedResults = {};
@@ -341,6 +346,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {this.disableChangesAndCacheAllResults: false,
+      this.enableIndex: false,
       SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
@@ -692,6 +698,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
     _throwIfNotAbsolutePath(path);
+    if (!enableIndex) {
+      throw new ArgumentError('Indexing is not enabled.');
+    }
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -1385,10 +1394,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _fillSalt() {
     _unlinkedSalt[0] = DATA_VERSION;
-    _unlinkedSalt.setAll(1, _analysisOptions.unlinkedSignature);
+    _unlinkedSalt[1] = enableIndex ? 1 : 0;
+    _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
 
     _linkedSalt[0] = DATA_VERSION;
-    _linkedSalt.setAll(1, _analysisOptions.signature);
+    _linkedSalt[1] = enableIndex ? 1 : 0;
+    _linkedSalt.setAll(2, _analysisOptions.signature);
   }
 
   /**
@@ -1526,7 +1537,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   List<int> _serializeResolvedUnit(
       CompilationUnit resolvedUnit, List<AnalysisError> errors) {
-    AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
+    AnalysisDriverUnitIndexBuilder index = enableIndex
+        ? indexUnit(resolvedUnit)
+        : new AnalysisDriverUnitIndexBuilder();
     return new AnalysisDriverResolvedUnitBuilder(
             errors: errors
                 .map((error) => new AnalysisDriverUnitErrorBuilder(
