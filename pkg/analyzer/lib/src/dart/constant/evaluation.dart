@@ -561,20 +561,9 @@ class ConstantEvaluationEngine {
         new ErrorReporter(externalErrorListener, constructor.source);
 
     void reportLocalErrorForRecordedExternalErrors() {
-      ErrorCode errorCode;
-      for (AnalysisError error in externalErrorListener.errors) {
-        if (error.errorCode is CompileTimeErrorCode) {
-          errorCode = CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
-          break;
-        }
-        if (error.errorCode is CheckedModeCompileTimeErrorCode) {
-          errorCode =
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
-          break;
-        }
-      }
-      if (errorCode != null) {
-        errorReporter.reportErrorForNode(errorCode, node);
+      if (externalErrorListener.errors.isNotEmpty) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
       }
     }
 
@@ -744,16 +733,14 @@ class ConstantEvaluationEngine {
         Expression condition = initializer.condition;
         if (condition == null) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
         }
         DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
         if (evaluationResult == null ||
             !evaluationResult.isBool ||
             evaluationResult.toBoolValue() != true) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
       }

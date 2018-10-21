@@ -28,8 +28,7 @@ class A {
 var v = const A(3, 2);
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -634,8 +633,7 @@ class A {
 }
 var v = const A.a1(0);''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -651,8 +649,7 @@ class D extends C {
 const f = const D('0.0');
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 
