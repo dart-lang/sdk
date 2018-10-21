@@ -29,6 +29,7 @@ import '../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ExtendClassForMixinTest);
     defineReflectiveTests(FixProcessorTest);
     defineReflectiveTests(LintFixTest);
   });
@@ -281,6 +282,48 @@ bool test() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
+  }
+}
+
+@reflectiveTest
+class ExtendClassForMixinTest extends BaseFixProcessorTest {
+  test_withExtends() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class D {}
+mixin M on B {}
+class C extends D with M implements A {}
+''');
+    await assertNoFix(DartFixKind.EXTEND_CLASS_FOR_MIXIN);
+  }
+
+  test_withImplements() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+mixin M on B {}
+class C with M implements A {}
+''');
+    await assertHasFix(DartFixKind.EXTEND_CLASS_FOR_MIXIN, '''
+class A {}
+class B {}
+mixin M on B {}
+class C extends B with M implements A {}
+''');
+  }
+
+  test_withoutImplements() async {
+    await resolveTestUnit('''
+class B {}
+mixin M on B {}
+class C with M {}
+''');
+    await assertHasFix(DartFixKind.EXTEND_CLASS_FOR_MIXIN, '''
+class B {}
+mixin M on B {}
+class C extends B with M {}
+''');
   }
 }
 

@@ -554,6 +554,10 @@ class FixProcessor {
       await _addFix_moveTypeArgumentsToClass();
       await _addFix_removeTypeArguments();
     }
+    if (errorCode ==
+        CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE) {
+      await _addFix_extendClassForMixin();
+    }
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
@@ -2174,6 +2178,25 @@ class FixProcessor {
         _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FILE,
             args: [source.shortName]);
       }
+    }
+  }
+
+  Future<void> _addFix_extendClassForMixin() async {
+    ClassDeclaration declaration =
+        node.getAncestor((n) => n is ClassDeclaration);
+    if (declaration != null && declaration.extendsClause == null) {
+      String message = error.message;
+      int startIndex = message.indexOf("'", message.indexOf("'") + 1) + 1;
+      int endIndex = message.indexOf("'", startIndex);
+      String typeName = message.substring(startIndex, endIndex);
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleInsertion(
+            declaration.typeParameters?.end ?? declaration.name.end,
+            ' extends $typeName');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.EXTEND_CLASS_FOR_MIXIN,
+          args: [typeName]);
     }
   }
 

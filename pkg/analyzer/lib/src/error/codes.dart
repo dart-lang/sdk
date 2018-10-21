@@ -1714,7 +1714,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode
       MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-          "The class doesn't implement the required class '{0}'.");
+          "The class doesn't implement the required class '{0}'.",
+          correction: "Try extending the class '{0}'.");
 
   /**
    * It's a compile-time error to apply a mixin containing super-invocations to
@@ -2251,9 +2252,9 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
       const CompileTimeErrorCode(
           'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
-          "The private name {0}, defined by {1}, conflicts with the same name "
-          "defined by {2}.",
-          correction: "Try removing {1} from the 'with' clause.");
+          "The private name '{0}', defined by '{1}', "
+          "conflicts with the same name defined by '{2}'.",
+          correction: "Try removing '{1}' from the 'with' clause.");
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named

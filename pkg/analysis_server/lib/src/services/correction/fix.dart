@@ -157,6 +157,8 @@ class DartFixKind {
       'CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
   static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
       'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
+  static const EXTEND_CLASS_FOR_MIXIN =
+      const FixKind('EXTEND_CLASS_FOR_MIXIN', 50, "Extend the class '{0}'");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',
       49, "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT1 =
