@@ -229,12 +229,18 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 
 /**
  * Attempt to find and return the closest expression that encloses the [node]
- * and is a Flutter `Widget`.  Return `null` if nothing found.
+ * and is an independent Flutter `Widget`.  Return `null` if nothing found.
  */
 Expression identifyWidgetExpression(AstNode node) {
   for (; node != null; node = node.parent) {
     if (isWidgetExpression(node)) {
-      return node;
+      var parent = node.parent;
+      if (parent is ArgumentList ||
+          parent is ListLiteral ||
+          parent is NamedExpression && parent.expression == node ||
+          parent is Statement) {
+        return node;
+      }
     }
     if (node is ArgumentList || node is Statement || node is FunctionBody) {
       return null;
