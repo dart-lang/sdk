@@ -117,6 +117,7 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   @override
   ConstructorElement get unnamedConstructor => actualElement.unnamedConstructor;
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode() => super.computeNode();
 
@@ -246,6 +247,7 @@ class CompilationUnitElementHandle extends ElementHandle
   @override
   int get uriOffset => actualElement.uriOffset;
 
+  @deprecated
   @override
   CompilationUnit computeNode() => actualElement.computeNode();
 
@@ -299,6 +301,7 @@ class ConstructorElementHandle extends ExecutableElementHandle
   ConstructorElement get redirectedConstructor =>
       actualElement.redirectedConstructor;
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() => actualElement.computeNode();
 }
@@ -457,6 +460,7 @@ abstract class ElementHandle implements Element {
   @override
   Source get source => actualElement.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => actualElement.unit;
 
@@ -470,6 +474,7 @@ abstract class ElementHandle implements Element {
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => actualElement.computeNode();
 
@@ -643,6 +648,7 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   ElementKind get kind => ElementKind.FIELD;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => actualElement.computeNode();
 }
@@ -673,6 +679,7 @@ class FunctionElementHandle extends ExecutableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() => actualElement.computeNode();
 }
@@ -720,6 +727,7 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   @override
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
+  @deprecated
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
@@ -766,6 +774,7 @@ class GenericTypeAliasElementHandle extends ElementHandle
   @override
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
+  @deprecated
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
@@ -954,6 +963,7 @@ class LocalVariableElementHandle extends VariableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => actualElement.computeNode();
 }
@@ -984,6 +994,7 @@ class MethodElementHandle extends ExecutableElementHandle
   @override
   ElementKind get kind => ElementKind.METHOD;
 
+  @deprecated
   @override
   MethodDeclaration computeNode() => actualElement.computeNode();
 
@@ -1036,6 +1047,7 @@ class ParameterElementHandle extends VariableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   FormalParameter computeNode() => super.computeNode();
 }
@@ -1158,6 +1170,7 @@ class TopLevelVariableElementHandle extends PropertyInducingElementHandle
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => super.computeNode();
 }

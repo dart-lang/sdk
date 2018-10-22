@@ -182,6 +182,7 @@ abstract class ClassElement
   /// the class.
   ConstructorElement get unnamedConstructor;
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode();
 
@@ -405,6 +406,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// unit.
   List<ClassElement> get types;
 
+  @deprecated
   @override
   CompilationUnit computeNode();
 
@@ -453,6 +455,7 @@ abstract class ConstructorElement
   /// library containing this constructor has not yet been resolved.
   ConstructorElement get redirectedConstructor;
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode();
 }
@@ -640,6 +643,7 @@ abstract class Element implements AnalysisTarget {
   ///
   /// This method is expensive, because resolved AST might have been already
   /// evicted from cache, so parsing and resolving will be performed.
+  @deprecated
   CompilationUnit get unit;
 
   /// Use the given [visitor] to visit this element. Return the value returned
@@ -667,6 +671,7 @@ abstract class Element implements AnalysisTarget {
   /// cache, so parsing and resolving will be performed.
   ///
   /// <b>Note:</b> This method cannot be used in an async environment.
+  @deprecated
   AstNode computeNode();
 
   /// Return the most immediate ancestor of this element for which the
@@ -1055,6 +1060,7 @@ abstract class FieldElement
   @deprecated
   bool get isVirtual;
 
+  @deprecated
   @override
   AstNode computeNode();
 }
@@ -1097,6 +1103,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// and has the name `main`.
   bool get isEntryPoint;
 
+  @deprecated
   @override
   FunctionDeclaration computeNode();
 }
@@ -1118,6 +1125,7 @@ abstract class FunctionTypeAliasElement
   /// type on the right side of the equals.
   GenericFunctionTypeElement get function;
 
+  @deprecated
   @override
   TypeAlias computeNode();
 
@@ -1353,6 +1361,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @deprecated
   static const List<MethodElement> EMPTY_LIST = const <MethodElement>[];
 
+  @deprecated
   @override
   MethodDeclaration computeNode();
 
@@ -1463,6 +1472,7 @@ abstract class ParameterElement
   /// the given [buffer].
   void appendToWithoutDelimiters(StringBuffer buffer);
 
+  @deprecated
   @override
   FormalParameter computeNode();
 }
@@ -1597,6 +1607,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
   static const List<TopLevelVariableElement> EMPTY_LIST =
       const <TopLevelVariableElement>[];
 
+  @deprecated
   @override
   VariableDeclaration computeNode();
 }

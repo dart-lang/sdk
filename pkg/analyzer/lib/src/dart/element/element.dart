@@ -105,6 +105,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode() {
     if (isEnum) {
@@ -1668,6 +1669,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
   }
 
+  @deprecated
   @override
   CompilationUnit computeNode() => unit;
 
@@ -2187,6 +2189,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() =>
       getNodeMatching((node) => node is ConstructorDeclaration);
@@ -2363,6 +2366,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
       UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedParam, enclosingElement);
 
+  @deprecated
   @override
   DefaultFormalParameter computeNode() =>
       getNodeMatching((node) => node is DefaultFormalParameter);
@@ -2988,6 +2992,7 @@ abstract class ElementImpl implements Element {
     return _enclosingElement?.typeParameterContext;
   }
 
+  @deprecated
   @override
   CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
@@ -3034,6 +3039,7 @@ abstract class ElementImpl implements Element {
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => getNodeMatching((node) => node is AstNode);
 
@@ -3071,6 +3077,7 @@ abstract class ElementImpl implements Element {
   }
 
   /// Return the resolved [AstNode] of the given type enclosing [getNameOffset].
+  @deprecated
   AstNode getNodeMatching(Predicate<AstNode> predicate) {
     CompilationUnit unit = this.unit;
     if (unit == null) {
@@ -4097,6 +4104,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
+  @deprecated
   @override
   AstNode computeNode() {
     if (isEnumConstant) {
@@ -4269,6 +4277,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() =>
       getNodeMatching((node) => node is FunctionDeclaration);
@@ -4741,6 +4750,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
   }
 
+  @deprecated
   @override
   GenericTypeAlias computeNode() =>
       getNodeMatching((node) => node is GenericTypeAlias);
@@ -5915,6 +5925,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     buffer.write(displayName);
   }
 
+  @deprecated
   @override
   Declaration computeNode() => getNodeMatching(
       (node) => node is DeclaredIdentifier || node is VariableDeclaration);
@@ -6011,6 +6022,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
@@ -6422,6 +6434,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   String computeDocumentationComment() => null;
 
+  @deprecated
   @override
   AstNode computeNode() => null;
 
@@ -7046,6 +7059,7 @@ class ParameterElementImpl extends VariableElementImpl
     buffer.write(right);
   }
 
+  @deprecated
   @override
   FormalParameter computeNode() =>
       getNodeMatching((node) => node is FormalParameter);
@@ -7423,6 +7437,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   AstNode computeNode() {
     if (isSynthetic) {
@@ -7737,6 +7752,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTopLevelVariableElement(this);
 
+  @deprecated
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);

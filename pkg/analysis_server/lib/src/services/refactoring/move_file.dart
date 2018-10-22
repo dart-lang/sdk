@@ -90,7 +90,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       });
     } else {
       // Otherwise, we need to update any relative part-of references.
-      Iterable<PartOfDirective> partOfs = element.unit.directives
+      final result = await driver.currentSession.getResolvedAst(oldFile);
+      Iterable<PartOfDirective> partOfs = result.unit.directives
           .whereType<PartOfDirective>()
           .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
 

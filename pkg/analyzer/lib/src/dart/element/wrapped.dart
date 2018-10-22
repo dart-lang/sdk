@@ -160,6 +160,7 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   @override
   List<ClassElement> get types => wrappedUnit.types;
 
+  @deprecated
   @override
   CompilationUnit get unit => wrappedUnit.unit;
 
@@ -179,6 +180,7 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   String computeDocumentationComment() => wrappedUnit
       .computeDocumentationComment(); // ignore: deprecated_member_use
 
+  @deprecated
   @override
   CompilationUnit computeNode() => wrappedUnit.computeNode();
 
@@ -344,6 +346,7 @@ class WrappedImportElement implements ImportElement {
   @override
   Source get source => wrappedImport.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => wrappedImport.unit;
 
@@ -363,6 +366,7 @@ class WrappedImportElement implements ImportElement {
   String computeDocumentationComment() => wrappedImport
       .computeDocumentationComment(); // ignore: deprecated_member_use
 
+  @deprecated
   @override
   AstNode computeNode() => wrappedImport.computeNode();
 
@@ -562,6 +566,7 @@ class WrappedLibraryElement implements LibraryElement {
   @override
   Source get source => wrappedLib.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => wrappedLib.unit;
 
@@ -575,6 +580,7 @@ class WrappedLibraryElement implements LibraryElement {
   String computeDocumentationComment() =>
       wrappedLib.computeDocumentationComment(); // ignore: deprecated_member_use
 
+  @deprecated
   @override
   AstNode computeNode() => wrappedLib.computeNode();
 
