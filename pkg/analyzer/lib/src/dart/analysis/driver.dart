@@ -1231,6 +1231,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.isLibraryUri,
               libraryContext.analysisContext,
               libraryContext.resynthesizer,
+              libraryContext.inheritanceManager,
               library);
           Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 

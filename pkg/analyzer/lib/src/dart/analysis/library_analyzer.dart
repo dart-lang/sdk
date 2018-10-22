@@ -68,9 +68,9 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
+      this._inheritance,
       this._library)
-      : _inheritance = new InheritanceManager2(_context.typeSystem),
-        _typeProvider = _context.typeProvider;
+      : _typeProvider = _context.typeProvider;
 
   /**
    * Compute analysis results for all units of the library.

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -40,6 +41,7 @@ class LibraryContext {
 
   AnalysisContextImpl analysisContext;
   ElementResynthesizer resynthesizer;
+  InheritanceManager2 inheritanceManager;
 
   LibraryContext({
     @required PerformanceLog logger,
@@ -74,6 +76,8 @@ class LibraryContext {
     var provider = new InputPackagesResultProvider(analysisContext, store);
     resynthesizer = provider.resynthesizer;
     analysisContext.resultProvider = provider;
+
+    inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
 
   /**
