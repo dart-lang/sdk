@@ -1670,7 +1670,10 @@
       ]
     },
     {
-      "builders": ["flutter-analyze"],
+      "builders": [
+        "flutter-analyze",
+        "flutter-analyze-analyzer"
+      ],
       "meta": {
         "description": "This configuration is used for analyzing flutter."
       },
