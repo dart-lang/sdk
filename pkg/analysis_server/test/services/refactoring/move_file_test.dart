@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
