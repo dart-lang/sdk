@@ -7779,15 +7779,16 @@ If $r$ is \TRUE, then the value of $c$ is the result of evaluating the expressio
 Otherwise the value of $c$ is the result of evaluating the expression $e_3$.
 
 \LMHash{}
-If all of the following hold:
+If $e_1$ shows that a local variable $v$ has type $T$,
+then the type of $v$ is known to be $T$ in $e_2$,
+unless any of the following are true:
 \begin{itemize}
-\item $e_1$ shows that a local variable $v$ has type $T$.
-\item $v$ is not potentially mutated in $e_2$ or within a function.
-\item If the variable $v$ is accessed by a function in $e_2$ then
-$v$ is not potentially mutated anywhere in the scope of $v$.
+\item $v$ is potentially mutated in $e_2$,
+\item $v$ is potentially mutated within a function other
+than the one where $v$ is declared, or
+\item $v$ is accessed by a function defined in $e_2$ and
+$v$ is potentially mutated anywhere in the scope of $v$.
 \end{itemize}
-
-then the type of $v$ is known to be $T$ in $e_2$.
 
 \LMHash{}
 It is a compile-time error if the static type of $e_1$ may not be assigned to \code{bool}.
@@ -7853,18 +7854,30 @@ shows that a local variable $v$ has type $T$
 if both of the following conditions hold:
 \begin{itemize}
 \item Either $e_1$ shows that $v$ has type $T$ or $e_2$ shows that $v$ has type $T$.
-\item $v$ is not mutated in $e_2$ or within a function.
+\item $v$ is not mutated in $e_2$ or within a function other than the one where $v$ is declared.
 \end{itemize}
 
 \LMHash{}
-Furthermore, if all of the following hold:
+If $e_1$ shows that a local variable $v$ has type $T$,
+then the type of $v$ is known to be $T$ in $e_2$,
+unless any of the following are true:
 \begin{itemize}
-\item $e_1$ shows that $v$ has type $T$.
-\item $v$ is not mutated in either $e_1$, $e_2$ or within a function.
-\item If $v$ is accessed by a function in $e_2$ then
-$v$ is not potentially mutated anywhere in the scope of $v$.
+%% The first item here is unnecessary for soundness,
+%% and is retained mainly for backwards compatibility.
+%% If $e_1$ shows that $v$ has type $T$, then any assignment
+%% in $e_1$ does not invalidate that.
+%% Removing the line is visible in the semantics, though, because:
+%%  num x;
+%%  (x ??= 42) != null && x is int & x.toRadixString(16) != ""
+%% is allowed without the line, and disallowed with.
+%% At time of writing, the analyzer disallows the code.
+\item $v$ is potentially mutated in $e_1$,
+\item $v$ is potentially mutated in $e_2$,
+\item $v$ is potentially mutated within a function other
+than the one where $v$ is declared, or
+\item $v$ is accessed by a function defined in $e_2$ and
+$v$ is potentially mutated anywhere in the scope of $v$.
 \end{itemize}
-then the type of $v$ is known to be $T$ in $e_2$.
 
 \LMHash{}
 It is a compile-time error if the static type of $e_1$ may not be assigned to \code{bool} or if the static type of $e_2$ may not be assigned to \code{bool}.
@@ -9023,14 +9036,16 @@ If $o$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the blo
 It is a compile-time error if the type of the expression $b$ may not be assigned to \code{bool}.
 
 \LMHash{}
-If:
+If $b$ shows that a local variable $v$ has type $T$,
+then the type of $v$ is known to be $T$ in $s_2$,
+unless any of the following are true
 \begin{itemize}
-\item $b$ shows that a local variable $v$ has type $T$.
-\item $v$ is not potentially mutated in $s_1$ or within a function.
-\item If $v$ is accessed by a function in $s_1$ then
-$v$ is not potentially mutated anywhere in the scope of $v$.
+\item $v$ is potentially mutated in $s_1$,
+\item $v$ is potentially mutated within a function other
+than the one where $v$ is declared, or
+\item $v$ is accessed by a function defined in $s_1$ and
+$v$ is potentially mutated anywhere in the scope of $v$.
 \end{itemize}
-then the type of $v$ is known to be $T$ in $s_1$.
 
 \LMHash{}
 An if statement of the form \code{\IF{} ($e$) $s$} is equivalent to the if statement \code{\IF{} ($e$) $s$ \ELSE{} \{\}}.
