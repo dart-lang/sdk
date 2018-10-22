@@ -4935,30 +4935,6 @@ Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateInternalProblemSuperclassNotFound =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Superclass not found '#name'.""",
-        withArguments: _withArgumentsInternalProblemSuperclassNotFound);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeInternalProblemSuperclassNotFound =
-    const Code<Message Function(String name)>(
-        "InternalProblemSuperclassNotFound",
-        templateInternalProblemSuperclassNotFound,
-        severity: Severity.internalProblem);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeInternalProblemSuperclassNotFound,
-      message: """Superclass not found '${name}'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateInternalProblemUnexpected =
     const Template<Message Function(String string, String string2)>(

@@ -41,7 +41,7 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_algebra.dart' as type_algebra
     show getSubstitutionMap;
@@ -73,7 +73,6 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
         templateInterfaceCheckContext,
-        templateInternalProblemSuperclassNotFound,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
         templateMixinApplicationIncompatibleSupertype,
@@ -96,8 +95,7 @@ import '../fasta_codes.dart'
 
 import '../names.dart' show noSuchMethodName;
 
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unimplemented;
+import '../problems.dart' show unexpected, unhandled, unimplemented;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -116,11 +114,8 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
         ProcedureBuilder,
         Scope,
-        TypeBuilder,
         TypeVariableBuilder;
 
 import 'redirecting_factory_body.dart'
@@ -1741,66 +1736,30 @@ abstract class KernelClassBuilder
   ///
   ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
   ///
-  /// This method returns null if the map is empty, and it's an error if
-  /// [superclass] isn't a superclass.
-  Map<TypeParameter, DartType> getSubstitutionMap(ClassBuilder superclass,
-      Uri fileUri, int charOffset, TypeBuilder dynamicType) {
-    TypeBuilder supertype = this.supertype;
-    Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
-    List arguments;
-    List variables;
-    Declaration declaration;
+  /// It's an error if [superclass] isn't a superclass.
+  Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
+    Supertype supertype = target.supertype;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    List<DartType> arguments;
+    List<TypeParameter> variables;
+    Class classNode;
 
-    /// If [application] is mixing in [superclass] directly or via other named
-    /// mixin applications, return it.
-    NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
-      for (TypeBuilder t in application.mixins) {
-        if (t is NamedTypeBuilder) {
-          if (t.declaration == superclass) return t;
-        } else if (t is MixinApplicationBuilder) {
-          NamedTypeBuilder s = findSuperclass(t);
-          if (s != null) return s;
-        }
-      }
-      return null;
-    }
-
-    void handleNamedTypeBuilder(NamedTypeBuilder t) {
-      declaration = t.declaration;
-      arguments = t.arguments ?? const [];
-      if (declaration is ClassBuilder) {
-        ClassBuilder cls = declaration;
-        variables = cls.typeVariables;
-        supertype = cls.supertype;
-      }
-    }
-
-    while (declaration != superclass) {
-      variables = null;
-      if (supertype is NamedTypeBuilder) {
-        handleNamedTypeBuilder(supertype);
-      } else if (supertype is MixinApplicationBuilder) {
-        MixinApplicationBuilder t = supertype;
-        NamedTypeBuilder s = findSuperclass(t);
-        if (s != null) {
-          handleNamedTypeBuilder(s);
-        }
-        supertype = t.supertype;
-      } else {
-        internalProblem(
-            templateInternalProblemSuperclassNotFound
-                .withArguments(superclass.fullNameForErrors),
-            charOffset,
-            fileUri);
-      }
-      if (variables != null) {
-        Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
-            <TypeVariableBuilder, TypeBuilder>{};
+    while (classNode != superclass) {
+      classNode = supertype.classNode;
+      arguments = supertype.typeArguments;
+      variables = classNode.typeParameters;
+      supertype = classNode.supertype;
+      if (variables.isNotEmpty) {
+        Map<TypeParameter, DartType> directSubstitutionMap =
+            <TypeParameter, DartType>{};
         for (int i = 0; i < variables.length; i++) {
-          TypeBuilder argument =
-              i < arguments.length ? arguments[i] : dynamicType;
+          DartType argument =
+              i < arguments.length ? arguments[i] : const DynamicType();
           if (substitutionMap != null) {
-            argument = argument.subst(substitutionMap);
+            // TODO(ahe): Investigate if requiring the caller to use
+            // `substituteDeep` from `package:kernel/type_algebra.dart` instead
+            // of `substitute` is faster. If so, we can simply this code.
+            argument = substitute(argument, substitutionMap);
           }
           directSubstitutionMap[variables[i]] = argument;
         }
@@ -1808,13 +1767,6 @@ abstract class KernelClassBuilder
       }
     }
 
-    if (substitutionMap == null) return const <TypeParameter, DartType>{};
-
-    Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
-    substitutionMap
-        .forEach((TypeVariableBuilder variable, TypeBuilder argument) {
-      result[variable.target] = argument.build(library);
-    });
-    return result;
+    return substitutionMap;
   }
 }

@@ -481,8 +481,7 @@ class KernelTarget extends TargetImplementation {
         builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
-            builder.getSubstitutionMap(
-                supertype, builder.fileUri, builder.charOffset, dynamicType);
+            builder.getSubstitutionMap(supertype.target);
         for (Constructor constructor in supertype.cls.constructors) {
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
               builder.target, builder.cls.mixin, constructor, substitutionMap));

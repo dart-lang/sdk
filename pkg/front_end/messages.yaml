@@ -1576,10 +1576,6 @@ InternalProblemUnsupported:
   template: "Unsupported operation: '#name'."
   severity: INTERNAL_PROBLEM
 
-InternalProblemSuperclassNotFound:
-  template: "Superclass not found '#name'."
-  severity: INTERNAL_PROBLEM
-
 InternalProblemNotFound:
   template: "Couldn't find '#name'."
   severity: INTERNAL_PROBLEM
