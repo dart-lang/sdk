@@ -41,7 +41,10 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution, getSubstitutionMap;
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_algebra.dart' as type_algebra
+    show getSubstitutionMap;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -61,15 +64,16 @@ import '../fasta_codes.dart'
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
+        templateIllegalMixinDueToConstructors,
+        templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
-        templateInterfaceCheckContext,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
-        templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause,
+        templateInterfaceCheckContext,
+        templateInternalProblemSuperclassNotFound,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
         templateMixinApplicationIncompatibleSupertype,
@@ -92,7 +96,8 @@ import '../fasta_codes.dart'
 
 import '../names.dart' show noSuchMethodName;
 
-import '../problems.dart' show unexpected, unhandled, unimplemented;
+import '../problems.dart'
+    show internalProblem, unexpected, unhandled, unimplemented;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -101,18 +106,21 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelLibraryBuilder,
         KernelFunctionBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
-        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        MixinApplicationBuilder,
+        NamedTypeBuilder,
         ProcedureBuilder,
         Scope,
+        TypeBuilder,
         TypeVariableBuilder;
 
 import 'redirecting_factory_body.dart'
@@ -723,7 +731,7 @@ abstract class KernelClassBuilder
   void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     CloneWithoutBody cloner = new CloneWithoutBody(
-        typeSubstitution: getSubstitutionMap(
+        typeSubstitution: type_algebra.getSubstitutionMap(
             hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
         cloneAnnotations: false);
     Procedure cloned = cloner.clone(procedure)..isExternal = false;
@@ -1715,5 +1723,98 @@ abstract class KernelClassBuilder
         checkRedirectingFactory(constructor, typeEnvironment);
       }
     }
+  }
+
+  /// Returns a map which maps the type variables of [superclass] to their
+  /// respective values as defined by the superclass clause of this class (and
+  /// its superclasses).
+  ///
+  /// It's assumed that [superclass] is a superclass of this class.
+  ///
+  /// For example, given:
+  ///
+  ///     class Box<T> {}
+  ///     class BeatBox extends Box<Beat> {}
+  ///     class Beat {}
+  ///
+  /// We have:
+  ///
+  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
+  ///
+  /// This method returns null if the map is empty, and it's an error if
+  /// [superclass] isn't a superclass.
+  Map<TypeParameter, DartType> getSubstitutionMap(ClassBuilder superclass,
+      Uri fileUri, int charOffset, TypeBuilder dynamicType) {
+    TypeBuilder supertype = this.supertype;
+    Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
+    List arguments;
+    List variables;
+    Declaration declaration;
+
+    /// If [application] is mixing in [superclass] directly or via other named
+    /// mixin applications, return it.
+    NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
+      for (TypeBuilder t in application.mixins) {
+        if (t is NamedTypeBuilder) {
+          if (t.declaration == superclass) return t;
+        } else if (t is MixinApplicationBuilder) {
+          NamedTypeBuilder s = findSuperclass(t);
+          if (s != null) return s;
+        }
+      }
+      return null;
+    }
+
+    void handleNamedTypeBuilder(NamedTypeBuilder t) {
+      declaration = t.declaration;
+      arguments = t.arguments ?? const [];
+      if (declaration is ClassBuilder) {
+        ClassBuilder cls = declaration;
+        variables = cls.typeVariables;
+        supertype = cls.supertype;
+      }
+    }
+
+    while (declaration != superclass) {
+      variables = null;
+      if (supertype is NamedTypeBuilder) {
+        handleNamedTypeBuilder(supertype);
+      } else if (supertype is MixinApplicationBuilder) {
+        MixinApplicationBuilder t = supertype;
+        NamedTypeBuilder s = findSuperclass(t);
+        if (s != null) {
+          handleNamedTypeBuilder(s);
+        }
+        supertype = t.supertype;
+      } else {
+        internalProblem(
+            templateInternalProblemSuperclassNotFound
+                .withArguments(superclass.fullNameForErrors),
+            charOffset,
+            fileUri);
+      }
+      if (variables != null) {
+        Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
+            <TypeVariableBuilder, TypeBuilder>{};
+        for (int i = 0; i < variables.length; i++) {
+          TypeBuilder argument =
+              i < arguments.length ? arguments[i] : dynamicType;
+          if (substitutionMap != null) {
+            argument = argument.subst(substitutionMap);
+          }
+          directSubstitutionMap[variables[i]] = argument;
+        }
+        substitutionMap = directSubstitutionMap;
+      }
+    }
+
+    if (substitutionMap == null) return const <TypeParameter, DartType>{};
+
+    Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
+    substitutionMap
+        .forEach((TypeVariableBuilder variable, TypeBuilder argument) {
+      result[variable.target] = argument.build(library);
+    });
+    return result;
   }
 }
