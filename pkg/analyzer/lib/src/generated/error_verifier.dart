@@ -5953,14 +5953,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   ExecutableElement _getOverriddenMember(Element member) {
-    if (member == null) {
-      return null;
-    }
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
-    if (classElement == null) {
-      return null;
-    }
+    ClassElement classElement = member.enclosingElement;
     String name = member.name;
     ClassElement superclass = classElement.supertype?.element;
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
