@@ -439,7 +439,9 @@ class ConstantEvaluationEngine {
           CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
       return null;
     }
-    if (!getConstructorImpl(constructor).isCycleFree) {
+
+    ConstructorElementImpl constructorBase = getConstructorImpl(constructor);
+    if (!constructorBase.isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
       // in this case, as well as other cases involving constant expression
@@ -447,34 +449,35 @@ class ConstantEvaluationEngine {
       // itself")
       return new DartObjectImpl.validWithUnknownValue(constructor.returnType);
     }
+
     int argumentCount = arguments.length;
-    List<DartObjectImpl> argumentValues =
-        new List<DartObjectImpl>(argumentCount);
-    List<DartObjectImpl> positionalArguments = <DartObjectImpl>[];
-    List<Expression> argumentNodes = new List<Expression>(argumentCount);
-    Map<String, DartObjectImpl> namedArgumentValues =
-        new HashMap<String, DartObjectImpl>();
-    Map<String, NamedExpression> namedArgumentNodes =
-        new HashMap<String, NamedExpression>();
+    var argumentValues = new List<DartObjectImpl>(argumentCount);
+    Map<String, NamedExpression> namedNodes;
+    Map<String, DartObjectImpl> namedValues;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
+        namedNodes ??= new HashMap<String, NamedExpression>();
+        namedValues ??= new HashMap<String, DartObjectImpl>();
         String name = argument.name.label.name;
-        namedArgumentValues[name] =
-            constantVisitor._valueOf(argument.expression);
-        namedArgumentNodes[name] = argument;
-        argumentValues[i] = typeProvider.nullObject;
+        namedNodes[name] = argument;
+        namedValues[name] = constantVisitor._valueOf(argument.expression);
       } else {
         var argumentValue = constantVisitor._valueOf(argument);
         argumentValues[i] = argumentValue;
-        positionalArguments.add(argumentValue);
-        argumentNodes[i] = argument;
       }
     }
+    namedNodes ??= const {};
+    namedValues ??= const {};
+
     if (invocation == null) {
       invocation = new ConstructorInvocation(
-          constructor, positionalArguments, namedArgumentValues);
+        constructor,
+        argumentValues,
+        namedValues,
+      );
     }
+
     constructor = followConstantRedirectionChain(constructor);
     InterfaceType definingClass = constructor.returnType as InterfaceType;
     if (constructor.isFactory) {
@@ -483,7 +486,7 @@ class ConstantEvaluationEngine {
       // that we can emulate.
       if (constructor.name == "fromEnvironment") {
         if (!checkFromEnvironmentArguments(
-            arguments, argumentValues, namedArgumentValues, definingClass)) {
+            arguments, argumentValues, namedValues, definingClass)) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
@@ -497,7 +500,7 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE),
-              namedArgumentValues);
+              namedValues);
         } else if (definingClass == typeProvider.intType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -505,7 +508,7 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
-              namedArgumentValues);
+              namedValues);
         } else if (definingClass == typeProvider.stringType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -513,13 +516,12 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
-              namedArgumentValues);
+              namedValues);
         }
       } else if (constructor.name == "" &&
           definingClass == typeProvider.symbolType &&
           argumentCount == 1) {
-        if (!checkSymbolArguments(
-            arguments, argumentValues, namedArgumentValues)) {
+        if (!checkSymbolArguments(arguments, argumentValues, namedValues)) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
@@ -536,7 +538,6 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    ConstructorElementImpl constructorBase = getConstructorImpl(constructor);
     validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
@@ -612,11 +613,11 @@ class ConstantEvaluationEngine {
       DartObjectImpl argumentValue = null;
       AstNode errorTarget = null;
       if (baseParameter.isNamed) {
-        argumentValue = namedArgumentValues[baseParameter.name];
-        errorTarget = namedArgumentNodes[baseParameter.name];
+        argumentValue = namedValues[baseParameter.name];
+        errorTarget = namedNodes[baseParameter.name];
       } else if (i < argumentCount) {
         argumentValue = argumentValues[i];
-        errorTarget = argumentNodes[i];
+        errorTarget = arguments[i];
       }
       if (errorTarget == null) {
         // No argument node that we can direct error messages to, because we

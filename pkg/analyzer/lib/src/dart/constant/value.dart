@@ -145,9 +145,10 @@ class ConstructorInvocation {
   final ConstructorElement constructor;
 
   /**
-   * The positional arguments passed to the constructor.
+   * Values of specified arguments, actual values for positional, and `null`
+   * for named (which are provided as [namedArguments]).
    */
-  final List<DartObjectImpl> positionalArguments;
+  final List<DartObjectImpl> _argumentValues;
 
   /**
    * The named arguments passed to the constructor.
@@ -155,7 +156,14 @@ class ConstructorInvocation {
   final Map<String, DartObjectImpl> namedArguments;
 
   ConstructorInvocation(
-      this.constructor, this.positionalArguments, this.namedArguments);
+      this.constructor, this._argumentValues, this.namedArguments);
+
+  /**
+   * The positional arguments passed to the constructor.
+   */
+  List<DartObjectImpl> get positionalArguments {
+    return _argumentValues.takeWhile((v) => v != null).toList();
+  }
 }
 
 /**
