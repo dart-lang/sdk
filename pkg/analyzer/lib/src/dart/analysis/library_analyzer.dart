@@ -332,11 +332,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        _libraryElement,
-        _typeProvider,
-        _inheritance,
-        _analysisOptions.enableSuperMixins);
+        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
   }
 

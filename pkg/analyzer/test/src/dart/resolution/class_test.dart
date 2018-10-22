@@ -96,33 +96,6 @@ abstract class B extends A {
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
   }
 
-  test_abstractSuperMemberReference_noSuchMethod() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-class A {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-abstract class B {
-  void foo();
-  noSuchMethod(im) {}
-}
-
-class C extends A with B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'B'),
-    );
-  }
-
   test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
     addTestFile('''
 class A {
@@ -1510,62 +1483,6 @@ abstract class C implements A, B {}
     ]);
   }
 
-  test_mixinInference_conflictingSubstitution() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<Map<int, String>> with M {}
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-class A extends Object with B<String>, C {}
-class B<T> {}
-class C<T> extends B<T> {}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    var mixins = result.unit.declaredElement.getType('A').mixins;
-    expect(mixins[1].toString(), 'C<String>');
-  }
-
-  test_mixinInference_impossibleSubstitution() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class M<T> extends A<Map<T, T>> {}
-class C extends A<List<int>> with M {}
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
-  }
-
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
-    setAnalysisOptions(enableSuperMixins: true);
-    addTestFile('''
-abstract class A<T> {}
-class B {}
-class M<T> extends A<T> {}
-class C extends Object with M implements A<B> {}
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-    ]);
-  }
-
   test_recursiveInterfaceInheritance_extends() async {
     addTestFile(r'''
 class A extends B {}
@@ -1804,26 +1721,5 @@ class ClassTaskResolutionTest extends TaskResolutionTest
   @failingTest
   test_conflictingGenericInterfaces_viaMixin() {
     return super.test_conflictingGenericInterfaces_viaMixin();
-  }
-
-  @failingTest
-  test_mixinInference_conflictingSubstitution() {
-    return super.test_mixinInference_conflictingSubstitution();
-  }
-
-  @failingTest
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() {
-    return super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
-  }
-
-  @failingTest
-  test_mixinInference_impossibleSubstitution() {
-    return super.test_mixinInference_impossibleSubstitution();
-  }
-
-  @failingTest
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() {
-    return super
-        .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
   }
 }

@@ -518,11 +518,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         options.lint = newOptions.generateLints;
       });
     }
-    if (newOptions.enableSuperMixins != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableSuperMixins = newOptions.enableSuperMixins;
-      });
-    }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
   }

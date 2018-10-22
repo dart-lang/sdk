@@ -41,15 +41,6 @@ class DriverResolutionTest extends Object
     );
   }
 
-  @override
-  void setAnalysisOptions({bool enableSuperMixins}) {
-    var analysisOptions = new AnalysisOptionsImpl();
-    if (enableSuperMixins != null) {
-      analysisOptions.enableSuperMixins = enableSuperMixins;
-    }
-    driver.configure(analysisOptions: analysisOptions);
-  }
-
   void setUp() {
     sdk = new MockSdk(resourceProvider: resourceProvider);
     logger = new PerformanceLog(logBuffer);

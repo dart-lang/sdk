@@ -3849,52 +3849,6 @@ class B extends A {
 ''');
   }
 
-  @failingTest
-  test_superMixin_invalidApplication() {
-    // Failing: https://github.com/dart-lang/sdk/issues/30283
-    return checkFile(r'''
-    class A {
-  int get foo => 3;
-}
-
-// This expects a super class which satisfies the contract of A
-class B extends A {}
-
-class C {
-  num get foo => null;
-}
-
-// This mixin application doesn't provide a valid superclass for B
-class D extends C with /*error:INCONSISTENT_INHERITANCE*/B {}
-}
-    ''', superMixins: true);
-  }
-
-  test_superMixinsMakeSuperclassMethodsAbstract() {
-    return checkFile(r'''
-  abstract class A {}
-
-abstract class B extends A {}
-
-abstract class ProvidesConcreteAGetter {
-  A get constraints => null;
-}
-
-abstract class ProvidesConcreteBGetter extends ProvidesConcreteAGetter {
-  @override
-  B get constraints => null;
-}
-
-abstract class ProvidesAbstractBGetter implements ProvidesConcreteBGetter {}
-
-abstract class ProvidesAbstractAGetterMixin extends ProvidesConcreteAGetter {}
-
-abstract class HasConcreteBGetterButMixesinAbstractAGetter
-    extends ProvidesConcreteBGetter
-    with ProvidesAbstractAGetterMixin, ProvidesAbstractBGetter {}
-    ''', superMixins: true);
-  }
-
   test_tearOffTreatedConsistentlyAsStrictArrow() async {
     await checkFile(r'''
 void foo(void f(String x)) {}

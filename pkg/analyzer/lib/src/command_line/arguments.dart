@@ -18,6 +18,7 @@ const String bazelAnalysisOptionsPath =
 const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
+@deprecated
 const String enableSuperMixinFlag = 'supermixin';
 const String flutterAnalysisOptionsPath =
     'package:flutter/analysis_options_user.yaml';
@@ -42,10 +43,6 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     }
   }
 
-  if (args.wasParsed(enableSuperMixinFlag)) {
-    options.enableSuperMixins = args[enableSuperMixinFlag];
-    verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
-  }
   if (args.wasParsed(implicitCastsFlag)) {
     options.implicitCasts = args[implicitCastsFlag];
     verbose('$implicitCastsFlag = ${options.implicitCasts}');
@@ -201,11 +198,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);
-  parser.addFlag(enableSuperMixinFlag,
-      help: 'Relax restrictions on mixins (DEP 34).',
-      defaultsTo: false,
-      negatable: false,
-      hide: hide);
   if (!ddc) {
     parser.addFlag(lintsFlag,
         help: 'Show lint results.', defaultsTo: false, negatable: true);

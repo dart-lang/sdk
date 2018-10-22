@@ -695,13 +695,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    if (!context.analysisOptions.enableSuperMixins) {
-      if (hasReferenceToSuper) {
-        return false;
-      }
-      if (!supertype.isObject) {
-        return false;
-      }
+    if (hasReferenceToSuper) {
+      return false;
+    }
+    if (!supertype.isObject) {
+      return false;
     }
     for (ConstructorElement constructor in constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
