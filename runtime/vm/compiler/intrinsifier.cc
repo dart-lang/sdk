@@ -248,6 +248,11 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     printer.PrintBlocks();
   }
 
+  // Ensure loop hierarchy has been computed.
+  GrowableArray<BitVector*> dominance_frontier;
+  graph->ComputeDominators(&dominance_frontier);
+  graph->GetLoopHierarchy();
+
   // Perform register allocation on the SSA graph.
   FlowGraphAllocator allocator(*graph, true);  // Intrinsic mode.
   allocator.AllocateRegisters();

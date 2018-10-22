@@ -15,17 +15,33 @@ LoopInfo::LoopInfo(intptr_t id, BlockEntryInstr* header, BitVector* blocks)
     : id_(id),
       header_(header),
       blocks_(blocks),
+      back_edges_(),
       outer_(nullptr),
       inner_(nullptr),
-      next_(nullptr),
-      prev_(nullptr) {}
+      next_(nullptr) {}
 
 void LoopInfo::AddBlocks(BitVector* blocks) {
   blocks_->AddAll(blocks);
 }
 
+void LoopInfo::AddBackEdge(BlockEntryInstr* block) {
+  back_edges_.Add(block);
+}
+
+bool LoopInfo::IsBackEdge(BlockEntryInstr* block) const {
+  for (intptr_t i = 0, n = back_edges_.length(); i < n; i++) {
+    if (back_edges_[i] == block) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool LoopInfo::IsIn(LoopInfo* other) const {
-  return other->blocks_->Contains(header_->preorder_number());
+  if (other != nullptr) {
+    return other->blocks_->Contains(header_->preorder_number());
+  }
+  return false;
 }
 
 intptr_t LoopInfo::NestingDepth() const {
@@ -49,42 +65,63 @@ const char* LoopInfo::ToCString() const {
   if (outer_) f.Print(" outer=%" Pd, outer_->id_);
   if (inner_) f.Print(" inner=%" Pd, inner_->id_);
   if (next_) f.Print(" next=%" Pd, next_->id_);
-  if (prev_) f.Print(" prev=%" Pd, prev_->id_);
+  f.Print(" [");
+  for (intptr_t i = 0, n = back_edges_.length(); i < n; i++) {
+    f.Print(" B%" Pd, back_edges_[i]->block_id());
+  }
+  f.Print(" ]");
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-LoopHierarchy::LoopHierarchy(ZoneGrowableArray<BlockEntryInstr*>* headers)
-    : headers_(headers), first_(nullptr), last_(nullptr) {
+LoopHierarchy::LoopHierarchy(ZoneGrowableArray<BlockEntryInstr*>* headers,
+                             const GrowableArray<BlockEntryInstr*>& preorder)
+    : headers_(headers), preorder_(preorder), top_(nullptr) {
   Build();
 }
 
-void LoopHierarchy::AddLoop(LoopInfo* loop) {
-  if (first_ == nullptr) {
-    // First loop.
-    ASSERT(last_ == nullptr);
-    first_ = last_ = loop;
-  } else if (loop->IsIn(last_)) {
-    // First inner loop.
-    loop->outer_ = last_;
-    ASSERT(last_->inner_ == nullptr);
-    last_ = last_->inner_ = loop;
-  } else {
-    // Subsequent loop.
-    while (last_->outer_ != nullptr && !loop->IsIn(last_->outer_)) {
-      last_ = last_->outer_;
+void LoopHierarchy::Build() {
+  // Link every entry block to the closest enveloping loop.
+  for (intptr_t i = 0, n = headers_->length(); i < n; ++i) {
+    LoopInfo* loop = (*headers_)[i]->loop_info();
+    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+      BlockEntryInstr* block = preorder_[it.Current()];
+      if (block->loop_info() == nullptr) {
+        block->set_loop_info(loop);
+      } else {
+        ASSERT(block->loop_info()->IsIn(loop));
+      }
     }
-    loop->outer_ = last_->outer_;
-    loop->prev_ = last_;
-    ASSERT(last_->next_ == nullptr);
-    last_ = last_->next_ = loop;
+  }
+  // Build hierarchy from headers.
+  for (intptr_t i = 0, n = headers_->length(); i < n; ++i) {
+    BlockEntryInstr* header = (*headers_)[i];
+    LoopInfo* loop = header->loop_info();
+    LoopInfo* dom_loop = header->dominator()->loop_info();
+    ASSERT(loop->outer_ == nullptr);
+    ASSERT(loop->next_ == nullptr);
+    if (loop->IsIn(dom_loop)) {
+      loop->outer_ = dom_loop;
+      loop->next_ = dom_loop->inner_;
+      dom_loop->inner_ = loop;
+    } else {
+      loop->next_ = top_;
+      top_ = loop;
+    }
+  }
+  // If tracing is requested, print the loop hierarchy.
+  if (FLAG_trace_optimization) {
+    Print(top());
   }
 }
 
-void LoopHierarchy::Build() {
-  for (intptr_t i = 0, n = headers_->length(); i < n; ++i) {
-    LoopInfo* loop = (*headers_)[n - 1 - i]->loop_info();
-    ASSERT(loop->id() == (n - 1 - i));
-    AddLoop(loop);
+void LoopHierarchy::Print(LoopInfo* loop) {
+  for (; loop != nullptr; loop = loop->next_) {
+    THR_Print("%s {", loop->ToCString());
+    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+      THR_Print(" B%" Pd, preorder_[it.Current()]->block_id());
+    }
+    THR_Print(" }\n");
+    Print(loop->inner_);
   }
 }
 

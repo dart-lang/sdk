@@ -1604,25 +1604,6 @@ BitVector* FlowGraph::FindLoopBlocks(BlockEntryInstr* m,
   return loop_blocks;
 }
 
-void FlowGraph::LinkToInner(LoopInfo* loop) const {
-  for (; loop != nullptr; loop = loop->next()) {
-    if (FLAG_trace_optimization) {
-      THR_Print("%s {", loop->ToCString());
-      for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
-        THR_Print(" B%" Pd, preorder_[it.Current()]->block_id());
-      }
-      THR_Print(" }\n");
-    }
-    LinkToInner(loop->inner());
-    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
-      BlockEntryInstr* block = preorder_[it.Current()];
-      if (block->loop_info() == nullptr) {
-        block->set_loop_info(loop);
-      }
-    }
-  }
-}
-
 LoopHierarchy* FlowGraph::ComputeLoops() const {
   // Iterate over all entry blocks in the flow graph to attach
   // loop information to each loop header.
@@ -1649,15 +1630,14 @@ LoopHierarchy* FlowGraph::ComputeLoops() const {
           ASSERT(block->loop_info()->header() == block);
           block->loop_info()->AddBlocks(loop_blocks);
         }
+        block->loop_info()->AddBackEdge(pred);
       }
     }
   }
 
   // Build the loop hierarchy and link every entry block to
   // the closest enveloping loop in loop hierarchy.
-  LoopHierarchy* loop_hierarchy = new (zone()) LoopHierarchy(loop_headers);
-  LinkToInner(loop_hierarchy->first());
-  return loop_hierarchy;
+  return new (zone()) LoopHierarchy(loop_headers, preorder_);
 }
 
 intptr_t FlowGraph::InstructionCount() const {

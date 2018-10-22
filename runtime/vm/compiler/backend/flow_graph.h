@@ -292,8 +292,10 @@ class FlowGraph : public ZoneAllocated {
     if (loop_hierarchy_ == nullptr) {
       loop_hierarchy_ = ComputeLoops();
     }
-    return *loop_hierarchy_;
+    return loop_hierarchy();
   }
+
+  const LoopHierarchy& loop_hierarchy() const { return *loop_hierarchy_; }
 
   // Resets the loop hierarchy of the flow graph. Use this to
   // force a recomputation of loop detection by the next call
@@ -304,10 +306,6 @@ class FlowGraph : public ZoneAllocated {
     loop_hierarchy_ = nullptr;
     loop_invariant_loads_ = nullptr;
   }
-
-  // Helper method to find the natural loops in the flow graph and attach
-  // the loop information to each entry block. Returns the loop hierarchy.
-  LoopHierarchy* ComputeLoops() const;
 
   // Per loop header invariant loads sets. Each set contains load id for
   // those loads that are not affected by anything in the loop and can be
@@ -407,10 +405,12 @@ class FlowGraph : public ZoneAllocated {
   PhiInstr* AddPhi(JoinEntryInstr* join, Definition* d1, Definition* d2);
 
  private:
+  friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
   friend class DeadCodeElimination;
+  friend class Intrinsifier;
 
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
@@ -454,14 +454,15 @@ class FlowGraph : public ZoneAllocated {
   void ReplacePredecessor(BlockEntryInstr* old_block,
                           BlockEntryInstr* new_block);
 
-  // Find the blocks in the natural loop for the back edge m->n. The
+  // Finds the blocks in the natural loop for the back edge m->n. The
   // algorithm is described in "Advanced Compiler Design & Implementation"
   // (Muchnick) p192. Returns a BitVector indexed by block pre-order
   // number where each bit indicates membership in the loop.
   BitVector* FindLoopBlocks(BlockEntryInstr* m, BlockEntryInstr* n) const;
 
-  // Attaches closest enveloping loop in the hierarchy to each block entry.
-  void LinkToInner(LoopInfo* loop) const;
+  // Finds the natural loops in the flow graph and attaches the loop
+  // information to each entry block. Returns the loop hierarchy.
+  LoopHierarchy* ComputeLoops() const;
 
   void InsertConversionsFor(Definition* def);
   void ConvertUse(Value* use, Representation from);
