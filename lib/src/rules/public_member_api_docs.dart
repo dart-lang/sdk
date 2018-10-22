@@ -122,7 +122,7 @@ class _Visitor extends GeneralizingAstVisitor {
     // Check methods
 
     Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
-    Map<String, MethodDeclaration> setters = <String, MethodDeclaration>{};
+    List<MethodDeclaration> setters = <MethodDeclaration>[];
 
     // Non-getters/setters.
     List<MethodDeclaration> methods = <MethodDeclaration>[];
@@ -133,7 +133,7 @@ class _Visitor extends GeneralizingAstVisitor {
         if (member.isGetter) {
           getters[member.name.name] = member;
         } else if (member.isSetter) {
-          setters[member.name.name] = member;
+          setters.add(member);
         } else {
           methods.add(member);
         }
@@ -141,7 +141,7 @@ class _Visitor extends GeneralizingAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    List<MethodDeclaration> missingDocs = <MethodDeclaration>[];
+    Set<MethodDeclaration> missingDocs = Set<MethodDeclaration>();
     for (MethodDeclaration getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -149,7 +149,7 @@ class _Visitor extends GeneralizingAstVisitor {
     }
 
     // But only setters whose getter is missing a doc.
-    for (MethodDeclaration setter in setters.values) {
+    for (MethodDeclaration setter in setters) {
       MethodDeclaration getter = getters[setter.name.name];
       if (getter == null) {
         // Look for an inherited getter.
@@ -191,7 +191,7 @@ class _Visitor extends GeneralizingAstVisitor {
     manager = library == null ? null : new InheritanceManager(library);
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
-    Map<String, FunctionDeclaration> setters = <String, FunctionDeclaration>{};
+    List<FunctionDeclaration> setters = <FunctionDeclaration>[];
 
     // Check functions.
 
@@ -206,7 +206,7 @@ class _Visitor extends GeneralizingAstVisitor {
           if (member.isGetter) {
             getters[member.name.name] = member;
           } else if (member.isSetter) {
-            setters[member.name.name] = member;
+            setters.add(member);
           } else {
             functions.add(member);
           }
@@ -215,7 +215,7 @@ class _Visitor extends GeneralizingAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    List<FunctionDeclaration> missingDocs = <FunctionDeclaration>[];
+    Set<FunctionDeclaration> missingDocs = Set<FunctionDeclaration>();
     for (FunctionDeclaration getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -223,7 +223,7 @@ class _Visitor extends GeneralizingAstVisitor {
     }
 
     // But only setters whose getter is missing a doc.
-    for (FunctionDeclaration setter in setters.values) {
+    for (FunctionDeclaration setter in setters) {
       FunctionDeclaration getter = getters[setter.name.name];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
