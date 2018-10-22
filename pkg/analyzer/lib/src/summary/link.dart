@@ -4472,6 +4472,9 @@ class PropertyAccessorElementForLink_EnumField extends Object
   Element get enclosingElement => variable.enclosingElement;
 
   @override
+  bool get isAbstract => false;
+
+  @override
   bool get isGetter => true;
 
   @override
