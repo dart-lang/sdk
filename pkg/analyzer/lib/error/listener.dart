@@ -256,58 +256,32 @@ class ErrorReporter {
  * way that is appropriate for caching those errors within an analysis context.
  */
 class RecordingErrorListener implements AnalysisErrorListener {
-  /**
-   * A map of sets containing the errors that were collected, keyed by each
-   * source.
-   */
-  Map<Source, HashSet<AnalysisError>> _errors =
-      new HashMap<Source, HashSet<AnalysisError>>();
+  Set<AnalysisError> _errors;
 
   /**
    * Return the errors collected by the listener.
    */
   List<AnalysisError> get errors {
-    int numEntries = _errors.length;
-    if (numEntries == 0) {
-      return AnalysisError.NO_ERRORS;
+    if (_errors == null) {
+      return const <AnalysisError>[];
     }
-    List<AnalysisError> resultList = new List<AnalysisError>();
-    for (HashSet<AnalysisError> errors in _errors.values) {
-      resultList.addAll(errors);
-    }
-    return resultList;
-  }
-
-  /**
-   * Add all of the errors recorded by the given [listener] to this listener.
-   */
-  void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error in listener.errors) {
-      onError(error);
-    }
+    return _errors.toList();
   }
 
   /**
    * Return the errors collected by the listener for the given [source].
    */
   List<AnalysisError> getErrorsForSource(Source source) {
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (errorsForSource == null) {
-      return AnalysisError.NO_ERRORS;
-    } else {
-      return new List.from(errorsForSource);
+    if (_errors == null) {
+      return const <AnalysisError>[];
     }
+    return _errors.where((error) => error.source == source).toList();
   }
 
   @override
   void onError(AnalysisError error) {
-    Source source = error.source;
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (_errors[source] == null) {
-      errorsForSource = new HashSet<AnalysisError>();
-      _errors[source] = errorsForSource;
-    }
-    errorsForSource.add(error);
+    _errors ??= new HashSet<AnalysisError>();
+    _errors.add(error);
   }
 }
 
