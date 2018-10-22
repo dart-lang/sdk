@@ -159,8 +159,8 @@ class Field extends Member {
       : super(name, comment);
 
   static List<Field> extractFrom(String interfaceName, String code) {
-    final RegExp _fieldPattern = new RegExp(
-        _comment + r'([\w\[\]]+\??)\s*:\s*([\w\[\] \|\{\}\(\):;]+)\s*(?:;|$)');
+    final RegExp _fieldPattern = new RegExp(_comment +
+        r'([\w\[\]]+\??)\s*:\s*([\w\[\] \|\{\}\(\)<>:;]+)\s*(?:;|$)');
 
     final fields = _fieldPattern.allMatches(code).where((m) {
       // Skip over the indexer in FormattingOptions since we don't need this
@@ -220,7 +220,7 @@ class Interface extends ApiItem {
 
   static List<Interface> extractFrom(String code) {
     final RegExp _interfacePattern = new RegExp(_comment +
-        r'(?:export\s+)?(?:interface|class)\s+(\w+)(?:\s+extends\s+([\w, ]+?))?\s*' +
+        r'(?:export\s+)?(?:interface|class)\s+([\w<>]+)(?:\s+extends\s+([\w, ]+?))?\s*' +
         _blockBody);
 
     final interfaces = _interfacePattern.allMatches(code).map((match) {

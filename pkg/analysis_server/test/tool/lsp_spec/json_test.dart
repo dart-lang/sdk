@@ -18,7 +18,8 @@ main() {
     });
 
     test('returns correct output for union types', () {
-      final message = new RequestMessage(new Either2.t1(1), "test", "test");
+      final message =
+          new RequestMessage(new Either2.t1(1), "test", null, "test");
       String output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"method":"test","jsonrpc":"test"}'));
     });

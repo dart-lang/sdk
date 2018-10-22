@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_style/dart_style.dart';
+import 'package:meta/meta.dart';
 
 import 'typescript.dart';
 
@@ -26,6 +27,10 @@ String generateDartForTypes(List<ApiItem> types) {
   _getSorted(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = _formatCode(buffer.toString());
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+}
+
+List<String> _extractTypesFromUnion(String type) {
+  return type.split('|').map((t) => t.trim()).toList();
 }
 
 String _formatCode(String code) {
@@ -100,12 +105,14 @@ String _makeValidIdentifier(String identifier) {
 }
 
 /// Maps a TypeScript type on to a Dart type, including following TypeAliases.
-String _mapType(List<String> types) {
+@visibleForTesting
+String mapType(List<String> types) {
   const mapping = <String, String>{
     'boolean': 'bool',
     'string': 'String',
     'number': 'num',
     'any': 'dynamic',
+    'object': 'dynamic',
     // Special cases that are hard to parse or anonymous types.
     '{ [uri: string]: TextEdit[]; }': 'Map<String, List<TextEdit>>',
     '{ language: string; value: string }': 'MarkedStringWithLanguage'
@@ -114,21 +121,38 @@ String _mapType(List<String> types) {
     throw 'Unions of more than 4 types are not supported.';
   }
   if (types.length >= 2) {
-    final typeArgs = types.map((t) => _mapType([t])).join(', ');
+    final typeArgs = types.map((t) => mapType([t])).join(', ');
     return 'Either${types.length}<$typeArgs>';
   }
 
   final type = types.first;
   if (type.endsWith('[]')) {
-    return 'List<${_mapType([type.substring(0, type.length - 2)])}>';
+    return 'List<${mapType([type.substring(0, type.length - 2)])}>';
+  } else if (type.startsWith('Array<') && type.endsWith('>')) {
+    return 'List<${mapType([type.substring(6, type.length - 1)])}>';
+  } else if (type.contains('<')) {
+    // For types with type args, we need to map the type and each type arg.
+    final declaredType = _stripTypeArgs(type);
+    final typeArgs = type
+        .substring(declaredType.length + 1, type.length - 1)
+        .split(',')
+        .map((t) => t.trim());
+    return '${mapType([
+      declaredType
+    ])}<${typeArgs.map((t) => mapType([t])).join(', ')}>';
+  } else if (type.contains('|')) {
+    // It's possible we ended up with nested unions that the parsing.
+    // TODO(dantup): This is now partly done during parsing and partly done
+    // here. Maybe consider removing from typescript.dart and just carrying a
+    // String through so the logic is all in one place in this function?
+    return mapType(_extractTypesFromUnion(type));
+  } else if (_typeAliases.containsKey(type)) {
+    return mapType([_typeAliases[type].baseType]);
+  } else if (mapping.containsKey(type)) {
+    return mapType([mapping[type]]);
+  } else {
+    return type;
   }
-  if (_typeAliases.containsKey(type)) {
-    return _mapType([_typeAliases[type].baseType]);
-  }
-  if (mapping.containsKey(type)) {
-    return _mapType([mapping[type]]);
-  }
-  return type;
 }
 
 String _rewriteCommentReference(String comment) {
@@ -143,6 +167,10 @@ String _rewriteCommentReference(String comment) {
     }
   });
 }
+
+String _stripTypeArgs(String typeName) => typeName.contains('<')
+    ? typeName.substring(0, typeName.indexOf('<'))
+    : typeName;
 
 Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
   lines = lines.map((l) => l.trimRight()).toList();
@@ -170,15 +198,15 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('static bool canParse(Object obj) {')
     ..indent()
-    ..writeIndentedln('return obj is Map<String, dynamic>');
+    ..writeIndented('return obj is Map<String, dynamic>');
   // In order to consider this valid for parsing, all fields that may not be
   // undefined must be present and also type check for the correct type.
   final requiredFields =
       _getAllFields(interface).where((f) => !f.allowsUndefined);
   for (var field in requiredFields) {
-    buffer.write("&& obj.containsKey('${field.name}') && ");
+    buffer.write(" && obj.containsKey('${field.name}') && ");
     _writeTypeCheckCondition(
-        buffer, "obj['${field.name}']", _mapType(field.types));
+        buffer, "obj['${field.name}']", mapType(field.types));
   }
   buffer
     ..writeln(';')
@@ -197,7 +225,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     return;
   }
   buffer
-    ..writeIndented('${interface.name}(')
+    ..writeIndented('${_stripTypeArgs(interface.name)}(')
     ..write(allFields.map((field) => 'this.${field.name}').join(', '))
     ..write(')');
   final fieldsWithValidation =
@@ -289,13 +317,13 @@ void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
   buffer
     ..writeIndented('final ')
-    ..write(_mapType(field.types))
+    ..write(mapType(field.types))
     ..writeln(' ${field.name};');
 }
 
 void _writeFromJsonCode(
     IndentableStringBuffer buffer, List<String> types, String valueCode) {
-  final type = _mapType(types);
+  final type = mapType(types);
   if (_isLiteral(type)) {
     buffer.write("$valueCode");
   } else if (_isSpecType(type)) {
@@ -316,22 +344,33 @@ void _writeFromJsonCode(
 
 void _writeFromJsonCodeForUnion(
     IndentableStringBuffer buffer, List<String> types, String valueCode) {
-  final unionTypeName = _mapType(types);
+  final unionTypeName = mapType(types);
   // Write a check against each type, eg.:
   // x is y ? new Either.tx(x) : (...)
+  var hasIncompleteCondition = false;
+  var unclosedParens = 0;
   for (var i = 0; i < types.length; i++) {
-    final dartType = _mapType([types[i]]);
+    final dartType = mapType([types[i]]);
 
-    _writeTypeCheckCondition(buffer, valueCode, dartType);
-    buffer.write(' ? new $unionTypeName.t${i + 1}(');
-    _writeFromJsonCode(buffer, [dartType], valueCode); // Call recursively!
-    buffer.write(') : (');
+    if (dartType != 'dynamic') {
+      _writeTypeCheckCondition(buffer, valueCode, dartType);
+      buffer.write(' ? new $unionTypeName.t${i + 1}(');
+      _writeFromJsonCode(buffer, [dartType], valueCode); // Call recursively!
+      buffer.write(') : (');
+      hasIncompleteCondition = true;
+      unclosedParens++;
+    } else {
+      _writeFromJsonCode(buffer, [dartType], valueCode);
+      hasIncompleteCondition = false;
+    }
   }
   // Fill the final parens with a throw because if we fell through all of the
   // cases then the value we had didn't match any of the types in the union.
-  buffer
-      .write("throw '''\${$valueCode} was not one of (${types.join(', ')})'''");
-  buffer.write(')' * types.length);
+  if (hasIncompleteCondition) {
+    buffer.write(
+        "throw '''\${$valueCode} was not one of (${types.join(', ')})'''");
+  }
+  buffer.write(')' * unclosedParens);
 }
 
 void _writeFromJsonConstructor(
@@ -342,7 +381,7 @@ void _writeFromJsonConstructor(
   }
   buffer
     ..writeIndentedln(
-        'factory ${interface.name}.fromJson(Map<String, dynamic> json) {')
+        'factory ${_stripTypeArgs(interface.name)}.fromJson(Map<String, dynamic> json) {')
     ..indent();
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');
@@ -354,7 +393,7 @@ void _writeFromJsonConstructor(
     ..write(allFields.map((field) => '${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
-    ..write('}');
+    ..writeIndented('}');
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
@@ -488,12 +527,17 @@ void _writeTypeCheckCondition(
   } else if (_isSpecType(dartType)) {
     buffer.write('$dartType.canParse($valueCode)');
   } else if (_isList(dartType)) {
-    // TODO(dantup): If we're happy to assume we never have two lists in a union
-    // we could simplify this to '$valueCode is List'.
-    buffer.write(
-        '($valueCode is List && ($valueCode.length == 0 || $valueCode.every((item) => ');
-    _writeTypeCheckCondition(buffer, 'item', _getListType(dartType));
-    buffer.write(')))');
+    final listType = _getListType(dartType);
+    buffer.write('($valueCode is List');
+    if (dartType != 'dynamic') {
+      // TODO(dantup): If we're happy to assume we never have two lists in a union
+      // we could skip this bit.
+      buffer
+          .write(' && ($valueCode.length == 0 || $valueCode.every((item) => ');
+      _writeTypeCheckCondition(buffer, 'item', listType);
+      buffer.write('))');
+    }
+    buffer.write(')');
   } else if (_isUnion(dartType)) {
     // To type check a union, we just recursively check against each of its types.
     final unionTypes = _getUnionTypes(dartType);
@@ -502,7 +546,7 @@ void _writeTypeCheckCondition(
       if (i != 0) {
         buffer.write(' || ');
       }
-      _writeTypeCheckCondition(buffer, valueCode, _mapType([unionTypes[i]]));
+      _writeTypeCheckCondition(buffer, valueCode, mapType([unionTypes[i]]));
     }
     buffer.write(')');
   } else {
