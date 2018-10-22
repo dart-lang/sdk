@@ -6,6 +6,19 @@
 
 library vm.bytecode.dbc;
 
+/// Version of stable bytecode format, produced by default.
+/// Before bumping stable bytecode version format, make sure that
+/// all users have switched to a VM which is able to consume next
+/// version of bytecode.
+const int stableBytecodeFormatVersion = 1;
+
+/// Version of bleeding edge bytecode format.
+/// Produced by bytecode generator when --use-future-bytecode-format
+/// option is enabled.
+/// Should match kMaxSupportedBytecodeFormatVersion in
+/// runtime/vm/constants_kbc.h.
+const int futureBytecodeFormatVersion = stableBytecodeFormatVersion + 1;
+
 enum Opcode {
   kTrap,
 

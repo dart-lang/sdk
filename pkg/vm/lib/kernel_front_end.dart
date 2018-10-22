@@ -49,6 +49,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool dropAST: false,
+    bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
     bool enableConstantEvaluation: true}) async {
   // Replace error handler to detect if there are compilation errors.
@@ -91,7 +92,9 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
-          dropAST: dropAST, environmentDefines: environmentDefines);
+          dropAST: dropAST,
+          useFutureBytecodeFormat: useFutureBytecodeFormat,
+          environmentDefines: environmentDefines);
     });
   }
 

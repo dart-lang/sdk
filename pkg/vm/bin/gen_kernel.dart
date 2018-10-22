@@ -45,7 +45,9 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
-      help: 'Drop AST for members with bytecode', defaultsTo: false);
+      help: 'Drop AST for members with bytecode', defaultsTo: false)
+  ..addFlag('use-future-bytecode-format',
+      help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -82,6 +84,7 @@ Future<int> compile(List<String> arguments) async {
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
+  final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final Map<String, String> environmentDefines = {};
@@ -114,6 +117,7 @@ Future<int> compile(List<String> arguments) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       dropAST: dropAST,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
       enableConstantEvaluation: enableConstantEvaluation);
 

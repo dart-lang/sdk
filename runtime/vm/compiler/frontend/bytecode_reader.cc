@@ -62,6 +62,17 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
+  const intptr_t version = helper_->reader_.ReadUInt();
+  if ((version < KernelBytecode::kMinSupportedBytecodeFormatVersion) ||
+      (version > KernelBytecode::kMaxSupportedBytecodeFormatVersion)) {
+    FATAL3(
+        "Unsupported Dart bytecode format version %" Pd
+        ". This version of Dart VM supports bytecode format versions from %" Pd
+        " to %" Pd ".",
+        version, KernelBytecode::kMinSupportedBytecodeFormatVersion,
+        KernelBytecode::kMaxSupportedBytecodeFormatVersion);
+  }
+
   const int kHasExceptionsTableFlag = 1 << 0;
   const int kHasNullableFieldsFlag = 1 << 1;
   const int kHasClosuresFlag = 1 << 2;

@@ -3,7 +3,7 @@ import self as self;
 import "./hello.dart" as hel;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushNull
@@ -25,7 +25,7 @@ ConstantPool {
 ]static method callDeferred() → dynamic
   return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in hel::main();
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull
@@ -42,7 +42,7 @@ ConstantPool {
 ]static method testLoadLibrary() → dynamic
   return LoadLibrary(lib);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

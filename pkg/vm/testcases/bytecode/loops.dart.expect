@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -50,7 +50,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -108,7 +108,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -169,7 +169,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
   PushInt              0
@@ -219,7 +219,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   PushInt              0
@@ -266,7 +266,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   PushInt              0
@@ -307,7 +307,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
   PushInt              0
@@ -354,7 +354,7 @@ ConstantPool {
   return sum;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

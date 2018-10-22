@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   EntryOptional        1, 2, 0
   LoadConstant         r1, CP#0
   LoadConstant         r2, CP#1
@@ -83,7 +83,7 @@ ConstantPool {
   core::print("b = ${b}");
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   EntryOptional        2, 0, 3
   LoadConstant         r2, CP#0
   LoadConstant         r2, CP#1
@@ -214,7 +214,7 @@ ConstantPool {
   core::print("c = ${c}");
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   EntryOptional        2, 0, 2
   LoadConstant         r2, CP#0
   LoadConstant         r2, CP#1
@@ -257,7 +257,7 @@ ConstantPool {
   core::print(b);
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0

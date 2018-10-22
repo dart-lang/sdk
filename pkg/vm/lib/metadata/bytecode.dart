@@ -6,6 +6,8 @@ library vm.metadata.bytecode;
 
 import 'package:kernel/ast.dart';
 import '../bytecode/constant_pool.dart' show ConstantPool;
+import '../bytecode/dbc.dart'
+    show stableBytecodeFormatVersion, futureBytecodeFormatVersion;
 import '../bytecode/disassembler.dart' show BytecodeDisassembler;
 import '../bytecode/exceptions.dart' show ExceptionsTable;
 
@@ -14,6 +16,7 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 /// In kernel binary, bytecode metadata is encoded as following:
 ///
 /// type BytecodeMetadata {
+///   UInt bytecodeFormatVersion
 ///   UInt flags (HasExceptionsTable, HasNullableFields, HasClosures)
 ///
 ///   ConstantPool constantPool
@@ -46,6 +49,7 @@ class BytecodeMetadata {
   static const hasNullableFieldsFlag = 1 << 1;
   static const hasClosuresFlag = 1 << 2;
 
+  final int version;
   final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
@@ -61,13 +65,16 @@ class BytecodeMetadata {
       (hasNullableFields ? hasNullableFieldsFlag : 0) |
       (hasClosures ? hasClosuresFlag : 0);
 
-  BytecodeMetadata(this.constantPool, this.bytecodes, this.exceptionsTable,
-      this.nullableFields, this.closures);
+  BytecodeMetadata(this.version, this.constantPool, this.bytecodes,
+      this.exceptionsTable, this.nullableFields, this.closures);
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
   String toString() => "\n"
-      "Bytecode {\n"
+      "Bytecode"
+      " (version: "
+      "${version == stableBytecodeFormatVersion ? 'stable' : version == futureBytecodeFormatVersion ? 'future' : "v$version"}"
+      ") {\n"
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable)}}\n"
       "$exceptionsTable"
       "${nullableFields.isEmpty ? '' : 'Nullable fields: ${nullableFields.map((ref) => ref.asField).toList()}\n'}"
@@ -121,6 +128,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
 
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
+    sink.writeUInt30(metadata.version);
     sink.writeUInt30(metadata.flags);
     metadata.constantPool.writeToBinary(node, sink);
     sink.writeByteList(metadata.bytecodes);
@@ -140,6 +148,11 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
 
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
+    int version = source.readUInt();
+    if (version != stableBytecodeFormatVersion &&
+        version != futureBytecodeFormatVersion) {
+      throw 'Error: unexpected bytecode version $version';
+    }
     int flags = source.readUInt();
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
@@ -158,7 +171,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
             ? new List<ClosureBytecode>.generate(source.readUInt(),
                 (_) => new ClosureBytecode.readFromBinary(source))
             : const <ClosureBytecode>[];
-    return new BytecodeMetadata(
-        constantPool, bytecodes, exceptionsTable, nullableFields, closures);
+    return new BytecodeMetadata(version, constantPool, bytecodes,
+        exceptionsTable, nullableFields, closures);
   }
 }

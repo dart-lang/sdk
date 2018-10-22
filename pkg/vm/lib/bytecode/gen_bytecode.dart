@@ -39,6 +39,7 @@ const String symbolForTypeCast = ' in type cast';
 void generateBytecode(Component component,
     {bool dropAST: false,
     bool omitSourcePositions: false,
+    bool useFutureBytecodeFormat: false,
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter}) {
   final coreTypes = new CoreTypes(component);
@@ -50,8 +51,15 @@ void generateBytecode(Component component,
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
-  new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
-          constantsBackend, omitSourcePositions, errorReporter)
+  new BytecodeGenerator(
+          component,
+          coreTypes,
+          hierarchy,
+          typeEnvironment,
+          constantsBackend,
+          omitSourcePositions,
+          useFutureBytecodeFormat,
+          errorReporter)
       .visitComponent(component);
   if (dropAST) {
     new DropAST().visitComponent(component);
@@ -65,6 +73,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
   final bool omitSourcePositions;
+  final bool useFutureBytecodeFormat;
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
@@ -101,6 +110,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.typeEnvironment,
       this.constantsBackend,
       this.omitSourcePositions,
+      this.useFutureBytecodeFormat,
       this.errorReporter)
       : recognizedMethods = new RecognizedMethods(typeEnvironment) {
     component.addMetadataRepository(metadata);
@@ -750,8 +760,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void end(Member node) {
     if (!hasErrors) {
-      metadata.mapping[node] = new BytecodeMetadata(
-          cp, asm.bytecode, asm.exceptionsTable, nullableFields, closures);
+      final formatVersion = useFutureBytecodeFormat
+          ? futureBytecodeFormatVersion
+          : stableBytecodeFormatVersion;
+      metadata.mapping[node] = new BytecodeMetadata(formatVersion, cp,
+          asm.bytecode, asm.exceptionsTable, nullableFields, closures);
     }
 
     typeEnvironment.thisType = null;
