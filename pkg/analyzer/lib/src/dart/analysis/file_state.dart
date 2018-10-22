@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
-import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -114,6 +113,7 @@ class FileState {
   Set<String> _definedClassMemberNames;
   Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
+  String _unlinkedKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
@@ -396,37 +396,26 @@ class FileState {
       _contentHash = rawFileState.contentHash;
     }
 
-    // Prepare keys of unlinked data.
-    String apiSignatureKey;
-    String unlinkedKey;
+    // Prepare the unlinked bundle key.
     {
       var signature = new ApiSignature();
       signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
-
-      var signatureHex = signature.toHex();
-      apiSignatureKey = '$signatureHex.api_signature';
-      unlinkedKey = '$signatureHex.unlinked';
+      _unlinkedKey = '${signature.toHex()}.unlinked';
     }
 
-    // Try to get bytes of unlinked data.
-    var apiSignatureBytes = _fsState._byteStore.get(apiSignatureKey);
-    var unlinkedUnitBytes = _fsState._byteStore.get(unlinkedKey);
-
-    // Compute unlinked data that we are missing.
-    if (apiSignatureBytes == null || unlinkedUnitBytes == null) {
-      CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
-      _fsState._logger.run('Create unlinked for $path', () {
-        if (apiSignatureBytes == null) {
-          apiSignatureBytes = computeUnlinkedApiSignature(unit);
-          _fsState._byteStore.put(apiSignatureKey, apiSignatureBytes);
-        }
-        if (unlinkedUnitBytes == null) {
-          var unlinkedUnit = serializeAstUnlinked(unit);
-          var definedNames = computeDefinedNames(unit);
-          var referencedNames = computeReferencedNames(unit).toList();
-          var subtypedNames = computeSubtypedNames(unit).toList();
-          unlinkedUnitBytes = new AnalysisDriverUnlinkedUnitBuilder(
+    // Prepare bytes of the unlinked bundle - existing or new.
+    List<int> bytes;
+    {
+      bytes = _fsState._byteStore.get(_unlinkedKey);
+      if (bytes == null || bytes.isEmpty) {
+        CompilationUnit unit = parse();
+        _fsState._logger.run('Create unlinked for $path', () {
+          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+          DefinedNames definedNames = computeDefinedNames(unit);
+          List<String> referencedNames = computeReferencedNames(unit).toList();
+          List<String> subtypedNames = computeSubtypedNames(unit).toList();
+          bytes = new AnalysisDriverUnlinkedUnitBuilder(
                   unit: unlinkedUnit,
                   definedTopLevelNames: definedNames.topLevelNames.toList(),
                   definedClassMemberNames:
@@ -434,21 +423,21 @@ class FileState {
                   referencedNames: referencedNames,
                   subtypedNames: subtypedNames)
               .toBuffer();
-          _fsState._byteStore.put(unlinkedKey, unlinkedUnitBytes);
-        }
-      });
+          _fsState._byteStore.put(_unlinkedKey, bytes);
+        });
+      }
     }
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit =
-        new AnalysisDriverUnlinkedUnit.fromBuffer(unlinkedUnitBytes);
+    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
     _unlinked = _driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
 
     // Prepare API signature.
+    List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
-        !_equalByteLists(_apiSignature, apiSignatureBytes);
-    _apiSignature = apiSignatureBytes;
+        !_equalByteLists(_apiSignature, newApiSignature);
+    _apiSignature = newApiSignature;
 
     // The API signature changed.
     //   Flush transitive signatures of affected files.
@@ -695,6 +684,8 @@ class FileStateTestView {
   final FileState file;
 
   FileStateTestView(this.file);
+
+  String get unlinkedKey => file._unlinkedKey;
 }
 
 /**

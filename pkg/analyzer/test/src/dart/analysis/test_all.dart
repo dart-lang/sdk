@@ -24,7 +24,6 @@ import 'referenced_names_test.dart' as referenced_names;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
 import 'session_test.dart' as session;
-import 'unlinked_api_signature_test.dart' as unlinked_api_signature;
 import 'uri_converter_test.dart' as uri_converter;
 
 main() {
@@ -49,7 +48,6 @@ main() {
     search.main();
     session.main();
     session_helper.main();
-    unlinked_api_signature.main();
     uri_converter.main();
   }, name: 'analysis');
 }
