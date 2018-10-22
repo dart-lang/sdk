@@ -557,16 +557,9 @@ class ConstantEvaluationEngine {
     // into the current ErrorReporter, because they usually happen in a
     // different source. But they still should cause a constant evaluation
     // error for the current node.
-    var externalErrorListener = new RecordingErrorListener();
+    var externalErrorListener = new BooleanErrorListener();
     var externalErrorReporter =
         new ErrorReporter(externalErrorListener, constructor.source);
-
-    void reportLocalErrorForRecordedExternalErrors() {
-      if (externalErrorListener.errors.isNotEmpty) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
-      }
-    }
 
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
@@ -679,7 +672,8 @@ class ConstantEvaluationEngine {
         lexicalEnvironment: parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
-    for (ConstructorInitializer initializer in initializers) {
+    for (var i = 0; i < initializers.length; i++) {
+      var initializer = initializers[i];
       if (initializer is ConstructorFieldInitializer) {
         Expression initializerExpression = initializer.expression;
         DartObjectImpl evaluationResult =
@@ -727,7 +721,10 @@ class ConstantEvaluationEngine {
               initializerVisitor,
               externalErrorReporter,
               invocation: invocation);
-          reportLocalErrorForRecordedExternalErrors();
+          if (externalErrorListener.errorReported) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+          }
           return result;
         }
       } else if (initializer is AssertInitializer) {
@@ -760,7 +757,10 @@ class ConstantEvaluationEngine {
             superArguments, initializerVisitor, externalErrorReporter);
       }
     }
-    reportLocalErrorForRecordedExternalErrors();
+    if (externalErrorListener.errorReported) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+    }
     return new DartObjectImpl(
         definingClass, new GenericState(fieldMap, invocation: invocation));
   }
@@ -1057,15 +1057,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   /**
-   * Convenience getter to gain access to the [evalationEngine]'s type
-   * provider.
-   */
-  TypeProvider get _typeProvider => evaluationEngine.typeProvider;
-
-  /**
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
    */
   TypeSystem get typeSystem => evaluationEngine.typeSystem;
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type
+   * provider.
+   */
+  TypeProvider get _typeProvider => evaluationEngine.typeProvider;
 
   /**
    * Given a [type] that may contain free type variables, evaluate them against
