@@ -91,6 +91,16 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
   }
 }
 
+/// Enum used for identifying [TypeMask] subclasses in serialization.
+enum TypeMaskKind {
+  flat,
+  union,
+  container,
+  map,
+  dictionary,
+  value,
+}
+
 /**
  * A type mask represents a set of contained classes, but the
  * operations on it are not guaranteed to be precise and they may
@@ -208,6 +218,30 @@ abstract class TypeMask implements AbstractValue {
   factory TypeMask.unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
     return UnionTypeMask.unionOf(masks, closedWorld);
   }
+
+  /// Deserializes a [TypeMask] object from [source].
+  factory TypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    TypeMaskKind kind = source.readEnum(TypeMaskKind.values);
+    switch (kind) {
+      case TypeMaskKind.flat:
+        return new FlatTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.union:
+        return new UnionTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.container:
+        return new ContainerTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.map:
+        return new MapTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.dictionary:
+        return new DictionaryTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.value:
+        return new ValueTypeMask.readFromDataSource(source, closedWorld);
+    }
+    throw new UnsupportedError("Unexpected TypeMaskKind $kind.");
+  }
+
+  /// Serializes this [TypeMask] to [sink].
+  void writeToDataSink(DataSink sink);
 
   /**
    * If [mask] is forwarding, returns the first non-forwarding [TypeMask] in

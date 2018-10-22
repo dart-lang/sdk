@@ -22,6 +22,7 @@ import 'elements/types.dart';
 import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
 import 'library_loader.dart';
+import 'serialization/serialization.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -1271,6 +1272,10 @@ class ConstantWorkItem extends WorkItem {
 // TODO(sigmund): consider moving here every piece of data used as a result of
 // deferred loading (including hunksToLoad, etc).
 class OutputUnitData {
+  /// Tag used for identifying serialized [OutputUnitData] objects in a
+  /// debugging data stream.
+  static const String tag = 'output-unit-data';
+
   final bool isProgramSplit;
   final OutputUnit mainOutputUnit;
   final Map<ClassEntity, OutputUnit> _classToUnit;
@@ -1288,6 +1293,7 @@ class OutputUnitData {
       this._constantToUnit,
       this.outputUnits);
 
+  // Creates J-world data from the K-world data.
   OutputUnitData.from(
       OutputUnitData other,
       Map<ClassEntity, OutputUnit> Function(
@@ -1305,8 +1311,89 @@ class OutputUnitData {
             convertMemberMap(other._memberToUnit, other._localFunctionToUnit),
         _classToUnit =
             convertClassMap(other._classToUnit, other._localFunctionToUnit),
+        // Local functions only make sense in the K-world model.
         _localFunctionToUnit = const <Local, OutputUnit>{},
         _constantToUnit = convertConstantMap(other._constantToUnit);
+
+  /// Deserializes an [OutputUnitData] object from [source].
+  factory OutputUnitData.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    bool isProgramSplit = source.readBool();
+    List<ImportEntity> imports = source.readList(() {
+      String name = source.readString();
+      Uri uri = source.readUri();
+      Uri enclosingLibraryUri = source.readUri();
+      bool isDeferred = source.readBool();
+      return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
+    });
+    List<OutputUnit> outputUnits = source.readList(() {
+      bool isMainOutput = source.readBool();
+      String name = source.readString();
+      Set<ImportEntity> importSet = source.readList(() {
+        return imports[source.readInt()];
+      }).toSet();
+      return new OutputUnit(isMainOutput, name, importSet);
+    });
+    OutputUnit mainOutputUnit = outputUnits[source.readInt()];
+
+    Map<ClassEntity, OutputUnit> classToUnit = source.readClassMap(() {
+      return outputUnits[source.readInt()];
+    });
+    Map<MemberEntity, OutputUnit> memberToUnit = source.readMemberMap(() {
+      return outputUnits[source.readInt()];
+    });
+    Map<ConstantValue, OutputUnit> constantToUnit = source.readConstantMap(() {
+      return outputUnits[source.readInt()];
+    });
+    source.end(tag);
+    return new OutputUnitData(
+        isProgramSplit,
+        mainOutputUnit,
+        classToUnit,
+        memberToUnit,
+        // Local functions only make sense in the K-world model.
+        const <Local, OutputUnit>{},
+        constantToUnit,
+        outputUnits);
+  }
+
+  /// Serializes this [OutputUnitData] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeBool(isProgramSplit);
+    Map<ImportEntity, int> importIndex = {};
+    for (OutputUnit outputUnit in outputUnits) {
+      for (ImportEntity import in outputUnit._imports) {
+        importIndex[import] ??= importIndex.length;
+      }
+    }
+    sink.writeList(importIndex.keys, (ImportEntity import) {
+      sink.writeString(import.name);
+      sink.writeUri(import.uri);
+      sink.writeUri(import.enclosingLibraryUri);
+      sink.writeBool(import.isDeferred);
+    });
+    Map<OutputUnit, int> outputUnitIndices = {};
+    sink.writeList(outputUnits, (OutputUnit outputUnit) {
+      outputUnitIndices[outputUnit] = outputUnitIndices.length;
+      sink.writeBool(outputUnit.isMainOutput);
+      sink.writeString(outputUnit.name);
+      sink.writeList(outputUnit._imports, (ImportEntity import) {
+        sink.writeInt(importIndex[import]);
+      });
+    });
+    sink.writeInt(outputUnitIndices[mainOutputUnit]);
+    sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
+      sink.writeInt(outputUnitIndices[outputUnit]);
+    });
+    sink.writeMemberMap(_memberToUnit, (OutputUnit outputUnit) {
+      sink.writeInt(outputUnitIndices[outputUnit]);
+    });
+    sink.writeConstantMap(_constantToUnit, (OutputUnit outputUnit) {
+      sink.writeInt(outputUnitIndices[outputUnit]);
+    });
+    sink.end(tag);
+  }
 
   /// Returns the [OutputUnit] where [cls] belongs.
   OutputUnit outputUnitForClass(ClassEntity cls) {

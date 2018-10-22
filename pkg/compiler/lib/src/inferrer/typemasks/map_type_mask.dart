@@ -10,6 +10,10 @@ part of masks;
  * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
  */
 class MapTypeMask extends AllocationTypeMask {
+  /// Tag used for identifying serialized [MapTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'map-type-mask';
+
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
@@ -26,6 +30,32 @@ class MapTypeMask extends AllocationTypeMask {
 
   MapTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
       this.keyType, this.valueType);
+
+  /// Deserializes a [MapTypeMask] object from [source].
+  factory MapTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    ir.TreeNode allocationNode = source.readTreeNode();
+    MemberEntity allocationElement = source.readMember();
+    TypeMask keyType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask valueType = new TypeMask.readFromDataSource(source, closedWorld);
+    source.end(tag);
+    return new MapTypeMask(
+        forwardTo, allocationNode, allocationElement, keyType, valueType);
+  }
+
+  /// Serializes this [MapTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.map);
+    sink.begin(tag);
+    forwardTo.writeToDataSink(sink);
+    sink.writeTreeNode(allocationNode);
+    sink.writeMember(allocationElement);
+    valueType.writeToDataSink(sink);
+    keyType.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   TypeMask nullable() {
     return isNullable

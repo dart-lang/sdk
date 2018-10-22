@@ -16,12 +16,12 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_emitter/sorter.dart';
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -288,8 +288,6 @@ class InferrerEngineImpl extends InferrerEngine {
 
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
-  final Sorter sorter;
-
   InferrerEngineImpl(
       this.options,
       this.progress,
@@ -298,7 +296,6 @@ class InferrerEngineImpl extends InferrerEngine {
       this.closedWorld,
       this.noSuchMethodRegistry,
       this.mainElement,
-      this.sorter,
       this.inferredDataBuilder)
       : this.types = new TypeSystem(
             closedWorld, new KernelTypeSystemStrategy(closedWorld));
@@ -1365,12 +1362,96 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 
 class KernelGlobalTypeInferenceElementData
     implements GlobalTypeInferenceElementData {
+  /// Tag used for identifying serialized [GlobalTypeInferenceElementData]
+  /// objects in a debugging data stream.
+  static const String tag = 'global-type-inference-element-data';
+
   // TODO(johnniwinther): Rename this together with [typeOfSend].
   Map<ir.TreeNode, AbstractValue> _sendMap;
 
   Map<ir.ForInStatement, AbstractValue> _iteratorMap;
   Map<ir.ForInStatement, AbstractValue> _currentMap;
   Map<ir.ForInStatement, AbstractValue> _moveNextMap;
+
+  KernelGlobalTypeInferenceElementData();
+
+  KernelGlobalTypeInferenceElementData.internal(
+      this._sendMap, this._iteratorMap, this._currentMap, this._moveNextMap);
+
+  /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
+  factory KernelGlobalTypeInferenceElementData.readFromDataSource(
+      DataSource source, AbstractValueDomain abstractValueDomain) {
+    source.begin(tag);
+    Map<ir.TreeNode, AbstractValue> sendMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> iteratorMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> currentMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    Map<ir.ForInStatement, AbstractValue> moveNextMap = source.readTreeNodeMap(
+        () => abstractValueDomain.readAbstractValueFromDataSource(source),
+        emptyAsNull: true);
+    source.end(tag);
+    return new KernelGlobalTypeInferenceElementData.internal(
+        sendMap, iteratorMap, currentMap, moveNextMap);
+  }
+
+  /// Serializes this [GlobalTypeInferenceElementData] to [sink].
+  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+    sink.begin(tag);
+    sink.writeTreeNodeMap(
+        _sendMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _iteratorMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _currentMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.writeTreeNodeMap(
+        _moveNextMap,
+        (AbstractValue value) =>
+            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+        allowNull: true);
+    sink.end(tag);
+  }
+
+  @override
+  void compress() {
+    if (_sendMap != null) {
+      _sendMap.removeWhere(_mapsToNull);
+      if (_sendMap.isEmpty) {
+        _sendMap = null;
+      }
+    }
+    if (_iteratorMap != null) {
+      _iteratorMap.removeWhere(_mapsToNull);
+      if (_iteratorMap.isEmpty) {
+        _iteratorMap = null;
+      }
+    }
+    if (_currentMap != null) {
+      _currentMap.removeWhere(_mapsToNull);
+      if (_currentMap.isEmpty) {
+        _currentMap = null;
+      }
+    }
+    if (_moveNextMap != null) {
+      _moveNextMap.removeWhere(_mapsToNull);
+      if (_moveNextMap.isEmpty) {
+        _moveNextMap = null;
+      }
+    }
+  }
 
   @override
   AbstractValue typeOfSend(ir.TreeNode node) {
@@ -1429,3 +1510,5 @@ class KernelGlobalTypeInferenceElementData
     return _sendMap[node];
   }
 }
+
+bool _mapsToNull(ir.TreeNode node, AbstractValue value) => value == null;

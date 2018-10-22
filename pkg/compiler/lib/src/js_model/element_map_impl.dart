@@ -43,6 +43,7 @@ import '../kernel/kelements.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../ordered_typeset.dart';
+import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -1442,6 +1443,23 @@ class JsEvaluationEnvironment extends EvaluationEnvironmentBase {
 class JsKernelToElementMap extends JsToElementMapBase
     with JsElementCreatorMixin
     implements JsToWorldBuilder, JsToElementMap {
+  /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
+  /// debugging data stream.
+  static const String tag = 'js-kernel-to-element-map';
+
+  /// Tags used for identifying serialized subsections of a
+  /// [JsKernelToElementMap] object in a debugging data stream.
+  static const String libraryTag = 'libraries';
+  static const String classTag = 'classes';
+  static const String typedefTag = 'typedefs';
+  static const String memberTag = 'members';
+  static const String typeVariableTag = 'type-variables';
+  static const String libraryDataTag = 'library-data';
+  static const String classDataTag = 'class-data';
+  static const String typedefDataTag = 'typedef-data';
+  static const String memberDataTag = 'member-data';
+  static const String typeVariableDataTag = 'type-variable-data';
+
   final Map<ir.Library, IndexedLibrary> libraryMap = {};
   final Map<ir.Class, IndexedClass> classMap = {};
   final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
@@ -1574,12 +1592,212 @@ class JsKernelToElementMap extends JsToElementMapBase
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
-    //typeVariableMap.keys.forEach((n) => print(n.parent));
     // TODO(johnniwinther): We should close the environment in the beginning of
     // this constructor but currently we need the [MemberEntity] to query if the
     // member is live, thus potentially creating the [MemberEntity] in the
     // process. Avoid this.
     _elementMap.envIsClosed = true;
+  }
+
+  JsKernelToElementMap.readFromDataSource(
+      CompilerOptions options,
+      DiagnosticReporter reporter,
+      Environment environment,
+      ir.Component component,
+      DataSource source)
+      : super(options, reporter, environment) {
+    source.registerComponentLookup(new ComponentLookup(component));
+    _EntityLookup entityLookup = new _EntityLookup();
+    source.registerEntityLookup(entityLookup);
+
+    source.begin(tag);
+    source.begin(libraryTag);
+    int libraryCount = source.readInt();
+    for (int i = 0; i < libraryCount; i++) {
+      int index = source.readInt();
+      JLibrary library = new JLibrary.readFromDataSource(source);
+      entityLookup.registerLibrary(index, library);
+    }
+    source.end(libraryTag);
+
+    source.begin(classTag);
+    int classCount = source.readInt();
+    for (int i = 0; i < classCount; i++) {
+      int index = source.readInt();
+      JClass cls = new JClass.readFromDataSource(source);
+      entityLookup.registerClass(index, cls);
+    }
+    source.end(classTag);
+
+    source.begin(typedefTag);
+    int typedefCount = source.readInt();
+    for (int i = 0; i < typedefCount; i++) {
+      int index = source.readInt();
+      JTypedef typedef = new JTypedef.readFromDataSource(source);
+      entityLookup.registerTypedef(index, typedef);
+    }
+    source.end(typedefTag);
+
+    source.begin(memberTag);
+    int memberCount = source.readInt();
+    for (int i = 0; i < memberCount; i++) {
+      int index = source.readInt();
+      JMember member = new JMember.readFromDataSource(source);
+      entityLookup.registerMember(index, member);
+    }
+    source.end(memberTag);
+
+    source.begin(typeVariableTag);
+    int typeVariableCount = source.readInt();
+    for (int i = 0; i < typeVariableCount; i++) {
+      int index = source.readInt();
+      JTypeVariable typeVariable = new JTypeVariable.readFromDataSource(source);
+      entityLookup.registerTypeVariable(index, typeVariable);
+    }
+    source.end(typeVariableTag);
+
+    programEnv = new JProgramEnv([component]);
+    source.begin(libraryDataTag);
+    entityLookup.forEachLibrary((int index, JLibrary library) {
+      JLibraryEnv env = new JLibraryEnv.readFromDataSource(source);
+      JLibraryData data = new JLibraryData.readFromDataSource(source);
+      libraryMap[env.library] =
+          libraries.registerByIndex(index, library, data, env);
+      programEnv.registerLibrary(env);
+      assert(index == library.libraryIndex);
+    });
+    source.end(libraryDataTag);
+
+    source.begin(classDataTag);
+    entityLookup.forEachClass((int index, JClass cls) {
+      JClassEnv env = new JClassEnv.readFromDataSource(source);
+      JClassData data = new JClassData.readFromDataSource(source);
+      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
+      libraries.getEnv(cls.library).registerClass(cls.name, env);
+      assert(index == cls.classIndex);
+    });
+    source.end(classDataTag);
+
+    source.begin(typedefDataTag);
+    entityLookup.forEachTypedef((int index, JTypedef typedef) {
+      JTypedefData data = new JTypedefData.readFromDataSource(source);
+      typedefs.registerByIndex(index, typedef, data);
+      assert(index == typedef.typedefIndex);
+    });
+    source.end(typedefDataTag);
+
+    source.begin(memberDataTag);
+    entityLookup.forEachMember((int index, IndexedMember member) {
+      JMemberData data = new JMemberData.readFromDataSource(source);
+      members.registerByIndex(index, member, data);
+      switch (data.definition.kind) {
+        case MemberKind.regular:
+        case MemberKind.constructor:
+          ir.Member node = data.definition.node;
+          if (member.isField) {
+            fieldMap[node] = member;
+          } else if (member.isConstructor) {
+            constructorMap[node] = member;
+          } else {
+            methodMap[node] = member;
+          }
+          break;
+        default:
+      }
+      assert(index == member.memberIndex);
+    });
+    source.end(memberDataTag);
+
+    source.begin(typeVariableDataTag);
+    entityLookup.forEachTypeVariable((int index, JTypeVariable typeVariable) {
+      JTypeVariableData data = new JTypeVariableData.readFromDataSource(source);
+      typeVariableMap[data.node] =
+          typeVariables.registerByIndex(index, typeVariable, data);
+      assert(index == typeVariable.typeVariableIndex);
+    });
+    source.end(typeVariableDataTag);
+    source.end(tag);
+  }
+
+  /// Serializes this [JsToElementMap] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+
+    // Serialize the entities before serializing the data.
+    sink.begin(libraryTag);
+    sink.writeInt(libraries.size);
+    libraries.forEach((JLibrary library, _, __) {
+      sink.writeInt(library.libraryIndex);
+      library.writeToDataSink(sink);
+    });
+    sink.end(libraryTag);
+
+    sink.begin(classTag);
+    sink.writeInt(classes.size);
+    classes.forEach((JClass cls, _, __) {
+      sink.writeInt(cls.classIndex);
+      cls.writeToDataSink(sink);
+    });
+    sink.end(classTag);
+
+    sink.begin(typedefTag);
+    sink.writeInt(typedefs.size);
+    typedefs.forEach((JTypedef typedef, _) {
+      sink.writeInt(typedef.typedefIndex);
+      typedef.writeToDataSink(sink);
+    });
+    sink.end(typedefTag);
+
+    sink.begin(memberTag);
+    sink.writeInt(members.size);
+    members.forEach((JMember member, _) {
+      sink.writeInt(member.memberIndex);
+      member.writeToDataSink(sink);
+    });
+    sink.end(memberTag);
+
+    sink.begin(typeVariableTag);
+    sink.writeInt(typeVariables.size);
+    typeVariables.forEach((JTypeVariable typeVariable, _) {
+      sink.writeInt(typeVariable.typeVariableIndex);
+      typeVariable.writeToDataSink(sink);
+    });
+    sink.end(typeVariableTag);
+
+    // Serialize the entity data after having serialized the entities.
+    sink.begin(libraryDataTag);
+    libraries.forEach((_, JLibraryData data, JLibraryEnv env) {
+      env.writeToDataSink(sink);
+      data.writeToDataSink(sink);
+    });
+    sink.end(libraryDataTag);
+
+    sink.begin(classDataTag);
+    classes.forEach((_, JClassData data, JClassEnv env) {
+      env.writeToDataSink(sink);
+      data.writeToDataSink(sink);
+    });
+    sink.end(classDataTag);
+
+    sink.begin(typedefDataTag);
+    typedefs.forEach((_, JTypedefData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(typedefDataTag);
+
+    sink.begin(memberDataTag);
+    members.forEach((_, JMemberData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(memberDataTag);
+
+    sink.begin(typeVariableDataTag);
+    typeVariables.forEach((_, JTypeVariableData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(typeVariableDataTag);
+
+    sink.end(tag);
   }
 
   @override
@@ -2221,5 +2439,103 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
     IndexedTypeVariable indexedTypeVariable = typeVariable;
     return _backend.typeVariables
         .getEntity(indexedTypeVariable.typeVariableIndex);
+  }
+}
+
+/// [EntityLookup] implementation used to deserialize [JsKernelToElementMap].
+///
+/// Since data objects and environments are registered together with their
+/// entity we need to have a separate lookup-by-index mechanism to allow for
+/// index-based reference within data objects and environments.
+class _EntityLookup implements EntityLookup {
+  final Map<int, JLibrary> _libraries = {};
+  final Map<int, JClass> _classes = {};
+  final Map<int, JTypedef> _typedefs = {};
+  final Map<int, JMember> _members = {};
+  final Map<int, JTypeVariable> _typeVariables = {};
+
+  void registerLibrary(int index, JLibrary library) {
+    assert(!_libraries.containsKey(index),
+        "Library for index $index has already been defined.");
+    _libraries[index] = library;
+  }
+
+  void registerClass(int index, JClass cls) {
+    assert(!_classes.containsKey(index),
+        "Class for index $index has already been defined.");
+    _classes[index] = cls;
+  }
+
+  void registerTypedef(int index, JTypedef typedef) {
+    assert(!_typedefs.containsKey(index),
+        "Typedef for index $index has already been defined.");
+    _typedefs[index] = typedef;
+  }
+
+  void registerMember(int index, JMember member) {
+    assert(!_members.containsKey(index),
+        "Member for index $index has already been defined.");
+    _members[index] = member;
+  }
+
+  void registerTypeVariable(int index, JTypeVariable typeVariable) {
+    assert(!_typeVariables.containsKey(index),
+        "Type variable for index $index has already been defined.");
+    _typeVariables[index] = typeVariable;
+  }
+
+  void forEachLibrary(void f(int index, JLibrary library)) {
+    _libraries.forEach(f);
+  }
+
+  void forEachClass(void f(int index, JClass cls)) {
+    _classes.forEach(f);
+  }
+
+  void forEachTypedef(void f(int index, JTypedef typedef)) {
+    _typedefs.forEach(f);
+  }
+
+  void forEachMember(void f(int index, JMember member)) {
+    _members.forEach(f);
+  }
+
+  void forEachTypeVariable(void f(int index, JTypeVariable typeVariable)) {
+    _typeVariables.forEach(f);
+  }
+
+  @override
+  IndexedLibrary getLibraryByIndex(int index) {
+    IndexedLibrary library = _libraries[index];
+    assert(library != null, "No library found for index $index");
+    return library;
+  }
+
+  @override
+  IndexedClass getClassByIndex(int index) {
+    IndexedClass cls = _classes[index];
+    assert(cls != null, "No class found for index $index");
+    return cls;
+  }
+
+  @override
+  IndexedTypedef getTypedefByIndex(int index) {
+    IndexedTypedef typedef = _typedefs[index];
+    assert(typedef != null, "No typedef found for index $index");
+    return typedef;
+  }
+
+  @override
+  IndexedMember getMemberByIndex(int index) {
+    IndexedMember member = _members[index];
+    assert(member != null, "No member found for index $index");
+    return member;
+  }
+
+  @override
+  IndexedTypeVariable getTypeVariableByIndex(int index) {
+    IndexedTypeVariable typeVariable = _typeVariables[index];
+    assert(typeVariable != null, "No type variable found for index $index");
+    return typeVariable;
   }
 }

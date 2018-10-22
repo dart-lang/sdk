@@ -32,6 +32,7 @@ import 'js_backend/runtime_types.dart'
 import 'js_model/locals.dart';
 import 'ordered_typeset.dart';
 import 'options.dart';
+import 'js_emitter/sorter.dart';
 import 'types/abstract_value_domain.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/class_set.dart';
@@ -87,6 +88,9 @@ abstract class JClosedWorld implements World {
   ClosureData get closureDataLookup;
 
   OutputUnitData get outputUnitData;
+
+  /// The [Sorter] used for sorting elements in the generated code.
+  Sorter get sorter;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
@@ -258,7 +262,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
   final JCommonElements commonElements;
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
-  final Set<ClassEntity> _implementedClasses;
+  final Set<ClassEntity> implementedClasses;
 
   final Iterable<MemberEntity> liveInstanceMembers;
 
@@ -280,15 +284,14 @@ abstract class ClosedWorldBase implements JClosedWorld {
       this.interceptorData,
       this.backendUsage,
       this.noSuchMethodData,
-      Set<ClassEntity> implementedClasses,
+      this.implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
       this.mixinUses,
       this.typesImplementedBySubclasses,
-      this.classHierarchy)
-      : this._implementedClasses = implementedClasses;
+      this.classHierarchy);
 
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
@@ -304,7 +307,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
-    return _implementedClasses.contains(cls);
+    return implementedClasses.contains(cls);
   }
 
   @override

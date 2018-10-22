@@ -79,7 +79,6 @@ class TypeGraphInferrer implements TypesInferrer {
         closedWorld,
         _compiler.backend.noSuchMethodRegistry,
         main,
-        _compiler.backendStrategy.sorter,
         _inferredDataBuilder);
   }
 
@@ -109,6 +108,7 @@ class TypeGraphInferrer implements TypesInferrer {
     void createMemberResults(
         MemberEntity member, MemberTypeInformation typeInformation) {
       GlobalTypeInferenceElementData data = inferrer.dataOfMember(member);
+      data.compress();
       bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
 
       AbstractValue returnType;

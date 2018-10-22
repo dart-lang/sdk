@@ -201,7 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.allocatorAnalysis,
           inferredData,
           backend.sourceInformationStrategy,
-          compiler.backendStrategy.sorter,
+          closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder);

@@ -10,6 +10,7 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 
@@ -40,6 +41,10 @@ class SelectorKind {
 }
 
 class Selector {
+  /// Tag used for identifying serialized [Selector] objects in a debugging
+  /// data stream.
+  static const String tag = 'selector';
+
   final SelectorKind kind;
   final Name memberName;
   final CallStructure callStructure;
@@ -191,6 +196,30 @@ class Selector {
       SelectorKind.SPECIAL,
       Names.genericInstantiation,
       new CallStructure(0, null, typeArguments));
+
+  /// Deserializes a [Selector] object from [source].
+  factory Selector.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    SelectorKind kind = source.readEnum(SelectorKind.values);
+    bool isSetter = source.readBool();
+    LibraryEntity library = source.readLibraryOrNull();
+    String text = source.readString();
+    CallStructure callStructure = new CallStructure.readFromDataSource(source);
+    source.end(tag);
+    return new Selector(
+        kind, new Name(text, library, isSetter: isSetter), callStructure);
+  }
+
+  /// Serializes this [Selector] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeEnum(kind);
+    sink.writeBool(memberName.isSetter);
+    sink.writeLibraryOrNull(memberName.library);
+    sink.writeString(memberName.text);
+    callStructure.writeToDataSink(sink);
+    sink.end(tag);
+  }
 
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;

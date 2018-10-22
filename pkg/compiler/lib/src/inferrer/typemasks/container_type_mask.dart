@@ -8,6 +8,10 @@ part of masks;
 /// site of a container (currently only List) that will get specialized
 /// once the [TypeGraphInferrer] phase finds an element type for it.
 class ContainerTypeMask extends AllocationTypeMask {
+  /// Tag used for identifying serialized [ContainerTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'container-type-mask';
+
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
@@ -24,6 +28,32 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   ContainerTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
       this.elementType, this.length);
+
+  /// Deserializes a [ContainerTypeMask] object from [source].
+  factory ContainerTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
+    MemberEntity allocationElement = source.readMemberOrNull();
+    TypeMask elementType = new TypeMask.readFromDataSource(source, closedWorld);
+    int length = source.readIntOrNull();
+    source.end(tag);
+    return new ContainerTypeMask(
+        forwardTo, allocationNode, allocationElement, elementType, length);
+  }
+
+  /// Serializes this [ContainerTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.container);
+    sink.begin(tag);
+    forwardTo.writeToDataSink(sink);
+    sink.writeTreeNodeOrNull(allocationNode);
+    sink.writeMemberOrNull(allocationElement);
+    elementType.writeToDataSink(sink);
+    sink.writeIntOrNull(length);
+    sink.end(tag);
+  }
 
   TypeMask nullable() {
     return isNullable
