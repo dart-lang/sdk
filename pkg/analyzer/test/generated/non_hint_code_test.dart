@@ -930,24 +930,6 @@ class D<T extends dynamic> {
     assertNoErrors(source);
   }
 
-  test_undefinedMethod_inSubtype() async {
-    Source source = addSource(r'''
-class A {}
-class B extends A {
-  b() {}
-}
-f() {
-  var a = new A();
-  a.b();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertNoErrors(source);
-    }
-  }
-
   test_undefinedMethod_unionType_all() async {
     Source source = addSource(r'''
 class A {

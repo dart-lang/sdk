@@ -829,31 +829,6 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitMethodInvocation_namedParameter() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    String methodName = "m";
-    String parameterName = "p";
-    MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
-    method.parameters = <ParameterElement>[parameter];
-    classA.methods = <MethodElement>[method];
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = classA.type;
-    MethodInvocation invocation = AstTestFactory.methodInvocation(
-        left, methodName, [
-      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
-    ]);
-    _resolveNode(invocation);
-    expect(invocation.methodName.staticElement, same(method));
-    expect(
-        (invocation.argumentList.arguments[0] as NamedExpression)
-            .name
-            .label
-            .staticElement,
-        same(parameter));
-    _listener.assertNoErrors();
-  }
-
   test_visitPostfixExpression() async {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier operand = AstTestFactory.identifier3("i");

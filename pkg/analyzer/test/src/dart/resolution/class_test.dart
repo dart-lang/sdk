@@ -55,28 +55,7 @@ class Baz extends Bar {
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'Foo'),
-    );
-  }
-
-  test_abstractSuperMemberReference_method_invocation() async {
-    addTestFile(r'''
-abstract class A {
-  foo();
-}
-abstract class B extends A {
-  bar() {
-    super.foo(); // ref
-  }
-
-  foo() {} // does not matter
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'Foo'),
     );
   }
 
@@ -123,31 +102,6 @@ class C extends A with B {
     );
   }
 
-  test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
-    addTestFile('''
-class A {
-}
-
-class M {
-  void foo() {}
-}
-
-class B = A with M;
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'M'),
-    );
-  }
-
   test_abstractSuperMemberReference_OK_superHasConcrete_mixinHasAbstract_method() async {
     addTestFile('''
 class A {
@@ -190,31 +144,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'A'),
-    );
-  }
-
-  test_abstractSuperMemberReference_OK_superSuperHasConcrete_method() async {
-    addTestFile('''
-abstract class A {
-  void foo() {}
-}
-
-abstract class B extends A {
-  void foo();
-}
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'A'),
     );
   }
 

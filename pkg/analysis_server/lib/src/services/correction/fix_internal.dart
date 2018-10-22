@@ -524,8 +524,7 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_importLibrary_withType();
     }
-    if (errorCode == HintCode.UNDEFINED_METHOD ||
-        errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
       await _addFix_createClass();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();

@@ -61,6 +61,16 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     newFile('/test/lib/test.dart', content: content);
   }
 
+  /// Assert that the given [identifier] is a reference to a class, in the
+  /// form that is not a separate expression, e.g. in a static method
+  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
+  void assertClassRef(
+      SimpleIdentifier identifier, ClassElement expectedElement) {
+    assertElement(identifier, expectedElement);
+    // TODO(scheglov) Enforce this.
+//    assertTypeNull(identifier);
+  }
+
   void assertConstructorElement(
       ConstructorElement expected, ConstructorElement actual) {
     if (expected is ConstructorMember && actual is ConstructorMember) {
@@ -168,6 +178,11 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
+  void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
+    assertElement(identifier, element);
+    assertTypeNull(identifier);
+  }
+
   void assertInstanceCreation(InstanceCreationExpression creation,
       ClassElement expectedClassElement, String expectedType,
       {String constructorName,
@@ -232,8 +247,49 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(actual.baseElement, same(expectedBase));
   }
 
+  void assertMethodInvocation(MethodInvocation invocation,
+      Element expectedElement, String expectedInvokeType,
+      {String expectedNameType, String expectedType}) {
+    // TODO(scheglov) Check for Member.
+    var element = invocation.methodName.staticElement;
+    if (element is Member) {
+      element = (element as Member).baseElement;
+      expect(element, same(expectedElement));
+    } else {
+      assertElement(invocation.methodName, expectedElement);
+    }
+
+    // TODO(scheglov) Should we enforce this?
+//    if (expectedNameType == null) {
+//      if (expectedElement is ExecutableElement) {
+//        expectedNameType = expectedElement.type.displayName;
+//      } else if (expectedElement is VariableElement) {
+//        expectedNameType = expectedElement.type.displayName;
+//      }
+//    }
+//    assertType(invocation.methodName, expectedNameType);
+
+    assertInvokeType(invocation, expectedInvokeType);
+
+    expectedType ??= _extractReturnType(expectedInvokeType);
+    assertType(invocation, expectedType);
+  }
+
+  void assertNamedParameterRef(String search, String name) {
+    var ref = findNode.simple(search);
+    assertElement(ref, findElement.parameter(name));
+    assertTypeNull(ref);
+  }
+
   void assertNoTestErrors() {
     assertTestErrors(const <ErrorCode>[]);
+  }
+
+  void assertSuperExpression(SuperExpression superExpression) {
+    // TODO(scheglov) I think `super` does not have type itself.
+    // It is just a signal to look for implemented method in the supertype.
+    // With mixins there isn't a type anyway.
+//    assertTypeNull(superExpression);
   }
 
   void assertTestErrors(List<ErrorCode> expected) {
@@ -333,6 +389,12 @@ abstract class ResolutionTest implements ResourceProviderMixin {
       return element.actualElement;
     }
     return element;
+  }
+
+  static String _extractReturnType(String invokeType) {
+    int arrowIndex = invokeType.indexOf('→');
+    expect(arrowIndex, isNonNegative);
+    return invokeType.substring(arrowIndex + 1).trim();
   }
 }
 

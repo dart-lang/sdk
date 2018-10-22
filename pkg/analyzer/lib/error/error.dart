@@ -314,7 +314,6 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.TYPE_CHECK_IS_NULL,
   HintCode.UNDEFINED_GETTER,
   HintCode.UNDEFINED_HIDDEN_NAME,
-  HintCode.UNDEFINED_METHOD,
   HintCode.UNDEFINED_OPERATOR,
   HintCode.UNDEFINED_SETTER,
   HintCode.UNDEFINED_SHOWN_NAME,

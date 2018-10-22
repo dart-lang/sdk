@@ -5214,23 +5214,6 @@ f() {
     verify([source]);
   }
 
-  test_prefix_conditionalPropertyAccess_call() async {
-    addNamedSource('/lib.dart', '''
-library lib;
-g() {}
-''');
-    Source source = addSource('''
-import 'lib.dart' as p;
-f() {
-  p?.g();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
   test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
     addNamedSource('/lib.dart', '''
 library lib;
@@ -5305,36 +5288,6 @@ library lib;
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary = null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
-  test_prefix_unqualified_invocation_in_method() async {
-    addNamedSource('/lib.dart', 'librarylib;');
-    Source source = addSource('''
-import 'lib.dart' as p;
-class C {
-  f() {
-    p();
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
-  test_prefix_unqualified_invocation_not_in_method() async {
-    addNamedSource('/lib.dart', 'librarylib;');
-    Source source = addSource('''
-import 'lib.dart' as p;
-f() {
-  p();
 }
 ''');
     await computeAnalysisResult(source);

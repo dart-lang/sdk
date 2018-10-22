@@ -108,9 +108,9 @@ class FindElement {
     fail('Not found generic type alias: $name');
   }
 
-  PropertyAccessorElement getter(String name, {String className}) {
+  PropertyAccessorElement getter(String name, {String of}) {
     for (var class_ in unitElement.types) {
-      if (className != null && class_.name != className) {
+      if (of != null && class_.name != of) {
         continue;
       }
       for (var accessor in class_.accessors) {
@@ -141,6 +141,25 @@ class FindElement {
 
   InterfaceType interfaceType(String name) {
     return class_(name).type;
+  }
+
+  FunctionElement localFunction(String name) {
+    FunctionElement result;
+    unit.accept(new FunctionAstVisitor(
+      functionDeclarationStatement: (node) {
+        var element = node.functionDeclaration.declaredElement;
+        if (element is FunctionElement) {
+          if (result != null) {
+            throw new StateError('Local function name $name is not unique.');
+          }
+          result = element;
+        }
+      },
+    ));
+    if (result == null) {
+      fail('Not found local function: $name');
+    }
+    return result;
   }
 
   LocalVariableElement localVar(String name) {

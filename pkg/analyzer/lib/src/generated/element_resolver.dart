@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -108,13 +109,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   InterfaceType _typeType;
 
-  /**
-   * The object keeping track of which elements have had their types promoted.
-   */
-  TypePromotionManager _promoteManager;
-
   /// Whether constant evaluation errors should be reported during resolution.
   final bool reportConstEvaluationErrors;
+
+  final MethodInvocationResolver _methodInvocationResolver;
 
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
@@ -122,10 +120,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
       : _inheritance = _resolver.inheritance,
-        _definingLibrary = _resolver.definingLibrary {
+        _definingLibrary = _resolver.definingLibrary,
+        _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
-    _promoteManager = _resolver.promoteManager;
   }
 
   /**
@@ -537,212 +535,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    SimpleIdentifier methodName = node.methodName;
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (methodName.isSynthetic) {
-      return null;
-    }
-    //
-    // We have a method invocation of one of two forms: 'e.m(a1, ..., an)' or
-    // 'm(a1, ..., an)'. The first step is to figure out which executable is
-    // being invoked, using both the static and the propagated type information.
-    //
-    Expression target = node.realTarget;
-    if (target is SuperExpression && !_isSuperInValidContext(target)) {
-      return null;
-    }
-    Element staticElement;
-    if (target == null) {
-      staticElement = _resolveInvokedElement(methodName);
-    } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
-        _isDeferredPrefix(target)) {
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
-        _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-            target,
-            [(target as SimpleIdentifier).name]);
-      }
-      LibraryElement importedLibrary = _getImportedLibrary(target);
-      FunctionElement loadLibraryFunction =
-          importedLibrary?.loadLibraryFunction;
-      methodName.staticElement = loadLibraryFunction;
-      node.staticInvokeType = loadLibraryFunction?.type;
-      return null;
-    } else {
-      //
-      // If this method invocation is of the form 'C.m' where 'C' is a class,
-      // then we don't call resolveInvokedElement(...) which walks up the class
-      // hierarchy, instead we just look for the member in the type only.  This
-      // does not apply to conditional method invocation (i.e. 'C?.m(...)').
-      //
-      bool isConditional = node.operator.type == TokenType.QUESTION_PERIOD;
-      ClassElement typeReference = getTypeReference(target);
-
-      if (typeReference != null) {
-        if (node.isCascaded) {
-          typeReference = _typeType.element;
-        }
-        staticElement = _resolveElement(typeReference, methodName);
-      } else {
-        DartType staticType = _getStaticTypeOrFunctionType(target);
-
-        if (staticType is FunctionType &&
-            methodName.name == FunctionElement.CALL_METHOD_NAME) {
-          if (target is SimpleIdentifier) {
-            methodName.staticElement = target.staticElement;
-          }
-          methodName.staticType = target.staticType;
-          node.staticType = staticType;
-          node.staticInvokeType = staticType;
-          node.argumentList.correspondingStaticParameters =
-              _computeCorrespondingParameters(node.argumentList, staticType);
-          return null;
-        }
-
-        if (target is SuperExpression) {
-          if (staticType is InterfaceTypeImpl) {
-            staticElement = staticType.lookUpInheritedMember(
-                methodName.name, _definingLibrary,
-                concrete: true, forSuperInvocation: true);
-            // We were not able to find the concrete dispatch target.
-            // But we would like to give the user at least some resolution.
-            // So, we retry without the "concrete" requirement.
-            if (staticElement == null) {
-              staticElement = staticType.lookUpInheritedMember(
-                  methodName.name, _definingLibrary,
-                  concrete: false);
-              if (staticElement != null) {
-                _resolver.errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                    methodName,
-                    [staticElement.kind.displayName, methodName.name]);
-              }
-            }
-          }
-        } else {
-          staticElement = _resolveInvokedElementWithTarget(
-              target, staticType, methodName, isConditional);
-        }
-      }
-    }
-
-    staticElement = _convertSetterToGetter(staticElement);
-
-    //
-    // Given the elements, determine the type of the function we are invoking
-    //
-    DartType staticType = _getInvokeType(staticElement);
-    methodName.staticType = staticType;
-
-    //
-    // Instantiate generic function or method if needed.
-    //
-    DartType staticInvokeType = _instantiateGenericMethod(
-        staticType, node.typeArguments, node.methodName);
-
-    //
-    // Record the results.
-    //
-    methodName.staticElement = staticElement;
-    node.staticInvokeType = staticInvokeType;
-    ArgumentList argumentList = node.argumentList;
-    if (staticInvokeType != null) {
-      List<ParameterElement> parameters =
-          _computeCorrespondingParameters(argumentList, staticInvokeType);
-      argumentList.correspondingStaticParameters = parameters;
-    }
-    //
-    // Then check for error conditions.
-    //
-    ErrorCode errorCode = _checkForInvocationError(
-        target, true, staticElement, staticType, methodName.name);
-    if (errorCode != null &&
-        target is SimpleIdentifier &&
-        target.staticElement is PrefixElement) {
-      Identifier functionName =
-          new PrefixedIdentifierImpl.temp(target, methodName);
-      if (_resolver.nameScope.shouldIgnoreUndefined(functionName)) {
-        return null;
-      }
-    }
-    if (errorCode == null) {
-      return null;
-    }
-
-    if (identical(
-            errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) ||
-        identical(errorCode,
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT) ||
-        identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-      if (!_resolver.nameScope.shouldIgnoreUndefined(methodName)) {
-        _resolver.errorReporter
-            .reportErrorForNode(errorCode, methodName, [methodName.name]);
-      }
-    } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
-      String targetTypeName;
-      if (target == null) {
-        ClassElement enclosingClass = _resolver.enclosingClass;
-        targetTypeName = enclosingClass.displayName;
-        ErrorCode proxyErrorCode = StaticTypeWarningCode.UNDEFINED_METHOD;
-        _recordUndefinedNode(_resolver.enclosingClass, proxyErrorCode,
-            methodName, [methodName.name, targetTypeName]);
-      } else {
-        // ignore Function "call"
-        // (if we are about to create a hint using type propagation,
-        // then we can use type propagation here as well)
-        DartType targetType = null;
-        targetType = _getStaticType(target);
-        if (targetType != null &&
-            targetType.isDartCoreFunction &&
-            methodName.name == FunctionElement.CALL_METHOD_NAME) {
-          return null;
-        }
-        if (!node.isCascaded) {
-          ClassElement typeReference = getTypeReference(target);
-          if (typeReference != null) {
-            ConstructorElement constructor =
-                typeReference.getNamedConstructor(methodName.name);
-            if (constructor != null) {
-              _recordUndefinedNode(
-                  typeReference,
-                  StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
-                  methodName,
-                  [methodName.name, typeReference.name]);
-              return null;
-            }
-          }
-        }
-
-        targetTypeName = targetType?.displayName;
-        ErrorCode proxyErrorCode = StaticTypeWarningCode.UNDEFINED_METHOD;
-
-        _recordUndefinedNode(targetType.element, proxyErrorCode, methodName,
-            [methodName.name, targetTypeName]);
-      }
-    } else if (identical(
-        errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
-      // Generate the type name.
-      // The error code will never be generated via type propagation
-      DartType getSuperType(DartType type) {
-        if (type is InterfaceType) {
-          InterfaceType superclass = type.superclass;
-          if (superclass != null) return superclass;
-        }
-        return type;
-      }
-
-      DartType targetType = getSuperType(_getStaticType(target));
-      String targetTypeName = targetType?.name;
-      _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-          methodName,
-          [methodName.name, targetTypeName]);
-    } else if (identical(errorCode, StaticWarningCode.USE_OF_VOID_RESULT)) {
-      _resolver.errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, target ?? methodName, []);
-    }
+    _methodInvocationResolver.resolve(node);
     return null;
   }
 
@@ -1122,99 +915,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given that we have found code to invoke the given [element], return the
-   * error code that should be reported, or `null` if no error should be
-   * reported. The [target] is the target of the invocation, or `null` if there
-   * was no target. The flag [useStaticContext] should be `true` if the
-   * invocation is in a static constant (does not have access to instance state).
-   */
-  ErrorCode _checkForInvocationError(Expression target, bool useStaticContext,
-      Element element, DartType type, String name) {
-    // Prefix is not declared, instead "prefix.id" are declared.
-    if (element is PrefixElement) {
-      return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
-    } else if (element is PropertyAccessorElement) {
-      //
-      // This is really a function expression invocation.
-      //
-      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
-      FunctionType getterType = element.type;
-      if (getterType != null) {
-        DartType returnType = getterType.returnType;
-        return _getErrorCodeForExecuting(returnType);
-      }
-    } else if (element is ExecutableElement) {
-      return null;
-    } else if (element is MultiplyDefinedElement) {
-      // The error has already been reported
-      return null;
-    } else if (element == null && target is SuperExpression) {
-      // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes,
-      // this one, and a code that describes the situation where the method was
-      // found, but it was not accessible from the current library.
-      return StaticTypeWarningCode.UNDEFINED_SUPER_METHOD;
-    } else {
-      //
-      // This is really a function expression invocation.
-      //
-      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
-      if (element is PropertyInducingElement) {
-        PropertyAccessorElement getter = element.getter;
-        FunctionType getterType = getter.type;
-        if (getterType != null) {
-          DartType returnType = getterType.returnType;
-          return _getErrorCodeForExecuting(returnType);
-        }
-      } else if (element is VariableElement) {
-        return _getErrorCodeForExecuting(type);
-      } else {
-        if (target == null) {
-          ClassElement enclosingClass = _resolver.enclosingClass;
-          if (enclosingClass == null) {
-            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
-          } else if (element == null) {
-            // Proxy-conditional warning, based on state of
-            // resolver.getEnclosingClass()
-            return StaticTypeWarningCode.UNDEFINED_METHOD;
-          } else {
-            return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-          }
-        } else {
-          DartType targetType;
-          if (useStaticContext) {
-            targetType = _getStaticType(target);
-          } else {
-            // Compute and use the propagated type, if it is null, then it may
-            // be the case that static type is some type, in which the static
-            // type should be used.
-            targetType = _getBestType(target);
-          }
-          if (targetType == null) {
-            if (target is Identifier &&
-                _resolver.nameScope.shouldIgnoreUndefined(target)) {
-              return null;
-            }
-            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
-          } else if (targetType.isVoid) {
-            return StaticWarningCode.USE_OF_VOID_RESULT;
-          } else if (!targetType.isDynamic && target is! NullLiteral) {
-            // Proxy-conditional warning, based on state of
-            // targetType.getElement()
-            return StaticTypeWarningCode.UNDEFINED_METHOD;
-          } else if (targetType.isDynamic) {
-            PropertyAccessorElement getter =
-                _resolver.typeProvider.objectType.getGetter(name);
-            if (getter != null && getter.returnType is! FunctionType) {
-              return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
    * Check that the given index [expression] was resolved, otherwise a
    * [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated. The [target] is
    * the target of the expression. The [methodName] is the name of the operator
@@ -1275,50 +975,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * If the given [element] is a setter, return the getter associated with it.
-   * Otherwise, return the element unchanged.
-   */
-  Element _convertSetterToGetter(Element element) {
-    // TODO(brianwilkerson) Determine whether and why the element could ever be
-    // a setter.
-    if (element is PropertyAccessorElement) {
-      return element.variable.getter;
-    }
-    return element;
-  }
-
-  /**
-   * Return the best type of the given [expression] that is to be used for
-   * type analysis.
-   */
-  DartType _getBestType(Expression expression) {
-    DartType bestType = _resolveTypeParameter(expression.staticType);
-    if (bestType is FunctionType) {
-      //
-      // All function types are subtypes of 'Function', which is itself a
-      // subclass of 'Object'.
-      //
-      bestType = _resolver.typeProvider.functionType;
-    }
-    return bestType;
-  }
-
-  /**
-   * Return an error if the [type], which is presumably being invoked, is not a
-   * function. The errors for non functions may be broken up by type; currently,
-   * it returns a special value for when the type is `void`.
-   */
-  ErrorCode _getErrorCodeForExecuting(DartType type) {
-    if (_isExecutableType(type)) {
-      return null;
-    }
-
-    return type.isVoid
-        ? StaticWarningCode.USE_OF_VOID_RESULT
-        : StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-  }
-
-  /**
    * Assuming that the given [identifier] is a prefix for a deferred import,
    * return the library that is being imported.
    */
@@ -1327,28 +983,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     List<ImportElement> imports =
         prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
     return imports[0].importedLibrary;
-  }
-
-  /**
-   * Given an element, computes the type of the invocation.
-   *
-   * For executable elements (like methods, functions) this is just their type.
-   *
-   * For variables it is their type taking into account any type promotion.
-   *
-   * For calls to getters in Dart, we invoke the function that is returned by
-   * the getter, so the invoke type is the getter's returnType.
-   */
-  DartType _getInvokeType(Element element) {
-    DartType invokeType;
-    if (element is PropertyAccessorElement) {
-      invokeType = element.returnType;
-    } else if (element is ExecutableElement) {
-      invokeType = element.type;
-    } else if (element is VariableElement) {
-      invokeType = _promoteManager.getStaticType(element);
-    }
-    return invokeType ?? DynamicTypeImpl.instance;
   }
 
   /**
@@ -1461,25 +1095,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given [type] represents an object that could be
-   * invoked using the call operator '()'.
-   */
-  bool _isExecutableType(DartType type) {
-    type = type?.resolveToBound(_resolver.typeProvider.objectType);
-    if (type.isDynamic || type is FunctionType) {
-      return true;
-    } else if (type.isDartCoreFunction) {
-      return true;
-    } else if (type is InterfaceType) {
-      ClassElement classElement = type.element;
-      MethodElement methodElement = classElement.lookUpMethod(
-          FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-      return methodElement != null;
-    }
-    return false;
-  }
-
-  /**
    * Return `true` if the given [element] is a static element.
    */
   bool _isStatic(Element element) {
@@ -1582,18 +1197,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   /**
    * Look up the [FunctionType] of a getter or a method with the given [name]
-   * in the given [targetType].  The [target] is the target of the invocation,
-   * or `null` if there is no target.
+   * in the given [targetType].
    */
-  FunctionType _lookUpGetterType(
-      Expression target, DartType targetType, String name) {
+  FunctionType _lookUpGetterType(DartType targetType, String name,
+      {bool concrete: false, bool forSuper: false}) {
     targetType = _resolveTypeParameter(targetType);
     if (targetType is InterfaceType) {
       var nameObject = new Name(_definingLibrary.source.uri, name);
       return _inheritance.getMember(
         targetType,
         nameObject,
-        forSuper: target is SuperExpression,
+        concrete: concrete,
+        forSuper: forSuper,
       );
     }
     return null;
@@ -1894,12 +1509,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Expression leftOperand = node.leftOperand;
     if (leftOperand != null) {
       DartType leftType = _getStaticType(leftOperand);
-      var invokeType = _lookUpGetterType(leftOperand, leftType, methodName);
+      var isSuper = leftOperand is SuperExpression;
+      var invokeType = _lookUpGetterType(leftType, methodName,
+          concrete: isSuper, forSuper: isSuper);
       var invokeElement = invokeType?.element;
       node.staticElement = invokeElement;
       node.staticInvokeType = invokeType;
       if (_shouldReportMissingMember(leftType, invokeElement)) {
-        if (leftOperand is SuperExpression) {
+        if (isSuper) {
           _recordUndefinedToken(
               leftType.element,
               StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
@@ -1974,103 +1591,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
     }
-    return null;
-  }
-
-  /**
-   * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the
-   * element being invoked. If the returned element is a method, then the method
-   * will be invoked. If the returned element is a getter, the getter will be
-   * invoked without arguments and the result of that invocation will then be
-   * invoked with the arguments. The [methodName] is the name of the method
-   * being invoked ('m').
-   */
-  Element _resolveInvokedElement(SimpleIdentifier methodName) {
-    //
-    // Look first in the lexical scope.
-    //
-    Element element = _resolver.nameScope.lookup(methodName, _definingLibrary);
-    if (element == null) {
-      //
-      // If it isn't defined in the lexical scope, and the invocation is within
-      // a class, then look in the inheritance scope.
-      //
-      ClassElement enclosingClass = _resolver.enclosingClass;
-      if (enclosingClass != null) {
-        InterfaceType enclosingType = enclosingClass.type;
-        element = _lookUpMethod(null, enclosingType, methodName.name);
-        if (element == null) {
-          //
-          // If there's no method, then it's possible that 'm' is a getter that
-          // returns a function.
-          //
-          element = _lookUpGetter(null, enclosingType, methodName.name);
-        }
-      }
-    }
-    // TODO(brianwilkerson) Report this error.
-    return element;
-  }
-
-  /**
-   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the
-   * element being invoked. If the returned element is a method, then the method
-   * will be invoked. If the returned element is a getter, the getter will be
-   * invoked without arguments and the result of that invocation will then be
-   * invoked with the arguments. The [target] is the target of the invocation
-   * ('e'). The [targetType] is the type of the target. The [methodName] is th
-   * name of the method being invoked ('m').  [isConditional] indicates
-   * whether the invocation uses a '?.' operator.
-   */
-  Element _resolveInvokedElementWithTarget(Expression target,
-      DartType targetType, SimpleIdentifier methodName, bool isConditional) {
-    String name = methodName.name;
-    if (targetType is InterfaceType) {
-      Element element = _lookUpMethod(target, targetType, name);
-      if (element == null) {
-        //
-        // If there's no method, then it's possible that 'm' is a getter that
-        // returns a function.
-        //
-        // TODO (collinsn): need to add union type support here too, in the
-        // style of [lookUpMethod].
-        element = _lookUpGetter(target, targetType, name);
-      }
-      return element;
-    } else if (targetType is FunctionType &&
-        _resolver.typeProvider.isObjectMethod(name)) {
-      return _resolver.typeProvider.objectType.element.getMethod(name);
-    } else if (target is SimpleIdentifier) {
-      Element targetElement = target.staticElement;
-      if (targetType is FunctionType &&
-          name == FunctionElement.CALL_METHOD_NAME) {
-        return targetElement;
-      }
-      if (targetElement is PrefixElement) {
-        if (isConditional) {
-          _resolver.errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-              target,
-              [target.name]);
-        }
-        //
-        // Look to see whether the name of the method is really part of a
-        // prefixed identifier for an imported top-level function or top-level
-        // getter that returns a function.
-        //
-        Identifier functionName =
-            new PrefixedIdentifierImpl.temp(target, methodName);
-        Element element =
-            _resolver.nameScope.lookup(functionName, _definingLibrary);
-        if (element != null) {
-          // TODO(brianwilkerson) This isn't a method invocation, it's a
-          // function invocation where the function name is a prefixed
-          // identifier. Consider re-writing the AST.
-          return element;
-        }
-      }
-    }
-    // TODO(brianwilkerson) Report this error.
     return null;
   }
 

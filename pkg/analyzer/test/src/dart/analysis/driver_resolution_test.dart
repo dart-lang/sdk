@@ -3567,7 +3567,6 @@ main() {
     assertType(aRef, 'int');
   }
 
-  @failingTest
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;
@@ -5388,8 +5387,8 @@ main(double computation(int p)) {
     expect(target.staticType.toString(), '(int) → double');
 
     SimpleIdentifier methodName = invocation.methodName;
-    expect(methodName.staticElement, same(parameter));
-    expect(methodName.staticType, parameter.type);
+    expect(methodName.staticElement, isNull);
+    expect(methodName.staticType, dynamicType);
   }
 
   test_methodInvocation_instanceMethod_forwardingStub() async {
@@ -8735,69 +8734,6 @@ main() {
     SimpleIdentifier identifier = statement.expression;
     expect(identifier.staticElement, isNull);
     expect(identifier.staticType, isDynamicType);
-  }
-
-  test_unresolved_static_call() async {
-    addTestFile('''
-class C {
-  static f() => C.g();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var g = findNode.simple('g()');
-    assertElementNull(g);
-    assertTypeDynamic(g);
-    var invocation = g.parent as MethodInvocation;
-    assertTypeDynamic(invocation);
-    expect(invocation.staticInvokeType, isDynamicType);
-  }
-
-  test_unresolved_static_call_arguments() async {
-    addTestFile('''
-int x;
-class C {
-  static f() => C.g(x);
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var x = findNode.simple('x)');
-    assertElement(x, findElement.topGet('x'));
-    assertType(x, 'int');
-  }
-
-  test_unresolved_static_call_same_name_as_type_param() async {
-    addTestFile('''
-class C<T> {
-  static f() => C.T();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var t = findNode.simple('T()');
-    assertElementNull(t);
-    assertTypeDynamic(t);
-    var invocation = t.parent as MethodInvocation;
-    assertTypeDynamic(invocation);
-    expect(invocation.staticInvokeType, isDynamicType);
-  }
-
-  test_unresolved_static_call_type_arguments() async {
-    addTestFile('''
-class C {
-  static f() => C.g<int>();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var intRef = findNode.simple('int>');
-    assertElement(intRef, intType.element);
-    assertType(intRef, 'int');
   }
 
   /// Assert that the [argument] is associated with the [expected]. If the

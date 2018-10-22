@@ -275,24 +275,6 @@ var v;''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  test_ambiguousImport_withPrefix() async {
-    Source source = addSource(r'''
-library test;
-import 'lib1.dart' as p;
-import 'lib2.dart' as p;
-main() {
-  p.f();
-}''');
-    addNamedSource("/lib1.dart", r'''
-library lib1;
-f() {}''');
-    addNamedSource("/lib2.dart", r'''
-library lib2;
-f() {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
-  }
-
   test_argumentTypeNotAssignable_ambiguousClassName() async {
     // See dartbug.com/19624
     Source source = addNamedSource("/lib1.dart", r'''
@@ -1342,51 +1324,6 @@ void main() {
     }
   }
 
-  test_generalizedVoid_invocationOfVoidFieldError() async {
-    Source source = addSource(r'''
-class Container<T>{
-  T value;
-}
-void main(Container<void> voidContainer) {
-  voidContainer.value();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidLocalError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidResultError() async {
-    Source source = addSource(r'''
-void main() {
-  main()();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidToplevelError() async {
-    Source source = addSource(r'''
-void x;
-void main() {
-  x();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
   test_generalizedVoid_negateVoidValueError() async {
     Source source = addSource(r'''
 void main() {
@@ -1534,44 +1471,11 @@ void main() {
     assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
   }
 
-  test_generalizedVoid_useOfVoidCallMethodError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x.toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x?.toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
   test_generalizedVoid_useOfVoidCallSetterError() async {
     Source source = addSource(r'''
 void main() {
   void x;
   x.foo = null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCascadeError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x..toString();
 }
 ''');
     await computeAnalysisResult(source);
@@ -3989,29 +3893,6 @@ f(var p) {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
-  }
-
-  test_undefinedStaticMethodOrGetter_method() async {
-    Source source = addSource(r'''
-class C {}
-f(var p) {
-  f(C.m());
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_undefinedStaticMethodOrGetter_method_inSuperclass() async {
-    Source source = addSource(r'''
-class S {
-  static m() {}
-}
-class C extends S {}
-f(var p) {
-  f(C.m());
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedStaticMethodOrGetter_setter_inSuperclass() async {

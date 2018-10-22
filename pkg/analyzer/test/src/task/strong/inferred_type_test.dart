@@ -4485,22 +4485,8 @@ class InferredTypeTest_Driver extends AbstractStrongTest
 
   @failingTest
   @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
-  }
-
-  @failingTest
-  @override
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
     return super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
   }
 }

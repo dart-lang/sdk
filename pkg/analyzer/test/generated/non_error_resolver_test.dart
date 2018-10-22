@@ -106,12 +106,6 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
 
   @override
   @failingTest
-  test_null_callMethod() {
-    return super.test_null_callMethod();
-  }
-
-  @override
-  @failingTest
   test_null_callOperator() {
     return super.test_null_callOperator();
   }
@@ -3590,86 +3584,6 @@ class A<E> {
     verify([source]);
   }
 
-  test_invocationOfNonFunction_dynamic() async {
-    Source source = addSource(r'''
-class A {
-  var f;
-}
-class B extends A {
-  g() {
-    f();
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_functionTypeTypeParameter() async {
-    Source source = addSource(r'''
-typedef void Action<T>(T x);
-class C<T, U extends Action<T>> {
-  T value;
-  U action;
-  C(this.value, [this.action]);
-  void act() {
-    action(value);
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_getter() async {
-    Source source = addSource(r'''
-class A {
-  var g;
-}
-f() {
-  A a;
-  a.g();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_localVariable() async {
-    Source source = addSource(r'''
-f() {
-  var g;
-  g();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_localVariable_dynamic() async {
-    Source source = addSource(r'''
-f() {}
-main() {
-  var v = f;
-  v();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_Object() async {
-    Source source = addSource(r'''
-main() {
-  Object v = null;
-  v();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-    verify([source]);
-  }
-
   Future test_issue32114() async {
     addNamedSource('/a.dart', '''
 class O {}
@@ -4982,15 +4896,6 @@ class A {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-  }
-
-  test_null_callMethod() async {
-    Source source = addSource(r'''
-main() {
-  null.m();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_null_callOperator() async {

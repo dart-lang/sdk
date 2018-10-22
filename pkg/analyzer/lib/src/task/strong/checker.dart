@@ -517,7 +517,9 @@ class CodeChecker extends RecursiveAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
     var element = node.methodName.staticElement;
-    if (element == null && !typeProvider.isObjectMethod(node.methodName.name)) {
+    if (element == null &&
+        !typeProvider.isObjectMethod(node.methodName.name) &&
+        node.methodName.name != FunctionElement.CALL_METHOD_NAME) {
       _recordDynamicInvoke(node, target);
 
       // Mark the tear-off as being dynamic, too. This lets us distinguish

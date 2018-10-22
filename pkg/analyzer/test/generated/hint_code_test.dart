@@ -3980,38 +3980,6 @@ import 'lib1.dart' show a;''');
     verify([source]);
   }
 
-  test_undefinedMethod() async {
-    Source source = addSource(r'''
-f() {
-  var a = 'str';
-  a.notAMethodOnString();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
-  test_undefinedMethod_assignmentExpression() async {
-    Source source = addSource(r'''
-class A {}
-class B {
-  f(var a, var a2) {
-    a = new A();
-    a2 = new A();
-    a += a2;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
   test_undefinedOperator_binaryExpression() async {
     Source source = addSource(r'''
 class A {}

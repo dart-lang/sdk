@@ -62,7 +62,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
     errorCode == HintCode.UNUSED_CATCH_STACK ||
     errorCode == HintCode.UNUSED_IMPORT ||
-    errorCode == HintCode.UNDEFINED_METHOD ||
     errorCode == ParserErrorCode.EXPECTED_TOKEN ||
     errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
     errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||

@@ -4154,7 +4154,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       var superMemberType = _inheritanceManager.getMember(
           enclosingType, nameObject,
-          forMixinIndex: mixinIndex, forSuper: true);
+          forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMemberType == null) {
         _errorReporter.reportErrorForNode(
