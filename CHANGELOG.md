@@ -1,3 +1,7 @@
+# future
+
+* new lint: `prefer_int_literals`
+
 # 0.1.70
 
 * fix NPE in `prefer_iterable_whereType`

@@ -93,6 +93,7 @@ import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
 import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
 import 'package:linter/src/rules/prefer_initializing_formals.dart';
+import 'package:linter/src/rules/prefer_int_literals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
 import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
@@ -225,6 +226,7 @@ void registerLintRules() {
     ..register(new PreferFunctionDeclarationsOverVariables())
     ..register(new PreferGenericFunctionTypeAliases())
     ..register(new PreferInitializingFormals())
+    ..register(new PreferIntLiterals())
     ..register(new PreferInterpolationToComposeStrings())
     ..register(new PreferIterableWhereType())
     ..register(new PreferIsEmpty())

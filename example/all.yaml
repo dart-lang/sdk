@@ -93,6 +93,7 @@ linter:
     - prefer_function_declarations_over_variables
     - prefer_generic_function_type_aliases
     - prefer_initializing_formals
+    - prefer_int_literals
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
