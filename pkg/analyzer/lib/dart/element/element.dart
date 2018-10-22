@@ -1309,6 +1309,11 @@ abstract class LibraryElement implements Element {
   /// computed yet.
   Namespace get publicNamespace;
 
+  /// Return the top-level elements defined in each of the compilation units
+  /// that are included in this library. This includes both public and private
+  /// elements, but does not include imports, exports, or synthetic elements.
+  Iterable<Element> get topLevelElements;
+
   /// Return a list containing all of the compilation units this library
   /// consists of. This includes the defining compilation unit and units
   /// included using the `part` directive.

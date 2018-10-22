@@ -929,6 +929,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   Namespace get publicNamespace => actualElement.publicNamespace;
 
   @override
+  Iterable<Element> get topLevelElements => actualElement.topLevelElements;
+
+  @override
   List<CompilationUnitElement> get units => actualElement.units;
 
   @override

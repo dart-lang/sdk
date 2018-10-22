@@ -5621,6 +5621,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  Iterable<Element> get topLevelElements sync* {
+    for (var unit in units) {
+      yield* unit.accessors;
+      yield* unit.enums;
+      yield* unit.functionTypeAliases;
+      yield* unit.functions;
+      yield* unit.mixins;
+      yield* unit.topLevelVariables;
+      yield* unit.types;
+    }
+  }
+
+  @override
   List<CompilationUnitElement> get units {
     List<CompilationUnitElement> units = new List<CompilationUnitElement>();
     units.add(_definingCompilationUnit);

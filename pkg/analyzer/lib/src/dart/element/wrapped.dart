@@ -566,6 +566,9 @@ class WrappedLibraryElement implements LibraryElement {
   @override
   Source get source => wrappedLib.source;
 
+  @override
+  Iterable<Element> get topLevelElements => wrappedLib.topLevelElements;
+
   @deprecated
   @override
   CompilationUnit get unit => wrappedLib.unit;
