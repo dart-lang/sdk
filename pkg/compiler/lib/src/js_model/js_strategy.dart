@@ -16,10 +16,12 @@ import '../compiler.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
+import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../environment.dart';
 import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
@@ -42,6 +44,7 @@ import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
@@ -64,7 +67,6 @@ import 'locals.dart';
 class JsBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
   JsKernelToElementMap _elementMap;
-  Sorter _sorter;
 
   JsBackendStrategy(this._compiler);
 
@@ -101,8 +103,8 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  Sorter get sorter {
-    return _sorter ??= new KernelSorter(elementMap);
+  void registerJClosedWorld(covariant JsClosedWorld closedWorld) {
+    _elementMap = closedWorld.elementMap;
   }
 
   @override
@@ -634,6 +636,8 @@ class JsClosedWorldBuilder {
 }
 
 class JsClosedWorld extends ClosedWorldBase {
+  static const String tag = 'closed-world';
+
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
@@ -642,6 +646,7 @@ class JsClosedWorld extends ClosedWorldBase {
   final GlobalLocalsMap globalLocalsMap;
   final ClosureData closureDataLookup;
   final OutputUnitData outputUnitData;
+  Sorter _sorter;
 
   JsClosedWorld(this.elementMap,
       {ConstantSystem constantSystem,
@@ -656,8 +661,8 @@ class JsClosedWorld extends ClosedWorldBase {
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Iterable<MemberEntity> processedMembers,
-      Map<ClassEntity, Iterable<ClassEntity>> mixinUses,
-      Map<ClassEntity, Iterable<ClassEntity>> typesImplementedBySubclasses,
+      Map<ClassEntity, Set<ClassEntity>> mixinUses,
+      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       ClassHierarchy classHierarchy,
       AbstractValueStrategy abstractValueStrategy,
       this.annotationsData,
@@ -682,6 +687,113 @@ class JsClosedWorld extends ClosedWorldBase {
             typesImplementedBySubclasses,
             classHierarchy) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
+  }
+
+  /// Deserializes a [JsClosedWorld] object from [source].
+  factory JsClosedWorld.readFromDataSource(
+      CompilerOptions options,
+      DiagnosticReporter reporter,
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy,
+      ir.Component component,
+      DataSource source) {
+    source.begin(tag);
+
+    JsKernelToElementMap elementMap =
+        new JsKernelToElementMap.readFromDataSource(
+            options, reporter, environment, component, source);
+    GlobalLocalsMap globalLocalsMap =
+        new GlobalLocalsMap.readFromDataSource(source);
+    source.registerLocalLookup(new LocalLookupImpl(globalLocalsMap));
+    ClassHierarchy classHierarchy = new ClassHierarchy.readFromDataSource(
+        source, elementMap.commonElements);
+    NativeData nativeData = new NativeData.readFromDataSource(
+        source, elementMap.elementEnvironment);
+    elementMap.nativeBasicData = nativeData;
+    InterceptorData interceptorData = new InterceptorData.readFromDataSource(
+        source, nativeData, elementMap.commonElements);
+    BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
+    RuntimeTypesNeed rtiNeed = new RuntimeTypesNeed.readFromDataSource(
+        source, elementMap.elementEnvironment);
+    JAllocatorAnalysis allocatorAnalysis =
+        new JAllocatorAnalysis.readFromDataSource(source, options);
+    NoSuchMethodData noSuchMethodData =
+        new NoSuchMethodData.readFromDataSource(source);
+
+    Set<ClassEntity> implementedClasses = source.readClasses().toSet();
+    Iterable<ClassEntity> liveNativeClasses = source.readClasses();
+    Iterable<MemberEntity> liveInstanceMembers = source.readMembers();
+    Iterable<MemberEntity> assignedInstanceMembers = source.readMembers();
+    Iterable<MemberEntity> processedMembers = source.readMembers();
+    Map<ClassEntity, Set<ClassEntity>> mixinUses =
+        source.readClassMap(() => source.readClasses().toSet());
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        source.readClassMap(() => source.readClasses().toSet());
+
+    AnnotationsData annotationsData =
+        new AnnotationsData.readFromDataSource(source);
+
+    ClosureData closureData =
+        new ClosureData.readFromDataSource(elementMap, source);
+
+    OutputUnitData outputUnitData =
+        new OutputUnitData.readFromDataSource(source);
+
+    source.end(tag);
+
+    return new JsClosedWorld(elementMap,
+        nativeData: nativeData,
+        interceptorData: interceptorData,
+        backendUsage: backendUsage,
+        rtiNeed: rtiNeed,
+        allocatorAnalysis: allocatorAnalysis,
+        noSuchMethodData: noSuchMethodData,
+        implementedClasses: implementedClasses,
+        liveNativeClasses: liveNativeClasses,
+        liveInstanceMembers: liveInstanceMembers,
+        assignedInstanceMembers: assignedInstanceMembers,
+        processedMembers: processedMembers,
+        mixinUses: mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        classHierarchy: classHierarchy,
+        abstractValueStrategy: abstractValueStrategy,
+        annotationsData: annotationsData,
+        globalLocalsMap: globalLocalsMap,
+        closureDataLookup: closureData,
+        outputUnitData: outputUnitData);
+  }
+
+  /// Serializes this [JsClosedWorld] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    elementMap.writeToDataSink(sink);
+    globalLocalsMap.writeToDataSink(sink);
+
+    classHierarchy.writeToDataSink(sink);
+    nativeData.writeToDataSink(sink);
+    interceptorData.writeToDataSink(sink);
+    backendUsage.writeToDataSink(sink);
+    rtiNeed.writeToDataSink(sink);
+    allocatorAnalysis.writeToDataSink(sink);
+    noSuchMethodData.writeToDataSink(sink);
+    sink.writeClasses(implementedClasses);
+    sink.writeClasses(liveNativeClasses);
+    sink.writeMembers(liveInstanceMembers);
+    sink.writeMembers(assignedInstanceMembers);
+    sink.writeMembers(processedMembers);
+    sink.writeClassMap(
+        mixinUses, (Set<ClassEntity> set) => sink.writeClasses(set));
+    sink.writeClassMap(typesImplementedBySubclasses,
+        (Set<ClassEntity> set) => sink.writeClasses(set));
+    annotationsData.writeToDataSink(sink);
+    closureDataLookup.writeToDataSink(sink);
+    outputUnitData.writeToDataSink(sink);
+    sink.end(tag);
+  }
+
+  @override
+  Sorter get sorter {
+    return _sorter ??= new KernelSorter(elementMap);
   }
 
   @override
@@ -1234,5 +1346,18 @@ class KernelSorter implements Sorter {
     MemberDefinition definition2 = elementMap.getMemberDefinition(b);
     return _compareSourceSpans(
         a, definition1.location, b, definition2.location);
+  }
+}
+
+/// [LocalLookup] implementation used to deserialize [JsClosedWorld].
+class LocalLookupImpl implements LocalLookup {
+  final GlobalLocalsMap _globalLocalsMap;
+
+  LocalLookupImpl(this._globalLocalsMap);
+
+  @override
+  Local getLocalByIndex(MemberEntity memberContext, int index) {
+    KernelToLocalsMapImpl map = _globalLocalsMap.getLocalsMap(memberContext);
+    return map.getLocalByIndex(index);
   }
 }

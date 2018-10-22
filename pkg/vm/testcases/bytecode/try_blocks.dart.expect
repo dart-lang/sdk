@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                4
   CheckStack
 Try #0 start:
@@ -62,7 +62,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
 Try #0 start:
@@ -226,7 +226,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                7
   CheckStack
   AllocateContext      3
@@ -505,7 +505,7 @@ L1:
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                8
   CheckStack
 Try #0 start:
@@ -615,7 +615,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                3
   CheckStack
   PushInt              0
@@ -693,7 +693,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                9
   CheckStack
   AllocateContext      2
@@ -929,7 +929,7 @@ Closure CP#8 {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                6
   CheckStack
   AllocateContext      1
@@ -1232,7 +1232,7 @@ L8:
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                5
   CheckStack
 Try #0 start:
@@ -1304,7 +1304,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

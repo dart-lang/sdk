@@ -10,6 +10,7 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
 import '../native/native.dart' as native;
+import '../serialization/serialization.dart';
 
 /// Returns `true` if parameter and returns types should be trusted for
 /// [element].
@@ -179,6 +180,13 @@ AnnotationsData processAnnotations(
 }
 
 abstract class AnnotationsData {
+  /// Deserializes a [AnnotationsData] object from [source].
+  factory AnnotationsData.readFromDataSource(DataSource source) =
+      AnnotationsDataImpl.readFromDataSource;
+
+  /// Serializes this [AnnotationsData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Functions with a `@NoInline()` or `@noInline` annotation.
   Iterable<FunctionEntity> get nonInlinableFunctions;
 
@@ -199,6 +207,10 @@ abstract class AnnotationsData {
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
+  /// Tag used for identifying serialized [AnnotationsData] objects in a
+  /// debugging data stream.
+  static const String tag = 'annotations-data';
+
   final Iterable<FunctionEntity> nonInlinableFunctions;
   final Iterable<FunctionEntity> tryInlineFunctions;
   final Iterable<FunctionEntity> cannotThrowFunctions;
@@ -213,6 +225,35 @@ class AnnotationsDataImpl implements AnnotationsData {
       this.sideEffectFreeFunctions,
       this.trustTypeAnnotationsMembers,
       this.assumeDynamicMembers);
+
+  factory AnnotationsDataImpl.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Iterable<FunctionEntity> nonInlinableFunctions = source.readMembers();
+    Iterable<FunctionEntity> tryInlineFunctions = source.readMembers();
+    Iterable<FunctionEntity> cannotThrowFunctions = source.readMembers();
+    Iterable<FunctionEntity> sideEffectFreeFunctions = source.readMembers();
+    Iterable<MemberEntity> trustTypeAnnotationsMembers = source.readMembers();
+    Iterable<MemberEntity> assumeDynamicMembers = source.readMembers();
+    source.end(tag);
+    return new AnnotationsDataImpl(
+        nonInlinableFunctions,
+        tryInlineFunctions,
+        cannotThrowFunctions,
+        sideEffectFreeFunctions,
+        trustTypeAnnotationsMembers,
+        assumeDynamicMembers);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMembers(nonInlinableFunctions);
+    sink.writeMembers(tryInlineFunctions);
+    sink.writeMembers(cannotThrowFunctions);
+    sink.writeMembers(sideEffectFreeFunctions);
+    sink.writeMembers(trustTypeAnnotationsMembers);
+    sink.writeMembers(assumeDynamicMembers);
+    sink.end(tag);
+  }
 }
 
 class AnnotationsDataBuilder implements AnnotationsData {
@@ -255,4 +296,8 @@ class AnnotationsDataBuilder implements AnnotationsData {
   Iterable<MemberEntity> get trustTypeAnnotationsMembers =>
       _trustTypeAnnotationsMembers;
   Iterable<MemberEntity> get assumeDynamicMembers => _assumeDynamicMembers;
+
+  void writeToDataSink(DataSink sink) {
+    throw new UnsupportedError('AnnotationsDataBuilder.writeToDataSink');
+  }
 }

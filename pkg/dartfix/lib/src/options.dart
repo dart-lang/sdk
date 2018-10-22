@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:analyzer_cli/src/fix/context.dart';
+import 'package:dartfix/src/context.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;

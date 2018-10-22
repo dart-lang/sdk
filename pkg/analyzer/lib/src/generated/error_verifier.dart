@@ -267,12 +267,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
-  /**
-   * If `true`, mixins are allowed to inherit from types other than Object, and
-   * are allowed to reference `super`.
-   */
-  final bool enableSuperMixins;
-
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
   /// Setting this flag to `true` disables the check for conflicting generics.
@@ -287,7 +281,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, this.enableSuperMixins,
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
@@ -307,6 +301,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
   }
+
+  /**
+   * If `true`, mixins are allowed to inherit from types other than Object, and
+   * are allowed to reference `super`.
+   */
+  @deprecated
+  bool get enableSuperMixins => false;
 
   ClassElement get enclosingClass => _enclosingClass;
 
@@ -1920,8 +1921,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 mixinName, mixinElement)) {
               problemReported = true;
             }
-            if (!enableSuperMixins &&
-                _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+            if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
               problemReported = true;
             }
             if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
@@ -4102,7 +4102,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForMixinReferencesSuper(
       TypeName mixinName, ClassElement mixinElement) {
-    if (!enableSuperMixins && mixinElement.hasReferenceToSuper) {
+    if (mixinElement.hasReferenceToSuper) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
           mixinName,

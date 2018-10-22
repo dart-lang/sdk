@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -24,7 +24,7 @@ ConstantPool {
 }
 class B extends self::A<core::String> {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -44,7 +44,7 @@ ConstantPool {
 }
 class C<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic, T3 extends core::Object = dynamic> extends self::B {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -65,7 +65,7 @@ ConstantPool {
 class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
   generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-6]
@@ -98,7 +98,7 @@ ConstantPool {
     : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -168,7 +168,7 @@ ConstantPool {
     [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P, #lib::D::Q>] this.{self::D::foo} = y as{TypeError} core::Map<self::D::P, self::D::Q>;
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 2, 0
@@ -236,7 +236,7 @@ ConstantPool {
     return (z as core::Map<self::D::foo3::T2, self::D::Q>).{core::Map::values};
   }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                2
   CheckStack
   Push                 FP[-6]
@@ -289,7 +289,7 @@ ConstantPool {
 }
 class E<P extends core::String = core::String> extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull
@@ -302,7 +302,7 @@ ConstantPool {
 ]  static factory •<P extends core::String = dynamic>() → self::E<self::E::•::P>
     return null;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 2, 0
@@ -334,7 +334,7 @@ ConstantPool {
 }
 static field core::List<core::Iterable<dynamic>> globalVar;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -395,7 +395,7 @@ ConstantPool {
   return x as self::A<core::int>;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -418,7 +418,7 @@ ConstantPool {
   self::globalVar = x as{TypeError} core::List<core::Iterable<dynamic>>;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

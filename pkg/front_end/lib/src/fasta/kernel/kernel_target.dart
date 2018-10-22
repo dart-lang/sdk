@@ -91,8 +91,7 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder;
+        TypeDeclarationBuilder;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -482,10 +481,7 @@ class KernelTarget extends TargetImplementation {
         builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
-            computeKernelSubstitutionMap(
-                builder.getSubstitutionMap(supertype, builder.fileUri,
-                    builder.charOffset, dynamicType),
-                builder.parent);
+            builder.getSubstitutionMap(supertype.target);
         for (Constructor constructor in supertype.cls.constructors) {
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
               builder.target, builder.cls.mixin, constructor, substitutionMap));
@@ -497,18 +493,6 @@ class KernelTarget extends TargetImplementation {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
-  }
-
-  Map<TypeParameter, DartType> computeKernelSubstitutionMap(
-      Map<TypeVariableBuilder, TypeBuilder> substitutionMap,
-      LibraryBuilder library) {
-    if (substitutionMap == null) return const <TypeParameter, DartType>{};
-    Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
-    substitutionMap
-        .forEach((TypeVariableBuilder variable, TypeBuilder argument) {
-      result[variable.target] = argument.build(library);
-    });
-    return result;
   }
 
   Constructor makeMixinApplicationConstructor(Class cls, Class mixin,

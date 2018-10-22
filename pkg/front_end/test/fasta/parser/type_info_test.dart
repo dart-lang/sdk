@@ -1281,7 +1281,7 @@ class TypeParamOrArgInfoTest {
 
   void test_computeTypeArg_complex_recovery() {
     expectComplexTypeArg('<S extends T>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 7)
+      error(codeExpectedAfterButGot, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1290,7 +1290,7 @@ class TypeParamOrArgInfoTest {
       'endTypeArguments 1 < >',
     ]);
     expectComplexTypeArg('<S extends List<T>>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 7)
+      error(codeExpectedAfterButGot, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1524,7 +1524,7 @@ class TypeParamOrArgInfoTest {
 
   void test_computeTypeParam_complex_recovery() {
     expectComplexTypeParam('<S Function()>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 8),
+      error(codeExpectedAfterButGot, 1, 1),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
@@ -1538,7 +1538,6 @@ class TypeParamOrArgInfoTest {
     ]);
     expectComplexTypeParam('<void Function()>', expectedErrors: [
       error(codeExpectedIdentifier, 1, 4),
-      error(codeUnexpectedToken, 1, 4),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar void',
@@ -1551,7 +1550,7 @@ class TypeParamOrArgInfoTest {
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<S<T>>', expectedErrors: [
-      error(codeUnexpectedToken, 2, 1),
+      error(codeExpectedAfterButGot, 1, 1),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
@@ -1687,6 +1686,39 @@ class TypeParamOrArgInfoTest {
       'endTypeVariables < >'
     ]);
   }
+
+  void test_computeTypeParam_34850() {
+    expectComplexTypeParam('<S<T>> A', expectedAfter: 'A', expectedErrors: [
+      error(codeExpectedAfterButGot, 1, 1),
+    ], expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar S',
+      'endMetadataStar 0',
+      'handleIdentifier S typeVariableDeclaration',
+      'beginTypeVariable S',
+      'handleTypeVariablesDefined S 1',
+      'handleNoType S',
+      'endTypeVariable < 0 null',
+      'endTypeVariables < >',
+    ]);
+    expectComplexTypeParam('<S();> A',
+        inDeclaration: true,
+        expectedAfter: 'A',
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined S 1',
+          'handleNoType S',
+          'endTypeVariable ( 0 null',
+          'endTypeVariables < >',
+        ]);
+  }
 }
 
 void expectInfo(expectedInfo, String source, {bool required}) {
@@ -1816,7 +1848,8 @@ void expectComplexTypeParam(String source,
       reason: 'TypeParamOrArgInfo.skipType'
           ' should not modify the token stream');
 
-  TypeInfoListener listener = new TypeInfoListener(metadataAllowed: true);
+  TypeInfoListener listener =
+      new TypeInfoListener(firstToken: start, metadataAllowed: true);
   Parser parser = new Parser(listener);
   Token actualEnd = typeVarInfo.parseVariables(start, parser);
   validateTokens(start);
@@ -1851,7 +1884,9 @@ TypeParamOrArgInfo computeVar(
 void expectEnd(String tokenAfter, Token end) {
   if (tokenAfter == null) {
     expect(end.isEof, isFalse);
-    expect(end.next.isEof, isTrue);
+    if (!end.next.isEof) {
+      fail('Expected EOF after $end but found ${end.next}');
+    }
   } else {
     expect(end.next.lexeme, tokenAfter);
   }
@@ -1885,7 +1920,7 @@ void validateTokens(Token token) {
   while (!token.isEof) {
     Token next = token.next;
     expect(token.charOffset, lessThanOrEqualTo(next.charOffset));
-    expect(next.previous, token);
+    expect(next.previous, token, reason: next.type.toString());
     if (next is SyntheticToken) {
       expect(next.beforeSynthetic, token);
     }
@@ -1899,8 +1934,13 @@ class TypeInfoListener implements Listener {
   final bool metadataAllowed;
   List<String> calls = <String>[];
   List<ExpectedError> errors;
+  Token firstToken;
 
-  TypeInfoListener({this.metadataAllowed: false});
+  TypeInfoListener({this.firstToken, this.metadataAllowed: false}) {
+    if (firstToken != null && firstToken.isEof) {
+      firstToken = firstToken.next;
+    }
+  }
 
   @override
   void beginArguments(Token token) {
@@ -2000,16 +2040,22 @@ class TypeInfoListener implements Listener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     calls.add('endTypeArguments $count $beginToken $endToken');
+    assertTokenInStream(beginToken);
+    assertTokenInStream(endToken);
   }
 
   @override
   void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     calls.add('endTypeVariable $token $index $extendsOrSuper');
+    assertTokenInStream(token);
+    assertTokenInStream(extendsOrSuper);
   }
 
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     calls.add('endTypeVariables $beginToken $endToken');
+    assertTokenInStream(beginToken);
+    assertTokenInStream(endToken);
   }
 
   @override
@@ -2081,6 +2127,25 @@ class TypeInfoListener implements Listener {
 
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
+  }
+
+  assertTokenInStream(Token match) {
+    if (firstToken != null && match != null && !match.isEof) {
+      Token token = firstToken;
+      while (!token.isEof) {
+        if (identical(token, match)) {
+          return;
+        }
+        token = token.next;
+      }
+      final msg = new StringBuffer();
+      msg.writeln('Expected $match in token stream, but found');
+      while (!token.isEof) {
+        msg.write(' $token');
+        token = token.next;
+      }
+      fail(msg.toString());
+    }
   }
 }
 

@@ -10,6 +10,7 @@ import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField;
 import '../options.dart';
+import '../serialization/serialization.dart';
 
 abstract class AllocatorAnalysis {}
 
@@ -70,12 +71,44 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
 }
 
 class JAllocatorAnalysis implements AllocatorAnalysis {
+  /// Tag used for identifying serialized [JAllocatorAnalysis] objects in a
+  /// debugging data stream.
+  static const String tag = 'allocator-analysis';
+
   // --csp and --fast-startup have different constraints to the generated code.
   final CompilerOptions _options;
   final Map<JField, ConstantValue> _fixedInitializers =
       <JField, ConstantValue>{};
 
   JAllocatorAnalysis._(this._options);
+
+  /// Deserializes a [JAllocatorAnalysis] object from [source].
+  factory JAllocatorAnalysis.readFromDataSource(
+      DataSource source, CompilerOptions options) {
+    source.begin(tag);
+    JAllocatorAnalysis analysis = new JAllocatorAnalysis._(options);
+    int fieldCount = source.readInt();
+    for (int i = 0; i < fieldCount; i++) {
+      JField field = source.readMember();
+      // TODO(sra): Deserialize constant, when non-null is supported.
+      ConstantValue value = const NullConstantValue();
+      analysis._fixedInitializers[field] = value;
+    }
+    source.end(tag);
+    return analysis;
+  }
+
+  /// Serializes this [JAllocatorAnalysis] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(_fixedInitializers.length);
+    _fixedInitializers.forEach((JField field, ConstantValue value) {
+      sink.writeMember(field);
+      // TODO(sra): Serialize constant, when non-null is supported.
+      assert(value.isNull);
+    });
+    sink.end(tag);
+  }
 
   static JAllocatorAnalysis from(KAllocatorAnalysis kAnalysis,
       JsToFrontendMap map, CompilerOptions options) {

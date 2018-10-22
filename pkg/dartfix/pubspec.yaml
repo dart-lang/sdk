@@ -1,0 +1,19 @@
+name: dartfix
+version: 0.1.0
+author: Dart Team <misc@dartlang.org>
+description:
+  A tool for migrating Dart source to newer versions of the Dart SDK,
+  and fixing common issues.
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+dependencies:
+  #TODO(danrubel) depend upon analysis_server_client rather than analysis_server
+  # once analysis_server_client has been updated.
+  analysis_server: any
+  analyzer: ^0.33.0
+  analyzer_plugin: any
+  args: any
+  cli_util: any
+  path: any
+dev_dependencies:
+  test: ^1.3.0

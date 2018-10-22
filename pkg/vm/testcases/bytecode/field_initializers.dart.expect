@@ -9,7 +9,7 @@ class A extends core::Object {
   field core::int foo4;
   field core::int foo5 = 43;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-6]
@@ -46,7 +46,7 @@ ConstantPool {
     : self::A::foo1 = null, self::A::foo4 = foo4, self::A::foo5 = 44, super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-7]
@@ -85,7 +85,7 @@ ConstantPool {
     : self::A::foo4 = null, self::A::foo1 = x, self::A::foo5 = y.{core::num::+}(1), super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -104,7 +104,7 @@ ConstantPool {
     : this self::A::•(45)
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-8]
@@ -131,7 +131,7 @@ class B extends self::A {
   static field core::int foo7 = 47;
   static const field core::int foo8 = 48;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -155,7 +155,7 @@ ConstantPool {
     : super self::A::•(49)
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-7]
@@ -185,7 +185,7 @@ ConstantPool {
     ;
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

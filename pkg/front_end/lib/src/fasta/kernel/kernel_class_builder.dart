@@ -41,7 +41,10 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution, getSubstitutionMap;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
+
+import 'package:kernel/type_algebra.dart' as type_algebra
+    show getSubstitutionMap;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -61,15 +64,15 @@ import '../fasta_codes.dart'
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
+        templateIllegalMixinDueToConstructors,
+        templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
-        templateInterfaceCheckContext,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
-        templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause,
+        templateInterfaceCheckContext,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract,
         templateMixinApplicationIncompatibleSupertype,
@@ -101,11 +104,11 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelLibraryBuilder,
         KernelFunctionBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
-        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -723,7 +726,7 @@ abstract class KernelClassBuilder
   void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     CloneWithoutBody cloner = new CloneWithoutBody(
-        typeSubstitution: getSubstitutionMap(
+        typeSubstitution: type_algebra.getSubstitutionMap(
             hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
         cloneAnnotations: false);
     Procedure cloned = cloner.clone(procedure)..isExternal = false;
@@ -1715,5 +1718,55 @@ abstract class KernelClassBuilder
         checkRedirectingFactory(constructor, typeEnvironment);
       }
     }
+  }
+
+  /// Returns a map which maps the type variables of [superclass] to their
+  /// respective values as defined by the superclass clause of this class (and
+  /// its superclasses).
+  ///
+  /// It's assumed that [superclass] is a superclass of this class.
+  ///
+  /// For example, given:
+  ///
+  ///     class Box<T> {}
+  ///     class BeatBox extends Box<Beat> {}
+  ///     class Beat {}
+  ///
+  /// We have:
+  ///
+  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
+  ///
+  /// It's an error if [superclass] isn't a superclass.
+  Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
+    Supertype supertype = target.supertype;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    List<DartType> arguments;
+    List<TypeParameter> variables;
+    Class classNode;
+
+    while (classNode != superclass) {
+      classNode = supertype.classNode;
+      arguments = supertype.typeArguments;
+      variables = classNode.typeParameters;
+      supertype = classNode.supertype;
+      if (variables.isNotEmpty) {
+        Map<TypeParameter, DartType> directSubstitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < variables.length; i++) {
+          DartType argument =
+              i < arguments.length ? arguments[i] : const DynamicType();
+          if (substitutionMap != null) {
+            // TODO(ahe): Investigate if requiring the caller to use
+            // `substituteDeep` from `package:kernel/type_algebra.dart` instead
+            // of `substitute` is faster. If so, we can simply this code.
+            argument = substitute(argument, substitutionMap);
+          }
+          directSubstitutionMap[variables[i]] = argument;
+        }
+        substitutionMap = directSubstitutionMap;
+      }
+    }
+
+    return substitutionMap;
   }
 }

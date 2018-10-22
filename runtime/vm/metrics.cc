@@ -303,11 +303,6 @@ int64_t MetricPeakRSS::Value() const {
   return Service::MaxRSS();
 }
 
-#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  static type vm_metric_##variable##_;
-VM_METRIC_LIST(VM_METRIC_VARIABLE);
-#undef VM_METRIC_VARIABLE
-
 void Metric::Init() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
   vm_metric_##variable##_.InitInstance(name, NULL, Metric::unit);

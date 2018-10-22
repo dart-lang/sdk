@@ -135,14 +135,9 @@ class ParserErrorCode extends ErrorCode {
    * 0: the label that was duplicated
    */
   static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT =
-      const ParserErrorCode('DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
-          "The label '{0}' was already used in this switch statement.",
-          correction: "Try choosing a different name for this label.");
+      _DUPLICATE_LABEL_IN_SWITCH_STATEMENT;
 
-  static const ParserErrorCode DUPLICATE_DEFERRED = const ParserErrorCode(
-      'DUPLICATE_DEFERRED',
-      "An import directive can only have one 'deferred' keyword.",
-      correction: "Try removing all but one 'deferred' keyword.");
+  static const ParserErrorCode DUPLICATE_DEFERRED = _DUPLICATE_DEFERRED;
 
   /**
    * Parameters:
@@ -150,18 +145,13 @@ class ParserErrorCode extends ErrorCode {
    */
   static const ParserErrorCode DUPLICATED_MODIFIER = _DUPLICATED_MODIFIER;
 
-  static const ParserErrorCode DUPLICATE_PREFIX = const ParserErrorCode(
-      'DUPLICATE_PREFIX',
-      "An import directive can only have one prefix ('as' clause).",
-      correction: "Try removing all but one prefix.");
+  static const ParserErrorCode DUPLICATE_PREFIX = _DUPLICATE_PREFIX;
 
   static const ParserErrorCode EMPTY_ENUM_BODY = const ParserErrorCode(
       'EMPTY_ENUM_BODY', "An enum must declare at least one constant name.",
       correction: "Try declaring a constant.");
 
-  static const ParserErrorCode ENUM_IN_CLASS = const ParserErrorCode(
-      'ENUM_IN_CLASS', "Enums can't be declared inside classes.",
-      correction: "Try moving the enum to the top-level.");
+  static const ParserErrorCode ENUM_IN_CLASS = _ENUM_IN_CLASS;
 
   static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND =
       _EQUALITY_CANNOT_BE_EQUALITY_OPERAND;
@@ -201,10 +191,7 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
 
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
-      const ParserErrorCode('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-          "Export directives must preceed part directives.",
-          correction:
-              "Try moving the export directives before the part directives.");
+      _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
   static const ParserErrorCode EXTERNAL_AFTER_CONST = _EXTERNAL_AFTER_CONST;
 
@@ -245,18 +232,12 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the body of the setter, or "
               "removing the keyword 'external'.");
 
-  static const ParserErrorCode EXTERNAL_TYPEDEF = const ParserErrorCode(
-      'EXTERNAL_TYPEDEF', "Typedefs can't be declared to be 'external'.",
-      correction: "Try removing the keyword 'external'.");
+  static const ParserErrorCode EXTERNAL_TYPEDEF = _EXTERNAL_TYPEDEF;
 
-  static const ParserErrorCode EXTRANEOUS_MODIFIER = const ParserErrorCode(
-      'EXTRANEOUS_MODIFIER', "Can't have modifier '{0}' here.",
-      correction: "Try removing '{0}'.");
+  static const ParserErrorCode EXTRANEOUS_MODIFIER = _EXTRANEOUS_MODIFIER;
 
   static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION =
-      const ParserErrorCode('FACTORY_TOP_LEVEL_DECLARATION',
-          "Top-level declarations can't be declared to be 'factory'.",
-          correction: "Try removing the keyword 'factory'.");
+      _FACTORY_TOP_LEVEL_DECLARATION;
 
   static const ParserErrorCode FACTORY_WITH_INITIALIZERS = const ParserErrorCode(
       'FACTORY_WITH_INITIALIZERS',
@@ -271,15 +252,9 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try adding a body to the constructor.");
 
   static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
-      const ParserErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-          "Field formal parameters can only be used in a constructor.",
-          correction:
-              "Try replacing the field formal parameter with a normal parameter.");
+      _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR;
 
-  static const ParserErrorCode FINAL_AND_COVARIANT = const ParserErrorCode(
-      'FINAL_AND_COVARIANT',
-      "Members can't be declared to be both 'final' and 'covariant'.",
-      correction: "Try removing either the 'final' or 'covariant' keyword.");
+  static const ParserErrorCode FINAL_AND_COVARIANT = _FINAL_AND_COVARIANT;
 
   static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode(
       'FINAL_AND_VAR',

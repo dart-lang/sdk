@@ -909,9 +909,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      interpreter_(NULL),
-#endif
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -993,9 +990,6 @@ Isolate::~Isolate() {
   ASSERT(marking_stack_ == NULL);
   delete object_store_;
   delete api_state_;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  delete interpreter_;
-#endif
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -2003,12 +1997,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (interpreter() != NULL) {
-    interpreter()->VisitObjectPointers(visitor);
-  }
-#endif
-
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {
     simulator()->VisitObjectPointers(visitor);
@@ -2866,7 +2854,19 @@ void Isolate::UnscheduleThread(Thread* thread,
     scheduled_mutator_thread_->end_ = 0;
     scheduled_mutator_thread_ = NULL;
   }
-  thread->isolate_ = NULL;
+  // Even if we unschedule the mutator thread, e.g. via calling
+  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
+  // stacks active, which e.g. GC marker threads want to visit.  So we don't
+  // clear out the isolate pointer if we are on the mutator thread.
+  //
+  // The [thread] structure for the mutator thread is kept alive in the thread
+  // registry even if the mutator thread is temporarily unscheduled.
+  //
+  // All other threads are not allowed to unschedule themselves and schedule
+  // again later on.
+  if (!is_mutator) {
+    thread->isolate_ = NULL;
+  }
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
   thread->set_execution_state(Thread::kThreadInNative);

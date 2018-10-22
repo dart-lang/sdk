@@ -21,10 +21,12 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -33,8 +35,6 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -105,8 +105,7 @@ abstract class AnalysisContext {
 
   /**
    * Return the set of analysis options controlling the behavior of this
-   * context. Clients should not modify the returned set of options. The options
-   * should only be set by invoking the method [setAnalysisOptions].
+   * context. Clients should not modify the returned set of options.
    */
   AnalysisOptions get analysisOptions;
 
@@ -1226,6 +1225,7 @@ abstract class AnalysisOptions {
    * Return `true` if mixins are allowed to inherit from types other than
    * Object, and are allowed to reference `super`.
    */
+  @deprecated
   bool get enableSuperMixins;
 
   /**
@@ -1416,9 +1416,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableLazyAssignmentOperators = false;
 
   @override
-  bool enableSuperMixins = false;
-
-  @override
   bool enableTiming = false;
 
   /**
@@ -1472,7 +1469,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool disableCacheFlushing = false;
 
-  // A no-op setter.
   /**
    * A flag indicating whether implicit casts are allowed in [strongMode]
    * (they are always allowed in Dart 1.0 mode).
@@ -1493,6 +1489,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitDynamic = true;
 
+  // A no-op setter.
   /**
    * Return `true` to enable mixin declarations.
    * https://github.com/dart-lang/language/issues/12
@@ -1514,7 +1511,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
@@ -1610,6 +1606,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
 
+  @override
+  @deprecated
+  bool get enableSuperMixins => false;
+
+  @deprecated
+  void set enableSuperMixins(bool enable) {
+    // Ignored.
+  }
+
   @deprecated
   @override
   bool get enableUriInPartOf => true;
@@ -1664,7 +1669,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       // Append boolean flags.
       buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
-      buffer.addBool(enableSuperMixins);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongModeHints);
@@ -1731,7 +1735,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     disableCacheFlushing = false;
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
-    enableSuperMixins = false;
     enableTiming = false;
     _errorProcessors = null;
     _excludePatterns = null;
@@ -1752,7 +1755,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }

@@ -399,7 +399,7 @@ class KClassEnvImpl implements KClassEnv {
       }
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
-        // TODO(sigmund): remove once #33665 is fixed.
+        // TODO(sigmund): remove once #33732 is fixed.
         if (!includeNoSuchMethodForwarders ||
             member.name.isPrivate &&
                 member.name.libraryName != member.enclosingLibrary.reference) {

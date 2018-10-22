@@ -5,6 +5,7 @@ LibTest/io/RawDatagramSocket/any_A01_t02: Pass, Fail # Issue https://github.com/
 LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/distinct_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Next roll might fix it (see https://github.com/dart-lang/co19/commit/8b2e2be5bc3bb9fec41efec8ac6fc777e231d915)
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError

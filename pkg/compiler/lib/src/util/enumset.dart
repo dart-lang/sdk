@@ -32,6 +32,10 @@ abstract class EnumSet<E> {
   /// The bit mask of the shifted indices for the enum values in this set.
   int get value;
 
+  /// Sets the enum values in this set through a bit mask of the shifted enum
+  /// value indices.
+  void set value(int mask);
+
   /// Adds [enumValue] to this set.
   void add(E enumValue);
 
@@ -128,6 +132,11 @@ class _EnumSet<E> extends EnumSet<E> {
   int get value => _value;
 
   @override
+  void set value(int mask) {
+    _value = mask;
+  }
+
+  @override
   void add(E enumValue) {
     _value |= 1 << (enumValue as dynamic).index;
   }
@@ -171,6 +180,10 @@ class _ConstEnumSet<E> extends EnumSet<E> {
 
     values.forEach(add);
     return new _ConstEnumSet(value);
+  }
+
+  void set value(int mask) {
+    throw new UnsupportedError('EnumSet.value=');
   }
 
   @override

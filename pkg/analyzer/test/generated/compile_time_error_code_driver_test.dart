@@ -55,12 +55,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_mixinInference_noMatchingClass_typeParametersSupplied() {
-    return super.test_mixinInference_noMatchingClass_typeParametersSupplied();
-  }
-
-  @override
-  @failingTest
   test_mixinOfNonClass() {
     return super.test_mixinOfNonClass();
   }

@@ -8,8 +8,9 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
 import '../../common_elements.dart' show CommonElements;
-import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../../constants/values.dart';
 import '../../elements/entities.dart';
+import '../../serialization/serialization.dart';
 import '../../types/abstract_value_domain.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -717,6 +718,16 @@ class CommonMasks implements AbstractValueDomain {
   @override
   String getCompactText(AbstractValue value) {
     return formatType(value);
+  }
+
+  @override
+  TypeMask readAbstractValueFromDataSource(DataSource source) {
+    return new TypeMask.readFromDataSource(source, _closedWorld);
+  }
+
+  @override
+  void writeAbstractValueToDataSink(DataSink sink, covariant TypeMask value) {
+    value.writeToDataSink(sink);
   }
 }
 

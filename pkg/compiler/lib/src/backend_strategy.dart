@@ -13,7 +13,6 @@ import 'io/source_information.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
-import 'js_emitter/sorter.dart';
 import 'ssa/ssa.dart';
 import 'types/types.dart';
 import 'universe/world_builder.dart';
@@ -26,8 +25,11 @@ abstract class BackendStrategy {
   JClosedWorld createJClosedWorld(
       KClosedWorld closedWorld, OutputUnitData outputUnitData);
 
-  /// The [Sorter] used for sorting elements in the generated code.
-  Sorter get sorter;
+  /// Registers [closedWorld] as the current closed world used by this backend
+  /// strategy.
+  ///
+  /// This is used to support serialization after type inference.
+  void registerJClosedWorld(JClosedWorld closedWorld);
 
   /// Creates the [CodegenWorldBuilder] used by the codegen enqueuer.
   CodegenWorldBuilder createCodegenWorldBuilder(

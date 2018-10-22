@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_cli/src/fix/context.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartfix/src/context.dart';
 
 class TestContext with ResourceProviderMixin implements Context {
   @override

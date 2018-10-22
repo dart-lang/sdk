@@ -97,7 +97,9 @@ class Server {
 
   /**
    * Find the root directory of the analysis_server package by proceeding
-   * upward to the 'test' dir, and then going up one more directory.
+   * upward until finding the Dart SDK repository root then returning
+   * the analysis_server package root within the repository.
+   * Return `null` if it cannot be found.
    */
   static String findRoot([String pathname]) {
     pathname ??= Platform.script.toFilePath(windows: Platform.isWindows);
@@ -106,12 +108,10 @@ class Server {
       if (parent.length >= pathname.length) {
         return null;
       }
-      String name = basename(pathname);
-      if (['benchmark', 'test'].contains(name)) {
-        return parent;
-      }
-      if (name == 'pkg') {
-        return join(pathname, 'analysis_server');
+      String root = normalize(join(parent, 'pkg', 'analysis_server'));
+      String server = join(root, 'bin', 'server.dart');
+      if (new File(server).existsSync()) {
+        return root;
       }
       pathname = parent;
     }

@@ -2064,7 +2064,7 @@ const Code<Null> codeDuplicateDeferred = messageDuplicateDeferred;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicateDeferred = const MessageCode(
     "DuplicateDeferred",
-    analyzerCodes: <String>["DUPLICATE_DEFERRED"],
+    index: 71,
     message: r"""An import directive can only have one 'deferred' keyword.""",
     tip: r"""Try removing all but one 'deferred' keyword.""");
 
@@ -2081,7 +2081,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeDuplicateLabelInSwitchStatement =
     const Code<Message Function(String name)>("DuplicateLabelInSwitchStatement",
         templateDuplicateLabelInSwitchStatement,
-        analyzerCodes: <String>["DUPLICATE_LABEL_IN_SWITCH_STATEMENT"]);
+        index: 72);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
@@ -2099,7 +2099,7 @@ const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
-    analyzerCodes: <String>["DUPLICATE_PREFIX"],
+    index: 73,
     message: r"""An import directive can only have one prefix ('as' clause).""",
     tip: r"""Try removing all but one prefix.""");
 
@@ -2594,7 +2594,7 @@ const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
-    analyzerCodes: <String>["ENUM_IN_CLASS"],
+    index: 74,
     message: r"""Enums can't be declared inside classes.""",
     tip: r"""Try moving the enum to the top-level.""");
 
@@ -2977,7 +2977,7 @@ const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
-    analyzerCodes: <String>["EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE"],
+    index: 75,
     message: r"""Export directives must preceed part directives.""",
     tip: r"""Try moving the export directives before the part directives.""");
 
@@ -3182,7 +3182,7 @@ const Code<Null> codeExternalTypedef = messageExternalTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalTypedef = const MessageCode("ExternalTypedef",
-    analyzerCodes: <String>["EXTERNAL_TYPEDEF"],
+    index: 76,
     message: r"""Typedefs can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
 
@@ -3197,7 +3197,7 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
 const Code<Message Function(Token token)> codeExtraneousModifier =
     const Code<Message Function(Token token)>(
         "ExtraneousModifier", templateExtraneousModifier,
-        analyzerCodes: <String>["EXTRANEOUS_MODIFIER"]);
+        index: 77);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtraneousModifier(Token token) {
@@ -3297,7 +3297,7 @@ const Code<Null> codeFactoryTopLevelDeclaration =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
     "FactoryTopLevelDeclaration",
-    analyzerCodes: <String>["FACTORY_TOP_LEVEL_DECLARATION"],
+    index: 78,
     message: r"""Top-level declarations can't be declared to be 'factory'.""",
     tip: r"""Try removing the keyword 'factory'.""");
 
@@ -3417,7 +3417,7 @@ const Code<Null> codeFieldInitializerOutsideConstructor =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     "FieldInitializerOutsideConstructor",
-    analyzerCodes: <String>["FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR"],
+    index: 79,
     message: r"""Field formal parameters can only be used in a constructor.""",
     tip: r"""Try removing 'this.'.""");
 
@@ -3427,7 +3427,7 @@ const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndCovariant = const MessageCode(
     "FinalAndCovariant",
-    analyzerCodes: <String>["FINAL_AND_COVARIANT"],
+    index: 80,
     message:
         r"""Members can't be declared to be both 'final' and 'covariant'.""",
     tip: r"""Try removing either the 'final' or 'covariant' keyword.""");
@@ -4932,30 +4932,6 @@ Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
   return new Message(codeInternalProblemStoringMultipleInferredTypes,
       message: """There's already an inferred type (${type}) for '${name}'.""",
       arguments: {'type': _type, 'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateInternalProblemSuperclassNotFound =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Superclass not found '#name'.""",
-        withArguments: _withArgumentsInternalProblemSuperclassNotFound);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeInternalProblemSuperclassNotFound =
-    const Code<Message Function(String name)>(
-        "InternalProblemSuperclassNotFound",
-        templateInternalProblemSuperclassNotFound,
-        severity: Severity.internalProblem);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeInternalProblemSuperclassNotFound,
-      message: """Superclass not found '${name}'.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

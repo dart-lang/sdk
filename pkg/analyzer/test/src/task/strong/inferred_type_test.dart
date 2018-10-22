@@ -41,8 +41,7 @@ abstract class InferredTypeMixin {
   Future<CompilationUnit> checkFile(String content,
       {bool declarationCasts: true,
       bool implicitCasts: true,
-      bool implicitDynamic: true,
-      bool superMixins: false});
+      bool implicitDynamic: true});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved

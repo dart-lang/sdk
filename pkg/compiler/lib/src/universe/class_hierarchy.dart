@@ -6,11 +6,20 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
+import '../serialization/serialization.dart';
 import 'class_set.dart';
 
 // TODO(johnniwinther): Move more methods from `JClosedWorld` to
 // `ClassHierarchy`.
 abstract class ClassHierarchy {
+  /// Deserializes a [ClassHierarchy] object from [source].
+  factory ClassHierarchy.readFromDataSource(
+          DataSource source, CommonElements commonElements) =
+      ClassHierarchyImpl.readFromDataSource;
+
+  /// Serializes this [ClassHierarchy] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
 
@@ -141,12 +150,54 @@ abstract class ClassHierarchy {
 }
 
 class ClassHierarchyImpl implements ClassHierarchy {
+  /// Tag used for identifying serialized [ClassHierarchy] objects in a debugging
+  /// data stream.
+  static const String tag = 'class-hierarchy';
+
   final CommonElements _commonElements;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
   final Map<ClassEntity, ClassSet> _classSets;
 
   ClassHierarchyImpl(
       this._commonElements, this._classHierarchyNodes, this._classSets);
+
+  factory ClassHierarchyImpl.readFromDataSource(
+      DataSource source, CommonElements commonElements) {
+    source.begin(tag);
+    Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
+        new ClassHierarchyNodesMap();
+    int classCount = source.readInt();
+    for (int i = 0; i < classCount; i++) {
+      ClassHierarchyNode node = new ClassHierarchyNode.readFromDataSource(
+          source, classHierarchyNodes);
+      classHierarchyNodes[node.cls] = node;
+    }
+    Map<ClassEntity, ClassSet> classSets = {};
+    for (int i = 0; i < classCount; i++) {
+      ClassSet classSet =
+          new ClassSet.readFromDataSource(source, classHierarchyNodes);
+      classSets[classSet.cls] = classSet;
+    }
+
+    source.end(tag);
+    return new ClassHierarchyImpl(
+        commonElements, classHierarchyNodes, classSets);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(_classSets.length);
+    ClassHierarchyNode node =
+        getClassHierarchyNode(_commonElements.objectClass);
+    node.forEachSubclass((ClassEntity cls) {
+      getClassHierarchyNode(cls).writeToDataSink(sink);
+    }, ClassHierarchyNode.ALL);
+    ClassSet set = getClassSet(_commonElements.objectClass);
+    set.forEachSubclass((ClassEntity cls) {
+      getClassSet(cls).writeToDataSink(sink);
+    }, ClassHierarchyNode.ALL);
+    sink.end(tag);
+  }
 
   @override
   bool isInstantiated(ClassEntity cls) {

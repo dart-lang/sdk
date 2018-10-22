@@ -64,6 +64,48 @@ export interface SomeOptions {
       });
     });
 
+    test('parses an interface with type args', () {
+      final String input = '''
+interface ResponseError<D> {
+	data?: D;
+}
+    ''';
+      final List<ApiItem> output = extractTypes(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('data'));
+      expect(field.allowsUndefined, true);
+      expect(field.allowsNull, false);
+      expect(field.types, equals(['D']));
+    });
+
+    test('parses an interface with Arrays in Array<T> format', () {
+      final String input = '''
+export interface RequestMessage {
+	/**
+	 * The method's params.
+	 */
+	params?: Array<any> | object;
+}
+    ''';
+      final List<ApiItem> output = extractTypes(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('params'));
+      expect(field.comment, equals('''The method's params.'''));
+      expect(field.allowsUndefined, true);
+      expect(field.allowsNull, false);
+      expect(field.types, equals(['Array<any>', 'object']));
+    });
+
     test('flags nullable undefined values', () {
       final String input = '''
 export interface A {

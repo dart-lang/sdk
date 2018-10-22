@@ -19,6 +19,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
@@ -42,6 +43,20 @@ typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the classes and methods that need runtime types.
 abstract class RuntimeTypesNeed {
+  /// Deserializes a [RuntimeTypesNeed] object from [source].
+  factory RuntimeTypesNeed.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    bool isTrivial = source.readBool();
+    if (isTrivial) {
+      return const TrivialRuntimeTypesNeed();
+    }
+    return new RuntimeTypesNeedImpl.readFromDataSource(
+        source, elementEnvironment);
+  }
+
+  /// Serializes this [RuntimeTypesNeed] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] needs type arguments at runtime type.
   ///
   /// This is for instance the case for generic classes used in a type test:
@@ -105,6 +120,10 @@ abstract class RuntimeTypesNeed {
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   const TrivialRuntimeTypesNeed();
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(true); // Is trivial.
+  }
 
   @override
   bool classNeedsTypeArguments(ClassEntity cls) => true;
@@ -718,6 +737,10 @@ abstract class _RuntimeTypesBase {
 }
 
 class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
+  /// Tag used for identifying serialized [RuntimeTypesNeed] objects in a
+  /// debugging data stream.
+  static const String tag = 'runtime-types-need';
+
   final ElementEnvironment _elementEnvironment;
   final Set<ClassEntity> classesNeedingTypeArguments;
   final Set<FunctionEntity> methodsNeedingSignature;
@@ -736,6 +759,45 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.localFunctionsNeedingTypeArguments,
       this.selectorsNeedingTypeArguments,
       this.instantiationsNeedingTypeArguments);
+
+  factory RuntimeTypesNeedImpl.readFromDataSource(
+      DataSource source, ElementEnvironment elementEnvironment) {
+    source.begin(tag);
+    Set<ClassEntity> classesNeedingTypeArguments =
+        source.readClasses<ClassEntity>().toSet();
+    Set<FunctionEntity> methodsNeedingSignature =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> methodsNeedingTypeArguments =
+        source.readMembers<FunctionEntity>().toSet();
+    Set<Selector> selectorsNeedingTypeArguments =
+        source.readList(() => new Selector.readFromDataSource(source)).toSet();
+    Set<int> instantiationsNeedingTypeArguments =
+        source.readList(source.readInt).toSet();
+    source.end(tag);
+    return new RuntimeTypesNeedImpl(
+        elementEnvironment,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        null,
+        null,
+        selectorsNeedingTypeArguments,
+        instantiationsNeedingTypeArguments);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeBool(false); // Is _not_ trivial.
+    sink.begin(tag);
+    sink.writeClasses(classesNeedingTypeArguments);
+    sink.writeMembers(methodsNeedingSignature);
+    sink.writeMembers(methodsNeedingTypeArguments);
+    assert(localFunctionsNeedingSignature == null);
+    assert(localFunctionsNeedingTypeArguments == null);
+    sink.writeList(selectorsNeedingTypeArguments,
+        (Selector selector) => selector.writeToDataSink(sink));
+    sink.writeList(instantiationsNeedingTypeArguments, sink.writeInt);
+    sink.end(tag);
+  }
 
   bool checkClass(covariant ClassEntity cls) => true;
 

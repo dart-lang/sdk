@@ -18,11 +18,13 @@ import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
+import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
+import 'closure.dart';
 
 /// Interface that translates between Kernel IR nodes and entities used for
 /// global type inference and building the SSA graph for members.
@@ -273,6 +275,9 @@ abstract class KernelToLocalsMap {
   /// Returns the [JumpTarget] defined by the while statement [node] or `null`
   /// if [node] is not a jump target.
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
+
+  /// Serializes this [KernelToLocalsMap] to [sink].
+  void writeToDataSink(DataSink sink);
 }
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
@@ -346,6 +351,27 @@ abstract class MemberDefinition {
   /// The canonical location of [member]. This is used for sorting the members
   /// in the emitted code.
   SourceSpan get location;
+
+  /// Deserializes a [MemberDefinition] object from [source].
+  factory MemberDefinition.readFromDataSource(DataSource source) {
+    MemberKind kind = source.readEnum(MemberKind.values);
+    switch (kind) {
+      case MemberKind.regular:
+        return new RegularMemberDefinition.readFromDataSource(source);
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        return new SpecialMemberDefinition.readFromDataSource(source, kind);
+      case MemberKind.closureCall:
+      case MemberKind.closureField:
+        return new ClosureMemberDefinition.readFromDataSource(source, kind);
+    }
+    throw new UnsupportedError("Unexpected MemberKind $kind");
+  }
+
+  /// Serializes this [MemberDefinition] to [sink].
+  void writeToDataSink(DataSink sink);
 }
 
 enum ClassKind {
@@ -358,9 +384,28 @@ enum ClassKind {
 
 /// A member directly defined by its [ir.Member] node.
 class RegularMemberDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [RegularMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'regular-member-definition';
+
   final ir.Member node;
 
   RegularMemberDefinition(this.node);
+
+  factory RegularMemberDefinition.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Member node = source.readMemberNode();
+    source.end(tag);
+    return new RegularMemberDefinition(node);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(MemberKind.regular);
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    sink.end(tag);
+  }
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
@@ -372,10 +417,30 @@ class RegularMemberDefinition implements MemberDefinition {
 
 /// The definition of a special kind of member
 class SpecialMemberDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [SpecialMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'special-member-definition';
+
   final ir.TreeNode node;
   final MemberKind kind;
 
   SpecialMemberDefinition(this.node, this.kind);
+
+  factory SpecialMemberDefinition.readFromDataSource(
+      DataSource source, MemberKind kind) {
+    source.begin(tag);
+    ir.TreeNode node = source.readTreeNode();
+    source.end(tag);
+    return new SpecialMemberDefinition(node, kind);
+  }
+
+  @override
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeTreeNode(node);
+    sink.end(tag);
+  }
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
@@ -394,13 +459,48 @@ abstract class ClassDefinition {
   /// The canonical location of [cls]. This is used for sorting the classes
   /// in the emitted code.
   SourceSpan get location;
+
+  /// Deserializes a [ClassDefinition] object from [source].
+  factory ClassDefinition.readFromDataSource(DataSource source) {
+    ClassKind kind = source.readEnum(ClassKind.values);
+    switch (kind) {
+      case ClassKind.regular:
+        return new RegularClassDefinition.readFromDataSource(source);
+      case ClassKind.closure:
+        return new ClosureClassDefinition.readFromDataSource(source);
+      case ClassKind.record:
+        return new RecordContainerDefinition.readFromDataSource(source);
+    }
+    throw new UnsupportedError("Unexpected ClassKind $kind");
+  }
+
+  /// Serializes this [ClassDefinition] to [sink].
+  void writeToDataSink(DataSink sink);
 }
 
 /// A class directly defined by its [ir.Class] node.
 class RegularClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RegularClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'regular-class-definition';
+
   final ir.Class node;
 
   RegularClassDefinition(this.node);
+
+  factory RegularClassDefinition.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Class node = source.readClassNode();
+    source.end(tag);
+    return new RegularClassDefinition(node);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeClassNode(node);
+    sink.end(tag);
+  }
 
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Base1 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -22,7 +22,7 @@ ConstantPool {
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 1, 0
@@ -33,7 +33,7 @@ ConstantPool {
 }
 ]  method foo<T extends core::Object = dynamic>(self::Base1::foo::T a1, core::int a2) → void {}
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushInt              42
@@ -46,7 +46,7 @@ ConstantPool {
 ]  get bar() → dynamic
     return 42;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull
@@ -58,7 +58,7 @@ ConstantPool {
 }
 class A extends self::Base1 {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -76,7 +76,7 @@ ConstantPool {
     : super self::Base1::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -98,7 +98,7 @@ ConstantPool {
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base1::foo}<core::String>("a1", 2);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -115,7 +115,7 @@ ConstantPool {
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base1::foo};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -132,7 +132,7 @@ ConstantPool {
 ]  method testSuperGet() → dynamic
     return super.{self::Base1::bar};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -156,7 +156,7 @@ ConstantPool {
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base1::bar}.call<core::int>("param");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -177,7 +177,7 @@ ConstantPool {
 }
 abstract class Base2 extends core::Object {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -200,7 +200,7 @@ ConstantPool {
 }
 abstract class B extends self::Base2 {
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   Push                 FP[-5]
@@ -218,7 +218,7 @@ ConstantPool {
     : super self::Base2::•()
     ;
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-6]
@@ -272,7 +272,7 @@ ConstantPool {
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base2::foo}<core::double>("a1", 3.14, 5);
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -307,7 +307,7 @@ ConstantPool {
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base2::foo};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -342,7 +342,7 @@ ConstantPool {
 ]  method testSuperGet() → dynamic
     return super.{self::Base2::bar};
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   PushConstant         CP#0
@@ -384,7 +384,7 @@ ConstantPool {
 ]  method testSuperCallViaGetter() → dynamic
     return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base2::bar}.call<core::int>("param");
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                1
   CheckStack
   Push                 FP[-5]
@@ -424,7 +424,7 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode {
+Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushNull

@@ -180,6 +180,13 @@ class MetricHeapUsed : public Metric {
   virtual int64_t Value() const;
 };
 
+#if !defined(PRODUCT)
+#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
+  static type vm_metric_##variable##_;
+VM_METRIC_LIST(VM_METRIC_VARIABLE);
+#undef VM_METRIC_VARIABLE
+#endif  // !defined(PRODUCT)
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_METRICS_H_

@@ -568,18 +568,14 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate->set_interpreter(NULL);
-  }
 }
 
 // Get the active Interpreter for the current isolate.
 Interpreter* Interpreter::Current() {
-  Interpreter* interpreter = Isolate::Current()->interpreter();
+  Interpreter* interpreter = Thread::Current()->interpreter();
   if (interpreter == NULL) {
     interpreter = new Interpreter();
-    Isolate::Current()->set_interpreter(interpreter);
+    Thread::Current()->set_interpreter(interpreter);
   }
   return interpreter;
 }

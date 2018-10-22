@@ -7,8 +7,9 @@ code is modeled by the [AST][ast].
 Generally speaking, an element represents something that is declared in the
 code, such as a class, method, or variable. Elements can be explicitly declared,
 such as the class defined by a class declaration, or implicitly declared, such
-as the default constructor defined for concrete classes that do not have any
-explicit constructor declarations.
+as the default constructor defined for classes that do not have any explicit
+constructor declarations. Elements that are implicitly declared are referred to
+as _synthetic_ elements.
 
 There are a few elements that represent entities that are not declared. For
 example, there is an element representing a compilation unit (`.dart` file) and
@@ -45,7 +46,7 @@ ask the analysis session for the compilation unit representing that file.
 
 ```dart
 analyzeSingleFile(AnalysisSession session, String path) async {
-  UnitElementResult result = await session.UnitElementResult(path);
+  UnitElementResult result = await session.getUnitElement(path);
   CompilationUnitElement element = result.element;
 }
 ```

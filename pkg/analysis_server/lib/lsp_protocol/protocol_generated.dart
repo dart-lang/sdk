@@ -3586,7 +3586,7 @@ class MessageType {
 }
 
 class NotificationMessage implements Message {
-  NotificationMessage(this.method, this.jsonrpc) {
+  NotificationMessage(this.method, this.params, this.jsonrpc) {
     if (method == null) {
       throw 'method is required but was not provided';
     }
@@ -3596,8 +3596,14 @@ class NotificationMessage implements Message {
   }
   factory NotificationMessage.fromJson(Map<String, dynamic> json) {
     final method = json['method'];
+    final params = (json['params'] is List &&
+            (json['params'].length == 0 ||
+                json['params'].every((item) => true)))
+        ? new Either2<List<dynamic>, dynamic>.t1(
+            json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
+        : (json['params']);
     final jsonrpc = json['jsonrpc'];
-    return new NotificationMessage(method, jsonrpc);
+    return new NotificationMessage(method, params, jsonrpc);
   }
 
   final String jsonrpc;
@@ -3605,9 +3611,15 @@ class NotificationMessage implements Message {
   /// The method to be invoked.
   final String method;
 
+  /// The notification's params.
+  final Either2<List<dynamic>, dynamic> params;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['method'] = method ?? (throw 'method is required but was not set');
+    if (params != null) {
+      __result['params'] = params;
+    }
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
@@ -4140,7 +4152,7 @@ class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
 }
 
 class RequestMessage implements Message {
-  RequestMessage(this.id, this.method, this.jsonrpc) {
+  RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
       throw 'id is required but was not provided';
     }
@@ -4158,8 +4170,14 @@ class RequestMessage implements Message {
             ? new Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (number, string)'''));
     final method = json['method'];
+    final params = (json['params'] is List &&
+            (json['params'].length == 0 ||
+                json['params'].every((item) => true)))
+        ? new Either2<List<dynamic>, dynamic>.t1(
+            json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
+        : (json['params']);
     final jsonrpc = json['jsonrpc'];
-    return new RequestMessage(id, method, jsonrpc);
+    return new RequestMessage(id, method, params, jsonrpc);
   }
 
   /// The request id.
@@ -4169,10 +4187,16 @@ class RequestMessage implements Message {
   /// The method to be invoked.
   final String method;
 
+  /// The method's params.
+  final Either2<List<dynamic>, dynamic> params;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
+    if (params != null) {
+      __result['params'] = params;
+    }
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
@@ -4225,8 +4249,55 @@ class ResourceOperationKind {
   bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
 }
 
+class ResponseError<D> {
+  ResponseError(this.code, this.message, this.data) {
+    if (code == null) {
+      throw 'code is required but was not provided';
+    }
+    if (message == null) {
+      throw 'message is required but was not provided';
+    }
+  }
+  factory ResponseError.fromJson(Map<String, dynamic> json) {
+    final code = json['code'];
+    final message = json['message'];
+    final data = json['data'];
+    return new ResponseError<D>(code, message, data);
+  }
+
+  /// A number indicating the error type that occurred.
+  final num code;
+
+  /// A Primitive or Structured value that contains
+  /// additional information about the error. Can be
+  /// omitted.
+  final D data;
+
+  /// A string providing a short description of the error.
+  final String message;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['code'] = code ?? (throw 'code is required but was not set');
+    __result['message'] =
+        message ?? (throw 'message is required but was not set');
+    if (data != null) {
+      __result['data'] = data;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('code') &&
+        obj['code'] is num &&
+        obj.containsKey('message') &&
+        obj['message'] is String;
+  }
+}
+
 class ResponseMessage implements Message {
-  ResponseMessage(this.id, this.result, this.jsonrpc) {
+  ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
     if (jsonrpc == null) {
       throw 'jsonrpc is required but was not provided';
     }
@@ -4238,9 +4309,13 @@ class ResponseMessage implements Message {
             ? new Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (number, string)'''));
     final result = json['result'];
+    final error = json['error'];
     final jsonrpc = json['jsonrpc'];
-    return new ResponseMessage(id, result, jsonrpc);
+    return new ResponseMessage(id, result, error, jsonrpc);
   }
+
+  /// The error object in case a request fails.
+  final ResponseError<dynamic> error;
 
   /// The request id.
   final Either2<num, String> id;
@@ -4255,6 +4330,9 @@ class ResponseMessage implements Message {
     __result['id'] = id;
     if (result != null) {
       __result['result'] = result;
+    }
+    if (error != null) {
+      __result['error'] = error;
     }
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');

@@ -388,7 +388,6 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
-    b.write(writeOption('Enable super mixins', options.enableSuperMixins));
     b.write(writeOption('Generate dart2js hints', options.dart2jsHint));
     b.write(writeOption(
         'Generate errors in implicit files', options.generateImplicitErrors));

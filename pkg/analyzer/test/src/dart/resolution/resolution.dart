@@ -382,8 +382,6 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     findElement = new FindElement(result.unit);
   }
 
-  void setAnalysisOptions({bool enableSuperMixins});
-
   Element _unwrapHandle(Element element) {
     if (element is ElementHandle && element is! Member) {
       return element.actualElement;
