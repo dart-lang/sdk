@@ -52,6 +52,8 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_INT_LITERAL = const AssistKind(
+      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
   static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(
       'dart.assist.convert.toConstructorNormalParameter',
       30,

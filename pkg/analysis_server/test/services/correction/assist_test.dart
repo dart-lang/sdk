@@ -2504,6 +2504,38 @@ class A {
 ''');
   }
 
+  test_convertToIntLiteral() async {
+    await resolveTestUnit('''
+const double myDouble = 42.0;
+''');
+    await assertHasAssistAt('42.0', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_e() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e1;
+''');
+    await assertHasAssistAt('4.2e1', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_eBig() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e99999;
+''');
+    await assertNoAssistAt('4.2e99999', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
+  test_convertToIntLiteral_notDouble() async {
+    await resolveTestUnit('''
+const double myDouble = 42;
+''');
+    await assertNoAssistAt('42', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
     await resolveTestUnit('''
 main(p) {
