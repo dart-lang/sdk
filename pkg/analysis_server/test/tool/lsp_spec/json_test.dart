@@ -24,6 +24,19 @@ main() {
       expect(output, equals('{"id":1,"method":"test","jsonrpc":"test"}'));
     });
 
+    test('returns correct output for union types containing interface types',
+        () {
+      final params = new Either2<String, WorkspaceClientCapabilities>.t2(
+          new WorkspaceClientCapabilities(
+        true,
+        null,
+        null,
+        null,
+      ));
+      String output = json.encode(params);
+      expect(output, equals('{"applyEdit":true}'));
+    });
+
     test('returns correct output for types with lists', () {
       final start = new Position(1, 1);
       final end = new Position(2, 2);

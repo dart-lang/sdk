@@ -400,8 +400,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeDocCommentsAndAnnotations(buffer, interface);
 
   buffer.writeIndented('class ${interface.name} ');
-  if (interface.baseTypes.isNotEmpty) {
-    buffer.writeIndented('implements ${interface.baseTypes.join(', ')} ');
+  var allBaseTypes = interface.baseTypes.followedBy(['ToJsonable']);
+  if (allBaseTypes.isNotEmpty) {
+    buffer.writeIndented('implements ${allBaseTypes.join(', ')} ');
   }
   buffer
     ..writeln('{')
