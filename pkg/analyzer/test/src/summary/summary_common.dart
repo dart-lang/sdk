@@ -9640,6 +9640,16 @@ bool f() => false;
     checkDynamicTypeRef(serializeTypeText('dynamic'));
   }
 
+  test_type_inference_based_on_type_parameter() {
+    var class_ = serializeClassText('''
+class C<T> {
+  var field = T;
+}
+''');
+    var field = class_.fields[0];
+    checkLinkedTypeSlot(field.inferredTypeSlot, 'dart:core', 'Type');
+  }
+
   test_type_invalid_typeParameter_asPrefix() {
     UnlinkedClass c = serializeClassText('''
 class C<T> {

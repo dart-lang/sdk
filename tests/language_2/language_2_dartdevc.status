@@ -106,6 +106,7 @@ issue32353_test: Skip
 issue34404_flutter_modified_test: CompileTimeError # DDC doesn't support mixin inference
 issue34404_flutter_test: CompileTimeError # DDC doesn't support mixin inference
 issue34404_flutter_test: Skip
+issue34489_test/01: MissingCompileTimeError
 issue34498_test: MissingCompileTimeError # Issue 34500
 issue34635_test: MissingCompileTimeError
 issue34636_test: MissingCompileTimeError

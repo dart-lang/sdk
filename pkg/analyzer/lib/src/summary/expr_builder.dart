@@ -522,6 +522,14 @@ class ExprBuilder {
 
   Expression _createReference() {
     EntityRef ref = uc.references[refPtr++];
+    if (ref.paramReference != 0) {
+      // This is a reference to a type parameter.  For type inference purposes
+      // we don't actually need to know which type parameter it's a reference
+      // to; we just need to know that it represents a type.  So map it to
+      // `Object`.
+      return AstTestFactory.identifier3('Object')
+        ..staticElement = resynthesizer.typeProvider.objectType.element;
+    }
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     if (requireValidConst && node is Identifier && node.staticElement == null) {
