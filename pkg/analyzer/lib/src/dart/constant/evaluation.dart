@@ -440,8 +440,7 @@ class ConstantEvaluationEngine {
       return null;
     }
 
-    ConstructorElementImpl constructorBase = getConstructorImpl(constructor);
-    if (!constructorBase.isCycleFree) {
+    if (!getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
       // in this case, as well as other cases involving constant expression
@@ -538,6 +537,7 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
+    ConstructorElementImpl constructorBase = getConstructorImpl(constructor);
     validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
