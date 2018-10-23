@@ -1752,11 +1752,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
-  } else {
-    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
-  }
+
+  __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
   __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 

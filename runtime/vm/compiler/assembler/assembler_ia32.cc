@@ -2434,6 +2434,12 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   movl(result, Address(result, class_id, TIMES_8, 0));
 }
 
+void Assembler::LoadClass(Register result, Register object, Register scratch) {
+  ASSERT(scratch != result);
+  LoadClassId(scratch, object);
+  LoadClassById(result, scratch);
+}
+
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {

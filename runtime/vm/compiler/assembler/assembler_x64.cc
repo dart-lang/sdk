@@ -1952,6 +1952,11 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 
+void Assembler::LoadClass(Register result, Register object) {
+  LoadClassId(TMP, object);
+  LoadClassById(result, TMP);
+}
+
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {

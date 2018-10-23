@@ -651,17 +651,18 @@ static void UpdateTypeTestCache(
     }
     return;
   }
-  Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
-    instance_class = Smi::Class();
-  } else {
-    instance_class = instance.clazz();
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("UpdateTypeTestCache: instance is Smi\n");
+    }
+    return;
   }
   // If the type is uninstantiated and refers to parent function type
   // parameters, the function_type_arguments have been canonicalized
   // when concatenated.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
+  const Class& instance_class = Class::Handle(zone, instance.clazz());
   auto& instance_class_id_or_function = Object::Handle(zone);
   auto& instance_type_arguments = TypeArguments::Handle(zone);
   auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
@@ -747,16 +748,14 @@ static void UpdateTypeTestCache(
         "  Updated test cache %p ix: %" Pd
         " with "
         "(cid-or-fun: %p, type-args: %p, i-type-args: %p, f-type-args: %p, "
-        "p-type-args: %p, d-type-args: %p, result: %s)\n"
+        "result: %s)\n"
         "    instance  [class: (%p '%s' cid: %" Pd
         "),    type-args: %p %s]\n"
         "    test-type [class: (%p '%s' cid: %" Pd
         "), i-type-args: %p %s, f-type-args: %p %s]\n",
         new_cache.raw(), len, instance_class_id_or_function.raw(),
         instance_type_arguments.raw(), instantiator_type_arguments.raw(),
-        function_type_arguments.raw(),
-        instance_parent_function_type_arguments.raw(),
-        instance_delayed_type_arguments.raw(), result.ToCString(),
+        instantiator_type_arguments.raw(), result.ToCString(),
         instance_class.raw(), instance_class_name.ToCString(),
         instance_class.id(), instance_type_arguments.raw(),
         instance_type_arguments.ToCString(), type_class.raw(),

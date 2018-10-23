@@ -256,14 +256,13 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type_class.NumTypeArguments() > 0);
   const Register kInstanceReg = EAX;
   Error& bound_error = Error::Handle(zone());
-  const Type& smi_type = Type::Handle(zone(), Type::SmiType());
+  const Type& int_type = Type::Handle(zone(), Type::IntType());
   const bool smi_is_ok =
-      smi_type.IsSubtypeOf(type, &bound_error, NULL, Heap::kOld);
+      int_type.IsSubtypeOf(type, &bound_error, NULL, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || bound_error.IsNull());
   __ testl(kInstanceReg, Immediate(kSmiTagMask));
   if (smi_is_ok) {
-    // Fast case for type = FutureOr<int/num/top-type>.
     __ j(ZERO, is_instance_lbl);
   } else {
     __ j(ZERO, is_not_instance_lbl);
@@ -295,7 +294,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     ASSERT(!tp_argument.IsMalformed());
     if (tp_argument.IsType()) {
       ASSERT(tp_argument.HasResolvedTypeClass());
-      // Check if type argument is dynamic, Object, or void.
+      // Check if type argument is dynamic or Object.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
       if (object_type.IsSubtypeOf(tp_argument, NULL, NULL, Heap::kOld)) {
         // Instance class test only necessary.
@@ -348,7 +347,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (smi_class.IsSubtypeOf(Object::null_type_arguments(), type_class,
                             Object::null_type_arguments(), NULL, NULL,
                             Heap::kOld)) {
-    // Fast case for type = int/num/top-type.
     __ j(ZERO, is_instance_lbl);
   } else {
     __ j(ZERO, is_not_instance_lbl);
@@ -406,14 +404,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     Label* is_not_instance_lbl) {
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = EAX;
-#if defined(DEBUG)
-  Label ok;
-  __ BranchIfNotSmi(kInstanceReg, &ok);
-  __ Breakpoint();
-  __ Bind(&ok);
-#endif
-  __ LoadClassId(EDI, kInstanceReg);
-  __ LoadClassById(ECX, EDI);
+  __ LoadClass(ECX, kInstanceReg, EDI);
   // ECX: instance class.
   // Check immediate superclass equality.
   __ movl(EDI, FieldAddress(ECX, Class::super_type_offset()));
@@ -464,13 +455,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ movl(EDI, FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
                                                      type_param.index())));
     // EDI: concrete type of type.
-    // Check if type argument is dynamic, Object, or void.
+    // Check if type argument is dynamic.
     __ CompareObject(EDI, Object::dynamic_type());
     __ j(EQUAL, is_instance_lbl);
     __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::ObjectType()));
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(EDI, Object::void_type());
-    __ j(EQUAL, is_instance_lbl);
+    // TODO(regis): Optimize void type as well once allowed as type argument.
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
@@ -480,8 +470,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(EQUAL, is_instance_lbl);
     __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::Number()));
     __ j(EQUAL, is_instance_lbl);
-    // Smi can be handled by type test cache.
-    __ Bind(&not_smi);
+    // Smi must be handled in runtime.
+    Label fall_through;
+    __ jmp(&fall_through);
 
     // If it's guaranteed, by type-parameter bound, that the type parameter will
     // never have a value of a function type.
@@ -490,19 +481,18 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
                          ? kTestTypeSixArgs
                          : kTestTypeFourArgs;
 
+    __ Bind(&not_smi);
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
                     test_kind, kInstanceReg, kInstantiatorTypeArgumentsReg,
                     kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
                     is_not_instance_lbl));
+    __ Bind(&fall_through);
     return type_test_cache.raw();
   }
   if (type.IsType()) {
-    // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!FLAG_strong || !Class::Handle(type.type_class()).IsFutureOrClass()) {
-      __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
-      __ j(ZERO, is_not_instance_lbl);
-    }
+    __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
+    __ j(ZERO, is_not_instance_lbl);
     __ movl(kInstantiatorTypeArgumentsReg, Address(ESP, 1 * kWordSize));
     __ movl(kFunctionTypeArgumentsReg, Address(ESP, 0 * kWordSize));
     // Uninstantiated type class is known at compile time, but the type

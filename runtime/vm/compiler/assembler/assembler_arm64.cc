@@ -1115,6 +1115,12 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 
+void Assembler::LoadClass(Register result, Register object) {
+  ASSERT(object != TMP);
+  LoadClassId(TMP, object);
+  LoadClassById(result, TMP);
+}
+
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {
