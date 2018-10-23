@@ -1146,7 +1146,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForAmbiguousImport(node);
     _checkForReferenceBeforeDeclaration(node);
     _checkForImplicitThisReferenceInInitializer(node);
-    _checkForTypeParameterIdentifierReferencedByStatic(node);
+    _checkForTypeParameterReferencedByStatic(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
@@ -1214,7 +1214,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    _checkForTypeParameterReferencedByStatic(node);
     return super.visitTypeName(node);
   }
 
@@ -5213,37 +5212,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkForTypeParameterIdentifierReferencedByStatic(
-      SimpleIdentifier identifier) {
-    var element = identifier.staticElement;
-    if (element is TypeParameterElement &&
-        element.enclosingElement is ClassElement) {
-      if (_isInStaticMethod || _isInStaticVariableDeclaration) {
+  void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
+    if (_isInStaticMethod || _isInStaticVariableDeclaration) {
+      var element = identifier.staticElement;
+      if (element is TypeParameterElement &&
+          element.enclosingElement is ClassElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
         _errorReporter.reportErrorForNode(
             StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, identifier);
-      }
-    }
-  }
-
-  /**
-   * Check whether the given type [name] is a type parameter being used to
-   * define a static member.
-   *
-   * See [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC].
-   */
-  void _checkForTypeParameterReferencedByStatic(TypeName name) {
-    if (_isInStaticMethod || _isInStaticVariableDeclaration) {
-      DartType type = name.type;
-      // The class's type parameters are not in scope for static methods.
-      // However all other type parameters are legal (e.g. the static method's
-      // type parameters, or a local function's type parameters).
-      if (type is TypeParameterType &&
-          type.element.enclosingElement is ClassElement) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
       }
     }
   }
