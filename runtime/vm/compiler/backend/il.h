@@ -1359,6 +1359,7 @@ class BlockEntryInstr : public Instruction {
   // Loop related methods.
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
+  bool IsLoopHeader() const;
 
   virtual BlockEntryInstr* GetBlock() { return this; }
 

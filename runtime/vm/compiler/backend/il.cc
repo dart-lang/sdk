@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -1593,6 +1594,10 @@ BlockEntryInstr* BlockEntryInstr::ImmediateDominator() const {
     return dominator();
   }
   return NULL;
+}
+
+bool BlockEntryInstr::IsLoopHeader() const {
+  return loop_info_ != nullptr && loop_info_->header() == this;
 }
 
 // Helper to mutate the graph during inlining. This block should be

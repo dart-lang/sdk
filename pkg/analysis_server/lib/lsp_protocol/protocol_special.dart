@@ -4,6 +4,14 @@
 
 Object id(Object obj) => obj;
 
+Object specToJson(Object obj) {
+  if (obj is ToJsonable) {
+    return obj.toJson();
+  } else {
+    return obj;
+  }
+}
+
 class Either2<T1, T2> {
   final int _which;
   final T1 _t1;
@@ -25,7 +33,7 @@ class Either2<T1, T2> {
     return _which == 1 ? f1(_t1) : f2(_t2);
   }
 
-  Object toJson() => map(id, id);
+  Object toJson() => map(specToJson, specToJson);
 
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) => map((t) => t == o, (t) => t == o);
@@ -69,7 +77,7 @@ class Either3<T1, T2, T3> {
     }
   }
 
-  Object toJson() => map(id, id, id);
+  Object toJson() => map(specToJson, specToJson, specToJson);
 
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) => map((t) => t == o, (t) => t == o, (t) => t == o);
@@ -130,7 +138,7 @@ class Either4<T1, T2, T3, T4> {
     }
   }
 
-  Object toJson() => map(id, id, id, id);
+  Object toJson() => map(specToJson, specToJson, specToJson, specToJson);
 
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) =>
@@ -138,3 +146,7 @@ class Either4<T1, T2, T3, T4> {
 }
 
 class FileOperation {}
+
+abstract class ToJsonable {
+  Object toJson();
+}

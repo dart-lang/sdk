@@ -30,7 +30,9 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
@@ -67,7 +69,7 @@ abstract class Compiler {
 
   Compiler(this.fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
-      bool syncAsync: false,
+      bool bytecode: false,
       String packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
@@ -89,6 +91,7 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
+      ..bytecode = bytecode
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -114,7 +117,18 @@ abstract class Compiler {
   }
 
   Future<Component> compile(Uri script) {
-    return runWithPrintToStderr(() => compileInternal(script));
+    return runWithPrintToStderr(() async {
+      final component = await compileInternal(script);
+
+      if (options.bytecode && errors.isEmpty) {
+        await runWithFrontEndCompilerContext(script, options, component, () {
+          // TODO(alexmarkov): pass environment defines
+          generateBytecode(component);
+        });
+      }
+
+      return component;
+    });
   }
 
   Future<Component> compileInternal(Uri script);
@@ -124,9 +138,13 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
-      {bool suppressWarnings: false, String packageConfig: null})
+      {bool suppressWarnings: false,
+      bool bytecode: false,
+      String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            suppressWarnings: suppressWarnings, packageConfig: packageConfig);
+            suppressWarnings: suppressWarnings,
+            bytecode: bytecode,
+            packageConfig: packageConfig);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -147,9 +165,12 @@ class SingleShotCompilerWrapper extends Compiler {
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
+      bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            suppressWarnings: suppressWarnings, packageConfig: packageConfig);
+            suppressWarnings: suppressWarnings,
+            bytecode: bytecode,
+            packageConfig: packageConfig);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -171,6 +192,7 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
+    bool bytecode: false,
     String packageConfig: null,
     String multirootFilepaths,
     String multirootScheme}) async {
@@ -187,7 +209,9 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
     compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
-        suppressWarnings: suppressWarnings, packageConfig: packageConfig);
+        suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
+        packageConfig: packageConfig);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -353,6 +377,7 @@ Future _processLoadRequest(request) async {
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
+  final bool bytecode = request[9];
   final String packageConfig = request[10];
   final String multirootFilepaths = request[11];
   final String multirootScheme = request[12];
@@ -406,6 +431,7 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme);
@@ -415,6 +441,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
         packageConfig: packageConfig);
   }
 

@@ -2670,6 +2670,9 @@ class Function : public Object {
 
   bool HasOptimizedCode() const;
 
+  // Whether the function is ready for compiler optimizations.
+  bool ShouldCompilerOptimize() const;
+
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
   bool AreValidArgumentCounts(intptr_t num_type_arguments,

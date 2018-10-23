@@ -8119,6 +8119,11 @@ bool Function::HasOptimizedCode() const {
   return HasCode() && Code::Handle(CurrentCode()).is_optimized();
 }
 
+bool Function::ShouldCompilerOptimize() const {
+  return !FLAG_enable_interpreter ||
+         ((unoptimized_code() != Object::null()) && WasCompiled());
+}
+
 RawString* Function::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();

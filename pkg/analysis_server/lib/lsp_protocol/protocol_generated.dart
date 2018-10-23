@@ -10,7 +10,7 @@ import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
-class ApplyWorkspaceEditParams {
+class ApplyWorkspaceEditParams implements ToJsonable {
   ApplyWorkspaceEditParams(this.label, this.edit) {
     if (edit == null) {
       throw 'edit is required but was not provided';
@@ -45,7 +45,7 @@ class ApplyWorkspaceEditParams {
   }
 }
 
-class ApplyWorkspaceEditResponse {
+class ApplyWorkspaceEditResponse implements ToJsonable {
   ApplyWorkspaceEditResponse(this.applied) {
     if (applied == null) {
       throw 'applied is required but was not provided';
@@ -73,7 +73,7 @@ class ApplyWorkspaceEditResponse {
   }
 }
 
-class CancelParams {
+class CancelParams implements ToJsonable {
   CancelParams(this.id) {
     if (id == null) {
       throw 'id is required but was not provided';
@@ -104,7 +104,7 @@ class CancelParams {
   }
 }
 
-class ClientCapabilities {
+class ClientCapabilities implements ToJsonable {
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
   factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
     final workspace =
@@ -148,7 +148,7 @@ class ClientCapabilities {
 ///
 /// A CodeAction must set either `edit` and/or a `command`. If both are
 /// supplied, the `edit` is applied first, then the `command` is executed.
-class CodeAction {
+class CodeAction implements ToJsonable {
   CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command) {
     if (title == null) {
       throw 'title is required but was not provided';
@@ -211,7 +211,7 @@ class CodeAction {
 
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
-class CodeActionContext {
+class CodeActionContext implements ToJsonable {
   CodeActionContext(this.diagnostics, this.only) {
     if (diagnostics == null) {
       throw 'diagnostics is required but was not provided';
@@ -305,7 +305,7 @@ abstract class CodeActionKind {
 }
 
 /// Code Action options.
-class CodeActionOptions {
+class CodeActionOptions implements ToJsonable {
   CodeActionOptions(this.codeActionKinds);
   factory CodeActionOptions.fromJson(Map<String, dynamic> json) {
     final codeActionKinds =
@@ -333,7 +333,7 @@ class CodeActionOptions {
 }
 
 /// Params for the CodeActionRequest
-class CodeActionParams {
+class CodeActionParams implements ToJsonable {
   CodeActionParams(this.textDocument, this.range, this.context) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -384,7 +384,7 @@ class CodeActionParams {
 }
 
 class CodeActionRegistrationOptions
-    implements TextDocumentRegistrationOptions, CodeActionOptions {
+    implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
   CodeActionRegistrationOptions(this.documentSelector, this.codeActionKinds);
   factory CodeActionRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -431,7 +431,7 @@ class CodeActionRegistrationOptions
 /// A code lens is _unresolved_ when no command is associated to it. For
 /// performance reasons the creation of a code lens and resolving should be done
 /// in two stages.
-class CodeLens {
+class CodeLens implements ToJsonable {
   CodeLens(this.range, this.command, this.data) {
     if (range == null) {
       throw 'range is required but was not provided';
@@ -475,7 +475,7 @@ class CodeLens {
 }
 
 /// Code Lens options.
-class CodeLensOptions {
+class CodeLensOptions implements ToJsonable {
   CodeLensOptions(this.resolveProvider);
   factory CodeLensOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
@@ -498,7 +498,7 @@ class CodeLensOptions {
   }
 }
 
-class CodeLensParams {
+class CodeLensParams implements ToJsonable {
   CodeLensParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -527,7 +527,8 @@ class CodeLensParams {
   }
 }
 
-class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
+class CodeLensRegistrationOptions
+    implements TextDocumentRegistrationOptions, ToJsonable {
   CodeLensRegistrationOptions(this.resolveProvider, this.documentSelector);
   factory CodeLensRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
@@ -565,7 +566,7 @@ class CodeLensRegistrationOptions implements TextDocumentRegistrationOptions {
 }
 
 /// Represents a color in RGBA space.
-class Color {
+class Color implements ToJsonable {
   Color(this.red, this.green, this.blue, this.alpha) {
     if (red == null) {
       throw 'red is required but was not provided';
@@ -615,7 +616,7 @@ class Color {
   }
 }
 
-class ColorInformation {
+class ColorInformation implements ToJsonable {
   ColorInformation(this.range, this.color) {
     if (range == null) {
       throw 'range is required but was not provided';
@@ -652,7 +653,7 @@ class ColorInformation {
   }
 }
 
-class ColorPresentation {
+class ColorPresentation implements ToJsonable {
   ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
     if (label == null) {
       throw 'label is required but was not provided';
@@ -702,7 +703,7 @@ class ColorPresentation {
   }
 }
 
-class ColorPresentationParams {
+class ColorPresentationParams implements ToJsonable {
   ColorPresentationParams(this.textDocument, this.color, this.range) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -752,7 +753,7 @@ class ColorPresentationParams {
 }
 
 /// Color provider options.
-class ColorProviderOptions {
+class ColorProviderOptions implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -763,7 +764,7 @@ class ColorProviderOptions {
   }
 }
 
-class Command {
+class Command implements ToJsonable {
   Command(this.title, this.command, this.arguments) {
     if (title == null) {
       throw 'title is required but was not provided';
@@ -811,7 +812,7 @@ class Command {
 
 /// Contains additional information about the context in which a completion
 /// request is triggered.
-class CompletionContext {
+class CompletionContext implements ToJsonable {
   CompletionContext(this.triggerKind, this.triggerCharacter) {
     if (triggerKind == null) {
       throw 'triggerKind is required but was not provided';
@@ -847,7 +848,7 @@ class CompletionContext {
   }
 }
 
-class CompletionItem {
+class CompletionItem implements ToJsonable {
   CompletionItem(
       this.label,
       this.kind,
@@ -1128,7 +1129,7 @@ class CompletionItemKind {
 
 /// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
-class CompletionList {
+class CompletionList implements ToJsonable {
   CompletionList(this.isIncomplete, this.items) {
     if (isIncomplete == null) {
       throw 'isIncomplete is required but was not provided';
@@ -1173,7 +1174,7 @@ class CompletionList {
 }
 
 /// Completion options.
-class CompletionOptions {
+class CompletionOptions implements ToJsonable {
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
   factory CompletionOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
@@ -1207,7 +1208,7 @@ class CompletionOptions {
   }
 }
 
-class CompletionParams implements TextDocumentPositionParams {
+class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   CompletionParams(this.context, this.textDocument, this.position) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -1256,7 +1257,8 @@ class CompletionParams implements TextDocumentPositionParams {
   }
 }
 
-class CompletionRegistrationOptions implements TextDocumentRegistrationOptions {
+class CompletionRegistrationOptions
+    implements TextDocumentRegistrationOptions, ToJsonable {
   CompletionRegistrationOptions(
       this.triggerCharacters, this.resolveProvider, this.documentSelector);
   factory CompletionRegistrationOptions.fromJson(Map<String, dynamic> json) {
@@ -1356,7 +1358,7 @@ class CompletionTriggerKind {
   bool operator ==(o) => o is CompletionTriggerKind && o._value == _value;
 }
 
-class ConfigurationItem {
+class ConfigurationItem implements ToJsonable {
   ConfigurationItem(this.scopeUri, this.section);
   factory ConfigurationItem.fromJson(Map<String, dynamic> json) {
     final scopeUri = json['scopeUri'];
@@ -1386,7 +1388,7 @@ class ConfigurationItem {
   }
 }
 
-class ConfigurationParams {
+class ConfigurationParams implements ToJsonable {
   ConfigurationParams(this.items) {
     if (items == null) {
       throw 'items is required but was not provided';
@@ -1419,7 +1421,7 @@ class ConfigurationParams {
 }
 
 /// Create file operation
-class CreateFile implements FileOperation {
+class CreateFile implements FileOperation, ToJsonable {
   CreateFile(this.uri, this.options) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -1454,7 +1456,7 @@ class CreateFile implements FileOperation {
 }
 
 /// Options to create a file.
-class CreateFileOptions {
+class CreateFileOptions implements ToJsonable {
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
   factory CreateFileOptions.fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
@@ -1485,7 +1487,7 @@ class CreateFileOptions {
 }
 
 /// Delete file operation
-class DeleteFile implements FileOperation {
+class DeleteFile implements FileOperation, ToJsonable {
   DeleteFile(this.uri, this.options) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -1520,7 +1522,7 @@ class DeleteFile implements FileOperation {
 }
 
 /// Delete file options
-class DeleteFileOptions {
+class DeleteFileOptions implements ToJsonable {
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
   factory DeleteFileOptions.fromJson(Map<String, dynamic> json) {
     final recursive = json['recursive'];
@@ -1550,7 +1552,7 @@ class DeleteFileOptions {
   }
 }
 
-class Diagnostic {
+class Diagnostic implements ToJsonable {
   Diagnostic(this.range, this.severity, this.code, this.source, this.message,
       this.relatedInformation) {
     if (range == null) {
@@ -1632,7 +1634,7 @@ class Diagnostic {
 /// Represents a related message and source code location for a diagnostic.
 /// This should be used to point to code locations that cause or related to
 /// a diagnostics, e.g when duplicating a symbol in a scope.
-class DiagnosticRelatedInformation {
+class DiagnosticRelatedInformation implements ToJsonable {
   DiagnosticRelatedInformation(this.location, this.message) {
     if (location == null) {
       throw 'location is required but was not provided';
@@ -1711,7 +1713,7 @@ class DiagnosticSeverity {
   bool operator ==(o) => o is DiagnosticSeverity && o._value == _value;
 }
 
-class DidChangeConfigurationParams {
+class DidChangeConfigurationParams implements ToJsonable {
   DidChangeConfigurationParams(this.settings) {
     if (settings == null) {
       throw 'settings is required but was not provided';
@@ -1737,7 +1739,7 @@ class DidChangeConfigurationParams {
   }
 }
 
-class DidChangeTextDocumentParams {
+class DidChangeTextDocumentParams implements ToJsonable {
   DidChangeTextDocumentParams(this.textDocument, this.contentChanges) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -1787,7 +1789,7 @@ class DidChangeTextDocumentParams {
   }
 }
 
-class DidChangeWatchedFilesParams {
+class DidChangeWatchedFilesParams implements ToJsonable {
   DidChangeWatchedFilesParams(this.changes) {
     if (changes == null) {
       throw 'changes is required but was not provided';
@@ -1822,7 +1824,7 @@ class DidChangeWatchedFilesParams {
 
 /// Describe options to be used when registering for text document change
 /// events.
-class DidChangeWatchedFilesRegistrationOptions {
+class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   DidChangeWatchedFilesRegistrationOptions(this.watchers) {
     if (watchers == null) {
       throw 'watchers is required but was not provided';
@@ -1857,7 +1859,7 @@ class DidChangeWatchedFilesRegistrationOptions {
   }
 }
 
-class DidChangeWorkspaceFoldersParams {
+class DidChangeWorkspaceFoldersParams implements ToJsonable {
   DidChangeWorkspaceFoldersParams(this.event) {
     if (event == null) {
       throw 'event is required but was not provided';
@@ -1884,7 +1886,7 @@ class DidChangeWorkspaceFoldersParams {
   }
 }
 
-class DidCloseTextDocumentParams {
+class DidCloseTextDocumentParams implements ToJsonable {
   DidCloseTextDocumentParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -1913,7 +1915,7 @@ class DidCloseTextDocumentParams {
   }
 }
 
-class DidOpenTextDocumentParams {
+class DidOpenTextDocumentParams implements ToJsonable {
   DidOpenTextDocumentParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -1941,7 +1943,7 @@ class DidOpenTextDocumentParams {
   }
 }
 
-class DidSaveTextDocumentParams {
+class DidSaveTextDocumentParams implements ToJsonable {
   DidSaveTextDocumentParams(this.textDocument, this.text) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -1978,7 +1980,7 @@ class DidSaveTextDocumentParams {
   }
 }
 
-class DocumentFilter {
+class DocumentFilter implements ToJsonable {
   DocumentFilter(this.language, this.scheme, this.pattern);
   factory DocumentFilter.fromJson(Map<String, dynamic> json) {
     final language = json['language'];
@@ -2015,7 +2017,7 @@ class DocumentFilter {
   }
 }
 
-class DocumentFormattingParams {
+class DocumentFormattingParams implements ToJsonable {
   DocumentFormattingParams(this.textDocument, this.options) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -2058,7 +2060,7 @@ class DocumentFormattingParams {
 /// A document highlight is a range inside a text document which deserves
 /// special attention. Usually a document highlight is visualized by
 /// changing the background color of its range.
-class DocumentHighlight {
+class DocumentHighlight implements ToJsonable {
   DocumentHighlight(this.range, this.kind) {
     if (range == null) {
       throw 'range is required but was not provided';
@@ -2132,7 +2134,7 @@ class DocumentHighlightKind {
 /// A document link is a range in a text document that links to an
 /// internal or external resource, like another text document or a web
 /// site.
-class DocumentLink {
+class DocumentLink implements ToJsonable {
   DocumentLink(this.range, this.target, this.data) {
     if (range == null) {
       throw 'range is required but was not provided';
@@ -2176,7 +2178,7 @@ class DocumentLink {
 }
 
 /// Document link options.
-class DocumentLinkOptions {
+class DocumentLinkOptions implements ToJsonable {
   DocumentLinkOptions(this.resolveProvider);
   factory DocumentLinkOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
@@ -2199,7 +2201,7 @@ class DocumentLinkOptions {
   }
 }
 
-class DocumentLinkParams {
+class DocumentLinkParams implements ToJsonable {
   DocumentLinkParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -2229,7 +2231,7 @@ class DocumentLinkParams {
 }
 
 class DocumentLinkRegistrationOptions
-    implements TextDocumentRegistrationOptions {
+    implements TextDocumentRegistrationOptions, ToJsonable {
   DocumentLinkRegistrationOptions(this.resolveProvider, this.documentSelector);
   factory DocumentLinkRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
@@ -2269,7 +2271,7 @@ class DocumentLinkRegistrationOptions
 }
 
 /// Format document on type options.
-class DocumentOnTypeFormattingOptions {
+class DocumentOnTypeFormattingOptions implements ToJsonable {
   DocumentOnTypeFormattingOptions(
       this.firstTriggerCharacter, this.moreTriggerCharacter) {
     if (firstTriggerCharacter == null) {
@@ -2309,7 +2311,7 @@ class DocumentOnTypeFormattingOptions {
   }
 }
 
-class DocumentOnTypeFormattingParams {
+class DocumentOnTypeFormattingParams implements ToJsonable {
   DocumentOnTypeFormattingParams(
       this.textDocument, this.position, this.ch, this.options) {
     if (textDocument == null) {
@@ -2373,7 +2375,7 @@ class DocumentOnTypeFormattingParams {
 }
 
 class DocumentOnTypeFormattingRegistrationOptions
-    implements TextDocumentRegistrationOptions {
+    implements TextDocumentRegistrationOptions, ToJsonable {
   DocumentOnTypeFormattingRegistrationOptions(this.firstTriggerCharacter,
       this.moreTriggerCharacter, this.documentSelector) {
     if (firstTriggerCharacter == null) {
@@ -2429,7 +2431,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 }
 
-class DocumentRangeFormattingParams {
+class DocumentRangeFormattingParams implements ToJsonable {
   DocumentRangeFormattingParams(this.textDocument, this.range, this.options) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -2484,7 +2486,7 @@ class DocumentRangeFormattingParams {
 /// hierarchical and they have two ranges: one that encloses its
 /// definition and one that points to its most interesting range, e.g.
 /// the range of an identifier.
-class DocumentSymbol {
+class DocumentSymbol implements ToJsonable {
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
       this.selectionRange, this.children) {
     if (name == null) {
@@ -2573,7 +2575,7 @@ class DocumentSymbol {
   }
 }
 
-class DocumentSymbolParams {
+class DocumentSymbolParams implements ToJsonable {
   DocumentSymbolParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -2616,7 +2618,7 @@ abstract class ErrorCodes {
 }
 
 /// Execute command options.
-class ExecuteCommandOptions {
+class ExecuteCommandOptions implements ToJsonable {
   ExecuteCommandOptions(this.commands) {
     if (commands == null) {
       throw 'commands is required but was not provided';
@@ -2647,7 +2649,7 @@ class ExecuteCommandOptions {
   }
 }
 
-class ExecuteCommandParams {
+class ExecuteCommandParams implements ToJsonable {
   ExecuteCommandParams(this.command, this.arguments) {
     if (command == null) {
       throw 'command is required but was not provided';
@@ -2684,7 +2686,7 @@ class ExecuteCommandParams {
 }
 
 /// Execute command registration options.
-class ExecuteCommandRegistrationOptions {
+class ExecuteCommandRegistrationOptions implements ToJsonable {
   ExecuteCommandRegistrationOptions(this.commands) {
     if (commands == null) {
       throw 'commands is required but was not provided';
@@ -2803,7 +2805,7 @@ class FileChangeType {
 }
 
 /// An event describing a file change.
-class FileEvent {
+class FileEvent implements ToJsonable {
   FileEvent(this.uri, this.type) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -2840,7 +2842,7 @@ class FileEvent {
   }
 }
 
-class FileSystemWatcher {
+class FileSystemWatcher implements ToJsonable {
   FileSystemWatcher(this.globPattern, this.kind) {
     if (globPattern == null) {
       throw 'globPattern is required but was not provided';
@@ -2878,7 +2880,7 @@ class FileSystemWatcher {
 }
 
 /// Represents a folding range.
-class FoldingRange {
+class FoldingRange implements ToJsonable {
   FoldingRange(this.startLine, this.startCharacter, this.endLine,
       this.endCharacter, this.kind) {
     if (startLine == null) {
@@ -2983,7 +2985,7 @@ class FoldingRangeKind {
   bool operator ==(o) => o is FoldingRangeKind && o._value == _value;
 }
 
-class FoldingRangeParams {
+class FoldingRangeParams implements ToJsonable {
   FoldingRangeParams(this.textDocument) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -3013,7 +3015,7 @@ class FoldingRangeParams {
 }
 
 /// Folding range provider options.
-class FoldingRangeProviderOptions {
+class FoldingRangeProviderOptions implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -3025,7 +3027,7 @@ class FoldingRangeProviderOptions {
 }
 
 /// Value-object describing what options formatting should use.
-class FormattingOptions {
+class FormattingOptions implements ToJsonable {
   FormattingOptions(this.tabSize, this.insertSpaces) {
     if (tabSize == null) {
       throw 'tabSize is required but was not provided';
@@ -3065,7 +3067,7 @@ class FormattingOptions {
 }
 
 /// The result of a hover request.
-class Hover {
+class Hover implements ToJsonable {
   Hover(this.contents, this.range) {
     if (contents == null) {
       throw 'contents is required but was not provided';
@@ -3123,7 +3125,7 @@ class Hover {
   }
 }
 
-class InitializeParams {
+class InitializeParams implements ToJsonable {
   InitializeParams(this.processId, this.rootPath, this.rootUri,
       this.initializationOptions, this.capabilities, this.workspaceFolders) {
     if (capabilities == null) {
@@ -3204,7 +3206,7 @@ class InitializeParams {
   }
 }
 
-class InitializeResult {
+class InitializeResult implements ToJsonable {
   InitializeResult(this.capabilities) {
     if (capabilities == null) {
       throw 'capabilities is required but was not provided';
@@ -3232,7 +3234,7 @@ class InitializeResult {
   }
 }
 
-class InitializedParams {
+class InitializedParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -3284,7 +3286,7 @@ class InsertTextFormat {
   bool operator ==(o) => o is InsertTextFormat && o._value == _value;
 }
 
-class Location {
+class Location implements ToJsonable {
   Location(this.uri, this.range) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -3318,7 +3320,7 @@ class Location {
   }
 }
 
-class LogMessageParams {
+class LogMessageParams implements ToJsonable {
   LogMessageParams(this.type, this.message) {
     if (type == null) {
       throw 'type is required but was not provided';
@@ -3356,7 +3358,7 @@ class LogMessageParams {
   }
 }
 
-class MarkedString {
+class MarkedString implements ToJsonable {
   MarkedString(this.language, this.value) {
     if (language == null) {
       throw 'language is required but was not provided';
@@ -3416,7 +3418,7 @@ class MarkedString {
 /// *Please Note* that clients might sanitize the return
 /// markdown. A client could decide to remove HTML from the
 /// markdown to avoid script execution.
-class MarkupContent {
+class MarkupContent implements ToJsonable {
   MarkupContent(this.kind, this.value) {
     if (kind == null) {
       throw 'kind is required but was not provided';
@@ -3491,7 +3493,7 @@ class MarkupKind {
   bool operator ==(o) => o is MarkupKind && o._value == _value;
 }
 
-class Message {
+class Message implements ToJsonable {
   Message(this.jsonrpc) {
     if (jsonrpc == null) {
       throw 'jsonrpc is required but was not provided';
@@ -3518,7 +3520,7 @@ class Message {
   }
 }
 
-class MessageActionItem {
+class MessageActionItem implements ToJsonable {
   MessageActionItem(this.title) {
     if (title == null) {
       throw 'title is required but was not provided';
@@ -3585,7 +3587,7 @@ class MessageType {
   bool operator ==(o) => o is MessageType && o._value == _value;
 }
 
-class NotificationMessage implements Message {
+class NotificationMessage implements Message, ToJsonable {
   NotificationMessage(this.method, this.params, this.jsonrpc) {
     if (method == null) {
       throw 'method is required but was not provided';
@@ -3636,7 +3638,7 @@ class NotificationMessage implements Message {
 
 /// Represents a parameter of a callable-signature. A
 /// parameter can have a label and a doc-comment.
-class ParameterInformation {
+class ParameterInformation implements ToJsonable {
   ParameterInformation(this.label, this.documentation) {
     if (label == null) {
       throw 'label is required but was not provided';
@@ -3676,7 +3678,7 @@ class ParameterInformation {
   }
 }
 
-class Position {
+class Position implements ToJsonable {
   Position(this.line, this.character) {
     if (line == null) {
       throw 'line is required but was not provided';
@@ -3720,7 +3722,7 @@ class Position {
   }
 }
 
-class PublishDiagnosticsParams {
+class PublishDiagnosticsParams implements ToJsonable {
   PublishDiagnosticsParams(this.uri, this.diagnostics) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -3763,7 +3765,7 @@ class PublishDiagnosticsParams {
   }
 }
 
-class Range {
+class Range implements ToJsonable {
   Range(this.start, this.end) {
     if (start == null) {
       throw 'start is required but was not provided';
@@ -3800,7 +3802,7 @@ class Range {
   }
 }
 
-class ReferenceContext {
+class ReferenceContext implements ToJsonable {
   ReferenceContext(this.includeDeclaration) {
     if (includeDeclaration == null) {
       throw 'includeDeclaration is required but was not provided';
@@ -3828,7 +3830,7 @@ class ReferenceContext {
   }
 }
 
-class ReferenceParams implements TextDocumentPositionParams {
+class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   ReferenceParams(this.context, this.textDocument, this.position) {
     if (context == null) {
       throw 'context is required but was not provided';
@@ -3879,7 +3881,7 @@ class ReferenceParams implements TextDocumentPositionParams {
 }
 
 /// General parameters to register for a capability.
-class Registration {
+class Registration implements ToJsonable {
   Registration(this.id, this.method, this.registerOptions) {
     if (id == null) {
       throw 'id is required but was not provided';
@@ -3924,7 +3926,7 @@ class Registration {
   }
 }
 
-class RegistrationParams {
+class RegistrationParams implements ToJsonable {
   RegistrationParams(this.registrations) {
     if (registrations == null) {
       throw 'registrations is required but was not provided';
@@ -3958,7 +3960,7 @@ class RegistrationParams {
 }
 
 /// Rename file operation
-class RenameFile implements FileOperation {
+class RenameFile implements FileOperation, ToJsonable {
   RenameFile(this.oldUri, this.newUri, this.options) {
     if (oldUri == null) {
       throw 'oldUri is required but was not provided';
@@ -4003,7 +4005,7 @@ class RenameFile implements FileOperation {
 }
 
 /// Rename file options
-class RenameFileOptions {
+class RenameFileOptions implements ToJsonable {
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
   factory RenameFileOptions.fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
@@ -4035,7 +4037,7 @@ class RenameFileOptions {
 }
 
 /// Rename options
-class RenameOptions {
+class RenameOptions implements ToJsonable {
   RenameOptions(this.prepareProvider);
   factory RenameOptions.fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
@@ -4059,7 +4061,7 @@ class RenameOptions {
   }
 }
 
-class RenameParams {
+class RenameParams implements ToJsonable {
   RenameParams(this.textDocument, this.position, this.newName) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -4112,7 +4114,8 @@ class RenameParams {
   }
 }
 
-class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
+class RenameRegistrationOptions
+    implements TextDocumentRegistrationOptions, ToJsonable {
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
   factory RenameRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
@@ -4151,7 +4154,7 @@ class RenameRegistrationOptions implements TextDocumentRegistrationOptions {
   }
 }
 
-class RequestMessage implements Message {
+class RequestMessage implements Message, ToJsonable {
   RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
       throw 'id is required but was not provided';
@@ -4249,7 +4252,7 @@ class ResourceOperationKind {
   bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
 }
 
-class ResponseError<D> {
+class ResponseError<D> implements ToJsonable {
   ResponseError(this.code, this.message, this.data) {
     if (code == null) {
       throw 'code is required but was not provided';
@@ -4296,7 +4299,7 @@ class ResponseError<D> {
   }
 }
 
-class ResponseMessage implements Message {
+class ResponseMessage implements Message, ToJsonable {
   ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
     if (jsonrpc == null) {
       throw 'jsonrpc is required but was not provided';
@@ -4349,7 +4352,7 @@ class ResponseMessage implements Message {
 }
 
 /// Save options.
-class SaveOptions {
+class SaveOptions implements ToJsonable {
   SaveOptions(this.includeText);
   factory SaveOptions.fromJson(Map<String, dynamic> json) {
     final includeText = json['includeText'];
@@ -4373,7 +4376,7 @@ class SaveOptions {
   }
 }
 
-class ServerCapabilities {
+class ServerCapabilities implements ToJsonable {
   ServerCapabilities(
       this.textDocumentSync,
       this.hoverProvider,
@@ -4609,7 +4612,7 @@ class ServerCapabilities {
   }
 }
 
-class ShowMessageParams {
+class ShowMessageParams implements ToJsonable {
   ShowMessageParams(this.type, this.message) {
     if (type == null) {
       throw 'type is required but was not provided';
@@ -4647,7 +4650,7 @@ class ShowMessageParams {
   }
 }
 
-class ShowMessageRequestParams {
+class ShowMessageRequestParams implements ToJsonable {
   ShowMessageRequestParams(this.type, this.message, this.actions) {
     if (type == null) {
       throw 'type is required but was not provided';
@@ -4698,7 +4701,7 @@ class ShowMessageRequestParams {
 /// Signature help represents the signature of something
 /// callable. There can be multiple signature but only one
 /// active and only one active parameter.
-class SignatureHelp {
+class SignatureHelp implements ToJsonable {
   SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
     if (signatures == null) {
       throw 'signatures is required but was not provided';
@@ -4761,7 +4764,7 @@ class SignatureHelp {
 }
 
 /// Signature help options.
-class SignatureHelpOptions {
+class SignatureHelpOptions implements ToJsonable {
   SignatureHelpOptions(this.triggerCharacters);
   factory SignatureHelpOptions.fromJson(Map<String, dynamic> json) {
     final triggerCharacters = json['triggerCharacters']
@@ -4789,7 +4792,7 @@ class SignatureHelpOptions {
 }
 
 class SignatureHelpRegistrationOptions
-    implements TextDocumentRegistrationOptions {
+    implements TextDocumentRegistrationOptions, ToJsonable {
   SignatureHelpRegistrationOptions(
       this.triggerCharacters, this.documentSelector);
   factory SignatureHelpRegistrationOptions.fromJson(Map<String, dynamic> json) {
@@ -4836,7 +4839,7 @@ class SignatureHelpRegistrationOptions
 /// Represents the signature of something callable. A
 /// signature can have a label, like a function-name, a
 /// doc-comment, and a set of parameters.
-class SignatureInformation {
+class SignatureInformation implements ToJsonable {
   SignatureInformation(this.label, this.documentation, this.parameters) {
     if (label == null) {
       throw 'label is required but was not provided';
@@ -4889,7 +4892,7 @@ class SignatureInformation {
 
 /// Static registration options to be returned in the
 /// initialize request.
-class StaticRegistrationOptions {
+class StaticRegistrationOptions implements ToJsonable {
   StaticRegistrationOptions(this.id);
   factory StaticRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final id = json['id'];
@@ -4916,7 +4919,7 @@ class StaticRegistrationOptions {
 
 /// Represents information about programming constructs
 /// like variables, classes, interfaces etc.
-class SymbolInformation {
+class SymbolInformation implements ToJsonable {
   SymbolInformation(this.name, this.kind, this.deprecated, this.location,
       this.containerName) {
     if (name == null) {
@@ -5076,7 +5079,7 @@ class SymbolKind {
 /// Describe options to be used when registering for
 /// text document change events.
 class TextDocumentChangeRegistrationOptions
-    implements TextDocumentRegistrationOptions {
+    implements TextDocumentRegistrationOptions, ToJsonable {
   TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector) {
     if (syncKind == null) {
       throw 'syncKind is required but was not provided';
@@ -5124,7 +5127,7 @@ class TextDocumentChangeRegistrationOptions
 }
 
 /// Text document specific client capabilities.
-class TextDocumentClientCapabilities {
+class TextDocumentClientCapabilities implements ToJsonable {
   TextDocumentClientCapabilities(this.dynamicRegistration, this.willSave,
       this.willSaveWaitUntil, this.didSave);
   factory TextDocumentClientCapabilities.fromJson(Map<String, dynamic> json) {
@@ -5178,7 +5181,7 @@ class TextDocumentClientCapabilities {
 /// An event describing a change to a text document. If
 /// range and rangeLength are omitted the new text is
 /// considered to be the full content of the document.
-class TextDocumentContentChangeEvent {
+class TextDocumentContentChangeEvent implements ToJsonable {
   TextDocumentContentChangeEvent(this.range, this.rangeLength, this.text) {
     if (text == null) {
       throw 'text is required but was not provided';
@@ -5219,7 +5222,7 @@ class TextDocumentContentChangeEvent {
   }
 }
 
-class TextDocumentEdit implements FileOperation {
+class TextDocumentEdit implements FileOperation, ToJsonable {
   TextDocumentEdit(this.textDocument, this.edits) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -5263,7 +5266,7 @@ class TextDocumentEdit implements FileOperation {
   }
 }
 
-class TextDocumentIdentifier {
+class TextDocumentIdentifier implements ToJsonable {
   TextDocumentIdentifier(this.uri) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -5290,7 +5293,7 @@ class TextDocumentIdentifier {
   }
 }
 
-class TextDocumentItem {
+class TextDocumentItem implements ToJsonable {
   TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -5350,7 +5353,7 @@ class TextDocumentItem {
   }
 }
 
-class TextDocumentPositionParams {
+class TextDocumentPositionParams implements ToJsonable {
   TextDocumentPositionParams(this.textDocument, this.position) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -5390,7 +5393,7 @@ class TextDocumentPositionParams {
   }
 }
 
-class TextDocumentRegistrationOptions {
+class TextDocumentRegistrationOptions implements ToJsonable {
   TextDocumentRegistrationOptions(this.documentSelector);
   factory TextDocumentRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -5460,7 +5463,7 @@ class TextDocumentSaveReason {
 }
 
 class TextDocumentSaveRegistrationOptions
-    implements TextDocumentRegistrationOptions {
+    implements TextDocumentRegistrationOptions, ToJsonable {
   TextDocumentSaveRegistrationOptions(this.includeText, this.documentSelector);
   factory TextDocumentSaveRegistrationOptions.fromJson(
       Map<String, dynamic> json) {
@@ -5543,7 +5546,7 @@ class TextDocumentSyncKind {
   bool operator ==(o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
-class TextDocumentSyncOptions {
+class TextDocumentSyncOptions implements ToJsonable {
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
       this.willSaveWaitUntil, this.save);
   factory TextDocumentSyncOptions.fromJson(Map<String, dynamic> json) {
@@ -5603,7 +5606,7 @@ class TextDocumentSyncOptions {
   }
 }
 
-class TextEdit {
+class TextEdit implements ToJsonable {
   TextEdit(this.range, this.newText) {
     if (range == null) {
       throw 'range is required but was not provided';
@@ -5645,7 +5648,7 @@ class TextEdit {
 }
 
 /// General parameters to unregister a capability.
-class Unregistration {
+class Unregistration implements ToJsonable {
   Unregistration(this.id, this.method) {
     if (id == null) {
       throw 'id is required but was not provided';
@@ -5684,7 +5687,7 @@ class Unregistration {
   }
 }
 
-class UnregistrationParams {
+class UnregistrationParams implements ToJsonable {
   UnregistrationParams(this.unregisterations) {
     if (unregisterations == null) {
       throw 'unregisterations is required but was not provided';
@@ -5717,7 +5720,8 @@ class UnregistrationParams {
   }
 }
 
-class VersionedTextDocumentIdentifier implements TextDocumentIdentifier {
+class VersionedTextDocumentIdentifier
+    implements TextDocumentIdentifier, ToJsonable {
   VersionedTextDocumentIdentifier(this.version, this.uri) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -5801,7 +5805,7 @@ class WatchKind {
 
 /// The parameters send in a will save text
 /// document notification.
-class WillSaveTextDocumentParams {
+class WillSaveTextDocumentParams implements ToJsonable {
   WillSaveTextDocumentParams(this.textDocument, this.reason) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
@@ -5841,7 +5845,7 @@ class WillSaveTextDocumentParams {
 }
 
 /// Workspace specific client capabilities.
-class WorkspaceClientCapabilities {
+class WorkspaceClientCapabilities implements ToJsonable {
   WorkspaceClientCapabilities(this.applyEdit, this.documentChanges,
       this.resourceOperations, this.failureHandling);
   factory WorkspaceClientCapabilities.fromJson(Map<String, dynamic> json) {
@@ -5897,7 +5901,7 @@ class WorkspaceClientCapabilities {
   }
 }
 
-class WorkspaceEdit {
+class WorkspaceEdit implements ToJsonable {
   WorkspaceEdit(this.changes, this.documentChanges);
   factory WorkspaceEdit.fromJson(Map<String, dynamic> json) {
     final changes = json['changes'];
@@ -5949,7 +5953,7 @@ class WorkspaceEdit {
   }
 }
 
-class WorkspaceFolder {
+class WorkspaceFolder implements ToJsonable {
   WorkspaceFolder(this.uri, this.name) {
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -5989,7 +5993,7 @@ class WorkspaceFolder {
 }
 
 /// The workspace folder change event.
-class WorkspaceFoldersChangeEvent {
+class WorkspaceFoldersChangeEvent implements ToJsonable {
   WorkspaceFoldersChangeEvent(this.added, this.removed) {
     if (added == null) {
       throw 'added is required but was not provided';
@@ -6040,7 +6044,7 @@ class WorkspaceFoldersChangeEvent {
 }
 
 /// The parameters of a Workspace Symbol Request.
-class WorkspaceSymbolParams {
+class WorkspaceSymbolParams implements ToJsonable {
   WorkspaceSymbolParams(this.query) {
     if (query == null) {
       throw 'query is required but was not provided';

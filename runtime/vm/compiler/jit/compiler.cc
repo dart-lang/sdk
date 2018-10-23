@@ -1213,9 +1213,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 #endif  // !defined(PRODUCT)
 
   // If running with interpreter, do the unoptimized compilation first.
-  const bool optimized = !FLAG_enable_interpreter ||
-                         ((function.unoptimized_code() != Object::null()) &&
-                          function.WasCompiled());
+  const bool optimized = function.ShouldCompilerOptimize();
+  ASSERT(FLAG_enable_interpreter || optimized);
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
@@ -1659,6 +1658,10 @@ void BackgroundCompiler::Run() {
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
+        // This is false if we are compiling bytecode -> unoptimized code.
+        const bool optimizing = function.ShouldCompilerOptimize();
+        ASSERT(FLAG_enable_interpreter || optimizing);
+
         // Check that we have aggregated and cleared the stats.
         Compiler::CompileOptimizedFunction(thread, function,
                                            Compiler::kNoOSRDeoptId);
@@ -1674,7 +1677,8 @@ void BackgroundCompiler::Run() {
             const Function& old = Function::Handle(qelem->Function());
             // If an optimizable method is not optimized, put it back on
             // the background queue (unless it was passed to foreground).
-            if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
+            if ((optimizing && !old.HasOptimizedCode() &&
+                 old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
               if (old.is_background_optimizable() &&
                   Compiler::CanOptimizeFunction(thread, old)) {

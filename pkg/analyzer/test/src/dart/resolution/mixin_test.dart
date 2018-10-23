@@ -902,6 +902,24 @@ abstract class X extends B with M {}
     ]);
   }
 
+  test_error_mixinApplicationConcreteSuperInvokedMemberType_OK_method_overriddenInMixin() async {
+    addTestFile(r'''
+class A<T> {
+  void remove(T x) {}
+}
+
+mixin M<U> on A<U> {
+  void remove(Object x) {
+    super.remove(x as U);
+  }
+}
+
+class X<T> = A<T> with M<T>;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
     addTestFile(r'''
 abstract class A {

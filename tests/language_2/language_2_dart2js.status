@@ -10,7 +10,6 @@ bit_operations_test: RuntimeError, OK # non JS number semantics
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bug32372_test: CompileTimeError
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -47,29 +46,12 @@ int64_literal_test/17: RuntimeError, OK # Error if web int literal cannot be rep
 int64_literal_test/19: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int64_literal_test/none: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
-issue32353_test: CompileTimeError
-issue34404_flutter_test: CompileTimeError # --supermixin not supported
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
 list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mixin_type_parameter_inference_error_test/none: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/none: CompileTimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/08: CompileTimeError
-mixin_type_parameter_inference_test/09: CompileTimeError
-mixin_type_parameter_inference_test/10: CompileTimeError
-mixin_type_parameter_inference_test/12: CompileTimeError
-mixin_type_parameter_inference_test/13: CompileTimeError
-mixin_type_parameter_inference_test/16: CompileTimeError
-mixin_type_parameter_inference_test/none: CompileTimeError
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
@@ -346,29 +328,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_of_mixin_test/none: CompileTimeError
-mixin_super_2_test/none: CompileTimeError
-mixin_super_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
-mixin_supertype_subclass2_test/01: CompileTimeError
-mixin_supertype_subclass2_test/02: CompileTimeError
-mixin_supertype_subclass2_test/03: CompileTimeError
-mixin_supertype_subclass2_test/04: CompileTimeError
-mixin_supertype_subclass2_test/05: CompileTimeError
-mixin_supertype_subclass2_test/none: CompileTimeError
-mixin_supertype_subclass3_test/01: CompileTimeError
-mixin_supertype_subclass3_test/02: CompileTimeError
-mixin_supertype_subclass3_test/03: CompileTimeError
-mixin_supertype_subclass3_test/04: CompileTimeError
-mixin_supertype_subclass3_test/05: CompileTimeError
-mixin_supertype_subclass3_test/none: CompileTimeError
-mixin_supertype_subclass4_test/01: CompileTimeError
-mixin_supertype_subclass4_test/02: CompileTimeError
-mixin_supertype_subclass4_test/03: CompileTimeError
-mixin_supertype_subclass4_test/04: CompileTimeError
-mixin_supertype_subclass4_test/05: CompileTimeError
-mixin_supertype_subclass4_test/none: CompileTimeError
 mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
@@ -608,33 +567,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_method_override_test/G5: Skip # Issue 34354
-mixin_of_mixin_test/none: CompileTimeError
-mixin_super_2_test/none: CompileTimeError
-mixin_super_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
-mixin_supertype_subclass2_test/01: CompileTimeError
-mixin_supertype_subclass2_test/02: CompileTimeError
-mixin_supertype_subclass2_test/03: CompileTimeError
-mixin_supertype_subclass2_test/04: CompileTimeError
-mixin_supertype_subclass2_test/05: CompileTimeError
-mixin_supertype_subclass2_test/none: CompileTimeError
-mixin_supertype_subclass3_test/01: CompileTimeError
-mixin_supertype_subclass3_test/02: CompileTimeError
-mixin_supertype_subclass3_test/03: CompileTimeError
-mixin_supertype_subclass3_test/04: CompileTimeError
-mixin_supertype_subclass3_test/05: CompileTimeError
-mixin_supertype_subclass3_test/none: CompileTimeError
-mixin_supertype_subclass4_test/01: CompileTimeError
-mixin_supertype_subclass4_test/02: CompileTimeError
-mixin_supertype_subclass4_test/03: CompileTimeError
-mixin_supertype_subclass4_test/04: CompileTimeError
-mixin_supertype_subclass4_test/05: CompileTimeError
-mixin_supertype_subclass4_test/none: CompileTimeError
-mixin_supertype_subclass_test/01: CompileTimeError
-mixin_supertype_subclass_test/03: CompileTimeError
-mixin_supertype_subclass_test/04: CompileTimeError
-mixin_supertype_subclass_test/none: CompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics

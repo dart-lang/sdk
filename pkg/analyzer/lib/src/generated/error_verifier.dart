@@ -4166,7 +4166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
 
       FunctionType mixinMemberType =
-          _inheritanceManager.getMember(mixinType, nameObject);
+          _inheritanceManager.getMember(mixinType, nameObject, forSuper: true);
 
       if (mixinMemberType != null &&
           !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
