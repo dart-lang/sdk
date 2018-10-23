@@ -2271,7 +2271,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ AddImmediate(kCacheReg, Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+  } else {
+    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  }
   __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
   __ b(&not_closure, NE);
 
@@ -2567,7 +2571,6 @@ void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
 void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
-  const Register kInstanceReg = R0;
   const Register kInstantiatorTypeArgumentsReg = R1;
 
   const Register kSubtypeTestCacheReg = R3;
@@ -2576,6 +2579,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ EnterStubFrame();
 
 #ifdef DEBUG
+  const Register kInstanceReg = R0;
   // Guaranteed by caller.
   Label no_error;
   __ CompareObject(kInstanceReg, Object::null_object());
@@ -2583,11 +2587,6 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
   __ Bind(&no_error);
 #endif
-
-  // Need to handle slow cases of [Smi]s here because the
-  // [SubtypeTestCache]-based stubs do not handle [Smi]s.
-  Label non_smi_value;
-  __ BranchIfSmi(kInstanceReg, &call_runtime);
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(kSubtypeTestCacheReg, Object::null_object());
