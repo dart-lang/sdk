@@ -38,8 +38,6 @@ Bytecode (version: stable) {
   CheckStack
   PushInt              42
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
 }
@@ -86,8 +84,6 @@ Bytecode (version: stable) {
   PushConstant         CP#3
   IndirectStaticCall   4, CP#2
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgs [dart.core::String]
@@ -105,8 +101,6 @@ Bytecode (version: stable) {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -121,8 +115,6 @@ Bytecode (version: stable) {
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -141,8 +133,6 @@ Bytecode (version: stable) {
   IndirectStaticCall   1, CP#1
   PushConstant         CP#3
   InstanceCall         3, CP#5
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -254,8 +244,6 @@ Bytecode (version: stable) {
   PushConstant         CP#9
   IndirectStaticCall   2, CP#8
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = String 'foo'
@@ -292,8 +280,6 @@ Bytecode (version: stable) {
   PushConstant         CP#6
   IndirectStaticCall   2, CP#5
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = String 'foo'
@@ -326,8 +312,6 @@ Bytecode (version: stable) {
   IndirectStaticCall   4, CP#3
   PushConstant         CP#6
   IndirectStaticCall   2, CP#5
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -364,8 +348,6 @@ Bytecode (version: stable) {
   IndirectStaticCall   2, CP#6
   PushConstant         CP#8
   InstanceCall         3, CP#10
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

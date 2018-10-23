@@ -13,8 +13,6 @@ Bytecode (version: stable) {
   PushConstant         CP#3
   IndirectStaticCall   0, CP#2
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -31,8 +29,6 @@ Bytecode (version: stable) {
   PushNull
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

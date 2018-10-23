@@ -122,8 +122,6 @@ Bytecode (version: stable) {
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -693,8 +691,6 @@ Bytecode (version: stable) {
   CheckStack
   PushConstant         CP#1
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsForInstanceAllocation #lib::F [dart.core::int, dart.core::String]
@@ -708,8 +704,6 @@ Bytecode (version: stable) {
   CheckStack
   PushConstant         CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = Type <X extends dart.core::Object = dynamic>(X) → X
@@ -722,8 +716,6 @@ Bytecode (version: stable) {
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

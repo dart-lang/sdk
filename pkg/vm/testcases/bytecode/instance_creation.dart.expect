@@ -200,8 +200,6 @@ Bytecode (version: stable) {
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsField #lib::E
@@ -238,8 +236,6 @@ Bytecode (version: stable) {
   LoadTypeArgumentsField CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -283,8 +279,6 @@ Bytecode (version: stable) {
   PushConstant         CP#3
   IndirectStaticCall   1, CP#2
   Drop1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -350,8 +344,6 @@ Bytecode (version: stable) {
   IndirectStaticCall   2, CP#3
   Drop1
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = String 'param'
@@ -391,8 +383,6 @@ Bytecode (version: stable) {
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   Drop1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -434,8 +424,6 @@ Bytecode (version: stable) {
   PushConstant         CP#3
   IndirectStaticCall   2, CP#2
   Drop1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -569,8 +557,6 @@ Bytecode (version: stable) {
   PushConstant         CP#2
   IndirectStaticCall   2, CP#1
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsForInstanceAllocation dart.core::_GrowableList [dart.core::String]
@@ -587,8 +573,6 @@ Bytecode (version: stable) {
   Push                 FP[-5]
   PushConstant         CP#2
   IndirectStaticCall   2, CP#1
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
