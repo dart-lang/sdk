@@ -50,7 +50,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
-  assertHasFixAllFix(ErrorCode errorCode, FixKind kind, String expected,
+  assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
     AnalysisError error = await _findErrorToFixOfType(errorCode);
     Fix fix = await _assertHasFixAllFix(error);
@@ -166,6 +166,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       bool Function(AnalysisError) errorFilter) async {
     List<AnalysisError> errors = await _computeErrors();
     if (errorFilter != null) {
+      if (errors.length == 1) {
+        fail('Unnecessary error filter');
+      }
       errors = errors.where(errorFilter).toList();
     }
     if (errors.length == 0) {
