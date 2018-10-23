@@ -9858,7 +9858,6 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
