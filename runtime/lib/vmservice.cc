@@ -140,6 +140,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
     OS::PrintErr("vm-service: live ports = %" Pd "\n",
                  message_handler->live_ports());
   }
+  Isolate::KillIfExists(isolate, Isolate::kInternalKillMsg);
   return Object::null();
 }
 
