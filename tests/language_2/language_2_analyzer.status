@@ -12,7 +12,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-bug32372_test: Skip
 cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
 config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)
@@ -70,40 +69,14 @@ issue31596_super_test/05: CompileTimeError # Issue #31596
 issue31596_super_test/none: CompileTimeError # Issue #31596
 issue31596_tearoff_test: CompileTimeError # Issue #31596
 issue31596_test: CompileTimeError # Issue #31596
-issue32353_2_test: Skip
-issue32353_test: Skip
-issue34404_flutter_test: Skip
 issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow, Pass
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_factory_test/02: Crash # Issue 34809
 mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
-mixin_of_mixin_test: Skip
-mixin_super_2_test: Skip
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mixin_super_test: Skip
-mixin_super_use_test: Skip
-mixin_superclass_test: Skip
-mixin_supertype_subclass2_test: Skip
-mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass3_test: Skip
-mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass3_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test: Skip
-mixin_supertype_subclass4_test/01: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
-mixin_supertype_subclass_test: Skip
-mixin_supertype_subclass_test/02: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
-mixin_supertype_subclass_test/05: MissingCompileTimeError, MissingStaticWarning # failing-by-design, see Issue #34376
-mixin_type_parameter_inference_error_test: Skip
-mixin_type_parameter_inference_previous_mixin_test: Skip
-mixin_type_parameter_inference_test: Skip
+mixin_super_2_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError # Issue #28515

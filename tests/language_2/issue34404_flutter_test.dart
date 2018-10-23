@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 // This test case is a reduction of some Flutter code.  We wish to verify that
 // the class _DismissibleState doesn't have any type inference errors.
@@ -21,13 +20,12 @@ abstract class Diagnosticable {}
 
 class Dismissible extends StatefulWidget {}
 
-abstract class TickerProviderStateMixin<T extends StatefulWidget>
-    extends State<T> implements TickerProvider {}
+mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
+    implements TickerProvider {}
 
 abstract class TickerProvider {}
 
-abstract class AutomaticKeepAliveClientMixin<T extends StatefulWidget>
-    extends State<T> {}
+mixin AutomaticKeepAliveClientMixin<T extends StatefulWidget> on State<T> {}
 
 main() {
   new _DismissibleState();

@@ -296,12 +296,6 @@ super_call4_test/01: MissingCompileTimeError
 [ $compiler != dart2js && $compiler != dartdevk && $fasta ]
 const_native_factory_test: MissingCompileTimeError # Issue 29763
 
-[ $compiler != dart2js && $fasta ]
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mixin_supertype_subclass_test/02: MissingCompileTimeError
-mixin_supertype_subclass_test/05: MissingCompileTimeError
-
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
