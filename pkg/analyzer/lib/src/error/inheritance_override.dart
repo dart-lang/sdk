@@ -253,7 +253,7 @@ class _ClassVerifier {
 
     var name = new Name(libraryUri, member.name);
     for (var superInterface in allSuperinterfaces) {
-      var superMemberType = superInterface.map[name];
+      var superMemberType = superInterface.declared[name];
       if (superMemberType != null) {
         // The case when members have different kinds is reported in verifier.
         // TODO(scheglov) Do it here?

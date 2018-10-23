@@ -53,7 +53,13 @@ class InheritanceManager2 {
   /// members, not necessary accessible in all libraries.
   Interface getInterface(InterfaceType type) {
     if (type == null) {
-      return const Interface._(const {}, const {}, const [{}], const []);
+      return const Interface._(
+        const {},
+        const {},
+        const {},
+        const [{}],
+        const [],
+      );
     }
 
     var result = _interfaces[type];
@@ -64,16 +70,15 @@ class InheritanceManager2 {
     _interfaces[type] = const Interface._(
       const {},
       const {},
+      const {},
       const [{}],
       const [],
     );
-    Map<Name, FunctionType> map = {};
     List<Map<Name, FunctionType>> superImplemented = [];
-    List<Conflict> conflicts = null;
 
     // If a class declaration has a member declaration, the signature of that
     // member declaration becomes the signature in the interface.
-    _addTypeMembers(map, type);
+    var declared = _getTypeMembers(type);
 
     Map<Name, List<FunctionType>> namedCandidates = {};
 
@@ -118,10 +123,15 @@ class InheritanceManager2 {
     // super-interfaces that is a valid override of all the other
     // super-interface signatures with the same name. That "most specific"
     // signature becomes the signature of the class's interface.
-    conflicts = _findMostSpecificFromNamedCandidates(map, namedCandidates);
+    Map<Name, FunctionType> map = new Map.of(declared);
+    List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
+      map,
+      namedCandidates,
+    );
 
     var interface = new Interface._(
       map,
+      declared,
       namedCandidates,
       superImplemented,
       conflicts ?? const [],
@@ -187,20 +197,6 @@ class InheritanceManager2 {
       var candidate = map[name];
       _addCandidate(namedCandidates, name, candidate);
     }
-  }
-
-  void _addTypeMembers(Map<Name, FunctionType> map, InterfaceType type) {
-    var libraryUri = type.element.librarySource.uri;
-
-    void addTypeMember(ExecutableElement member) {
-      if (!member.isStatic) {
-        var name = new Name(libraryUri, member.name);
-        map[name] = member.type;
-      }
-    }
-
-    type.methods.forEach(addTypeMember);
-    type.accessors.forEach(addTypeMember);
   }
 
   /// Check that all [candidates] for the given [name] have the same kind, all
@@ -381,12 +377,40 @@ class InheritanceManager2 {
     _mixinMembers[type] = implemented;
     return implemented;
   }
+
+  Map<Name, FunctionType> _getTypeMembers(InterfaceType type) {
+    var declared = <Name, FunctionType>{};
+    var libraryUri = type.element.librarySource.uri;
+
+    var methods = type.methods;
+    for (var i = 0; i < methods.length; i++) {
+      var method = methods[i];
+      if (!method.isStatic) {
+        var name = new Name(libraryUri, method.name);
+        declared[name] = method.type;
+      }
+    }
+
+    var accessors = type.accessors;
+    for (var i = 0; i < accessors.length; i++) {
+      var accessor = accessors[i];
+      if (!accessor.isStatic) {
+        var name = new Name(libraryUri, accessor.name);
+        declared[name] = accessor.type;
+      }
+    }
+
+    return declared;
+  }
 }
 
 /// The instance interface of an [InterfaceType].
 class Interface {
   /// The map of names to their signature in the interface.
   final Map<Name, FunctionType> map;
+
+  /// The map of declared names to their signatures.
+  final Map<Name, FunctionType> declared;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -405,6 +429,7 @@ class Interface {
 
   const Interface._(
     this.map,
+    this.declared,
     this._overridden,
     this._superImplemented,
     this.conflicts,
