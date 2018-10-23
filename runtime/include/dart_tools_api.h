@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "dart_api.h"
+#include "include/dart_api.h"
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -217,7 +217,7 @@ typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
  * \return Success if the callbacks were added.  Otherwise, returns an
  *   error handle.
  */
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback);
 
@@ -266,8 +266,8 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback);
 
 /**
  * Returns true if isolate is currently reloading.

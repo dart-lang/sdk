@@ -17,6 +17,7 @@
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
@@ -540,6 +541,10 @@ char* Dart::Cleanup() {
   }
   MallocHooks::Cleanup();
   Flags::Cleanup();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  IsolateReloadContext::SetFileModifiedCallback(NULL);
+  Service::SetEmbedderStreamCallbacks(NULL, NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
 

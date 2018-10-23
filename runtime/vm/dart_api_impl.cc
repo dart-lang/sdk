@@ -5702,10 +5702,10 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
   return;
 }
 
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
@@ -5715,9 +5715,9 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_mod_callback) {
-  return Api::Success();
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_mod_callback) {
+  return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
@@ -5774,42 +5774,42 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
   }
 }
 
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
   if (!FLAG_support_service) {
-    return Api::Success();
+    return NULL;
   }
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one listen callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_listen_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'listen_callback' to be present in the callback set.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "expects 'listen_callback' to be present in the callback set.");
     }
   }
   if (cancel_callback != NULL) {
     if (Service::stream_cancel_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one cancel callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_cancel_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'cancel_callback' to be present in the callback set.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "expects 'cancel_callback' to be present in the callback set.");
     }
   }
   Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
@@ -5835,29 +5835,29 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback) {
   if (!FLAG_support_service) {
-    return Api::Success();
+    return NULL;
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateReloadContext::file_modified_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetFileModifiedCallback permits only one callback to be"
+          " registered, please remove the existing callback and then add"
+          " this callback");
     }
   } else {
     if (IsolateReloadContext::file_modified_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'file_modified_callback' to be set before it is cleared.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
+          " be set before it is cleared.");
     }
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
