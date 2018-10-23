@@ -18,7 +18,8 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   }
   factory ApplyWorkspaceEditParams.fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final edit = new WorkspaceEdit.fromJson(json['edit']);
+    final edit =
+        json['edit'] != null ? new WorkspaceEdit.fromJson(json['edit']) : null;
     return new ApplyWorkspaceEditParams(label, edit);
   }
 
@@ -107,10 +108,12 @@ class CancelParams implements ToJsonable {
 class ClientCapabilities implements ToJsonable {
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
   factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
-    final workspace =
-        new WorkspaceClientCapabilities.fromJson(json['workspace']);
-    final textDocument =
-        new TextDocumentClientCapabilities.fromJson(json['textDocument']);
+    final workspace = json['workspace'] != null
+        ? new WorkspaceClientCapabilities.fromJson(json['workspace'])
+        : null;
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentClientCapabilities.fromJson(json['textDocument'])
+        : null;
     final experimental = json['experimental'];
     return new ClientCapabilities(workspace, textDocument, experimental);
   }
@@ -158,11 +161,13 @@ class CodeAction implements ToJsonable {
     final title = json['title'];
     final kind = json['kind'];
     final diagnostics = json['diagnostics']
-        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
-    final edit = new WorkspaceEdit.fromJson(json['edit']);
-    final command = new Command.fromJson(json['command']);
+    final edit =
+        json['edit'] != null ? new WorkspaceEdit.fromJson(json['edit']) : null;
+    final command =
+        json['command'] != null ? new Command.fromJson(json['command']) : null;
     return new CodeAction(title, kind, diagnostics, edit, command);
   }
 
@@ -219,7 +224,7 @@ class CodeActionContext implements ToJsonable {
   }
   factory CodeActionContext.fromJson(Map<String, dynamic> json) {
     final diagnostics = json['diagnostics']
-        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
     final only = json['only']?.map((item) => item)?.cast<String>()?.toList();
@@ -346,10 +351,14 @@ class CodeActionParams implements ToJsonable {
     }
   }
   factory CodeActionParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final range = new Range.fromJson(json['range']);
-    final context = new CodeActionContext.fromJson(json['context']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final context = json['context'] != null
+        ? new CodeActionContext.fromJson(json['context'])
+        : null;
     return new CodeActionParams(textDocument, range, context);
   }
 
@@ -388,7 +397,7 @@ class CodeActionRegistrationOptions
   CodeActionRegistrationOptions(this.documentSelector, this.codeActionKinds);
   factory CodeActionRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     final codeActionKinds =
@@ -438,8 +447,10 @@ class CodeLens implements ToJsonable {
     }
   }
   factory CodeLens.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
-    final command = new Command.fromJson(json['command']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final command =
+        json['command'] != null ? new Command.fromJson(json['command']) : null;
     final data = json['data'];
     return new CodeLens(range, command, data);
   }
@@ -505,8 +516,9 @@ class CodeLensParams implements ToJsonable {
     }
   }
   factory CodeLensParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     return new CodeLensParams(textDocument);
   }
 
@@ -533,7 +545,7 @@ class CodeLensRegistrationOptions
   factory CodeLensRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new CodeLensRegistrationOptions(resolveProvider, documentSelector);
@@ -626,8 +638,10 @@ class ColorInformation implements ToJsonable {
     }
   }
   factory ColorInformation.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
-    final color = new Color.fromJson(json['color']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final color =
+        json['color'] != null ? new Color.fromJson(json['color']) : null;
     return new ColorInformation(range, color);
   }
 
@@ -661,9 +675,11 @@ class ColorPresentation implements ToJsonable {
   }
   factory ColorPresentation.fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final textEdit = new TextEdit.fromJson(json['textEdit']);
+    final textEdit = json['textEdit'] != null
+        ? new TextEdit.fromJson(json['textEdit'])
+        : null;
     final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => new TextEdit.fromJson(item))
+        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     return new ColorPresentation(label, textEdit, additionalTextEdits);
@@ -716,10 +732,13 @@ class ColorPresentationParams implements ToJsonable {
     }
   }
   factory ColorPresentationParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final color = new Color.fromJson(json['color']);
-    final range = new Range.fromJson(json['range']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final color =
+        json['color'] != null ? new Color.fromJson(json['color']) : null;
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     return new ColorPresentationParams(textDocument, color, range);
   }
 
@@ -819,7 +838,9 @@ class CompletionContext implements ToJsonable {
     }
   }
   factory CompletionContext.fromJson(Map<String, dynamic> json) {
-    final triggerKind = new CompletionTriggerKind.fromJson(json['triggerKind']);
+    final triggerKind = json['triggerKind'] != null
+        ? new CompletionTriggerKind.fromJson(json['triggerKind'])
+        : null;
     final triggerCharacter = json['triggerCharacter'];
     return new CompletionContext(triggerKind, triggerCharacter);
   }
@@ -871,29 +892,37 @@ class CompletionItem implements ToJsonable {
   }
   factory CompletionItem.fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final kind = new CompletionItemKind.fromJson(json['kind']);
+    final kind = json['kind'] != null
+        ? new CompletionItemKind.fromJson(json['kind'])
+        : null;
     final detail = json['detail'];
     final documentation = json['documentation'] is String
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
-                new MarkupContent.fromJson(json['documentation']))
+                json['documentation'] != null
+                    ? new MarkupContent.fromJson(json['documentation'])
+                    : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     final deprecated = json['deprecated'];
     final preselect = json['preselect'];
     final sortText = json['sortText'];
     final filterText = json['filterText'];
     final insertText = json['insertText'];
-    final insertTextFormat =
-        new InsertTextFormat.fromJson(json['insertTextFormat']);
-    final textEdit = new TextEdit.fromJson(json['textEdit']);
+    final insertTextFormat = json['insertTextFormat'] != null
+        ? new InsertTextFormat.fromJson(json['insertTextFormat'])
+        : null;
+    final textEdit = json['textEdit'] != null
+        ? new TextEdit.fromJson(json['textEdit'])
+        : null;
     final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => new TextEdit.fromJson(item))
+        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     final commitCharacters =
         json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
-    final command = new Command.fromJson(json['command']);
+    final command =
+        json['command'] != null ? new Command.fromJson(json['command']) : null;
     final data = json['data'];
     return new CompletionItem(
         label,
@@ -1141,7 +1170,7 @@ class CompletionList implements ToJsonable {
   factory CompletionList.fromJson(Map<String, dynamic> json) {
     final isIncomplete = json['isIncomplete'];
     final items = json['items']
-        ?.map((item) => new CompletionItem.fromJson(item))
+        ?.map((item) => item != null ? new CompletionItem.fromJson(item) : null)
         ?.cast<CompletionItem>()
         ?.toList();
     return new CompletionList(isIncomplete, items);
@@ -1218,10 +1247,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
     }
   }
   factory CompletionParams.fromJson(Map<String, dynamic> json) {
-    final context = new CompletionContext.fromJson(json['context']);
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = new Position.fromJson(json['position']);
+    final context = json['context'] != null
+        ? new CompletionContext.fromJson(json['context'])
+        : null;
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final position = json['position'] != null
+        ? new Position.fromJson(json['position'])
+        : null;
     return new CompletionParams(context, textDocument, position);
   }
 
@@ -1268,7 +1302,7 @@ class CompletionRegistrationOptions
         ?.toList();
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new CompletionRegistrationOptions(
@@ -1396,7 +1430,8 @@ class ConfigurationParams implements ToJsonable {
   }
   factory ConfigurationParams.fromJson(Map<String, dynamic> json) {
     final items = json['items']
-        ?.map((item) => new ConfigurationItem.fromJson(item))
+        ?.map((item) =>
+            item != null ? new ConfigurationItem.fromJson(item) : null)
         ?.cast<ConfigurationItem>()
         ?.toList();
     return new ConfigurationParams(items);
@@ -1429,7 +1464,9 @@ class CreateFile implements FileOperation, ToJsonable {
   }
   factory CreateFile.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final options = new CreateFileOptions.fromJson(json['options']);
+    final options = json['options'] != null
+        ? new CreateFileOptions.fromJson(json['options'])
+        : null;
     return new CreateFile(uri, options);
   }
 
@@ -1495,7 +1532,9 @@ class DeleteFile implements FileOperation, ToJsonable {
   }
   factory DeleteFile.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final options = new DeleteFileOptions.fromJson(json['options']);
+    final options = json['options'] != null
+        ? new DeleteFileOptions.fromJson(json['options'])
+        : null;
     return new DeleteFile(uri, options);
   }
 
@@ -1563,8 +1602,11 @@ class Diagnostic implements ToJsonable {
     }
   }
   factory Diagnostic.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
-    final severity = new DiagnosticSeverity.fromJson(json['severity']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final severity = json['severity'] != null
+        ? new DiagnosticSeverity.fromJson(json['severity'])
+        : null;
     final code = json['code'] is num
         ? new Either2<num, String>.t1(json['code'])
         : (json['code'] is String
@@ -1573,7 +1615,9 @@ class Diagnostic implements ToJsonable {
     final source = json['source'];
     final message = json['message'];
     final relatedInformation = json['relatedInformation']
-        ?.map((item) => new DiagnosticRelatedInformation.fromJson(item))
+        ?.map((item) => item != null
+            ? new DiagnosticRelatedInformation.fromJson(item)
+            : null)
         ?.cast<DiagnosticRelatedInformation>()
         ?.toList();
     return new Diagnostic(
@@ -1644,7 +1688,9 @@ class DiagnosticRelatedInformation implements ToJsonable {
     }
   }
   factory DiagnosticRelatedInformation.fromJson(Map<String, dynamic> json) {
-    final location = new Location.fromJson(json['location']);
+    final location = json['location'] != null
+        ? new Location.fromJson(json['location'])
+        : null;
     final message = json['message'];
     return new DiagnosticRelatedInformation(location, message);
   }
@@ -1749,10 +1795,13 @@ class DidChangeTextDocumentParams implements ToJsonable {
     }
   }
   factory DidChangeTextDocumentParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     final contentChanges = json['contentChanges']
-        ?.map((item) => new TextDocumentContentChangeEvent.fromJson(item))
+        ?.map((item) => item != null
+            ? new TextDocumentContentChangeEvent.fromJson(item)
+            : null)
         ?.cast<TextDocumentContentChangeEvent>()
         ?.toList();
     return new DidChangeTextDocumentParams(textDocument, contentChanges);
@@ -1797,7 +1846,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   }
   factory DidChangeWatchedFilesParams.fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
-        ?.map((item) => new FileEvent.fromJson(item))
+        ?.map((item) => item != null ? new FileEvent.fromJson(item) : null)
         ?.cast<FileEvent>()
         ?.toList();
     return new DidChangeWatchedFilesParams(changes);
@@ -1833,7 +1882,8 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   factory DidChangeWatchedFilesRegistrationOptions.fromJson(
       Map<String, dynamic> json) {
     final watchers = json['watchers']
-        ?.map((item) => new FileSystemWatcher.fromJson(item))
+        ?.map((item) =>
+            item != null ? new FileSystemWatcher.fromJson(item) : null)
         ?.cast<FileSystemWatcher>()
         ?.toList();
     return new DidChangeWatchedFilesRegistrationOptions(watchers);
@@ -1866,7 +1916,9 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     }
   }
   factory DidChangeWorkspaceFoldersParams.fromJson(Map<String, dynamic> json) {
-    final event = new WorkspaceFoldersChangeEvent.fromJson(json['event']);
+    final event = json['event'] != null
+        ? new WorkspaceFoldersChangeEvent.fromJson(json['event'])
+        : null;
     return new DidChangeWorkspaceFoldersParams(event);
   }
 
@@ -1893,8 +1945,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
     }
   }
   factory DidCloseTextDocumentParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     return new DidCloseTextDocumentParams(textDocument);
   }
 
@@ -1922,7 +1975,9 @@ class DidOpenTextDocumentParams implements ToJsonable {
     }
   }
   factory DidOpenTextDocumentParams.fromJson(Map<String, dynamic> json) {
-    final textDocument = new TextDocumentItem.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentItem.fromJson(json['textDocument'])
+        : null;
     return new DidOpenTextDocumentParams(textDocument);
   }
 
@@ -1950,8 +2005,9 @@ class DidSaveTextDocumentParams implements ToJsonable {
     }
   }
   factory DidSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     final text = json['text'];
     return new DidSaveTextDocumentParams(textDocument, text);
   }
@@ -2027,9 +2083,12 @@ class DocumentFormattingParams implements ToJsonable {
     }
   }
   factory DocumentFormattingParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final options = new FormattingOptions.fromJson(json['options']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final options = json['options'] != null
+        ? new FormattingOptions.fromJson(json['options'])
+        : null;
     return new DocumentFormattingParams(textDocument, options);
   }
 
@@ -2067,8 +2126,11 @@ class DocumentHighlight implements ToJsonable {
     }
   }
   factory DocumentHighlight.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
-    final kind = new DocumentHighlightKind.fromJson(json['kind']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final kind = json['kind'] != null
+        ? new DocumentHighlightKind.fromJson(json['kind'])
+        : null;
     return new DocumentHighlight(range, kind);
   }
 
@@ -2141,7 +2203,8 @@ class DocumentLink implements ToJsonable {
     }
   }
   factory DocumentLink.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     final target = json['target'];
     final data = json['data'];
     return new DocumentLink(range, target, data);
@@ -2208,8 +2271,9 @@ class DocumentLinkParams implements ToJsonable {
     }
   }
   factory DocumentLinkParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     return new DocumentLinkParams(textDocument);
   }
 
@@ -2236,7 +2300,7 @@ class DocumentLinkRegistrationOptions
   factory DocumentLinkRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new DocumentLinkRegistrationOptions(
@@ -2328,11 +2392,16 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
     }
   }
   factory DocumentOnTypeFormattingParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = new Position.fromJson(json['position']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final position = json['position'] != null
+        ? new Position.fromJson(json['position'])
+        : null;
     final ch = json['ch'];
-    final options = new FormattingOptions.fromJson(json['options']);
+    final options = json['options'] != null
+        ? new FormattingOptions.fromJson(json['options'])
+        : null;
     return new DocumentOnTypeFormattingParams(
         textDocument, position, ch, options);
   }
@@ -2390,7 +2459,7 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.cast<String>()
         ?.toList();
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new DocumentOnTypeFormattingRegistrationOptions(
@@ -2444,10 +2513,14 @@ class DocumentRangeFormattingParams implements ToJsonable {
     }
   }
   factory DocumentRangeFormattingParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final range = new Range.fromJson(json['range']);
-    final options = new FormattingOptions.fromJson(json['options']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final options = json['options'] != null
+        ? new FormattingOptions.fromJson(json['options'])
+        : null;
     return new DocumentRangeFormattingParams(textDocument, range, options);
   }
 
@@ -2505,12 +2578,16 @@ class DocumentSymbol implements ToJsonable {
   factory DocumentSymbol.fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final detail = json['detail'];
-    final kind = new SymbolKind.fromJson(json['kind']);
+    final kind =
+        json['kind'] != null ? new SymbolKind.fromJson(json['kind']) : null;
     final deprecated = json['deprecated'];
-    final range = new Range.fromJson(json['range']);
-    final selectionRange = new Range.fromJson(json['selectionRange']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
+    final selectionRange = json['selectionRange'] != null
+        ? new Range.fromJson(json['selectionRange'])
+        : null;
     final children = json['children']
-        ?.map((item) => new DocumentSymbol.fromJson(item))
+        ?.map((item) => item != null ? new DocumentSymbol.fromJson(item) : null)
         ?.cast<DocumentSymbol>()
         ?.toList();
     return new DocumentSymbol(
@@ -2582,8 +2659,9 @@ class DocumentSymbolParams implements ToJsonable {
     }
   }
   factory DocumentSymbolParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     return new DocumentSymbolParams(textDocument);
   }
 
@@ -2850,7 +2928,8 @@ class FileSystemWatcher implements ToJsonable {
   }
   factory FileSystemWatcher.fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
-    final kind = new WatchKind.fromJson(json['kind']);
+    final kind =
+        json['kind'] != null ? new WatchKind.fromJson(json['kind']) : null;
     return new FileSystemWatcher(globPattern, kind);
   }
 
@@ -2895,7 +2974,9 @@ class FoldingRange implements ToJsonable {
     final startCharacter = json['startCharacter'];
     final endLine = json['endLine'];
     final endCharacter = json['endCharacter'];
-    final kind = new FoldingRangeKind.fromJson(json['kind']);
+    final kind = json['kind'] != null
+        ? new FoldingRangeKind.fromJson(json['kind'])
+        : null;
     return new FoldingRange(
         startLine, startCharacter, endLine, endCharacter, kind);
   }
@@ -2992,8 +3073,9 @@ class FoldingRangeParams implements ToJsonable {
     }
   }
   factory FoldingRangeParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     return new FoldingRangeParams(textDocument);
   }
 
@@ -3076,22 +3158,26 @@ class Hover implements ToJsonable {
   factory Hover.fromJson(Map<String, dynamic> json) {
     final contents = MarkedString.canParse(json['contents'])
         ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t1(
-            new MarkedString.fromJson(json['contents']))
+            json['contents'] != null
+                ? new MarkedString.fromJson(json['contents'])
+                : null)
         : ((json['contents'] is List &&
                 (json['contents'].length == 0 ||
                     json['contents']
                         .every((item) => MarkedString.canParse(item))))
-            ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t2(
-                json['contents']
-                    ?.map((item) => new MarkedString.fromJson(item))
-                    ?.cast<MarkedString>()
-                    ?.toList())
+            ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t2(json['contents']
+                ?.map((item) =>
+                    item != null ? new MarkedString.fromJson(item) : null)
+                ?.cast<MarkedString>()
+                ?.toList())
             : (MarkupContent.canParse(json['contents'])
-                ? new Either3<MarkedString, List<MarkedString>,
-                        MarkupContent>.t3(
-                    new MarkupContent.fromJson(json['contents']))
+                ? new Either3<MarkedString, List<MarkedString>, MarkupContent>.t3(
+                    json['contents'] != null
+                        ? new MarkupContent.fromJson(json['contents'])
+                        : null)
                 : (throw '''${json['contents']} was not one of (MarkedString, MarkedString[], MarkupContent)''')));
-    final range = new Range.fromJson(json['range']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     return new Hover(contents, range);
   }
 
@@ -3137,9 +3223,12 @@ class InitializeParams implements ToJsonable {
     final rootPath = json['rootPath'];
     final rootUri = json['rootUri'];
     final initializationOptions = json['initializationOptions'];
-    final capabilities = new ClientCapabilities.fromJson(json['capabilities']);
+    final capabilities = json['capabilities'] != null
+        ? new ClientCapabilities.fromJson(json['capabilities'])
+        : null;
     final workspaceFolders = json['workspaceFolders']
-        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.map(
+            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return new InitializeParams(processId, rootPath, rootUri,
@@ -3213,7 +3302,9 @@ class InitializeResult implements ToJsonable {
     }
   }
   factory InitializeResult.fromJson(Map<String, dynamic> json) {
-    final capabilities = new ServerCapabilities.fromJson(json['capabilities']);
+    final capabilities = json['capabilities'] != null
+        ? new ServerCapabilities.fromJson(json['capabilities'])
+        : null;
     return new InitializeResult(capabilities);
   }
 
@@ -3297,7 +3388,8 @@ class Location implements ToJsonable {
   }
   factory Location.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final range = new Range.fromJson(json['range']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     return new Location(uri, range);
   }
 
@@ -3330,7 +3422,8 @@ class LogMessageParams implements ToJsonable {
     }
   }
   factory LogMessageParams.fromJson(Map<String, dynamic> json) {
-    final type = new MessageType.fromJson(json['type']);
+    final type =
+        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     return new LogMessageParams(type, message);
   }
@@ -3428,7 +3521,8 @@ class MarkupContent implements ToJsonable {
     }
   }
   factory MarkupContent.fromJson(Map<String, dynamic> json) {
-    final kind = new MarkupKind.fromJson(json['kind']);
+    final kind =
+        json['kind'] != null ? new MarkupKind.fromJson(json['kind']) : null;
     final value = json['value'];
     return new MarkupContent(kind, value);
   }
@@ -3603,7 +3697,7 @@ class NotificationMessage implements Message, ToJsonable {
                 json['params'].every((item) => true)))
         ? new Either2<List<dynamic>, dynamic>.t1(
             json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
-        : (json['params']);
+        : (new Either2<List<dynamic>, dynamic>.t2(json['params']));
     final jsonrpc = json['jsonrpc'];
     return new NotificationMessage(method, params, jsonrpc);
   }
@@ -3650,7 +3744,9 @@ class ParameterInformation implements ToJsonable {
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
-                new MarkupContent.fromJson(json['documentation']))
+                json['documentation'] != null
+                    ? new MarkupContent.fromJson(json['documentation'])
+                    : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     return new ParameterInformation(label, documentation);
   }
@@ -3734,7 +3830,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   factory PublishDiagnosticsParams.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final diagnostics = json['diagnostics']
-        ?.map((item) => new Diagnostic.fromJson(item))
+        ?.map((item) => item != null ? new Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
     return new PublishDiagnosticsParams(uri, diagnostics);
@@ -3775,8 +3871,9 @@ class Range implements ToJsonable {
     }
   }
   factory Range.fromJson(Map<String, dynamic> json) {
-    final start = new Position.fromJson(json['start']);
-    final end = new Position.fromJson(json['end']);
+    final start =
+        json['start'] != null ? new Position.fromJson(json['start']) : null;
+    final end = json['end'] != null ? new Position.fromJson(json['end']) : null;
     return new Range(start, end);
   }
 
@@ -3843,10 +3940,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
     }
   }
   factory ReferenceParams.fromJson(Map<String, dynamic> json) {
-    final context = new ReferenceContext.fromJson(json['context']);
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = new Position.fromJson(json['position']);
+    final context = json['context'] != null
+        ? new ReferenceContext.fromJson(json['context'])
+        : null;
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final position = json['position'] != null
+        ? new Position.fromJson(json['position'])
+        : null;
     return new ReferenceParams(context, textDocument, position);
   }
 
@@ -3934,7 +4036,7 @@ class RegistrationParams implements ToJsonable {
   }
   factory RegistrationParams.fromJson(Map<String, dynamic> json) {
     final registrations = json['registrations']
-        ?.map((item) => new Registration.fromJson(item))
+        ?.map((item) => item != null ? new Registration.fromJson(item) : null)
         ?.cast<Registration>()
         ?.toList();
     return new RegistrationParams(registrations);
@@ -3972,7 +4074,9 @@ class RenameFile implements FileOperation, ToJsonable {
   factory RenameFile.fromJson(Map<String, dynamic> json) {
     final oldUri = json['oldUri'];
     final newUri = json['newUri'];
-    final options = new RenameFileOptions.fromJson(json['options']);
+    final options = json['options'] != null
+        ? new RenameFileOptions.fromJson(json['options'])
+        : null;
     return new RenameFile(oldUri, newUri, options);
   }
 
@@ -4074,9 +4178,12 @@ class RenameParams implements ToJsonable {
     }
   }
   factory RenameParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = new Position.fromJson(json['position']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final position = json['position'] != null
+        ? new Position.fromJson(json['position'])
+        : null;
     final newName = json['newName'];
     return new RenameParams(textDocument, position, newName);
   }
@@ -4120,7 +4227,7 @@ class RenameRegistrationOptions
   factory RenameRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new RenameRegistrationOptions(prepareProvider, documentSelector);
@@ -4178,7 +4285,7 @@ class RequestMessage implements Message, ToJsonable {
                 json['params'].every((item) => true)))
         ? new Either2<List<dynamic>, dynamic>.t1(
             json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
-        : (json['params']);
+        : (new Either2<List<dynamic>, dynamic>.t2(json['params']));
     final jsonrpc = json['jsonrpc'];
     return new RequestMessage(id, method, params, jsonrpc);
   }
@@ -4401,16 +4508,20 @@ class ServerCapabilities implements ToJsonable {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'])
         ? new Either2<TextDocumentSyncOptions, num>.t1(
-            new TextDocumentSyncOptions.fromJson(json['textDocumentSync']))
+            json['textDocumentSync'] != null
+                ? new TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
+                : null)
         : (json['textDocumentSync'] is num
             ? new Either2<TextDocumentSyncOptions, num>.t2(
                 json['textDocumentSync'])
             : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, number)'''));
     final hoverProvider = json['hoverProvider'];
-    final completionProvider =
-        new CompletionOptions.fromJson(json['completionProvider']);
-    final signatureHelpProvider =
-        new SignatureHelpOptions.fromJson(json['signatureHelpProvider']);
+    final completionProvider = json['completionProvider'] != null
+        ? new CompletionOptions.fromJson(json['completionProvider'])
+        : null;
+    final signatureHelpProvider = json['signatureHelpProvider'] != null
+        ? new SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
+        : null;
     final definitionProvider = json['definitionProvider'];
     final referencesProvider = json['referencesProvider'];
     final documentHighlightProvider = json['documentHighlightProvider'];
@@ -4420,26 +4531,34 @@ class ServerCapabilities implements ToJsonable {
         ? new Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
         : (CodeActionOptions.canParse(json['codeActionProvider'])
             ? new Either2<bool, CodeActionOptions>.t2(
-                new CodeActionOptions.fromJson(json['codeActionProvider']))
+                json['codeActionProvider'] != null
+                    ? new CodeActionOptions.fromJson(json['codeActionProvider'])
+                    : null)
             : (throw '''${json['codeActionProvider']} was not one of (boolean, CodeActionOptions)'''));
-    final codeLensProvider =
-        new CodeLensOptions.fromJson(json['codeLensProvider']);
+    final codeLensProvider = json['codeLensProvider'] != null
+        ? new CodeLensOptions.fromJson(json['codeLensProvider'])
+        : null;
     final documentFormattingProvider = json['documentFormattingProvider'];
     final documentRangeFormattingProvider =
         json['documentRangeFormattingProvider'];
     final documentOnTypeFormattingProvider =
-        new DocumentOnTypeFormattingOptions.fromJson(
-            json['documentOnTypeFormattingProvider']);
+        json['documentOnTypeFormattingProvider'] != null
+            ? new DocumentOnTypeFormattingOptions.fromJson(
+                json['documentOnTypeFormattingProvider'])
+            : null;
     final renameProvider = json['renameProvider'] is bool
         ? new Either2<bool, RenameOptions>.t1(json['renameProvider'])
         : (RenameOptions.canParse(json['renameProvider'])
-            ? new Either2<bool, RenameOptions>.t2(
-                new RenameOptions.fromJson(json['renameProvider']))
+            ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
+                ? new RenameOptions.fromJson(json['renameProvider'])
+                : null)
             : (throw '''${json['renameProvider']} was not one of (boolean, RenameOptions)'''));
-    final documentLinkProvider =
-        new DocumentLinkOptions.fromJson(json['documentLinkProvider']);
-    final executeCommandProvider =
-        new ExecuteCommandOptions.fromJson(json['executeCommandProvider']);
+    final documentLinkProvider = json['documentLinkProvider'] != null
+        ? new DocumentLinkOptions.fromJson(json['documentLinkProvider'])
+        : null;
+    final executeCommandProvider = json['executeCommandProvider'] != null
+        ? new ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
+        : null;
     final supported = json['supported'];
     final changeNotifications = json['changeNotifications'] is String
         ? new Either2<String, bool>.t1(json['changeNotifications'])
@@ -4622,7 +4741,8 @@ class ShowMessageParams implements ToJsonable {
     }
   }
   factory ShowMessageParams.fromJson(Map<String, dynamic> json) {
-    final type = new MessageType.fromJson(json['type']);
+    final type =
+        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     return new ShowMessageParams(type, message);
   }
@@ -4660,10 +4780,12 @@ class ShowMessageRequestParams implements ToJsonable {
     }
   }
   factory ShowMessageRequestParams.fromJson(Map<String, dynamic> json) {
-    final type = new MessageType.fromJson(json['type']);
+    final type =
+        json['type'] != null ? new MessageType.fromJson(json['type']) : null;
     final message = json['message'];
     final actions = json['actions']
-        ?.map((item) => new MessageActionItem.fromJson(item))
+        ?.map((item) =>
+            item != null ? new MessageActionItem.fromJson(item) : null)
         ?.cast<MessageActionItem>()
         ?.toList();
     return new ShowMessageRequestParams(type, message, actions);
@@ -4709,7 +4831,8 @@ class SignatureHelp implements ToJsonable {
   }
   factory SignatureHelp.fromJson(Map<String, dynamic> json) {
     final signatures = json['signatures']
-        ?.map((item) => new SignatureInformation.fromJson(item))
+        ?.map((item) =>
+            item != null ? new SignatureInformation.fromJson(item) : null)
         ?.cast<SignatureInformation>()
         ?.toList();
     final activeSignature = json['activeSignature'];
@@ -4801,7 +4924,7 @@ class SignatureHelpRegistrationOptions
         ?.cast<String>()
         ?.toList();
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new SignatureHelpRegistrationOptions(
@@ -4851,10 +4974,13 @@ class SignatureInformation implements ToJsonable {
         ? new Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'])
             ? new Either2<String, MarkupContent>.t2(
-                new MarkupContent.fromJson(json['documentation']))
+                json['documentation'] != null
+                    ? new MarkupContent.fromJson(json['documentation'])
+                    : null)
             : (throw '''${json['documentation']} was not one of (string, MarkupContent)'''));
     final parameters = json['parameters']
-        ?.map((item) => new ParameterInformation.fromJson(item))
+        ?.map((item) =>
+            item != null ? new ParameterInformation.fromJson(item) : null)
         ?.cast<ParameterInformation>()
         ?.toList();
     return new SignatureInformation(label, documentation, parameters);
@@ -4936,7 +5062,9 @@ class SymbolInformation implements ToJsonable {
     final name = json['name'];
     final kind = json['kind'];
     final deprecated = json['deprecated'];
-    final location = new Location.fromJson(json['location']);
+    final location = json['location'] != null
+        ? new Location.fromJson(json['location'])
+        : null;
     final containerName = json['containerName'];
     return new SymbolInformation(
         name, kind, deprecated, location, containerName);
@@ -5089,7 +5217,7 @@ class TextDocumentChangeRegistrationOptions
       Map<String, dynamic> json) {
     final syncKind = json['syncKind'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentChangeRegistrationOptions(
@@ -5188,7 +5316,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
     }
   }
   factory TextDocumentContentChangeEvent.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     final rangeLength = json['rangeLength'];
     final text = json['text'];
     return new TextDocumentContentChangeEvent(range, rangeLength, text);
@@ -5232,10 +5361,11 @@ class TextDocumentEdit implements FileOperation, ToJsonable {
     }
   }
   factory TextDocumentEdit.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     final edits = json['edits']
-        ?.map((item) => new TextEdit.fromJson(item))
+        ?.map((item) => item != null ? new TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
     return new TextDocumentEdit(textDocument, edits);
@@ -5363,9 +5493,12 @@ class TextDocumentPositionParams implements ToJsonable {
     }
   }
   factory TextDocumentPositionParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = new Position.fromJson(json['position']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
+    final position = json['position'] != null
+        ? new Position.fromJson(json['position'])
+        : null;
     return new TextDocumentPositionParams(textDocument, position);
   }
 
@@ -5397,7 +5530,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   TextDocumentRegistrationOptions(this.documentSelector);
   factory TextDocumentRegistrationOptions.fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentRegistrationOptions(documentSelector);
@@ -5469,7 +5602,7 @@ class TextDocumentSaveRegistrationOptions
       Map<String, dynamic> json) {
     final includeText = json['includeText'];
     final documentSelector = json['documentSelector']
-        ?.map((item) => new DocumentFilter.fromJson(item))
+        ?.map((item) => item != null ? new DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     return new TextDocumentSaveRegistrationOptions(
@@ -5551,10 +5684,13 @@ class TextDocumentSyncOptions implements ToJsonable {
       this.willSaveWaitUntil, this.save);
   factory TextDocumentSyncOptions.fromJson(Map<String, dynamic> json) {
     final openClose = json['openClose'];
-    final change = new TextDocumentSyncKind.fromJson(json['change']);
+    final change = json['change'] != null
+        ? new TextDocumentSyncKind.fromJson(json['change'])
+        : null;
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
-    final save = new SaveOptions.fromJson(json['save']);
+    final save =
+        json['save'] != null ? new SaveOptions.fromJson(json['save']) : null;
     return new TextDocumentSyncOptions(
         openClose, change, willSave, willSaveWaitUntil, save);
   }
@@ -5616,7 +5752,8 @@ class TextEdit implements ToJsonable {
     }
   }
   factory TextEdit.fromJson(Map<String, dynamic> json) {
-    final range = new Range.fromJson(json['range']);
+    final range =
+        json['range'] != null ? new Range.fromJson(json['range']) : null;
     final newText = json['newText'];
     return new TextEdit(range, newText);
   }
@@ -5695,7 +5832,7 @@ class UnregistrationParams implements ToJsonable {
   }
   factory UnregistrationParams.fromJson(Map<String, dynamic> json) {
     final unregisterations = json['unregisterations']
-        ?.map((item) => new Unregistration.fromJson(item))
+        ?.map((item) => item != null ? new Unregistration.fromJson(item) : null)
         ?.cast<Unregistration>()
         ?.toList();
     return new UnregistrationParams(unregisterations);
@@ -5815,8 +5952,9 @@ class WillSaveTextDocumentParams implements ToJsonable {
     }
   }
   factory WillSaveTextDocumentParams.fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        new TextDocumentIdentifier.fromJson(json['textDocument']);
+    final textDocument = json['textDocument'] != null
+        ? new TextDocumentIdentifier.fromJson(json['textDocument'])
+        : null;
     final reason = json['reason'];
     return new WillSaveTextDocumentParams(textDocument, reason);
   }
@@ -5852,11 +5990,13 @@ class WorkspaceClientCapabilities implements ToJsonable {
     final applyEdit = json['applyEdit'];
     final documentChanges = json['documentChanges'];
     final resourceOperations = json['resourceOperations']
-        ?.map((item) => new ResourceOperationKind.fromJson(item))
+        ?.map((item) =>
+            item != null ? new ResourceOperationKind.fromJson(item) : null)
         ?.cast<ResourceOperationKind>()
         ?.toList();
-    final failureHandling =
-        new FailureHandlingKind.fromJson(json['failureHandling']);
+    final failureHandling = json['failureHandling'] != null
+        ? new FailureHandlingKind.fromJson(json['failureHandling'])
+        : null;
     return new WorkspaceClientCapabilities(
         applyEdit, documentChanges, resourceOperations, failureHandling);
   }
@@ -6004,11 +6144,13 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   }
   factory WorkspaceFoldersChangeEvent.fromJson(Map<String, dynamic> json) {
     final added = json['added']
-        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.map(
+            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     final removed = json['removed']
-        ?.map((item) => new WorkspaceFolder.fromJson(item))
+        ?.map(
+            (item) => item != null ? new WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return new WorkspaceFoldersChangeEvent(added, removed);
