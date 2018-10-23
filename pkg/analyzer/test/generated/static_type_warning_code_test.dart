@@ -1399,7 +1399,10 @@ f() {
 class A {}
 f(A a) {
   a[0]++;
-}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    ]);
   }
 
   test_undefinedOperator_indexGetter() async {

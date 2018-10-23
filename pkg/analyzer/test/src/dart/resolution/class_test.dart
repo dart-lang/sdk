@@ -1600,7 +1600,10 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrors([
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+    ]);
   }
 
   test_undefinedSuperOperator_indexGetter() async {

@@ -4006,7 +4006,10 @@ f(var a) {
 }''');
     await computeAnalysisResult(source);
     if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      ]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
     }

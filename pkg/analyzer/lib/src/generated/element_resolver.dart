@@ -473,7 +473,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       node.staticElement = setterStaticMethod;
       // generate undefined method warning
       _checkForUndefinedIndexOperator(
-          node, target, getterMethodName, setterStaticMethod, staticType);
+          node, target, setterMethodName, setterStaticMethod, staticType);
       // lookup getter method
       MethodElement getterStaticMethod =
           _lookUpMethod(target, staticType, getterMethodName);
