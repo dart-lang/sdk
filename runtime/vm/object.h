@@ -4840,6 +4840,10 @@ class Code : public Object {
     return code->ptr()->instructions_;
   }
 
+  static uword EntryPoint(const RawCode* code) {
+    return Instructions::EntryPoint(InstructionsOf(code));
+  }
+
   static intptr_t saved_instructions_offset() {
     return OFFSET_OF(RawCode, instructions_);
   }

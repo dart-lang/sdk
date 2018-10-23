@@ -649,6 +649,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  if (I != Dart::vm_isolate()) {
+    I->object_store()->set_build_method_extractor_code(
+        Code::Handle(StubCode::GetBuildMethodExtractorStub()));
+  }
+#endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   const Code& miss_code =
