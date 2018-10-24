@@ -125,7 +125,6 @@ LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l1_t03: CompileTimeErr
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t07: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t08: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l3_t02: CompileTimeError # Please triage this failure
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t04: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t01: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t02: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError # Please triage this failure

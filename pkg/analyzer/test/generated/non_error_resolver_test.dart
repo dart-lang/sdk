@@ -5038,6 +5038,16 @@ f(A a) {
     verify([source]);
   }
 
+  test_regress34906() async {
+    Source source = addSource(r'''
+typedef G<X, Y extends Function(X)> = X Function(Function(Y));
+G<dynamic, Function(Null)> superBoundedG;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_rethrowOutsideCatch() async {
     Source source = addSource(r'''
 class A {
