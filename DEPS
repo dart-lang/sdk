@@ -144,7 +144,10 @@ vars = {
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.1.15",
-  "zlib_rev": "c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
+  "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
+  "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
+  "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
+  "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 }
 
 deps = {
@@ -376,11 +379,23 @@ deps = {
       "@" + Var("web_socket_channel_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_tag"),
-  Var("dart_root") + "/third_party/cygwin": {
-    "url": Var("chromium_git") + "/chromium/deps/cygwin.git" + "@" +
+}
+
+deps_os = {
+  "win": {
+    Var("dart_root") + "/third_party/cygwin":
+        Var("chromium_git") + "/chromium/deps/cygwin.git" + "@" +
         "c89e446b273697fadf3a10ff1007a97c0b7de6df",
-    "condition": "checkout_win",
-  },
+    Var("dart_root") + "/third_party/crashpad/crashpad":
+        Var("chromium_git") + "/crashpad/crashpad.git" + "@" +
+        Var("crashpad_rev"),
+    Var("dart_root") + "/third_party/mini_chromium/mini_chromium":
+        Var("chromium_git") + "/chromium/mini_chromium" + "@" +
+        Var("minichromium_rev"),
+    Var("dart_root") + "/third_party/googletest":
+        Var("fuchsia_git") + "/third_party/googletest" + "@" +
+        Var("googletest_rev"),
+  }
 }
 
 # TODO(iposva): Move the necessary tools so that hooks can be run
