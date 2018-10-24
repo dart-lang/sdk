@@ -13,3 +13,4 @@
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
 !update.sh
+!/googletest

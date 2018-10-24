@@ -36,6 +36,11 @@ def GetBotUtils():
   return imp.load_source('bot_utils', os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
 
 
+def GetMinidumpUtils():
+  '''Dynamically load the tools/minidump.py python module.'''
+  return imp.load_source('minidump', os.path.join(DART_DIR, 'tools', 'minidump.py'))
+
+
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
                prerelease_patch):
@@ -762,90 +767,22 @@ class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
 
 
 class WindowsCoreDumpEnabler(object):
-  """Configure Windows Error Reporting to store crash dumps.
-
-  The documentation can be found here:
-  https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181.aspx
+  """This enabler assumes that Dart binary was built with Crashpad support.
+  In this case DART_CRASHPAD_CRASHES_DIR environment variable allows to
+  specify the location of Crashpad crashes database. Actual minidumps will
+  be written into reports subfolder of the database.
   """
-
-  WINDOWS_COREDUMP_FOLDER = r'crashes'
-
-  WER_NAME = r'SOFTWARE\Microsoft\Windows\Windows Error Reporting'
-  WER_LOCALDUMPS_NAME = r'%s\LocalDumps' % WER_NAME
-  IMGEXEC_NAME = (r'SOFTWARE\Microsoft\Windows NT\CurrentVersion'
-                  r'\Image File Execution Options\WerFault.exe')
+  CRASHPAD_DB_FOLDER = os.path.join(DART_DIR, r'crashes')
+  DUMPS_FOLDER = os.path.join(CRASHPAD_DB_FOLDER, r'reports')
 
   def __init__(self):
-    # Depending on whether we're in cygwin or not we use a different import.
-    try:
-      import winreg
-    except ImportError:
-      import _winreg as winreg
-    self.winreg = winreg
+    pass
 
   def __enter__(self):
-    # We want 32 and 64 bit coredumps to land in the same coredump directory.
-    for sam in [self.winreg.KEY_WOW64_64KEY, self.winreg.KEY_WOW64_32KEY]:
-      # In case WerFault.exe was prevented from executing, we fix it here.
-      # TODO(kustermann): Remove this once https://crbug.com/691971 is fixed.
-      self._prune_existing_key(
-          self.winreg.HKEY_LOCAL_MACHINE, self.IMGEXEC_NAME, sam)
-
-      # Create (or open) the WER keys.
-      with self.winreg.CreateKeyEx(
-            self.winreg.HKEY_LOCAL_MACHINE, self.WER_NAME, 0,
-            self.winreg.KEY_ALL_ACCESS | sam) as wer:
-        with self.winreg.CreateKeyEx(
-            self.winreg.HKEY_LOCAL_MACHINE, self.WER_LOCALDUMPS_NAME, 0,
-            self.winreg.KEY_ALL_ACCESS | sam) as wer_localdumps:
-          # Prevent any modal UI dialog & disable normal windows error reporting
-          # TODO(kustermann): Remove this once https://crbug.com/691971 is fixed
-          self.winreg.SetValueEx(wer, "DontShowUI", 0, self.winreg.REG_DWORD, 1)
-          self.winreg.SetValueEx(wer, "Disabled", 0, self.winreg.REG_DWORD, 1)
-
-          coredump_folder = os.path.join(
-              os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER)
-
-          # Create the directory which will contain the dumps
-          if not os.path.exists(coredump_folder):
-            os.mkdir(coredump_folder)
-
-          # Do full dumps (not just mini dumps), keep max 100 dumps and specify
-          # folder.
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpType", 0, self.winreg.REG_DWORD, 2)
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpCount", 0, self.winreg.REG_DWORD, 200)
-          self.winreg.SetValueEx(
-              wer_localdumps, "DumpFolder", 0, self.winreg.REG_EXPAND_SZ,
-              coredump_folder)
+    os.environ['DART_CRASHPAD_CRASHES_DIR'] = WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER
 
   def __exit__(self, *_):
-    # We remove the local dumps settings after running the tests.
-    for sam in [self.winreg.KEY_WOW64_64KEY, self.winreg.KEY_WOW64_32KEY]:
-      with self.winreg.CreateKeyEx(
-          self.winreg.HKEY_LOCAL_MACHINE, self.WER_LOCALDUMPS_NAME, 0,
-          self.winreg.KEY_ALL_ACCESS | sam) as wer_localdumps:
-        self.winreg.DeleteValue(wer_localdumps, 'DumpType')
-        self.winreg.DeleteValue(wer_localdumps, 'DumpCount')
-        self.winreg.DeleteValue(wer_localdumps, 'DumpFolder')
-
-  def _prune_existing_key(self, key, subkey, wowbit):
-    handle = None
-
-    # If the open fails, the key doesn't exist and it's fine.
-    try:
-      handle = self.winreg.OpenKey(
-          key, subkey, 0, self.winreg.KEY_READ | wowbit)
-    except OSError:
-      pass
-
-    # If the key exists then we delete it. If the deletion does not work, we
-    # let the exception through.
-    if handle:
-      handle.Close()
-      self.winreg.DeleteKeyEx(key, subkey, wowbit, 0)
-
+    del os.environ['DART_CRASHPAD_CRASHES_DIR']
 
 class BaseCoreDumpArchiver(object):
   """This class reads coredumps file written by UnexpectedCrashDumpArchiver
@@ -1012,8 +949,9 @@ class MacOSCoreDumpArchiver(PosixCoreDumpArchiver):
 
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
   def __init__(self, output_directory):
-    super(WindowsCoreDumpArchiver, self).__init__(os.path.join(
-        os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER), output_directory)
+    super(WindowsCoreDumpArchiver, self).__init__(
+        WindowsCoreDumpEnabler.DUMPS_FOLDER, output_directory)
+    self._dumps_by_pid = None
 
   def _cleanup(self):
     found = super(WindowsCoreDumpArchiver, self)._cleanup()
@@ -1023,34 +961,24 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
     return found
 
   def _find_coredump_file(self, crash):
-    pattern = os.path.join(self._search_dir, '*.%s.*' % crash.pid)
-    for core_filename in glob.glob(pattern):
-      return core_filename
+    if self._dumps_by_pid is None:
+      # If this function is invoked the first time then look through the directory
+      # that contains crashes for all dump files and collect pid -> filename
+      # mapping.
+      self._dumps_by_pid = {}
+      minidump = GetMinidumpUtils()
+      pattern = os.path.join(self._search_dir, '*.dmp')
+      for core_filename in glob.glob(pattern):
+        pid = minidump.GetProcessIdFromDump(core_filename)
+        if pid != -1:
+          self._dumps_by_pid[str(pid)] = core_filename
+    if crash.pid in self._dumps_by_pid:
+      return self._dumps_by_pid[crash.pid]
 
   def _report_missing_crashes(self, missing, throw=True):
     # Let's only print the debugging information and not throw. We'll do more
     # validation for werfault.exe and throw afterwards.
     super(WindowsCoreDumpArchiver, self)._report_missing_crashes(missing, throw=False)
-
-    # Let's check again for the image execution options for werfault. Maybe
-    # puppet came a long during testing and reverted our change.
-    try:
-      import winreg
-    except ImportError:
-      import _winreg as winreg
-    for wowbit in [winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY]:
-      try:
-         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                             WindowsCoreDumpEnabler.IMGEXEC_NAME,
-                             0,
-                             winreg.KEY_READ | wowbit) as handle:
-          raise Exception(
-              "Found werfault.exe was disabled. Probably by puppet. Too bad! "
-              "(For more information see https://crbug.com/691971)")
-      except OSError:
-        # If the open did not work the werfault.exe execution setting is as it
-        # should be.
-        pass
 
     if throw:
       missing_as_string = ', '.join([str(c) for c in missing])

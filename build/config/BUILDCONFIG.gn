@@ -269,6 +269,9 @@ if (is_debug) {
 }
 _native_compiler_configs += [ _default_optimization_config ]
 
+# zlib's BUILD.gn expects to have this config among default configs.
+_native_compiler_configs += [ "//build/config/compiler:default_optimization" ]
+
 # Symbol setup.
 _default_symbols_config = "//build/config/compiler:symbols"
 _native_compiler_configs += [ _default_symbols_config ]
