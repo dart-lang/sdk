@@ -9,11 +9,12 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions;
+    show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -61,21 +62,14 @@ class LibraryContext {
     // Fill the store with summaries required for the initial library.
     load(targetLibrary);
 
-    analysisContext = AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.useSdkCachePartition = false;
-    analysisContext.analysisOptions = analysisOptions;
-    analysisContext.declaredVariables = declaredVariables;
-    // TODO(scheglov) Why do we need to clone?
-    analysisContext.sourceFactory = sourceFactory.clone();
-
-    // TODO(scheglov) There are two (both bad) reasons we need this.
-    // 1. AnalysisContext.exists(source) used for URI_DOES_NOT_EXIST
-    // 2. AnalysisContext.computeNode() is used sometimes.
-    analysisContext.contentCache = new _ContentCacheWrapper(fsState);
+    analysisContext = new RestrictedAnalysisContext(
+      fsState,
+      analysisOptions,
+      sourceFactory,
+    );
 
     var provider = new InputPackagesResultProvider(analysisContext, store);
     resynthesizer = provider.resynthesizer;
-    analysisContext.resultProvider = provider;
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
@@ -96,9 +90,7 @@ class LibraryContext {
    *
    * Should be called once the [LibraryContext] is no longer needed.
    */
-  void dispose() {
-    analysisContext.dispose();
-  }
+  void dispose() {}
 
   /**
    * Return `true` if the given [uri] is known to be a library.
@@ -199,55 +191,5 @@ class LibraryContext {
   /// simplest way to get rid of the garbage is to throw away everything.
   bool pack() {
     return _linkedDataInBytes > _maxLinkedDataInBytes;
-  }
-}
-
-/**
- * [ContentCache] wrapper around [FileContentOverlay].
- */
-class _ContentCacheWrapper implements ContentCache {
-  final FileSystemState fsState;
-
-  _ContentCacheWrapper(this.fsState);
-
-  @override
-  void accept(ContentCacheVisitor visitor) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String getContents(Source source) {
-    return _getFileForSource(source).content;
-  }
-
-  @override
-  bool getExists(Source source) {
-    if (source.isInSystemLibrary) {
-      return true;
-    }
-    String uriStr = source.uri.toString();
-    if (fsState.externalSummaries != null &&
-        fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
-      return true;
-    }
-    return _getFileForSource(source).exists;
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    if (source.isInSystemLibrary) {
-      return 0;
-    }
-    return _getFileForSource(source).exists ? 0 : -1;
-  }
-
-  @override
-  String setContents(Source source, String contents) {
-    throw new UnimplementedError();
-  }
-
-  FileState _getFileForSource(Source source) {
-    String path = source.fullName;
-    return fsState.getFileForPath(path);
   }
 }

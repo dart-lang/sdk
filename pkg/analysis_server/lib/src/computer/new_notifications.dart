@@ -16,7 +16,8 @@ void new_sendDartNotificationNavigation(
   var unit = result.unit;
   if (unit != null) {
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
-    computeDartNavigation(collector, unit, null, null);
+    computeDartNavigation(
+        analysisServer.resourceProvider, collector, unit, null, null);
     collector.createRegions();
     var params = new protocol.AnalysisNavigationParams(
         result.path, collector.regions, collector.targets, collector.files);

@@ -1337,7 +1337,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
-    computeDartNavigation(collector, unit, null, null);
+    computeDartNavigation(resourceProvider, collector, unit, null, null);
     collector.createRegions();
     return new server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);

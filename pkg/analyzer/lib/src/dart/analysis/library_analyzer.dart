@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -44,7 +43,7 @@ class LibraryAnalyzer {
   final InheritanceManager2 _inheritance;
 
   final bool Function(Uri) _isLibraryUri;
-  final AnalysisContextImpl _context;
+  final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final TypeProvider _typeProvider;
 
@@ -94,57 +93,53 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    try {
-      _libraryElement = _resynthesizer
-          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-      _libraryScope = new LibraryScope(_libraryElement);
+    _libraryElement = _resynthesizer
+        .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    _libraryScope = new LibraryScope(_libraryElement);
 
-      _resolveDirectives(units);
+    _resolveDirectives(units);
 
+    units.forEach((file, unit) {
+      _resolveFile(file, unit);
+      _computePendingMissingRequiredParameters(file, unit);
+    });
+
+    units.values.forEach(_findConstants);
+    _computeConstants();
+
+    PerformanceStatistics.errors.makeCurrentWhile(() {
       units.forEach((file, unit) {
-        _resolveFile(file, unit);
-        _computePendingMissingRequiredParameters(file, unit);
+        _computeVerifyErrors(file, unit);
       });
+    });
 
-      units.values.forEach(_findConstants);
-      _computeConstants();
-
-      PerformanceStatistics.errors.makeCurrentWhile(() {
+    if (_analysisOptions.hint) {
+      PerformanceStatistics.hints.makeCurrentWhile(() {
         units.forEach((file, unit) {
-          _computeVerifyErrors(file, unit);
+          {
+            var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedLocalElementsList.add(visitor.usedElements);
+          }
+          {
+            var visitor =
+                new GatherUsedImportedElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedImportedElementsList.add(visitor.usedElements);
+          }
+        });
+        units.forEach((file, unit) {
+          _computeHints(file, unit);
         });
       });
+    }
 
-      if (_analysisOptions.hint) {
-        PerformanceStatistics.hints.makeCurrentWhile(() {
-          units.forEach((file, unit) {
-            {
-              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedLocalElementsList.add(visitor.usedElements);
-            }
-            {
-              var visitor =
-                  new GatherUsedImportedElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedImportedElementsList.add(visitor.usedElements);
-            }
-          });
-          units.forEach((file, unit) {
-            _computeHints(file, unit);
-          });
+    if (_analysisOptions.lint) {
+      PerformanceStatistics.lints.makeCurrentWhile(() {
+        units.forEach((file, unit) {
+          _computeLints(file, unit);
         });
-      }
-
-      if (_analysisOptions.lint) {
-        PerformanceStatistics.lints.makeCurrentWhile(() {
-          units.forEach((file, unit) {
-            _computeLints(file, unit);
-          });
-        });
-      }
-    } finally {
-      _context.dispose();
+      });
     }
 
     // Return full results.
@@ -404,6 +399,15 @@ class LibraryAnalyzer {
     return null;
   }
 
+  bool _isExistingSource(Source source) {
+    for (var file in _library.directReferencedFiles) {
+      if (file.uri == source.uri) {
+        return file.exists;
+      }
+    }
+    return false;
+  }
+
   /**
    * Return `true` if the given [source] is a library.
    */
@@ -499,7 +503,7 @@ class LibraryAnalyzer {
         // Validate that the part contains a part-of directive with the same
         // name or uri as the library.
         //
-        if (_context.exists(partSource)) {
+        if (_isExistingSource(partSource)) {
           _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
               partSource, partUnit, directivesToResolve);
           if (nameOrSource == null) {
@@ -647,7 +651,7 @@ class LibraryAnalyzer {
       FileState file, UriBasedDirectiveImpl directive) {
     Source source = directive.uriSource;
     if (source != null) {
-      if (_context.exists(source)) {
+      if (_isExistingSource(source)) {
         return;
       }
     } else {

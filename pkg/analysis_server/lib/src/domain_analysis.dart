@@ -183,7 +183,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       CompilationUnit unit = result?.unit;
       if (unit != null && result.exists) {
         NavigationCollectorImpl collector = new NavigationCollectorImpl();
-        computeDartNavigation(collector, unit, offset, length);
+        computeDartNavigation(
+            server.resourceProvider, collector, unit, offset, length);
         collector.createRegions();
         allResults.add(new AnalysisNavigationParams(
             file, collector.regions, collector.targets, collector.files));

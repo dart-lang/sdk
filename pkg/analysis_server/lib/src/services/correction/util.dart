@@ -46,7 +46,7 @@ void addLibraryImports(pathos.Context pathContext, SourceChange change,
       libraryDirective = directive;
     } else if (directive is ImportDirective) {
       importDirectives.add(new _ImportDirectiveInfo(
-          directive.uriContent, directive.offset, directive.end));
+          directive.uri.stringValue, directive.offset, directive.end));
     }
   }
 
