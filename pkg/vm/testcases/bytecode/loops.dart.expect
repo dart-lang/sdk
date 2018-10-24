@@ -33,8 +33,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -86,8 +84,6 @@ L2:
   Jump                 L3
 L1:
   Push                 r0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -147,8 +143,6 @@ L3:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -201,8 +195,6 @@ L2:
 L1:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
@@ -246,8 +238,6 @@ L1:
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -289,8 +279,6 @@ L2:
   Jump                 L2
 L1:
   Push                 r0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -334,8 +322,6 @@ L2:
   Jump                 L2
 L1:
   Push                 r0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

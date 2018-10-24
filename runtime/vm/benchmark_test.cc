@@ -101,7 +101,8 @@ BENCHMARK(CorelibCompileAll) {
   TransitionNativeToVM transition(thread);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
-  const Error& error = Error::Handle(Library::CompileAll());
+  const Error& error =
+      Error::Handle(Library::CompileAll(/*ignore_error=*/true));
   if (!error.IsNull()) {
     OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
                  error.ToErrorCString());

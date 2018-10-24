@@ -328,7 +328,7 @@ void _writeFromJsonCode(
     buffer.write("$valueCode");
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
-    buffer.write("new $type.fromJson($valueCode)");
+    buffer.write("$valueCode != null ? new $type.fromJson($valueCode) : null");
   } else if (_isList(type)) {
     // Lists need to be mapped so we can recursively call (they may need fromJson).
     buffer.write("$valueCode?.map((item) => ");
@@ -352,15 +352,23 @@ void _writeFromJsonCodeForUnion(
   for (var i = 0; i < types.length; i++) {
     final dartType = mapType([types[i]]);
 
+    // Dynamic matches all type checks, so only emit it if required.
     if (dartType != 'dynamic') {
       _writeTypeCheckCondition(buffer, valueCode, dartType);
-      buffer.write(' ? new $unionTypeName.t${i + 1}(');
-      _writeFromJsonCode(buffer, [dartType], valueCode); // Call recursively!
-      buffer.write(') : (');
+      buffer.write(' ? ');
+    }
+
+    // The code to construct a value with this "side" of the union.
+    buffer.write('new $unionTypeName.t${i + 1}(');
+    _writeFromJsonCode(buffer, [dartType], valueCode); // Call recursively!
+    buffer.write(')');
+
+    // If we output the type condition at the top, prepare for the next condition.
+    if (dartType != 'dynamic') {
+      buffer.write(' : (');
       hasIncompleteCondition = true;
       unclosedParens++;
     } else {
-      _writeFromJsonCode(buffer, [dartType], valueCode);
       hasIncompleteCondition = false;
     }
   }

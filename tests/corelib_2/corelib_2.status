@@ -60,7 +60,8 @@ int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
 [ $compiler == dartkb ]
-bigint_test: Skip # Switching from non-intrinsic version to intrinsics on the fly causes invariants "assert(d0 == d1)" and "assert(d == _digitsPerStep)" in bigint_patch.dart to break, which leads to flaky RuntimeError / Timeout failures.
+bigint_from_test: RuntimeError, Pass # Issue 34901
+bigint_test: Skip # Issue 34901
 
 [ $compiler == fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError

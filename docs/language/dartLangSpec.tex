@@ -63,6 +63,10 @@
 % - Eliminate all references to checked and production mode, Dart 2 does
 %   not have modes.
 % - Integrate feature specification on noSuchMethod forwarders.
+% - Specify that bound satisfaction in generic type alias type parameters
+%   must imply bound satisfaction everywhere in the body.
+% - Specify that super-bounded generic type alias applications must trigger
+%   a well-boundedness check on all types occurring in the denoted type.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -606,8 +610,8 @@ No state is ever shared between isolates.
 Isolates are created by spawning (\ref{spawningAnIsolate}).
 
 
-\section{Errors}
-\LMLabel{errors}
+\section{Errors and Warnings}
+\LMLabel{errorsAndWarnings}
 
 \LMHash{}
 This specification distinguishes between several kinds of errors.
@@ -647,6 +651,12 @@ When an isolate fails with a compile-time error as described above, control retu
 This is necessary so that the embedder can clean up resources etc.
 It is then the embedder's decision whether to terminate the isolate or not.
 }
+
+\LMHash{}
+{\em Compile-time warnings} are situations that do not preclude execution,
+but which are unlikely to be intended,
+and likely to cause bugs or inconveniences.
+A compile-time warning must be reported by a Dart compiler before the associated code is executed.
 
 \LMHash{}
 When this specification says that a {\em run-time error} occurs,
@@ -699,11 +709,11 @@ the same set of variable names in the same order,
 with the same type and modifiers.
 
 \LMHash{}
-An initialized variable declaration that contains one or more terms of the form
+An \syntax{<initializedVariableDeclaration>} that contains one or more terms of the form
 \syntax{<initializedIdentifier>}
-(\commentary{a declaration that declares two or more initialized variables})
+(\commentary{that is, a declaration that declares two or more initialized variables})
 is equivalent to multiple variable declarations declaring
-the same set of variable names in the same order,
+the same set of variable names, in the same order,
 with the same initialization, type, and modifiers.
 
 \commentary{
@@ -737,7 +747,8 @@ but in this situation \id{} is still a referencing identifier.
 }
 
 \LMHash{}
-An {\em initialized variable} is a variable whose declaring identifier is
+An {\em initializing variable declaration}
+is a variable declaration whose declaring identifier is
 immediately followed by `\code{=}' and an {\em initializing expression}.
 
 \LMHash{}
@@ -832,7 +843,8 @@ A mutable static class variable introduces a static setter into the immediately 
 A mutable instance variable introduces an instance setter into the immediately enclosing class.
 
 \LMHash{}
-Let $v$ be an initialized variable and let $e$ be the associated initializing expression.
+Let $v$ be variable declared in an initializing variable declaration,
+and let $e$ be the associated initializing expression.
 It is a compile-time error if the static type of $e$ is not assignable to the declared type of $v$.
 It is a compile-time error if a final instance variable whose declaration has an initializer expression
 is also initialized by a constructor, either by an initializing formal or an initializer list entry.
@@ -1499,7 +1511,7 @@ It is a compile-time error if an instance method $m_1$ overrides an instance mem
 \LMHash{}
 %% TODO(eernst): We need to use the concept of 'correctly overrides' rather than 'is a subtype of', e.g., to treat `void` correctly.
 It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
+It is a compile-time warning if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
 
 \commentary{
 A method declaration may conflict with other declarations
@@ -1605,7 +1617,7 @@ is not 0.
 It is a compile-time error to declare an optional parameter in an operator.
 
 \LMHash{}
-It is a compile-time error if the return type of a user-declared operator
+It is a compile-time warning if the return type of a user-declared operator
 \syntax{`[]='}
 is explicitly declared and not \VOID{}.
 
@@ -1993,10 +2005,12 @@ We could enforce this via the grammar, but we'd have to specify the evaluation r
 }
 
 \LMHash{}
-It is a compile-time error if a setter declares a return type other than \VOID{}.
+It is a compile-time warning if a setter declares a return type other than \VOID{}.
 It is a compile-time error if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$
 and the parameter type of $m_1$ is not a supertype of the parameter type of $m_2$.
-It is a compile-time error if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$,
+It is a compile-time warning if a class has
+a setter named $v=$ with argument type $T$ and
+a getter named $v$ with return type $S$,
 and $S$ may not be assigned to $T$.
 
 \commentary{
@@ -2358,13 +2372,17 @@ It is a compile-time error if $k$'s initializer list contains an initializer for
 It is a compile-time error if $k$ includes an initializing formal for a final variable $f$ whose declaration includes an initialization expression.
 
 \LMHash{}
-Each final instance variable $f$ declared in the immediately enclosing class must have an initializer in $k$'s initializer list unless it has already been initialized by one of the following means:
+Let $f$ be a final instance variable declared in
+the immediately enclosing class.
+A compile-time error occurs unless $f$ is initialized
+by one of the following means:
 \begin{itemize}
-\item Initialization at the declaration of $f$.
-\item Initialization by means of an initializing formal of $k$.
+\item $f$ is declared by an initializing variable declaration.
+\item $f$ is initialized by means of an initializing formal of $k$.
+\item $f$ has an initializer in $k$'s initializer list.
 \end{itemize}
 
-or a compile-time error occurs.
+\LMHash{}
 It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is not an instance variable declared in the immediately surrounding class.
 
 \commentary{
@@ -3524,11 +3542,6 @@ It is a compile-time error if $m \not= l$.
 It is a compile-time error if $T$ is not well-bounded
 (\ref{superBoundedTypes}).
 
-\commentary{
-That is, if the number of type arguments is wrong,
-or one or more of the upper bounds has been violated.
-}
-
 \LMHash{}
 Otherwise, said parameterized type \code{C<$T_1, \ldots,\ T_m$>} denotes an application of the generic class declared by $G$ to the type arguments $T_1, \ldots, T_m$.
 This yields a class $C'$ whose members are equivalent to those of a class declaration which is obtained from the declaration of $G$ by replacing each occurrence of $X_j$ by $T_j$.
@@ -3539,21 +3552,34 @@ Other properties of $C'$ such as the subtype relationships are specified elsewhe
 }
 
 \LMHash{}
-A {\em generic type alias} introduces a mapping from actual type argument lists to types.
-Consider a generic type alias declaration $G$ named \code{F} with formal type parameter declarations
+A {\em generic type alias}
+introduces a mapping from actual type argument lists to types.
+Consider a generic type alias declaration $G$ named \code{F}
+with formal type parameter declarations
 $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
-and right hand side $T$,
-and the parameterized type $S$ of the form \code{F<$T_1, \ldots,\ T_l$>}.
+%% TODO(eernst): 'right hand side' works only for a type alias using `=`.
+%% Explain what "the right hand side" means for an old-style declaration.
+and right hand side $T$.
 
 \LMHash{}
+Under the assumption that $X_1,\ \ldots,\ X_m$ are types such that
+$X_j <: B_j$, for all $j \in 1 .. m$,
+it is a compile-time error if any type in $T$ is not regular-bounded.
+
+\commentary{
+This means that the bounds declared for
+the formal type parameters of a generic type alias
+must be such that when they are satisfied,
+the bounds that pertain to any type in the body must also be satisfied.
+}
+
+\LMHash{}
+Let $G$, \code{F}, and $X_1,\ \ldots,\ X_m$ be as defined above,
+let $T_1,\ \ldots,\ T_l$ be types,
+and let $S$ be the parameterized type \code{F<$T_1, \ldots,\ T_l$>}.
 It is a compile-time error if $m \not= l$.
 It is a compile-time error if $S$ is not well-bounded
 (\ref{superBoundedTypes}).
-
-\commentary{
-That is, if the number of type arguments is wrong,
-or one or more of the upper bounds has been violated.
-}
 
 \LMHash{}
 Otherwise, said parameterized type
@@ -3563,10 +3589,38 @@ $T_1, \ldots, T_m$.
 This yields the type
 $[T_1/X_1, \ldots, T_m/X_m]T$.
 
+\rationale{
+The requirement that satisfaction of the bounds on
+the formal type parameters of a generic type alias $G$
+must imply satisfaction of all bounds pertaining to
+every type that occurs in the body of $G$
+limits the expressive power of generic type aliases.
+However, it would require the constraints on formal type parameters
+to be expressed in a much more powerful language
+if we were to allow a significantly larger set of types
+to be expressed using a generic type alias.
+}
+
 \commentary{
-A generic type alias does not correspond to any entities at run time,
-it is only an alias for an existing type.
-Hence, we may consider it as syntactic sugar which is eliminated before the program runs.
+For example, consider the following code:
+}
+
+\begin{dartCode}
+\CLASS{} A<X \EXTENDS{} \VOID{} \FUNCTION(num)> \{\}
+\TYPEDEF{} F<Y> = A<\VOID{} \FUNCTION(Y)> \FUNCTION(); // \comment{compile-time error}
+\end{dartCode}
+
+\commentary{
+There is no way to specify a bound on \code{Y} in the declaration of \code{F}
+which will ensure that all bounds on the right hand side are respected.
+This is because the actual requirement is that \code{Y} must be
+a \emph{supertype} of \code{num},
+but Dart does not support lower bounds for type parameters.
+The type \code{A<\VOID{} \FUNCTION(U)> \FUNCTION()}
+can still be specified explicitly
+for every \code{U} which satisfies the bounds declared by \code{A}.
+So the types can be expressed,
+they just cannot be abbreviated using a generic type alias.
 }
 
 \LMHash{}
@@ -3754,13 +3808,13 @@ if{}f one of the following conditions is true:
   for some $j \in 1 .. n$.
 
 \item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
-  where $G$ denotes a parameterized type alias such that
+  where $G$ denotes a generic type alias such that
   $j \in 1 .. n$,
   the formal type parameter corresponding to $S_j$ is covariant,
   and $S$ occurs in a covariant position in $S_j$.
 
 \item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
-  where $G$ denotes a parameterized type alias such that
+  where $G$ denotes a generic type alias such that
   $j \in 1 .. n$,
   the formal type parameter corresponding to $S_j$ is contravariant,
   and $S$ occurs in a contravariant position in $S_j$.
@@ -3802,13 +3856,13 @@ if{}f one of the following conditions is true:
   for some $j \in 1 .. n$.
 
 \item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
-  where $G$ denotes a parameterized type alias such that
+  where $G$ denotes a generic type alias such that
   $j \in 1 .. n$,
   the formal type parameter corresponding to $S_j$ is covariant,
   and $S$ occurs in a contravariant position in $S_j$.
 
 \item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
-  where $G$ denotes a parameterized type alias such that
+  where $G$ denotes a generic type alias such that
   $j \in 1 .. n$,
   the formal type parameter corresponding to $S_j$ is contravariant,
   and $S$ occurs in a covariant position in $S_j$.
@@ -3820,7 +3874,7 @@ if{}f one of the following conditions is true:
 
 \begin{itemize}
 \item $T$ is of the form \code{$G$<$S_1,\ \ldots,\ S_n$>}
-  where $G$ denotes a generic class or a parameterized type alias,
+  where $G$ denotes a generic class or a generic type alias,
   and $S$ occurs in an invariant position in $S_j$ for some $j \in 1 .. n$.
 
 \item $T$ is of the form
@@ -3846,7 +3900,7 @@ if{}f one of the following conditions is true:
   for some $i \in 1 .. m$.
 
 \item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
-  where $G$ denotes a parameterized type alias,
+  where $G$ denotes a generic type alias,
   $j \in 1 .. n$,
   the formal type parameter corresponding to $S_j$ is invariant,
   and $S$ occurs in $S_j$.
@@ -3905,9 +3959,16 @@ and so are \code{FutureOr<\VOID>} and \code{FutureOr<FutureOr<\DYNAMIC>{}>}.
 
 \LMHash{}
 Every type which is not a parameterized type is {\em regular-bounded}.
+
+\commentary{
+In particular, every non-generic class and every function type
+is a regular-bounded type.
+}
+
+\LMHash{}
 Let $T$ be a parameterized type of the form
 \code{$G$<$S_1, \ldots,\ S_n$>}
-where $G$ denotes a generic class or a parameterized type alias.
+where $G$ denotes a generic class or a generic type alias.
 Let
 \code{$X_1\ \EXTENDS\ B_1, \ldots,\ X_n\ \EXTENDS\ B_n$}
 be the formal type parameter declarations of $G$.
@@ -3917,14 +3978,14 @@ $[S_1/X_1, \ldots,\ S_n/X_n]B_j$,
 for all $j \in 1 .. n$.
 
 \commentary{
-This means that each actual type argument satisfies the declared upper
-bound for the corresponding formal type parameter.
+This means that regular-bounded types are those types
+that do not violate their type parameter bounds.
 }
 
 \LMHash{}
 Let $T$ be a parameterized type of the form
 \code{$G$<$S_1, \ldots,\ S_n$>}
-where $G$ denotes a generic class or a parameterized type alias.
+where $G$ denotes a generic class or a generic type alias.
 $T$ is {\em super-bounded} if{}f the following conditions are both true:
 
 \begin{itemize}
@@ -3939,6 +4000,11 @@ $T$ is {\em super-bounded} if{}f the following conditions are both true:
   It is then required that
   \code{$G$<$S'_1, \ldots,\ S'_n$>}
   is regular-bounded.
+  %
+  Moreover, if $G$ denotes a generic type alias with body $U$,
+  it is required that every type that occurs as a subterm of
+  $[S_1/X_1, \ldots,\ S_n/X_n]U$
+  is well-bounded (defined below).
 \end{itemize}
 
 \commentary{
@@ -3965,7 +4031,7 @@ when it is used in any of the following ways:
 \item $T$ is an immediate subterm of a redirecting factory constructor
   signature
  (\ref{redirectingFactoryConstructors}).
-\item $T$ is an immediate subterm of an \EXTENDS{} clause
+\item $T$ is an immediate subterm of an \EXTENDS{} clause of a class
   (\ref{superclasses}),
   or it occurs as an element in the type list of an \IMPLEMENTS{} clause
   (\ref{superinterfaces}),
@@ -4003,6 +4069,9 @@ even though the upper bound on the type variable \code{X} is \code{num}.
 \rationale{
 Super-bounded types enable the expression of informative common supertypes
 of some sets of types whose common supertypes would otherwise be much less informative.
+}
+
+\commentary{
 For example, consider the following class:
 }
 
@@ -4012,7 +4081,7 @@ For example, consider the following class:
 \}
 \end{dartCode}
 
-\rationale{
+\commentary{
 Without super-bounded types,
 there is no type $T$ which makes \code{C<$T$>} a common supertype of
 all types of the form \code{C<$S$>}
@@ -4023,12 +4092,14 @@ then that variable must use \code{Object} or another top type
 as its type annotation,
 which means that a member like \code{next} is not known to exist
 (which is what we mean by saying that the type is `less informative').
+}
 
+\rationale{
 We could introduce a notion of recursive (infinite) types, and express
 the least upper bound of all types of the form \code{C<$S$>} as
 some syntax whose meaning could be approximated by
 \code{C<C<C<C<$\ldots$>$\!$>$\!$>$\!$>}.
-
+%
 However, we expect that any such concept in Dart would incur a significant cost
 on developers and implementations in terms of added complexity and subtlety,
 so we have chosen not to do that.
@@ -4049,7 +4120,7 @@ at the point where the unfolding ends:
 If \code{c} has type \code{C<C<\DYNAMIC>{}>}
 then \code{c.next.next} has type \DYNAMIC{}
 and \code{c.next.next.whatever} has no compile-time error,
-but if \code{c} has type \code{C<C<\VOID>{}>} then
+but if \code{c} has type \code{C<C<\VOID>{}>} then already
 \code{Object x = c.next.next;} is a compile-time error.
 It is thus possible for developers to get a more or less strict treatment
 of expressions whose type proceeds beyond the given finite unfolding.
@@ -4485,6 +4556,8 @@ The null object is the sole instance of the built-in class \code{Null}.
 Attempting to instantiate \code{Null} causes a run-time error.
 It is a compile-time error for a class to extend, mix in or implement \code{Null}.
 The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
+\commentary{As such, it does not override the \code{==} operator inherited
+from the \code{Object} class.}
 
 \LMHash{}
 The static type of \NULL{} is the \code{Null} type.
@@ -4594,6 +4667,8 @@ It is a compile-time error for a class to extend, mix in or implement \code{int}
 It is a compile-time error for a class to extend, mix in or implement \code{double}.
 It is a compile-time error for any class other than \code{int} and \code{double} to extend, mix in or implement \code{num}.
 
+\LMHash{}
+The instances of \code{int} and \code{double} all override the \code{==} operator inherited from the \code{Object} class.
 
 \subsection{Booleans}
 \LMLabel{booleans}
@@ -4611,6 +4686,10 @@ They are the {\em boolean literals}.
 Both {\em true} and {\em false} are instances of the built-in class \code{bool},
 and there are no other objects that implement \code{bool}.
 It is a compile-time error for a class to extend, mix in or implement \code{bool}.
+
+\LMHash{}
+The \code{bool} class does not override the \code{==} operator inherited from
+the \code{Object} class.
 
 \LMHash{}
 Invoking the getter \code{runtimeType} on a boolean value returns the \code{Type} object that is the value of the expression \code{bool}.
@@ -4800,6 +4879,8 @@ It is a compile-time error if a non-raw string literal contains a character sequ
 \LMHash{}
 All string literals evaluate to instances of the built-in class \code{String}.
 It is a compile-time error for a class to extend, mix in or implement \code{String}.
+The \code{String} class overrides the \code{==} operator inherited from
+the \code{Object} class.
 The static type of a string literal is \code{String}.
 
 
@@ -4886,6 +4967,10 @@ representing the private identifier \code{\_\id} of the containing library.
 All occurrences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
+
+\LMHash{}
+The objects created by symbol literals all override
+the \code{==} operator inherited from the \code{Object} class.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not.
@@ -4979,6 +5064,10 @@ $o_{i+1}, 0 \le i < n$.
 The result of the evaluation is $a$.
 \end{itemize}
 
+\LMHash{}
+The objects created by list literals do not override
+the \code{==} operator inherited from the \code{Object} class.
+
 \commentary{
 Note that this document does not specify an order in which the elements are set.
 This allows for parallel assignments into the list if an implementation so desires.
@@ -5043,8 +5132,10 @@ It is a compile-time error if either a key or a value of an entry in a constant 
 It is a compile-time error if the key of an entry in a constant map literal is an instance of
 a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
 unless the key is a string or an integer,
-or the key expression is a literal symbol or
-an invocation of a constant constructor of class \code{Symbol}.
+or the key expression evaluates to an instance of the built-in
+class \code{Symbol} which was originally obtained by evaluation of a
+literal symbol or
+a constant invocation of a constructor of the \code{Symbol} class.
 % Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
 % `X` is not free.
 It is a compile-time error if a type argument of a constant map literal
@@ -5091,6 +5182,10 @@ The operator \syntax{`[]='} is invoked on $m$ with first argument $u_i$ and seco
 \item
 The result of the evaluation is $m$.
 \end{itemize}
+
+\LMHash{}
+The objects created by map literals do not override
+the \code{==} operator inherited from the \code{Object} class.
 
 \LMHash{}
 A run-time map literal
@@ -5832,7 +5927,7 @@ An isolate's memory is finite, as is the space available to its thread's call st
 It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
 
 \commentary{
-As discussed in section \ref{errors}, the handling of a suspended isolate is the responsibility of the embedder.
+As discussed in section \ref{errorsAndWarnings}, the handling of a suspended isolate is the responsibility of the embedder.
 }
 
 
@@ -6513,6 +6608,9 @@ which is an instance of a class whose interface is a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 corresponding to the signature in the function declaration $f$,
 using the current bindings of type variables, if any.
+If $f$ denotes a static method or top-level function,
+the corresponding class does not override the \code{==} operator
+inherited from the \code{Object} class.
 %
 An invocation of $o$ with a given argument list will bind actuals to formals
 in the same way as an invocation of $f$
@@ -7384,8 +7482,8 @@ Then, the variable $v$ is bound to $o$.
 If no error occurs, the value of the assignment expression is $o$.
 
 \commentary{
-If $v$ is a final variable, a compile-time error has occurred,
-but a type check may cause a dynamic error.
+If $v$ is a final variable, a compile-time error has occurred and execution is unspecified.
+But a program with no compile-time errors may incur a dynamic type error.
 }
 
 % add local functions per bug 23218
@@ -8815,9 +8913,11 @@ The type of a local variable with a declaration of one of the forms
 is \DYNAMIC{}.
 
 \LMHash{}
-Let $v$ be an initialized local variable and let $e$ be the associated initializing expression.
+Let $v$ be a local variable declared by an initializing variable declaration,
+and let $e$ be the associated initializing expression.
 It is a compile-time error if the static type of $e$ is not assignable to the type of $v$.
-It is a compile-time error if a local variable $v$ is final and $v$ is not an initialized variable.
+It is a compile-time error if a local variable $v$ is final,
+and the declaration of $v$ is not an initializing variable declaration.
 
 \commentary{
 It is also a compile-time error to assign to a final local variable
@@ -9366,8 +9466,10 @@ Note that the values of the expressions are known at compile time, and are indep
 It is a compile-time error if the class $C$ has an implementation of
 the operator \code{==} other than the one inherited from \code{Object},
 unless the expression evaluates to a string or an integer,
-or the expression is a literal symbol or
-an invocation of a constant constructor of class \code{Symbol}.
+or the expression evaluates to an instance of the built-in
+class \code{Symbol} which was initially obtained by evaluation of a
+literal symbol or
+a constant invocation of a constructor of the \code{Symbol} class.
 
 \rationale{
 The prohibition on user defined equality allows us to implement the switch efficiently for user defined types.
@@ -9493,7 +9595,7 @@ There are obviously situations where code does not fall through, and yet does no
 }
 
 \LMHash{}
-It is a compile-time error if all of the following conditions hold:
+It is a compile-time warning if all of the following conditions hold:
 \begin{itemize}
 \item The switch statement does not have a default clause.
 \item The static type of $e$ is an enumerated type with elements $\id_1, \ldots, \id_n$.
@@ -9501,7 +9603,7 @@ It is a compile-time error if all of the following conditions hold:
 \end{itemize}
 
 \commentary{
-In other words, an error will be raised if a switch statement over an enum is not exhaustive.
+In other words, a warning will be emitted if a switch statement over an enum is not exhaustive.
 }
 
 
@@ -9736,8 +9838,8 @@ In the case of a generator function, the value returned by the function is the i
 }
 
 \LMHash{}
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{};.
-It is a compile-time error if $f$ is neither a generator nor a generative constructor and either:
+Let $f$ be the function immediately enclosing a return statement of the form \code{\RETURN{};}.
+It is a compile-time warning if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 %% TODO(eernst): Integrating generalized-void.md, "may not be assigned
 %% to void" is useless. Update, also considering invalid_returns.md.
@@ -9747,7 +9849,8 @@ It is a compile-time error if $f$ is neither a generator nor a generative constr
 \end{itemize}
 
 \commentary{
-Hence, a compile-time error will not be raised if $f$ has no declared return type,
+Hence, a compile-time warning will not be raised if $f$ has no declared return type,
+%% TODO(eernst): Update when integrating generalized-void.md!
 since the return type would be \DYNAMIC{} and \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}.
 However, any synchronous non-generator function that declares a return type must return an expression explicitly.
 }
@@ -10436,7 +10539,7 @@ In contrast a library comprises both imports and their usage; the library is und
 }
 
 \LMHash{}
-It is a compile-time error to import two different libraries with the same name unless their name is the empty string.
+It is a compile-time warning to import two different libraries with the same name unless their name is the empty string.
 
 \commentary{
 A widely disseminated library should be given a name that will not conflict with other such libraries.
@@ -10903,6 +11006,8 @@ and the actual types of declarations
 
 \LMHash{}
 When types are reified as instances of the built-in class \code{Type},
+those objects override the \code{==} operator
+inherited from the \code{Object} class, so that
 two \code{Type} objects are equal according to operator \syntax{`=='}
 if{}f the corresponding types are subtypes of each other.
 

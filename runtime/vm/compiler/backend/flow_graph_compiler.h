@@ -872,10 +872,14 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
+
+  void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
+                                        intptr_t type_arguments_field_offset);
+
 #endif  // !defined(TARGET_ARCH_DBC)
 
-  void GenerateInlinedGetter(intptr_t offset);
-  void GenerateInlinedSetter(intptr_t offset);
+  void GenerateGetterIntrinsic(intptr_t offset);
+  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);

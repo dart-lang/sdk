@@ -3569,6 +3569,29 @@ enum E {
     verify([source]);
   }
 
+  test_methodCallTypeInference_mixinType() async {
+    Source source = addSource('''
+main() {
+  C<int> c = f();
+}
+
+class C<T> {}
+
+mixin M<T> on C<T> {}
+
+M<T> f<T>() => null;
+''');
+    var result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var main = result.unit.declarations[0] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var cDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var fInvocation =
+        cDeclaration.variables.variables[0].initializer as MethodInvocation;
+    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
+  }
+
   test_methodDeclaration_scope_signature() async {
     Source source = addSource(r'''
 const app = 0;

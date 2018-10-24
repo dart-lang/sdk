@@ -206,8 +206,6 @@ L2:
   AssertAssignable     0, CP#13
   InstanceCall         1, CP#14
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = Type #lib::A<#lib::D::foo3::T1>
@@ -269,8 +267,6 @@ Bytecode (version: stable) {
   PushConstant         CP#3
   AssertAssignable     0, CP#7
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsField #lib::D
@@ -292,8 +288,6 @@ class E<P extends core::String = core::String> extends core::Object {
 Bytecode (version: stable) {
   Entry                0
   CheckStack
-  PushNull
-  ReturnTOS
   PushNull
   ReturnTOS
 }
@@ -365,8 +359,6 @@ L2:
   PushNull
   PushConstant         CP#12
   AssertAssignable     0, CP#13
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

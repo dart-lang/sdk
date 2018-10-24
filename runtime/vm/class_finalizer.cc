@@ -3754,7 +3754,11 @@ void ClassFinalizer::ClearAllCode() {
   ProgramVisitor::VisitFunctions(&function_visitor);
 
   class ClearCodeClassVisitor : public ClassVisitor {
-    void Visit(const Class& cls) { cls.DisableAllocationStub(); }
+    void Visit(const Class& cls) {
+      if (cls.id() >= kNumPredefinedCids) {
+        cls.DisableAllocationStub();
+      }
+    }
   };
   ClearCodeClassVisitor class_visitor;
   ProgramVisitor::VisitClasses(&class_visitor);

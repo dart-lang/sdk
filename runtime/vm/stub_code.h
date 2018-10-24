@@ -175,6 +175,11 @@ class StubCode : public AllStatic {
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  static RawCode* GetBuildMethodExtractorStub();
+  static void GenerateBuildMethodExtractorStub(Assembler* assembler);
+#endif
+
   static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;

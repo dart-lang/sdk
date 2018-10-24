@@ -3983,7 +3983,7 @@ class Library : public Object {
   static RawLibrary* VMServiceLibrary();
 
   // Eagerly compile all classes and functions in the library.
-  static RawError* CompileAll();
+  static RawError* CompileAll(bool ignore_error = false);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Eagerly read all bytecode.
   static RawError* ReadAllBytecode();
@@ -4838,6 +4838,10 @@ class Code : public Object {
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
   static RawInstructions* InstructionsOf(const RawCode* code) {
     return code->ptr()->instructions_;
+  }
+
+  static uword EntryPoint(const RawCode* code) {
+    return Instructions::EntryPoint(InstructionsOf(code));
   }
 
   static intptr_t saved_instructions_offset() {

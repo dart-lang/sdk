@@ -768,7 +768,39 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
+    const Function& extracted_method,
+    intptr_t type_arguments_field_offset) {
+  // No frame has been setup here.
+  ASSERT(!__ constant_pool_allowed());
+  ASSERT(extracted_method.IsZoneHandle());
+
+  const Code& build_method_extractor = Code::ZoneHandle(
+      isolate()->object_store()->build_method_extractor_code());
+
+  const intptr_t stub_index = __ object_pool_wrapper().AddObject(
+      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t function_index = __ object_pool_wrapper().AddObject(
+      extracted_method, ObjectPool::Patchability::kNotPatchable);
+
+  // We use a custom pool register to preserve caller PP.
+  const Register kPoolReg = R0;
+
+  // R1 = extracted function
+  // R4 = offset of type argument vector (or 0 if class is not generic)
+  __ ldr(kPoolReg, FieldAddress(CODE_REG, Code::object_pool_offset()));
+  __ LoadFieldFromOffset(kPoolReg, CODE_REG, Code::object_pool_offset());
+  __ LoadImmediate(R4, type_arguments_field_offset);
+  __ LoadFieldFromOffset(R1, kPoolReg,
+                         ObjectPool::element_offset(function_index));
+  __ LoadFieldFromOffset(CODE_REG, kPoolReg,
+                         ObjectPool::element_offset(stub_index));
+  __ LoadFieldFromOffset(R0, CODE_REG,
+                         Code::entry_point_offset(Code::EntryKind::kUnchecked));
+  __ br(R0);
+}
+
+void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // LR: return address.
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
@@ -778,7 +810,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ ret();
 }
 
-void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
+void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // LR: return address.
   // SP+1: receiver.
   // SP+0: value.

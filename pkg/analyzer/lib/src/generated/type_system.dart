@@ -508,11 +508,15 @@ class GenericInferrer {
     //
     // We don't need undo logic here because if the classes don't match, nothing
     // is added to the constraint set.
-    if (guardedInterfaceSubtype(i1.superclass)) return true;
+    var superclass = i1.superclass;
+    if (superclass != null && guardedInterfaceSubtype(superclass)) return true;
     for (final parent in i1.interfaces) {
       if (guardedInterfaceSubtype(parent)) return true;
     }
     for (final parent in i1.mixins) {
+      if (guardedInterfaceSubtype(parent)) return true;
+    }
+    for (final parent in i1.superclassConstraints) {
       if (guardedInterfaceSubtype(parent)) return true;
     }
     return false;

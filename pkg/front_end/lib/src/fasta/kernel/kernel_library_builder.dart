@@ -25,7 +25,6 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         MapLiteral,
         Member,
-        MethodInvocation,
         Name,
         Procedure,
         ProcedureKind,
@@ -93,6 +92,8 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'kernel_builder.dart'
     show
@@ -1814,24 +1815,16 @@ class KernelLibraryBuilder
   }
 
   void checkBoundsInMethodInvocation(
-      MethodInvocation node, Class thisClass, TypeEnvironment typeEnvironment,
+      DartType receiverType,
+      TypeEnvironment typeEnvironment,
+      TypeInferrerImpl typeInferrer,
+      Name name,
+      Member interfaceTarget,
+      Arguments arguments,
+      int offset,
       {bool inferred = false}) {
     if (!loader.target.strongMode) return;
-    if (node.arguments.types.isEmpty) return;
-    DartType savedThisType = typeEnvironment.thisType;
-    if (thisClass != null) {
-      typeEnvironment.thisType = new InterfaceType(
-          thisClass,
-          thisClass.typeParameters
-              .map((p) => new TypeParameterType(p))
-              .toList());
-    }
-    DartType receiverType;
-    try {
-      receiverType = node.receiver.getStaticType(typeEnvironment);
-    } finally {
-      typeEnvironment.thisType = savedThisType;
-    }
+    if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> klassArguments;
     if (receiverType is InterfaceType) {
@@ -1845,15 +1838,14 @@ class KernelLibraryBuilder
       substitutionMap[klass.typeParameters[i]] = klassArguments[i];
     }
     // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
-    Member method =
-        typeEnvironment.hierarchy.getDispatchTarget(klass, node.name) ??
-            node.interfaceTarget;
+    Member method = typeEnvironment.hierarchy.getDispatchTarget(klass, name) ??
+        interfaceTarget;
     if (method == null || method is! Procedure) {
       return;
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
-    if (methodParameters.length != node.arguments.types.length) return;
+    if (methodParameters.length != arguments.types.length) return;
     List<TypeParameter> instantiatedMethodParameters =
         new List<TypeParameter>.filled(methodParameters.length, null);
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
@@ -1867,7 +1859,7 @@ class KernelLibraryBuilder
           substitute(methodParameters[i].bound, substitutionMap);
     }
     List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
-        instantiatedMethodParameters, node.arguments.types,
+        instantiatedMethodParameters, arguments.types,
         typedefInstantiations: typedefInstantiations);
     if (violations != null) {
       String targetName = "${klass.name}";
@@ -1878,7 +1870,7 @@ class KernelLibraryBuilder
         }
         targetName += ">";
       }
-      targetName += "::${node.name.name}";
+      targetName += "::${name.name}";
       for (int i = 0; i < violations.length; i += 3) {
         DartType argument = violations[i];
         TypeParameter variable = violations[i + 1];
@@ -1906,7 +1898,7 @@ class KernelLibraryBuilder
           }
         }
 
-        reportBoundViolation(message, node.fileOffset, variable);
+        reportBoundViolation(message, offset, variable);
       }
     }
   }

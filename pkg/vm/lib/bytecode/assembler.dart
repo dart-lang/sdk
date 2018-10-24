@@ -10,15 +10,19 @@ import 'dbc.dart';
 import 'exceptions.dart' show ExceptionsTable;
 
 class Label {
+  final bool allowsBackwardJumps;
   List<int> _jumps = <int>[];
   int offset = -1;
 
-  Label();
+  Label({this.allowsBackwardJumps: false});
 
   bool get isBound => offset >= 0;
 
   int jumpOperand(int jumpOffset) {
     if (isBound) {
+      if (offset <= jumpOffset && !allowsBackwardJumps) {
+        throw 'Backward jump to this label is not allowed';
+      }
       // Jump instruction takes an offset in DBC words.
       return (offset - jumpOffset) >> BytecodeAssembler.kLog2BytesPerBytecode;
     }
@@ -44,6 +48,7 @@ class BytecodeAssembler {
   final Uint32List _encodeBufferIn;
   final Uint8List _encodeBufferOut;
   final ExceptionsTable exceptionsTable = new ExceptionsTable();
+  bool isUnreachable = false;
 
   BytecodeAssembler._(this._encodeBufferIn, this._encodeBufferOut);
 
@@ -60,9 +65,15 @@ class BytecodeAssembler {
     for (int jumpOffset in jumps) {
       patchJump(jumpOffset, label.jumpOperand(jumpOffset));
     }
+    if (jumps.isNotEmpty || label.allowsBackwardJumps) {
+      isUnreachable = false;
+    }
   }
 
   void emitWord(int word) {
+    if (isUnreachable) {
+      return;
+    }
     _encodeBufferIn[0] = word; // TODO(alexmarkov): Which endianness to use?
     bytecode.addAll(_encodeBufferOut);
   }
@@ -145,8 +156,17 @@ class BytecodeAssembler {
     emitWord(_encode0(opcode));
   }
 
+  void _emitJumpBytecode(Opcode opcode, Label label) {
+    assert(isJump(opcode));
+    if (!isUnreachable) {
+      // Do not use label if not generating instruction.
+      emitWord(_encodeT(opcode, label.jumpOperand(offset)));
+    }
+  }
+
   void emitTrap() {
     emitWord(_encode0(Opcode.kTrap));
+    isUnreachable = true;
   }
 
   void emitDrop1() {
@@ -154,40 +174,40 @@ class BytecodeAssembler {
   }
 
   void emitJump(Label label) {
-    emitWord(_encodeT(Opcode.kJump, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJump, label);
+    isUnreachable = true;
   }
 
   void emitJumpIfNoAsserts(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfNoAsserts, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfNoAsserts, label);
   }
 
   void emitJumpIfNotZeroTypeArgs(Label label) {
-    emitWord(
-        _encodeT(Opcode.kJumpIfNotZeroTypeArgs, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfNotZeroTypeArgs, label);
   }
 
   void emitJumpIfEqStrict(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfEqStrict, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfEqStrict, label);
   }
 
   void emitJumpIfNeStrict(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfNeStrict, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfNeStrict, label);
   }
 
   void emitJumpIfTrue(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfTrue, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfTrue, label);
   }
 
   void emitJumpIfFalse(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfFalse, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfFalse, label);
   }
 
   void emitJumpIfNull(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfNull, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfNull, label);
   }
 
   void emitJumpIfNotNull(Label label) {
-    emitWord(_encodeT(Opcode.kJumpIfNotNull, label.jumpOperand(offset)));
+    _emitJumpBytecode(Opcode.kJumpIfNotNull, label);
   }
 
   void patchJump(int pos, int rt) {
@@ -198,6 +218,7 @@ class BytecodeAssembler {
 
   void emitReturnTOS() {
     emitWord(_encode0(Opcode.kReturnTOS));
+    isUnreachable = true;
   }
 
   void emitPush(int rx) {
@@ -306,6 +327,7 @@ class BytecodeAssembler {
 
   void emitThrow(int ra) {
     emitWord(_encodeA(Opcode.kThrow, ra));
+    isUnreachable = true;
   }
 
   void emitEntry(int rd) {

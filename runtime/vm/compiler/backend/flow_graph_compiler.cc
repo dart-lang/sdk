@@ -1115,35 +1115,57 @@ bool FlowGraphCompiler::TryIntrinsify() {
     // Though for implicit getters, which have only the receiver as parameter,
     // there are no checks necessary in any case and we can therefore intrinsify
     // them even in checked mode and strong mode.
-    if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
-      const Field& field = Field::Handle(function().accessor_field());
-      ASSERT(!field.IsNull());
-
-      // Only intrinsify getter if the field cannot contain a mutable double.
-      // Reading from a mutable double box requires allocating a fresh double.
-      if (field.is_instance() &&
-          (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
-        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-        GenerateInlinedGetter(field.Offset());
-        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-        return !isolate()->use_field_guards();
-      }
-      return false;
-    } else if (parsed_function().function().kind() ==
-               RawFunction::kImplicitSetter) {
-      if (!isolate()->argument_type_checks()) {
+    switch (parsed_function().function().kind()) {
+      case RawFunction::kImplicitGetter: {
         const Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
 
+        // Only intrinsify getter if the field cannot contain a mutable double.
+        // Reading from a mutable double box requires allocating a fresh double.
         if (field.is_instance() &&
-            (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+            (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-          GenerateInlinedSetter(field.Offset());
+          GenerateGetterIntrinsic(field.Offset());
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
         return false;
       }
+      case RawFunction::kImplicitSetter: {
+        if (!isolate()->argument_type_checks()) {
+          const Field& field = Field::Handle(function().accessor_field());
+          ASSERT(!field.IsNull());
+
+          if (field.is_instance() &&
+              (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+            SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
+            GenerateSetterIntrinsic(field.Offset());
+            SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
+            return !isolate()->use_field_guards();
+          }
+          return false;
+        }
+        break;
+      }
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+      case RawFunction::kMethodExtractor: {
+        auto& extracted_method = Function::ZoneHandle(
+            parsed_function().function().extracted_method_closure());
+        auto& klass = Class::Handle(extracted_method.Owner());
+        const intptr_t type_arguments_field_offset =
+            klass.NumTypeArguments() > 0
+                ? (klass.type_arguments_field_offset() - kHeapObjectTag)
+                : 0;
+
+        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
+        GenerateMethodExtractorIntrinsic(extracted_method,
+                                         type_arguments_field_offset);
+        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
+        return true;
+      }
+#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+      default:
+        break;
     }
   }
 

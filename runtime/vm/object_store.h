@@ -123,6 +123,7 @@ class ObjectPointerVisitor;
   RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
+  RW(Code, build_method_extractor_code)                                        \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, obfuscation_map)                                                   \

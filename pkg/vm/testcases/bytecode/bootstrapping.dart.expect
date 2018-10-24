@@ -136,8 +136,6 @@ L1:
   PushConstant         CP#0
   PushStatic           CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace
@@ -163,8 +161,6 @@ Bytecode (version: stable) {
   IndirectStaticCall   0, CP#0
   PushConstant         CP#3
   IndirectStaticCall   1, CP#2
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -220,8 +216,6 @@ Bytecode (version: stable) {
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 0, num-type-args 0, names []
@@ -235,8 +229,6 @@ Bytecode (version: stable) {
   CheckStack
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -326,8 +318,6 @@ L3:
   PushConstant         CP#0
   PushStatic           CP#0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::VMLibraryHooks::_cachedScript
@@ -384,8 +374,6 @@ Bytecode (version: stable) {
   Entry                0
   CheckStack
   PushConstant         CP#0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -474,7 +462,6 @@ L4:
   PushConstant         CP#9
   IndirectStaticCall   1, CP#8
   ReturnTOS
-  Jump                 L6
 L5:
   PushConstant         CP#11
   IndirectStaticCall   0, CP#10
@@ -484,9 +471,6 @@ L5:
   PushConstant         CP#12
   IndirectStaticCall   2, CP#2
   InstanceCall         2, CP#13
-  ReturnTOS
-L6:
-  PushNull
   ReturnTOS
 }
 ConstantPool {

@@ -85,7 +85,7 @@ instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
 invalid_type: TypeCheckError
 invocations: Fail
-issue34899: Crash
+issue34899: TypeCheckError
 literals: Fail
 map: Fail
 micro: Fail

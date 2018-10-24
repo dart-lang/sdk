@@ -150,6 +150,8 @@ a InstanceTypeError if the instance isn't of the class expected
 
 ### Core library changes
 
+*   Add `HashMap.fromEntries` and `LinkedHashmap.fromEntries` constructors.
+
 ### Dart VM
 
 ### Tool Changes

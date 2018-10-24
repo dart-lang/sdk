@@ -936,8 +936,6 @@ Closure CP#4 {
   LoadContextVar       0
   AddInt
   ReturnTOS
-  PushNull
-  ReturnTOS
 
 }
 
@@ -1131,8 +1129,6 @@ Bytecode (version: stable) {
   Push                 r0
   StoreFieldTOS        CP#5
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = Type #lib::D::T
@@ -1162,8 +1158,6 @@ Closure CP#4 {
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  ReturnTOS
-  PushNull
   ReturnTOS
 
 }
@@ -1204,11 +1198,6 @@ Bytecode (version: stable) {
   Drop1
   Push                 r0
   LoadContextVar       0
-  ReturnTOS
-  Push                 r0
-  LoadContextParent
-  PopLocal             r0
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -1460,8 +1449,6 @@ Bytecode (version: stable) {
   Push                 r5
   PopLocal             r4
   Push                 r4
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

@@ -9858,7 +9858,6 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
@@ -12464,7 +12463,7 @@ RawClass* KernelProgramInfo::InsertClass(Thread* thread,
   return result.raw();
 }
 
-RawError* Library::CompileAll() {
+RawError* Library::CompileAll(bool ignore_error /* = false */) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
@@ -12479,10 +12478,12 @@ RawError* Library::CompileAll() {
       cls = it.GetNextClass();
       error = cls.EnsureIsFinalized(thread);
       if (!error.IsNull()) {
+        if (ignore_error) continue;
         return error.raw();
       }
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
+        if (ignore_error) continue;
         return error.raw();
       }
     }
@@ -12500,6 +12501,7 @@ RawError* Library::CompileAll() {
     if (!func.HasCode()) {
       result = Compiler::CompileFunction(thread, func);
       if (result.IsError()) {
+        if (ignore_error) continue;
         return Error::Cast(result).raw();
       }
     }

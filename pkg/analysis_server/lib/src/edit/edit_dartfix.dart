@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
+import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analyzer.dart';
@@ -78,30 +77,36 @@ class EditDartFix {
     }
 
     // Get the desired lints
-    final LintRule preferMixin = Registry.ruleRegistry['prefer_mixin'];
-    if (preferMixin == null) {
-      return new Response.serverError(
-          request, 'Missing prefer_mixin lint', null);
-    }
+    final lintRules = Registry.ruleRegistry;
+
+    final preferMixin = lintRules['prefer_mixin'];
     final preferMixinFix = new PreferMixinFix(this);
     preferMixin.reporter = preferMixinFix;
+
+    final preferIntLiterals = lintRules['prefer_int_literals'];
+    final preferIntLiteralsFix = new PreferIntLiteralsFix(this);
+    preferIntLiterals?.reporter = preferIntLiteralsFix;
 
     // Setup
     final linters = <Linter>[
       preferMixin,
+      preferIntLiterals,
     ];
     final fixes = <LinterFix>[
       preferMixinFix,
+      preferIntLiteralsFix,
     ];
     final visitors = <AstVisitor>[];
     final registry = new NodeLintRegistry(false);
     for (Linter linter in linters) {
-      final visitor = linter.getVisitor();
-      if (visitor != null) {
-        visitors.add(visitor);
-      }
-      if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(registry);
+      if (linter != null) {
+        final visitor = linter.getVisitor();
+        if (visitor != null) {
+          visitors.add(visitor);
+        }
+        if (linter is NodeLintRule) {
+          (linter as NodeLintRule).registerNodeProcessors(registry);
+        }
       }
     }
     final AstVisitor astVisitor = visitors.isNotEmpty
@@ -149,23 +154,36 @@ class EditDartFix {
         }
         Source source = result.sourceFactory.forUri2(result.uri);
         for (Linter linter in linters) {
-          linter.reporter.source = source;
+          if (linter != null) {
+            linter.reporter.source = source;
+          }
         }
         if (astVisitor != null) {
           unit.accept(astVisitor);
         }
         unit.accept(linterVisitor);
+        for (LinterFix fix in fixes) {
+          await fix.applyLocalFixes(result);
+        }
       }
     }
 
     // Cleanup
     for (Linter linter in linters) {
-      linter.reporter = null;
+      if (linter != null) {
+        linter.reporter.source = null;
+        linter.reporter = null;
+      }
     }
 
     // Apply distributed fixes
+    if (preferIntLiterals == null) {
+      // TODO(danrubel): Remove this once linter rolled into sdk/third_party.
+      addRecommendation('*** Convert double literal not available'
+          ' because prefer_int_literal not found. May need to roll linter');
+    }
     for (LinterFix fix in fixes) {
-      await fix.applyFix();
+      await fix.applyRemainingFixes();
     }
 
     return new EditDartfixResult(descriptionOfFixes, otherRecommendations,
@@ -279,7 +297,11 @@ abstract class LinterFix implements ErrorReporter {
 
   LinterFix(this.dartFix);
 
-  Future<void> applyFix();
+  /// Apply fixes for the current compilation unit.
+  Future<void> applyLocalFixes(AnalysisResult result);
+
+  /// Apply any fixes remaining after analysis is complete.
+  Future<void> applyRemainingFixes();
 
   @override
   void reportError(AnalysisError error) {
@@ -326,59 +348,5 @@ abstract class LinterFix implements ErrorReporter {
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
     // ignored
-  }
-}
-
-class PreferMixinFix extends LinterFix {
-  final classesToConvert = new Set<Element>();
-
-  PreferMixinFix(EditDartFix dartFix) : super(dartFix);
-
-  @override
-  Future<void> applyFix() async {
-    for (Element elem in classesToConvert) {
-      await convertClassToMixin(elem);
-    }
-  }
-
-  Future<void> convertClassToMixin(Element elem) async {
-    AnalysisResult result =
-        await dartFix.server.getAnalysisResult(elem.source?.fullName);
-
-    for (CompilationUnitMember declaration in result.unit.declarations) {
-      if (declaration is ClassOrMixinDeclaration &&
-          declaration.name.name == elem.name) {
-        AssistProcessor processor = new AssistProcessor(
-            new EditDartFixAssistContext(
-                dartFix, elem.source, result.unit, declaration.name));
-        List<Assist> assists = await processor
-            .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
-        final location = dartFix.locationDescription(result, elem.nameOffset);
-        if (assists.isNotEmpty) {
-          for (Assist assist in assists) {
-            dartFix.addFix(
-                'Convert ${elem.displayName} to a mixin in $location',
-                assist.change);
-          }
-        } else {
-          // TODO(danrubel): If assists is empty, then determine why
-          // assist could not be performed and report that in the description.
-          dartFix.addRecommendation(
-              'Could not convert ${elem.displayName} to a mixin'
-              ' because the class contains a constructor in $location');
-        }
-      }
-    }
-  }
-
-  @override
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    TypeName type = node;
-    Element element = type.name.staticElement;
-    String filePath = element.source?.fullName;
-    if (filePath != null && dartFix.isIncluded(filePath)) {
-      classesToConvert.add(element);
-    }
   }
 }

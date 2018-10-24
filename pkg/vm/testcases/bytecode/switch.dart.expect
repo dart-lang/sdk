@@ -38,8 +38,6 @@ L3:
 L4:
   Push                 r0
   ReturnTOS
-  PushNull
-  ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
@@ -118,8 +116,6 @@ L3:
   PopLocal             r0
 L4:
   Push                 r0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {
@@ -205,8 +201,6 @@ L3:
   PushInt              33
   PopLocal             r0
   Push                 r0
-  ReturnTOS
-  PushNull
   ReturnTOS
 }
 ConstantPool {

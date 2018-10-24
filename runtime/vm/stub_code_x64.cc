@@ -158,6 +158,90 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
   __ ret();
 }
 
+// RBX: The extracted method.
+// RDX: The type_arguments_field_offset (or 0)
+void StubCode::GenerateBuildMethodExtractorStub(Assembler* assembler) {
+  Thread* thread = Thread::Current();
+  Zone* Z = thread->zone();
+  ObjectStore* object_store = thread->isolate()->object_store();
+
+  const auto& closure_class =
+      Class::ZoneHandle(Z, object_store->closure_class());
+  const auto& closure_allocation_stub =
+      Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
+
+  const intptr_t kReceiverOffset = compiler_frame_layout.param_end_from_fp + 1;
+
+  const auto& context_allocation_stub =
+      Code::ZoneHandle(StubCode::AllocateContext_entry()->code());
+
+  __ EnterStubFrame();
+
+  // Push type_arguments vector (or null)
+  Label no_type_args;
+  __ movq(RCX, Address(THR, Thread::object_null_offset()));
+  __ cmpq(RDX, Immediate(0));
+  __ j(EQUAL, &no_type_args, Assembler::kNearJump);
+  __ movq(RAX, Address(RBP, kWordSize * kReceiverOffset));
+  __ movq(RCX, Address(RAX, RDX, TIMES_1, 0));
+  __ Bind(&no_type_args);
+  __ pushq(RCX);
+
+  // Push extracted method.
+  __ pushq(RBX);
+
+  // Allocate context.
+  {
+    Label done, slow_path;
+    __ TryAllocateArray(kContextCid, Context::InstanceSize(1), &slow_path,
+                        Assembler::kFarJump,
+                        RAX,  // instance
+                        RSI,  // end address
+                        RDI);
+    __ movq(RSI, Address(THR, Thread::object_null_offset()));
+    __ movq(FieldAddress(RAX, Context::parent_offset()), RSI);
+    __ movq(FieldAddress(RAX, Context::num_variables_offset()), Immediate(1));
+    __ jmp(&done);
+
+    __ Bind(&slow_path);
+
+    __ LoadImmediate(/*num_vars=*/R10, Immediate(1));
+    __ LoadObject(CODE_REG, context_allocation_stub);
+    __ call(FieldAddress(CODE_REG, Code::entry_point_offset()));
+
+    __ Bind(&done);
+  }
+
+  // Store receiver in context
+  __ movq(RSI, Address(RBP, kWordSize * kReceiverOffset));
+  __ StoreIntoObject(RAX, FieldAddress(RAX, Context::variable_offset(0)), RSI);
+
+  // Push context.
+  __ pushq(RAX);
+
+  // Allocate closure.
+  __ LoadObject(CODE_REG, closure_allocation_stub);
+  __ call(FieldAddress(CODE_REG,
+                       Code::entry_point_offset(Code::EntryKind::kUnchecked)));
+
+  // Populate closure object.
+  __ popq(RCX);  // Pop context.
+  __ StoreIntoObject(RAX, FieldAddress(RAX, Closure::context_offset()), RCX);
+  __ popq(RCX);  // Pop extracted method.
+  __ StoreIntoObjectNoBarrier(
+      RAX, FieldAddress(RAX, Closure::function_offset()), RCX);
+  __ popq(RCX);  // Pop type argument vector.
+  __ StoreIntoObjectNoBarrier(
+      RAX, FieldAddress(RAX, Closure::instantiator_type_arguments_offset()),
+      RCX);
+  __ LoadObject(RCX, Object::empty_type_arguments());
+  __ StoreIntoObjectNoBarrier(
+      RAX, FieldAddress(RAX, Closure::delayed_type_arguments_offset()), RCX);
+
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
   GenerateSharedStub(assembler, /*save_fpu_registers=*/false,
                      &kNullErrorRuntimeEntry,
