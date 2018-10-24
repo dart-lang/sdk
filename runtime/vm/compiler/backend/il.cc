@@ -1600,10 +1600,6 @@ bool BlockEntryInstr::IsLoopHeader() const {
   return loop_info_ != nullptr && loop_info_->header() == this;
 }
 
-intptr_t BlockEntryInstr::NestingDepth() const {
-  return loop_info_ == nullptr ? 0 : loop_info_->NestingDepth();
-}
-
 // Helper to mutate the graph during inlining. This block should be
 // replaced with new_block as a predecessor of all of this block's
 // successors.  For each successor, the predecessors will be reordered

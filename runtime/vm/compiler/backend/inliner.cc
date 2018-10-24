@@ -254,7 +254,7 @@ struct InlinedInfo {
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
  public:
-  explicit CallSites(intptr_t threshold)
+  explicit CallSites(FlowGraph* flow_graph, intptr_t threshold)
       : inlining_depth_threshold_(threshold),
         static_calls_(),
         closure_calls_(),
@@ -264,14 +264,9 @@ class CallSites : public ValueObject {
     PolymorphicInstanceCallInstr* call;
     double ratio;
     const FlowGraph* caller_graph;
-    intptr_t nesting_depth;
     InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
-                     FlowGraph* flow_graph,
-                     intptr_t depth)
-        : call(call_arg),
-          ratio(0.0),
-          caller_graph(flow_graph),
-          nesting_depth(depth) {}
+                     FlowGraph* flow_graph)
+        : call(call_arg), ratio(0.0), caller_graph(flow_graph) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -279,14 +274,8 @@ class CallSites : public ValueObject {
     StaticCallInstr* call;
     double ratio;
     FlowGraph* caller_graph;
-    intptr_t nesting_depth;
-    StaticCallInfo(StaticCallInstr* value,
-                   FlowGraph* flow_graph,
-                   intptr_t depth)
-        : call(value),
-          ratio(0.0),
-          caller_graph(flow_graph),
-          nesting_depth(depth) {}
+    StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
+        : call(value), ratio(0.0), caller_graph(flow_graph) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -326,32 +315,6 @@ class CallSites : public ValueObject {
     instance_calls_.Clear();
   }
 
-  // Heuristic that maps the loop nesting depth to a static estimate of number
-  // of times code at that depth is executed (code at each higher nesting
-  // depth is assumed to execute 10x more often up to depth 3).
-  static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
-    switch (nesting_depth) {
-      case 0:
-        // Note that we use value 0, and not 1, i.e. any straightline code
-        // outside a loop is assumed to be very cold. With value 1, inlining
-        // inside loops is still favored over inlining inside straightline
-        // code, but for a method without loops, *all* call sites are inlined
-        // (potentially more performance, at the expense of larger code size).
-        // TODO(ajcbik): use 1 and fine tune other heuristics
-        return 0;
-      case 1:
-        return 10;
-      case 2:
-        return 100;
-      default:
-        return 1000;
-    }
-  }
-
-  // Computes the ratio for each call site in a method, defined as the
-  // number of times a call site is executed over the maximum number of
-  // times any call site is executed in the method. JIT uses actual call
-  // counts whereas AOT uses a static estimate based on nesting depth.
   void ComputeCallSiteRatio(intptr_t static_call_start_ix,
                             intptr_t instance_call_start_ix) {
     const intptr_t num_static_calls =
@@ -362,26 +325,21 @@ class CallSites : public ValueObject {
     intptr_t max_count = 0;
     GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const InstanceCallInfo& info =
-          instance_calls_[i + instance_call_start_ix];
-      intptr_t aggregate_count =
-          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
-                                : info.call->CallCount();
+      const intptr_t aggregate_count =
+          instance_calls_[i + instance_call_start_ix].call->CallCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
     GrowableArray<intptr_t> static_call_counts(num_static_calls);
     for (intptr_t i = 0; i < num_static_calls; ++i) {
-      const StaticCallInfo& info = static_calls_[i + static_call_start_ix];
       intptr_t aggregate_count =
-          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
-                                : info.call->CallCount();
+          static_calls_[i + static_call_start_ix].call->CallCount();
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
-    // Note that max_count can be 0 if none of the calls was executed.
+    // max_count can be 0 if none of the calls was executed.
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
       const double ratio =
           (max_count == 0)
@@ -446,18 +404,12 @@ class CallSites : public ValueObject {
     const bool inline_only_recognized_methods =
         (depth == inlining_depth_threshold_);
 
-    // In AOT, compute loop hierarchy.
-    if (FLAG_precompiled_mode) {
-      graph->GetLoopHierarchy();
-    }
-
     const intptr_t instance_call_start_ix = instance_calls_.length();
     const intptr_t static_call_start_ix = static_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
-      BlockEntryInstr* entry = block_it.Current();
-      const intptr_t depth = entry->NestingDepth();
-      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+           it.Advance()) {
         Instruction* current = it.Current();
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
@@ -465,7 +417,7 @@ class CallSites : public ValueObject {
           if (!inline_only_recognized_methods ||
               instance_call->IsSureToCallSingleRecognizedTarget() ||
               instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
-            instance_calls_.Add(InstanceCallInfo(instance_call, graph, depth));
+            instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
             // not recognized.
@@ -481,7 +433,7 @@ class CallSites : public ValueObject {
           if (!inline_only_recognized_methods ||
               static_call->function().IsRecognized() ||
               static_call->function().IsDispatcherOrImplicitAccessor()) {
-            static_calls_.Add(StaticCallInfo(static_call, graph, depth));
+            static_calls_.Add(StaticCallInfo(static_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
             // not recognized.
@@ -799,8 +751,8 @@ class CallSiteInliner : public ValueObject {
       return;
     }
     // Create two call site collections to swap between.
-    CallSites sites1(inlining_depth_threshold_);
-    CallSites sites2(inlining_depth_threshold_);
+    CallSites sites1(caller_graph_, inlining_depth_threshold_);
+    CallSites sites2(caller_graph_, inlining_depth_threshold_);
     CallSites* call_sites_temp = NULL;
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;

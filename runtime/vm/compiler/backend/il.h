@@ -1360,7 +1360,6 @@ class BlockEntryInstr : public Instruction {
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
   bool IsLoopHeader() const;
-  intptr_t NestingDepth() const;
 
   virtual BlockEntryInstr* GetBlock() { return this; }
 
