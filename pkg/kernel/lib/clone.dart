@@ -323,7 +323,8 @@ class CloneVisitor implements TreeVisitor {
   visitForInStatement(ForInStatement node) {
     var newVariable = clone(node.variable);
     return new ForInStatement(
-        newVariable, clone(node.iterable), clone(node.body));
+        newVariable, clone(node.iterable), clone(node.body),
+        isAsync: node.isAsync);
   }
 
   visitSwitchStatement(SwitchStatement node) {
