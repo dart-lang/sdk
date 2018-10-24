@@ -283,7 +283,6 @@ main() {
   test();
 }
 ''');
-    int index = 0;
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
@@ -291,7 +290,7 @@ test({@required int a, @required int bcd}) {}
 main() {
   test(a: null);
 }
-''', errorFilter: (error) => index++ == 0);
+''', errorFilter: (error) => error.message.contains("'a'"));
   }
 
   test_multiple_2of2() async {
@@ -304,7 +303,6 @@ main() {
   test();
 }
 ''');
-    int index = 0;
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
@@ -312,7 +310,7 @@ test({@required int a, @required int bcd}) {}
 main() {
   test(bcd: null);
 }
-''', errorFilter: (error) => index++ == 1);
+''', errorFilter: (error) => error.message.contains("'bcd'"));
   }
 
   test_single() async {
